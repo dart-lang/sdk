@@ -2099,8 +2099,6 @@ class _UnitResynthesizer {
         executableElement.parameters = parameters;
       }
     }
-    executableElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
-        executableElement, null, getCurrentTypeArguments(skipLevels: 1), false);
     {
       List<UnlinkedExecutable> unlinkedFunctions =
           serializedExecutable.localFunctions;

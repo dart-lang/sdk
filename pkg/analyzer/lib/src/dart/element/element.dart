@@ -3114,9 +3114,16 @@ abstract class ExecutableElementImpl extends ElementImpl
   }
 
   @override
-  FunctionType get type => _type;
+  FunctionType get type {
+    if (serializedExecutable != null) {
+      _type ??= new FunctionTypeImpl.elementWithNameAndArgs(
+          this, null, allEnclosingTypeParameterTypes, false);
+    }
+    return _type;
+  }
 
   void set type(FunctionType type) {
+    assert(serializedExecutable == null);
     _type = type;
   }
 
@@ -5260,6 +5267,14 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   }
 
   @override
+  List<TypeParameterType> get allEnclosingTypeParameterTypes {
+    if (isStatic) {
+      return const <TypeParameterType>[];
+    }
+    return super.allEnclosingTypeParameterTypes;
+  }
+
+  @override
   String get displayName {
     String displayName = super.displayName;
     if ("unary-" == displayName) {
@@ -6374,6 +6389,14 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
+  List<TypeParameterType> get allEnclosingTypeParameterTypes {
+    if (isStatic) {
+      return const <TypeParameterType>[];
+    }
+    return super.allEnclosingTypeParameterTypes;
+  }
+
+  @override
   PropertyAccessorElement get correspondingGetter {
     if (isGetter || variable == null) {
       return null;
@@ -6998,9 +7021,31 @@ class TypeParameterElementImpl extends ElementImpl
  */
 abstract class TypeParameterizedElementMixin
     implements TypeParameterizedElement, ElementImpl {
-  List<TypeParameterType> _typeParameterTypes;
-  List<TypeParameterElement> _typeParameterElements;
   int _nestingLevel;
+  List<TypeParameterElement> _typeParameterElements;
+  List<TypeParameterType> _typeParameterTypes;
+  List<TypeParameterType> _allTypeParameterTypes;
+
+  /**
+   * Return all type parameter types of the element that encloses element.
+   * Not `null`, but might be empty for top-level and static class members.
+   */
+  List<TypeParameterType> get allEnclosingTypeParameterTypes {
+    return enclosingTypeParameterContext?.allTypeParameterTypes ??
+        const <TypeParameterType>[];
+  }
+
+  /**
+   * Return all type parameter types of this element.
+   */
+  List<TypeParameterType> get allTypeParameterTypes {
+    if (_allTypeParameterTypes == null) {
+      _allTypeParameterTypes = <TypeParameterType>[];
+      _allTypeParameterTypes.addAll(typeParameterTypes);
+      _allTypeParameterTypes.addAll(allEnclosingTypeParameterTypes);
+    }
+    return _allTypeParameterTypes;
+  }
 
   /**
    * Get the type parameter context enclosing this one, if any.
