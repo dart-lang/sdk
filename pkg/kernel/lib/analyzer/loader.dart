@@ -245,9 +245,12 @@ class AnalyzerLoader implements ReferenceLevelLoader {
   }
 
   ast.Name _nameOfMember(Element element) {
-    // Use 'displayName' to avoid a trailing '=' for setters.
-    return new ast.Name(
-        element.displayName, getLibraryReference(element.library));
+    // Use 'displayName' to avoid a trailing '=' for setters and 'name' to
+    // ensure unary minus is called 'unary-'.
+    String name = element is PropertyAccessorElement
+        ? element.displayName
+        : element.name;
+    return new ast.Name(name, getLibraryReference(element.library));
   }
 
   void ensureLibraryIsLoaded(ast.Library node) {
