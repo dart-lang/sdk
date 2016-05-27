@@ -259,6 +259,7 @@ io/test_extension_test: Skip # Platform.executable
 io/named_pipe_script_test: Skip # Platform.executable
 io/regress_7679_test: Skip # Platform.executable
 io/process_*: Skip # Most use Platform.executable
+packages_file_test: Skip # Platform.executable
 
 [ $runtime == dart_precompiled || $runtime == dart_app || $mode == product ]
 debugger/*: Skip
