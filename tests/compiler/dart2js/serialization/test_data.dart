@@ -308,6 +308,14 @@ class S {
 class C = S with M;
 ''',
       }),
+
+  const Test('Import mirrors, thus checking import paths', const {
+    'main.dart': '''
+import 'dart:mirrors';
+main() {}
+''',
+  },
+      expectedWarningCount: 1),
 ];
 
 class Test {

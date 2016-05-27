@@ -846,8 +846,10 @@ abstract class ClassElementMixin
   void ensureResolved(Resolution resolution) {
     if (!_isResolved) {
       _isResolved = true;
-      class_members.MembersCreator
-          .computeClassMembersByName(resolution, this, Identifiers.call);
+      // TODO(johnniwinther): Avoid eager computation of all members. `call` is
+      // always needed, but the remaining should be computed on-demand or on
+      // type instantiation.
+      class_members.MembersCreator.computeAllClassMembers(resolution, this);
       resolution.registerClass(this);
     }
   }

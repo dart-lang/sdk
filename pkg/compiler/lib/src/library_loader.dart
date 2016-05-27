@@ -1390,8 +1390,6 @@ class _LoadedLibraries implements LoadedLibraries {
       suffixChainMap[library] = const <Link<Uri>>[];
       List<Link<Uri>> suffixes = [];
       if (targetUri != canonicalUri) {
-        LibraryDependencyNode node = nodeMap[library];
-
         /// Process the import (or export) of [importedLibrary].
         void processLibrary(LibraryElement importedLibrary) {
           bool suffixesArePrecomputed =
@@ -1422,12 +1420,12 @@ class _LoadedLibraries implements LoadedLibraries {
           }
         }
 
-        for (ImportLink import in node.imports.reverse()) {
+        for (ImportElement import in library.imports) {
           processLibrary(import.importedLibrary);
           if (aborted) return;
         }
-        for (LibraryElement exportedLibrary in node.exports.reverse()) {
-          processLibrary(exportedLibrary);
+        for (ExportElement export in library.exports) {
+          processLibrary(export.exportedLibrary);
           if (aborted) return;
         }
       } else {
