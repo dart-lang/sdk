@@ -4,10 +4,8 @@
 
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
 import "dart:convert" show JSON;
 import "package:path/path.dart" as p;
-import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 
 main() async {
@@ -22,6 +20,7 @@ main() async {
   await test("http: no resolution", "%http/main.dart",
     http: {"main": testMain},
     expect: {
+      "iroot": "%http/packages/",
       // "foo": null,
       "foo/": "%http/packages/foo/",
       "foo/bar": "%http/packages/foo/bar",
@@ -246,14 +245,14 @@ Future test(String name, String main,
        "pconf":   null,
        "proot":   null,
        "iconf":   null,
-       "iconf":   null,
+       "iroot":   null,
        // "foo":   null,
        "foo/":    null,
        "foo/bar": null,
        "foo.x":  "qux",
     }..addAll(expect);
     match(JSON.decode(output), expects, fixPaths, name);
-  } catch (e) {
+  } catch (e, s) {
     // Unexpected error calling runDart or parsing the result.
     // Report it and continue.
     print("ERROR running $name: $e\n$s");
