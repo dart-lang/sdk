@@ -11,9 +11,10 @@ import 'dart:io';
 
 ArgParser argParser = new ArgParser()
   ..addFlag('basic', help: 'Measure the basic implementation', negatable: false)
-  ..addOption('cycle', abbr: 'c',
+  ..addOption('cycle',
+      abbr: 'c',
       help: 'Build N copies of the class hierarchy and cycle queries '
-      'between them',
+          'between them',
       defaultsTo: '1');
 
 String usage = '''
@@ -175,10 +176,37 @@ main(List<String> args) {
     var classHierarchy = getClassHierarchy();
     int classId = rnd.nextInt(classHierarchy.classes.length);
     Class classNode = classHierarchy.classes[classId];
-    for (var _ in classHierarchy.getDispatchTargets(classNode)) {
-    }
+    for (var _ in classHierarchy.getDispatchTargets(classNode)) {}
   }
   int dispatchAllTargetsTime = watch.elapsedMicroseconds;
+
+  // Measure getInterfaceMember and getInterfaceMembers.
+  watch.reset();
+  for (int i = 0; i < numQueryTrials; i++) {
+    var classHierarchy = getClassHierarchy();
+    int classId = rnd.nextInt(classHierarchy.classes.length);
+    Class classNode = classHierarchy.classes[classId];
+    classHierarchy.getInterfaceMember(classNode, new Name('toString'));
+  }
+  int interfaceToStringTime = watch.elapsedMicroseconds;
+
+  watch.reset();
+  for (int i = 0; i < numQueryTrials; i++) {
+    var classHierarchy = getClassHierarchy();
+    int classId = rnd.nextInt(classHierarchy.classes.length);
+    Class classNode = classHierarchy.classes[classId];
+    classHierarchy.getInterfaceMember(classNode, new Name('getFloo'));
+  }
+  int interfaceGenericGetTime = watch.elapsedMicroseconds;
+
+  watch.reset();
+  for (int i = 0; i < numQueryTrials; i++) {
+    var classHierarchy = getClassHierarchy();
+    int classId = rnd.nextInt(classHierarchy.classes.length);
+    Class classNode = classHierarchy.classes[classId];
+    for (var _ in classHierarchy.getInterfaceMembers(classNode)) {}
+  }
+  int interfaceAllTargetsTime = watch.elapsedMicroseconds;
 
   // Estimate overhead from test case generation.
   watch.reset();
@@ -192,6 +220,9 @@ main(List<String> args) {
   dispatchToStringTime -= dispatchTargetNoise;
   dispatchGenericGetTime -= dispatchTargetNoise;
   dispatchAllTargetsTime -= dispatchTargetNoise;
+  interfaceToStringTime -= dispatchTargetNoise;
+  interfaceGenericGetTime -= dispatchTargetNoise;
+  interfaceAllTargetsTime -= dispatchTargetNoise;
 
   String dispatchToStringPerSecond =
       perSecond(dispatchToStringTime, numQueryTrials);
@@ -199,6 +230,13 @@ main(List<String> args) {
       perSecond(dispatchGenericGetTime, numQueryTrials);
   String dispatchAllTargetsPerSecond =
       perSecond(dispatchAllTargetsTime, numQueryTrials);
+
+  String interfaceToStringPerSecond =
+      perSecond(interfaceToStringTime, numQueryTrials);
+  String interfaceGetPerSecond =
+      perSecond(interfaceGenericGetTime, numQueryTrials);
+  String interfaceAllTargetsPerSecond =
+      perSecond(interfaceAllTargetsTime, numQueryTrials);
 
   var classHierarchy = getClassHierarchy();
   List<int> depth = new List(classHierarchy.classes.length);
@@ -229,13 +267,16 @@ main(List<String> args) {
 classes: $numberOfClasses
 build.cold: $coldBuildTime ms
 build.hot:  $hotBuildTime ms
-query.isSubclassOf:                $subclassPerSecond
-query.isSubmixtureOf:              $submixturePerSecond
-query.isSubtypeOf:                 $subtypePerSecond
-query.getClassAsInstanceOf:        $asInstanceOfPerSecond
-query.getDispatchTarget(toString): $dispatchToStringPerSecond
-query.getDispatchTarget(getFloo):  $dispatchGetPerSecond
-query.getDispatchTargets.iterate:  $dispatchAllTargetsPerSecond
+query.isSubclassOf:                 $subclassPerSecond
+query.isSubmixtureOf:               $submixturePerSecond
+query.isSubtypeOf:                  $subtypePerSecond
+query.getClassAsInstanceOf:         $asInstanceOfPerSecond
+query.getDispatchTarget(toString):  $dispatchToStringPerSecond
+query.getDispatchTarget(getFloo):   $dispatchGetPerSecond
+query.getDispatchTargets.iterate:   $dispatchAllTargetsPerSecond
+query.getInterfaceMember(toString): $interfaceToStringPerSecond
+query.getInterfaceMember(getFloo):  $interfaceGetPerSecond
+query.getInterfaceMembers.iterate:  $interfaceAllTargetsPerSecond
 isSubtypeOf.expense-histogram: $expenseHistogram
 isSubtypeOf.compression-ratio: ${classHierarchy.getCompressionRatio()}
 asInstanceOf.table-size: ${classHierarchy.getSuperTypeHashTableSize()}

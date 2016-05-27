@@ -62,24 +62,23 @@ class ClassHierarchy {
     return _infoFor[class_].directImplementers.isNotEmpty;
   }
 
-  /// Returns the instantiation of [supertype] that is implemented by [type],
-  /// or `null` if [type] does not implement [supertype] at all.
-  InterfaceType getClassAsInstanceOf(Class type, Class supertype) {
-    if (identical(type, supertype)) return type.thisType;
-    _ClassInfo info = _infoFor[type];
-    _ClassInfo superInfo = _infoFor[supertype];
+  /// Returns the instantiation of [superclass] that is implemented by [class_],
+  /// or `null` if [class_] does not implement [superclass] at all.
+  InterfaceType getClassAsInstanceOf(Class class_, Class superclass) {
+    if (identical(class_, superclass)) return class_.thisType;
+    _ClassInfo info = _infoFor[class_];
+    _ClassInfo superInfo = _infoFor[superclass];
     if (!info.isSubtypeOf(superInfo)) return null;
-    if (supertype.typeParameters.isEmpty) return supertype.rawType;
-    return info.genericSuperTypes[supertype];
+    if (superclass.typeParameters.isEmpty) return superclass.rawType;
+    return info.genericSuperTypes[superclass];
   }
 
-  /// Returns the instantiation of [supertype] that is implemented by [type],
-  /// or `null` if [type] does not implement [supertype] at all.
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class supertype) {
-    InterfaceType castedType = getClassAsInstanceOf(type.classNode, supertype);
+  /// Returns the instantiation of [superclass] that is implemented by [type],
+  /// or `null` if [type] does not implement [superclass] at all.
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass) {
+    InterfaceType castedType = getClassAsInstanceOf(type.classNode, superclass);
     if (castedType == null) return null;
-    return substitutePairwise(
-        castedType, type.classNode.typeParameters, type.typeArguments);
+    return substituteThisType(castedType, type);
   }
 
   /// Returns the instance member that would respond to a dynamic dispatch of
@@ -115,6 +114,28 @@ class ClassHierarchy {
   List<Member> getDispatchTargets(Class class_, {bool setters: false}) {
     _ClassInfo info = _infoFor[class_];
     return setters ? info.implementedSetters : info.implementedGettersAndCalls;
+  }
+
+  /// Returns the possibly abstract interface member of [class_] with the given
+  /// [name].
+  ///
+  /// If [setters] is `false`, only fields, methods, and getters with that name
+  /// will be found.  If [setters] is `true`, only non-final fields and setters
+  /// will be found.
+  ///
+  /// If multiple members with that name are inherited and not overidden, the
+  /// member from the first declared supertype is returned.
+  Member getInterfaceMember(Class class_, Name name, {bool setter: false}) {
+    List<Member> list = getInterfaceMembers(class_, setters: setter);
+    return _findMemberByName(list, name);
+  }
+
+  /// Returns the list of members denoting the interface for [class_], which
+  /// may include abstract members.
+  ///
+  /// See [getInterfaceMember].
+  List<Member> getInterfaceMembers(Class class_, {bool setters: false}) {
+    return _buildInterfaceMembers(class_, _infoFor[class_], setters: setters);
   }
 
   ClassHierarchy._internal(Program program, int numberOfClasses)
@@ -224,13 +245,47 @@ class ClassHierarchy {
         _inheritMembers(info.declaredSetters, inheritedSetters);
   }
 
+  List<Member> _buildInterfaceMembers(Class classNode, _ClassInfo info,
+      {bool setters}) {
+    List<Member> members =
+        setters ? info.interfaceSetters : info.interfaceGettersAndCalls;
+    if (members != null) return members;
+    members = <Member>[];
+    for (Procedure member in classNode.mixin.procedures) {
+      if (member.isStatic) continue;
+      if (setters != member.isSetter) continue;
+      members.add(member);
+    }
+    for (Field member in classNode.mixin.fields) {
+      if (member.isStatic) continue;
+      if (setters && member.isFinal) continue;
+      members.add(member);
+    }
+    members.sort(_compareMembers);
+    void inheritFrom(InterfaceType type) {
+      if (type == null) return;
+      List<Member> inherited = _buildInterfaceMembers(type.classNode,
+          _infoFor[type.classNode], setters: setters);
+      members = _inheritMembers(members, inherited);
+    }
+    inheritFrom(classNode.supertype);
+    inheritFrom(classNode.mixedInType);
+    classNode.implementedTypes.forEach(inheritFrom);
+    if (setters) {
+      info.interfaceSetters = members;
+    } else {
+      info.interfaceGettersAndCalls = members;
+    }
+    return members;
+  }
+
   /// Computes the list of implemented members, based on the declared instance
   /// members and inherited instance members.
   ///
-  /// Both lists are sorted by name beforehand.
+  /// Both lists must be sorted by name beforehand.
   List<Member> _inheritMembers(List<Member> declared, List<Member> inherited) {
     List<Member> result = <Member>[]
-        ..length = declared.length + inherited.length;
+      ..length = declared.length + inherited.length;
     // Since both lists are sorted, we can fuse them like in merge sort.
     int storeIndex = 0;
     int i = 0, j = 0;
@@ -606,6 +661,9 @@ class _ClassInfo {
   /// Non-final instance fields and setters implemented by this class
   /// (declared or inherited).
   List<Member> implementedSetters;
+
+  List<Member> interfaceGettersAndCalls;
+  List<Member> interfaceSetters;
 
   _ClassInfo(this.classNode);
 }

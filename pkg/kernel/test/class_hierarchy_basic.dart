@@ -19,6 +19,10 @@ class BasicClassHierarchy implements ClassHierarchy {
   final Map<Class, Map<Name, Member>> gettersAndCalls =
       <Class, Map<Name, Member>>{};
   final Map<Class, Map<Name, Member>> setters = <Class, Map<Name, Member>>{};
+  final Map<Class, Map<Name, Member>> interfaceGettersAndCalls =
+      <Class, Map<Name, Member>>{};
+  final Map<Class, Map<Name, Member>> interfaceSetters =
+      <Class, Map<Name, Member>>{};
   final List<Class> classes = <Class>[];
   final Map<Class, int> classIndex = <Class, int>{};
 
@@ -28,6 +32,7 @@ class BasicClassHierarchy implements ClassHierarchy {
         buildSuperTypeSets(classNode);
         buildSuperTypeInstantiations(classNode);
         buildDispatchTable(classNode);
+        buildInterfaceTable(classNode);
       }
     }
   }
@@ -98,6 +103,38 @@ class BasicClassHierarchy implements ClassHierarchy {
     }
   }
 
+  void buildInterfaceTable(Class node) {
+    if (interfaceGettersAndCalls.containsKey(node)) return;
+    interfaceGettersAndCalls[node] = <Name, Member>{};
+    interfaceSetters[node] = <Name, Member>{};
+    void inheritFrom(InterfaceType type) {
+      if (type == null) return;
+      buildInterfaceTable(type.classNode);
+      interfaceGettersAndCalls[node]
+          .addAll(interfaceGettersAndCalls[type.classNode]);
+      interfaceSetters[node].addAll(interfaceSetters[type.classNode]);
+    }
+    node.implementedTypes.reversed.forEach(inheritFrom);
+    inheritFrom(node.mixedInType);
+    inheritFrom(node.supertype);
+    // Overwrite map entries with declared members.
+    for (Procedure procedure in node.mixin.procedures) {
+      if (procedure.isStatic) continue;
+      if (procedure.kind == ProcedureKind.Setter) {
+        interfaceSetters[node][procedure.name] = procedure;
+      } else {
+        interfaceGettersAndCalls[node][procedure.name] = procedure;
+      }
+    }
+    for (Field field in node.mixin.fields) {
+      if (field.isStatic) continue;
+      interfaceGettersAndCalls[node][field.name] = field;
+      if (!field.isFinal) {
+        interfaceSetters[node][field.name] = field;
+      }
+    }
+  }
+
   bool isSubclassOf(Class subtype, Class supertype) {
     return superclasses[subtype].contains(supertype);
   }
@@ -122,6 +159,18 @@ class BasicClassHierarchy implements ClassHierarchy {
     return setters
         ? this.setters[class_].values
         : gettersAndCalls[class_].values;
+  }
+
+  Member getInterfaceMember(Class class_, Name name, {bool setter: false}) {
+    return setter
+        ? interfaceSetters[class_][name]
+        : interfaceGettersAndCalls[class_][name];
+  }
+
+  Iterable<Member> getInterfaceMembers(Class class_, {bool setters: false}) {
+    return setters
+        ? interfaceSetters[class_].values
+        : interfaceGettersAndCalls[class_].values;
   }
 
   int getClassIndex(Class node) {

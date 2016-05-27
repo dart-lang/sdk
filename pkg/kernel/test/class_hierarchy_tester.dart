@@ -61,19 +61,20 @@ void testClassHierarchyOnProgram(Program program, {bool verbose: false}) {
   List<Name> nameList = names.toList();
   progress = 0;
   for (var classNode in classHierarchy.classes) {
-    Iterable<Name> candidateNames =
-        [basic.gettersAndCalls[classNode].keys,
-         basic.setters[classNode].keys,
-         pickRandom(nameList, 100)].expand((x) => x);
+    Iterable<Name> candidateNames = [
+      basic.gettersAndCalls[classNode].keys,
+      basic.setters[classNode].keys,
+      pickRandom(nameList, 100)
+    ].expand((x) => x);
     for (Name name in candidateNames) {
       Member expectedGetter =
           basic.getDispatchTarget(classNode, name, setter: false);
       Member expectedSetter =
           basic.getDispatchTarget(classNode, name, setter: true);
-      Member actualGetter = classHierarchy
-          .getDispatchTarget(classNode, name, setter: false);
-      Member actualSetter = classHierarchy
-          .getDispatchTarget(classNode, name, setter: true);
+      Member actualGetter =
+          classHierarchy.getDispatchTarget(classNode, name, setter: false);
+      Member actualSetter =
+          classHierarchy.getDispatchTarget(classNode, name, setter: true);
       if (actualGetter != expectedGetter) {
         fail('lookupGetter($classNode, $name) returned '
             '$actualGetter but should be $expectedGetter');
@@ -85,7 +86,37 @@ void testClassHierarchyOnProgram(Program program, {bool verbose: false}) {
     }
     ++progress;
     if (verbose) {
-      stdout.write('\rEnvironment queries ${100 * progress ~/ total}%');
+      stdout.write('\rDispatch queries ${100 * progress ~/ total}%');
+    }
+  }
+  progress = 0;
+  for (var classNode in classHierarchy.classes) {
+    Iterable<Name> candidateNames = [
+      basic.interfaceGettersAndCalls[classNode].keys,
+      basic.interfaceSetters[classNode].keys,
+      pickRandom(nameList, 100)
+    ].expand((x) => x);
+    for (Name name in candidateNames) {
+      Member expectedGetter =
+          basic.getInterfaceMember(classNode, name, setter: false);
+      Member expectedSetter =
+          basic.getInterfaceMember(classNode, name, setter: true);
+      Member actualGetter =
+          classHierarchy.getInterfaceMember(classNode, name, setter: false);
+      Member actualSetter =
+          classHierarchy.getInterfaceMember(classNode, name, setter: true);
+      if (actualGetter != expectedGetter) {
+        fail('getInterfaceMember($classNode, $name) returned '
+            '$actualGetter but should be $expectedGetter');
+      }
+      if (actualSetter != expectedSetter) {
+        fail('getInterfaceMember($classNode, $name, setter: true) '
+            'returned $actualSetter but should be $expectedSetter');
+      }
+    }
+    ++progress;
+    if (verbose) {
+      stdout.write('\rInterface queries ${100 * progress ~/ total}%');
     }
   }
   if (verbose) {
