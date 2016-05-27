@@ -51,16 +51,6 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
 
   bool get checkPropagatedTypes => true;
 
-  /**
-   * Derived classes can override this getter to return `true` in order to
-   * cause certain checks to be skipped if they are known to fail with
-   * AST-based type inference.
-   *
-   * TODO(paulberry): remove this flag once AST-based type inference is fully
-   * working.
-   */
-  bool get skipBrokenAstInference => false;
-
   void addLibrary(String uri) {
     otherLibrarySources.add(context.sourceFactory.forUri(uri));
   }
@@ -1111,10 +1101,8 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     VariableElementImpl resynthesizedActual =
         getActualElement(resynthesized, desc);
     VariableElementImpl originalActual = getActualElement(original, desc);
-    if (!skipBrokenAstInference) {
-      compareFunctionElements(resynthesizedActual.initializer,
-          originalActual.initializer, '$desc initializer');
-    }
+    compareFunctionElements(resynthesizedActual.initializer,
+        originalActual.initializer, '$desc initializer');
     if (originalActual is ConstVariableElement) {
       Element oEnclosing = original.enclosingElement;
       if (oEnclosing is ClassElement && oEnclosing.isEnum) {

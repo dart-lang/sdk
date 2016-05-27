@@ -47,9 +47,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   bool get mayCheckTypesOfLocals => false;
 
   @override
-  bool get skipBrokenAstInference => true;
-
-  @override
   void addFile(String content, {String name: '/main.dart'}) {
     addLibrarySource(name, content);
   }
