@@ -99,6 +99,8 @@ digraph G {
   GenerateLintsTask -> LINTS
   HINTS -> LibraryUnitErrorsTask
   HINTS [shape=box]
+  IGNORE_INFO -> DartErrorsTask
+  IGNORE_INFO [shape=box]
   IMPORTED_LIBRARIES -> BuildDirectiveElementsTask
   IMPORTED_LIBRARIES -> ReadyLibraryElement2Task
   IMPORTED_LIBRARIES -> ReadyLibraryElement5Task
@@ -189,7 +191,6 @@ digraph G {
   MODIFICATION_TIME -> VerifyUnitTask
   MODIFICATION_TIME [shape=box]
   PARSED_UNIT -> BuildCompilationUnitElementTask
-  PARSED_UNIT -> DartErrorsTask
   PARSED_UNIT [shape=box]
   PARSE_ERRORS -> dartErrorsForSource
   PARSE_ERRORS [shape=box]
@@ -322,6 +323,7 @@ digraph G {
   SOURCE_KIND [shape=box]
   STRONG_MODE_ERRORS -> LibraryUnitErrorsTask
   STRONG_MODE_ERRORS [shape=box]
+  ScanDartTask -> IGNORE_INFO
   ScanDartTask -> LINE_INFO
   ScanDartTask -> SCAN_ERRORS
   ScanDartTask -> TOKEN_STREAM
