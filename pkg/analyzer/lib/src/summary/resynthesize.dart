@@ -1545,6 +1545,13 @@ class _ResynthesizerContext implements ResynthesizerContext {
   }
 
   @override
+  FunctionElementImpl buildVariableInitializer(
+      VariableElementImpl variable, UnlinkedExecutable serializedInitializer) {
+    return _unitResynthesizer.buildVariableInitializer(
+        variable, serializedInitializer);
+  }
+
+  @override
   DartType resolveLinkedType(
       int slot, TypeParameterizedElementMixin typeParameterContext) {
     return _unitResynthesizer.buildLinkedType(slot, typeParameterContext);
@@ -2124,20 +2131,6 @@ class _UnitResynthesizer {
         executableElement.labels = localLabels;
       }
     }
-    {
-      List<UnlinkedVariable> unlinkedVariables =
-          serializedExecutable.localVariables;
-      int length = unlinkedVariables.length;
-      if (length != 0) {
-        List<LocalVariableElementImpl> localVariables =
-            new List<LocalVariableElementImpl>(length);
-        for (int i = 0; i < length; i++) {
-          localVariables[i] =
-              buildLocalVariable(unlinkedVariables[i], executableElement);
-        }
-        executableElement.localVariables = localVariables;
-      }
-    }
     currentTypeParameters.removeLast();
   }
 
@@ -2246,32 +2239,6 @@ class _UnitResynthesizer {
   }
 
   /**
-   * Resynthesize a [LocalVariableElement].
-   */
-  LocalVariableElement buildLocalVariable(UnlinkedVariable serializedVariable,
-      ExecutableElementImpl enclosingExecutable) {
-    LocalVariableElementImpl element;
-    if (serializedVariable.initializer?.bodyExpr != null &&
-        serializedVariable.isConst) {
-      ConstLocalVariableElementImpl constElement =
-          new ConstLocalVariableElementImpl.forSerialized(
-              serializedVariable, enclosingExecutable);
-      element = constElement;
-      constElement.constantInitializer = _buildConstExpression(
-          enclosingExecutable, serializedVariable.initializer.bodyExpr);
-    } else {
-      element = new LocalVariableElementImpl.forSerialized(
-          serializedVariable, enclosingExecutable);
-    }
-    if (serializedVariable.visibleOffset != 0) {
-      element.setVisibleRange(
-          serializedVariable.visibleOffset, serializedVariable.visibleLength);
-    }
-    buildVariableCommonParts(element, serializedVariable);
-    return element;
-  }
-
-  /**
    * Resynthesize a [ParameterElement].
    */
   ParameterElement buildParameter(
@@ -2320,7 +2287,6 @@ class _UnitResynthesizer {
           parameterTypeElement, null, getCurrentTypeArguments(), false);
       parameterTypeElement.type = parameterElement.type;
     }
-    buildVariableInitializer(parameterElement, serializedParameter.initializer);
     return parameterElement;
   }
 
@@ -2515,7 +2481,6 @@ class _UnitResynthesizer {
         element = new TopLevelVariableElementImpl.forSerialized(
             unlinkedVariable, unit);
       }
-      buildVariableCommonParts(element, unlinkedVariable);
       variablesData.variables[i] = element;
       // implicit accessors
       variablesData.implicitAccessors.add(buildImplicitGetter(element));
@@ -2545,7 +2510,6 @@ class _UnitResynthesizer {
         element = new FieldElementImpl.forSerialized(
             serializedVariable, enclosingClass);
       }
-      buildVariableCommonParts(element, serializedVariable);
       element.static = serializedVariable.isStatic;
       holder.addField(element);
       buildImplicitAccessors(element, holder);
@@ -2554,18 +2518,10 @@ class _UnitResynthesizer {
   }
 
   /**
-   * Handle the parts that are common to variables.
+   * If the given [serializedInitializer] is not `null`, return the
+   * corresponding [FunctionElementImpl], otherwise return `null`.
    */
-  void buildVariableCommonParts(
-      VariableElementImpl element, UnlinkedVariable serializedVariable) {
-    buildVariableInitializer(element, serializedVariable.initializer);
-  }
-
-  /**
-   * If the given [serializedInitializer] is not `null`, create the
-   * corresponding [FunctionElementImpl] and set it for the [variable].
-   */
-  void buildVariableInitializer(
+  FunctionElementImpl buildVariableInitializer(
       VariableElementImpl variable, UnlinkedExecutable serializedInitializer) {
     if (serializedInitializer == null) {
       return null;
@@ -2573,7 +2529,7 @@ class _UnitResynthesizer {
     FunctionElementImpl initializerElement =
         buildLocalFunction(serializedInitializer, variable);
     initializerElement.synthetic = true;
-    variable.initializer = initializerElement;
+    return initializerElement;
   }
 
   /**

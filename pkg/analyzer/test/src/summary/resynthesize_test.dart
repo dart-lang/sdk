@@ -1033,7 +1033,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         expect(resynthesized.element.type, same(resynthesized));
       }
       expect(resynthesized.typeArguments.length, original.typeArguments.length,
-          reason: desc);
+          reason: '$desc typeArguments.length');
       for (int i = 0; i < resynthesized.typeArguments.length; i++) {
         if (resynthesized.typeArguments[i].isDynamic &&
             original.typeArguments[i] is TypeParameterType) {

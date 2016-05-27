@@ -1615,6 +1615,25 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
   ConstLocalVariableElementImpl.forSerialized(UnlinkedVariable unlinkedVariable,
       ExecutableElementImpl enclosingExecutable)
       : super.forSerialized(unlinkedVariable, enclosingExecutable);
+
+  @override
+  Expression get constantInitializer {
+    if (_unlinkedVariable != null) {
+      UnlinkedConst defaultValue = _unlinkedVariable.initializer?.bodyExpr;
+      if (defaultValue == null) {
+        return null;
+      }
+      return super.constantInitializer ??= enclosingUnit.resynthesizerContext
+          .buildExpression(this, defaultValue);
+    }
+    return super.constantInitializer;
+  }
+
+  @override
+  void set constantInitializer(Expression initializer) {
+    assert(_unlinkedVariable == null);
+    super.constantInitializer = initializer;
+  }
 }
 
 /**
@@ -2842,7 +2861,7 @@ abstract class ExecutableElementImpl extends ElementImpl
    * A list containing all of the local variables defined within this executable
    * element.
    */
-  List<LocalVariableElement> _localVariables = LocalVariableElement.EMPTY_LIST;
+  List<LocalVariableElement> _localVariables;
 
   /**
    * A list containing all of the parameters defined by this executable element.
@@ -3039,13 +3058,32 @@ abstract class ExecutableElementImpl extends ElementImpl
   }
 
   @override
-  List<LocalVariableElement> get localVariables => _localVariables;
+  List<LocalVariableElement> get localVariables {
+    if (serializedExecutable != null && _localVariables == null) {
+      List<UnlinkedVariable> unlinkedVariables =
+          serializedExecutable.localVariables;
+      int length = unlinkedVariables.length;
+      if (length != 0) {
+        List<LocalVariableElementImpl> localVariables =
+            new List<LocalVariableElementImpl>(length);
+        for (int i = 0; i < length; i++) {
+          localVariables[i] = new LocalVariableElementImpl.forSerializedFactory(
+              unlinkedVariables[i], this);
+        }
+        _localVariables = localVariables;
+      } else {
+        _localVariables = const <LocalVariableElement>[];
+      }
+    }
+    return _localVariables ?? const <LocalVariableElement>[];
+  }
 
   /**
    * Set the local variables defined within this executable element to the given
    * [variables].
    */
   void set localVariables(List<LocalVariableElement> variables) {
+    assert(serializedExecutable == null);
     for (LocalVariableElement variable in variables) {
       (variable as LocalVariableElementImpl).enclosingElement = this;
     }
@@ -5187,6 +5225,22 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
       ExecutableElementImpl enclosingExecutable)
       : super.forSerialized(unlinkedVariable, enclosingExecutable);
 
+  /**
+   * Initialize using the given serialized information.
+   */
+  factory LocalVariableElementImpl.forSerializedFactory(
+      UnlinkedVariable unlinkedVariable,
+      ExecutableElementImpl enclosingExecutable) {
+    if (unlinkedVariable.isConst &&
+        unlinkedVariable.initializer?.bodyExpr != null) {
+      return new ConstLocalVariableElementImpl.forSerialized(
+          unlinkedVariable, enclosingExecutable);
+    } else {
+      return new LocalVariableElementImpl.forSerialized(
+          unlinkedVariable, enclosingExecutable);
+    }
+  }
+
   @override
   String get identifier {
     int enclosingOffset =
@@ -5206,6 +5260,13 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
 
   @override
   SourceRange get visibleRange {
+    if (_unlinkedVariable != null) {
+      if (_unlinkedVariable.visibleLength == 0) {
+        return null;
+      }
+      return new SourceRange(
+          _unlinkedVariable.visibleOffset, _unlinkedVariable.visibleLength);
+    }
     if (_visibleRangeLength < 0) {
       return null;
     }
@@ -5231,6 +5292,7 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
    * [offset] with the given [length].
    */
   void setVisibleRange(int offset, int length) {
+    assert(_unlinkedVariable == null);
     _visibleRangeOffset = offset;
     _visibleRangeLength = length;
   }
@@ -5832,6 +5894,24 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   }
 
   @override
+  FunctionElement get initializer {
+    if (_unlinkedVariable != null && _initializer == null) {
+      _initializer = enclosingUnit.resynthesizerContext
+          .buildVariableInitializer(this, _unlinkedVariable.initializer);
+    }
+    return super.initializer;
+  }
+
+  /**
+   * Set the function representing this variable's initializer to the given
+   * [function].
+   */
+  void set initializer(FunctionElement function) {
+    assert(_unlinkedVariable == null);
+    super.initializer = function;
+  }
+
+  @override
   bool get isConst {
     if (_unlinkedVariable != null) {
       return _unlinkedVariable.isConst;
@@ -6028,6 +6108,24 @@ class ParameterElementImpl extends VariableElementImpl
   void set hasImplicitType(bool hasImplicitType) {
     assert(_unlinkedParam == null);
     super.hasImplicitType = hasImplicitType;
+  }
+
+  @override
+  FunctionElement get initializer {
+    if (_unlinkedParam != null && _initializer == null) {
+      _initializer = enclosingUnit.resynthesizerContext
+          .buildVariableInitializer(this, _unlinkedParam.initializer);
+    }
+    return super.initializer;
+  }
+
+  /**
+   * Set the function representing this variable's initializer to the given
+   * [function].
+   */
+  void set initializer(FunctionElement function) {
+    assert(_unlinkedParam == null);
+    super.initializer = function;
   }
 
   @override
@@ -6700,6 +6798,15 @@ abstract class ResynthesizerContext {
    * Build explicit top-level variables.
    */
   UnitExplicitTopLevelVariables buildTopLevelVariables();
+
+  /**
+   * If the given [serializedInitializer] is not `null`, create the
+   * corresponding [FunctionElementImpl] and set it for the [variable].
+   *
+   * TODO(scheglov) get rid of this when all parts are lazy
+   */
+  FunctionElementImpl buildVariableInitializer(
+      VariableElementImpl variable, UnlinkedExecutable serializedInitializer);
 
   /**
    * Build the appropriate [DartType] object corresponding to a slot id in the
