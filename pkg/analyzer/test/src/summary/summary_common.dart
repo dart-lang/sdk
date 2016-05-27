@@ -7101,6 +7101,51 @@ final v = ((a, b) => 42)(1, 2);
         operators: [UnlinkedConstOperation.pushParameter], strings: ['x']);
   }
 
+  test_expr_inClosure_refersToParam_methodCall() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('var v = (x) => x.f();');
+    _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
+        isValidConst: false,
+        operators: [
+          UnlinkedConstOperation.pushParameter,
+          UnlinkedConstOperation.invokeMethod
+        ],
+        strings: [
+          'x',
+          'f'
+        ],
+        ints: [
+          0,
+          0
+        ]);
+  }
+
+  test_expr_inClosure_refersToParam_methodCall_prefixed() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable =
+        serializeVariableText('var v = (x) => x.y.f();');
+    _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
+        isValidConst: false,
+        operators: [
+          UnlinkedConstOperation.pushParameter,
+          UnlinkedConstOperation.extractProperty,
+          UnlinkedConstOperation.invokeMethod
+        ],
+        strings: [
+          'x',
+          'y',
+          'f'
+        ],
+        ints: [
+          0,
+          0
+        ]);
+  }
+
   test_expr_inClosure_refersToParam_outOfScope() {
     if (skipNonConstInitializers) {
       return;
@@ -7125,6 +7170,86 @@ final v = ((a, b) => 42)(1, 2);
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, null, 'x',
               expectedKind: ReferenceKind.topLevelPropertyAccessor)
+        ]);
+  }
+
+  test_expr_inClosure_refersToParam_prefixedIdentifier() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('var v = (x) => x.y;');
+    _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
+        operators: [
+          UnlinkedConstOperation.pushParameter,
+          UnlinkedConstOperation.extractProperty
+        ],
+        strings: [
+          'x',
+          'y'
+        ]);
+  }
+
+  test_expr_inClosure_refersToParam_prefixedIdentifier_assign() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable =
+        serializeVariableText('var v = (x) => x.y = null;');
+    _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
+        isValidConst: false,
+        operators: [
+          UnlinkedConstOperation.pushNull,
+          UnlinkedConstOperation.pushParameter,
+          UnlinkedConstOperation.assignToProperty
+        ],
+        strings: [
+          'x',
+          'y'
+        ],
+        assignmentOperators: [
+          UnlinkedExprAssignOperator.assign
+        ]);
+  }
+
+  test_expr_inClosure_refersToParam_prefixedPrefixedIdentifier() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('var v = (x) => x.y.z;');
+    _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
+        operators: [
+          UnlinkedConstOperation.pushParameter,
+          UnlinkedConstOperation.extractProperty,
+          UnlinkedConstOperation.extractProperty
+        ],
+        strings: [
+          'x',
+          'y',
+          'z'
+        ]);
+  }
+
+  test_expr_inClosure_refersToParam_prefixedPrefixedIdentifier_assign() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable =
+        serializeVariableText('var v = (x) => x.y.z = null;');
+    _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
+        isValidConst: false,
+        operators: [
+          UnlinkedConstOperation.pushNull,
+          UnlinkedConstOperation.pushParameter,
+          UnlinkedConstOperation.extractProperty,
+          UnlinkedConstOperation.assignToProperty
+        ],
+        strings: [
+          'x',
+          'y',
+          'z'
+        ],
+        assignmentOperators: [
+          UnlinkedExprAssignOperator.assign
         ]);
   }
 

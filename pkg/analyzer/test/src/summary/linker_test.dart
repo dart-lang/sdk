@@ -198,6 +198,28 @@ var y = x;
         '() → dynamic');
   }
 
+  void test_inferredType_closure_fromBundle_identifierSequence() {
+    var bundle = createPackageBundle(
+        '''
+class C {
+  static final x = (D d) => d.e;
+}
+class D {
+  E e;
+}
+class E {}
+''',
+        path: '/a.dart');
+    addBundle(bundle);
+    createLinker('''
+import 'a.dart';
+var y = C.x;
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    expect(_getVariable(library.getContainedName('y')).inferredType.toString(),
+        '(D) → E');
+  }
+
   void test_inferredType_instanceField_dynamic() {
     createLinker('''
 var x;

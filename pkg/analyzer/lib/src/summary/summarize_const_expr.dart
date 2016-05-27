@@ -217,6 +217,11 @@ abstract class AbstractConstExprSerializer {
       }
       _serialize(expr.index);
       operations.add(UnlinkedConstOperation.assignToIndex);
+    } else if (expr is PrefixedIdentifier) {
+      strings.add(expr.prefix.name);
+      operations.add(UnlinkedConstOperation.pushParameter);
+      strings.add(expr.identifier.name);
+      operations.add(UnlinkedConstOperation.assignToProperty);
     } else {
       throw new StateError('Unsupported assignable: $expr');
     }
@@ -269,6 +274,11 @@ abstract class AbstractConstExprSerializer {
       if (expr is SimpleIdentifier && isParameterName(expr.name)) {
         strings.add(expr.name);
         operations.add(UnlinkedConstOperation.pushParameter);
+      } else if (expr is PrefixedIdentifier && isParameterName(expr.prefix.name)) {
+        strings.add(expr.prefix.name);
+        operations.add(UnlinkedConstOperation.pushParameter);
+        strings.add(expr.identifier.name);
+        operations.add(UnlinkedConstOperation.extractProperty);
       } else {
         references.add(serializeIdentifier(expr));
         operations.add(UnlinkedConstOperation.pushReference);
@@ -599,7 +609,7 @@ abstract class AbstractConstExprSerializer {
   /**
    * Return `true` if the given [expr] is a sequence of identifiers.
    */
-  static bool _isIdentifierSequence(Expression expr) {
+  bool _isIdentifierSequence(Expression expr) {
     while (expr != null) {
       if (expr is SimpleIdentifier) {
         AstNode parent = expr.parent;
@@ -608,6 +618,9 @@ abstract class AbstractConstExprSerializer {
             return false;
           }
           return parent.target == null || _isIdentifierSequence(parent.target);
+        }
+        if (isParameterName(expr.name)) {
+          return false;
         }
         return true;
       } else if (expr is PrefixedIdentifier) {
