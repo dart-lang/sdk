@@ -1340,10 +1340,6 @@ String procedureKindToString(ProcedureKind kind) {
       return 'get';
     case ProcedureKind.Setter:
       return 'set';
-    case ProcedureKind.IndexGetter:
-      return 'index-get';
-    case ProcedureKind.IndexSetter:
-      return 'index-set';
     case ProcedureKind.Operator:
       return 'operator';
     case ProcedureKind.Factory:

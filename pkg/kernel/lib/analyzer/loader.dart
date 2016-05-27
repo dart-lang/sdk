@@ -231,8 +231,6 @@ class AnalyzerLoader implements ReferenceLevelLoader {
           : ast.ProcedureKind.Setter;
     }
     if (element is MethodElement) {
-      if (element.name == '[]') return ast.ProcedureKind.IndexGetter;
-      if (element.name == '[]=') return ast.ProcedureKind.IndexSetter;
       if (element.isOperator) return ast.ProcedureKind.Operator;
       return ast.ProcedureKind.Method;
     }

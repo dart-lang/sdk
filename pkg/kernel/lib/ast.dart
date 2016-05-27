@@ -696,8 +696,6 @@ enum ProcedureKind {
   Method,
   Getter,
   Setter,
-  IndexGetter,
-  IndexSetter,
   Operator,
   Factory,
 }
