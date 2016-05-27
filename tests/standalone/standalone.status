@@ -18,6 +18,9 @@ verified_mem_test: Pass, Slow, Timeout # Does verify before and after GC.
 
 issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue 14516 comment #4.
 
+[ ($runtime != vm || $compiler != none) && $compiler != dartanalyzer && $compiler != dart2analyzer ]
+packages_file_test: Skip # Uses Platform.executable
+
 [ ($runtime != vm && $runtime != dart_precompiled && $runtime != dart_app) && ($runtime != drt || $compiler != none)) ]
 no_assert_test: Fail, OK # This is testing a vm flag.
 
@@ -259,7 +262,6 @@ io/test_extension_test: Skip # Platform.executable
 io/named_pipe_script_test: Skip # Platform.executable
 io/regress_7679_test: Skip # Platform.executable
 io/process_*: Skip # Most use Platform.executable
-packages_file_test: Skip # Platform.executable
 
 [ $runtime == dart_precompiled || $runtime == dart_app || $mode == product ]
 debugger/*: Skip

@@ -11,12 +11,20 @@ import "package:async_helper/async_helper.dart";
 main() async {
   asyncStart();
 
+  // The `test` function can generate file or http resources.
+  // It replaces "%file/" with URI of the root directory of generated files and
+  // "%http/" with the URI of the HTTP server's root in appropriate contexts
+  // (all file contents and parameters).
+
+  // With no specified resolutiuon and no implicit .packages or packages/
+  // available, nothing can be resolved and the package can't be imported.
   await test("file: no resolution",
     "%file/main.dart",
     file: {"main": testMain},
     expect: {"foo.x": null});
 
   // An HTTP script with no ".packages" file assumes a "packages" dir.
+  // All packages are resolved relative to that dir, whether it exists or not.
   await test("http: no resolution", "%http/main.dart",
     http: {"main": testMain},
     expect: {
@@ -27,8 +35,14 @@ main() async {
       "foo.x": null,
     });
 
+  // A number of tests which behave similarly whether run as local files or
+  // over HTTP.
   for (var scheme in ["file", "http"]) {
 
+    /// Run a test in the current scheme.
+    ///
+    /// The files are served either through HTTP or in a local directory.
+    /// Use "%$scheme/" to refer to the root of the served files.
     testScheme(name, main, {expect, files, args, root, config}) {
       return test("$scheme: $name", main, expect: expect,
         root: root, config: config, args: args,
@@ -53,6 +67,8 @@ main() async {
       var files = {"sub": {"main": testMain, "packages": fooPackage},
                    ".packages": ""};
       // Expect implicitly detected package dir.
+      // Should not detect the .packages file in parent directory.
+      // That file is empty, so if it is used, the system cannot resolve "foo".
       await testScheme("implicit packages dir 2", "%$scheme/sub/main.dart",
         files: files,
         expect: {
@@ -130,6 +146,8 @@ main() async {
     }
 
     {
+      /// The package config can be specified as a data: URI.
+      /// (In that case, relative URI references in the config file won't work).
       var files = {"main": testMain,
                    ".packages": "foo:packages/foo/",
                    "packages": fooPackage,
@@ -149,7 +167,9 @@ main() async {
   }
 
   {
-    // With a file: URI, the lookup checks for a .packages file in superdirs.
+    // With a file: URI, the lookup checks for a .packages file in superdirs
+    // when it fails to find a ,packages file or packages/ directory next to
+    // the entry point.
     var files = {"sub": { "main": testMain },
                  ".packages": "foo:pkgs/foo/",
                  "pkgs": fooPackage};
@@ -165,10 +185,12 @@ main() async {
 
   {
     // With a non-file: URI, the lookup assumes a packges/ dir.
+    // The absence of a .packages file next to the entry point means
+    // that the resolution assumes a packages directory, whether it exists or
+    // not. It should not find the .packages file in the parent directory.
     var files = {"sub": { "main": testMain },
                  ".packages": "foo:pkgs/foo/",
                  "pkgs": fooPackage};
-    // Expect implicitly detected .package file.
     await test("http: implicit packages dir", "%http/sub/main.dart",
       http: files,
       expect: {
@@ -200,7 +222,7 @@ Future test(String name, String main,
              Map file, Map http, Map expect}) async {
   // Default values that are easily recognized in output.
   String fileRoot = "<no files configured>";
-  String httpRoot = "<not http server configured>";
+  String httpRoot = "<no http server configured>";
 
   /// Replaces markers `%file/` and `%http/` with the actual locations.
   ///
