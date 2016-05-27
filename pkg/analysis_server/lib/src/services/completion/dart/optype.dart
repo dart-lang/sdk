@@ -211,8 +211,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       optype.includeTypeNameSuggestions = true;
       optype.typeNameSuggestionsFilter = (DartType dartType, int relevance) {
         DartType staticType = node.expression.staticType;
-        if (staticType.isDynamic ||
-            (dartType.isSubtypeOf(staticType) && dartType != staticType)) {
+        if (staticType != null &&
+            (staticType.isDynamic ||
+                (dartType.isSubtypeOf(staticType) && dartType != staticType))) {
           return relevance;
         } else {
           return null;
@@ -592,8 +593,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       optype.includeTypeNameSuggestions = true;
       optype.typeNameSuggestionsFilter = (DartType dartType, int relevance) {
         DartType staticType = node.expression.staticType;
-        if (staticType.isDynamic ||
-            (dartType.isSubtypeOf(staticType) && dartType != staticType)) {
+        if (staticType != null &&
+            (staticType.isDynamic ||
+                (dartType.isSubtypeOf(staticType) && dartType != staticType))) {
           return relevance;
         } else {
           return null;
