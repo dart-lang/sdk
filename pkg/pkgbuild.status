@@ -5,7 +5,6 @@
 samples/searchable_list: Pass, Slow
 
 [ $use_repository_packages ]
-pkg/analyzer: PubGetError
 samples/third_party/angular_todo: Fail # angular needs to be updated
 
 [ $use_public_packages ]
