@@ -3117,6 +3117,10 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   List<ParameterElement> get parameters {
+    if (serializedExecutable != null) {
+      _parameters ??= ParameterElementImpl.resynthesizeList(
+          serializedExecutable.parameters, this);
+    }
     return _parameters ?? const <ParameterElement>[];
   }
 
@@ -3125,6 +3129,7 @@ abstract class ExecutableElementImpl extends ElementImpl
    * [parameters].
    */
   void set parameters(List<ParameterElement> parameters) {
+    assert(serializedExecutable == null);
     for (ParameterElement parameter in parameters) {
       (parameter as ParameterElementImpl).enclosingElement = this;
     }
@@ -3730,12 +3735,47 @@ class FunctionElementImpl_forLUB extends FunctionElementImpl {
   @override
   final TypeParameterizedElementMixin enclosingTypeParameterContext;
 
+  final EntityRef _entityRef;
+
   FunctionElementImpl_forLUB(
-      this.enclosingUnit, this.enclosingTypeParameterContext)
+      this.enclosingUnit, this.enclosingTypeParameterContext, this._entityRef)
       : super('', -1);
 
   @override
   bool get isSynthetic => true;
+
+  @override
+  List<ParameterElement> get parameters {
+    return _parameters ??= ParameterElementImpl
+        .resynthesizeList(_entityRef.syntheticParams, this, synthetic: true);
+  }
+
+  @override
+  void set parameters(List<ParameterElement> parameters) {
+    assert(false);
+  }
+
+  @override
+  DartType get returnType {
+    return _returnType ??= enclosingUnit.resynthesizerContext
+        .resolveTypeRef(_entityRef.syntheticReturnType, typeParameterContext);
+  }
+
+  @override
+  void set returnType(DartType returnType) {
+    assert(false);
+  }
+
+  @override
+  FunctionType get type {
+    return _type ??=
+        new FunctionTypeImpl.elementWithNameAndArgs(this, null, null, false);
+  }
+
+  @override
+  void set type(FunctionType type) {
+    assert(false);
+  }
 }
 
 /**
@@ -3752,7 +3792,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   /**
    * A list containing all of the parameters defined by this type alias.
    */
-  List<ParameterElement> _parameters = ParameterElement.EMPTY_LIST;
+  List<ParameterElement> _parameters;
 
   /**
    * The return type defined by this type alias.
@@ -3873,12 +3913,19 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   }
 
   @override
-  List<ParameterElement> get parameters => _parameters;
+  List<ParameterElement> get parameters {
+    if (_unlinkedTypedef != null) {
+      _parameters ??= ParameterElementImpl.resynthesizeList(
+          _unlinkedTypedef.parameters, this);
+    }
+    return _parameters ?? const <ParameterElement>[];
+  }
 
   /**
    * Set the parameters defined by this type alias to the given [parameters].
    */
   void set parameters(List<ParameterElement> parameters) {
+    assert(_unlinkedTypedef == null);
     if (parameters != null) {
       for (ParameterElement parameter in parameters) {
         (parameter as ParameterElementImpl).enclosingElement = this;
@@ -3983,7 +4030,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
 
   @override
   ElementImpl getChild(String identifier) {
-    for (ParameterElement parameter in _parameters) {
+    for (ParameterElement parameter in parameters) {
       ParameterElementImpl parameterImpl = parameter;
       if (parameterImpl.identifier == identifier) {
         return parameterImpl;
@@ -4001,7 +4048,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
-    safelyVisitChildren(_parameters, visitor);
+    safelyVisitChildren(parameters, visitor);
     safelyVisitChildren(_typeParameters, visitor);
   }
 }
@@ -6354,11 +6401,9 @@ class ParameterElementImpl extends VariableElementImpl
         if (!isSynthetic) {
           parameterTypeElement.enclosingElement = this;
         }
-        List<ParameterElement> subParameters = _unlinkedParam.parameters
-            .map((UnlinkedParam p) =>
-                new ParameterElementImpl.forSerializedFactory(p, this,
-                    synthetic: isSynthetic))
-            .toList(growable: false);
+        List<ParameterElement> subParameters = ParameterElementImpl
+            .resynthesizeList(_unlinkedParam.parameters, this,
+                synthetic: isSynthetic);
         if (isSynthetic) {
           parameterTypeElement.parameters = subParameters;
         } else {
@@ -6378,6 +6423,26 @@ class ParameterElementImpl extends VariableElementImpl
             enclosingUnit.resynthesizerContext
                 .resolveTypeRef(_unlinkedParam.type, typeParameterContext);
       }
+    }
+  }
+
+  /**
+   * Create and return [ParameterElement]s for the given [unlinkedParameters].
+   */
+  static List<ParameterElement> resynthesizeList(
+      List<UnlinkedParam> unlinkedParameters, ElementImpl enclosingElement,
+      {bool synthetic: false}) {
+    int length = unlinkedParameters.length;
+    if (length != 0) {
+      List<ParameterElement> parameters = new List<ParameterElement>(length);
+      for (int i = 0; i < length; i++) {
+        parameters[i] = new ParameterElementImpl.forSerializedFactory(
+            unlinkedParameters[i], enclosingElement,
+            synthetic: synthetic);
+      }
+      return parameters;
+    } else {
+      return const <ParameterElement>[];
     }
   }
 }

@@ -2094,19 +2094,6 @@ class _UnitResynthesizer {
     executableElement.typeParameters =
         buildTypeParameters(serializedExecutable.typeParameters);
     {
-      List<UnlinkedParam> unlinkedParameters = serializedExecutable.parameters;
-      int length = unlinkedParameters.length;
-      if (length != 0) {
-        List<ParameterElementImpl> parameters =
-            new List<ParameterElementImpl>(length);
-        for (int i = 0; i < length; i++) {
-          parameters[i] = new ParameterElementImpl.forSerializedFactory(
-              unlinkedParameters[i], executableElement);
-        }
-        executableElement.parameters = parameters;
-      }
-    }
-    {
       List<UnlinkedExecutable> unlinkedFunctions =
           serializedExecutable.localFunctions;
       int length = unlinkedFunctions.length;
@@ -2272,18 +2259,8 @@ class _UnitResynthesizer {
       return typeParameterContext.getTypeParameterType(type.paramReference);
     } else if (type.syntheticReturnType != null) {
       FunctionElementImpl element =
-          new FunctionElementImpl_forLUB(unit, typeParameterContext);
-      element.parameters = type.syntheticParams
-          .map((UnlinkedParam param) =>
-              new ParameterElementImpl.forSerializedFactory(param, element,
-                  synthetic: true))
-          .toList();
-      element.returnType =
-          buildType(type.syntheticReturnType, typeParameterContext);
-      FunctionTypeImpl result = new FunctionTypeImpl.elementWithNameAndArgs(
-          element, null, null, false);
-      element.type = result;
-      return result;
+          new FunctionElementImpl_forLUB(unit, typeParameterContext, type);
+      return element.type;
     } else {
       DartType getTypeArgument(int i) {
         if (i < type.typeArguments.length) {
@@ -2308,16 +2285,7 @@ class _UnitResynthesizer {
   void buildTypedef(UnlinkedTypedef serializedTypedef) {
     FunctionTypeAliasElementImpl functionTypeAliasElement =
         new FunctionTypeAliasElementImpl.forSerialized(serializedTypedef, unit);
-    // TODO(scheglov) remove this after delaying parameters and their types
-    currentTypeParameters.add(functionTypeAliasElement.typeParameters);
-    functionTypeAliasElement.parameters = serializedTypedef.parameters
-        .map((p) => new ParameterElementImpl.forSerializedFactory(
-            p, functionTypeAliasElement))
-        .toList();
     unitHolder.addTypeAlias(functionTypeAliasElement);
-    // TODO(scheglov) remove this after delaying parameters and their types
-    currentTypeParameters.removeLast();
-    assert(currentTypeParameters.isEmpty);
   }
 
   /**
