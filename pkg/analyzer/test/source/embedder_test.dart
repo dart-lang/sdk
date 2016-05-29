@@ -40,8 +40,7 @@ main() {
       var locator = new EmbedderYamlLocator({
         'fox': [pathTranslator.getResource('/tmp')]
       });
-      var resolver =
-          new EmbedderUriResolver(new EmbedderSdk(locator.embedderYamls));
+      var resolver = new EmbedderUriResolver(locator.embedderYamls);
 
       expectResolved(dartUri, posixPath) {
         Source source = resolver.resolveAbsolute(Uri.parse(dartUri));
@@ -67,8 +66,7 @@ main() {
       var locator = new EmbedderYamlLocator({
         'fox': [pathTranslator.getResource('/tmp')]
       });
-      var resolver =
-          new EmbedderUriResolver(new EmbedderSdk(locator.embedderYamls));
+      var resolver = new EmbedderUriResolver(locator.embedderYamls);
 
       expectRestore(String dartUri, [String expected]) {
         var parsedUri = Uri.parse(dartUri);
@@ -94,8 +92,7 @@ main() {
       var locator = new EmbedderYamlLocator({
         'fox': [pathTranslator.getResource('/tmp')]
       });
-      var resolver =
-          new EmbedderUriResolver(new EmbedderSdk(locator.embedderYamls));
+      var resolver = new EmbedderUriResolver(locator.embedderYamls);
       var sdk = resolver.dartSdk;
 
       expectSource(String posixPath, String dartUri) {
@@ -114,8 +111,7 @@ main() {
       var locator = new EmbedderYamlLocator({
         'fox': [pathTranslator.getResource('/tmp')]
       });
-      var resolver =
-          new EmbedderUriResolver(new EmbedderSdk(locator.embedderYamls));
+      var resolver = new EmbedderUriResolver(locator.embedderYamls);
       var sdk = resolver.dartSdk;
       var lib = sdk.getSdkLibrary('dart:fox');
       expect(lib, isNotNull);
@@ -126,8 +122,7 @@ main() {
       var locator = new EmbedderYamlLocator({
         'fox': [pathTranslator.getResource('/tmp')]
       });
-      var resolver =
-          new EmbedderUriResolver(new EmbedderSdk(locator.embedderYamls));
+      var resolver = new EmbedderUriResolver(locator.embedderYamls);
       var sdk = resolver.dartSdk;
 
       expectSource(String dartUri, String posixPath) {

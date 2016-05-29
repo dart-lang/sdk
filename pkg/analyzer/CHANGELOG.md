@@ -1,3 +1,6 @@
+## 0.27.4-alpha.9
+* Restore EmbedderUriResolver API.
+
 ## 0.27.4-alpha.8
 * Ignore processing performance improvements.
 * EmbedderUriResolver API updates.

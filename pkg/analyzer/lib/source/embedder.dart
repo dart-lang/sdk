@@ -43,7 +43,7 @@ class EmbedderSdk implements DartSdk {
 
   EmbedderSdk([Map<Folder, YamlMap> embedderYamls]) {
     embedderYamls?.forEach(_processEmbedderYaml);
-    _resolver = new EmbedderUriResolver(this);
+    _resolver = new EmbedderUriResolver._forSdk(this);
   }
 
   @override
@@ -211,7 +211,11 @@ class EmbedderUriResolver implements DartUriResolver {
 
   /// Construct a [EmbedderUriResolver] from a package map
   /// (see [PackageMapProvider]).
-  EmbedderUriResolver(this._embedderSdk) {
+  EmbedderUriResolver(Map<Folder, YamlMap> embedderMap) :
+      this._forSdk(new EmbedderSdk(embedderMap));
+
+  /// (Provisional API.)
+  EmbedderUriResolver._forSdk(this._embedderSdk) {
     _dartUriResolver = new DartUriResolver(_embedderSdk);
   }
 
