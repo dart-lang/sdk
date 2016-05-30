@@ -20,9 +20,6 @@ LibTest/core/RegExp/firstMatch_A01_t01: Fail # co19 issue 742
 
 [ $compiler != dart2analyzer ]
 # Tests that fail on every runtime, but not on the analyzer.
-
-LibTest/async/Future/Future.error_A01_t01: RuntimeError # co19 issue 712
-LibTest/async/Completer/completeError_A02_t01: RuntimeError # co19 issue 712
 LibTest/isolate/ReceivePort/asBroadcastStream_A02_t01: Fail # co19 issue 687
 LibTest/async/Stream/asBroadcastStream_A02_t01: Fail # co19 issue 687
 
@@ -76,8 +73,3 @@ LibTest/isolate/SendPort/send_A03_t02: Fail # Co19 issue 639
 
 [ $runtime == dartium || $compiler == dart2js ]
 LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
-
-### CHECKED MODE FAILURES ###
-
-[ $compiler != dart2analyzer && $checked ]
-Language/Statements/Return/runtime_type_t04: RuntimeError # Issue 26133

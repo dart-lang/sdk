@@ -151,6 +151,10 @@ Language/Statements/Continue/async_loops_t10: Crash # Issue 26133
 Language/Expressions/Property_Extraction/General_Super_Property_Extraction: CompileTimeError # Issue 26287
 Language/Expressions/Property_Extraction/Super_Closurization: CompileTimeError # Issue 26287
 
+# co19 Roll May 30 2016
+Language/Reference/Operator_Precedence/precedence_12_Shift_t02: RuntimeError # Issue 26573
+Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t04: RuntimeError # Issue 26573
+
 [ $noopt || $compiler == precompiler || $mode == product ]
 Language/Metadata/*: SkipByDesign # Uses dart:mirrors
 
