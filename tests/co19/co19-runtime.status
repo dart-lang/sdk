@@ -86,7 +86,7 @@ WebPlatformTest/*: SkipByDesign # dart:html not supported on VM.
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $mode == debug && $builder_tag == asan ]
 Language/Types/Interface_Types/subtype_t27: Skip  # Issue 21174.
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $arch == arm ]
+[ ($runtime == vm || $runtime == dart_app) && $arch == arm ]
 LibTest/typed_data/Float32x4/operator_multiplication_A01_t01: Fail # Dart issue 24416
 
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
