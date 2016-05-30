@@ -255,9 +255,8 @@ class TypeScope extends ReferenceScope {
             .map((p) => substitution[p] ?? const ast.DynamicType())
             .toList();
       }
-      return genericFunctionType.typeParameters
-          .map((p) => const ast.DynamicType())
-          .toList();
+      return new List<ast.DartType>.filled(
+          genericFunctionType.typeParameters.length, const ast.DynamicType());
     } else {
       return <ast.DartType>[];
     }
@@ -275,7 +274,7 @@ class TypeScope extends ReferenceScope {
   List<ast.TypeParameter> buildOptionalTypeParameterList(
       TypeParameterList node) {
     if (node == null) return <ast.TypeParameter>[];
-    return node.typeParameters.map((x) => buildTypeParameter(x)).toList();
+    return node.typeParameters.map(buildTypeParameter).toList();
   }
 
   ast.TypeParameter buildTypeParameter(TypeParameter node) {
@@ -309,8 +308,13 @@ class MemberScope extends TypeScope {
   /// A reference to the member currently being upgraded to body level.
   final ast.Member currentMember;
 
+  ExpressionBuilder _expressionBuilder;
+  StatementBuilder _statementBuilder;
+
   MemberScope(ReferenceLevelLoader loader, this.currentMember) : super(loader) {
     assert(currentMember != null);
+    _expressionBuilder = new ExpressionBuilder(this);
+    _statementBuilder = new StatementBuilder(this);
   }
 
   /// The library containing the code, currently at body level.
@@ -342,7 +346,7 @@ class MemberScope extends TypeScope {
   }
 
   ast.Statement buildStatement(Statement node) {
-    return new StatementBuilder(this).build(node);
+    return _statementBuilder.build(node);
   }
 
   ast.Statement buildOptionalFunctionBody(FunctionBody body) {
@@ -407,15 +411,15 @@ class MemberScope extends TypeScope {
   }
 
   ast.Expression buildExpression(Expression node) {
-    return new ExpressionBuilder(this).build(node);
+    return _expressionBuilder.build(node);
   }
 
   ast.Expression buildOptionalExpression(Expression node) {
-    return node == null ? null : new ExpressionBuilder(this).build(node);
+    return node == null ? null : _expressionBuilder.build(node);
   }
 
   Accessor buildLeftHandValue(Expression node) {
-    return new ExpressionBuilder(this).buildLeftHandValue(node);
+    return _expressionBuilder.buildLeftHandValue(node);
   }
 
   ast.Expression buildStringLiteral(Expression node) {
@@ -606,10 +610,14 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
     return new ast.ExpressionStatement(scope.buildExpression(node.expression));
   }
 
+  static String _getLabelName(Label label) {
+    return label.label.name;
+  }
+
   ast.Statement visitLabeledStatement(LabeledStatement node) {
     // Only set up breaks here.  Loops handle labeling on their own.
     var breakNode = new LabelStack.many(
-        node.labels.map((label) => label.label.name).toList(), breakStack);
+        node.labels.map(_getLabelName).toList(), breakStack);
     var body = buildInScope(node.statement, breakNode, continueStack);
     return makeBreakTarget(body, breakNode);
   }
@@ -938,8 +946,12 @@ class ExpressionBuilder
     return scope.buildStringLiteral(node);
   }
 
+  static Object _getTokenValue(Token token) {
+    return token.value();
+  }
+
   ast.Expression visitSymbolLiteral(SymbolLiteral node) {
-    String value = node.components.map((tok) => tok.value()).join('.');
+    String value = node.components.map(_getTokenValue).join('.');
     return new ast.SymbolLiteral(value);
   }
 
@@ -1528,9 +1540,9 @@ class TypeAnnotationBuilder extends GeneralizingAstVisitor<ast.DartType> {
     }
   }
 
-  static Iterable /*<E>*/ concatenate /*<E>*/ (
-          Iterable /*<E>*/ x, Iterable /*<E>*/ y) =>
-      <Iterable<dynamic /*=E*/ >>[x, y].expand((z) => z);
+  static Iterable/*<E>*/ concatenate/*<E>*/(
+          Iterable/*<E>*/ x, Iterable/*<E>*/ y) =>
+      <Iterable<dynamic/*=E*/ >>[x, y].expand((z) => z);
 
   ast.TypeParameter convertTypeParameter(TypeParameterElement typeParameter,
       List<TypeParameterElement> boundVariables) {
@@ -1644,7 +1656,7 @@ class InitializerBuilder extends GeneralizingAstVisitor<ast.Initializer> {
       return new ast.InvalidInitializer();
     }
     return new ast.SuperInitializer(
-        target, new ExpressionBuilder(scope).buildArguments(node.argumentList));
+        target, scope._expressionBuilder.buildArguments(node.argumentList));
   }
 
   visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
@@ -1653,7 +1665,7 @@ class InitializerBuilder extends GeneralizingAstVisitor<ast.Initializer> {
       return new ast.InvalidInitializer();
     }
     return new ast.RedirectingInitializer(
-        target, new ExpressionBuilder(scope).buildArguments(node.argumentList));
+        target, scope._expressionBuilder.buildArguments(node.argumentList));
   }
 
   visitNode(AstNode node) {
@@ -1721,7 +1733,7 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
       result = new ast.InterfaceType(
           mixinClass,
           currentClass.typeParameters
-              .map((p) => new ast.TypeParameterType(p))
+              .map(_makeTypeParameterType)
               .toList(growable: false));
     }
     return result;
@@ -1774,6 +1786,10 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
     }
   }
 
+  /// True for the `values` field of an `enum` class.
+  static bool _isValuesField(FieldElement field) => field.name == 'values';
+
+
   visitEnumDeclaration(EnumDeclaration node) {
     ast.NormalClass classNode = currentClass;
     classNode.supertype = new ast.InterfaceType(scope.getRootClassReference());
@@ -1807,14 +1823,13 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
       enumConstantFields.add(field);
     }
     // Add the 'values' field.
-    var valuesFieldElement =
-        element.fields.firstWhere((e) => e.name == 'values');
+    var valuesFieldElement = element.fields.firstWhere(_isValuesField);
     ast.Field valuesField = scope.getMemberReference(valuesFieldElement);
     var enumType = new ast.InterfaceType(classNode);
     valuesField.type = new ast.InterfaceType(
         scope.loader.getCoreClassReference('List'), <ast.DartType>[enumType]);
     valuesField.initializer = new ast.ListLiteral(
-        enumConstantFields.map((field) => new ast.StaticGet(field)).toList(),
+        enumConstantFields.map(_makeStaticGet).toList(),
         isConst: true,
         typeArgument: enumType);
     classNode.addMember(valuesField);
@@ -1855,6 +1870,10 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
       ReferenceLevelLoader loader, ast.Member member, this.element)
       : scope = new MemberScope(loader, member);
 
+  static bool _isClassElement(Element element) {
+    return element is ClassElement;
+  }
+
   void build(AstNode node) {
     if (node != null) {
       node.accept(this);
@@ -1862,7 +1881,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
     }
     Element element = this.element; // Allow type promotion.
     assert(element.isSynthetic);
-    ClassElement enclosingClass = element.getAncestor((e) => e is ClassElement);
+    ClassElement enclosingClass = element.getAncestor(_isClassElement);
     if (element is ConstructorElement && enclosingClass.isMixinApplication) {
       buildMixinConstructor(element);
       return;
@@ -1934,9 +1953,8 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
           break;
       }
     }
-    var typeArguments = classElement.supertype.typeArguments
-        .map((t) => scope.buildType(t))
-        .toList();
+    var typeArguments =
+        classElement.supertype.typeArguments.map(scope.buildType).toList();
     constructor.function = new ast.FunctionNode(new ast.EmptyStatement(),
         positionalParameters: positionalParameters,
         namedParameters: namedParameters,
@@ -1985,11 +2003,8 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
     }
     var function = scope.buildFunctionNode(node.parameters, node.body,
         typeParameters: types.freshTypeParameters,
-        inferredReturnType: new ast.InterfaceType(
-            classNode,
-            types.freshTypeParameters
-                .map((p) => new ast.TypeParameterType(p))
-                .toList()));
+        inferredReturnType: new ast.InterfaceType(classNode,
+            types.freshTypeParameters.map(_makeTypeParameterType).toList()));
     procedure.function = function..parent = procedure;
     if (node.redirectedConstructor != null) {
       assert(function.body == null);
@@ -2005,15 +2020,12 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
         // TODO: Preserve enough information to throw the right exception.
         function.body = new ast.InvalidStatement()..parent = function;
       } else {
-        var positional = function.positionalParameters
-            .map((p) => new ast.VariableGet(p))
-            .toList();
-        var named = function.namedParameters
-            .map((p) => new ast.NamedExpression(p.name, new ast.VariableGet(p)))
-            .toList();
-        var types = function.typeParameters
-            .map((p) => new ast.TypeParameterType(p))
-            .toList();
+        var positional =
+            function.positionalParameters.map(_makeVariableGet).toList();
+        var named =
+            function.namedParameters.map(_makeNamedExpressionFrom).toList();
+        var types =
+            function.typeParameters.map(_makeTypeParameterType).toList();
         var arguments =
             new ast.Arguments(positional, named: named, types: types);
         var invocation = target is ast.Constructor
@@ -2061,4 +2073,24 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
   visitNode(AstNode node) {
     log.severe('Unexpected class or library member: $node');
   }
+}
+
+/// Constructor alias for [ast.TypeParameterType], use instead of a closure.
+ast.DartType _makeTypeParameterType(ast.TypeParameter parameter) {
+  return new ast.TypeParameterType(parameter);
+}
+
+/// Constructor alias for [ast.VariableGet], use instead of a closure.
+ast.VariableGet _makeVariableGet(ast.VariableDeclaration variable) {
+  return new ast.VariableGet(variable);
+}
+
+/// Constructor alias for [ast.StaticGet], use instead of a closure.
+ast.StaticGet _makeStaticGet(ast.Field field) {
+  return new ast.StaticGet(field);
+}
+
+/// Create a named expression with the name and value of the given variable.
+ast.NamedExpression _makeNamedExpressionFrom(ast.VariableDeclaration variable) {
+  return new ast.NamedExpression(variable.name, new ast.VariableGet(variable));
 }

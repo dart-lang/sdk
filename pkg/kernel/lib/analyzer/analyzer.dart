@@ -10,3 +10,4 @@ export 'package:analyzer/dart/element/element.dart';
 export 'package:analyzer/dart/element/type.dart';
 export 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
 export 'package:analyzer/src/dart/element/member.dart' show Member;
+export 'package:analyzer/dart/ast/token.dart' show Token;
