@@ -25,7 +25,7 @@ vars = {
   "github_dartlang": "https://github.com/dart-lang/%s.git",
 
   "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
-  "co19_rev": "@3ed795ea02e022ef19c77cf1b6095b7c8f5584d0",
+  "co19_rev": "@3f0a4bc9a080a792cdf5f093147a900f99ea301f",
   "chromium_git": "https://chromium.googlesource.com",
 
   # Revisions of /third_party/* dependencies.
