@@ -377,7 +377,7 @@ class ClassElementImpl extends ElementImpl
       ResynthesizerContext context = enclosingUnit.resynthesizerContext;
       _interfaces = _unlinkedClass.interfaces
           .map((EntityRef t) => context.resolveTypeRef(t, this))
-          .toList();
+          .toList(growable: false);
     }
     return _interfaces ?? const <InterfaceType>[];
   }
@@ -477,7 +477,7 @@ class ClassElementImpl extends ElementImpl
       ResynthesizerContext context = enclosingUnit.resynthesizerContext;
       _mixins = _unlinkedClass.mixins
           .map((EntityRef t) => context.resolveTypeRef(t, this))
-          .toList();
+          .toList(growable: false);
     }
     return _mixins ?? const <InterfaceType>[];
   }
@@ -884,7 +884,7 @@ class ClassElementImpl extends ElementImpl
       implicitConstructor.enclosingElement = this;
       implicitConstructor.type = new FunctionTypeImpl(implicitConstructor);
       return implicitConstructor;
-    }).toList();
+    }).toList(growable: false);
   }
 
   PropertyAccessorElement _internalLookUpConcreteGetter(
@@ -4607,7 +4607,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         libraries.add(library);
       }
     }
-    return new List.from(libraries);
+    return libraries.toList(growable: false);
   }
 
   @override
@@ -4697,7 +4697,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         libraries.add(library);
       }
     }
-    return new List.from(libraries);
+    return libraries.toList(growable: false);
   }
 
   @override
@@ -4910,7 +4910,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
           prefixes.add(prefix);
         }
       }
-      _prefixes = prefixes.toList();
+      _prefixes = prefixes.toList(growable: false);
     }
     return _prefixes;
   }
@@ -4945,9 +4945,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   List<LibraryElement> get visibleLibraries {
-    Set<LibraryElement> visibleLibraries = new Set();
+    HashSet<LibraryElement> visibleLibraries = new HashSet<LibraryElement>();
     _addVisibleLibraries(visibleLibraries, false);
-    return new List.from(visibleLibraries);
+    return visibleLibraries.toList(growable: false);
   }
 
   @override
@@ -5790,7 +5790,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     HashSet<Element> elements = new HashSet<Element>();
     _add(elements, firstElement);
     _add(elements, secondElement);
-    return new List.from(elements);
+    return elements.toList(growable: false);
   }
 }
 
@@ -7326,11 +7326,9 @@ abstract class TypeParameterizedElementMixin
    * element's type parameters.
    */
   List<TypeParameterType> get typeParameterTypes {
-    if (_typeParameterTypes == null) {
-      _typeParameterTypes =
-          typeParameters.map((TypeParameterElement e) => e.type).toList();
-    }
-    return _typeParameterTypes;
+    return _typeParameterTypes ??= typeParameters
+        .map((TypeParameterElement e) => e.type)
+        .toList(growable: false);
   }
 
   /**
