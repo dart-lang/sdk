@@ -1830,7 +1830,6 @@ class _UnitResynthesizer {
       currentConstructor.periodOffset = serializedExecutable.periodOffset;
     }
     constructors[serializedExecutable.name] = currentConstructor;
-    buildExecutableCommonParts(currentConstructor, serializedExecutable);
     currentConstructor.constantInitializers = serializedExecutable
         .constantInitializers
         .map((i) => buildConstructorInitializer(currentConstructor, i))
@@ -1997,7 +1996,6 @@ class _UnitResynthesizer {
           MethodElementImpl executableElement =
               new MethodElementImpl.forSerialized(
                   serializedExecutable, enclosingElement);
-          buildExecutableCommonParts(executableElement, serializedExecutable);
           holder.addMethod(executableElement);
         }
         break;
@@ -2011,7 +2009,6 @@ class _UnitResynthesizer {
         PropertyAccessorElementImpl executableElement =
             new PropertyAccessorElementImpl.forSerialized(
                 serializedExecutable, enclosingElement);
-        buildExecutableCommonParts(executableElement, serializedExecutable);
         DartType type;
         if (kind == UnlinkedExecutableKind.getter) {
           type = executableElement.returnType;
@@ -2033,28 +2030,6 @@ class _UnitResynthesizer {
         // separately (in [buildConstructor].  So this code should be
         // unreachable.
         assert(false);
-    }
-  }
-
-  /**
-   * Handle the parts of an executable element that are common to constructors,
-   * functions, methods, getters, and setters.
-   */
-  void buildExecutableCommonParts(ExecutableElementImpl executableElement,
-      UnlinkedExecutable serializedExecutable) {
-    {
-      List<UnlinkedExecutable> unlinkedFunctions =
-          serializedExecutable.localFunctions;
-      int length = unlinkedFunctions.length;
-      if (length != 0) {
-        List<FunctionElementImpl> localFunctions =
-            new List<FunctionElementImpl>(length);
-        for (int i = 0; i < length; i++) {
-          localFunctions[i] =
-              buildLocalFunction(unlinkedFunctions[i], executableElement);
-        }
-        executableElement.functions = localFunctions;
-      }
     }
   }
 
@@ -2136,21 +2111,6 @@ class _UnitResynthesizer {
     return buildType(type, typeParameterContext);
   }
 
-  /**
-   * Resynthesize a local [FunctionElement].
-   */
-  FunctionElementImpl buildLocalFunction(
-      UnlinkedExecutable serializedExecutable, ElementImpl enclosingElement) {
-    FunctionElementImpl element = new FunctionElementImpl.forSerialized(
-        serializedExecutable, enclosingElement);
-    if (serializedExecutable.visibleOffset != 0) {
-      element.setVisibleRange(serializedExecutable.visibleOffset,
-          serializedExecutable.visibleLength);
-    }
-    buildExecutableCommonParts(element, serializedExecutable);
-    return element;
-  }
-
   List<FunctionElementImpl> buildTopLevelFunctions() {
     List<FunctionElementImpl> functions = <FunctionElementImpl>[];
     List<UnlinkedExecutable> executables = unlinkedUnit.executables;
@@ -2158,7 +2118,6 @@ class _UnitResynthesizer {
       if (unlinkedExecutable.kind == UnlinkedExecutableKind.functionOrMethod) {
         FunctionElementImpl function =
             new FunctionElementImpl.forSerialized(unlinkedExecutable, unit);
-        buildExecutableCommonParts(function, unlinkedExecutable);
         functions.add(function);
       }
     }
@@ -2224,7 +2183,6 @@ class _UnitResynthesizer {
             new PropertyAccessorElementImpl.forSerialized(
                 unlinkedExecutable, unit);
         accessorsData.accessors.add(accessor);
-        buildExecutableCommonParts(accessor, unlinkedExecutable);
         // implicit variable
         TopLevelVariableElementImpl variable = implicitVariables[name];
         if (variable == null) {
@@ -2315,7 +2273,7 @@ class _UnitResynthesizer {
       return null;
     }
     FunctionElementImpl initializerElement =
-        buildLocalFunction(serializedInitializer, variable);
+        new FunctionElementImpl.forSerialized(serializedInitializer, variable);
     initializerElement.synthetic = true;
     return initializerElement;
   }

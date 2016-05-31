@@ -2857,7 +2857,7 @@ abstract class ExecutableElementImpl extends ElementImpl
    * A list containing all of the functions defined within this executable
    * element.
    */
-  List<FunctionElement> _functions = FunctionElement.EMPTY_LIST;
+  List<FunctionElement> _functions;
 
   /**
    * A list containing all of the labels defined within this executable element.
@@ -2974,13 +2974,20 @@ abstract class ExecutableElementImpl extends ElementImpl
   }
 
   @override
-  List<FunctionElement> get functions => _functions;
+  List<FunctionElement> get functions {
+    if (serializedExecutable != null) {
+      _functions ??= FunctionElementImpl.resynthesizeList(
+          this, serializedExecutable.localFunctions);
+    }
+    return _functions ?? const <FunctionElement>[];
+  }
 
   /**
    * Set the functions defined within this executable element to the given
    * [functions].
    */
   void set functions(List<FunctionElement> functions) {
+    assert(serializedExecutable == null);
     for (FunctionElement function in functions) {
       (function as FunctionElementImpl).enclosingElement = this;
     }
@@ -3668,6 +3675,13 @@ class FunctionElementImpl extends ExecutableElementImpl
 
   @override
   SourceRange get visibleRange {
+    if (serializedExecutable != null) {
+      if (serializedExecutable.visibleLength == 0) {
+        return null;
+      }
+      return new SourceRange(serializedExecutable.visibleOffset,
+          serializedExecutable.visibleLength);
+    }
     if (_visibleRangeLength < 0) {
       return null;
     }
@@ -3695,6 +3709,7 @@ class FunctionElementImpl extends ExecutableElementImpl
    * [offset] with the given [length].
    */
   void setVisibleRange(int offset, int length) {
+    assert(serializedExecutable == null);
     _visibleRangeOffset = offset;
     _visibleRangeLength = length;
   }
@@ -3716,6 +3731,25 @@ class FunctionElementImpl extends ExecutableElementImpl
    */
   void shareTypeParameters(List<TypeParameterElement> typeParameters) {
     this._typeParameters = typeParameters;
+  }
+
+  /**
+   * Create and return [FunctionElement]s for the given [unlinkedFunctions].
+   */
+  static List<FunctionElement> resynthesizeList(
+      ExecutableElementImpl executableElement,
+      List<UnlinkedExecutable> unlinkedFunctions) {
+    int length = unlinkedFunctions.length;
+    if (length != 0) {
+      List<FunctionElement> elements = new List<FunctionElement>(length);
+      for (int i = 0; i < length; i++) {
+        elements[i] = new FunctionElementImpl.forSerialized(
+            unlinkedFunctions[i], executableElement);
+      }
+      return elements;
+    } else {
+      return const <FunctionElement>[];
+    }
   }
 }
 
