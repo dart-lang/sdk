@@ -2862,7 +2862,7 @@ abstract class ExecutableElementImpl extends ElementImpl
   /**
    * A list containing all of the labels defined within this executable element.
    */
-  List<LabelElement> _labels = LabelElement.EMPTY_LIST;
+  List<LabelElement> _labels;
 
   /**
    * A list containing all of the local variables defined within this executable
@@ -3051,13 +3051,20 @@ abstract class ExecutableElementImpl extends ElementImpl
   bool get isSynchronous => !isAsynchronous;
 
   @override
-  List<LabelElement> get labels => _labels;
+  List<LabelElement> get labels {
+    if (serializedExecutable != null) {
+      _labels ??= LabelElementImpl.resynthesizeList(
+          this, serializedExecutable.localLabels);
+    }
+    return _labels ?? const <LabelElement>[];
+  }
 
   /**
    * Set the labels defined within this executable element to the given
    * [labels].
    */
   void set labels(List<LabelElement> labels) {
+    assert(serializedExecutable == null);
     for (LabelElement label in labels) {
       (label as LabelElementImpl).enclosingElement = this;
     }
@@ -4372,6 +4379,11 @@ class ImportElementImpl extends UriReferencedElementImpl
  */
 class LabelElementImpl extends ElementImpl implements LabelElement {
   /**
+   * The unlinked representation of the label in the summary.
+   */
+  final UnlinkedLabel _unlinkedLabel;
+
+  /**
    * A flag indicating whether this label is associated with a `switch`
    * statement.
    */
@@ -4393,7 +4405,8 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
    */
   LabelElementImpl(String name, int nameOffset, this._onSwitchStatement,
       this._onSwitchMember)
-      : super(name, nameOffset);
+      : _unlinkedLabel = null,
+        super(name, nameOffset);
 
   /**
    * Initialize a newly created label element to have the given [name].
@@ -4403,7 +4416,21 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
    */
   LabelElementImpl.forNode(
       Identifier name, this._onSwitchStatement, this._onSwitchMember)
-      : super.forNode(name);
+      : _unlinkedLabel = null,
+        super.forNode(name);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  LabelElementImpl.forSerialized(
+      UnlinkedLabel unlinkedLabel, ExecutableElementImpl enclosingExecutable)
+      : _unlinkedLabel = unlinkedLabel,
+        _onSwitchStatement = unlinkedLabel.isOnSwitchStatement,
+        _onSwitchMember = unlinkedLabel.isOnSwitchMember,
+        super.forSerialized(enclosingExecutable);
+
+  @override
+  String get displayName => name;
 
   @override
   ExecutableElement get enclosingElement =>
@@ -4424,7 +4451,42 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   ElementKind get kind => ElementKind.LABEL;
 
   @override
+  String get name {
+    if (_unlinkedLabel != null) {
+      return _unlinkedLabel.name;
+    }
+    return super.name;
+  }
+
+  @override
+  int get nameOffset {
+    if (_unlinkedLabel != null) {
+      return _unlinkedLabel.nameOffset;
+    }
+    return super.nameOffset;
+  }
+
+  @override
   accept(ElementVisitor visitor) => visitor.visitLabelElement(this);
+
+  /**
+   * Create and return [LabelElement]s for the given [unlinkedLabels].
+   */
+  static List<LabelElement> resynthesizeList(
+      ExecutableElementImpl enclosingExecutable,
+      List<UnlinkedLabel> unlinkedLabels) {
+    int length = unlinkedLabels.length;
+    if (length != 0) {
+      List<LabelElement> elements = new List<LabelElement>(length);
+      for (int i = 0; i < length; i++) {
+        elements[i] = new LabelElementImpl.forSerialized(
+            unlinkedLabels[i], enclosingExecutable);
+      }
+      return elements;
+    } else {
+      return const <LabelElement>[];
+    }
+  }
 }
 
 /**

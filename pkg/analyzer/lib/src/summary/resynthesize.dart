@@ -2107,17 +2107,6 @@ class _UnitResynthesizer {
         executableElement.functions = localFunctions;
       }
     }
-    {
-      List<UnlinkedLabel> unlinkedLabels = serializedExecutable.localLabels;
-      int length = unlinkedLabels.length;
-      if (length != 0) {
-        List<LabelElementImpl> localLabels = new List<LabelElementImpl>(length);
-        for (int i = 0; i < length; i++) {
-          localLabels[i] = buildLocalLabel(unlinkedLabels[i]);
-        }
-        executableElement.labels = localLabels;
-      }
-    }
     currentTypeParameters.removeLast();
   }
 
@@ -2212,17 +2201,6 @@ class _UnitResynthesizer {
     }
     buildExecutableCommonParts(element, serializedExecutable);
     return element;
-  }
-
-  /**
-   * Resynthesize a [LabelElement].
-   */
-  LabelElement buildLocalLabel(UnlinkedLabel serializedLabel) {
-    return new LabelElementImpl(
-        serializedLabel.name,
-        serializedLabel.nameOffset,
-        serializedLabel.isOnSwitchStatement,
-        serializedLabel.isOnSwitchMember);
   }
 
   List<FunctionElementImpl> buildTopLevelFunctions() {
