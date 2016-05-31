@@ -36,7 +36,6 @@ Language/Classes/same_name_type_variable_t05: Fail # Missing CT error on member 
 Language/Classes/same_name_type_variable_t06: Fail # Missing CT error on member with same name a type parameter
 Language/Classes/same_name_type_variable_t08: Fail # Missing CT error on member with same name a type parameter
 Language/Classes/same_name_type_variable_t09: Fail # Missing CT error on member with same name a type parameter
-Language/Enums/restrictions_t05: MissingCompileTimeError # Please triage this failure
 Language/Errors_and_Warnings/compile_error_t06: MissingCompileTimeError # Please triage this failure
 Language/Errors_and_Warnings/compile_error_t07: MissingCompileTimeError # Please triage this failure
 Language/Expressions/Assignment/super_assignment_failed_t05: RuntimeError # Issue 25671
@@ -45,6 +44,8 @@ Language/Expressions/Await_Expressions/evaluation_throws_t03: RuntimeError # Ple
 Language/Expressions/Await_Expressions/evaluation_throws_t04: RuntimeError # Please triage this failure
 Language/Expressions/Await_Expressions/evaluation_throws_t06: RuntimeError # Please triage this failure
 Language/Expressions/Await_Expressions/evaluation_throws_t07: RuntimeError # Please triage this failure
+Language/Expressions/Constants/identifier_denotes_a_constant_t06: MissingCompileTimeError # Issue 26580
+Language/Expressions/Constants/identifier_denotes_a_constant_t07: MissingCompileTimeError # Issue 26580
 Language/Expressions/Function_Invocation/async_generator_invokation_t08: Timeout, Skip # Issue 25967
 Language/Expressions/Function_Invocation/async_generator_invokation_t10: Timeout, Skip # Issue 25967
 Language/Expressions/Identifier_Reference/built_in_identifier_t35: MissingCompileTimeError # Issue 25732
@@ -66,6 +67,9 @@ Language/Expressions/Identifier_Reference/built_in_identifier_t65: MissingCompil
 Language/Expressions/Identifier_Reference/built_in_identifier_t66: MissingCompileTimeError # Issue 25733
 Language/Expressions/Identifier_Reference/built_in_identifier_t67: MissingCompileTimeError # Issue 25733
 Language/Expressions/Identifier_Reference/built_in_identifier_t68: MissingCompileTimeError # Issue 25733
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t14: MissingCompileTimeError # Issue 25732
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t15: MissingCompileTimeError # Issue 26581
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t19: MissingCompileTimeError # Issue 25732
 Language/Expressions/Identifier_Reference/syntax_built_in_t01: fail # Issue 21154
 Language/Expressions/Instance_Creation/Const/abstract_class_t01: CompileTimeError # Please triage this failure
 Language/Expressions/Instance_Creation/Const/abstract_class_t03: CompileTimeError # Please triage this failure
@@ -73,6 +77,8 @@ Language/Expressions/Instance_Creation/New/evaluation_t19: RuntimeError # Please
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError # Please triage this failure
 Language/Expressions/Maps/key_value_equals_operator_t02: CompileTimeError # Please triage this failure
 Language/Expressions/Maps/static_type_dynamic_t01: CompileTimeError # Maybe ok. Issue 17207
+Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t01: MissingCompileTimeError # Issue 25496
+Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t02: MissingCompileTimeError # Issue 25496
 Language/Expressions/Numbers/syntax_t06: fail # Issue 21098
 Language/Expressions/Numbers/syntax_t09: fail # Issue 21098
 Language/Expressions/Object_Identity/Object_Identity/constant_objects_t01: fail # Issue 11551, also related to issue 563, 18738
@@ -239,8 +245,8 @@ Language/Metadata/before_param_t09: RuntimeError # Please triage this failure
 Language/Metadata/before_type_param_t01: CompileTimeError # Please triage this failure
 Language/Metadata/before_typedef_t01: RuntimeError # Please triage this failure
 Language/Metadata/before_variable_t01: RuntimeError # Please triage this failure
-Language/Mixins/Mixin_Application/error_t01: MissingCompileTimeError # Please triage this failure
-Language/Mixins/Mixin_Application/error_t02: MissingCompileTimeError # Please triage this failure
+Language/Mixins/Mixin_Application/error_t01: Crash # Issue 26582
+Language/Mixins/Mixin_Application/error_t02: Crash # Issue 26582
 Language/Mixins/Mixin_Application/static_warning_t01: CompileTimeError # Please triage this failure
 Language/Mixins/Mixin_Application/static_warning_t02: CompileTimeError # Please triage this failure
 Language/Mixins/Mixin_Application/superinterfaces_t06: CompileTimeError # Please triage this failure
@@ -255,11 +261,15 @@ Language/Mixins/Mixin_Application/syntax_t22: CompileTimeError # Please triage t
 Language/Mixins/Mixin_Application/syntax_t23: CompileTimeError # Please triage this failure
 Language/Mixins/Mixin_Application/syntax_t24: CompileTimeError # Please triage this failure
 Language/Mixins/Mixin_Application/syntax_t25: CompileTimeError # Please triage this failure
+Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Issue 24767
+Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Issue 24767
 Language/Mixins/deferred_t01: MissingCompileTimeError # Please triage this failure
 Language/Mixins/not_object_superclass_t01: MissingCompileTimeError # Please triage this failure
 Language/Mixins/reference_to_super_t01: MissingCompileTimeError # Please triage this failure
 Language/Reference/Lexical_Rules/Reserved_Words/whitespace_t04: MissingCompileTimeError # Checks that other Unicode whitespaces are not allowed:  check NO-BREAK SPACE (U+00A0)
 Language/Reference/Lexical_Rules/whitespace_t06: MissingCompileTimeError # Checks that Unicode whitespaces other than WHITESPACE are not permitted in the source code. Checks symbol U+00a0.
+Language/Reference/Operator_Precedence/precedence_12_Shift_t02: RuntimeError # Issue 26573
+Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t04: RuntimeError # Issue 26573
 Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: RuntimeError # Please triage this failure
 Language/Statements/Continue/async_loops_t09: Crash # Please triage this failure
 Language/Statements/Local_Function_Declaration/reference_before_declaration_t01: MissingCompileTimeError # Issue 21050
@@ -463,8 +473,10 @@ Language/Expressions/Property_Extraction/Super_Closurization/setter_closurizatio
 Language/Functions/async_return_type_t01: RuntimeError # Please triage this failure
 Language/Functions/generator_return_type_t01: RuntimeError # Please triage this failure
 Language/Functions/generator_return_type_t02: RuntimeError # Please triage this failure
+Language/Libraries_and_Scripts/Imports/deferred_import_t02: RuntimeError # co19 issue 60
 Language/Statements/Switch/execution_t01: Fail # Missing type check in switch expression
 Language/Statements/Switch/type_t01: RuntimeError # Issue 16089
+Language/Statements/Return/runtime_type_t04: RuntimeError # Issue 26584
 Language/Types/Static_Types/malformed_type_t01: RuntimeError # Issue 21089
 Language/Types/Dynamic_Type_System/malbounded_type_error_t01: RuntimeError # Issue 21088
 Language/Types/Parameterized_Types/malbounded_t06: RuntimeError # Issue 21088
