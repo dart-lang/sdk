@@ -2879,7 +2879,7 @@ abstract class ExecutableElementImpl extends ElementImpl
    * A list containing all of the type parameters defined for this executable
    * element.
    */
-  List<TypeParameterElement> _typeParameters = TypeParameterElement.EMPTY_LIST;
+  List<TypeParameterElement> _typeParameters;
 
   /**
    * The return type defined by this executable element.
@@ -3188,13 +3188,19 @@ abstract class ExecutableElementImpl extends ElementImpl
   TypeParameterizedElementMixin get typeParameterContext => this;
 
   @override
-  List<TypeParameterElement> get typeParameters => _typeParameters;
+  List<TypeParameterElement> get typeParameters {
+    if (serializedExecutable != null) {
+      return super.typeParameters;
+    }
+    return _typeParameters ?? const <TypeParameterElement>[];
+  }
 
   /**
    * Set the type parameters defined by this executable element to the given
    * [typeParameters].
    */
   void set typeParameters(List<TypeParameterElement> typeParameters) {
+    assert(serializedExecutable == null);
     for (TypeParameterElement parameter in typeParameters) {
       (parameter as TypeParameterElementImpl).enclosingElement = this;
     }
@@ -3208,14 +3214,14 @@ abstract class ExecutableElementImpl extends ElementImpl
   @override
   void appendTo(StringBuffer buffer) {
     if (this.kind != ElementKind.GETTER) {
-      int typeParameterCount = _typeParameters.length;
+      int typeParameterCount = typeParameters.length;
       if (typeParameterCount > 0) {
         buffer.write('<');
         for (int i = 0; i < typeParameterCount; i++) {
           if (i > 0) {
             buffer.write(", ");
           }
-          (_typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
+          (typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
         }
         buffer.write('>');
       }
@@ -7164,11 +7170,6 @@ class TypeParameterElementImpl extends ElementImpl
   final UnlinkedTypeParam _unlinkedTypeParam;
 
   /**
-   * The [TypeParameterizedElement] enclosing this one.
-   */
-  final TypeParameterizedElementMixin _enclosingTypeParameterizedElement;
-
-  /**
    * The number of type parameters whose scope overlaps this one, and which are
    * declared earlier in the file.
    *
@@ -7194,7 +7195,6 @@ class TypeParameterElementImpl extends ElementImpl
   TypeParameterElementImpl(String name, int offset)
       : _unlinkedTypeParam = null,
         nestingLevel = null,
-        _enclosingTypeParameterizedElement = null,
         super(name, offset);
 
   /**
@@ -7203,17 +7203,13 @@ class TypeParameterElementImpl extends ElementImpl
   TypeParameterElementImpl.forNode(Identifier name)
       : _unlinkedTypeParam = null,
         nestingLevel = null,
-        _enclosingTypeParameterizedElement = null,
         super.forNode(name);
 
   /**
    * Initialize using the given serialized information.
    */
-  TypeParameterElementImpl.forSerialized(
-      this._unlinkedTypeParam,
-      ElementImpl enclosingElement,
-      this._enclosingTypeParameterizedElement,
-      this.nestingLevel)
+  TypeParameterElementImpl.forSerialized(this._unlinkedTypeParam,
+      TypeParameterizedElementMixin enclosingElement, this.nestingLevel)
       : super.forSerialized(enclosingElement);
 
   /**
@@ -7223,7 +7219,6 @@ class TypeParameterElementImpl extends ElementImpl
   TypeParameterElementImpl.synthetic(String name)
       : _unlinkedTypeParam = null,
         nestingLevel = null,
-        _enclosingTypeParameterizedElement = null,
         super(name, -1) {
     synthetic = true;
   }
@@ -7263,14 +7258,6 @@ class TypeParameterElementImpl extends ElementImpl
 
   @override
   String get displayName => name;
-
-  @override
-  Element get enclosingElement {
-    if (_unlinkedTypeParam != null) {
-      return _enclosingTypeParameterizedElement;
-    }
-    return super.enclosingElement;
-  }
 
   @override
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
@@ -7384,7 +7371,7 @@ abstract class TypeParameterizedElementMixin
           new List<TypeParameterElement>(numTypeParameters);
       for (int i = 0; i < numTypeParameters; i++) {
         _typeParameterElements[i] = new TypeParameterElementImpl.forSerialized(
-            unlinkedTypeParams[i], this, this, enclosingNestingLevel + i);
+            unlinkedTypeParams[i], this, enclosingNestingLevel + i);
       }
     }
     return _typeParameterElements;

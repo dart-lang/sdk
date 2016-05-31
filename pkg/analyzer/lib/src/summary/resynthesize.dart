@@ -728,25 +728,6 @@ class _ConstExprBuilder {
 }
 
 /**
- * Temporary [TypeParameterizedElementMixin] implementation.
- *
- * TODO(scheglov) remove after moving resynthesize logic to Impl.
- */
-class _CurrentTypeParameterizedElement
-    implements TypeParameterizedElementMixin {
-  final _UnitResynthesizer unitResynthesizer;
-
-  _CurrentTypeParameterizedElement(this.unitResynthesizer);
-
-  @override
-  TypeParameterType getTypeParameterType(int index) {
-    return unitResynthesizer.getTypeParameterFromScope(index);
-  }
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-/**
  * A class element that has been resynthesized from a summary.  The actual
  * element won't be constructed until it is requested.  But properties
  * [context],  [displayName], [enclosingElement] and [name] can be used without
@@ -1619,19 +1600,6 @@ class _UnitResynthesizer {
   ConstructorElementImpl currentConstructor;
 
   /**
-   * Type parameters for the generic class, typedef, or executable currently
-   * being resynthesized, if any.  This is a list of lists; if multiple
-   * entities with type parameters are nested (e.g. a generic executable inside
-   * a generic class), then the zeroth element of [currentTypeParameters]
-   * contains the type parameters for the outermost nested entity, and further
-   * elements contain the type parameters for entities that are more deeply
-   * nested.  If we are not currently resynthesizing a class, typedef, or
-   * executable, then this is an empty list.
-   */
-  final List<List<TypeParameterElement>> currentTypeParameters =
-      <List<TypeParameterElement>>[];
-
-  /**
    * If a class is currently being resynthesized, map from field name to the
    * corresponding field element.  This is used when resynthesizing
    * initializing formal parameters.
@@ -1660,11 +1628,6 @@ class _UnitResynthesizer {
    */
   ResynthesizerContext _resynthesizerContext;
 
-  /**
-   * TODO(scheglov) clean up after moving resynthesize logic to Impl.
-   */
-  TypeParameterizedElementMixin _currentTypeParameterizedElement;
-
   _UnitResynthesizer(this.libraryResynthesizer, this.unlinkedUnit,
       this.linkedUnit, Source unitSource, UnlinkedPart unlinkedPart) {
     _resynthesizerContext = new _ResynthesizerContext(this);
@@ -1681,8 +1644,6 @@ class _UnitResynthesizer {
     numLinkedReferences = linkedUnit.references.length;
     numUnlinkedReferences = unlinkedUnit.references.length;
     referenceInfos = new List<_ReferenceInfo>(numLinkedReferences);
-    _currentTypeParameterizedElement =
-        new _CurrentTypeParameterizedElement(this);
   }
 
   SummaryResynthesizer get summaryResynthesizer =>
@@ -1752,7 +1713,6 @@ class _UnitResynthesizer {
    */
   void buildClassExecutables(
       ClassElementImpl classElement, UnlinkedClass serializedClass) {
-    currentTypeParameters.add(classElement.typeParameters);
     ElementHolder memberHolder = new ElementHolder();
     fields = <String, FieldElementImpl>{};
     for (UnlinkedVariable serializedVariable in serializedClass.fields) {
@@ -1770,13 +1730,7 @@ class _UnitResynthesizer {
         case UnlinkedExecutableKind.functionOrMethod:
         case UnlinkedExecutableKind.getter:
         case UnlinkedExecutableKind.setter:
-          if (serializedExecutable.isStatic) {
-            currentTypeParameters.removeLast();
-          }
           buildExecutable(serializedExecutable, classElement, memberHolder);
-          if (serializedExecutable.isStatic) {
-            currentTypeParameters.add(classElement.typeParameters);
-          }
           break;
       }
     }
@@ -1787,7 +1741,7 @@ class _UnitResynthesizer {
         constructor.synthetic = true;
         constructor.returnType = classElement.type;
         constructor.type = new FunctionTypeImpl.elementWithNameAndArgs(
-            constructor, null, getCurrentTypeArguments(), false);
+            constructor, null, classElement.type.typeArguments, false);
         memberHolder.addConstructor(constructor);
       }
       classElement.constructors = memberHolder.constructors;
@@ -1796,8 +1750,6 @@ class _UnitResynthesizer {
     classElement.fields = memberHolder.fields;
     classElement.methods = memberHolder.methods;
     resolveConstructorInitializers(classElement);
-    currentTypeParameters.removeLast();
-    assert(currentTypeParameters.isEmpty);
   }
 
   /**
@@ -1821,7 +1773,6 @@ class _UnitResynthesizer {
     // TODO(scheglov) move to ClassElementImpl
     correspondingType.typeArguments = classElement.typeParameterTypes;
     classElement.type = correspondingType;
-    assert(currentTypeParameters.isEmpty);
     // TODO(scheglov) Somehow Observatory shows too much time spent here
     // during DDC run on the large codebase. I would expect only Object here.
     if (handle == null) {
@@ -2091,8 +2042,6 @@ class _UnitResynthesizer {
    */
   void buildExecutableCommonParts(ExecutableElementImpl executableElement,
       UnlinkedExecutable serializedExecutable) {
-    executableElement.typeParameters =
-        buildTypeParameters(serializedExecutable.typeParameters);
     {
       List<UnlinkedExecutable> unlinkedFunctions =
           serializedExecutable.localFunctions;
@@ -2107,7 +2056,6 @@ class _UnitResynthesizer {
         executableElement.functions = localFunctions;
       }
     }
-    currentTypeParameters.removeLast();
   }
 
   /**
@@ -2256,52 +2204,6 @@ class _UnitResynthesizer {
     }
   }
 
-  /**
-   * Resynthesize a [TypeParameterElement], handling all parts of its except
-   * its bound.
-   *
-   * The bound is deferred until later since it may refer to other type
-   * parameters that have not been resynthesized yet.  To handle the bound,
-   * call [finishTypeParameter].
-   */
-  TypeParameterElement buildTypeParameter(
-      UnlinkedTypeParam serializedTypeParameter) {
-    TypeParameterElementImpl typeParameterElement =
-        new TypeParameterElementImpl(
-            serializedTypeParameter.name, serializedTypeParameter.nameOffset);
-    typeParameterElement.type = new TypeParameterTypeImpl(typeParameterElement);
-    buildAnnotations(typeParameterElement, serializedTypeParameter.annotations);
-    buildCodeRange(typeParameterElement, serializedTypeParameter.codeRange);
-    return typeParameterElement;
-  }
-
-  /**
-   * Build [TypeParameterElement]s corresponding to the type parameters in
-   * [serializedTypeParameters] and store them in [currentTypeParameters].
-   * Also return them.
-   */
-  List<TypeParameterElement> buildTypeParameters(
-      List<UnlinkedTypeParam> serializedTypeParameters) {
-    int length = serializedTypeParameters.length;
-    if (length != 0) {
-      List<TypeParameterElement> typeParameters =
-          new List<TypeParameterElement>(length);
-      for (int i = 0; i < length; i++) {
-        typeParameters[i] = buildTypeParameter(serializedTypeParameters[i]);
-      }
-      currentTypeParameters.add(typeParameters);
-      for (int i = 0; i < length; i++) {
-        finishTypeParameter(serializedTypeParameters[i], typeParameters[i]);
-      }
-      return typeParameters;
-    } else {
-      List<TypeParameterElement> typeParameters =
-          const <TypeParameterElement>[];
-      currentTypeParameters.add(typeParameters);
-      return typeParameters;
-    }
-  }
-
   UnitExplicitTopLevelAccessors buildUnitExplicitTopLevelAccessors() {
     HashMap<String, TopLevelVariableElementImpl> implicitVariables =
         new HashMap<String, TopLevelVariableElementImpl>();
@@ -2416,37 +2318,6 @@ class _UnitResynthesizer {
         buildLocalFunction(serializedInitializer, variable);
     initializerElement.synthetic = true;
     return initializerElement;
-  }
-
-  /**
-   * Finish creating a [TypeParameterElement] by deserializing its bound.
-   */
-  void finishTypeParameter(UnlinkedTypeParam serializedTypeParameter,
-      TypeParameterElementImpl typeParameterElement) {
-    if (serializedTypeParameter.bound != null) {
-      typeParameterElement.bound = buildType(
-          serializedTypeParameter.bound, _currentTypeParameterizedElement,
-          instantiateToBoundsAllowed: false);
-    }
-  }
-
-  /**
-   * Return a list of type arguments corresponding to [currentTypeParameters],
-   * skipping the innermost [skipLevels] nesting levels.
-   *
-   * Type parameters are listed in nesting order from innermost to outermost,
-   * and then in declaration order.  So for instance if we are resynthesizing a
-   * method declared as `class C<T, U> { void m<V, W>() { ... } }`, then the
-   * type parameters will be returned in the order `[V, W, T, U]`.
-   */
-  List<DartType> getCurrentTypeArguments({int skipLevels: 0}) {
-    assert(currentTypeParameters.length >= skipLevels);
-    List<DartType> result = <DartType>[];
-    for (int i = currentTypeParameters.length - 1 - skipLevels; i >= 0; i--) {
-      result.addAll(currentTypeParameters[i]
-          .map((TypeParameterElement param) => param.type));
-    }
-    return result;
   }
 
   /**
@@ -2566,24 +2437,6 @@ class _UnitResynthesizer {
   }
 
   /**
-   * Get the type parameter from the surrounding scope whose De Bruijn index is
-   * [index].
-   */
-  DartType getTypeParameterFromScope(int index) {
-    for (int i = currentTypeParameters.length - 1; i >= 0; i--) {
-      List<TypeParameterElement> paramsAtThisNestingLevel =
-          currentTypeParameters[i];
-      int numParamsAtThisNestingLevel = paramsAtThisNestingLevel.length;
-      if (index <= numParamsAtThisNestingLevel) {
-        return paramsAtThisNestingLevel[numParamsAtThisNestingLevel - index]
-            .type;
-      }
-      index -= numParamsAtThisNestingLevel;
-    }
-    throw new StateError('Type parameter not found');
-  }
-
-  /**
    * Populate a [CompilationUnitElement] by deserializing all the elements
    * contained in it.
    */
@@ -2592,7 +2445,6 @@ class _UnitResynthesizer {
     unlinkedUnit.enums.forEach(buildEnum);
     unit.enums = unitHolder.enums;
     unit.types = unitHolder.types;
-    assert(currentTypeParameters.isEmpty);
   }
 
   /**
