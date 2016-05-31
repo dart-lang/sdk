@@ -3367,6 +3367,54 @@ var x = { null: null };
     expect(x.type.toString(), 'Map<dynamic, dynamic>');
   }
 
+  void test_methodCall_withTypeArguments_instanceMethod() {
+    var mainUnit = checkFile('''
+class C {
+  D/*<T>*/ f/*<T>*/() => null;
+}
+class D<T> {}
+var f = new C().f/*<int>*/();
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'D<int>');
+  }
+
+  void test_methodCall_withTypeArguments_instanceMethod_identifierSequence() {
+    var mainUnit = checkFile('''
+class C {
+  D/*<T>*/ f/*<T>*/() => null;
+}
+class D<T> {}
+C c;
+var f = c.f/*<int>*/();
+''');
+    var v = mainUnit.topLevelVariables[1];
+    expect(v.name, 'f');
+    expect(v.type.toString(), 'D<int>');
+  }
+
+  void test_methodCall_withTypeArguments_staticMethod() {
+    var mainUnit = checkFile('''
+class C {
+  static D/*<T>*/ f/*<T>*/() => null;
+}
+class D<T> {}
+var f = C.f/*<int>*/();
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'D<int>');
+  }
+
+  void test_methodCall_withTypeArguments_topLevelFunction() {
+    var mainUnit = checkFile('''
+D/*<T>*/ f/*<T>*/() => null;
+class D<T> {}
+var g = f/*<int>*/();
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'D<int>');
+  }
+
   void test_noErrorWhenDeclaredTypeIsNumAndAssignedNull() {
     checkFile('''
 test1() {

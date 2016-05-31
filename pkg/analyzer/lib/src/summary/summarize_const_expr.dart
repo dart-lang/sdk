@@ -137,11 +137,6 @@ abstract class AbstractConstExprSerializer {
       TypeArgumentList typeArguments, SimpleIdentifier name);
 
   /**
-   * Return [EntityRefBuilder] that corresponds to the given [identifier].
-   */
-  EntityRefBuilder serializeIdentifier(Identifier identifier);
-
-  /**
    * Return a pair of ints showing how the given [functionExpression] is nested
    * within the constant currently being serialized.  The first int indicates
    * how many levels of function nesting must be popped in order to reach the
@@ -152,6 +147,11 @@ abstract class AbstractConstExprSerializer {
    * references are not allowed, return `null`.
    */
   List<int> serializeFunctionExpression(FunctionExpression functionExpression);
+
+  /**
+   * Return [EntityRefBuilder] that corresponds to the given [identifier].
+   */
+  EntityRefBuilder serializeIdentifier(Identifier identifier);
 
   /**
    * Return [EntityRefBuilder] that corresponds to the given [expr], which
@@ -195,6 +195,34 @@ abstract class AbstractConstExprSerializer {
         doubles: doubles,
         strings: strings,
         references: references);
+  }
+
+  /**
+   * Return `true` if the given [expr] is a sequence of identifiers.
+   */
+  bool _isIdentifierSequence(Expression expr) {
+    while (expr != null) {
+      if (expr is SimpleIdentifier) {
+        AstNode parent = expr.parent;
+        if (parent is MethodInvocation && parent.methodName == expr) {
+          if (parent.isCascaded) {
+            return false;
+          }
+          return parent.target == null || _isIdentifierSequence(parent.target);
+        }
+        if (isParameterName(expr.name)) {
+          return false;
+        }
+        return true;
+      } else if (expr is PrefixedIdentifier) {
+        expr = (expr as PrefixedIdentifier).prefix;
+      } else if (expr is PropertyAccess) {
+        expr = (expr as PropertyAccess).target;
+      } else {
+        return false;
+      }
+    }
+    return false;
   }
 
   /**
@@ -274,7 +302,8 @@ abstract class AbstractConstExprSerializer {
       if (expr is SimpleIdentifier && isParameterName(expr.name)) {
         strings.add(expr.name);
         operations.add(UnlinkedConstOperation.pushParameter);
-      } else if (expr is PrefixedIdentifier && isParameterName(expr.prefix.name)) {
+      } else if (expr is PrefixedIdentifier &&
+          isParameterName(expr.prefix.name)) {
         strings.add(expr.prefix.name);
         operations.add(UnlinkedConstOperation.pushParameter);
         strings.add(expr.identifier.name);
@@ -511,6 +540,7 @@ abstract class AbstractConstExprSerializer {
       EntityRefBuilder ref = serializeIdentifierSequence(methodName);
       _serializeArguments(argumentList);
       references.add(ref);
+      _serializeTypeArguments(invocation.typeArguments);
       operations.add(UnlinkedConstOperation.invokeMethodRef);
     } else {
       if (!invocation.isCascaded) {
@@ -518,6 +548,7 @@ abstract class AbstractConstExprSerializer {
       }
       _serializeArguments(argumentList);
       strings.add(methodName.name);
+      _serializeTypeArguments(invocation.typeArguments);
       operations.add(UnlinkedConstOperation.invokeMethod);
     }
   }
@@ -606,31 +637,14 @@ abstract class AbstractConstExprSerializer {
     }
   }
 
-  /**
-   * Return `true` if the given [expr] is a sequence of identifiers.
-   */
-  bool _isIdentifierSequence(Expression expr) {
-    while (expr != null) {
-      if (expr is SimpleIdentifier) {
-        AstNode parent = expr.parent;
-        if (parent is MethodInvocation && parent.methodName == expr) {
-          if (parent.isCascaded) {
-            return false;
-          }
-          return parent.target == null || _isIdentifierSequence(parent.target);
-        }
-        if (isParameterName(expr.name)) {
-          return false;
-        }
-        return true;
-      } else if (expr is PrefixedIdentifier) {
-        expr = (expr as PrefixedIdentifier).prefix;
-      } else if (expr is PropertyAccess) {
-        expr = (expr as PropertyAccess).target;
-      } else {
-        return false;
+  void _serializeTypeArguments(TypeArgumentList typeArguments) {
+    if (typeArguments == null) {
+      ints.add(0);
+    } else {
+      ints.add(typeArguments.arguments.length);
+      for (TypeName typeName in typeArguments.arguments) {
+        references.add(serializeTypeName(typeName));
       }
     }
-    return false;
   }
 }

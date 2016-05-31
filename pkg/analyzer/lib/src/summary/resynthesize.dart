@@ -674,12 +674,21 @@ class _ConstExprBuilder {
     EntityRef ref = uc.references[refPtr++];
     _ReferenceInfo info = resynthesizer.getReferenceInfo(ref.reference);
     Expression node = _buildIdentifierSequence(info);
+    TypeArgumentList typeArguments;
+    int numTypeArguments = uc.ints[intPtr++];
+    if (numTypeArguments > 0) {
+      List<TypeName> typeNames = new List<TypeName>(numTypeArguments);
+      for (int i = 0; i < numTypeArguments; i++) {
+        typeNames[i] = _newTypeName();
+      }
+      typeArguments = AstFactory.typeArgumentList(typeNames);
+    }
     if (node is SimpleIdentifier) {
       _push(new MethodInvocation(
           null,
           TokenFactory.tokenFromType(TokenType.PERIOD),
           node,
-          null,
+          typeArguments,
           AstFactory.argumentList(arguments)));
     } else {
       throw new UnimplementedError('For ${node?.runtimeType}: $node');

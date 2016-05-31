@@ -561,8 +561,11 @@ enum UnlinkedConstOperation : byte {
    * stack (where `m` is obtained from [UnlinkedConst.ints]) into a list (filled
    * from the end) and use them as positional arguments.  Use the lists of
    * positional and names arguments to invoke a method (or a function) with
-   * the reference from [UnlinkedConst.references].  Push the result of
-   * invocation value into the stack.
+   * the reference from [UnlinkedConst.references].  If `k` is nonzero (where
+   * `k` is obtained from [UnlinkedConst.ints]), obtain `k` type arguments from
+   * [UnlinkedConst.references] and use them as generic type arguments for the
+   * aforementioned method or function.  Push the result of the invocation onto
+   * the stack.
    *
    * In general `a.b` cannot not be distinguished between: `a` is a prefix and
    * `b` is a top-level function; or `a` is an object and `b` is the name of a
@@ -579,11 +582,14 @@ enum UnlinkedConstOperation : byte {
    * stack (where `m` is obtained from [UnlinkedConst.ints]) into a list (filled
    * from the end) and use them as positional arguments.  Use the lists of
    * positional and names arguments to invoke the method with the name from
-   * [UnlinkedConst.strings] of the target popped from the stack, and push the
-   * resulting value into the stack.
+   * [UnlinkedConst.strings] of the target popped from the stack.  If `k` is
+   * nonzero (where `k` is obtained from [UnlinkedConst.ints]), obtain `k` type
+   * arguments from [UnlinkedConst.references] and use them as generic type
+   * arguments for the aforementioned method.  Push the result of the
+   * invocation onto the stack.
    *
    * This operation should be used for invocation of a method invocation
-   * where `target` is know to be an object instance.
+   * where `target` is known to be an object instance.
    */
   invokeMethod,
 

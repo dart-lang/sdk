@@ -1498,10 +1498,20 @@ abstract class ConstNode extends Node<ConstNode> {
       return;
     }
     int refPtr = 0;
+    int intPtr = 0;
     for (UnlinkedConstOperation operation in unlinkedConst.operations) {
       switch (operation) {
+        case UnlinkedConstOperation.pushInt:
+          intPtr++;
+          break;
+        case UnlinkedConstOperation.pushLongInt:
+          int numInts = unlinkedConst.ints[intPtr++];
+          intPtr += numInts;
+          break;
+        case UnlinkedConstOperation.concatenate:
+          intPtr++;
+          break;
         case UnlinkedConstOperation.pushReference:
-        case UnlinkedConstOperation.invokeMethodRef:
           EntityRef ref = unlinkedConst.references[refPtr++];
           ConstVariableNode variable =
               compilationUnit.resolveRef(ref.reference).asConstVariable;
@@ -1509,11 +1519,36 @@ abstract class ConstNode extends Node<ConstNode> {
             dependencies.add(variable);
           }
           break;
+        case UnlinkedConstOperation.makeUntypedList:
+        case UnlinkedConstOperation.makeUntypedMap:
+          intPtr++;
+          break;
+        case UnlinkedConstOperation.assignToRef:
+          refPtr++;
+          break;
+        case UnlinkedConstOperation.invokeMethodRef:
+          EntityRef ref = unlinkedConst.references[refPtr++];
+          ConstVariableNode variable =
+              compilationUnit.resolveRef(ref.reference).asConstVariable;
+          if (variable != null) {
+            dependencies.add(variable);
+          }
+          intPtr += 2;
+          int numTypeArguments = unlinkedConst.ints[intPtr++];
+          refPtr += numTypeArguments;
+          break;
+        case UnlinkedConstOperation.invokeMethod:
+          intPtr += 2;
+          int numTypeArguments = unlinkedConst.ints[intPtr++];
+          refPtr += numTypeArguments;
+          break;
         case UnlinkedConstOperation.makeTypedList:
           refPtr++;
+          intPtr++;
           break;
         case UnlinkedConstOperation.makeTypedMap:
           refPtr += 2;
+          intPtr++;
           break;
         case UnlinkedConstOperation.invokeConstructor:
           EntityRef ref = unlinkedConst.references[refPtr++];
@@ -1522,12 +1557,21 @@ abstract class ConstNode extends Node<ConstNode> {
           if (element?._constNode != null) {
             dependencies.add(element._constNode);
           }
+          intPtr += 2;
+          break;
+        case UnlinkedConstOperation.typeCast:
+        case UnlinkedConstOperation.typeCheck:
+          refPtr++;
+          break;
+        case UnlinkedConstOperation.pushLocalFunctionReference:
+          intPtr += 2;
           break;
         default:
           break;
       }
     }
     assert(refPtr == unlinkedConst.references.length);
+    assert(intPtr == unlinkedConst.ints.length);
   }
 }
 
@@ -2351,14 +2395,21 @@ class ExprTypeComputer {
     // TODO(scheglov) if we pushed target and method name first, we might be
     // able to move work with arguments in _inferExecutableType()
     String methodName = _getNextString();
+    List<DartType> typeArguments = _getTypeArguments();
     DartType target = stack.removeLast();
     stack.add(() {
       if (target is InterfaceType) {
         MethodElement method =
             target.lookUpInheritedMethod(methodName, library: library);
         FunctionType rawType = method?.type;
-        FunctionType inferredType = _inferExecutableType(rawType, numNamed,
-            numPositional, namedArgNames, namedArgTypeList, positionalArgTypes);
+        FunctionType inferredType = _inferExecutableType(
+            rawType,
+            numNamed,
+            numPositional,
+            namedArgNames,
+            namedArgTypeList,
+            positionalArgTypes,
+            typeArguments);
         if (inferredType != null) {
           return inferredType.returnType;
         }
@@ -2375,11 +2426,18 @@ class ExprTypeComputer {
     List<DartType> positionalArgTypes = _popList(numPositional);
     EntityRef ref = _getNextRef();
     ReferenceableElementForLink element = unit.resolveRef(ref.reference);
+    List<DartType> typeArguments = _getTypeArguments();
     stack.add(() {
       DartType rawType = element.asStaticType;
       if (rawType is FunctionType) {
-        FunctionType inferredType = _inferExecutableType(rawType, numNamed,
-            numPositional, namedArgNames, namedArgTypeList, positionalArgTypes);
+        FunctionType inferredType = _inferExecutableType(
+            rawType,
+            numNamed,
+            numPositional,
+            namedArgNames,
+            namedArgTypeList,
+            positionalArgTypes,
+            typeArguments);
         if (inferredType != null) {
           return inferredType.returnType;
         }
@@ -2504,16 +2562,33 @@ class ExprTypeComputer {
         : DynamicTypeImpl.instance;
   }
 
+  List<DartType> _getTypeArguments() {
+    int numTypeArguments = _getNextInt();
+    List<DartType> typeArguments = new List<DartType>(numTypeArguments);
+    for (int i = 0; i < numTypeArguments; i++) {
+      typeArguments[i] = _getNextTypeRef();
+    }
+    return typeArguments;
+  }
+
   FunctionType _inferExecutableType(
       FunctionType rawMethodType,
       int numNamed,
       int numPositional,
       List<String> namedArgNames,
       List<DartType> namedArgTypeList,
-      List<DartType> positionalArgTypes) {
+      List<DartType> positionalArgTypes,
+      List<DartType> typeArguments) {
     TypeSystem ts = linker.typeSystem;
     if (rawMethodType != null) {
-      if (rawMethodType.typeFormals.isNotEmpty && ts is StrongTypeSystemImpl) {
+      if (rawMethodType.typeFormals.isNotEmpty && typeArguments.isNotEmpty) {
+        Element methodElement = rawMethodType.element;
+        if (methodElement is TypeParameterizedElement &&
+            methodElement.typeParameters.length == typeArguments.length) {
+          return rawMethodType.instantiate(typeArguments);
+        }
+      } else if (rawMethodType.typeFormals.isNotEmpty &&
+          ts is StrongTypeSystemImpl) {
         List<DartType> paramTypes = <DartType>[];
         List<DartType> argTypes = <DartType>[];
         // Add positional parameter and argument types.
@@ -4523,9 +4598,13 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
           // be considered a type inference dependency?
           refPtr++;
           intPtr += 2;
+          int numTypeArguments = unlinkedConst.ints[intPtr++];
+          refPtr += numTypeArguments;
           break;
         case UnlinkedConstOperation.invokeMethod:
           intPtr += 2;
+          int numTypeArguments = unlinkedConst.ints[intPtr++];
+          refPtr += numTypeArguments;
           break;
         case UnlinkedConstOperation.typeCast:
         case UnlinkedConstOperation.typeCheck:
