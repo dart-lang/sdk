@@ -51,7 +51,7 @@ Language/Libraries_and_Scripts/Parts/syntax_t06: Fail
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $mode == debug ]
 LibTest/core/List/List_class_A01_t02: Pass, Slow
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $system == windows && ($mode == release || $checked) ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $system == windows ]
 Language/Expressions/Function_Invocation/async_invokation_t04: RuntimeError # Issue 26574
 
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && ($arch != x64 && $arch != simarm64 && $arch != arm64) ]
@@ -83,6 +83,9 @@ WebPlatformTest/*: SkipByDesign # dart:html not supported on VM.
 
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $mode == debug && $builder_tag == asan ]
 Language/Types/Interface_Types/subtype_t27: Skip  # Issue 21174.
+
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $builder_tag == asan ]
+Language/Statements/Continue/async_loops_t10: Fail # Issue 26133
 
 [ ($runtime == vm || $runtime == dart_app) && $arch == arm ]
 LibTest/typed_data/Float32x4/operator_multiplication_A01_t01: Fail # Dart issue 24416
@@ -160,9 +163,13 @@ Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t04: RuntimeEr
 
 [ $noopt || $compiler == precompiler || $mode == product ]
 Language/Metadata/*: SkipByDesign # Uses dart:mirrors
+Language/Expressions/Null/instance_of_class_null_t01: Skip # Uses dart:mirrors
 
 [ $runtime == dart_precompiled || $runtime == dart_app ]
 LibTest/isolate/Isolate/spawnUri*: Skip # Isolate.spawnUri
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01: CompileTimeError # spawnUri
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: RuntimeError # spawnUri
+Language/Libraries_and_Scripts/Imports/deferred_import_t02: RuntimeError # Unsupported
 
 [ $noopt || $compiler == precompiler ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
