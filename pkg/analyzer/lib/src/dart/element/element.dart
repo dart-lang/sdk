@@ -5383,9 +5383,9 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   }
 
   @override
-  List<TypeParameterType> get allEnclosingTypeParameterTypes {
+  List<DartType> get allEnclosingTypeParameterTypes {
     if (isStatic) {
-      return const <TypeParameterType>[];
+      return const <DartType>[];
     }
     return super.allEnclosingTypeParameterTypes;
   }
@@ -6626,9 +6626,9 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  List<TypeParameterType> get allEnclosingTypeParameterTypes {
+  List<DartType> get allEnclosingTypeParameterTypes {
     if (isStatic) {
-      return const <TypeParameterType>[];
+      return const <DartType>[];
     }
     return super.allEnclosingTypeParameterTypes;
   }
@@ -7269,24 +7269,24 @@ abstract class TypeParameterizedElementMixin
     implements TypeParameterizedElement, ElementImpl {
   int _nestingLevel;
   List<TypeParameterElement> _typeParameterElements;
-  List<TypeParameterType> _typeParameterTypes;
-  List<TypeParameterType> _allTypeParameterTypes;
+  List<DartType> _typeParameterTypes;
+  List<DartType> _allTypeParameterTypes;
 
   /**
    * Return all type parameter types of the element that encloses element.
    * Not `null`, but might be empty for top-level and static class members.
    */
-  List<TypeParameterType> get allEnclosingTypeParameterTypes {
+  List<DartType> get allEnclosingTypeParameterTypes {
     return enclosingTypeParameterContext?.allTypeParameterTypes ??
-        const <TypeParameterType>[];
+        const <DartType>[];
   }
 
   /**
    * Return all type parameter types of this element.
    */
-  List<TypeParameterType> get allTypeParameterTypes {
+  List<DartType> get allTypeParameterTypes {
     if (_allTypeParameterTypes == null) {
-      _allTypeParameterTypes = <TypeParameterType>[];
+      _allTypeParameterTypes = <DartType>[];
       // The most logical order would be (enclosing, this).
       // But we have to have it like this to be consistent with (inconsistent
       // by itself) element builder for generic functions.
