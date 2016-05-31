@@ -1067,7 +1067,7 @@ abstract class FormalElement extends Element
 ///
 /// Normal parameter that introduce a local variable are modeled by
 /// [LocalParameterElement] whereas initializing formals, that is parameter of
-/// the form `this.x`, are modeled by [InitializingFormalElement].
+/// the form `this.x`, are modeled by [InitializingFormalParameter].
 abstract class ParameterElement extends Element
     implements VariableElement, FormalElement, LocalElement {
   /// Use [functionDeclaration] instead.
@@ -1092,7 +1092,7 @@ abstract class LocalParameterElement extends ParameterElement
 /// A formal parameter in a constructor that directly initializes a field.
 ///
 /// For example: `A(this.field)`.
-abstract class InitializingFormalElement extends LocalParameterElement {
+abstract class InitializingFormalElement extends ParameterElement {
   /// The field initialized by this initializing formal.
   FieldElement get fieldElement;
 

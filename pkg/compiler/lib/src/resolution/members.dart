@@ -17,10 +17,10 @@ import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
     show
+        BaseFunctionElementX,
         ConstructorElementX,
         ErroneousElementX,
         FunctionElementX,
-        InitializingFormalElementX,
         JumpTargetX,
         LocalFunctionElementX,
         LocalParameterElementX,
@@ -444,11 +444,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // fields they reference are visible, but must be resolved independently.
       if (element.isInitializingFormal) {
         registry.useElement(parameterNode, element);
-        if (compiler.options.enableInitializingFormalAccess) {
-          InitializingFormalElementX initializingFormalElementX = element;
-          defineLocalVariable(parameterNode, initializingFormalElementX);
-          addToScope(initializingFormalElementX);
-        }
       } else {
         LocalParameterElementX parameterElement = element;
         defineLocalVariable(parameterNode, parameterElement);
@@ -891,8 +886,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       } else {
         return new StaticAccess.parameter(target);
       }
-    } else if (target.isInitializingFormal){
-      return new StaticAccess.finalParameter(target);
     } else if (target.isVariable) {
       if (target.isFinal || target.isConst) {
         return new StaticAccess.finalLocalVariable(target);

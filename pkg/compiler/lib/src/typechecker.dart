@@ -1057,10 +1057,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     } else if (element.isFunction) {
       // foo() where foo is a method in the same class.
       return createResolvedAccess(node, name, element);
-    } else if (element.isVariable ||
-        element.isParameter ||
-        element.isField ||
-        element.isInitializingFormal) {
+    } else if (element.isVariable || element.isParameter || element.isField) {
       // foo() where foo is a field in the same class.
       return createResolvedAccess(node, name, element);
     } else if (element.isGetter || element.isSetter) {

@@ -1820,11 +1820,7 @@ class InitializingFormalElementX extends ParameterElementX
 
   MemberElement get memberContext => enclosingElement;
 
-  @override
-  bool get isFinal => true;
-
-  @override
-  bool get isLocal => true;
+  bool get isLocal => false;
 }
 
 class ErroneousInitializingFormalElementX extends ParameterElementX

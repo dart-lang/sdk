@@ -65,7 +65,6 @@ class Flags {
   // account).
   static const String genericMethodSyntax = '--generic-method-syntax';
   static const String resolveOnly = '--resolve-only';
-  static const String initializingFormalAccess = '--initializing-formal-access';
 }
 
 class Option {

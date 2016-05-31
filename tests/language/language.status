@@ -53,9 +53,6 @@ generic_methods_new_test: CompiletimeError # Issue 25869
 generic_methods_function_type_test: CompiletimeError # Issue 25869
 generic_methods_type_expression_test: CompiletimeError # Issue 25869
 
-# Experimental feature: Use initializing formals in initializers and constructor body.
-initializing_formal_access_test: CompiletimeError # TODO(eernst): Create a suitable sdk issue.
-
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
 
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
