@@ -29,11 +29,6 @@ Language/Classes/Setters/type_object_t02: RuntimeError # Please triage this fail
 Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeError # Please triage this failure
 Language/Classes/Static_Methods/type_object_t01: RuntimeError # Please triage this failure
 Language/Classes/Static_Methods/type_object_t02: RuntimeError # Please triage this failure
-Language/Classes/Superclasses/wrong_superclass_t04: MissingCompileTimeError # Please triage this failure
-Language/Classes/Superclasses/wrong_superclass_t07: MissingCompileTimeError # Please triage this failure
-Language/Classes/Superclasses/wrong_superclass_t08: MissingCompileTimeError # Please triage this failure
-Language/Classes/Superinterfaces/wrong_type_t04: MissingCompileTimeError # Please triage this failure
-Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError # Please triage this failure
 Language/Classes/definition_t23: CompileTimeError # Please triage this failure
 Language/Classes/same_name_type_variable_t02: Fail # Missing CT error on member with same name a type parameter
 Language/Classes/same_name_type_variable_t03: Fail # Missing CT error on member with same name a type parameter
@@ -41,12 +36,7 @@ Language/Classes/same_name_type_variable_t05: Fail # Missing CT error on member 
 Language/Classes/same_name_type_variable_t06: Fail # Missing CT error on member with same name a type parameter
 Language/Classes/same_name_type_variable_t08: Fail # Missing CT error on member with same name a type parameter
 Language/Classes/same_name_type_variable_t09: Fail # Missing CT error on member with same name a type parameter
-Language/Enums/restrictions_t01: MissingCompileTimeError # Please triage this failure
-Language/Enums/restrictions_t02: MissingCompileTimeError # Please triage this failure
 Language/Enums/restrictions_t05: MissingCompileTimeError # Please triage this failure
-Language/Enums/restrictions_t06: MissingCompileTimeError # Please triage this failure
-Language/Enums/restrictions_t07: MissingCompileTimeError # Please triage this failure
-Language/Enums/syntax_t02: MissingCompileTimeError # Please triage this failure
 Language/Errors_and_Warnings/compile_error_t06: MissingCompileTimeError # Please triage this failure
 Language/Errors_and_Warnings/compile_error_t07: MissingCompileTimeError # Please triage this failure
 Language/Expressions/Assignment/super_assignment_failed_t05: RuntimeError # Issue 25671
@@ -216,8 +206,6 @@ Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/setter_cl
 Language/Expressions/Property_Extraction/Super_Closurization: CompileTimeError # Issue 26287
 
 Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t01: RuntimeError # Please triage this failure
-Language/Expressions/Strings/adjacent_strings_t01: RuntimeError # Please triage this failure
-Language/Expressions/Strings/escape_newline_t01: RuntimeError # Please triage this failure
 Language/Functions/External_Functions/not_connected_to_a_body_t01: CompileTimeError, OK # Issue 5021
 Language/Generics/syntax_t17: fail # Issue 21203
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t01: CompileTimeError # Please triage this failure
@@ -248,28 +236,17 @@ Language/Mixins/Mixin_Application/syntax_t22: CompileTimeError # Please triage t
 Language/Mixins/Mixin_Application/syntax_t23: CompileTimeError # Please triage this failure
 Language/Mixins/Mixin_Application/syntax_t24: CompileTimeError # Please triage this failure
 Language/Mixins/Mixin_Application/syntax_t25: CompileTimeError # Please triage this failure
-Language/Mixins/Mixin_Application/wrong_mixin_type_t01: MissingCompileTimeError # Please triage this failure
-Language/Mixins/Mixin_Application/wrong_mixin_type_t02: MissingCompileTimeError # Please triage this failure
-Language/Mixins/Mixin_Application/wrong_mixin_type_t03: MissingCompileTimeError # Please triage this failure
-Language/Mixins/Mixin_Application/wrong_mixin_type_t04: MissingCompileTimeError # Please triage this failure
-Language/Mixins/Mixin_Application/wrong_type_t01: MissingCompileTimeError # Please triage this failure
-Language/Mixins/Mixin_Application/wrong_type_t02: MissingCompileTimeError # Please triage this failure
-Language/Mixins/declaring_constructor_t01: MissingCompileTimeError # Please triage this failure
 Language/Mixins/deferred_t01: MissingCompileTimeError # Please triage this failure
 Language/Mixins/not_object_superclass_t01: MissingCompileTimeError # Please triage this failure
 Language/Mixins/reference_to_super_t01: MissingCompileTimeError # Please triage this failure
 Language/Reference/Lexical_Rules/Reserved_Words/whitespace_t04: MissingCompileTimeError # Checks that other Unicode whitespaces are not allowed:  check NO-BREAK SPACE (U+00A0)
-Language/Reference/Lexical_Rules/unicode_t10: RuntimeError # Please triage this failure
 Language/Reference/Lexical_Rules/whitespace_t06: MissingCompileTimeError # Checks that Unicode whitespaces other than WHITESPACE are not permitted in the source code. Checks symbol U+00a0.
-Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t03: RuntimeError # Please triage this failure
 Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: RuntimeError # Please triage this failure
 Language/Statements/Continue/async_loops_t09: Crash # Please triage this failure
 Language/Statements/Local_Function_Declaration/reference_before_declaration_t01: MissingCompileTimeError # Issue 21050
 Language/Statements/Local_Function_Declaration/reference_before_declaration_t03: MissingCompileTimeError # Issue 21050
 Language/Statements/Try/catch_scope_t01: RuntimeError # Please triage this failure
-Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t01: RuntimeError # Please triage this failure
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t02: RuntimeError # Please triage this failure
-Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t04: RuntimeError # Please triage this failure
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_sync_t05: RuntimeError # Issue 25662,25634
 Language/Types/Dynamic_Type_System/deferred_type_error_t01: RuntimeError # Please triage this failure
 Language/Types/Interface_Types/subtype_t27: Skip # Times out or crashes. Issue 21174
@@ -315,7 +292,6 @@ LibTest/core/int/operator_addition_A01_t01: RuntimeError, OK # co19 issue 200
 LibTest/core/int/operator_remainder_A01_t01: RuntimeError, OK # Requires bigints.
 LibTest/core/int/operator_right_shift_A01_t01: RuntimeError, OK # Expects negative result from bit-operation.
 LibTest/core/int/toDouble_A01_t01: RuntimeError, OK # co19 issue 200
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t03: RuntimeError # Please triage this failure
 LibTest/html/HttpRequest/responseType_A01_t03: CompileTimeError # co19-roll r706: Please triage this failure
 LibTest/html/IFrameElement/enteredView_A01_t01: CompileTimeError # co19-roll r706: Please triage this failure
 LibTest/isolate/Isolate/spawnUri_A01_t01: Fail # Dart issue 15974
@@ -477,11 +453,9 @@ Language/Types/Parameterized_Types/malbounded_t06: RuntimeError # Issue 21088
 #LibTest/async/Stream/listen_A03_t01: Timeout, Skip # Please triage this failure
 LibTest/core/Map/Map_class_A01_t04: Slow, Pass
 LibTest/core/Uri/Uri_A06_t03: Slow, Pass
-LibTest/html/Node/ownerDocument_A01_t01: RuntimeError # Please triage this failure
 LibTest/math/Point/operator_mult_A02_t01: RuntimeError # Issue 1533
 
 [ $compiler == dart2js && $checked != true ]
-Language/Expressions/Function_Invocation/sync_generator_iteration_t07: RuntimeError # Please triage this failure
 Language/Expressions/Property_Extraction/General_Super_Property_Extraction/getter_lookup_t02: Timeout, Skip # Please triage this failure
 Language/Expressions/Property_Extraction/Super_Closurization/setter_closurization_t09: CompileTimeError # Please triage this failure
 

@@ -51,6 +51,9 @@ Language/Libraries_and_Scripts/Parts/syntax_t06: Fail
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $mode == debug ]
 LibTest/core/List/List_class_A01_t02: Pass, Slow
 
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $system == windows && ($mode == release || $checked) ]
+Language/Expressions/Function_Invocation/async_invokation_t04: RuntimeError # Issue 26574
+
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && ($arch != x64 && $arch != simarm64 && $arch != arm64) ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 
