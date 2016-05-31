@@ -401,7 +401,7 @@ Language/Mixins/Mixin_Application/static_warning_t01: CompileTimeError # Issue 2
 Language/Mixins/Mixin_Application/static_warning_t02: CompileTimeError # Issue 26409
 Language/Mixins/Mixin_Application/superinterfaces_t06: CompileTimeError # Issue 26409
 Language/Mixins/Mixin_Application/superinterfaces_t07: CompileTimeError # Issue 26409
-Language/Mixins/Mixin_Application/syntax_t11: StaticWarning, CompileTimeError # Issue 26409
+Language/Mixins/Mixin_Application/syntax_t11: CompileTimeError # Issue 26409
 Language/Mixins/Mixin_Application/syntax_t12: CompileTimeError # Issue 26409
 Language/Mixins/Mixin_Application/syntax_t13: CompileTimeError # Issue 26409
 Language/Mixins/Mixin_Application/syntax_t14: CompileTimeError # Issue 26409
@@ -446,3 +446,4 @@ Language/Expressions/Property_Extraction/General_Closurization/setter_lookup_t08
 Language/Expressions/Property_Extraction/General_Closurization/setter_lookup_t09: CompileTimeError # Issue 23777
 Language/Expressions/Property_Extraction/General_Closurization/static_type_t06: CompileTimeError # Issue 23777
 Language/Expressions/Property_Extraction/General_Closurization/static_type_t07: CompileTimeError # Issue 23777
+Language/Libraries_and_Scripts/Scripts/syntax_t11: Pass, CompileTimeError # Flaky
