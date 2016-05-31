@@ -774,7 +774,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     //
     // Now instantiate([V]), and the result should be:
     //     {U/T, V/S} T -> S.
-    List<DartType> newTypeArgs = typeArguments.toList();
+    List<DartType> newTypeArgs = <DartType>[];
+    newTypeArgs.addAll(typeArguments);
     newTypeArgs.addAll(argumentTypes);
 
     return new FunctionTypeImpl._(
