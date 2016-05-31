@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 samples/searchable_list: Pass, Slow
+third_party/pkg/scheduled_test: Fail # Issue 26585
 
 [ $use_repository_packages ]
 samples/third_party/angular_todo: Fail # angular needs to be updated
