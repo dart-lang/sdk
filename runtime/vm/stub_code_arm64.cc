@@ -780,8 +780,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Comment("InvokeDartCodeStub");
 
   // Copy the C stack pointer (R31) into the stack pointer we'll actually use
-  // to access the stack, and put the C stack pointer at the stack limit.
-  __ SetupDartSP(OSThread::GetSpecifiedStackSize());
+  // to access the stack.
+  __ SetupDartSP();
   __ EnterFrame(0);
 
   // Push code object to PC marker slot.
@@ -896,7 +896,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the frame pointer and C stack pointer and return.
   __ LeaveFrame();
-  __ mov(CSP, SP);
+  __ RestoreCSP();
   __ ret();
 }
 
