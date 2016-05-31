@@ -2279,16 +2279,6 @@ class _UnitResynthesizer {
   }
 
   /**
-   * Resynthesize a [FunctionTypeAliasElement] and place it in the
-   * [unitHolder].
-   */
-  void buildTypedef(UnlinkedTypedef serializedTypedef) {
-    FunctionTypeAliasElementImpl functionTypeAliasElement =
-        new FunctionTypeAliasElementImpl.forSerialized(serializedTypedef, unit);
-    unitHolder.addTypeAlias(functionTypeAliasElement);
-  }
-
-  /**
    * Resynthesize a [TypeParameterElement], handling all parts of its except
    * its bound.
    *
@@ -2622,15 +2612,7 @@ class _UnitResynthesizer {
   void populateUnit() {
     unlinkedUnit.classes.forEach(buildClass);
     unlinkedUnit.enums.forEach(buildEnum);
-    unlinkedUnit.typedefs.forEach(buildTypedef);
     unit.enums = unitHolder.enums;
-    List<FunctionTypeAliasElement> typeAliases = unitHolder.typeAliases;
-    for (FunctionTypeAliasElementImpl typeAlias in typeAliases) {
-      if (typeAlias.isSynthetic) {
-        typeAlias.enclosingElement = unit;
-      }
-    }
-    unit.typeAliases = typeAliases.where((e) => !e.isSynthetic).toList();
     unit.types = unitHolder.types;
     assert(currentTypeParameters.isEmpty);
   }

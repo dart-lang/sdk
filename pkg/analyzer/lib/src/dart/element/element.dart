@@ -1139,8 +1139,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
    * A list containing all of the function type aliases contained in this
    * compilation unit.
    */
-  List<FunctionTypeAliasElement> _typeAliases =
-      FunctionTypeAliasElement.EMPTY_LIST;
+  List<FunctionTypeAliasElement> _typeAliases;
 
   /**
    * A list containing all of the types contained in this compilation unit.
@@ -1287,7 +1286,14 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  List<FunctionTypeAliasElement> get functionTypeAliases => _typeAliases;
+  List<FunctionTypeAliasElement> get functionTypeAliases {
+    if (_unlinkedUnit != null) {
+      _typeAliases ??= _unlinkedUnit.typedefs
+          .map((t) => new FunctionTypeAliasElementImpl.forSerialized(t, this))
+          .toList(growable: false);
+    }
+    return _typeAliases ?? const <FunctionTypeAliasElement>[];
+  }
 
   @override
   int get hashCode => source.hashCode;
@@ -1364,6 +1370,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
    * given [typeAliases].
    */
   void set typeAliases(List<FunctionTypeAliasElement> typeAliases) {
+    assert(_unlinkedUnit == null);
     for (FunctionTypeAliasElement typeAlias in typeAliases) {
       (typeAlias as FunctionTypeAliasElementImpl).enclosingElement = this;
     }
