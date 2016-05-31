@@ -5199,7 +5199,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return;
     }
     Element element = type.element;
-    if (element is TypeParameterizedElement) {
+    if (element is ClassElement) {
       // prepare type parameters
       List<TypeParameterElement> parameterElements = element.typeParameters;
       List<DartType> parameterTypes = element.type.typeArguments;

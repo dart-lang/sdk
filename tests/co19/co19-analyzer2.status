@@ -21,8 +21,6 @@ Language/Types/Interface_Types/subtype_t12: fail, OK
 Language/Expressions/Constants/exception_t01: fail, OK
 Language/Expressions/Constants/exception_t02: fail, OK
 
-Language/Generics/syntax_t04: StaticWarning # co19 issue #56
-
 LibTest/isolate/IsolateStream/any_A01_t01: Fail # co19-roll r706: Please triage this failure.
 LibTest/isolate/IsolateStream/asBroadcastStream_A01_t01: Fail # co19-roll r706: Please triage this failure.
 LibTest/isolate/IsolateStream/contains_A01_t01: Fail # co19-roll r706: Please triage this failure.
