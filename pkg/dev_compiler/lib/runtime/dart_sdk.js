@@ -4036,7 +4036,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         t = t[dartx['%']](m);
       }
       if (t == 1) return 1;
-      if (t == 0 || dart.notNull(t[dartx.isEven]) && dart.notNull(m[dartx.isEven])) {
+      if (t == 0 || dart.test(t[dartx.isEven]) && dart.test(m[dartx.isEven])) {
         dart.throw(core.Exception.new("Not coprime"));
       }
       return _interceptors.JSNumber._binaryGcd(m, t, true);
@@ -7760,7 +7760,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this.errorsAreFatal = errorsAreFatal;
     }
     handlePing(responsePort, pingType) {
-      if (pingType == isolate.Isolate.IMMEDIATE || pingType == isolate.Isolate.BEFORE_NEXT_EVENT && !dart.notNull(this[_isExecutingEvent])) {
+      if (pingType == isolate.Isolate.IMMEDIATE || pingType == isolate.Isolate.BEFORE_NEXT_EVENT && !dart.test(this[_isExecutingEvent])) {
         responsePort.send(null);
         return;
       }
@@ -7780,7 +7780,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     handleKill(authentification, priority) {
       if (!dart.equals(this.terminateCapability, authentification)) return;
-      if (priority == isolate.Isolate.IMMEDIATE || priority == isolate.Isolate.BEFORE_NEXT_EVENT && !dart.notNull(this[_isExecutingEvent])) {
+      if (priority == isolate.Isolate.IMMEDIATE || priority == isolate.Isolate.BEFORE_NEXT_EVENT && !dart.test(this[_isExecutingEvent])) {
         this.kill();
         return;
       }
@@ -9325,7 +9325,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_once] = true;
       this[_inEventLoop] = false;
       this[_handle] = null;
-      if (milliseconds == 0 && (!dart.notNull(_isolate_helper.hasTimer()) || dart.notNull(_isolate_helper._globalState.isWorker))) {
+      if (milliseconds == 0 && (!dart.test(_isolate_helper.hasTimer()) || dart.test(_isolate_helper._globalState.isWorker))) {
         const internalCallback = (function() {
           this[_handle] = null;
           callback();
@@ -20644,7 +20644,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return true;
       }
       static es6() {
-        return collection._USE_ES6_MAPS && dart.notNull(collection._LinkedIdentityHashMap._supportsEs6Maps) ? new (_Es6LinkedIdentityHashMapOfK$V())() : new (_LinkedIdentityHashMapOfK$V())();
+        return collection._USE_ES6_MAPS && dart.test(collection._LinkedIdentityHashMap._supportsEs6Maps) ? new (_Es6LinkedIdentityHashMapOfK$V())() : new (_LinkedIdentityHashMapOfK$V())();
       }
       new() {
         super.new();
@@ -23030,7 +23030,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (this[_modificationCount] != this[_list][_modificationCount]) {
           dart.throw(new core.ConcurrentModificationError(this));
         }
-        if (dart.test(this[_list].isEmpty) || dart.notNull(this[_visitedFirst]) && core.identical(this[_next$0], this[_list].first)) {
+        if (dart.test(this[_list].isEmpty) || dart.test(this[_visitedFirst]) && core.identical(this[_next$0], this[_list].first)) {
           this[_current$2] = null;
           return false;
         }
@@ -30582,7 +30582,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       fragment = core.Uri._makeFragment(fragment, 0, core.Uri._stringOrNullLength(fragment));
       port = core.Uri._makePort(port, scheme);
       let isFile = scheme == "file";
-      if (host == null && (dart.notNull(userInfo[dartx.isNotEmpty]) || port != null || isFile)) {
+      if (host == null && (dart.test(userInfo[dartx.isNotEmpty]) || port != null || isFile)) {
         host = "";
       }
       let hasAuthority = host != null;
@@ -31022,7 +31022,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         path = core.Uri._makePath(path, 0, core.Uri._stringOrNullLength(path), pathSegments, scheme, hasAuthority);
       } else {
         path = this[_path];
-        if ((isFile || hasAuthority && !dart.notNull(path[dartx.isEmpty])) && !dart.test(path[dartx.startsWith]('/'))) {
+        if ((isFile || hasAuthority && !dart.test(path[dartx.isEmpty])) && !dart.test(path[dartx.startsWith]('/'))) {
           path = "/" + dart.notNull(path);
         }
       }
@@ -31455,7 +31455,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           output[dartx.add](segment);
         }
       }
-      if (dart.test(output[dartx.isEmpty]) || output[dartx.length] == 1 && dart.notNull(output[dartx.get](0)[dartx.isEmpty])) {
+      if (dart.test(output[dartx.isEmpty]) || output[dartx.length] == 1 && dart.test(output[dartx.get](0)[dartx.isEmpty])) {
         return "./";
       }
       if (appendSlash || output[dartx.last] == '..') output[dartx.add]("");
@@ -31886,7 +31886,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let simple = true;
       for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
         let codeUnit = text[dartx.codeUnitAt](i);
-        if (dart.notNull(codeUnit) > 127 || codeUnit == core.Uri._PERCENT || dart.notNull(plusToSpace) && codeUnit == core.Uri._PLUS) {
+        if (dart.notNull(codeUnit) > 127 || codeUnit == core.Uri._PERCENT || dart.test(plusToSpace) && codeUnit == core.Uri._PLUS) {
           simple = false;
           break;
         }
@@ -71973,7 +71973,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (prevEvent[_shadowCharCode] == event[dartx.charCode]) {
           return prevEvent.keyCode;
         }
-        if ((dart.notNull(event[dartx.shiftKey]) || dart.notNull(this[_capsLockOn])) && dart.notNull(event[dartx.charCode]) >= dart.notNull("A"[dartx.codeUnits][dartx.get](0)) && dart.notNull(event[dartx.charCode]) <= dart.notNull("Z"[dartx.codeUnits][dartx.get](0)) && dart.notNull(event[dartx.charCode]) + dart.notNull(html$._KeyboardEventHandler._ROMAN_ALPHABET_OFFSET) == prevEvent[_shadowCharCode]) {
+        if ((dart.test(event[dartx.shiftKey]) || dart.test(this[_capsLockOn])) && dart.notNull(event[dartx.charCode]) >= dart.notNull("A"[dartx.codeUnits][dartx.get](0)) && dart.notNull(event[dartx.charCode]) <= dart.notNull("Z"[dartx.codeUnits][dartx.get](0)) && dart.notNull(event[dartx.charCode]) + dart.notNull(html$._KeyboardEventHandler._ROMAN_ALPHABET_OFFSET) == prevEvent[_shadowCharCode]) {
           return prevEvent.keyCode;
         }
       }
@@ -72104,7 +72104,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (dart.test(event.altKey) && !dart.test(event.ctrlKey)) {
         return false;
       }
-      if (!dart.test(event.shiftKey) && (this[_keyDownList][dartx.last].keyCode == html$.KeyCode.CTRL || this[_keyDownList][dartx.last].keyCode == html$.KeyCode.ALT || dart.notNull(html_common.Device.userAgent[dartx.contains]('Mac')) && this[_keyDownList][dartx.last].keyCode == html$.KeyCode.META)) {
+      if (!dart.test(event.shiftKey) && (this[_keyDownList][dartx.last].keyCode == html$.KeyCode.CTRL || this[_keyDownList][dartx.last].keyCode == html$.KeyCode.ALT || dart.test(html_common.Device.userAgent[dartx.contains]('Mac')) && this[_keyDownList][dartx.last].keyCode == html$.KeyCode.META)) {
         return false;
       }
       if (dart.test(html_common.Device.isWebKit) && dart.test(event.ctrlKey) && dart.test(event.shiftKey) && (event.keyCode == html$.KeyCode.BACKSLASH || event.keyCode == html$.KeyCode.OPEN_SQUARE_BRACKET || event.keyCode == html$.KeyCode.CLOSE_SQUARE_BRACKET || event.keyCode == html$.KeyCode.TILDE || event.keyCode == html$.KeyCode.SEMICOLON || event.keyCode == html$.KeyCode.DASH || event.keyCode == html$.KeyCode.EQUALS || event.keyCode == html$.KeyCode.COMMA || event.keyCode == html$.KeyCode.PERIOD || event.keyCode == html$.KeyCode.SLASH || event.keyCode == html$.KeyCode.APOSTROPHE || event.keyCode == html$.KeyCode.SINGLE_QUOTE)) {
@@ -72146,7 +72146,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return event[dartx.keyCode];
     }
     processKeyDown(e) {
-      if (dart.notNull(this[_keyDownList][dartx.length]) > 0 && (this[_keyDownList][dartx.last].keyCode == html$.KeyCode.CTRL && !dart.notNull(e[dartx.ctrlKey]) || this[_keyDownList][dartx.last].keyCode == html$.KeyCode.ALT && !dart.notNull(e[dartx.altKey]) || dart.notNull(html_common.Device.userAgent[dartx.contains]('Mac')) && this[_keyDownList][dartx.last].keyCode == html$.KeyCode.META && !dart.notNull(e[dartx.metaKey]))) {
+      if (dart.notNull(this[_keyDownList][dartx.length]) > 0 && (this[_keyDownList][dartx.last].keyCode == html$.KeyCode.CTRL && !dart.test(e[dartx.ctrlKey]) || this[_keyDownList][dartx.last].keyCode == html$.KeyCode.ALT && !dart.test(e[dartx.altKey]) || dart.test(html_common.Device.userAgent[dartx.contains]('Mac')) && this[_keyDownList][dartx.last].keyCode == html$.KeyCode.META && !dart.test(e[dartx.metaKey]))) {
         this[_keyDownList][dartx.clear]();
       }
       let event = new html$.KeyEvent.wrap(e);

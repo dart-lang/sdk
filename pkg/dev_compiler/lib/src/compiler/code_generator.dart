@@ -4390,6 +4390,9 @@ class CodeGenerator extends GeneralizingAstVisitor
     if (node is PrefixExpression && node.operator.lexeme == '!') {
       return finish(js.call('!#', _visitTest(node.operand)));
     }
+    if (node is ParenthesizedExpression) {
+      return finish(_visitTest(node.expression));
+    }
     if (node is BinaryExpression) {
       JS.Expression shortCircuit(String code) {
         return finish(js.call(code,
