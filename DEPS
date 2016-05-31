@@ -41,6 +41,7 @@ vars = {
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
   "cli_util_tag" : "@0.0.1+2",
+  "code_transformers_rev": "@bfe9799e88d9c231747435e1c1d2495ef5ecd966",
   "collection_tag": "@1.6.0",
   "convert_tag": "@1.0.0",
   "crypto_tag" : "@1.1.0",
@@ -59,6 +60,7 @@ vars = {
   "http_tag" : "@0.11.3+3",
   "http_throttle_rev" : "@a81f08be942cdd608883c7b67795c12226abc235",
   "idl_parser_rev": "@7fbe68cab90c38147dee4f48c30ad0d496c17915",
+  "initialize_rev": "@595d501a92c3716395ad2d81f9aabdb9f90879b6",
   "intl_rev": "@a8b480b9c436f6c0ec16730804c914bdb4e30d53",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@2.0.0",
@@ -84,7 +86,7 @@ vars = {
   "quiver_tag": "@0.21.4",
   "resource_rev":"@a49101ba2deb29c728acba6fb86000a8f730f4b1",
   "root_certificates_rev": "@aed07942ce98507d2be28cbd29e879525410c7fc",
-  "scheduled_test_tag": "@0.12.5+2",
+  "scheduled_test_tag": "@0.12.5+5",
   "shelf_static_tag": "@0.2.3+1",
   "shelf_tag": "@0.6.5",
   "shelf_web_socket_tag": "@0.2.0",
@@ -98,7 +100,7 @@ vars = {
   "string_scanner_tag": "@0.1.4",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
   "test_reflective_loader_tag": "@0.0.3",
-  "test_tag": "@0.12.12",
+  "test_tag": "@0.12.13+1",
   "typed_data_tag": "@1.1.2",
   "usage_rev": "@b5080dac0d26a5609b266f8fdb0d053bc4c1c638",
   "utf_rev": "@1f55027068759e2d52f2c12de6a57cce5f3c5ee6",
@@ -170,6 +172,9 @@ deps = {
       (Var("github_mirror") % "crypto") + Var("crypto_tag"),
   Var("dart_root") + "/third_party/pkg/csslib":
       (Var("github_mirror") % "csslib") + Var("csslib_tag"),
+  Var("dart_root") + "/third_party/pkg/code_transformers":
+      (Var("github_dartlang") % "code_transformers") +
+      Var("code_transformers_rev"),
   Var("dart_root") + "/third_party/dart-services":
       (Var("github_mirror") % "dart-services") +
       Var("dart_services_rev"),
@@ -199,6 +204,8 @@ deps = {
   Var("dart_root") + "/third_party/pkg/http_throttle":
       (Var("github_mirror") % "http_throttle") +
       Var("http_throttle_rev"),
+  Var("dart_root") + "/third_party/pkg/initialize":
+      (Var("github_dartlang") % "initialize") + Var("initialize_rev"),
   Var("dart_root") + "/third_party/pkg/intl":
       (Var("github_mirror") % "intl") + Var("intl_rev"),
   Var("dart_root") + "/third_party/pkg/json_rpc_2":

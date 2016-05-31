@@ -437,6 +437,7 @@ abstract class TestSuite {
      *  dart/
      *      pkg/PACKAGE_NAME
      *      third_party/pkg/PACKAGE_NAME
+     *      third_party/pkg_tested/PACKAGE_NAME
      *      runtime/observatory/PACKAGE_NAME
      *      sdk/lib/_internal/PACKAGE_NAME
      */
@@ -450,6 +451,7 @@ abstract class TestSuite {
     var futures = [
       listDir(dartDir.append('pkg'), isValid),
       listDir(dartDir.append('third_party').append('pkg'), isValid),
+      listDir(dartDir.append('third_party').append('pkg_tested'), isValid),
       listDir(dartDir.append('runtime').append('observatory'), isValid),
       listDir(dartDir.append('sdk').append('lib').append('_internal'), isValid),
     ];
