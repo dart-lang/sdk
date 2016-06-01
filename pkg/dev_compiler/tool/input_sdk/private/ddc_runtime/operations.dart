@@ -246,7 +246,7 @@ instanceOf(obj, type) => JS('', '''(() => {
   let result = $strongInstanceOf($obj, $type);
   if (result !== null) return result;
   let actual = $getReifiedType($obj);
-  $throwStrongModeError('Strong mode is check failure: ' +
+  $throwStrongModeError('Strong mode is-check failure: ' +
     $typeName(actual) + ' does not soundly subtype ' +
     $typeName($type));
 })()''');
@@ -257,6 +257,13 @@ cast(obj, type) {
   bool result = strongInstanceOf(obj, type, true);
   if (JS('bool', '#', result)) return obj;
   _throwCastError(obj, type, result);
+}
+
+check(obj, type) {
+  if (JS('bool', '# == #', type, dynamic) || obj == null) return obj;
+  bool result = strongInstanceOf(obj, type, true);
+  if (JS('bool', '#', result)) return obj;
+  _throwTypeError(obj, type, result);
 }
 
 bool test(obj) {
@@ -277,17 +284,23 @@ bool booleanConversionFailed(obj) {
 
 void _throwCastError(obj, type, bool result) {
   var actual = getReifiedType(obj);
-  if (result == false) throwCastError(actual, type);
+  if (result == false) throwCastError(obj, actual, type);
 
-  throwStrongModeError('Strong mode cast failure from ' +
-      typeName(actual) + ' to ' + typeName(type));
+  throwStrongModeCastError(obj, actual, type);
+}
+
+void _throwTypeError(obj, type, bool result) {
+  var actual = getReifiedType(obj);
+  if (result == false) throwTypeError(obj, actual, type);
+
+  throwStrongModeTypeError(obj, actual, type);
 }
 
 asInt(obj) {
   if (obj == null) return null;
 
   if (JS('bool', 'Math.floor(#) != #', obj, obj)) {
-    throwCastError(getReifiedType(obj), JS('', '#', int));
+    throwCastError(obj, getReifiedType(obj), JS('', '#', int));
   }
   return obj;
 }

@@ -10,7 +10,9 @@ import 'dart:collection';
 import 'dart:_foreign_helper' show JS, JSExportName, rest, spread;
 import 'dart:_interceptors' show JSArray;
 import 'dart:_js_helper' show SyncIterable, BooleanConversionAssertionError,
-  CastErrorImplementation, TypeErrorImplementation, getTraceFromException;
+  CastErrorImplementation, TypeErrorImplementation, 
+  StrongModeCastError, StrongModeTypeError, StrongModeErrorImplementation,
+  getTraceFromException;
 
 part 'classes.dart';
 part 'errors.dart';

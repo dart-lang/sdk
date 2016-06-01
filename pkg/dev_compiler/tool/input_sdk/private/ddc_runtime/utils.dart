@@ -21,19 +21,10 @@ Iterable getOwnPropertySymbols(obj) =>
 
 final hasOwnProperty = JS('', 'Object.prototype.hasOwnProperty');
 
-// TODO(ochafik): Add ES6 class syntax support to JS intrinsics to avoid this.
-final StrongModeError = JS('', '''(function() {
-  function StrongModeError(message) {
-    Error.call(this);
-    this.message = message;
-  };
-  Object.setPrototypeOf(StrongModeError.prototype, Error.prototype);
-  return StrongModeError;
-})()''');
-
-/// This error indicates a strong mode specific failure.
+/// This error indicates a strong mode specific failure, other than a type
+/// assertion failure (TypeError) or CastError.
 void throwStrongModeError(String message) {
-  JS('', 'throw new #(#);', StrongModeError, message);
+  JS('', 'throw new #(#);', StrongModeErrorImplementation, message);
 }
 
 /// This error indicates a bug in the runtime or the compiler.

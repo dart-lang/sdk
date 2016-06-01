@@ -549,7 +549,17 @@ class CodeGenerator extends GeneralizingAstVisitor
         nameType: options.nameTypeTests || options.hoistTypeTests,
         hoistType: options.hoistTypeTests);
     if (_inAngularTemplate) return jsFrom;
-    return js.call('dart.as(#, #)', [jsFrom, type]);
+    if (isReifiedCoercion(node)) {
+      return js.call('dart.check(#, #)', [jsFrom, type]);
+    } else {
+      return js.call('dart.as(#, #)', [jsFrom, type]);
+    }
+  }
+
+  bool isReifiedCoercion(AstNode node) {
+    // TODO(sra): Find a better way to recognize reified coercion, since we
+    // can't set the isSynthetic attribute.
+    return (node is AsExpression) && (node.asOperator.offset == 0);
   }
 
   @override
@@ -4402,12 +4412,10 @@ class CodeGenerator extends GeneralizingAstVisitor
       if (op == '&&') return shortCircuit('# && #');
       if (op == '||') return shortCircuit('# || #');
     }
-    // Offset 0 from start of file is syntactically impossible for normal code.
-    // TODO(sra): Find a better way to recognize reified coercion, since we
-    // can't set the isSynthetic attribute.
-    if (node is AsExpression && node.asOperator.offset == 0) {
-      assert(node.staticType == types.boolType);
-      return js.call('dart.test(#)', _visit(node.expression));
+    if (isReifiedCoercion(node)) {
+      AsExpression asNode = node;
+      assert(asNode.staticType == types.boolType);
+      return js.call('dart.test(#)', _visit(asNode.expression));
     }
     JS.Expression result = _visit(node);
     if (isNullable(node)) result = js.call('dart.test(#)', result);

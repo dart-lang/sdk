@@ -3,9 +3,28 @@
 // BSD-style license that can be found in the LICENSE file.
 part of dart._runtime;
 
-throwCastError(actual, type) => JS('', '''(() => {
-  $throw_(new $CastErrorImplementation($typeName($actual),
+throwCastError(object, actual, type) => JS('', '''(() => {
+  $throw_(new $CastErrorImplementation($object,
+                                       $typeName($actual),
                                        $typeName($type)));
+})()''');
+
+throwTypeError(object, actual, type) => JS('', '''(() => {
+  $throw_(new $TypeErrorImplementation($object,
+                                       $typeName($actual),
+                                       $typeName($type)));
+})()''');
+
+throwStrongModeCastError(object, actual, type) => JS('', '''(() => {
+  $throw_(new $StrongModeCastError($object,
+                                   $typeName($actual),
+                                   $typeName($type)));
+})()''');
+
+throwStrongModeTypeError(object, actual, type) => JS('', '''(() => {
+  $throw_(new $StrongModeTypeError($object,
+                                   $typeName($actual),
+                                   $typeName($type)));
 })()''');
 
 throwAssertionError() => JS('', '''(() => {

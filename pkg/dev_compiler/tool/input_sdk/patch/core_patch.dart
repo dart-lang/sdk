@@ -149,6 +149,9 @@ class Error {
   StackTrace get stackTrace => Primitives.extractStackTrace(this);
 }
 
+/// An interface type for all Strong-mode errors.
+class StrongModeError extends Error {}
+
 // Patch for DateTime implementation.
 @patch
 class DateTime {
