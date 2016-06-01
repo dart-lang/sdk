@@ -42,8 +42,6 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
   Map<String, Object> _computeProperties(Element element) {
     Map<String, Object> properties = new HashMap<String, Object>();
 
-    properties['isDeprecated'] = element.isDeprecated;
-    properties['isOverride'] = element.isOverride;
     properties['metadata'] = element.metadata;
     properties['nameOffset'] = element.nameOffset;
     if (element is ClassElement) {
@@ -53,16 +51,18 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['interfaces'] = element.interfaces;
       properties['isAbstract'] = element.isAbstract;
       properties['isEnum'] = element.isEnum;
+      properties['isMixinApplication'] = element.isMixinApplication;
       properties['isOrInheritsProxy'] = element.isOrInheritsProxy;
       properties['isProxy'] = element.isProxy;
-      properties['isTypedef'] = element.isMixinApplication;
       properties['isValidMixin'] = element.isValidMixin;
       properties['mixins'] = element.mixins;
       properties['supertype'] = element.supertype;
-      properties['type'] = element.type;
+    }
+    if (element is ClassMemberElement) {
+      properties['isStatic'] = element.isStatic;
     }
     if (element is CompilationUnitElement) {
-      properties['isEnumConstant'] = element.hasLoadLibraryFunction;
+      properties['hasLoadLibraryFunction'] = element.hasLoadLibraryFunction;
       properties['source'] = element.source;
     }
     if (element is ConstFieldElementImpl) {
@@ -81,7 +81,10 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['redirectedConstructor'] = element.redirectedConstructor;
     }
     if (element is ExecutableElement) {
+      properties['hasImplicitReturnType'] = element.hasImplicitReturnType;
+      properties['isAbstract'] = element.isAbstract;
       properties['isAsynchronous'] = element.isAsynchronous;
+      properties['isExternal'] = element.isExternal;
       properties['isGenerator'] = element.isGenerator;
       properties['isOperator'] = element.isOperator;
       properties['isStatic'] = element.isStatic;
@@ -99,12 +102,16 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
     if (element is FieldFormalParameterElement) {
       properties['field'] = element.field;
     }
-    if (element is FunctionTypeAliasElement) {
+    if (element is FunctionElement) {
+      properties['isEntryPoint'] = element.isEntryPoint;
+    }
+    if (element is FunctionTypedElement) {
       properties['returnType'] = element.returnType;
       properties['type'] = element.type;
     }
     if (element is ImportElement) {
       properties['combinators'] = element.combinators;
+      properties['isDeferred'] = element.isDeferred;
       properties['library'] = element.library;
     }
     if (element is LibraryElement) {
@@ -113,12 +120,12 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['hasExtUri'] = element.hasExtUri;
       properties['hasLoadLibraryFunction'] = element.hasLoadLibraryFunction;
       properties['isBrowserApplication'] = element.isBrowserApplication;
+      properties['isDartAsync'] = element.isDartAsync;
+      properties['isDartCore'] = element.isDartCore;
+      properties['isInSdk'] = element.isInSdk;
     }
     if (element is LocalElement) {
       properties['visibleRange'] = element.visibleRange;
-    }
-    if (element is MethodElement) {
-      properties['isAbstract'] = element.isAbstract;
     }
     if (element is ParameterElement) {
       properties['defaultValueCode'] = element.defaultValueCode;
@@ -126,7 +133,6 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['parameterKind'] = element.parameterKind;
     }
     if (element is PropertyAccessorElement) {
-      properties['isAbstract'] = element.isAbstract;
       properties['isGetter'] = element.isGetter;
       properties['isSetter'] = element.isSetter;
     }
@@ -134,15 +140,24 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['isStatic'] = element.isStatic;
       properties['propagatedType'] = element.propagatedType;
     }
+    if (element is TypeDefiningElement) {
+      properties['type'] = element.type;
+    }
     if (element is TypeParameterElement) {
       properties['bound'] = element.bound;
+    }
+    if (element is TypeParameterizedElement) {
+      properties['typeParameters'] = element.typeParameters;
     }
     if (element is UriReferencedElement) {
       properties['uri'] = element.uri;
     }
     if (element is VariableElement) {
+      properties['constantValue'] = element.constantValue;
+      properties['hasImplicitType'] = element.hasImplicitType;
       properties['isConst'] = element.isConst;
       properties['isFinal'] = element.isFinal;
+      properties['isStatic'] = element.isStatic;
       properties['type'] = element.type;
     }
 
