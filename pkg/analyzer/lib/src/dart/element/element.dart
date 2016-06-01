@@ -1736,6 +1736,11 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
 class ConstructorElementImpl extends ExecutableElementImpl
     implements ConstructorElement {
   /**
+   * Set of slots corresponding to const constructors that are part of cycles.
+   */
+  final Set<int> _constCycles;
+
+  /**
    * The constructor to which this constructor is redirecting.
    */
   ConstructorElement redirectedConstructor;
@@ -1749,36 +1754,40 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /**
    * The offset of the `.` before this constructor name or `null` if not named.
    */
-  int periodOffset;
+  int _periodOffset;
 
   /**
    * Return the offset of the character immediately following the last character
    * of this constructor's name, or `null` if not named.
    */
-  int nameEnd;
+  int _nameEnd;
 
   /**
    * True if this constructor has been found by constant evaluation to be free
    * of redirect cycles, and is thus safe to evaluate.
    */
-  bool isCycleFree = false;
+  bool _isCycleFree = false;
 
   /**
    * Initialize a newly created constructor element to have the given [name] and
    * [offset].
    */
-  ConstructorElementImpl(String name, int offset) : super(name, offset);
+  ConstructorElementImpl(String name, int offset)
+      : _constCycles = null,
+        super(name, offset);
 
   /**
    * Initialize a newly created constructor element to have the given [name].
    */
-  ConstructorElementImpl.forNode(Identifier name) : super.forNode(name);
+  ConstructorElementImpl.forNode(Identifier name)
+      : _constCycles = null,
+        super.forNode(name);
 
   /**
    * Initialize using the given serialized information.
    */
-  ConstructorElementImpl.forSerialized(
-      UnlinkedExecutable serializedExecutable, ClassElementImpl enclosingClass)
+  ConstructorElementImpl.forSerialized(UnlinkedExecutable serializedExecutable,
+      this._constCycles, ClassElementImpl enclosingClass)
       : super.forSerialized(serializedExecutable, enclosingClass);
 
   /**
@@ -1812,6 +1821,19 @@ class ConstructorElementImpl extends ExecutableElementImpl
     return hasModifier(Modifier.CONST);
   }
 
+  bool get isCycleFree {
+    if (serializedExecutable != null) {
+      return serializedExecutable.isConst &&
+          !_constCycles.contains(serializedExecutable.constCycleSlot);
+    }
+    return _isCycleFree;
+  }
+
+  void set isCycleFree(bool isCycleFree) {
+    assert(serializedExecutable == null);
+    _isCycleFree = isCycleFree;
+  }
+
   @override
   bool get isDefaultConstructor {
     // unnamed
@@ -1842,6 +1864,38 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   ElementKind get kind => ElementKind.CONSTRUCTOR;
+
+  @override
+  int get nameEnd {
+    if (serializedExecutable != null) {
+      if (serializedExecutable.name.isNotEmpty) {
+        return serializedExecutable.nameEnd;
+      } else {
+        return serializedExecutable.nameOffset + enclosingElement.name.length;
+      }
+    }
+    return _nameEnd;
+  }
+
+  void set nameEnd(int nameEnd) {
+    assert(serializedExecutable == null);
+    _nameEnd = nameEnd;
+  }
+
+  @override
+  int get periodOffset {
+    if (serializedExecutable != null) {
+      if (serializedExecutable.name.isNotEmpty) {
+        return serializedExecutable.periodOffset;
+      }
+    }
+    return _periodOffset;
+  }
+
+  void set periodOffset(int periodOffset) {
+    assert(serializedExecutable == null);
+    _periodOffset = periodOffset;
+  }
 
   @override
   DartType get returnType => enclosingElement.type;

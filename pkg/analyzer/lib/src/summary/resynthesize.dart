@@ -1780,16 +1780,7 @@ class _UnitResynthesizer {
       ClassElementImpl classElement, ElementHolder holder) {
     assert(serializedExecutable.kind == UnlinkedExecutableKind.constructor);
     currentConstructor = new ConstructorElementImpl.forSerialized(
-        serializedExecutable, classElement);
-    currentConstructor.isCycleFree = serializedExecutable.isConst &&
-        !constCycles.contains(serializedExecutable.constCycleSlot);
-    if (serializedExecutable.name.isEmpty) {
-      currentConstructor.nameEnd =
-          serializedExecutable.nameOffset + classElement.name.length;
-    } else {
-      currentConstructor.nameEnd = serializedExecutable.nameEnd;
-      currentConstructor.periodOffset = serializedExecutable.periodOffset;
-    }
+        serializedExecutable, constCycles, classElement);
     constructors[serializedExecutable.name] = currentConstructor;
     currentConstructor.constantInitializers = serializedExecutable
         .constantInitializers
