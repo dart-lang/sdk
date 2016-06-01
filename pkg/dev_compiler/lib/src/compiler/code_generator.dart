@@ -126,8 +126,6 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   bool _superAllowed = true;
 
-  bool _inAngularTemplate = false;
-
   List<JS.TemporaryId> _superHelperSymbols = <JS.TemporaryId>[];
   List<JS.Method> _superHelpers = <JS.Method>[];
 
@@ -426,9 +424,6 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   @override
   void visitCompilationUnit(CompilationUnit unit) {
-    _inAngularTemplate =
-        unit.element.source.fullName.endsWith(".template.dart");
-
     _constField = new ConstFieldVisitor(types, unit.element.source);
 
     for (var declaration in unit.declarations) {
@@ -442,7 +437,6 @@ class CodeGenerator extends GeneralizingAstVisitor
     for (var directive in unit.directives) {
       directive.accept(this);
     }
-    _inAngularTemplate = false;
   }
 
   @override
@@ -548,7 +542,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var type = _emitType(to,
         nameType: options.nameTypeTests || options.hoistTypeTests,
         hoistType: options.hoistTypeTests);
-    if (_inAngularTemplate) return jsFrom;
+    if (_inWhitelistCode(node)) return jsFrom;
     if (isReifiedCoercion(node)) {
       return js.call('dart.check(#, #)', [jsFrom, type]);
     } else {
@@ -1737,7 +1731,7 @@ class CodeGenerator extends GeneralizingAstVisitor
         var castType = _emitType(paramType,
             nameType: options.nameTypeTests || options.hoistTypeTests,
             hoistType: options.hoistTypeTests);
-        if (!_inAngularTemplate) {
+        if (!_inWhitelistCode(node)) {
           body.add(js.statement('dart.as(#, #);', [jsParam, castType]));
         }
       }
@@ -2537,7 +2531,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
 
     if (target != null && DynamicInvoke.get(target)) {
-      if (_inAngularTemplate) {
+      if (_inWhitelistCode(lhs)) {
         return _visit(rhs).toAssignExpression(_visit(lhs));
       }
       return js.call('dart.dput(#, #, #)',
@@ -2670,7 +2664,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     JS.Expression jsTarget = _visit(target);
     if (DynamicInvoke.get(target) || DynamicInvoke.get(node.methodName)) {
-      if (_inAngularTemplate) {
+      if (_inWhitelistCode(target)) {
         jsTarget = new JS.PropertyAccess(jsTarget, memberName);
         if (typeArgs != null) jsTarget = new JS.Call(jsTarget, typeArgs);
         return new JS.Call(jsTarget, args);
@@ -2704,7 +2698,7 @@ class CodeGenerator extends GeneralizingAstVisitor
         return js.call('dart.dgcall(#, #, #)',
             [fn, new JS.ArrayInitializer(typeArgs), args]);
       } else {
-        if (_inAngularTemplate) {
+        if (_inWhitelistCode(node)) {
           return new JS.Call(fn, args);
         }
         return js.call('dart.dcall(#, #)', [fn, args]);
@@ -3885,7 +3879,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var name = _emitMemberName(memberName,
         type: getStaticType(target), isStatic: isStatic);
     if (DynamicInvoke.get(target)) {
-      if (_inAngularTemplate) {
+      if (_inWhitelistCode(target)) {
         return js.call('#.#', [_visit(target), name]);
       }
       return js.call('dart.dload(#, #)', [_visit(target), name]);
@@ -3938,7 +3932,7 @@ class CodeGenerator extends GeneralizingAstVisitor
         return js.call(
             'dart.$dynamicHelper(#, #)', [_visit(target), _visitList(args)]);
       }
-      if (_inAngularTemplate) {
+      if (_inWhitelistCode(target)) {
         return js
             .call('#.#(#)', [_visit(target), memberName, _visitList(args)]);
       } else {
@@ -4619,6 +4613,32 @@ class CodeGenerator extends GeneralizingAstVisitor
       // is exactly Future/Stream/Iterable.  Handle the subtype case.
       return DynamicTypeImpl.instance;
     }
+  }
+
+  /// Maps whitelisted files to a list of whitelisted methods
+  /// within the file.
+  ///
+  /// If the value is null, the entire file is whitelisted.
+  static Map<String, List<String>> _uncheckedWhitelist = {};
+
+  bool _inWhitelistCode(AstNode node) {
+    if (!options.useAngular2Whitelist) return false;
+    var path = _loader.currentElement.source.fullName;
+    var filename = path.split("/").last;
+    if (_uncheckedWhitelist.containsKey(filename)) {
+      var whitelisted = _uncheckedWhitelist[filename];
+      if (whitelisted == null) return true;
+      var enclosing = node;
+      while (enclosing != null &&
+          !(enclosing is ClassMember || enclosing is FunctionDeclaration)) {
+        enclosing = enclosing.parent;
+      }
+      String name = (enclosing as dynamic)?.element?.name;
+      if (name != null) {
+        return whitelisted.contains(name);
+      }
+    }
+    return path.endsWith(".template.dart");
   }
 }
 

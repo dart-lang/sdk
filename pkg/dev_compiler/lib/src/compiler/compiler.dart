@@ -171,6 +171,8 @@ class CompilerOptions {
   /// Hoist types in type tests
   final bool hoistTypeTests;
 
+  final bool useAngular2Whitelist;
+
   /// Enable ES6 destructuring of named parameters. Off by default.
   ///
   /// Older V8 versions do not accept default values with destructuring in
@@ -203,7 +205,8 @@ class CompilerOptions {
       this.hoistInstanceCreation: true,
       this.hoistSignatureTypes: false,
       this.nameTypeTests: true,
-      this.hoistTypeTests: true});
+      this.hoistTypeTests: true,
+      this.useAngular2Whitelist: false});
 
   CompilerOptions.fromArguments(ArgResults args)
       : sourceMap = args['source-map'],
@@ -217,7 +220,8 @@ class CompilerOptions {
         hoistInstanceCreation = args['hoist-instance-creation'],
         hoistSignatureTypes = args['hoist-signature-types'],
         nameTypeTests = args['name-type-tests'],
-        hoistTypeTests = args['hoist-type-tests'];
+        hoistTypeTests = args['hoist-type-tests'],
+        useAngular2Whitelist = args['unsafe-angular2-whitelist'];
 
   static ArgParser addArguments(ArgParser parser) => parser
     ..addFlag('summarize', help: 'emit an API summary file', defaultsTo: true)
@@ -255,7 +259,8 @@ class CompilerOptions {
     ..addFlag('name-type-tests',
         help: 'Name types used in type tests', defaultsTo: true)
     ..addFlag('hoist-type-tests',
-        help: 'Hoist types used in type tests', defaultsTo: true);
+        help: 'Hoist types used in type tests', defaultsTo: true)
+    ..addFlag('unsafe-angular2-whitelist', defaultsTo: false, hide: true);
 }
 
 /// A unit of Dart code that can be built into a single JavaScript module.
