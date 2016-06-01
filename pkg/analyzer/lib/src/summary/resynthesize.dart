@@ -2172,12 +2172,8 @@ class _UnitResynthesizer {
       TopLevelVariableElementImpl element;
       if (unlinkedVariable.initializer?.bodyExpr != null &&
           unlinkedVariable.isConst) {
-        ConstTopLevelVariableElementImpl constElement =
-            new ConstTopLevelVariableElementImpl.forSerialized(
-                unlinkedVariable, unit);
-        element = constElement;
-        constElement.constantInitializer =
-            _buildConstExpression(null, unlinkedVariable.initializer.bodyExpr);
+        element = new ConstTopLevelVariableElementImpl.forSerialized(
+            unlinkedVariable, unit);
       } else {
         element = new TopLevelVariableElementImpl.forSerialized(
             unlinkedVariable, unit);

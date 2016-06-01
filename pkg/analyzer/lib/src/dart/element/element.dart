@@ -1665,25 +1665,6 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   ConstFieldElementImpl.forSerialized(
       UnlinkedVariable unlinkedVariable, ElementImpl enclosingElement)
       : super.forSerialized(unlinkedVariable, enclosingElement);
-
-  @override
-  Expression get constantInitializer {
-    if (_unlinkedVariable != null) {
-      UnlinkedConst defaultValue = _unlinkedVariable.initializer?.bodyExpr;
-      if (defaultValue == null) {
-        return null;
-      }
-      return super.constantInitializer ??= enclosingUnit.resynthesizerContext
-          .buildExpression(this, defaultValue);
-    }
-    return super.constantInitializer;
-  }
-
-  @override
-  void set constantInitializer(Expression initializer) {
-    assert(_unlinkedVariable == null);
-    super.constantInitializer = initializer;
-  }
 }
 
 /**
@@ -1709,25 +1690,6 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
   ConstLocalVariableElementImpl.forSerialized(UnlinkedVariable unlinkedVariable,
       ExecutableElementImpl enclosingExecutable)
       : super.forSerialized(unlinkedVariable, enclosingExecutable);
-
-  @override
-  Expression get constantInitializer {
-    if (_unlinkedVariable != null) {
-      UnlinkedConst defaultValue = _unlinkedVariable.initializer?.bodyExpr;
-      if (defaultValue == null) {
-        return null;
-      }
-      return super.constantInitializer ??= enclosingUnit.resynthesizerContext
-          .buildExpression(this, defaultValue);
-    }
-    return super.constantInitializer;
-  }
-
-  @override
-  void set constantInitializer(Expression initializer) {
-    assert(_unlinkedVariable == null);
-    super.constantInitializer = initializer;
-  }
 }
 
 /**
@@ -1971,7 +1933,8 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
  *
  * This class is not intended to be part of the public API for analyzer.
  */
-abstract class ConstVariableElement implements ConstantEvaluationTarget {
+abstract class ConstVariableElement
+    implements ElementImpl, ConstantEvaluationTarget {
   /**
    * If this element represents a constant variable, and it has an initializer,
    * a copy of the initializer for the constant.  Otherwise `null`.
@@ -1981,10 +1944,29 @@ abstract class ConstVariableElement implements ConstantEvaluationTarget {
    * in which case there might be some constant variables that lack
    * initializers.
    */
-  Expression constantInitializer;
+  Expression _constantInitializer;
 
   @override
   EvaluationResultImpl evaluationResult;
+
+  Expression get constantInitializer {
+    if (_constantInitializer == null && _unlinkedConst != null) {
+      _constantInitializer = enclosingUnit.resynthesizerContext
+          .buildExpression(this, _unlinkedConst);
+    }
+    return _constantInitializer;
+  }
+
+  void set constantInitializer(Expression constantInitializer) {
+    assert(_unlinkedConst == null);
+    _constantInitializer = constantInitializer;
+  }
+
+  /**
+   * If this element is resynthesized from the summary, return the unlinked
+   * initializer, otherwise return `null`.
+   */
+  UnlinkedConst get _unlinkedConst;
 
   /**
    * Return a representation of the value of this variable, forcing the value
@@ -2024,25 +2006,6 @@ class DefaultFieldFormalParameterElementImpl
   DefaultFieldFormalParameterElementImpl.forSerialized(
       UnlinkedParam unlinkedParam, ElementImpl enclosingElement)
       : super.forSerialized(unlinkedParam, enclosingElement);
-
-  @override
-  Expression get constantInitializer {
-    if (_unlinkedParam != null) {
-      UnlinkedConst defaultValue = _unlinkedParam.initializer?.bodyExpr;
-      if (defaultValue == null) {
-        return null;
-      }
-      return super.constantInitializer ??= enclosingUnit.resynthesizerContext
-          .buildExpression(this, defaultValue);
-    }
-    return super.constantInitializer;
-  }
-
-  @override
-  void set constantInitializer(Expression initializer) {
-    assert(_unlinkedParam == null);
-    super.constantInitializer = initializer;
-  }
 }
 
 /**
@@ -2068,25 +2031,6 @@ class DefaultParameterElementImpl extends ParameterElementImpl
   DefaultParameterElementImpl.forSerialized(
       UnlinkedParam unlinkedParam, ElementImpl enclosingElement)
       : super.forSerialized(unlinkedParam, enclosingElement);
-
-  @override
-  Expression get constantInitializer {
-    if (_unlinkedParam != null) {
-      UnlinkedConst defaultValue = _unlinkedParam.initializer?.bodyExpr;
-      if (defaultValue == null) {
-        return null;
-      }
-      return super.constantInitializer ??= enclosingUnit.resynthesizerContext
-          .buildExpression(this, defaultValue);
-    }
-    return super.constantInitializer;
-  }
-
-  @override
-  void set constantInitializer(Expression initializer) {
-    assert(_unlinkedParam == null);
-    super.constantInitializer = initializer;
-  }
 
   @override
   DefaultFormalParameter computeNode() =>
@@ -6410,6 +6354,11 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
     assert(_unlinkedVariable == null);
     _type = type;
   }
+
+  /**
+   * Subclasses need this getter, see [ConstVariableElement._unlinkedConst].
+   */
+  UnlinkedConst get _unlinkedConst => _unlinkedVariable?.initializer?.bodyExpr;
 }
 
 /**
@@ -6734,6 +6683,11 @@ class ParameterElementImpl extends VariableElementImpl
     }
     return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
   }
+
+  /**
+   * Subclasses need this getter, see [ConstVariableElement._unlinkedConst].
+   */
+  UnlinkedConst get _unlinkedConst => _unlinkedParam?.initializer?.bodyExpr;
 
   @override
   accept(ElementVisitor visitor) => visitor.visitParameterElement(this);
