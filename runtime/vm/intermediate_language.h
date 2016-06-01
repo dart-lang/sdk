@@ -2912,6 +2912,8 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
     return instance_call_->token_pos();
   }
 
+  virtual CompileType ComputeType() const;
+
   virtual intptr_t ArgumentCount() const {
     return instance_call()->ArgumentCount();
   }
