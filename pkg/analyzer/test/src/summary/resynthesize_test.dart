@@ -203,8 +203,8 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
 
   void compareClassElements(
       ClassElement resynthesized, ClassElement original, String desc) {
-    ClassElementImpl r = ClassElementImpl.getImpl(resynthesized);
-    ClassElementImpl o = ClassElementImpl.getImpl(original);
+    AbstractClassElementImpl r = AbstractClassElementImpl.getImpl(resynthesized);
+    AbstractClassElementImpl o = AbstractClassElementImpl.getImpl(original);
     compareElements(r, o, desc);
     expect(r.fields.length, o.fields.length, reason: '$desc fields.length');
     for (int i = 0; i < r.fields.length; i++) {

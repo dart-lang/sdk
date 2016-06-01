@@ -73,8 +73,8 @@ class InstanceMemberInferrer {
    * The classes that have been visited while attempting to infer the types of
    * instance members of some base class.
    */
-  HashSet<ClassElementImpl> elementsBeingInferred =
-      new HashSet<ClassElementImpl>();
+  HashSet<AbstractClassElementImpl> elementsBeingInferred =
+      new HashSet<AbstractClassElementImpl>();
 
   /**
    * Initialize a newly create inferrer.
@@ -202,7 +202,7 @@ class InstanceMemberInferrer {
    * [classElement].
    */
   void _inferClass(ClassElement classElement) {
-    if (classElement is ClassElementImpl) {
+    if (classElement is AbstractClassElementImpl) {
       if (classElement.hasBeenInferred) {
         return;
       }

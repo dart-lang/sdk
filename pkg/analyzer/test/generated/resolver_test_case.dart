@@ -546,7 +546,7 @@ class ResolverTestCase extends EngineTestCase {
       for (int i = 0; i < count; i++) {
         String typeName = typeNames[i];
         ClassElementImpl type =
-            new ClassElementImpl_Class.forNode(AstFactory.identifier3(typeName));
+            new ClassElementImpl.forNode(AstFactory.identifier3(typeName));
         String fileName = "$typeName.dart";
         CompilationUnitElementImpl compilationUnit =
             new CompilationUnitElementImpl(fileName);

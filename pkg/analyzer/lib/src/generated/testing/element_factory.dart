@@ -44,7 +44,7 @@ class ElementFactory {
   static ClassElementImpl classElement(
       String typeName, InterfaceType superclassType,
       [List<String> parameterNames]) {
-    ClassElementImpl element = new ClassElementImpl_Class(typeName, 0);
+    ClassElementImpl element = new ClassElementImpl(typeName, 0);
     element.constructors = const <ConstructorElement>[];
     element.supertype = superclassType;
     InterfaceTypeImpl type = new InterfaceTypeImpl(element);
@@ -137,13 +137,13 @@ class ElementFactory {
           [List<DartType> argumentTypes]) =>
       constructorElement(definingClass, name, false, argumentTypes);
 
-  static ClassElementImpl enumElement(
+  static EnumElementImpl enumElement(
       TypeProvider typeProvider, String enumName,
       [List<String> constantNames]) {
     //
     // Build the enum.
     //
-    ClassElementImpl enumElement = new ClassElementImpl_Enum(enumName, -1);
+    EnumElementImpl enumElement = new EnumElementImpl(enumName, -1);
     InterfaceTypeImpl enumType = new InterfaceTypeImpl(enumElement);
     enumElement.type = enumType;
     enumElement.supertype = objectType;

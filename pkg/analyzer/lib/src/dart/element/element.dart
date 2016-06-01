@@ -32,37 +32,9 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/task/dart.dart';
 
 /**
- * For AST nodes that could be in both the getter and setter contexts
- * ([IndexExpression]s and [SimpleIdentifier]s), the additional resolved
- * elements are stored in the AST node, in an [AuxiliaryElements]. Because
- * resolved elements are either statically resolved or resolved using propagated
- * type information, this class is a wrapper for a pair of [ExecutableElement]s,
- * not just a single [ExecutableElement].
- */
-class AuxiliaryElements {
-  /**
-   * The element based on propagated type information, or `null` if the AST
-   * structure has not been resolved or if the node could not be resolved.
-   */
-  final ExecutableElement propagatedElement;
-
-  /**
-   * The element based on static type information, or `null` if the AST
-   * structure has not been resolved or if the node could not be resolved.
-   */
-  final ExecutableElement staticElement;
-
-  /**
-   * Initialize a newly created pair to have both the [staticElement] and the
-   * [propagatedElement].
-   */
-  AuxiliaryElements(this.staticElement, this.propagatedElement);
-}
-
-/**
  * A concrete implementation of a [ClassElement].
  */
-abstract class ClassElementImpl extends ElementImpl
+abstract class AbstractClassElementImpl extends ElementImpl
     with TypeParameterizedElementMixin
     implements ClassElement {
   /**
@@ -131,17 +103,18 @@ abstract class ClassElementImpl extends ElementImpl
    * Initialize a newly created class element to have the given [name] at the
    * given [offset] in the file that contains the declaration of this element.
    */
-  ClassElementImpl(String name, int offset) : super(name, offset);
+  AbstractClassElementImpl(String name, int offset) : super(name, offset);
 
   /**
    * Initialize a newly created class element to have the given [name].
    */
-  ClassElementImpl.forNode(Identifier name) : super.forNode(name);
+  AbstractClassElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /**
    * Initialize using the given serialized information.
    */
-  ClassElementImpl.forSerialized(CompilationUnitElementImpl enclosingUnit)
+  AbstractClassElementImpl.forSerialized(
+      CompilationUnitElementImpl enclosingUnit)
       : super.forSerialized(enclosingUnit);
 
   /**
@@ -964,23 +937,51 @@ abstract class ClassElementImpl extends ElementImpl
   }
 
   /**
-   * Return the [ClassElementImpl] of the given [classElement].  May throw an
-   * exception if the [ClassElementImpl] cannot be provided (should not happen
-   * though).
+   * Return the [AbstractClassElementImpl] of the given [classElement].  May
+   * throw an exception if the [AbstractClassElementImpl] cannot be provided
+   * (should not happen though).
    */
-  static ClassElementImpl getImpl(ClassElement classElement) {
+  static AbstractClassElementImpl getImpl(ClassElement classElement) {
     if (classElement is ClassElementHandle) {
       classElement.ensureActualElementComplete();
       return getImpl(classElement.actualElement);
     }
-    return classElement as ClassElementImpl;
+    return classElement as AbstractClassElementImpl;
   }
 }
 
 /**
- * A [ClassElementImpl], which is a class.
+ * For AST nodes that could be in both the getter and setter contexts
+ * ([IndexExpression]s and [SimpleIdentifier]s), the additional resolved
+ * elements are stored in the AST node, in an [AuxiliaryElements]. Because
+ * resolved elements are either statically resolved or resolved using propagated
+ * type information, this class is a wrapper for a pair of [ExecutableElement]s,
+ * not just a single [ExecutableElement].
  */
-class ClassElementImpl_Class extends ClassElementImpl {
+class AuxiliaryElements {
+  /**
+   * The element based on propagated type information, or `null` if the AST
+   * structure has not been resolved or if the node could not be resolved.
+   */
+  final ExecutableElement propagatedElement;
+
+  /**
+   * The element based on static type information, or `null` if the AST
+   * structure has not been resolved or if the node could not be resolved.
+   */
+  final ExecutableElement staticElement;
+
+  /**
+   * Initialize a newly created pair to have both the [staticElement] and the
+   * [propagatedElement].
+   */
+  AuxiliaryElements(this.staticElement, this.propagatedElement);
+}
+
+/**
+ * An [AbstractClassElementImpl] which is a class.
+ */
+class ClassElementImpl extends AbstractClassElementImpl {
   /**
    * The unlinked representation of the class in the summary.
    */
@@ -990,21 +991,21 @@ class ClassElementImpl_Class extends ClassElementImpl {
    * Initialize a newly created class element to have the given [name] at the
    * given [offset] in the file that contains the declaration of this element.
    */
-  ClassElementImpl_Class(String name, int offset)
+  ClassElementImpl(String name, int offset)
       : _unlinkedClass = null,
         super(name, offset);
 
   /**
    * Initialize a newly created class element to have the given [name].
    */
-  ClassElementImpl_Class.forNode(Identifier name)
+  ClassElementImpl.forNode(Identifier name)
       : _unlinkedClass = null,
         super.forNode(name);
 
   /**
    * Initialize using the given serialized information.
    */
-  ClassElementImpl_Class.forSerialized(
+  ClassElementImpl.forSerialized(
       this._unlinkedClass, CompilationUnitElementImpl enclosingUnit)
       : super.forSerialized(enclosingUnit);
 
@@ -1156,147 +1157,6 @@ class ClassElementImpl_Class extends ClassElementImpl {
   @override
   List<UnlinkedTypeParam> get unlinkedTypeParams =>
       _unlinkedClass.typeParameters;
-}
-
-/**
- * A [ClassElementImpl], which is an enum.
- */
-class ClassElementImpl_Enum extends ClassElementImpl {
-  /**
-   * The unlinked representation of the enum in the summary.
-   */
-  final UnlinkedEnum _unlinkedEnum;
-
-  /**
-   * Initialize a newly created class element to have the given [name] at the
-   * given [offset] in the file that contains the declaration of this element.
-   */
-  ClassElementImpl_Enum(String name, int offset)
-      : _unlinkedEnum = null,
-        super(name, offset);
-
-  /**
-   * Initialize a newly created class element to have the given [name].
-   */
-  ClassElementImpl_Enum.forNode(Identifier name)
-      : _unlinkedEnum = null,
-        super.forNode(name);
-
-  /**
-   * Initialize using the given serialized information.
-   */
-  ClassElementImpl_Enum.forSerialized(
-      this._unlinkedEnum, CompilationUnitElementImpl enclosingUnit)
-      : super.forSerialized(enclosingUnit);
-
-  /**
-   * Set whether this class is abstract.
-   */
-  void set abstract(bool isAbstract) {
-    assert(_unlinkedEnum == null);
-  }
-
-  @override
-  int get codeLength {
-    if (_unlinkedEnum != null) {
-      return _unlinkedEnum.codeRange?.length;
-    }
-    return super.codeLength;
-  }
-
-  @override
-  int get codeOffset {
-    if (_unlinkedEnum != null) {
-      return _unlinkedEnum.codeRange?.offset;
-    }
-    return super.codeOffset;
-  }
-
-  @override
-  SourceRange get docRange {
-    if (_unlinkedEnum != null) {
-      UnlinkedDocumentationComment comment = _unlinkedEnum.documentationComment;
-      return comment != null
-          ? new SourceRange(comment.offset, comment.length)
-          : null;
-    }
-    return super.docRange;
-  }
-
-  @override
-  String get documentationComment {
-    if (_unlinkedEnum != null) {
-      return _unlinkedEnum?.documentationComment?.text;
-    }
-    return super.documentationComment;
-  }
-
-  @override
-  List<InterfaceType> get interfaces => const <InterfaceType>[];
-
-  void set interfaces(List<InterfaceType> interfaces) {
-    assert(false);
-  }
-
-  @override
-  bool get isAbstract => false;
-
-  @override
-  bool get isEnum => true;
-
-  @override
-  bool get isMixinApplication => false;
-
-  @override
-  List<ElementAnnotation> get metadata {
-    if (_unlinkedEnum != null) {
-      return _metadata ??=
-          _buildAnnotations(enclosingUnit, _unlinkedEnum.annotations);
-    }
-    return super.metadata;
-  }
-
-  /**
-   * Set whether this class is a mixin application.
-   */
-  void set mixinApplication(bool isMixinApplication) {
-    assert(false);
-  }
-
-  @override
-  List<InterfaceType> get mixins => const <InterfaceType>[];
-
-  void set mixins(List<InterfaceType> mixins) {
-    assert(false);
-  }
-
-  @override
-  String get name {
-    if (_unlinkedEnum != null) {
-      return _unlinkedEnum.name;
-    }
-    return super.name;
-  }
-
-  @override
-  int get nameOffset {
-    if (_unlinkedEnum != null) {
-      return _unlinkedEnum.nameOffset;
-    }
-    return super.nameOffset;
-  }
-
-  @override
-  List<TypeParameterElement> get typeParameters =>
-      const <TypeParameterElement>[];
-
-  /**
-   * Set the type parameters defined for this class to the given
-   * [typeParameters].
-   */
-  void set typeParameters(List<TypeParameterElement> typeParameters) {
-    assert(false);
-  }
 }
 
 /**
@@ -1485,7 +1345,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
    */
   void set enums(List<ClassElement> enums) {
     for (ClassElement enumDeclaration in enums) {
-      (enumDeclaration as ClassElementImpl).enclosingElement = this;
+      (enumDeclaration as EnumElementImpl).enclosingElement = this;
     }
     this._enums = enums;
   }
@@ -1702,7 +1562,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       }
     }
     for (ClassElement type in _enums) {
-      ClassElementImpl typeImpl = type;
+      EnumElementImpl typeImpl = type;
       if (typeImpl.identifier == identifier) {
         return typeImpl;
       }
@@ -3066,6 +2926,147 @@ class ElementLocationImpl implements ElementLocation {
       }
       buffer.writeCharCode(currentChar);
     }
+  }
+}
+
+/**
+ * An [AbstractClassElementImpl] which is an enum.
+ */
+class EnumElementImpl extends AbstractClassElementImpl {
+  /**
+   * The unlinked representation of the enum in the summary.
+   */
+  final UnlinkedEnum _unlinkedEnum;
+
+  /**
+   * Initialize a newly created class element to have the given [name] at the
+   * given [offset] in the file that contains the declaration of this element.
+   */
+  EnumElementImpl(String name, int offset)
+      : _unlinkedEnum = null,
+        super(name, offset);
+
+  /**
+   * Initialize a newly created class element to have the given [name].
+   */
+  EnumElementImpl.forNode(Identifier name)
+      : _unlinkedEnum = null,
+        super.forNode(name);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  EnumElementImpl.forSerialized(
+      this._unlinkedEnum, CompilationUnitElementImpl enclosingUnit)
+      : super.forSerialized(enclosingUnit);
+
+  /**
+   * Set whether this class is abstract.
+   */
+  void set abstract(bool isAbstract) {
+    assert(_unlinkedEnum == null);
+  }
+
+  @override
+  int get codeLength {
+    if (_unlinkedEnum != null) {
+      return _unlinkedEnum.codeRange?.length;
+    }
+    return super.codeLength;
+  }
+
+  @override
+  int get codeOffset {
+    if (_unlinkedEnum != null) {
+      return _unlinkedEnum.codeRange?.offset;
+    }
+    return super.codeOffset;
+  }
+
+  @override
+  SourceRange get docRange {
+    if (_unlinkedEnum != null) {
+      UnlinkedDocumentationComment comment = _unlinkedEnum.documentationComment;
+      return comment != null
+          ? new SourceRange(comment.offset, comment.length)
+          : null;
+    }
+    return super.docRange;
+  }
+
+  @override
+  String get documentationComment {
+    if (_unlinkedEnum != null) {
+      return _unlinkedEnum?.documentationComment?.text;
+    }
+    return super.documentationComment;
+  }
+
+  @override
+  List<InterfaceType> get interfaces => const <InterfaceType>[];
+
+  void set interfaces(List<InterfaceType> interfaces) {
+    assert(false);
+  }
+
+  @override
+  bool get isAbstract => false;
+
+  @override
+  bool get isEnum => true;
+
+  @override
+  bool get isMixinApplication => false;
+
+  @override
+  List<ElementAnnotation> get metadata {
+    if (_unlinkedEnum != null) {
+      return _metadata ??=
+          _buildAnnotations(enclosingUnit, _unlinkedEnum.annotations);
+    }
+    return super.metadata;
+  }
+
+  /**
+   * Set whether this class is a mixin application.
+   */
+  void set mixinApplication(bool isMixinApplication) {
+    assert(false);
+  }
+
+  @override
+  List<InterfaceType> get mixins => const <InterfaceType>[];
+
+  void set mixins(List<InterfaceType> mixins) {
+    assert(false);
+  }
+
+  @override
+  String get name {
+    if (_unlinkedEnum != null) {
+      return _unlinkedEnum.name;
+    }
+    return super.name;
+  }
+
+  @override
+  int get nameOffset {
+    if (_unlinkedEnum != null) {
+      return _unlinkedEnum.nameOffset;
+    }
+    return super.nameOffset;
+  }
+
+  @override
+  List<TypeParameterElement> get typeParameters =>
+      const <TypeParameterElement>[];
+
+  /**
+   * Set the type parameters defined for this class to the given
+   * [typeParameters].
+   */
+  void set typeParameters(List<TypeParameterElement> typeParameters) {
+    assert(false);
   }
 }
 

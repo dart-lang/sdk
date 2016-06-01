@@ -353,7 +353,7 @@ class ElementResolverTest extends EngineTestCase {
   void test_visitEnumDeclaration() {
     CompilationUnitElementImpl compilationUnitElement =
         ElementFactory.compilationUnit('foo.dart');
-    ClassElementImpl enumElement =
+    EnumElementImpl enumElement =
         ElementFactory.enumElement(_typeProvider, ('E'));
     compilationUnitElement.enums = <ClassElement>[enumElement];
     EnumDeclaration enumNode = AstFactory.enumDeclaration2('E', []);

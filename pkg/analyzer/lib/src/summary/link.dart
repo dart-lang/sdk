@@ -341,7 +341,7 @@ class AnalysisOptionsForLink implements AnalysisOptions {
  */
 abstract class ClassElementForLink extends Object
     with ReferenceableElementForLink
-    implements ClassElementImpl {
+    implements AbstractClassElementImpl {
   Map<String, ReferenceableElementForLink> _containedNames;
 
   @override

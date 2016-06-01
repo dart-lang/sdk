@@ -1749,7 +1749,7 @@ class _UnitResynthesizer {
   ClassElementImpl buildClassImpl(
       UnlinkedClass serializedClass, ClassElementHandle handle) {
     ClassElementImpl classElement =
-        new ClassElementImpl_Class.forSerialized(serializedClass, unit);
+        new ClassElementImpl.forSerialized(serializedClass, unit);
     classElement.hasBeenInferred = summaryResynthesizer.strongMode;
     InterfaceTypeImpl correspondingType =
         new InterfaceTypeImpl(handle ?? classElement);
@@ -1875,8 +1875,8 @@ class _UnitResynthesizer {
    */
   void buildEnum(UnlinkedEnum serializedEnum) {
     assert(!libraryResynthesizer.isCoreLibrary);
-    ClassElementImpl_Enum classElement =
-        new ClassElementImpl_Enum.forSerialized(serializedEnum, unit);
+    EnumElementImpl classElement =
+        new EnumElementImpl.forSerialized(serializedEnum, unit);
     InterfaceType enumType = new InterfaceTypeImpl(classElement);
     classElement.type = enumType;
     classElement.supertype = typeProvider.objectType;

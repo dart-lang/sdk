@@ -418,7 +418,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       _currentHolder = previousHolder;
     }
     SimpleIdentifier className = node.name;
-    ClassElementImpl element = new ClassElementImpl_Class.forNode(className);
+    ClassElementImpl element = new ClassElementImpl.forNode(className);
     _setCodeRange(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
     List<TypeParameterElement> typeParameters = holder.typeParameters;
@@ -468,7 +468,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     ElementHolder holder = new ElementHolder();
     _visitChildren(holder, node);
     SimpleIdentifier className = node.name;
-    ClassElementImpl element = new ClassElementImpl_Class.forNode(className);
+    ClassElementImpl element = new ClassElementImpl.forNode(className);
     _setCodeRange(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
     element.abstract = node.abstractKeyword != null;
@@ -617,7 +617,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   @override
   Object visitEnumDeclaration(EnumDeclaration node) {
     SimpleIdentifier enumName = node.name;
-    ClassElementImpl enumElement = new ClassElementImpl_Enum.forNode(enumName);
+    EnumElementImpl enumElement = new EnumElementImpl.forNode(enumName);
     _setCodeRange(enumElement, node);
     enumElement.metadata = _createElementAnnotations(node.metadata);
     setElementDocumentationComment(enumElement, node);

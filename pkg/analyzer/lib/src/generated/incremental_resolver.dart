@@ -74,7 +74,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
    * The class containing the AST nodes being visited, or `null` if we are not
    * in the scope of a class.
    */
-  ClassElementImpl _enclosingClass;
+  AbstractClassElementImpl _enclosingClass;
 
   /**
    * The parameter containing the AST nodes being visited, or `null` if we are not in the
