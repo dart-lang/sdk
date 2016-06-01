@@ -44,7 +44,7 @@ class ElementFactory {
   static ClassElementImpl classElement(
       String typeName, InterfaceType superclassType,
       [List<String> parameterNames]) {
-    ClassElementImpl element = new ClassElementImpl(typeName, 0);
+    ClassElementImpl element = new ClassElementImpl_Class(typeName, 0);
     element.constructors = const <ConstructorElement>[];
     element.supertype = superclassType;
     InterfaceTypeImpl type = new InterfaceTypeImpl(element);
@@ -143,11 +143,10 @@ class ElementFactory {
     //
     // Build the enum.
     //
-    ClassElementImpl enumElement = new ClassElementImpl(enumName, -1);
+    ClassElementImpl enumElement = new ClassElementImpl_Enum(enumName, -1);
     InterfaceTypeImpl enumType = new InterfaceTypeImpl(enumElement);
     enumElement.type = enumType;
     enumElement.supertype = objectType;
-    enumElement.enum2 = true;
     //
     // Populate the fields.
     //

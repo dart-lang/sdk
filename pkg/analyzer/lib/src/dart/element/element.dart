@@ -62,14 +62,9 @@ class AuxiliaryElements {
 /**
  * A concrete implementation of a [ClassElement].
  */
-class ClassElementImpl extends ElementImpl
+abstract class ClassElementImpl extends ElementImpl
     with TypeParameterizedElementMixin
     implements ClassElement {
-  /**
-   * The unlinked representation of the class in the summary.
-   */
-  final UnlinkedClass _unlinkedClass;
-
   /**
    * A list containing all of the accessors (getters and setters) contained in
    * this class.
@@ -136,29 +131,23 @@ class ClassElementImpl extends ElementImpl
    * Initialize a newly created class element to have the given [name] at the
    * given [offset] in the file that contains the declaration of this element.
    */
-  ClassElementImpl(String name, int offset)
-      : _unlinkedClass = null,
-        super(name, offset);
+  ClassElementImpl(String name, int offset) : super(name, offset);
 
   /**
    * Initialize a newly created class element to have the given [name].
    */
-  ClassElementImpl.forNode(Identifier name)
-      : _unlinkedClass = null,
-        super.forNode(name);
+  ClassElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /**
    * Initialize using the given serialized information.
    */
-  ClassElementImpl.forSerialized(
-      this._unlinkedClass, CompilationUnitElementImpl enclosingUnit)
+  ClassElementImpl.forSerialized(CompilationUnitElementImpl enclosingUnit)
       : super.forSerialized(enclosingUnit);
 
   /**
    * Set whether this class is abstract.
    */
   void set abstract(bool isAbstract) {
-    assert(_unlinkedClass == null);
     setModifier(Modifier.ABSTRACT, isAbstract);
   }
 
@@ -180,22 +169,6 @@ class ClassElementImpl extends ElementImpl
     List<InterfaceType> list = new List<InterfaceType>();
     _collectAllSupertypes(list);
     return list;
-  }
-
-  @override
-  int get codeLength {
-    if (_unlinkedClass != null) {
-      return _unlinkedClass.codeRange?.length;
-    }
-    return super.codeLength;
-  }
-
-  @override
-  int get codeOffset {
-    if (_unlinkedClass != null) {
-      return _unlinkedClass.codeRange?.offset;
-    }
-    return super.codeOffset;
   }
 
   @override
@@ -222,26 +195,6 @@ class ClassElementImpl extends ElementImpl
 
   @override
   String get displayName => name;
-
-  @override
-  SourceRange get docRange {
-    if (_unlinkedClass != null) {
-      UnlinkedDocumentationComment comment =
-          _unlinkedClass.documentationComment;
-      return comment != null
-          ? new SourceRange(comment.offset, comment.length)
-          : null;
-    }
-    return super.docRange;
-  }
-
-  @override
-  String get documentationComment {
-    if (_unlinkedClass != null) {
-      return _unlinkedClass?.documentationComment?.text;
-    }
-    return super.documentationComment;
-  }
 
   /**
    * Return `true` if [CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS] should
@@ -289,13 +242,6 @@ class ClassElementImpl extends ElementImpl
 
   @override
   TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
-
-  /**
-   * Set whether this class is defined by an enum declaration.
-   */
-  void set enum2(bool isEnum) {
-    setModifier(Modifier.ENUM, isEnum);
-  }
 
   @override
   List<FieldElement> get fields => _fields;
@@ -373,36 +319,23 @@ class ClassElementImpl extends ElementImpl
 
   @override
   List<InterfaceType> get interfaces {
-    if (_unlinkedClass != null && _interfaces == null) {
-      ResynthesizerContext context = enclosingUnit.resynthesizerContext;
-      _interfaces = _unlinkedClass.interfaces
-          .map((EntityRef t) => context.resolveTypeRef(t, this))
-          .toList(growable: false);
-    }
     return _interfaces ?? const <InterfaceType>[];
   }
 
   void set interfaces(List<InterfaceType> interfaces) {
-    assert(_unlinkedClass == null);
     _interfaces = interfaces;
   }
 
   @override
   bool get isAbstract {
-    if (_unlinkedClass != null) {
-      return _unlinkedClass.isAbstract;
-    }
     return hasModifier(Modifier.ABSTRACT);
   }
 
   @override
-  bool get isEnum => hasModifier(Modifier.ENUM);
+  bool get isEnum;
 
   @override
   bool get isMixinApplication {
-    if (_unlinkedClass != null) {
-      return _unlinkedClass.isMixinApplication;
-    }
     return hasModifier(Modifier.MIXIN_APPLICATION);
   }
 
@@ -442,15 +375,6 @@ class ClassElementImpl extends ElementImpl
   ElementKind get kind => ElementKind.CLASS;
 
   @override
-  List<ElementAnnotation> get metadata {
-    if (_unlinkedClass != null) {
-      return _metadata ??=
-          _buildAnnotations(enclosingUnit, _unlinkedClass.annotations);
-    }
-    return super.metadata;
-  }
-
-  @override
   List<MethodElement> get methods => _methods;
 
   /**
@@ -467,40 +391,23 @@ class ClassElementImpl extends ElementImpl
    * Set whether this class is a mixin application.
    */
   void set mixinApplication(bool isMixinApplication) {
-    assert(_unlinkedClass == null);
     setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
   }
 
   @override
   List<InterfaceType> get mixins {
-    if (_unlinkedClass != null && _mixins == null) {
-      ResynthesizerContext context = enclosingUnit.resynthesizerContext;
-      _mixins = _unlinkedClass.mixins
-          .map((EntityRef t) => context.resolveTypeRef(t, this))
-          .toList(growable: false);
-    }
     return _mixins ?? const <InterfaceType>[];
   }
 
   void set mixins(List<InterfaceType> mixins) {
-    assert(_unlinkedClass == null);
     _mixins = mixins;
   }
 
-  @override
-  String get name {
-    if (_unlinkedClass != null) {
-      return _unlinkedClass.name;
-    }
-    return super.name;
-  }
-
-  @override
-  int get nameOffset {
-    if (_unlinkedClass != null) {
-      return _unlinkedClass.nameOffset;
-    }
-    return super.nameOffset;
+  /**
+   * Return resynthesized type parameter elements.
+   */
+  List<TypeParameterElement> get resynthesizedTypeParameters {
+    return super.typeParameters;
   }
 
   @override
@@ -508,9 +415,6 @@ class ClassElementImpl extends ElementImpl
 
   @override
   List<TypeParameterElement> get typeParameters {
-    if (_unlinkedClass != null) {
-      return super.typeParameters;
-    }
     return _typeParameters;
   }
 
@@ -519,7 +423,6 @@ class ClassElementImpl extends ElementImpl
    * [typeParameters].
    */
   void set typeParameters(List<TypeParameterElement> typeParameters) {
-    assert(_unlinkedClass == null);
     for (TypeParameterElement typeParameter in typeParameters) {
       (typeParameter as TypeParameterElementImpl).enclosingElement = this;
     }
@@ -527,8 +430,7 @@ class ClassElementImpl extends ElementImpl
   }
 
   @override
-  List<UnlinkedTypeParam> get unlinkedTypeParams =>
-      _unlinkedClass.typeParameters;
+  List<UnlinkedTypeParam> get unlinkedTypeParams => const <UnlinkedTypeParam>[];
 
   @override
   ConstructorElement get unnamedConstructor {
@@ -560,14 +462,14 @@ class ClassElementImpl extends ElementImpl
     } else {
       buffer.write(name);
     }
-    int variableCount = _typeParameters.length;
+    int variableCount = typeParameters.length;
     if (variableCount > 0) {
       buffer.write("<");
       for (int i = 0; i < variableCount; i++) {
         if (i > 0) {
           buffer.write(", ");
         }
-        (_typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
+        (typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
       }
       buffer.write(">");
     }
@@ -626,7 +528,7 @@ class ClassElementImpl extends ElementImpl
         return methodImpl;
       }
     }
-    for (TypeParameterElement typeParameter in _typeParameters) {
+    for (TypeParameterElement typeParameter in typeParameters) {
       TypeParameterElementImpl typeParameterImpl = typeParameter;
       if (typeParameterImpl.identifier == identifier) {
         return typeParameterImpl;
@@ -1072,6 +974,328 @@ class ClassElementImpl extends ElementImpl
       return getImpl(classElement.actualElement);
     }
     return classElement as ClassElementImpl;
+  }
+}
+
+/**
+ * A [ClassElementImpl], which is a class.
+ */
+class ClassElementImpl_Class extends ClassElementImpl {
+  /**
+   * The unlinked representation of the class in the summary.
+   */
+  final UnlinkedClass _unlinkedClass;
+
+  /**
+   * Initialize a newly created class element to have the given [name] at the
+   * given [offset] in the file that contains the declaration of this element.
+   */
+  ClassElementImpl_Class(String name, int offset)
+      : _unlinkedClass = null,
+        super(name, offset);
+
+  /**
+   * Initialize a newly created class element to have the given [name].
+   */
+  ClassElementImpl_Class.forNode(Identifier name)
+      : _unlinkedClass = null,
+        super.forNode(name);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  ClassElementImpl_Class.forSerialized(
+      this._unlinkedClass, CompilationUnitElementImpl enclosingUnit)
+      : super.forSerialized(enclosingUnit);
+
+  /**
+   * Set whether this class is abstract.
+   */
+  void set abstract(bool isAbstract) {
+    assert(_unlinkedClass == null);
+    super.abstract = isAbstract;
+  }
+
+  @override
+  int get codeLength {
+    if (_unlinkedClass != null) {
+      return _unlinkedClass.codeRange?.length;
+    }
+    return super.codeLength;
+  }
+
+  @override
+  int get codeOffset {
+    if (_unlinkedClass != null) {
+      return _unlinkedClass.codeRange?.offset;
+    }
+    return super.codeOffset;
+  }
+
+  @override
+  SourceRange get docRange {
+    if (_unlinkedClass != null) {
+      UnlinkedDocumentationComment comment =
+          _unlinkedClass.documentationComment;
+      return comment != null
+          ? new SourceRange(comment.offset, comment.length)
+          : null;
+    }
+    return super.docRange;
+  }
+
+  @override
+  String get documentationComment {
+    if (_unlinkedClass != null) {
+      return _unlinkedClass?.documentationComment?.text;
+    }
+    return super.documentationComment;
+  }
+
+  @override
+  List<InterfaceType> get interfaces {
+    if (_unlinkedClass != null && _interfaces == null) {
+      ResynthesizerContext context = enclosingUnit.resynthesizerContext;
+      _interfaces = _unlinkedClass.interfaces
+          .map((EntityRef t) => context.resolveTypeRef(t, this))
+          .toList(growable: false);
+    }
+    return super.interfaces;
+  }
+
+  void set interfaces(List<InterfaceType> interfaces) {
+    assert(_unlinkedClass == null);
+    super.interfaces = interfaces;
+  }
+
+  @override
+  bool get isAbstract {
+    if (_unlinkedClass != null) {
+      return _unlinkedClass.isAbstract;
+    }
+    return super.isAbstract;
+  }
+
+  @override
+  bool get isEnum => false;
+
+  @override
+  bool get isMixinApplication {
+    if (_unlinkedClass != null) {
+      return _unlinkedClass.isMixinApplication;
+    }
+    return super.isMixinApplication;
+  }
+
+  @override
+  List<ElementAnnotation> get metadata {
+    if (_unlinkedClass != null) {
+      return _metadata ??=
+          _buildAnnotations(enclosingUnit, _unlinkedClass.annotations);
+    }
+    return super.metadata;
+  }
+
+  /**
+   * Set whether this class is a mixin application.
+   */
+  void set mixinApplication(bool isMixinApplication) {
+    assert(_unlinkedClass == null);
+    super.mixinApplication = isMixinApplication;
+  }
+
+  @override
+  List<InterfaceType> get mixins {
+    if (_unlinkedClass != null && _mixins == null) {
+      ResynthesizerContext context = enclosingUnit.resynthesizerContext;
+      _mixins = _unlinkedClass.mixins
+          .map((EntityRef t) => context.resolveTypeRef(t, this))
+          .toList(growable: false);
+    }
+    return super.mixins;
+  }
+
+  void set mixins(List<InterfaceType> mixins) {
+    assert(_unlinkedClass == null);
+    super.mixins = mixins;
+  }
+
+  @override
+  String get name {
+    if (_unlinkedClass != null) {
+      return _unlinkedClass.name;
+    }
+    return super.name;
+  }
+
+  @override
+  int get nameOffset {
+    if (_unlinkedClass != null) {
+      return _unlinkedClass.nameOffset;
+    }
+    return super.nameOffset;
+  }
+
+  @override
+  List<TypeParameterElement> get typeParameters {
+    if (_unlinkedClass != null) {
+      return resynthesizedTypeParameters;
+    }
+    return super.typeParameters;
+  }
+
+  /**
+   * Set the type parameters defined for this class to the given
+   * [typeParameters].
+   */
+  void set typeParameters(List<TypeParameterElement> typeParameters) {
+    assert(_unlinkedClass == null);
+    super.typeParameters = typeParameters;
+  }
+
+  @override
+  List<UnlinkedTypeParam> get unlinkedTypeParams =>
+      _unlinkedClass.typeParameters;
+}
+
+/**
+ * A [ClassElementImpl], which is an enum.
+ */
+class ClassElementImpl_Enum extends ClassElementImpl {
+  /**
+   * The unlinked representation of the enum in the summary.
+   */
+  final UnlinkedEnum _unlinkedEnum;
+
+  /**
+   * Initialize a newly created class element to have the given [name] at the
+   * given [offset] in the file that contains the declaration of this element.
+   */
+  ClassElementImpl_Enum(String name, int offset)
+      : _unlinkedEnum = null,
+        super(name, offset);
+
+  /**
+   * Initialize a newly created class element to have the given [name].
+   */
+  ClassElementImpl_Enum.forNode(Identifier name)
+      : _unlinkedEnum = null,
+        super.forNode(name);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  ClassElementImpl_Enum.forSerialized(
+      this._unlinkedEnum, CompilationUnitElementImpl enclosingUnit)
+      : super.forSerialized(enclosingUnit);
+
+  /**
+   * Set whether this class is abstract.
+   */
+  void set abstract(bool isAbstract) {
+    assert(_unlinkedEnum == null);
+  }
+
+  @override
+  int get codeLength {
+    if (_unlinkedEnum != null) {
+      return _unlinkedEnum.codeRange?.length;
+    }
+    return super.codeLength;
+  }
+
+  @override
+  int get codeOffset {
+    if (_unlinkedEnum != null) {
+      return _unlinkedEnum.codeRange?.offset;
+    }
+    return super.codeOffset;
+  }
+
+  @override
+  SourceRange get docRange {
+    if (_unlinkedEnum != null) {
+      UnlinkedDocumentationComment comment = _unlinkedEnum.documentationComment;
+      return comment != null
+          ? new SourceRange(comment.offset, comment.length)
+          : null;
+    }
+    return super.docRange;
+  }
+
+  @override
+  String get documentationComment {
+    if (_unlinkedEnum != null) {
+      return _unlinkedEnum?.documentationComment?.text;
+    }
+    return super.documentationComment;
+  }
+
+  @override
+  List<InterfaceType> get interfaces => const <InterfaceType>[];
+
+  void set interfaces(List<InterfaceType> interfaces) {
+    assert(false);
+  }
+
+  @override
+  bool get isAbstract => false;
+
+  @override
+  bool get isEnum => true;
+
+  @override
+  bool get isMixinApplication => false;
+
+  @override
+  List<ElementAnnotation> get metadata {
+    if (_unlinkedEnum != null) {
+      return _metadata ??=
+          _buildAnnotations(enclosingUnit, _unlinkedEnum.annotations);
+    }
+    return super.metadata;
+  }
+
+  /**
+   * Set whether this class is a mixin application.
+   */
+  void set mixinApplication(bool isMixinApplication) {
+    assert(false);
+  }
+
+  @override
+  List<InterfaceType> get mixins => const <InterfaceType>[];
+
+  void set mixins(List<InterfaceType> mixins) {
+    assert(false);
+  }
+
+  @override
+  String get name {
+    if (_unlinkedEnum != null) {
+      return _unlinkedEnum.name;
+    }
+    return super.name;
+  }
+
+  @override
+  int get nameOffset {
+    if (_unlinkedEnum != null) {
+      return _unlinkedEnum.nameOffset;
+    }
+    return super.nameOffset;
+  }
+
+  @override
+  List<TypeParameterElement> get typeParameters =>
+      const <TypeParameterElement>[];
+
+  /**
+   * Set the type parameters defined for this class to the given
+   * [typeParameters].
+   */
+  void set typeParameters(List<TypeParameterElement> typeParameters) {
+    assert(false);
   }
 }
 

@@ -1749,7 +1749,7 @@ class _UnitResynthesizer {
   ClassElementImpl buildClassImpl(
       UnlinkedClass serializedClass, ClassElementHandle handle) {
     ClassElementImpl classElement =
-        new ClassElementImpl.forSerialized(serializedClass, unit);
+        new ClassElementImpl_Class.forSerialized(serializedClass, unit);
     classElement.hasBeenInferred = summaryResynthesizer.strongMode;
     InterfaceTypeImpl correspondingType =
         new InterfaceTypeImpl(handle ?? classElement);
@@ -1769,12 +1769,6 @@ class _UnitResynthesizer {
     }
     constructors = null;
     return classElement;
-  }
-
-  void buildCodeRange(ElementImpl element, CodeRange codeRange) {
-    if (codeRange != null) {
-      element.setCodeRange(codeRange.offset, codeRange.length);
-    }
   }
 
   /**
@@ -1881,15 +1875,11 @@ class _UnitResynthesizer {
    */
   void buildEnum(UnlinkedEnum serializedEnum) {
     assert(!libraryResynthesizer.isCoreLibrary);
-    ClassElementImpl classElement =
-        new ClassElementImpl(serializedEnum.name, serializedEnum.nameOffset);
-    classElement.enum2 = true;
+    ClassElementImpl_Enum classElement =
+        new ClassElementImpl_Enum.forSerialized(serializedEnum, unit);
     InterfaceType enumType = new InterfaceTypeImpl(classElement);
     classElement.type = enumType;
     classElement.supertype = typeProvider.objectType;
-    buildDocumentation(classElement, serializedEnum.documentationComment);
-    buildAnnotations(classElement, serializedEnum.annotations);
-    buildCodeRange(classElement, serializedEnum.codeRange);
     ElementHolder memberHolder = new ElementHolder();
     // Build the 'index' field.
     FieldElementImpl indexField = new FieldElementImpl('index', -1);

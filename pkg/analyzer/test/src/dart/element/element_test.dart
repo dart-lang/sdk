@@ -2052,7 +2052,7 @@ class FunctionTypeImplTest extends EngineTestCase {
     definingClass.methods = <MethodElement>[functionElement];
     FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
     InterfaceTypeImpl argumentType = new InterfaceTypeImpl(
-        new ClassElementImpl.forNode(AstFactory.identifier3("D")));
+        new ClassElementImpl_Class.forNode(AstFactory.identifier3("D")));
     FunctionType result = functionType
         .substitute2(<DartType>[argumentType], <DartType>[parameterType]);
     expect(result.returnType, argumentType);
@@ -2069,13 +2069,13 @@ class FunctionTypeImplTest extends EngineTestCase {
 
   void test_substitute2_notEqual() {
     DartType returnType = new InterfaceTypeImpl(
-        new ClassElementImpl.forNode(AstFactory.identifier3("R")));
+        new ClassElementImpl_Class.forNode(AstFactory.identifier3("R")));
     DartType normalParameterType = new InterfaceTypeImpl(
-        new ClassElementImpl.forNode(AstFactory.identifier3("A")));
+        new ClassElementImpl_Class.forNode(AstFactory.identifier3("A")));
     DartType optionalParameterType = new InterfaceTypeImpl(
-        new ClassElementImpl.forNode(AstFactory.identifier3("B")));
+        new ClassElementImpl_Class.forNode(AstFactory.identifier3("B")));
     DartType namedParameterType = new InterfaceTypeImpl(
-        new ClassElementImpl.forNode(AstFactory.identifier3("C")));
+        new ClassElementImpl_Class.forNode(AstFactory.identifier3("C")));
     FunctionElementImpl functionElement =
         new FunctionElementImpl.forNode(AstFactory.identifier3("f"));
     String namedParameterName = "c";
@@ -2087,7 +2087,7 @@ class FunctionTypeImplTest extends EngineTestCase {
     functionElement.returnType = returnType;
     FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
     InterfaceTypeImpl argumentType = new InterfaceTypeImpl(
-        new ClassElementImpl.forNode(AstFactory.identifier3("D")));
+        new ClassElementImpl_Class.forNode(AstFactory.identifier3("D")));
     TypeParameterTypeImpl parameterType = new TypeParameterTypeImpl(
         new TypeParameterElementImpl.forNode(AstFactory.identifier3("E")));
     FunctionType result = functionType
@@ -4366,7 +4366,7 @@ class TypeParameterTypeImplTest extends EngineTestCase {
         new TypeParameterElementImpl.forNode(AstFactory.identifier3("E"));
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
     InterfaceTypeImpl argument = new InterfaceTypeImpl(
-        new ClassElementImpl.forNode(AstFactory.identifier3("A")));
+        new ClassElementImpl_Class.forNode(AstFactory.identifier3("A")));
     TypeParameterTypeImpl parameter = new TypeParameterTypeImpl(element);
     expect(type.substitute2(<DartType>[argument], <DartType>[parameter]),
         same(argument));
@@ -4376,7 +4376,7 @@ class TypeParameterTypeImplTest extends EngineTestCase {
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(
         new TypeParameterElementImpl.forNode(AstFactory.identifier3("E")));
     InterfaceTypeImpl argument = new InterfaceTypeImpl(
-        new ClassElementImpl.forNode(AstFactory.identifier3("A")));
+        new ClassElementImpl_Class.forNode(AstFactory.identifier3("A")));
     TypeParameterTypeImpl parameter = new TypeParameterTypeImpl(
         new TypeParameterElementImpl.forNode(AstFactory.identifier3("F")));
     expect(type.substitute2(<DartType>[argument], <DartType>[parameter]),

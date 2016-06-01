@@ -724,7 +724,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
     ClassElement _classElement(String typeName, [List<String> parameterNames]) {
       ClassElementImpl element =
-          new ClassElementImpl.forNode(AstFactory.identifier3(typeName));
+          new ClassElementImpl_Class.forNode(AstFactory.identifier3(typeName));
       element.supertype = objType;
       InterfaceTypeImpl type = new InterfaceTypeImpl(element);
       element.type = type;

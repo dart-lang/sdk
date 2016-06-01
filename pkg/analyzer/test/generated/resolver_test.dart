@@ -391,7 +391,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
     AnalysisContext context = AnalysisContextFactory.contextWithCore();
     String importedTypeName = "A";
     ClassElement importedType =
-        new ClassElementImpl.forNode(AstFactory.identifier3(importedTypeName));
+        new ClassElementImpl_Class.forNode(AstFactory.identifier3(importedTypeName));
     LibraryElement importedLibrary = createTestLibrary(context, "imported");
     (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl)
         .types = <ClassElement>[importedType];
@@ -511,7 +511,7 @@ class LibraryScopeTest extends ResolverTestCase {
     AnalysisContext context = AnalysisContextFactory.contextWithCore();
     String importedTypeName = "A";
     ClassElement importedType =
-        new ClassElementImpl.forNode(AstFactory.identifier3(importedTypeName));
+        new ClassElementImpl_Class.forNode(AstFactory.identifier3(importedTypeName));
     LibraryElement importedLibrary = createTestLibrary(context, "imported");
     (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl)
         .types = <ClassElement>[importedType];
@@ -2920,7 +2920,7 @@ class TypeProviderImplTest extends EngineTestCase {
   ClassElement _classElement(String typeName, InterfaceType superclassType,
       [List<String> parameterNames]) {
     ClassElementImpl element =
-        new ClassElementImpl.forNode(AstFactory.identifier3(typeName));
+        new ClassElementImpl_Class.forNode(AstFactory.identifier3(typeName));
     element.supertype = superclassType;
     InterfaceTypeImpl type = new InterfaceTypeImpl(element);
     element.type = type;
