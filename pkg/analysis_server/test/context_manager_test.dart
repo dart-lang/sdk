@@ -2658,8 +2658,8 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     if (currentContext is InternalAnalysisContext) {
       EmbedderYamlLocator embedderYamlLocator =
           (currentContext as InternalAnalysisContext).embedderYamlLocator;
-      EmbedderUriResolver embedderUriResolver = new EmbedderUriResolver(
-          new EmbedderSdk(embedderYamlLocator.embedderYamls));
+      EmbedderUriResolver embedderUriResolver =
+          new EmbedderUriResolver(embedderYamlLocator.embedderYamls);
       if (embedderUriResolver.length > 0) {
         // We have some embedder dart: uri mappings, add the resolver
         // to the list.

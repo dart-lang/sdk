@@ -1,3 +1,6 @@
+## 0.27.4-alpha.7.1
+* Restore EmbedderUriResolver API.
+
 ## 0.27.4
 
 * Added support for 'analysis_options.yaml' files as an alternative to '.analysis_options' files.

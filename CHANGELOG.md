@@ -31,6 +31,9 @@
   * A bug has been fixed in which `pub get --offline` would crash when a
     prerelease version was selected.
 
+* Dartium and content shell
+  * Debugging Dart code inside iframes improved, was broken.
+
 ## 1.16.0 - 2016-04-26
 
 ### Core library changes
