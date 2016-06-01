@@ -2886,10 +2886,12 @@ class Int32x4 {
   Int32x4 withFlagY(bool y) native "Int32x4_setFlagY";
   Int32x4 withFlagZ(bool z) native "Int32x4_setFlagZ";
   Int32x4 withFlagW(bool w) native "Int32x4_setFlagW";
-  Float32x4 select(Float32x4 trueValue, Float32x4 falseValue) {
+  Float32x4 select(Float32x4 trueValue,
+                          Float32x4 falseValue) {
     return _select(trueValue, falseValue);
   }
-  Float32x4 _select(Float32x4 trueValue, Float32x4 falseValue)
+  Float32x4 _select(Float32x4 trueValue,
+                           Float32x4 falseValue)
       native "Int32x4_select";
 
   /// Mask passed to [shuffle] or [shuffleMix].

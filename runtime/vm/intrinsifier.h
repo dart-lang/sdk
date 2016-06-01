@@ -38,7 +38,7 @@ class Intrinsifier : public AllStatic {
  private:
   static bool CanIntrinsify(const Function& function);
 
-#define DECLARE_FUNCTION(class_name, function_name, enum_name, type, fp) \
+#define DECLARE_FUNCTION(test_class_name, test_function_name, enum_name, fp)   \
   static void enum_name(Assembler* assembler);
 
   ALL_INTRINSICS_LIST(DECLARE_FUNCTION)
@@ -50,7 +50,7 @@ class Intrinsifier : public AllStatic {
 #undef DECLARE_FUNCTION
 
 #if !defined(TARGET_ARCH_DBC)
-#define DECLARE_FUNCTION(class_name, function_name, enum_name, type, fp) \
+#define DECLARE_FUNCTION(test_class_name, test_function_name, enum_name, fp)   \
   static bool Build_##enum_name(FlowGraph* flow_graph);
 
   GRAPH_INTRINSICS_LIST(DECLARE_FUNCTION)

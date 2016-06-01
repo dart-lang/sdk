@@ -68,7 +68,7 @@ void Intrinsifier::InitializeState() {
   String& str = String::Handle(zone);
   Error& error = Error::Handle(zone);
 
-#define SETUP_FUNCTION(class_name, function_name, destination, type, fp)       \
+#define SETUP_FUNCTION(class_name, function_name, destination, fp)             \
   if (strcmp(#class_name, "::") == 0) {                                        \
     str = String::New(#function_name);                                         \
     func = lib.LookupFunctionAllowPrivate(str);                                \
@@ -179,7 +179,7 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
   FlowGraph* graph = new FlowGraph(parsed_function, graph_entry, block_id);
   const Function& function = parsed_function.function();
   switch (function.recognized_kind()) {
-#define EMIT_CASE(class_name, function_name, enum_name, type, fp)              \
+#define EMIT_CASE(class_name, function_name, enum_name, fp)                    \
     case MethodRecognizer::k##enum_name:                                       \
       if (!Build_##enum_name(graph)) return false;                             \
       break;
@@ -227,7 +227,7 @@ void Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
     return;
   }
 
-#define EMIT_CASE(class_name, function_name, enum_name, type, fp)              \
+#define EMIT_CASE(class_name, function_name, enum_name, fp)                    \
     case MethodRecognizer::k##enum_name:                                       \
       compiler->assembler()->Comment("Intrinsic");                             \
       enum_name(compiler->assembler());                                        \

@@ -2612,27 +2612,40 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
 }
 
 
-static bool IsNativeListFactory(const Function& function) {
+static intptr_t GetResultCidOfNativeFactory(const Function& function) {
   switch (function.recognized_kind()) {
     case MethodRecognizer::kTypedData_Int8Array_factory:
+      return kTypedDataInt8ArrayCid;
     case MethodRecognizer::kTypedData_Uint8Array_factory:
+      return kTypedDataUint8ArrayCid;
     case MethodRecognizer::kTypedData_Uint8ClampedArray_factory:
+      return kTypedDataUint8ClampedArrayCid;
     case MethodRecognizer::kTypedData_Int16Array_factory:
+      return kTypedDataInt16ArrayCid;
     case MethodRecognizer::kTypedData_Uint16Array_factory:
+      return kTypedDataUint16ArrayCid;
     case MethodRecognizer::kTypedData_Int32Array_factory:
+      return kTypedDataInt32ArrayCid;
     case MethodRecognizer::kTypedData_Uint32Array_factory:
+      return kTypedDataUint32ArrayCid;
     case MethodRecognizer::kTypedData_Int64Array_factory:
+      return kTypedDataInt64ArrayCid;
     case MethodRecognizer::kTypedData_Uint64Array_factory:
+      return kTypedDataUint64ArrayCid;
     case MethodRecognizer::kTypedData_Float32Array_factory:
+      return kTypedDataFloat32ArrayCid;
     case MethodRecognizer::kTypedData_Float64Array_factory:
+      return kTypedDataFloat64ArrayCid;
     case MethodRecognizer::kTypedData_Float32x4Array_factory:
+      return kTypedDataFloat32x4ArrayCid;
     case MethodRecognizer::kTypedData_Int32x4Array_factory:
+      return kTypedDataInt32x4ArrayCid;
     case MethodRecognizer::kTypedData_Float64x2Array_factory:
-      return true;
+      return kTypedDataFloat64x2ArrayCid;
     default:
       break;
   }
-  return false;
+  return kDynamicCid;
 }
 
 
@@ -2648,11 +2661,12 @@ void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
                              node->arguments()->names(),
                              arguments,
                              owner()->ic_data_array());
-  if (node->function().is_native() && IsNativeListFactory(node->function())) {
-    call->set_is_native_list_factory(true);
-  }
-  if (node->function().recognized_kind() != MethodRecognizer::kUnknown) {
-    call->set_result_cid(MethodRecognizer::ResultCid(node->function()));
+  if (node->function().is_native()) {
+    const intptr_t result_cid = GetResultCidOfNativeFactory(node->function());
+    if (result_cid != kDynamicCid) {
+      call->set_result_cid(result_cid);
+      call->set_is_native_list_factory(true);
+    }
   }
   ReturnDefinition(call);
 }
