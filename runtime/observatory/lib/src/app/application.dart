@@ -136,6 +136,7 @@ class ObservatoryApplication extends Observable {
     _pageRegistry.add(new InspectPage(this));
     _pageRegistry.add(new ClassTreePage(this));
     _pageRegistry.add(new DebuggerPage(this));
+    _pageRegistry.add(new ObjectStorePage(this));
     _pageRegistry.add(new CpuProfilerPage(this));
     _pageRegistry.add(new TableCpuProfilerPage(this));
     _pageRegistry.add(new AllocationProfilerPage(this));

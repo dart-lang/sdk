@@ -3597,6 +3597,19 @@ static bool GetObject(Thread* thread, JSONStream* js) {
 }
 
 
+static const MethodParameter* get_object_store_params[] = {
+  RUNNABLE_ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool GetObjectStore(Thread* thread, JSONStream* js) {
+  JSONObject jsobj(js);
+  thread->isolate()->object_store()->PrintToJSONObject(&jsobj);
+  return true;
+}
+
+
 static const MethodParameter* get_class_list_params[] = {
   RUNNABLE_ISOLATE_PARAMETER,
   NULL,
@@ -3973,6 +3986,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_isolate_metric_list_params },
   { "getObject", GetObject,
     get_object_params },
+  { "_getObjectStore", GetObjectStore,
+    get_object_store_params },
   { "_getObjectByAddress", GetObjectByAddress,
     get_object_by_address_params },
   { "_getPersistentHandles", GetPersistentHandles,
