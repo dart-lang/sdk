@@ -388,9 +388,6 @@ abstract class ClassElementForLink extends Object
   String get name;
 
   @override
-  ResynthesizerContext get resynthesizerContext => enclosingElement;
-
-  @override
   ConstructorElementForLink get unnamedConstructor;
 
   @override
@@ -427,7 +424,8 @@ abstract class ClassElementForLink extends Object
  * linking.
  */
 class ClassElementForLink_Class extends ClassElementForLink
-    with TypeParameterizedElementMixin {
+    with TypeParameterizedElementMixin
+    implements ClassElementImpl {
   /**
    * The unlinked representation of the class in the summary.
    */
@@ -675,7 +673,8 @@ class ClassElementForLink_Class extends ClassElementForLink
  * Element representing an enum resynthesized from a summary during
  * linking.
  */
-class ClassElementForLink_Enum extends ClassElementForLink {
+class ClassElementForLink_Enum extends ClassElementForLink
+    implements EnumElementImpl {
   /**
    * The unlinked representation of the enum in the summary.
    */
