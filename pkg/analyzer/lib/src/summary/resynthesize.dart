@@ -1597,13 +1597,6 @@ class _UnitResynthesizer {
   ConstructorElementImpl currentConstructor;
 
   /**
-   * If a class is currently being resynthesized, map from field name to the
-   * corresponding field element.  This is used when resynthesizing
-   * initializing formal parameters.
-   */
-  Map<String, FieldElementImpl> fields;
-
-  /**
    * If a class is currently being resynthesized, map from constructor name to
    * the corresponding constructor element.  This is used when resynthesizing
    * constructor initializers.
@@ -1711,9 +1704,8 @@ class _UnitResynthesizer {
   void buildClassExecutables(
       ClassElementImpl classElement, UnlinkedClass serializedClass) {
     ElementHolder memberHolder = new ElementHolder();
-    fields = <String, FieldElementImpl>{};
     for (UnlinkedVariable serializedVariable in serializedClass.fields) {
-      buildVariable(classElement, serializedVariable, memberHolder);
+      buildField(classElement, serializedVariable, memberHolder);
     }
     bool constructorFound = false;
     constructors = <String, ConstructorElementImpl>{};
@@ -1775,7 +1767,6 @@ class _UnitResynthesizer {
     if (handle == null) {
       buildClassExecutables(classElement, serializedClass);
     }
-    fields = null;
     constructors = null;
     return classElement;
   }
@@ -2010,6 +2001,26 @@ class _UnitResynthesizer {
   }
 
   /**
+   * Resynthesize a [FieldElement].
+   */
+  void buildField(ClassElementImpl enclosingClass,
+      UnlinkedVariable serializedVariable, ElementHolder holder) {
+    FieldElementImpl element;
+    if (serializedVariable.initializer?.bodyExpr != null &&
+        (serializedVariable.isConst ||
+            serializedVariable.isFinal && !serializedVariable.isStatic)) {
+      element = new ConstFieldElementImpl.forSerialized(
+          serializedVariable, enclosingClass);
+    } else {
+      element = new FieldElementImpl.forSerialized(
+          serializedVariable, enclosingClass);
+    }
+    element.static = serializedVariable.isStatic;
+    holder.addField(element);
+    buildImplicitAccessors(element, holder);
+  }
+
+  /**
    * Build the implicit getter and setter associated with [element], and place
    * them in [holder].
    */
@@ -2201,32 +2212,6 @@ class _UnitResynthesizer {
   }
 
   /**
-   * Resynthesize a [TopLevelVariableElement] or [FieldElement].
-   */
-  void buildVariable(
-      ClassElementImpl enclosingClass, UnlinkedVariable serializedVariable,
-      [ElementHolder holder]) {
-    if (holder == null) {
-      throw new UnimplementedError('Must be lazy');
-    } else {
-      FieldElementImpl element;
-      if (serializedVariable.initializer?.bodyExpr != null &&
-          (serializedVariable.isConst ||
-              serializedVariable.isFinal && !serializedVariable.isStatic)) {
-        element = new ConstFieldElementImpl.forSerialized(
-            serializedVariable, enclosingClass);
-      } else {
-        element = new FieldElementImpl.forSerialized(
-            serializedVariable, enclosingClass);
-      }
-      element.static = serializedVariable.isStatic;
-      holder.addField(element);
-      buildImplicitAccessors(element, holder);
-      fields[element.name] = element;
-    }
-  }
-
-  /**
    * Return [_ReferenceInfo] with the given [index], lazily resolving it.
    */
   _ReferenceInfo getReferenceInfo(int index) {
@@ -2364,7 +2349,7 @@ class _UnitResynthesizer {
           in constructor.constantInitializers) {
         if (initializer is ConstructorFieldInitializer) {
           SimpleIdentifier nameNode = initializer.fieldName;
-          nameNode.staticElement = fields[nameNode.name];
+          nameNode.staticElement = classElement.getField(nameNode.name);
         } else if (initializer is SuperConstructorInvocation) {
           SimpleIdentifier nameNode = initializer.constructorName;
           ConstructorElement element = new _DeferredConstructorElement(
