@@ -511,6 +511,25 @@ LibTest/collection/ListMixin/ListMixin_class_A01_t01: Pass, Timeout
 LibTest/core/List/List_class_A01_t01: Pass, Timeout
 
 [ $compiler == dart2js && $runtime == jsshell ]
+Language/Expressions/Await_Expressions/execution_t01: RuntimeError # Issue 7728, timer not supported in jsshell
+Language/Expressions/Await_Expressions/execution_t02: RuntimeError # Issue 7728, timer not supported in jsshell
+Language/Expressions/Await_Expressions/execution_t03: RuntimeError # Issue 7728, timer not supported in jsshell
+Language/Expressions/Await_Expressions/execution_t04: RuntimeError # Issue 7728, timer not supported in jsshell
+Language/Expressions/Await_Expressions/execution_t05: RuntimeError # Issue 7728, timer not supported in jsshell
+Language/Expressions/Await_Expressions/execution_t06: RuntimeError # Issue 7728, timer not supported in jsshell
+Language/Expressions/Function_Invocation/async_invokation_t04: RuntimeError # co19 issue 57
+Language/Statements/For/Asynchronous_For_in/execution_t04: RuntimeError # Issue 7728, timer not supported in jsshell
+Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t01: RuntimeError # Issue 7728, timer not supported in jsshell
+Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t04: RuntimeError # Issue 7728, timer not supported in jsshell
+Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t02: RuntimeError # Issue 7728, timer not supported in jsshell
+Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t03: RuntimeError # Issue 7728, timer not supported in jsshell
+Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t04: RuntimeError # Issue 7728, timer not supported in jsshell
+Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t05: RuntimeError # Issue 7728, timer not supported in jsshell
+Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t06: RuntimeError # Issue 7728, timer not supported in jsshell
+Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t07: RuntimeError # Issue 7728, timer not supported in jsshell
+Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t08: RuntimeError # Issue 7728, timer not supported in jsshell
+Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t09: RuntimeError # Issue 7728, timer not supported in jsshell
+Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t10: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/async/Future/Future.delayed_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/async/Future/Future.delayed_A03_t01: fail # Issue 7728, timer not supported in jsshell
 LibTest/async/Future/wait_A01_t07: RuntimeError # Issue 7728, timer not supported in jsshell
@@ -545,7 +564,10 @@ LibTest/core/Stopwatch/start_A01_t02: RuntimeError # Please triage this failure
 LibTest/core/Stopwatch/start_A01_t03: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/core/Stopwatch/stop_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/core/Uri/Uri_A06_t03: Pass, Slow
+LibTest/isolate/RawReceivePort/close_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
+LibTest/isolate/ReceivePort/asBroadcastStream_A03_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/isolate/ReceivePort/asBroadcastStream_A04_t03: RuntimeError # Issue 7728, timer not supported in jsshell
+LibTest/isolate/ReceivePort/close_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/typed_data/Float32List/Float32List.view_A06_t01: fail # co19-roll r587: Please triage this failure
 LibTest/typed_data/Float32List/toList_A01_t01: Skip # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: fail # co19-roll r587: Please triage this failure
