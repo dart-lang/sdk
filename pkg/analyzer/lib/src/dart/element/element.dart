@@ -6052,8 +6052,13 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   @override
   FunctionElement get initializer {
     if (_unlinkedVariable != null && _initializer == null) {
-      _initializer = enclosingUnit.resynthesizerContext
-          .buildVariableInitializer(this, _unlinkedVariable.initializer);
+      UnlinkedExecutable unlinkedInitializer = _unlinkedVariable.initializer;
+      if (unlinkedInitializer != null) {
+        _initializer = new FunctionElementImpl.forSerialized(
+            unlinkedInitializer, this)..synthetic = true;
+      } else {
+        return null;
+      }
     }
     return super.initializer;
   }
@@ -6297,8 +6302,13 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   FunctionElement get initializer {
     if (_unlinkedParam != null && _initializer == null) {
-      _initializer = enclosingUnit.resynthesizerContext
-          .buildVariableInitializer(this, _unlinkedParam.initializer);
+      UnlinkedExecutable unlinkedInitializer = _unlinkedParam.initializer;
+      if (unlinkedInitializer != null) {
+        _initializer = new FunctionElementImpl.forSerialized(
+            unlinkedInitializer, this)..synthetic = true;
+      } else {
+        return null;
+      }
     }
     return super.initializer;
   }
@@ -7039,15 +7049,6 @@ abstract class ResynthesizerContext {
    * Build explicit top-level variables.
    */
   UnitExplicitTopLevelVariables buildTopLevelVariables();
-
-  /**
-   * If the given [serializedInitializer] is not `null`, create the
-   * corresponding [FunctionElementImpl] and set it for the [variable].
-   *
-   * TODO(scheglov) get rid of this when all parts are lazy
-   */
-  FunctionElementImpl buildVariableInitializer(
-      VariableElementImpl variable, UnlinkedExecutable serializedInitializer);
 
   /**
    * Build the appropriate [DartType] object corresponding to a slot id in the

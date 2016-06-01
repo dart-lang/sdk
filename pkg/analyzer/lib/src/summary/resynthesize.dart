@@ -1535,13 +1535,6 @@ class _ResynthesizerContext implements ResynthesizerContext {
   }
 
   @override
-  FunctionElementImpl buildVariableInitializer(
-      VariableElementImpl variable, UnlinkedExecutable serializedInitializer) {
-    return _unitResynthesizer.buildVariableInitializer(
-        variable, serializedInitializer);
-  }
-
-  @override
   DartType resolveLinkedType(
       int slot, TypeParameterizedElementMixin typeParameterContext) {
     return _unitResynthesizer.buildLinkedType(slot, typeParameterContext);
@@ -1795,27 +1788,6 @@ class _UnitResynthesizer {
   void buildCodeRange(ElementImpl element, CodeRange codeRange) {
     if (codeRange != null) {
       element.setCodeRange(codeRange.offset, codeRange.length);
-    }
-  }
-
-  /**
-   * Resynthesize a [NamespaceCombinator].
-   */
-  NamespaceCombinator buildCombinator(UnlinkedCombinator serializedCombinator) {
-    if (serializedCombinator.shows.isNotEmpty) {
-      ShowElementCombinatorImpl combinator = new ShowElementCombinatorImpl();
-      // Note: we call toList() so that we don't retain a reference to the
-      // deserialized data structure.
-      combinator.shownNames = serializedCombinator.shows.toList();
-      combinator.offset = serializedCombinator.offset;
-      combinator.end = serializedCombinator.end;
-      return combinator;
-    } else {
-      HideElementCombinatorImpl combinator = new HideElementCombinatorImpl();
-      // Note: we call toList() so that we don't retain a reference to the
-      // deserialized data structure.
-      combinator.hiddenNames = serializedCombinator.hides.toList();
-      return combinator;
     }
   }
 
@@ -2270,21 +2242,6 @@ class _UnitResynthesizer {
       buildImplicitAccessors(element, holder);
       fields[element.name] = element;
     }
-  }
-
-  /**
-   * If the given [serializedInitializer] is not `null`, return the
-   * corresponding [FunctionElementImpl], otherwise return `null`.
-   */
-  FunctionElementImpl buildVariableInitializer(
-      VariableElementImpl variable, UnlinkedExecutable serializedInitializer) {
-    if (serializedInitializer == null) {
-      return null;
-    }
-    FunctionElementImpl initializerElement =
-        new FunctionElementImpl.forSerialized(serializedInitializer, variable);
-    initializerElement.synthetic = true;
-    return initializerElement;
   }
 
   /**
