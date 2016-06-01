@@ -1525,11 +1525,6 @@ class _ResynthesizerContext implements ResynthesizerContext {
   }
 
   @override
-  List<FunctionElementImpl> buildTopLevelFunctions() {
-    return _unitResynthesizer.buildTopLevelFunctions();
-  }
-
-  @override
   UnitExplicitTopLevelVariables buildTopLevelVariables() {
     return _unitResynthesizer.buildUnitExplicitTopLevelVariables();
   }
@@ -2090,19 +2085,6 @@ class _UnitResynthesizer {
       return null;
     }
     return buildType(type, typeParameterContext);
-  }
-
-  List<FunctionElementImpl> buildTopLevelFunctions() {
-    List<FunctionElementImpl> functions = <FunctionElementImpl>[];
-    List<UnlinkedExecutable> executables = unlinkedUnit.executables;
-    for (UnlinkedExecutable unlinkedExecutable in executables) {
-      if (unlinkedExecutable.kind == UnlinkedExecutableKind.functionOrMethod) {
-        FunctionElementImpl function =
-            new FunctionElementImpl.forSerialized(unlinkedExecutable, unit);
-        functions.add(function);
-      }
-    }
-    return functions;
   }
 
   /**

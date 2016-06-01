@@ -1269,9 +1269,12 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   List<FunctionElement> get functions {
     if (_unlinkedUnit != null) {
-      _functions ??= resynthesizerContext.buildTopLevelFunctions();
+      _functions ??= _unlinkedUnit.executables
+          .where((e) => e.kind == UnlinkedExecutableKind.functionOrMethod)
+          .map((e) => new FunctionElementImpl.forSerialized(e, this))
+          .toList(growable: false);
     }
-    return _functions ?? FunctionElement.EMPTY_LIST;
+    return _functions ?? const <FunctionElement>[];
   }
 
   /**
@@ -7039,11 +7042,6 @@ abstract class ResynthesizerContext {
    * Build explicit top-level property accessors.
    */
   UnitExplicitTopLevelAccessors buildTopLevelAccessors();
-
-  /**
-   * Build top-level functions.
-   */
-  List<FunctionElementImpl> buildTopLevelFunctions();
 
   /**
    * Build explicit top-level variables.
