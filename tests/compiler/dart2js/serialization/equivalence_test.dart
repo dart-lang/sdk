@@ -393,7 +393,7 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
   void visitClassElement(ClassElement element1, ClassElement element2) {
     checkElementIdentities(null, null, null, element1, element2);
     check(element1, element2, 'name',
-          element1.name, element2.name);
+        element1.name, element2.name);
     if (!element1.isUnnamedMixinApplication) {
       check(element1, element2, 'sourcePosition',
           element1.sourcePosition, element2.sourcePosition);
@@ -436,27 +436,27 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
       EnumClassElement enum1 = element1;
       EnumClassElement enum2 = element2;
       checkElementLists(enum1, enum2, 'enumValues',
-                        enum1.enumValues, enum2.enumValues);
+          enum1.enumValues, enum2.enumValues);
     }
     if (!element1.isObject) {
       checkTypes(element1, element2, 'supertype',
           element1.supertype, element2.supertype);
     }
     check(element1, element2, 'hierarchyDepth',
-          element1.hierarchyDepth, element2.hierarchyDepth);
+        element1.hierarchyDepth, element2.hierarchyDepth);
     checkTypeLists(
         element1, element2, 'allSupertypes',
         element1.allSupertypes.toList(),
         element2.allSupertypes.toList());
     OrderedTypeSet typeSet1 = element1.allSupertypesAndSelf;
-    OrderedTypeSet typeSet2 = element1.allSupertypesAndSelf;
+    OrderedTypeSet typeSet2 = element2.allSupertypesAndSelf;
     checkListEquivalence(
         element1, element2, 'allSupertypes',
         typeSet1.levelOffsets,
         typeSet2.levelOffsets,
         check);
     check(element1, element2, 'allSupertypesAndSelf.levels',
-          typeSet1.levels, typeSet2.levels);
+        typeSet1.levels, typeSet2.levels);
     checkTypeLists(
         element1, element2, 'supertypes',
         typeSet1.supertypes.toList(),

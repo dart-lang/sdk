@@ -339,6 +339,15 @@ void checkLoadedLibraryMembers(
       ClassElement class2 = member2;
       if (!class1.isResolved) return;
 
+      if (hasProperty(member1)) {
+        if (areElementsEquivalent(member1, member2)) {
+          checkMemberProperties(
+              compiler1, member1,
+              compiler2, member2,
+              verbose: verbose);
+        }
+      }
+
       class1.forEachLocalMember((m1) {
         checkMembers(m1, class2.localLookup(m1.name));
       });

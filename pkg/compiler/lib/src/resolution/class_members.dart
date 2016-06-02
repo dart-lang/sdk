@@ -824,8 +824,30 @@ abstract class ClassMemberMixin implements ClassElement {
   /// includes `call`.
   Iterable<String> computedMemberNames;
 
+  bool _interfaceMembersAreClassMembers;
+
+  /// Compute value of the [_interfaceMembersAreClassMembers] for this class
+  /// and its superclasses.
+  void _computeInterfaceMembersAreClassMembers(Resolution resolution) {
+    if (_interfaceMembersAreClassMembers == null) {
+      ensureResolved(resolution);
+      ClassMemberMixin superclass = this.superclass;
+      if (superclass != null) {
+        superclass._computeInterfaceMembersAreClassMembers(resolution);
+      }
+      if ((superclass != null &&
+              (!superclass.interfaceMembersAreClassMembers ||
+                  superclass.isMixinApplication)) ||
+          !interfaces.isEmpty) {
+        _interfaceMembersAreClassMembers = false;
+      } else {
+        _interfaceMembersAreClassMembers = true;
+      }
+    }
+  }
+
   /// If `true` interface members are the non-static class member.
-  bool interfaceMembersAreClassMembers = true;
+  bool get interfaceMembersAreClassMembers => _interfaceMembersAreClassMembers;
 
   Map<Name, Member> classMembers;
   Map<Name, MemberSignature> interfaceMembers;
@@ -834,18 +856,8 @@ abstract class ClassMemberMixin implements ClassElement {
   /// this class.
   MembersCreator _prepareCreator(Resolution resolution) {
     if (classMembers == null) {
-      ensureResolved(resolution);
+      _computeInterfaceMembersAreClassMembers(resolution);
       classMembers = new Map<Name, Member>();
-
-      if (interfaceMembersAreClassMembers) {
-        ClassMemberMixin superclass = this.superclass;
-        if ((superclass != null &&
-                (!superclass.interfaceMembersAreClassMembers ||
-                    superclass.isMixinApplication)) ||
-            !interfaces.isEmpty) {
-          interfaceMembersAreClassMembers = false;
-        }
-      }
       if (!interfaceMembersAreClassMembers) {
         interfaceMembers = new Map<Name, MemberSignature>();
       }
