@@ -2043,7 +2043,7 @@ class LocalParameterElementZ extends ParameterElementZ
   ElementKind get kind => ElementKind.PARAMETER;
 }
 
-class InitializingFormalElementZ extends ParameterElementZ
+class InitializingFormalElementZ extends LocalParameterElementZ
     implements InitializingFormalElement {
   FieldElement _fieldElement;
 
@@ -2064,6 +2064,9 @@ class InitializingFormalElementZ extends ParameterElementZ
 
   @override
   ElementKind get kind => ElementKind.INITIALIZING_FORMAL;
+
+  @override
+  bool get isLocal => true;
 }
 
 class LocalVariableElementZ extends DeserializedElementZ
