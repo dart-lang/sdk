@@ -11315,33 +11315,39 @@ void Library::CheckFunctionFingerprints() {
     OS::Print("Function not found %s.%s\n", #class_name, #function_name);      \
   } else {                                                                     \
     CHECK_FINGERPRINT3(func, class_name, function_name, dest, fp);             \
-  }                                                                            \
+  }
+
+#define CHECK_FINGERPRINTS2(class_name, function_name, dest, type, fp) \
+  CHECK_FINGERPRINTS(class_name, function_name, dest, fp)
 
   all_libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
-  CORE_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
-  CORE_INTEGER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+  CORE_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
+  CORE_INTEGER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
 
   all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::CollectionLibrary()));
-  OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS);
+  OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS2);
   INLINE_WHITE_LIST(CHECK_FINGERPRINTS);
   INLINE_BLACK_LIST(CHECK_FINGERPRINTS);
   POLYMORPHIC_TARGET_LIST(CHECK_FINGERPRINTS);
 
   all_libs.Clear();
   all_libs.Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
-  DEVELOPER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+  DEVELOPER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
 
   all_libs.Clear();
   all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
-  MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+  MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
 
   all_libs.Clear();
   all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
-  TYPED_DATA_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+  TYPED_DATA_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
 
 #undef CHECK_FINGERPRINTS
+#undef CHECK_FINGERPRINTS2
+
+
 
 Class& cls = Class::Handle();
 
