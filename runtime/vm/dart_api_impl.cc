@@ -42,6 +42,7 @@
 #include "vm/timeline.h"
 #include "vm/timer.h"
 #include "vm/unicode.h"
+#include "vm/uri.h"
 #include "vm/verifier.h"
 #include "vm/version.h"
 
@@ -5165,6 +5166,31 @@ DART_EXPORT Dart_Handle Dart_SetLibraryTagHandler(
   CHECK_ISOLATE(isolate);
   isolate->set_library_tag_handler(handler);
   return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_DefaultCanonicalizeUrl(Dart_Handle library,
+                                                    Dart_Handle url) {
+  API_TIMELINE_DURATION;
+  DARTSCOPE(Thread::Current());
+  CHECK_CALLBACK_STATE(T);
+
+  const Library& lib = Api::UnwrapLibraryHandle(Z, library);
+  if (lib.IsNull()) {
+    RETURN_TYPE_ERROR(Z, library, Library);
+  }
+  const String& uri = Api::UnwrapStringHandle(Z, url);
+  if (uri.IsNull()) {
+    RETURN_TYPE_ERROR(Z, url, String);
+  }
+
+  const String& lib_uri = String::Handle(Z, lib.url());
+  const char* resolved_uri;
+  if (!ResolveUri(uri.ToCString(), lib_uri.ToCString(), &resolved_uri)) {
+    return Api::NewError("%s: Unable to canonicalize uri '%s'.",
+                         CURRENT_FUNC, uri.ToCString());
+  }
+  return Api::NewHandle(T, String::New(resolved_uri));
 }
 
 

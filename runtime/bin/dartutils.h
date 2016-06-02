@@ -199,7 +199,6 @@ class DartUtils {
 
   static Dart_Handle ResolveUriInWorkingDirectory(Dart_Handle script_uri);
   static Dart_Handle FilePathFromUri(Dart_Handle script_uri);
-  static Dart_Handle ResolveUri(Dart_Handle library_url, Dart_Handle url);
 
   // Sniffs the specified text_buffer to see if it contains the magic number
   // representing a script snapshot. If the text_buffer is a script snapshot
