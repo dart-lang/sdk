@@ -181,9 +181,12 @@ CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
   kDynamicCid,
   kVoidCid,
 
-  // The following entry does not describe a real class, but instead it is an
-  // id which is used to identify free list elements in the heap.
+  // The following entries describes classes for pseudo-objects in the heap
+  // that should never be reachable from live objects. Free list elements
+  // maintain the free list for old space, and forwarding corpses are used to
+  // implement one-way become.
   kFreeListElement,
+  kForwardingCorpse,
 
   kNumPredefinedCids,
 };
@@ -441,6 +444,12 @@ CLASS_LIST_TYPED_DATA(DEFINE_IS_CID)
   }
   bool IsFreeListElement() const {
     return ((GetClassId() == kFreeListElement));
+  }
+  bool IsForwardingCorpse() const {
+    return ((GetClassId() == kForwardingCorpse));
+  }
+  bool IsPseudoObject() const {
+    return IsFreeListElement() || IsForwardingCorpse();
   }
 
   intptr_t Size() const {

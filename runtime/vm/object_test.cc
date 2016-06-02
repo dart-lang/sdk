@@ -4125,9 +4125,8 @@ class ObjectAccumulator : public ObjectVisitor {
       : objects_(objects) { }
   virtual ~ObjectAccumulator() { }
   virtual void VisitObject(RawObject* obj) {
-    // Free-list elements cannot even be wrapped in handles.
-    if (obj->IsFreeListElement()) {
-      return;
+    if (obj->IsPseudoObject()) {
+      return;  // Cannot be wrapped in handles.
     }
     Object& handle = Object::Handle(obj);
     // Skip some common simple objects to run in reasonable time.

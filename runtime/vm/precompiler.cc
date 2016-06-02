@@ -366,7 +366,8 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     }
     if ((cid == kDynamicCid) ||
         (cid == kVoidCid) ||
-        (cid == kFreeListElement)) {
+        (cid == kFreeListElement) ||
+        (cid == kForwardingCorpse)) {
       continue;
     }
     cls = isolate()->class_table()->At(cid);

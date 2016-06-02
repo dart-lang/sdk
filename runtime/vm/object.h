@@ -8521,6 +8521,7 @@ DART_FORCE_INLINE void Object::SetRaw(RawObject* value) {
   intptr_t cid = value->GetClassId();
   // Free-list elements cannot be wrapped in a handle.
   ASSERT(cid != kFreeListElement);
+  ASSERT(cid != kForwardingCorpse);
   if (cid >= kNumPredefinedCids) {
     cid = kInstanceCid;
   }

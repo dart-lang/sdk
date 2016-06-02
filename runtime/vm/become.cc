@@ -8,7 +8,6 @@
 #include "platform/utils.h"
 
 #include "vm/dart_api_state.h"
-#include "vm/freelist.h"
 #include "vm/isolate_reload.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
@@ -20,32 +19,55 @@ namespace dart {
 
 DECLARE_FLAG(bool, trace_reload);
 
+
+ForwardingCorpse* ForwardingCorpse::AsForwarder(uword addr, intptr_t size) {
+  ASSERT(size >= kObjectAlignment);
+  ASSERT(Utils::IsAligned(size, kObjectAlignment));
+
+  ForwardingCorpse* result = reinterpret_cast<ForwardingCorpse*>(addr);
+
+  uword tags = 0;
+  tags = RawObject::SizeTag::update(size, tags);
+  tags = RawObject::ClassIdTag::update(kForwardingCorpse, tags);
+
+  result->tags_ = tags;
+  if (size > RawObject::SizeTag::kMaxSizeTag) {
+    *result->SizeAddress() = size;
+  }
+  result->set_target(Object::null());
+  return result;
+}
+
+
+void ForwardingCorpse::InitOnce() {
+  ASSERT(sizeof(ForwardingCorpse) == kObjectAlignment);
+  ASSERT(OFFSET_OF(ForwardingCorpse, tags_) == Object::tags_offset());
+}
+
+
 // Free list elements are used as a marker for forwarding objects. This is
 // safe because we cannot reach free list elements from live objects. Ideally
 // forwarding objects would have their own class id. See TODO below.
 static bool IsForwardingObject(RawObject* object) {
-  return object->IsHeapObject() && object->IsFreeListElement();
+  return object->IsHeapObject() && object->IsForwardingCorpse();
 }
 
 
 static RawObject* GetForwardedObject(RawObject* object) {
   ASSERT(IsForwardingObject(object));
   uword addr = reinterpret_cast<uword>(object) - kHeapObjectTag;
-  FreeListElement* forwarder = reinterpret_cast<FreeListElement*>(addr);
-  RawObject* new_target = reinterpret_cast<RawObject*>(forwarder->next());
-  return new_target;
+  ForwardingCorpse* forwarder = reinterpret_cast<ForwardingCorpse*>(addr);
+  return forwarder->target();
 }
 
 
 static void ForwardObjectTo(RawObject* before_obj, RawObject* after_obj) {
   const intptr_t size_before = before_obj->Size();
 
-  // TODO(rmacnak): We should use different cids for forwarding corpses and
-  // free list elements.
   uword corpse_addr = reinterpret_cast<uword>(before_obj) - kHeapObjectTag;
-  FreeListElement* forwarder = FreeListElement::AsElement(corpse_addr,
-                                                          size_before);
-  forwarder->set_next(reinterpret_cast<FreeListElement*>(after_obj));
+  ForwardingCorpse* forwarder = ForwardingCorpse::AsForwarder(corpse_addr,
+                                                              size_before);
+  forwarder->set_target(after_obj);
   if (!IsForwardingObject(before_obj)) {
     FATAL("become: ForwardObjectTo failure.");
   }
@@ -130,22 +152,22 @@ class ForwardHeapPointersHandleVisitor : public HandleVisitor {
 
 
 #if defined(DEBUG)
-class NoFreeListTargetsVisitor : public ObjectPointerVisitor {
+class NoForwardingCorpseTargetsVisitor : public ObjectPointerVisitor {
  public:
-  explicit NoFreeListTargetsVisitor(Isolate* isolate)
+  explicit NoForwardingCorpseTargetsVisitor(Isolate* isolate)
       : ObjectPointerVisitor(isolate) { }
 
   virtual void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** p = first; p <= last; p++) {
       RawObject* target = *p;
       if (target->IsHeapObject()) {
-        ASSERT(!target->IsFreeListElement());
+        ASSERT(!target->IsForwardingCorpse());
       }
     }
   }
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(NoFreeListTargetsVisitor);
+  DISALLOW_COPY_AND_ASSIGN(NoForwardingCorpseTargetsVisitor);
 };
 #endif
 
@@ -166,7 +188,7 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
 #if defined(DEBUG)
   {
     // There should be no pointers to free list elements / forwarding corpses.
-    NoFreeListTargetsVisitor visitor(isolate);
+    NoForwardingCorpseTargetsVisitor visitor(isolate);
     isolate->VisitObjectPointers(&visitor, true);
     heap->VisitObjectPointers(&visitor);
   }
@@ -190,7 +212,10 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
     if (before_obj->IsVMHeapObject()) {
       FATAL("become: Cannot forward VM heap objects");
     }
-    if (after_obj->IsFreeListElement()) {
+    if (before_obj->IsForwardingCorpse()) {
+      FATAL("become: Cannot forward to multiple targets");
+    }
+    if (after_obj->IsForwardingCorpse()) {
       // The Smalltalk become does allow this, and for very special cases
       // it is important (shape changes to Class or Mixin), but as these
       // cases do not arise in Dart, better to prohibit it.
@@ -228,7 +253,7 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
 
   {
     // There should be no pointers to forwarding corpses.
-    NoFreeListTargetsVisitor visitor(isolate);
+    NoForwardingCorpseTargetsVisitor visitor(isolate);
     isolate->VisitObjectPointers(&visitor, true);
     heap->VisitObjectPointers(&visitor);
   }

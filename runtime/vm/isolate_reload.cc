@@ -408,7 +408,7 @@ void IsolateReloadContext::CheckpointClasses() {
         class_table->HasValidClassAt(i)) {
       // Copy the class into the saved class table and add it to the set.
       local_saved_class_table[i] = class_table->At(i);
-      if (i != kFreeListElement) {
+      if (i != kFreeListElement && i != kForwardingCorpse) {
         cls = class_table->At(i);
         bool already_present = old_classes_set.Insert(cls);
         ASSERT(!already_present);
@@ -971,8 +971,8 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
   }
 
   virtual void VisitObject(RawObject* obj) {
-    // Free-list elements cannot even be wrapped in handles.
-    if (obj->IsFreeListElement()) {
+    if (obj->IsPseudoObject()) {
+      // Cannot even be wrapped in handles.
       return;
     }
     handle_ = obj;

@@ -7,6 +7,7 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "vm/assembler.h"
+#include "vm/become.h"
 #include "vm/cpu.h"
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
@@ -562,6 +563,13 @@ void Object::InitOnce(Isolate* isolate) {
   cls.set_is_finalized();
   cls.set_is_type_finalized();
 
+  // Allocate and initialize the forwarding corpse class.
+  cls = Class::New<ForwardingCorpse::FakeInstance>(kForwardingCorpse);
+  cls.set_num_type_arguments(0);
+  cls.set_num_own_type_arguments(0);
+  cls.set_is_finalized();
+  cls.set_is_type_finalized();
+
   // Allocate and initialize the sentinel values of Null class.
   {
     *sentinel_ ^=
@@ -929,6 +937,8 @@ class PremarkingVisitor : public ObjectVisitor {
   void VisitObject(RawObject* obj) {
     // Free list elements should never be marked.
     ASSERT(!obj->IsMarked());
+    // No forwarding corpses in the VM isolate.
+    ASSERT(!obj->IsForwardingCorpse());
     if (!obj->IsFreeListElement()) {
       ASSERT(obj->IsVMHeapObject());
       obj->SetMarkBitUnsynchronized();
@@ -999,6 +1009,13 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   cls.set_name(Symbols::_List());
   cls = isolate->object_store()->one_byte_string_class();
   cls.set_name(Symbols::OneByteString());
+
+  // Set up names for the pseudo-classes for free list elements and forwarding
+  // corpses. Mainly this makes VM debugging easier.
+  cls = isolate->class_table()->At(kFreeListElement);
+  cls.set_name(Symbols::FreeListElement());
+  cls = isolate->class_table()->At(kForwardingCorpse);
+  cls.set_name(Symbols::ForwardingCorpse());
 
   {
     ASSERT(isolate == Dart::vm_isolate());
@@ -1080,6 +1097,7 @@ void Object::VerifyBuiltinVtables() {
     }
   }
   ASSERT(builtin_vtables_[kFreeListElement] == 0);
+  ASSERT(builtin_vtables_[kForwardingCorpse] == 0);
 #endif
 }
 
@@ -1916,8 +1934,6 @@ RawObject* Object::Clone(const Object& orig, Heap::Space space) {
 
 
 RawString* Class::Name() const {
-  // TODO(turnidge): This assert fails for the fake kFreeListElement class.
-  // Fix this.
   ASSERT(raw_ptr()->name_ != String::null());
   return raw_ptr()->name_;
 }

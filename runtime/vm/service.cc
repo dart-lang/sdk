@@ -2217,7 +2217,7 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
 
   virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
     RawObject* raw_obj = it->Get();
-    if (raw_obj->IsFreeListElement()) {
+    if (raw_obj->IsPseudoObject()) {
       return kProceed;
     }
     Thread* thread = Thread::Current();
@@ -3341,8 +3341,7 @@ class ContainsAddressVisitor : public FindObjectVisitor {
   virtual uword filter_addr() const { return addr_; }
 
   virtual bool FindObject(RawObject* obj) const {
-    // Free list elements are not real objects, so skip them.
-    if (obj->IsFreeListElement()) {
+    if (obj->IsPseudoObject()) {
       return false;
     }
     uword obj_begin = RawObject::ToAddr(obj);
