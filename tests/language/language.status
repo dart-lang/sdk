@@ -95,6 +95,7 @@ main_test/21: Fail # Issue 20028
 main_test/42: Fail # Issue 20028
 mirror_in_static_init_test: Fail # Issue 22071
 vm/debug_break_enabled_vm_test/*: Skip # Issue 14651.
+
 # Experimental feature: Syntactic support for generic methods.
 generic_methods_test: RuntimeError # Issue 25869
 generic_functions_test: RuntimeError # Issue 25869
@@ -103,6 +104,10 @@ generic_sends_test: RuntimeError # Issue 25869
 generic_methods_new_test: RuntimeError # Issue 25869
 generic_methods_function_type_test: RuntimeError # Issue 25869
 generic_methods_type_expression_test: RuntimeError # Issue 25869
+
+# Experimental feature: Use initializing formals in initializers and constructor body.
+initializing_formal_access_test: RuntimeError # TODO(eernst): create a suitable sdk issue.
+
 config_import_test: Skip  # Issue 26250
 
 [ $compiler == none && $runtime == dartium && $system == linux && $arch != x64 ]
