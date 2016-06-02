@@ -1682,6 +1682,56 @@ class _UnitResynthesizer {
   }
 
   /**
+   * Resynthesize an [ExecutableElement] and place it in the given [holder].
+   */
+  void buildClassExecutable(UnlinkedExecutable serializedExecutable,
+      ElementImpl enclosingElement, ElementHolder holder) {
+    bool isTopLevel = holder == null;
+    if (holder == null) {
+      holder = unitHolder;
+    }
+    UnlinkedExecutableKind kind = serializedExecutable.kind;
+    String name = serializedExecutable.name;
+    if (kind == UnlinkedExecutableKind.setter) {
+      assert(name.endsWith('='));
+      name = name.substring(0, name.length - 1);
+    }
+    switch (kind) {
+      case UnlinkedExecutableKind.getter:
+      case UnlinkedExecutableKind.setter:
+        // Top-level accessors are created lazily.
+        if (isTopLevel) {
+          break;
+        }
+        // Class member accessors.
+        PropertyAccessorElementImpl executableElement =
+            new PropertyAccessorElementImpl.forSerialized(
+                serializedExecutable, enclosingElement);
+        DartType type;
+        if (kind == UnlinkedExecutableKind.getter) {
+          type = executableElement.returnType;
+        } else {
+          type = executableElement.parameters[0].type;
+        }
+        holder.addAccessor(executableElement);
+        FieldElementImpl field = buildImplicitField(name, type, kind, holder);
+        field.static = serializedExecutable.isStatic;
+        executableElement.variable = field;
+        if (kind == UnlinkedExecutableKind.getter) {
+          field.getter = executableElement;
+        } else {
+          field.setter = executableElement;
+        }
+        break;
+      default:
+        // The only other executable type is a constructor, and that is handled
+        // separately (in [buildConstructor].  So this code should be
+        // unreachable.
+        assert(false);
+    }
+  }
+
+  /**
    * Fill the given [ClassElementImpl] with executable elements and fields.
    */
   void buildClassExecutables(
@@ -1699,10 +1749,13 @@ class _UnitResynthesizer {
           constructorFound = true;
           buildConstructor(serializedExecutable, classElement, memberHolder);
           break;
-        case UnlinkedExecutableKind.functionOrMethod:
         case UnlinkedExecutableKind.getter:
         case UnlinkedExecutableKind.setter:
-          buildExecutable(serializedExecutable, classElement, memberHolder);
+          buildClassExecutable(
+              serializedExecutable, classElement, memberHolder);
+          break;
+        case UnlinkedExecutableKind.functionOrMethod:
+          // Resynthesized lazily.
           break;
       }
     }
@@ -1720,7 +1773,6 @@ class _UnitResynthesizer {
     }
     classElement.accessors = memberHolder.accessors;
     classElement.fields = memberHolder.fields;
-    classElement.methods = memberHolder.methods;
     resolveConstructorInitializers(classElement);
   }
 
@@ -1893,67 +1945,6 @@ class _UnitResynthesizer {
     classElement.fields = memberHolder.fields;
     classElement.accessors = memberHolder.accessors;
     unitHolder.addEnum(classElement);
-  }
-
-  /**
-   * Resynthesize an [ExecutableElement] and place it in the given [holder].
-   */
-  void buildExecutable(
-      UnlinkedExecutable serializedExecutable, ElementImpl enclosingElement,
-      [ElementHolder holder]) {
-    bool isTopLevel = holder == null;
-    if (holder == null) {
-      holder = unitHolder;
-    }
-    UnlinkedExecutableKind kind = serializedExecutable.kind;
-    String name = serializedExecutable.name;
-    if (kind == UnlinkedExecutableKind.setter) {
-      assert(name.endsWith('='));
-      name = name.substring(0, name.length - 1);
-    }
-    switch (kind) {
-      case UnlinkedExecutableKind.functionOrMethod:
-        if (isTopLevel) {
-          // Created lazily.
-        } else {
-          MethodElementImpl executableElement =
-              new MethodElementImpl.forSerialized(
-                  serializedExecutable, enclosingElement);
-          holder.addMethod(executableElement);
-        }
-        break;
-      case UnlinkedExecutableKind.getter:
-      case UnlinkedExecutableKind.setter:
-        // Top-level accessors are created lazily.
-        if (isTopLevel) {
-          break;
-        }
-        // Class member accessors.
-        PropertyAccessorElementImpl executableElement =
-            new PropertyAccessorElementImpl.forSerialized(
-                serializedExecutable, enclosingElement);
-        DartType type;
-        if (kind == UnlinkedExecutableKind.getter) {
-          type = executableElement.returnType;
-        } else {
-          type = executableElement.parameters[0].type;
-        }
-        holder.addAccessor(executableElement);
-        FieldElementImpl field = buildImplicitField(name, type, kind, holder);
-        field.static = serializedExecutable.isStatic;
-        executableElement.variable = field;
-        if (kind == UnlinkedExecutableKind.getter) {
-          field.getter = executableElement;
-        } else {
-          field.setter = executableElement;
-        }
-        break;
-      default:
-        // The only other executable type is a constructor, and that is handled
-        // separately (in [buildConstructor].  So this code should be
-        // unreachable.
-        assert(false);
-    }
   }
 
   /**

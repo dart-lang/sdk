@@ -481,7 +481,7 @@ class ClassElementImpl extends AbstractClassElementImpl {
   /**
    * A list containing all of the methods contained in this class.
    */
-  List<MethodElement> _methods = MethodElement.EMPTY_LIST;
+  List<MethodElement> _methods;
 
   /**
    * A flag indicating whether the types associated with the instance members of
@@ -676,7 +676,7 @@ class ClassElementImpl extends AbstractClassElementImpl {
 
   @override
   bool get hasStaticMember {
-    for (MethodElement method in _methods) {
+    for (MethodElement method in methods) {
       if (method.isStatic) {
         return true;
       }
@@ -766,16 +766,25 @@ class ClassElementImpl extends AbstractClassElementImpl {
   }
 
   @override
-  List<MethodElement> get methods => _methods;
+  List<MethodElement> get methods {
+    if (_unlinkedClass != null) {
+      _methods ??= _unlinkedClass.executables
+          .where((e) => e.kind == UnlinkedExecutableKind.functionOrMethod)
+          .map((e) => new MethodElementImpl.forSerialized(e, this))
+          .toList(growable: false);
+    }
+    return _methods ?? const <MethodElement>[];
+  }
 
   /**
    * Set the methods contained in this class to the given [methods].
    */
   void set methods(List<MethodElement> methods) {
+    assert(_unlinkedClass == null);
     for (MethodElement method in methods) {
       (method as MethodElementImpl).enclosingElement = this;
     }
-    this._methods = methods;
+    _methods = methods;
   }
 
   /**
@@ -927,7 +936,7 @@ class ClassElementImpl extends AbstractClassElementImpl {
         return constructorImpl;
       }
     }
-    for (MethodElement method in _methods) {
+    for (MethodElement method in methods) {
       MethodElementImpl methodImpl = method;
       if (methodImpl.identifier == identifier) {
         return methodImpl;
@@ -944,9 +953,9 @@ class ClassElementImpl extends AbstractClassElementImpl {
 
   @override
   MethodElement getMethod(String methodName) {
-    int length = _methods.length;
+    int length = methods.length;
     for (int i = 0; i < length; i++) {
-      MethodElement method = _methods[i];
+      MethodElement method = methods[i];
       if (method.name == methodName) {
         return method;
       }
@@ -986,7 +995,7 @@ class ClassElementImpl extends AbstractClassElementImpl {
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(_constructors, visitor);
-    safelyVisitChildren(_methods, visitor);
+    safelyVisitChildren(methods, visitor);
     safelyVisitChildren(_typeParameters, visitor);
   }
 
