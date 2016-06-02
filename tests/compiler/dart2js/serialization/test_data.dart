@@ -328,6 +328,23 @@ m() => print(#main);
 ''',
   }),
 
+  const Test('Indirect unserialized library', const {
+    'main.dart': '''
+import 'a.dart';
+main() => foo();
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+import 'memory:b.dart';
+foo() => bar();
+''',
+  }, unserializedSourceFiles: const {
+    'b.dart': '''
+import 'memory:a.dart';
+bar() => foo();
+''',
+  }),
+
   const Test('Multiple structurally identical mixins', const {
     'main.dart': '''
 class S {}
@@ -346,6 +363,7 @@ class Test {
   final String name;
   final Map sourceFiles;
   final Map preserializedSourceFiles;
+  final Map unserializedSourceFiles;
   final int expectedErrorCount;
   final int expectedWarningCount;
   final int expectedHintCount;
@@ -355,6 +373,7 @@ class Test {
       this.name,
       this.sourceFiles,
       {this.preserializedSourceFiles,
+      this.unserializedSourceFiles,
       this.expectedErrorCount: 0,
       this.expectedWarningCount: 0,
       this.expectedHintCount: 0,

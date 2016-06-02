@@ -9,11 +9,13 @@ import '../memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
+import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/constants/constructors.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/invariant.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/visitor.dart';
+import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/ordered_typeset.dart';
 import 'package:compiler/src/serialization/element_serialization.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
@@ -52,10 +54,13 @@ main(List<String> arguments) {
     CompilationResult result = await runCompiler(
         entryPoint: entryPoint, options: [Flags.analyzeAll]);
     Compiler compiler = result.compiler;
-    testSerialization(compiler.libraryLoader.libraries,
-                      compiler.reporter,
-                      outPath: outPath,
-                      prettyPrint: prettyPrint);
+    testSerialization(
+        compiler.libraryLoader.libraries,
+        compiler.reporter,
+        compiler.resolution,
+        compiler.libraryLoader,
+        outPath: outPath,
+        prettyPrint: prettyPrint);
     Expect.isFalse(compiler.reporter.hasReportedError,
         "Unexpected errors occured.");
   });
@@ -64,6 +69,8 @@ main(List<String> arguments) {
 void testSerialization(
     Iterable<LibraryElement> libraries1,
     DiagnosticReporter reporter,
+    Resolution resolution,
+    LibraryProvider libraryProvider,
     {String outPath,
      bool prettyPrint}) {
   Serializer serializer = new Serializer();
@@ -82,7 +89,8 @@ void testSerialization(
   }
 
   Deserializer deserializer = new Deserializer.fromText(
-      new DeserializationContext(reporter), Uri.parse('out1.data'),
+      new DeserializationContext(reporter, resolution, libraryProvider),
+      Uri.parse('out1.data'),
       text, const JsonSerializationDecoder());
   List<LibraryElement> libraries2 = <LibraryElement>[];
   for (LibraryElement library1 in libraries1) {
@@ -102,7 +110,8 @@ void testSerialization(
   String text2 = serializer2.toText(const JsonSerializationEncoder());
 
   Deserializer deserializer3 = new Deserializer.fromText(
-      new DeserializationContext(reporter), Uri.parse('out2.data'),
+      new DeserializationContext(reporter, resolution, libraryProvider),
+      Uri.parse('out2.data'),
       text2, const JsonSerializationDecoder());
   for (LibraryElement library1 in libraries1) {
     LibraryElement library2 =

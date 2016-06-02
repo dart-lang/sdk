@@ -5,9 +5,11 @@
 library dart2js.serialization;
 
 import '../common.dart';
+import '../common/resolution.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
+import '../library_loader.dart' show LibraryProvider;
 import '../util/enumset.dart';
 
 import 'constant_serialization.dart';
@@ -921,13 +923,17 @@ class DeserializerPlugin {
 /// Context for parallel deserialization.
 class DeserializationContext {
   final DiagnosticReporter reporter;
+  final Resolution resolution;
+  final LibraryProvider libraryProvider;
   Map<Uri, LibraryElement> _uriMap = <Uri, LibraryElement>{};
   List<Deserializer> deserializers = <Deserializer>[];
   List<DeserializerPlugin> plugins = <DeserializerPlugin>[];
 
-  DeserializationContext(this.reporter);
+  DeserializationContext(this.reporter, this.resolution, this.libraryProvider);
 
   LibraryElement lookupLibrary(Uri uri) {
+    // TODO(johnniwinther): Move this to the library loader by making a
+    // [Deserializer] a [LibraryProvider].
     return _uriMap.putIfAbsent(uri, () {
       Uri foundUri;
       LibraryElement foundLibrary;
@@ -948,6 +954,11 @@ class DeserializationContext {
       }
       return foundLibrary;
     });
+  }
+
+  LibraryElement findLibrary(Uri uri) {
+    LibraryElement library = lookupLibrary(uri);
+    return library ?? libraryProvider.lookupLibrary(uri);
   }
 }
 
@@ -1024,7 +1035,7 @@ class Deserializer {
           decoder.getEnum(Key.KIND, SerializedElementKind.values);
       if (elementKind == SerializedElementKind.EXTERNAL_LIBRARY) {
         Uri uri = decoder.getUri(Key.URI);
-        element = context.lookupLibrary(uri);
+        element = context.findLibrary(uri);
         if (element == null) {
           throw new StateError("Missing library for $uri.");
         }
@@ -1047,6 +1058,7 @@ class Deserializer {
         }
       } else if (elementKind == SerializedElementKind.EXTERNAL_CLASS_MEMBER) {
         ClassElement cls = decoder.getElement(Key.CLASS);
+        cls.ensureResolved(context.resolution);
         String name = decoder.getString(Key.NAME);
         bool isGetter = decoder.getBool(Key.GETTER, isOptional: true);
         element = cls.lookupLocalMember(name);
@@ -1063,6 +1075,7 @@ class Deserializer {
         }
       } else if (elementKind == SerializedElementKind.EXTERNAL_CONSTRUCTOR) {
         ClassElement cls = decoder.getElement(Key.CLASS);
+        cls.ensureResolved(context.resolution);
         String name = decoder.getString(Key.NAME);
         element = cls.lookupConstructor(name);
         if (element == null) {

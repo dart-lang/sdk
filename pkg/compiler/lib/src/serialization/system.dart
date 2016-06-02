@@ -37,7 +37,8 @@ class DeserializerSystemImpl extends DeserializerSystem {
   factory DeserializerSystemImpl(
       Compiler compiler, ImpactTransformer impactTransformer) {
     DeserializationContext context =
-        new DeserializationContext(compiler.reporter);
+        new DeserializationContext(
+            compiler.reporter, compiler.resolution, compiler.libraryLoader);
     DeserializerPlugin backendDeserializer =
         compiler.backend.serialization.deserializer;
     context.plugins.add(backendDeserializer);
@@ -96,7 +97,7 @@ class DeserializerSystemImpl extends DeserializerSystem {
         element.enclosingClass.isUnnamedMixinApplication) {
       return true;
     }
-    return _resolutionImpactDeserializer.impactMap.containsKey(element);
+    return _resolutionImpactDeserializer.hasResolutionImpact(element);
   }
 
   @override
@@ -111,14 +112,15 @@ class DeserializerSystemImpl extends DeserializerSystem {
               "${element} not found in ${superclass}."));
       // TODO(johnniwinther): Compute callStructure. Currently not used.
       CallStructure callStructure;
-      return _resolutionImpactDeserializer.impactMap.putIfAbsent(element, () {
+      return _resolutionImpactDeserializer.registerResolutionImpact(element,
+          () {
         return new DeserializedResolutionImpact(staticUses: <StaticUse>[
           new StaticUse.superConstructorInvoke(
               superclassConstructor, callStructure)
         ]);
       });
     }
-    return _resolutionImpactDeserializer.impactMap[element];
+    return _resolutionImpactDeserializer.getResolutionImpact(element);
   }
 
   @override
@@ -158,7 +160,8 @@ class ResolutionImpactSerializer extends SerializerPlugin {
 }
 
 class ResolutionImpactDeserializer extends DeserializerPlugin {
-  Map<Element, ResolutionImpact> impactMap = <Element, ResolutionImpact>{};
+  Map<Element, ObjectDecoder> _decoderMap = <Element, ObjectDecoder>{};
+  Map<Element, ResolutionImpact> _impactMap = <Element, ResolutionImpact>{};
   final DeserializerPlugin nativeDataDeserializer;
 
   ResolutionImpactDeserializer(this.nativeDataDeserializer);
@@ -167,9 +170,30 @@ class ResolutionImpactDeserializer extends DeserializerPlugin {
   void onElement(Element element, ObjectDecoder getDecoder(String tag)) {
     ObjectDecoder decoder = getDecoder(WORLD_IMPACT_TAG);
     if (decoder != null) {
-      impactMap[element] = ImpactDeserializer.deserializeImpact(
-          element, decoder, nativeDataDeserializer);
+      _decoderMap[element] = decoder;
     }
+  }
+
+  bool hasResolutionImpact(Element element) {
+    return _impactMap.containsKey(element) || _decoderMap.containsKey(element);
+  }
+
+  ResolutionImpact registerResolutionImpact(
+      Element element, ResolutionImpact ifAbsent()) {
+    return _impactMap.putIfAbsent(element, ifAbsent);
+  }
+
+  ResolutionImpact getResolutionImpact(Element element) {
+    return registerResolutionImpact(element, () {
+      ObjectDecoder decoder = _decoderMap[element];
+      if (decoder != null) {
+        _decoderMap.remove(element);
+        return ImpactDeserializer.deserializeImpact(
+            element, decoder, nativeDataDeserializer);
+      }
+      return null;
+    });
+
   }
 }
 

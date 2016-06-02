@@ -88,6 +88,9 @@ class Arguments {
       if (test.preserializedSourceFiles != null) {
         sourceFiles.addAll(test.preserializedSourceFiles);
       }
+      if (test.unserializedSourceFiles != null) {
+        sourceFiles.addAll(test.unserializedSourceFiles);
+      }
       List<Uri> resolutionInputs = <Uri>[];
       for (SerializedData data in dataList) {
         data.expandMemorySourceFiles(sourceFiles);
@@ -196,9 +199,13 @@ Future<List<SerializedData>> preserializeData(
   for (String key in test.preserializedSourceFiles.keys) {
     uriList.add(Uri.parse('memory:$key'));
   }
+  Map<String, String> sourceFiles = serializedData.toMemorySourceFiles();
+  sourceFiles.addAll(test.preserializedSourceFiles);
+  if (test.unserializedSourceFiles != null) {
+    sourceFiles.addAll(test.unserializedSourceFiles);
+  }
   Compiler compiler = compilerFor(
-      memorySourceFiles:
-          serializedData.toMemorySourceFiles(test.preserializedSourceFiles),
+      memorySourceFiles: sourceFiles,
       resolutionInputs: serializedData.toUris(),
       options: [Flags.analyzeOnly, Flags.analyzeMain]);
   compiler.librariesToAnalyzeWhenRun = uriList;
