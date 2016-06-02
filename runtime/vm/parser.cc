@@ -365,6 +365,7 @@ class Parser::TryStack : public ZoneAllocated {
   void exit_finally() { inside_finally_ = false; }
 
   void AddNodeForFinallyInlining(AstNode* node);
+  void RemoveJumpToLabel(SourceLabel *label);
   AstNode* GetNodeToInlineFinally(int index) {
     if (0 <= index && index < inlined_finally_nodes_.length()) {
       return inlined_finally_nodes_[index];
@@ -387,6 +388,25 @@ class Parser::TryStack : public ZoneAllocated {
 
 void Parser::TryStack::AddNodeForFinallyInlining(AstNode* node) {
   inlined_finally_nodes_.Add(node);
+}
+
+
+void Parser::TryStack::RemoveJumpToLabel(SourceLabel *label) {
+  int i = 0;
+  while (i < inlined_finally_nodes_.length()) {
+    if (inlined_finally_nodes_[i]->IsJumpNode()) {
+      JumpNode* jump = inlined_finally_nodes_[i]->AsJumpNode();
+      if (jump->label() == label) {
+        // Shift remaining entries left and delete last entry.
+        for (int j = i + 1; j < inlined_finally_nodes_.length(); j++) {
+          inlined_finally_nodes_[j - 1] = inlined_finally_nodes_[j];
+        }
+        inlined_finally_nodes_.RemoveLast();
+        continue;
+      }
+    }
+    i++;
+  }
 }
 
 
@@ -8441,6 +8461,7 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
         // We have seen a 'continue' with this label name. Resolve
         // the forward reference.
         case_label->ResolveForwardReference();
+        RemoveNodesForFinallyInlining(case_label);
       } else {
         ReportError(label_pos, "label '%s' already exists in scope",
                     label_name->ToCString());
@@ -9349,11 +9370,27 @@ void Parser::AddNodeForFinallyInlining(AstNode* node) {
       // so we do not need to inline the finally code. Otherwise we need
       // to inline the finally code of this try block and then move on to the
       // next outer try block.
-      if (label->owner()->IsNestedWithin(try_scope)) {
+      // For unresolved forward jumps to switch cases, we don't yet know
+      // to which scope the label will be resolved. Tentatively add the
+      // jump to all nested try statements and remove the outermost ones
+      // when we know the exact jump target. (See
+      // RemoveNodesForFinallyInlining below.)
+      if (!label->IsUnresolved() && label->owner()->IsNestedWithin(try_scope)) {
         break;
       }
     }
     iterator->AddNodeForFinallyInlining(node);
+    iterator = iterator->outer_try();
+  }
+}
+
+
+void Parser::RemoveNodesForFinallyInlining(SourceLabel* label) {
+  TryStack* iterator = try_stack_;
+  const intptr_t func_level = FunctionLevel();
+  while ((iterator != NULL) &&
+         (iterator->try_block()->scope->function_level() == func_level)) {
+    iterator->RemoveJumpToLabel(label);
     iterator = iterator->outer_try();
   }
 }

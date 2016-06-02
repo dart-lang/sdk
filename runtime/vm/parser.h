@@ -743,6 +743,7 @@ class Parser : public ValueObject {
   // Add specified node to try block list so that it can be patched with
   // inlined finally code if needed.
   void AddNodeForFinallyInlining(AstNode* node);
+  void RemoveNodesForFinallyInlining(SourceLabel* label);
   // Add the inlined finally clause to the specified node.
   void AddFinallyClauseToNode(bool is_async,
                               AstNode* node,
