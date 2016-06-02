@@ -1,5 +1,5 @@
 name: linter
-version: 0.1.17
+version: 0.1.18
 author: Dart Team <misc@dartlang.org>
 description: Style linter for Dart.
 homepage: https://github.com/dart-lang/linter

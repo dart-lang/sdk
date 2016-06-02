@@ -1,3 +1,11 @@
+# 0.1.18
+
+* Fix NSME in `iterable_contains_unrelated_type` (#245).
+* Fixed typo in `comment_references` error description.
+* Fix `overriden_field` false positive (#246).
+* Rename linter binary `lints` option to `rules` (#248).
+* Help doc tweaks.
+
 # 0.1.17
 
 * Fix to `public_member_api_docs` to check for documented getters when checking setters (#237).
