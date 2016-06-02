@@ -30,13 +30,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const web_audio = Object.create(null);
   const web_gl = Object.create(null);
   const web_sql = Object.create(null);
-  let ListOfProfileEntry = () => (ListOfProfileEntry = dart.constFn(core.List$(dart.ProfileEntry)))();
+  let ListOfObject = () => (ListOfObject = dart.constFn(core.List$(core.Object)))();
+  let JSArrayOfListOfObject = () => (JSArrayOfListOfObject = dart.constFn(_interceptors.JSArray$(ListOfObject())))();
+  let JSArrayOfObject = () => (JSArrayOfObject = dart.constFn(_interceptors.JSArray$(core.Object)))();
   let MapOfString$int = () => (MapOfString$int = dart.constFn(core.Map$(core.String, core.int)))();
   let ListOfString = () => (ListOfString = dart.constFn(core.List$(core.String)))();
   let JSArrayOfFormatter = () => (JSArrayOfFormatter = dart.constFn(_interceptors.JSArray$(_debugger.Formatter)))();
   let JSArrayOfNameValuePair = () => (JSArrayOfNameValuePair = dart.constFn(_interceptors.JSArray$(_debugger.NameValuePair)))();
   let LinkedHashSetOfNameValuePair = () => (LinkedHashSetOfNameValuePair = dart.constFn(collection.LinkedHashSet$(_debugger.NameValuePair)))();
-  let JSArrayOfObject = () => (JSArrayOfObject = dart.constFn(_interceptors.JSArray$(core.Object)))();
   let SetOfString = () => (SetOfString = dart.constFn(core.Set$(core.String)))();
   let JSArrayOfJsonMLFormatter = () => (JSArrayOfJsonMLFormatter = dart.constFn(_interceptors.JSArray$(_debugger.JsonMLFormatter)))();
   let JSArray = () => (JSArray = dart.constFn(_interceptors.JSArray$()))();
@@ -391,7 +392,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let CompleterOfGeoposition = () => (CompleterOfGeoposition = dart.constFn(async.Completer$(html$.Geoposition)))();
   let StreamControllerOfGeoposition = () => (StreamControllerOfGeoposition = dart.constFn(async.StreamController$(html$.Geoposition)))();
   let EventStreamProviderOfWheelEvent = () => (EventStreamProviderOfWheelEvent = dart.constFn(html$.EventStreamProvider$(html$.WheelEvent)))();
-  let ListOfObject = () => (ListOfObject = dart.constFn(core.List$(core.Object)))();
   let ListOfNode = () => (ListOfNode = dart.constFn(core.List$(html$.Node)))();
   let _CustomEventStreamProviderOfEvent = () => (_CustomEventStreamProviderOfEvent = dart.constFn(html$._CustomEventStreamProvider$(html$.Event)))();
   let CompleterOfHttpRequest = () => (CompleterOfHttpRequest = dart.constFn(async.Completer$(html$.HttpRequest)))();
@@ -1087,12 +1087,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return dart._checkAndCall(f, dart._getRuntimeType(f), void 0, typeArgs, args, 'call');
   };
   dart.getDynamicStats = function() {
-    let ret = ListOfProfileEntry().new();
+    let ret = JSArrayOfListOfObject().of([]);
     let keys = dart._callMethodStats[dartx.keys][dartx.toList]();
     keys[dartx.sort](dart.fn((a, b) => dart._callMethodStats[dartx.get](b)[dartx.compareTo](dart._callMethodStats[dartx.get](a)), StringAndStringToint()));
     for (let key of keys) {
       let count = dart._callMethodStats[dartx.get](key);
-      ret[dartx.add](new dart.ProfileEntry(key, count));
+      ret[dartx.add](JSArrayOfObject().of([key, count]));
     }
     return ret;
   };
@@ -1100,7 +1100,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     dart._callMethodStats[dartx.clear]();
   };
   dart._trackCall = function(obj, name) {
-    if (!window.trackDdcProfile) return;
+    if (!dart.global.trackDdcProfile) return;
     let actual = dart.getReifiedType(obj);
     let stackStr = new Error().stack;
     let stack = stackStr[dartx.split]('\n    at ');
@@ -1114,9 +1114,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     name = dart.str`${dart.typeName(actual)}.${name} <${src}>`;
     if (dart.test(dart._callMethodStats[dartx.containsKey](name))) {
-      dart._callMethodStats[dartx.set](dart.as(name, core.String), dart.notNull(dart._callMethodStats[dartx.get](name)) + 1);
+      dart._callMethodStats[dartx.set](dart.check(name, core.String), dart.notNull(dart._callMethodStats[dartx.get](name)) + 1);
     } else {
-      dart._callMethodStats[dartx.set](dart.as(name, core.String), 1);
+      dart._callMethodStats[dartx.set](dart.check(name, core.String), 1);
     }
   };
   dart._callMethod = function(obj, name, typeArgs, args, displayName) {
@@ -1885,6 +1885,32 @@ dart_library.library('dart_sdk', null, /* Imports */[
     },
     set _callMethodStats(_) {}
   });
+  dart._ignoreTypeFailure = (() => {
+    return dart._ignoreMemo((actual, type) => {
+      if (!!dart.isSubtype(type, core.Iterable) && !!dart.isSubtype(actual, core.Iterable) || !!dart.isSubtype(type, async.Future) && !!dart.isSubtype(actual, async.Future) || !!dart.isSubtype(type, core.Map) && !!dart.isSubtype(actual, core.Map) || dart.isFunctionType(type) && dart.isFunctionType(actual) || !!dart.isSubtype(type, async.Stream) && !!dart.isSubtype(actual, async.Stream) || !!dart.isSubtype(type, async.StreamSubscription) && !!dart.isSubtype(actual, async.StreamSubscription)) {
+        console.warn('Ignoring cast fail from ' + dart.typeName(actual) + ' to ' + dart.typeName(type));
+        return true;
+      }
+      return false;
+    });
+  })();
+  dart._stack = new WeakMap();
+  dart._value = Symbol("_value");
+  dart.constants = new Map();
+  dart.constantLists = new Map();
+  dart.JsIterator = class JsIterator {
+    constructor(dartIterator) {
+      this.dartIterator = dartIterator;
+    }
+    next() {
+      let i = this.dartIterator;
+      let done = !i.moveNext();
+      return {done: done, value: done ? void 0 : i.current};
+    }
+  };
+  dart._runtimeType = Symbol("_runtimeType");
+  dart.metadata = Symbol("metadata");
+  dart._typeObject = Symbol("typeObject");
   core.Object = class Object {
     constructor(...args) {
       return this.new.apply(this, args);
@@ -1915,41 +1941,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       noSuchMethod: dart.definiteFunctionType(dart.dynamic, [core.Invocation])
     })
   });
-  dart.ProfileEntry = class ProfileEntry extends core.Object {
-    new(key, count) {
-      this.key = key;
-      this.count = count;
-    }
-  };
-  dart.setSignature(dart.ProfileEntry, {
-    constructors: () => ({new: dart.definiteFunctionType(dart.ProfileEntry, [core.String, core.num])})
-  });
-  dart._ignoreTypeFailure = (() => {
-    return dart._ignoreMemo((actual, type) => {
-      if (!!dart.isSubtype(type, core.Iterable) && !!dart.isSubtype(actual, core.Iterable) || !!dart.isSubtype(type, async.Future) && !!dart.isSubtype(actual, async.Future) || !!dart.isSubtype(type, core.Map) && !!dart.isSubtype(actual, core.Map) || dart.isFunctionType(type) && dart.isFunctionType(actual) || !!dart.isSubtype(type, async.Stream) && !!dart.isSubtype(actual, async.Stream) || !!dart.isSubtype(type, async.StreamSubscription) && !!dart.isSubtype(actual, async.StreamSubscription)) {
-        console.warn('Ignoring cast fail from ' + dart.typeName(actual) + ' to ' + dart.typeName(type));
-        return true;
-      }
-      return false;
-    });
-  })();
-  dart._stack = new WeakMap();
-  dart._value = Symbol("_value");
-  dart.constants = new Map();
-  dart.constantLists = new Map();
-  dart.JsIterator = class JsIterator {
-    constructor(dartIterator) {
-      this.dartIterator = dartIterator;
-    }
-    next() {
-      let i = this.dartIterator;
-      let done = !i.moveNext();
-      return {done: done, value: done ? void 0 : i.current};
-    }
-  };
-  dart._runtimeType = Symbol("_runtimeType");
-  dart.metadata = Symbol("metadata");
-  dart._typeObject = Symbol("typeObject");
   dart.TypeRep = class TypeRep extends core.Object {
     get name() {
       return this.toString();

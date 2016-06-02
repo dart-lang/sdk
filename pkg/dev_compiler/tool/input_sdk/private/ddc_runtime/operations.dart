@@ -18,7 +18,7 @@ _canonicalFieldName(obj, name, args, displayName) => JS('', '''(() => {
 
 dload(obj, field) => JS('', '''(() => {
   $field = $_canonicalFieldName($obj, $field, [], $field);
-  $_trackCall(obj, $field);
+  $_trackCall($obj, $field);
   if ($hasMethod($obj, $field)) {
     return $bind($obj, $field);
   }
@@ -32,7 +32,7 @@ dload(obj, field) => JS('', '''(() => {
 
 dput(obj, field, value) => JS('', '''(() => {
   $field = $_canonicalFieldName($obj, $field, [$value], $field);
-  $_trackCall(obj, $field);
+  $_trackCall($obj, $field);
 
   // TODO(vsm): Implement NSM and type checks.
   // See: https://github.com/dart-lang/dev_compiler/issues/170
@@ -91,7 +91,7 @@ throwNoSuchMethodFunc(obj, name, pArgs, opt_func) => JS('', '''(() => {
 })()''');
 
 _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
-  $_trackCall(obj, name);
+  $_trackCall($obj, $name);
 
   let originalFunction = $f;
   if (!($f instanceof Function)) {
@@ -164,22 +164,15 @@ dgcall(f, typeArgs, @rest args) => _checkAndCall(
 
 Map<String, int> _callMethodStats = new Map();
 
-class ProfileEntry {
-  final String key;
-  final num count;
-
-  ProfileEntry(this.key, this.count);
-}
-
-List<ProfileEntry> getDynamicStats() {
-  List<ProfileEntry> ret = new List();
+List<List<Object>> getDynamicStats() {
+  List<List<Object>> ret = [];
 
   var keys = _callMethodStats.keys.toList();
 
   keys.sort((a, b) => _callMethodStats[b].compareTo(_callMethodStats[a]));
   for (var key in keys) {
     int count = _callMethodStats[key];
-    ret.add(new ProfileEntry(key, count));
+    ret.add([key, count]);
   }
 
   return ret;
@@ -190,8 +183,7 @@ clearDynamicStats() {
 }
 
 _trackCall(obj, name) {
-  if(JS('bool', '!window.trackDdcProfile')) return;
-
+  if (JS('bool', '!dart.global.trackDdcProfile')) return;
   var actual = getReifiedType(obj);
   String stackStr = JS('String', "new Error().stack");
   var stack = stackStr.split('\n    at ');
