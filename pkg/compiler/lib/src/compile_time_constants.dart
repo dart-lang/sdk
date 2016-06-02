@@ -145,7 +145,9 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
    *
    * Invariant: The keys in this map are declarations.
    */
-  final Map<VariableElement, ConstantExpression> _initialVariableValues =
+  // TODO(johnniwinther): Make this purely internal when no longer used by
+  // poi/forget_element_test.
+  final Map<VariableElement, ConstantExpression> initialVariableValues =
       new Map<VariableElement, ConstantExpression>();
 
   /** The set of variable elements that are in the process of being computed. */
@@ -163,7 +165,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
   @override
   @deprecated
   ConstantValue getConstantValueForVariable(VariableElement element) {
-    return getConstantValue(_initialVariableValues[element.declaration]);
+    return getConstantValue(initialVariableValues[element.declaration]);
   }
 
   ConstantExpression compileConstant(VariableElement element) {
@@ -187,8 +189,8 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
   /// report an error if [element] does not typecheck.
   ConstantExpression internalCompileVariable(
       VariableElement element, bool isConst, bool checkType) {
-    if (_initialVariableValues.containsKey(element.declaration)) {
-      ConstantExpression result = _initialVariableValues[element.declaration];
+    if (initialVariableValues.containsKey(element.declaration)) {
+      ConstantExpression result = initialVariableValues[element.declaration];
       return result;
     }
     if (element.hasConstant) {
@@ -286,7 +288,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
     }
     if (expression != null) {
       element.constant = expression;
-      _initialVariableValues[element.declaration] = expression;
+      initialVariableValues[element.declaration] = expression;
     } else {
       assert(invariant(element, !isConst,
           message: "Variable $element does not compile to a constant."));
@@ -333,9 +335,9 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
   }
 
   void forgetElement(Element element) {
-    _initialVariableValues.remove(element);
+    initialVariableValues.remove(element);
     if (element is ScopeContainerElement) {
-      element.forEachLocalMember(_initialVariableValues.remove);
+      element.forEachLocalMember(initialVariableValues.remove);
     }
     if (element is FunctionElement && element.hasFunctionSignature) {
       element.functionSignature.forEachParameter(this.forgetElement);
