@@ -35,7 +35,6 @@ import 'package:analyzer/src/task/dart.dart';
  * A concrete implementation of a [ClassElement].
  */
 abstract class AbstractClassElementImpl extends ElementImpl
-    with TypeParameterizedElementMixin
     implements ClassElement {
   /**
    * A list containing all of the accessors (getters and setters) contained in
@@ -47,13 +46,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
    * A list containing all of the fields contained in this class.
    */
   List<FieldElement> _fields = FieldElement.EMPTY_LIST;
-
-  /**
-   * The superclass of the class, or `null` if the class does not have an
-   * explicit superclass.
-   */
-  @override
-  InterfaceType _supertype;
 
   /**
    * The type defined by the class.
@@ -96,9 +88,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
   String get displayName => name;
 
   @override
-  TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
-
-  @override
   List<FieldElement> get fields => _fields;
 
   /**
@@ -116,19 +105,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
 
   @override
   ElementKind get kind => ElementKind.CLASS;
-
-  /**
-   * Return resynthesized type parameter elements.
-   */
-  List<TypeParameterElement> get resynthesizedTypeParameters {
-    return super.typeParameters;
-  }
-
-  @override
-  TypeParameterizedElementMixin get typeParameterContext => this;
-
-  @override
-  List<UnlinkedTypeParam> get unlinkedTypeParams => const <UnlinkedTypeParam>[];
 
   @override
   accept(ElementVisitor visitor) => visitor.visitClassElement(this);
@@ -445,7 +421,8 @@ class AuxiliaryElements {
 /**
  * An [AbstractClassElementImpl] which is a class.
  */
-class ClassElementImpl extends AbstractClassElementImpl {
+class ClassElementImpl extends AbstractClassElementImpl
+    with TypeParameterizedElementMixin {
   /**
    * The unlinked representation of the class in the summary.
    */
@@ -455,6 +432,11 @@ class ClassElementImpl extends AbstractClassElementImpl {
    * A list containing all of the type parameters defined for this class.
    */
   List<TypeParameterElement> _typeParameters = TypeParameterElement.EMPTY_LIST;
+
+  /**
+   * The superclass of the class, or `null` for [Object].
+   */
+  InterfaceType _supertype;
 
   /**
    * A list containing all of the mixins that are applied to the class being
@@ -627,6 +609,9 @@ class ClassElementImpl extends AbstractClassElementImpl {
     }
     return !nearestNonMixinClass.constructors.any(isSuperConstructorAccessible);
   }
+
+  @override
+  TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
 
   @override
   bool get hasNonFinalField {
@@ -848,9 +833,12 @@ class ClassElementImpl extends AbstractClassElementImpl {
   }
 
   @override
+  TypeParameterizedElementMixin get typeParameterContext => this;
+
+  @override
   List<TypeParameterElement> get typeParameters {
     if (_unlinkedClass != null) {
-      return resynthesizedTypeParameters;
+      return super.typeParameters;
     }
     return _typeParameters;
   }
