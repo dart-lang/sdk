@@ -1206,7 +1206,7 @@ class _NativeJsSendPort extends _BaseSendPort implements SendPort {
       if (!_receivePort._isClosed) {
         _receivePort._add(msg);
       }
-    }, 'receive $message');
+    }, 'receive');
   }
 
   bool operator ==(var other) => (other is _NativeJsSendPort) &&
