@@ -37,7 +37,7 @@
 #define FLAG_LIST(P, R, D, C)                                                  \
 P(always_megamorphic_calls, bool, false,                                       \
   "Instance call always as megamorphic.")                                      \
-P(background_compilation, bool, USING_MULTICORE,                               \
+P(background_compilation, bool, false,                                         \
   "Run optimizing compilation in background")                                  \
 R(background_compilation_stop_alot, false, bool, false,                        \
   "Stress test system: stop background compiler often.")                       \
