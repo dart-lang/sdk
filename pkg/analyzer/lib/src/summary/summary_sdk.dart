@@ -172,16 +172,6 @@ class SummaryBasedDartSdk implements DartSdk {
 }
 
 /**
- * Provider for analysis results.
- */
-abstract class SummaryResultProvider extends ResultProvider {
-  /**
-   * The [SummaryResynthesizer] of this context, maybe `null`.
-   */
-  SummaryResynthesizer get resynthesizer;
-}
-
-/**
  * Implementation of [TypeProvider] which can be initialized separately with
  * `dart:core` and `dart:async` libraries.
  */
