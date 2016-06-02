@@ -2886,6 +2886,30 @@ class A {
     verify([source]);
   }
 
+  void test_unusedField_notUsed_constructorFieldInitializers() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  int _f;
+  A() : _f = 0;
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.UNUSED_FIELD]);
+    verify([source]);
+  }
+
+  void test_unusedField_notUsed_fieldFormalParameter() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  int _f;
+  A(this._f);
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.UNUSED_FIELD]);
+    verify([source]);
+  }
+
   void test_unusedField_notUsed_noReference() {
     enableUnusedElement = true;
     Source source = addSource(r'''

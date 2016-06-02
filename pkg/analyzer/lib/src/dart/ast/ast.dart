@@ -9043,6 +9043,10 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
         return false;
       }
     }
+    if (parent is ConstructorFieldInitializer &&
+        identical(parent.fieldName, target)) {
+      return false;
+    }
     if (parent is ForEachStatement) {
       if (identical(parent.identifier, target)) {
         return false;

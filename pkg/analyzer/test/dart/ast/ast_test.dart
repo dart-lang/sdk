@@ -592,6 +592,13 @@ class SimpleIdentifierTest extends ParserTestCase {
     }
   }
 
+  void test_inGetterContext_constructorFieldInitializer() {
+    ConstructorFieldInitializer initializer = AstFactory
+        .constructorFieldInitializer(false, 'f', AstFactory.integer(0));
+    SimpleIdentifier identifier = initializer.fieldName;
+    expect(identifier.inGetterContext(), isFalse);
+  }
+
   void test_inGetterContext_forEachLoop() {
     SimpleIdentifier identifier = AstFactory.identifier3("a");
     Expression iterator = AstFactory.listLiteral();
