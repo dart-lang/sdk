@@ -443,6 +443,32 @@ static Dart_Handle FilePathFromUri(const char* script_uri) {
 }
 
 
+static Dart_Handle ResolveUri(const char* library_uri, const char* uri) {
+  bool failed = false;
+  char* result_string = NULL;
+
+  {
+    UriResolverIsolateScope scope;
+
+    // Run DartUtils::ResolveUri in context of uri resolver isolate.
+    Dart_Handle result = DartUtils::ResolveUri(
+      DartUtils::NewString(library_uri), DartUtils::NewString(uri));
+    if (Dart_IsError(result)) {
+      failed = true;
+      result_string = strdup(Dart_GetError(result));
+    } else {
+      result_string = strdup(DartUtils::GetStringValue(result));
+    }
+  }
+
+  Dart_Handle result = failed ? Dart_NewApiError(result_string) :
+                                DartUtils::NewString(result_string);
+  free(result_string);
+  return result;
+}
+
+
+
 static Builtin::BuiltinLibraryId BuiltinId(const char* url) {
   if (DartUtils::IsDartBuiltinLibURL(url)) {
     return Builtin::kBuiltinLibrary;
@@ -488,7 +514,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
     if (libraryBuiltinId != Builtin::kInvalidLibrary) {
       return url;
     }
-    return Dart_DefaultCanonicalizeUrl(library, url);
+    return ResolveUri(library_url_string, url_string);
   }
 
   Builtin::BuiltinLibraryId builtinId = BuiltinId(url_string);

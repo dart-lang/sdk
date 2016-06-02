@@ -691,6 +691,29 @@ _loadDataAsync(int tag, String uri, String libraryUri) {
 }
 
 
+// Embedder Entrypoint:
+// Function called by standalone embedder to resolve uris when the VM requests
+// Dart_kCanonicalizeUrl from the tag handler.
+String _resolveUri(String base, String userString) {
+  if (!_setupCompleted) {
+    _setupHooks();
+  }
+
+  if (_traceLoading) {
+    _log('Resolving: $userString from $base');
+  }
+
+  var baseUri = Uri.parse(base);
+  var result = baseUri.resolve(userString).toString();
+  if (_traceLoading) {
+    _log('Resolved $userString in $base to $result');
+  }
+
+  return result;
+}
+
+
+
 // Handling of access to the package root or package map from user code.
 _triggerPackageResolution(action) {
   if (_packagesReady) {
