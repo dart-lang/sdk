@@ -19,7 +19,8 @@ const int _CR = 13;
  */
 class LineSplitter
     extends Converter<String, List<String>>/*=Object*/
-    implements Object/*=StreamTransformer<String, String>*/ {
+    implements ChunkedConverter<String, List<String>, String, String>
+        /*=StreamTransformer<String, String>*/ {
 
   const LineSplitter();
 
