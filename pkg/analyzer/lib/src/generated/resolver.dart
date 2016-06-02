@@ -3807,18 +3807,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
           return false;
         }
       }
-      // All of the members exit, determine whether there are possible cases
-      // that are not caught by the members.
-      DartType type = node.expression?.bestType;
-      if (type is InterfaceType) {
-        ClassElement element = type.element;
-        if (element != null && element.isEnum) {
-          // If some of the enum values are not covered, then a warning will
-          // have already been generated, so there's no point in generating a
-          // hint.
-          return true;
-        }
-      }
+      // As all cases exit, return whether that list includes `default`.
       return hasDefault;
     } finally {
       _enclosingBlockContainsBreak = outerBreakValue;
