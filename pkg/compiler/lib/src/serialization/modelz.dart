@@ -971,6 +971,9 @@ class NamedMixinApplicationElementZ extends ClassElementZ
 
   @override
   InterfaceType get mixinType => _mixinType ??= _decoder.getType(Key.MIXIN);
+
+  @override
+  ClassElement get subclass => null;
 }
 
 class UnnamedMixinApplicationElementZ extends ElementZ
@@ -984,7 +987,7 @@ class UnnamedMixinApplicationElementZ extends ElementZ
         MixinApplicationElementCommon,
         MixinApplicationElementMixin {
   final String name;
-  final ClassElement _subclass;
+  final ClassElement subclass;
   final InterfaceType _supertypeBase;
   final InterfaceType _mixinBase;
   InterfaceType _supertype;
@@ -993,14 +996,13 @@ class UnnamedMixinApplicationElementZ extends ElementZ
   Link<ConstructorElement> _constructors;
 
   UnnamedMixinApplicationElementZ(
-      ClassElement subclass, InterfaceType supertype, InterfaceType mixin)
-      : this._subclass = subclass,
-        this._supertypeBase = supertype,
+      this.subclass, InterfaceType supertype, InterfaceType mixin)
+      : this._supertypeBase = supertype,
         this._mixinBase = mixin,
         this.name = "${supertype.name}+${mixin.name}";
 
   @override
-  CompilationUnitElement get compilationUnit => _subclass.compilationUnit;
+  CompilationUnitElement get compilationUnit => subclass.compilationUnit;
 
   @override
   bool get isTopLevel => true;
@@ -1035,7 +1037,7 @@ class UnnamedMixinApplicationElementZ extends ElementZ
     // Create synthetic type variables for the mixin application.
     List<DartType> typeVariables = <DartType>[];
     int index = 0;
-    for (TypeVariableType type in _subclass.typeVariables) {
+    for (TypeVariableType type in subclass.typeVariables) {
       SyntheticTypeVariableElementZ typeVariableElement =
           new SyntheticTypeVariableElementZ(this, index, type.name);
       TypeVariableType typeVariable = new TypeVariableType(typeVariableElement);
@@ -1043,12 +1045,12 @@ class UnnamedMixinApplicationElementZ extends ElementZ
       index++;
     }
     // Setup bounds on the synthetic type variables.
-    for (TypeVariableType type in _subclass.typeVariables) {
+    for (TypeVariableType type in subclass.typeVariables) {
       TypeVariableType typeVariable = typeVariables[type.element.index];
       SyntheticTypeVariableElementZ typeVariableElement = typeVariable.element;
       typeVariableElement._type = typeVariable;
       typeVariableElement._bound =
-          type.element.bound.subst(typeVariables, _subclass.typeVariables);
+          type.element.bound.subst(typeVariables, subclass.typeVariables);
     }
     return typeVariables;
   }
@@ -1067,7 +1069,7 @@ class UnnamedMixinApplicationElementZ extends ElementZ
       //    abstract class S+M<S+M.T> extends S<S+M.T> implements M<S+M.T> {}
       // but the supertype is provided as S<C.T> and we need to substitute S+M.T
       // for C.T.
-      _supertype = _supertypeBase.subst(typeVariables, _subclass.typeVariables);
+      _supertype = _supertypeBase.subst(typeVariables, subclass.typeVariables);
     }
     return _supertype;
   }
@@ -1087,7 +1089,7 @@ class UnnamedMixinApplicationElementZ extends ElementZ
       // but the mixin is provided as M<C.T> and we need to substitute S+M.T
       // for C.T.
       _interfaces = const Link<DartType>()
-          .prepend(_mixinBase.subst(typeVariables, _subclass.typeVariables));
+          .prepend(_mixinBase.subst(typeVariables, subclass.typeVariables));
     }
     return _interfaces;
   }
@@ -1107,7 +1109,7 @@ class UnnamedMixinApplicationElementZ extends ElementZ
   }
 
   @override
-  Element get enclosingElement => _subclass.enclosingElement;
+  Element get enclosingElement => subclass.enclosingElement;
 
   @override
   bool get isObject => false;
@@ -1122,10 +1124,10 @@ class UnnamedMixinApplicationElementZ extends ElementZ
   InterfaceType get mixinType => interfaces.head;
 
   @override
-  int get sourceOffset => _subclass.sourceOffset;
+  int get sourceOffset => subclass.sourceOffset;
 
   @override
-  SourceSpan get sourcePosition => _subclass.sourcePosition;
+  SourceSpan get sourcePosition => subclass.sourcePosition;
 }
 
 class EnumClassElementZ extends ClassElementZ implements EnumClassElement {

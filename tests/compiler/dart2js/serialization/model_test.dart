@@ -220,8 +220,17 @@ void checkClassHierarchyNodes(
       }
     }
     if (!found) {
+      if (child.isInstantiated) {
+        print('Missing subclass ${child.cls} of ${node1.cls} '
+            'in ${node2.directSubclasses}');
+        print(compiler1.world.dump(
+            verbose ? compiler1.coreClasses.objectClass : node1.cls));
+        print(compiler2.world.dump(
+            verbose ? compiler2.coreClasses.objectClass : node2.cls));
+      }
       Expect.isFalse(child.isInstantiated,
-          'Missing subclass ${child.cls} of ${node1.cls}');
+          'Missing subclass ${child.cls} of ${node1.cls} in '
+              '${node2.directSubclasses}');
     }
   }
   checkMixinUses(compiler1, compiler2, node1.cls, node2.cls, verbose: verbose);

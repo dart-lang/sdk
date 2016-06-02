@@ -391,6 +391,12 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
     } else {
       check(element1, element2, 'sourcePosition.uri',
           element1.sourcePosition.uri, element2.sourcePosition.uri);
+      MixinApplicationElement mixin1 = element1;
+      MixinApplicationElement mixin2 = element2;
+      checkElementIdentities(mixin1, mixin2, 'subclass',
+          mixin1.subclass, mixin2.subclass);
+      checkTypes(mixin1, mixin2, 'mixinType',
+          mixin1.mixinType, mixin2.mixinType);
     }
     checkElementIdentities(
         element1, element2, 'library',

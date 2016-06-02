@@ -2988,7 +2988,6 @@ abstract class MixinApplicationElementX extends BaseClassElementX
   ClassElement get mixin => mixinType != null ? mixinType.element : null;
 
   bool get isMixinApplication => true;
-  bool get isUnnamedMixinApplication => node is! NamedMixinApplication;
   bool get hasConstructor => !constructors.isEmpty;
   bool get hasLocalScopeMembers => !constructors.isEmpty;
 
@@ -3046,14 +3045,20 @@ class NamedMixinApplicationElementX extends MixinApplicationElementX
   Modifiers get modifiers => node.modifiers;
 
   DeclarationSite get declarationSite => this;
+
+  ClassElement get subclass => null;
 }
 
 class UnnamedMixinApplicationElementX extends MixinApplicationElementX {
   final Node node;
+  final ClassElement subclass;
 
   UnnamedMixinApplicationElementX(
-      String name, CompilationUnitElement enclosing, int id, this.node)
-      : super(name, enclosing, id);
+      String name, ClassElement subclass, int id, this.node)
+      : this.subclass = subclass,
+        super(name, subclass.compilationUnit, id);
+
+  bool get isUnnamedMixinApplication => true;
 
   bool get isAbstract => true;
 }

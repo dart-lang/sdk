@@ -327,6 +327,19 @@ main() => m();
 m() => print(#main);
 ''',
   }),
+
+  const Test('Multiple structurally identical mixins', const {
+    'main.dart': '''
+class S {}
+class M {}
+class C1 extends S with M {}
+class C2 extends S with M {}
+main() {
+  new C1();
+  new C2();
+}
+''',
+  }),
 ];
 
 class Test {

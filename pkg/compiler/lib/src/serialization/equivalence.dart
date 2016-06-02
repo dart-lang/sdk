@@ -383,9 +383,28 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
 
   @override
   bool visitClassElement(ClassElement element1, ClassElement element2) {
-    return strategy.test(
-            element1, element2, 'name', element1.name, element2.name) &&
-        visit(element1.library, element2.library);
+    if (!strategy.test(element1, element2, 'isUnnamedMixinApplication',
+        element1.isUnnamedMixinApplication,
+        element2.isUnnamedMixinApplication)) {
+      return false;
+    }
+    if (element1.isUnnamedMixinApplication) {
+      MixinApplicationElement mixin1 = element1;
+      MixinApplicationElement mixin2 = element2;
+      return strategy.testElements(mixin1, mixin2, 'subclass',
+          mixin1.subclass, mixin2.subclass) &&
+          // Using the [mixinType] is more precise but requires the test to
+          // handle self references: The identity of a type variable is based on
+          // its type declaration and if [mixin1] is generic the [mixinType]
+          // will contain the type variables declared by [mixin1], i.e.
+          // `abstract class Mixin<T> implements MixinType<T> {}`
+          strategy.testElements(mixin1, mixin2, 'mixin',
+              mixin1.mixin, mixin2.mixin);
+    } else {
+      return strategy.test(
+          element1, element2, 'name', element1.name, element2.name) &&
+          visit(element1.library, element2.library);
+    }
   }
 
   bool checkMembers(Element element1, Element element2) {

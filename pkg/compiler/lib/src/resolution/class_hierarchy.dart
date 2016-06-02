@@ -305,7 +305,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     MixinApplicationElementX mixinApplication =
         new UnnamedMixinApplicationElementX(
             "${superName}+${mixinName}",
-            element.compilationUnit,
+            element,
             compiler.idGenerator.getNextFreeId(),
             node);
     // Create synthetic type variables for the mixin application.
