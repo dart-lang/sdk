@@ -350,7 +350,7 @@ class SummaryTypeProvider implements TypeProvider {
   @override
   InterfaceType get futureNullType {
     assert(_asyncLibrary != null);
-    _futureNullType ??= futureType.instantiate(<DartType>[_nullType]);
+    _futureNullType ??= futureType.instantiate(<DartType>[nullType]);
     return _futureNullType;
   }
 
