@@ -280,8 +280,8 @@ abstract class SummaryResultProvider extends ResultProvider {
  * `dart:core` and `dart:async` libraries.
  */
 class SummaryTypeProvider implements TypeProvider {
-  bool _isCoreInitialized = false;
-  bool _isAsyncInitialized = false;
+  LibraryElement _coreLibrary;
+  LibraryElement _asyncLibrary;
 
   InterfaceType _boolType;
   InterfaceType _deprecatedType;
@@ -308,7 +308,8 @@ class SummaryTypeProvider implements TypeProvider {
 
   @override
   InterfaceType get boolType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _boolType ??= _getType(_coreLibrary, "bool");
     return _boolType;
   }
 
@@ -317,13 +318,15 @@ class SummaryTypeProvider implements TypeProvider {
 
   @override
   InterfaceType get deprecatedType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _deprecatedType ??= _getType(_coreLibrary, "Deprecated");
     return _deprecatedType;
   }
 
   @override
   InterfaceType get doubleType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _doubleType ??= _getType(_coreLibrary, "double");
     return _doubleType;
   }
 
@@ -332,55 +335,64 @@ class SummaryTypeProvider implements TypeProvider {
 
   @override
   InterfaceType get functionType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _functionType ??= _getType(_coreLibrary, "Function");
     return _functionType;
   }
 
   @override
   InterfaceType get futureDynamicType {
-    assert(_isAsyncInitialized);
+    assert(_asyncLibrary != null);
+    _futureDynamicType ??= futureType.instantiate(<DartType>[dynamicType]);
     return _futureDynamicType;
   }
 
   @override
   InterfaceType get futureNullType {
-    assert(_isAsyncInitialized);
+    assert(_asyncLibrary != null);
+    _futureNullType ??= futureType.instantiate(<DartType>[_nullType]);
     return _futureNullType;
   }
 
   @override
   InterfaceType get futureType {
-    assert(_isAsyncInitialized);
+    assert(_asyncLibrary != null);
+    _futureType ??= _getType(_asyncLibrary, "Future");
     return _futureType;
   }
 
   @override
   InterfaceType get intType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _intType ??= _getType(_coreLibrary, "int");
     return _intType;
   }
 
   @override
   InterfaceType get iterableDynamicType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _iterableDynamicType ??= iterableType.instantiate(<DartType>[dynamicType]);
     return _iterableDynamicType;
   }
 
   @override
   InterfaceType get iterableType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _iterableType ??= _getType(_coreLibrary, "Iterable");
     return _iterableType;
   }
 
   @override
   InterfaceType get listType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _listType ??= _getType(_coreLibrary, "List");
     return _listType;
   }
 
   @override
   InterfaceType get mapType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _mapType ??= _getType(_coreLibrary, "Map");
     return _mapType;
   }
 
@@ -404,55 +416,64 @@ class SummaryTypeProvider implements TypeProvider {
 
   @override
   InterfaceType get nullType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _nullType ??= _getType(_coreLibrary, "Null");
     return _nullType;
   }
 
   @override
   InterfaceType get numType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _numType ??= _getType(_coreLibrary, "num");
     return _numType;
   }
 
   @override
   InterfaceType get objectType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _objectType ??= _getType(_coreLibrary, "Object");
     return _objectType;
   }
 
   @override
   InterfaceType get stackTraceType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _stackTraceType ??= _getType(_coreLibrary, "StackTrace");
     return _stackTraceType;
   }
 
   @override
   InterfaceType get streamDynamicType {
-    assert(_isAsyncInitialized);
+    assert(_asyncLibrary != null);
+    _streamDynamicType ??= streamType.instantiate(<DartType>[dynamicType]);
     return _streamDynamicType;
   }
 
   @override
   InterfaceType get streamType {
-    assert(_isAsyncInitialized);
+    assert(_asyncLibrary != null);
+    _streamType ??= _getType(_asyncLibrary, "Stream");
     return _streamType;
   }
 
   @override
   InterfaceType get stringType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _stringType ??= _getType(_coreLibrary, "String");
     return _stringType;
   }
 
   @override
   InterfaceType get symbolType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _symbolType ??= _getType(_coreLibrary, "Symbol");
     return _symbolType;
   }
 
   @override
   InterfaceType get typeType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _typeType ??= _getType(_coreLibrary, "Type");
     return _typeType;
   }
 
@@ -463,39 +484,18 @@ class SummaryTypeProvider implements TypeProvider {
    * Initialize the `dart:async` types provided by this type provider.
    */
   void initializeAsync(LibraryElement library) {
-    assert(_isCoreInitialized);
-    assert(!_isAsyncInitialized);
-    _isAsyncInitialized = true;
-    _futureType = _getType(library, "Future");
-    _streamType = _getType(library, "Stream");
-    _futureDynamicType = _futureType.instantiate(<DartType>[dynamicType]);
-    _futureNullType = _futureType.instantiate(<DartType>[_nullType]);
-    _streamDynamicType = _streamType.instantiate(<DartType>[dynamicType]);
+    assert(_coreLibrary != null);
+    assert(_asyncLibrary == null);
+    _asyncLibrary = library;
   }
 
   /**
    * Initialize the `dart:core` types provided by this type provider.
    */
   void initializeCore(LibraryElement library) {
-    assert(!_isCoreInitialized);
-    assert(!_isAsyncInitialized);
-    _isCoreInitialized = true;
-    _boolType = _getType(library, "bool");
-    _deprecatedType = _getType(library, "Deprecated");
-    _doubleType = _getType(library, "double");
-    _functionType = _getType(library, "Function");
-    _intType = _getType(library, "int");
-    _iterableType = _getType(library, "Iterable");
-    _listType = _getType(library, "List");
-    _mapType = _getType(library, "Map");
-    _nullType = _getType(library, "Null");
-    _numType = _getType(library, "num");
-    _objectType = _getType(library, "Object");
-    _stackTraceType = _getType(library, "StackTrace");
-    _stringType = _getType(library, "String");
-    _symbolType = _getType(library, "Symbol");
-    _typeType = _getType(library, "Type");
-    _iterableDynamicType = _iterableType.instantiate(<DartType>[dynamicType]);
+    assert(_coreLibrary == null);
+    assert(_asyncLibrary == null);
+    _coreLibrary = library;
   }
 
   /**

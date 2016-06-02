@@ -466,10 +466,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   TypeProvider get typeProvider {
-    // The `AnalysisContextTarget.request` results to into the SDK partition,
+    // The `AnalysisContextTarget.request` results go into the SDK partition,
     // and the TYPE_PROVIDER result is computed and put into the SDK partition
     // only by the first non-SDK analysis context. So, in order to reuse it
-    // in other analysis context, we need to ask it from the cache.
+    // in other analysis contexts, we need to ask for it from the cache.
     _typeProvider ??= getResult(AnalysisContextTarget.request, TYPE_PROVIDER);
     if (_typeProvider != null) {
       return _typeProvider;
