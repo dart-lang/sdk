@@ -446,4 +446,5 @@ Language/Expressions/Property_Extraction/General_Closurization/setter_lookup_t08
 Language/Expressions/Property_Extraction/General_Closurization/setter_lookup_t09: CompileTimeError # Issue 23777
 Language/Expressions/Property_Extraction/General_Closurization/static_type_t06: CompileTimeError # Issue 23777
 Language/Expressions/Property_Extraction/General_Closurization/static_type_t07: CompileTimeError # Issue 23777
-Language/Libraries_and_Scripts/Scripts/syntax_t11: Pass, CompileTimeError # Flaky
+Language/Libraries_and_Scripts/Scripts/syntax_t11: Pass, CompileTimeError # Issue 26592
+Language/Libraries_and_Scripts/Parts/compilation_t04: Pass, CompileTimeError # Issue 26592
