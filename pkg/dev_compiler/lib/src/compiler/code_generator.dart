@@ -2532,7 +2532,13 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     if (target != null && DynamicInvoke.get(target)) {
       if (_inWhitelistCode(lhs)) {
-        return _visit(rhs).toAssignExpression(_visit(lhs));
+        var vars = <JS.MetaLetVariable, JS.Expression>{};
+        var l = _visit(_bindValue(vars, 'l', target));
+        var name = _emitMemberName(id.name);
+        return new JS.MetaLet(vars, [
+          js.call('(#[(#[dart._extensionType]) ? dartx[#] : #] = #)',
+              [l, l, name, name, _visit(rhs)])
+        ]);
       }
       return js.call('dart.dput(#, #, #)',
           [_visit(target), _emitMemberName(id.name), _visit(rhs)]);
@@ -2665,7 +2671,12 @@ class CodeGenerator extends GeneralizingAstVisitor
     JS.Expression jsTarget = _visit(target);
     if (DynamicInvoke.get(target) || DynamicInvoke.get(node.methodName)) {
       if (_inWhitelistCode(target)) {
-        jsTarget = new JS.PropertyAccess(jsTarget, memberName);
+        var vars = <JS.MetaLetVariable, JS.Expression>{};
+        var l = _visit(_bindValue(vars, 'l', target));
+        jsTarget = new JS.MetaLet(vars, [
+          js.call('(#[(#[dart._extensionType]) ? dartx[#] : #])',
+              [l, l, memberName, memberName,])
+        ]);
         if (typeArgs != null) jsTarget = new JS.Call(jsTarget, typeArgs);
         return new JS.Call(jsTarget, args);
       }
@@ -3880,7 +3891,12 @@ class CodeGenerator extends GeneralizingAstVisitor
         type: getStaticType(target), isStatic: isStatic);
     if (DynamicInvoke.get(target)) {
       if (_inWhitelistCode(target)) {
-        return js.call('#.#', [_visit(target), name]);
+        var vars = <JS.MetaLetVariable, JS.Expression>{};
+        var l = _visit(_bindValue(vars, 'l', target));
+        return new JS.MetaLet(vars, [
+          js.call('(#[dart._extensionType]) ? #[dartx[#]] : #.#',
+              [l, l, name, l, name])
+        ]);
       }
       return js.call('dart.dload(#, #)', [_visit(target), name]);
     }
@@ -3926,15 +3942,19 @@ class CodeGenerator extends GeneralizingAstVisitor
     var type = getStaticType(target);
     var memberName = _emitMemberName(name, unary: args.isEmpty, type: type);
     if (DynamicInvoke.get(target)) {
+      if (_inWhitelistCode(target)) {
+        var vars = <JS.MetaLetVariable, JS.Expression>{};
+        var l = _visit(_bindValue(vars, 'l', target));
+        return new JS.MetaLet(vars, [
+          js.call('(#[(#[dart._extensionType]) ? dartx[#] : #])(#)',
+              [l, l, memberName, memberName, _visitList(args)])
+        ]);
+      }
       // dynamic dispatch
       var dynamicHelper = const {'[]': 'dindex', '[]=': 'dsetindex'}[name];
       if (dynamicHelper != null) {
         return js.call(
             'dart.$dynamicHelper(#, #)', [_visit(target), _visitList(args)]);
-      }
-      if (_inWhitelistCode(target)) {
-        return js
-            .call('#.#(#)', [_visit(target), memberName, _visitList(args)]);
       } else {
         return js.call('dart.dsend(#, #, #)',
             [_visit(target), memberName, _visitList(args)]);
