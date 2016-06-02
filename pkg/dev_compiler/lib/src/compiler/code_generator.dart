@@ -2709,7 +2709,7 @@ class CodeGenerator extends GeneralizingAstVisitor
         return js.call('dart.dgcall(#, #, #)',
             [fn, new JS.ArrayInitializer(typeArgs), args]);
       } else {
-        if (_inWhitelistCode(node)) {
+        if (_inWhitelistCode(node, isCall: true)) {
           return new JS.Call(fn, args);
         }
         return js.call('dart.dcall(#, #)', [fn, args]);
@@ -4639,9 +4639,22 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// within the file.
   ///
   /// If the value is null, the entire file is whitelisted.
-  static Map<String, List<String>> _uncheckedWhitelist = {};
+  static Map<String, List<String>> _uncheckedWhitelist = {
+    'dom_renderer.dart': ['moveNodesAfterSibling',],
+    'template_ref.dart': ['createEmbeddedView'],
+    'ng_class.dart': ['_applyIterableChanges'],
+    'ng_for.dart': ['_bulkRemove', '_bulkInsert'],
+    'view_container_ref.dart': ['createEmbeddedView'],
+    'default_iterable_differ.dart': null,
+  };
 
-  bool _inWhitelistCode(AstNode node) {
+  static Set<String> _uncheckedWhitelistCalls = new Set()
+    ..add('ng_zone_impl.dart')
+    ..add('stack_zone_specification.dart')
+    ..add('view_manager.dart')
+    ..add('view.dart');
+
+  bool _inWhitelistCode(AstNode node, {isCall: false}) {
     if (!options.useAngular2Whitelist) return false;
     var path = _loader.currentElement.source.fullName;
     var filename = path.split("/").last;
@@ -4658,6 +4671,11 @@ class CodeGenerator extends GeneralizingAstVisitor
         return whitelisted.contains(name);
       }
     }
+
+    // Dynamic calls are less risky so there is no need to whitelist at the
+    // method level.
+    if (isCall && _uncheckedWhitelistCalls.contains(filename)) return true;
+
     return path.endsWith(".template.dart");
   }
 }

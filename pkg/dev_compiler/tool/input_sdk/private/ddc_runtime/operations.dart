@@ -182,8 +182,11 @@ clearDynamicStats() {
   _callMethodStats.clear();
 }
 
+bool trackProfile = JS('bool', 'dart.global.trackDdcProfile');
+
 _trackCall(obj, name) {
-  if (JS('bool', '!dart.global.trackDdcProfile')) return;
+  if (JS('bool', '!#', trackProfile)) return;
+
   var actual = getReifiedType(obj);
   String stackStr = JS('String', "new Error().stack");
   var stack = stackStr.split('\n    at ');

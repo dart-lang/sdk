@@ -1100,7 +1100,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     dart._callMethodStats[dartx.clear]();
   };
   dart._trackCall = function(obj, name) {
-    if (!dart.global.trackDdcProfile) return;
+    if (!dart.trackProfile) return;
     let actual = dart.getReifiedType(obj);
     let stackStr = new Error().stack;
     let stack = stackStr[dartx.split]('\n    at ');
@@ -1884,6 +1884,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return MapOfString$int().new();
     },
     set _callMethodStats(_) {}
+  });
+  dart.defineLazy(dart, {
+    get trackProfile() {
+      return dart.global.trackDdcProfile;
+    },
+    set trackProfile(_) {}
   });
   dart._ignoreTypeFailure = (() => {
     return dart._ignoreMemo((actual, type) => {
