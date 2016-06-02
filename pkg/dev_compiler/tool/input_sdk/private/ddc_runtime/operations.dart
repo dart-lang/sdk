@@ -18,6 +18,7 @@ _canonicalFieldName(obj, name, args, displayName) => JS('', '''(() => {
 
 dload(obj, field) => JS('', '''(() => {
   $field = $_canonicalFieldName($obj, $field, [], $field);
+  $_trackCall(obj, $field);
   if ($hasMethod($obj, $field)) {
     return $bind($obj, $field);
   }
@@ -31,6 +32,8 @@ dload(obj, field) => JS('', '''(() => {
 
 dput(obj, field, value) => JS('', '''(() => {
   $field = $_canonicalFieldName($obj, $field, [$value], $field);
+  $_trackCall(obj, $field);
+
   // TODO(vsm): Implement NSM and type checks.
   // See: https://github.com/dart-lang/dev_compiler/issues/170
   $obj[$field] = $value;
@@ -88,6 +91,8 @@ throwNoSuchMethodFunc(obj, name, pArgs, opt_func) => JS('', '''(() => {
 })()''');
 
 _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
+  $_trackCall(obj, name);
+
   let originalFunction = $f;
   if (!($f instanceof Function)) {
     // We're not a function (and hence not a method either)
@@ -157,6 +162,55 @@ dcall(f, @rest args) => _checkAndCall(
 dgcall(f, typeArgs, @rest args) => _checkAndCall(
     f, _getRuntimeType(f), JS('', 'void 0'), typeArgs, args, 'call');
 
+Map<String, int> _callMethodStats = new Map();
+
+class ProfileEntry {
+  final String key;
+  final num count;
+
+  ProfileEntry(this.key, this.count);
+}
+
+List<ProfileEntry> getDynamicStats() {
+  List<ProfileEntry> ret = new List();
+
+  var keys = _callMethodStats.keys.toList();
+
+  keys.sort((a, b) => _callMethodStats[b].compareTo(_callMethodStats[a]));
+  for (var key in keys) {
+    int count = _callMethodStats[key];
+    ret.add(new ProfileEntry(key, count));
+  }
+
+  return ret;
+}
+
+clearDynamicStats() {
+  _callMethodStats.clear();
+}
+
+_trackCall(obj, name) {
+  if(JS('bool', '!window.trackDdcProfile')) return;
+
+  var actual = getReifiedType(obj);
+  String stackStr = JS('String', "new Error().stack");
+  var stack = stackStr.split('\n    at ');
+  var src = '';
+  for (int i = 2; i < stack.length; ++i) {
+    var frame = stack[i];
+    if (!frame.contains('dev_compiler/lib/runtime/dart_sdk.js')) {
+      src = frame;
+      break;
+    }
+  }
+
+  name = "${typeName(actual)}.$name <$src>";
+  if (_callMethodStats.containsKey(name)) {
+    _callMethodStats[name] = _callMethodStats[name] + 1;
+  } else {
+    _callMethodStats[name] = 1;
+  }
+}
 
 /// Shared code for dsend, dindex, and dsetindex.
 _callMethod(obj, name, typeArgs, args, displayName) {
