@@ -146,21 +146,6 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     compiledConstants.add(constant);
   }
 
-  /**
-   * Returns an [Iterable] of static non final fields that need to be
-   * initialized. The fields list must be evaluated in order since they might
-   * depend on each other.
-   */
-  Iterable<VariableElement> getStaticNonFinalFieldsForEmission() {
-    return initialVariableValues.keys.where((element) {
-      return element.kind == ElementKind.FIELD &&
-          !element.isInstanceMember &&
-          !element.modifiers.isFinal &&
-          // The const fields are all either emitted elsewhere or inlined.
-          !element.modifiers.isConst;
-    });
-  }
-
   List<VariableElement> getLazilyInitializedFieldsForEmission() {
     return new List<VariableElement>.from(lazyStatics);
   }
@@ -192,15 +177,6 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     }
     sorted.forEach(addConstant);
     return result;
-  }
-
-  ConstantValue getInitialValueFor(VariableElement element) {
-    ConstantExpression initialValue =
-        initialVariableValues[element.declaration];
-    if (initialValue == null) {
-      reporter.internalError(element, "No initial value for given element.");
-    }
-    return getConstantValue(initialValue);
   }
 
   ConstantExpression compileNode(Node node, TreeElements elements,

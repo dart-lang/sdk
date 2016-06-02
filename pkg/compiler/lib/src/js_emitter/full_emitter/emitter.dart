@@ -614,9 +614,9 @@ class Emitter implements js_emitter.Emitter {
     // If the outputUnit does not contain any static non-final fields, then
     // [fields] is `null`.
     if (fields != null) {
-      for (Element element in fields) {
+      for (FieldElement element in fields) {
         reporter.withCurrentElement(element, () {
-          ConstantValue constant = handler.getInitialValueFor(element);
+          ConstantValue constant = handler.getConstantValue(element.constant);
           parts.add(buildInitialization(element, constantReference(constant)));
         });
       }
