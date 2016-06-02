@@ -309,6 +309,19 @@ class _ConstExprBuilder {
 
   _ConstExprBuilder(this.resynthesizer, this.context, this.uc);
 
+  /**
+   * Return the [ConstructorElement] enclosing [context].
+   */
+  ConstructorElement get _enclosingConstructor {
+    for (Element e = context; e != null; e = e.enclosingElement) {
+      if (e is ConstructorElement) {
+        return e;
+      }
+    }
+    throw new StateError(
+        'Unable to find the enclosing constructor of $context');
+  }
+
   Expression build() {
     if (!uc.isValidConst) {
       return AstFactory.identifier3(r'$$invalidConstExpr$$');
@@ -470,7 +483,7 @@ class _ConstExprBuilder {
         case UnlinkedConstOperation.pushParameter:
           String name = uc.strings[stringPtr++];
           SimpleIdentifier identifier = AstFactory.identifier3(name);
-          identifier.staticElement = resynthesizer.currentConstructor.parameters
+          identifier.staticElement = _enclosingConstructor.parameters
               .firstWhere((parameter) => parameter.name == name,
                   orElse: () => throw new StateError(
                       'Unable to resolve constructor parameter: $name'));
@@ -1576,19 +1589,6 @@ class _UnitResynthesizer {
    */
   Set<int> constCycles;
 
-  /**
-   * The [ConstructorElementImpl] for the constructor currently being
-   * resynthesized.
-   */
-  ConstructorElementImpl currentConstructor;
-
-  /**
-   * If a class is currently being resynthesized, map from constructor name to
-   * the corresponding constructor element.  This is used when resynthesizing
-   * constructor initializers.
-   */
-  Map<String, ConstructorElementImpl> constructors;
-
   int numLinkedReferences;
   int numUnlinkedReferences;
 
@@ -1741,7 +1741,6 @@ class _UnitResynthesizer {
       buildField(classElement, serializedVariable, memberHolder);
     }
     bool constructorFound = false;
-    constructors = <String, ConstructorElementImpl>{};
     for (UnlinkedExecutable serializedExecutable
         in serializedClass.executables) {
       switch (serializedExecutable.kind) {
@@ -1773,7 +1772,6 @@ class _UnitResynthesizer {
     }
     classElement.accessors = memberHolder.accessors;
     classElement.fields = memberHolder.fields;
-    resolveConstructorInitializers(classElement);
   }
 
   /**
@@ -1796,7 +1794,6 @@ class _UnitResynthesizer {
     if (handle == null) {
       buildClassExecutables(classElement, serializedClass);
     }
-    constructors = null;
     return classElement;
   }
 
@@ -1808,72 +1805,29 @@ class _UnitResynthesizer {
   void buildConstructor(UnlinkedExecutable serializedExecutable,
       ClassElementImpl classElement, ElementHolder holder) {
     assert(serializedExecutable.kind == UnlinkedExecutableKind.constructor);
-    currentConstructor = new ConstructorElementImpl.forSerialized(
-        serializedExecutable, constCycles, classElement);
-    constructors[serializedExecutable.name] = currentConstructor;
-    currentConstructor.constantInitializers = serializedExecutable
-        .constantInitializers
-        .map((i) => buildConstructorInitializer(currentConstructor, i))
-        .toList();
+    ConstructorElementImpl constructor =
+        new ConstructorElementImpl.forSerialized(
+            serializedExecutable, constCycles, classElement);
     if (serializedExecutable.isRedirectedConstructor) {
       if (serializedExecutable.isFactory) {
         EntityRef redirectedConstructor =
             serializedExecutable.redirectedConstructor;
         _ReferenceInfo info = getReferenceInfo(redirectedConstructor.reference);
         List<EntityRef> typeArguments = redirectedConstructor.typeArguments;
-        currentConstructor.redirectedConstructor = _createConstructorElement(
+        constructor.redirectedConstructor = _createConstructorElement(
             _createConstructorDefiningType(classElement, info, typeArguments),
             info);
       } else {
         List<String> locationComponents = unit.location.components.toList();
         locationComponents.add(classElement.name);
         locationComponents.add(serializedExecutable.redirectedConstructorName);
-        currentConstructor.redirectedConstructor =
-            new _DeferredConstructorElement._(
-                classElement.type,
-                serializedExecutable.redirectedConstructorName,
-                new ElementLocationImpl.con3(locationComponents));
+        constructor.redirectedConstructor = new _DeferredConstructorElement._(
+            classElement.type,
+            serializedExecutable.redirectedConstructorName,
+            new ElementLocationImpl.con3(locationComponents));
       }
     }
-    holder.addConstructor(currentConstructor);
-    currentConstructor = null;
-  }
-
-  /**
-   * Resynthesize the [ConstructorInitializer] in context of
-   * [currentConstructor], which is used to resolve constructor parameter names.
-   */
-  ConstructorInitializer buildConstructorInitializer(
-      ConstructorElementImpl enclosingConstructor,
-      UnlinkedConstructorInitializer serialized) {
-    UnlinkedConstructorInitializerKind kind = serialized.kind;
-    String name = serialized.name;
-    List<Expression> arguments = <Expression>[];
-    {
-      int numArguments = serialized.arguments.length;
-      int numNames = serialized.argumentNames.length;
-      for (int i = 0; i < numArguments; i++) {
-        Expression expression = _buildConstExpression(
-            enclosingConstructor, serialized.arguments[i]);
-        int nameIndex = numNames + i - numArguments;
-        if (nameIndex >= 0) {
-          expression = AstFactory.namedExpression2(
-              serialized.argumentNames[nameIndex], expression);
-        }
-        arguments.add(expression);
-      }
-    }
-    switch (kind) {
-      case UnlinkedConstructorInitializerKind.field:
-        return AstFactory.constructorFieldInitializer(false, name,
-            _buildConstExpression(enclosingConstructor, serialized.expression));
-      case UnlinkedConstructorInitializerKind.superInvocation:
-        return AstFactory.superConstructorInvocation2(
-            name.isNotEmpty ? name : null, arguments);
-      case UnlinkedConstructorInitializerKind.thisInvocation:
-        return AstFactory.redirectingConstructorInvocation2(
-            name.isNotEmpty ? name : null, arguments);
-    }
+    holder.addConstructor(constructor);
   }
 
   /**
@@ -2279,34 +2233,6 @@ class _UnitResynthesizer {
     unlinkedUnit.enums.forEach(buildEnum);
     unit.enums = unitHolder.enums;
     unit.types = unitHolder.types;
-  }
-
-  /**
-   * Constructor initializers can reference fields and other constructors of
-   * the same class, including forward references. So, we need to delay
-   * resolution until after class elements are built.
-   */
-  void resolveConstructorInitializers(ClassElementImpl classElement) {
-    for (ConstructorElementImpl constructor in constructors.values) {
-      for (ConstructorInitializer initializer
-          in constructor.constantInitializers) {
-        if (initializer is ConstructorFieldInitializer) {
-          SimpleIdentifier nameNode = initializer.fieldName;
-          nameNode.staticElement = classElement.getField(nameNode.name);
-        } else if (initializer is SuperConstructorInvocation) {
-          SimpleIdentifier nameNode = initializer.constructorName;
-          ConstructorElement element = new _DeferredConstructorElement(
-              classElement.supertype, nameNode?.name ?? '');
-          initializer.staticElement = element;
-          nameNode?.staticElement = element;
-        } else if (initializer is RedirectingConstructorInvocation) {
-          SimpleIdentifier nameNode = initializer.constructorName;
-          ConstructorElement element = constructors[nameNode?.name ?? ''];
-          initializer.staticElement = element;
-          nameNode?.staticElement = element;
-        }
-      }
-    }
   }
 
   Expression _buildConstExpression(ElementImpl context, UnlinkedConst uc) {

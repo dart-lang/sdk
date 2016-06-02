@@ -25,6 +25,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
@@ -1690,7 +1691,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
    * The initializers for this constructor (used for evaluating constant
    * instance creation expressions).
    */
-  List<ConstructorInitializer> constantInitializers;
+  List<ConstructorInitializer> _constantInitializers;
 
   /**
    * The offset of the `.` before this constructor name or `null` if not named.
@@ -1737,6 +1738,21 @@ class ConstructorElementImpl extends ExecutableElementImpl
   void set const2(bool isConst) {
     assert(serializedExecutable == null);
     setModifier(Modifier.CONST, isConst);
+  }
+
+  List<ConstructorInitializer> get constantInitializers {
+    if (serializedExecutable != null && _constantInitializers == null) {
+      _constantInitializers ??= serializedExecutable.constantInitializers
+          .map((i) => _buildConstructorInitializer(i))
+          .toList(growable: false);
+    }
+    return _constantInitializers;
+  }
+
+  void set constantInitializers(
+      List<ConstructorInitializer> constantInitializers) {
+    assert(serializedExecutable == null);
+    _constantInitializers = constantInitializers;
   }
 
   @override
@@ -1871,6 +1887,62 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   ConstructorDeclaration computeNode() =>
       getNodeMatching((node) => node is ConstructorDeclaration);
+
+  /**
+   * Resynthesize the AST for the given serialized constructor initializer.
+   */
+  ConstructorInitializer _buildConstructorInitializer(
+      UnlinkedConstructorInitializer serialized) {
+    UnlinkedConstructorInitializerKind kind = serialized.kind;
+    String name = serialized.name;
+    List<Expression> arguments = <Expression>[];
+    {
+      int numArguments = serialized.arguments.length;
+      int numNames = serialized.argumentNames.length;
+      for (int i = 0; i < numArguments; i++) {
+        Expression expression = enclosingUnit.resynthesizerContext
+            .buildExpression(this, serialized.arguments[i]);
+        int nameIndex = numNames + i - numArguments;
+        if (nameIndex >= 0) {
+          expression = AstFactory.namedExpression2(
+              serialized.argumentNames[nameIndex], expression);
+        }
+        arguments.add(expression);
+      }
+    }
+    switch (kind) {
+      case UnlinkedConstructorInitializerKind.field:
+        ConstructorFieldInitializer initializer =
+            AstFactory.constructorFieldInitializer(
+                false,
+                name,
+                enclosingUnit.resynthesizerContext
+                    .buildExpression(this, serialized.expression));
+        initializer.fieldName.staticElement = enclosingElement.getField(name);
+        return initializer;
+      case UnlinkedConstructorInitializerKind.superInvocation:
+        SuperConstructorInvocation initializer =
+            AstFactory.superConstructorInvocation2(
+                name.isNotEmpty ? name : null, arguments);
+        ClassElement superElement = enclosingElement.supertype.element;
+        ConstructorElement element = name.isEmpty
+            ? superElement.unnamedConstructor
+            : superElement.getNamedConstructor(name);
+        initializer.staticElement = element;
+        initializer.constructorName?.staticElement = element;
+        return initializer;
+      case UnlinkedConstructorInitializerKind.thisInvocation:
+        RedirectingConstructorInvocation initializer =
+            AstFactory.redirectingConstructorInvocation2(
+                name.isNotEmpty ? name : null, arguments);
+        ConstructorElement element = name.isEmpty
+            ? enclosingElement.unnamedConstructor
+            : enclosingElement.getNamedConstructor(name);
+        initializer.staticElement = element;
+        initializer.constructorName?.staticElement = element;
+        return initializer;
+    }
+  }
 }
 
 /**
