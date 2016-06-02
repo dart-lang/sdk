@@ -427,11 +427,14 @@ list(obj, elementType) =>
 /// Link the extension to the type it's extending as a base class.
 setBaseClass(derived, base) {
   JS('', '#.prototype.__proto__ = #.prototype', derived, base);
+  // We use __proto__ to track the superclass hierarchy (see isSubtype).
+  JS('', '#.__proto__ = #', derived, base);
 }
 
 /// Like [setBaseClass] but for generic extension types, e.g. `JSArray<E>`
 setExtensionBaseClass(derived, base) {
   // Mark the generic type as an extension type.
   JS('', '#.prototype[#] = #', derived, _extensionType, derived);
-  setBaseClass(derived, base);
+  // Link the prototype objects
+  JS('', '#.prototype.__proto__ = #.prototype', derived, base);
 }

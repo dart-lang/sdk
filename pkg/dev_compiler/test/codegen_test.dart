@@ -85,7 +85,7 @@ main(List<String> arguments) {
     path.join('lib', 'convert'),
     path.join('lib', 'html'),
     path.join('lib', 'math'),
-    path.join('lib', 'typed_data')
+    path.join('lib', 'typed_data'),
   ];
 
   // Copy all of the test files and expanded multitest files to

@@ -925,10 +925,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.setBaseClass = function(derived, base) {
     derived.prototype.__proto__ = base.prototype;
+    derived.__proto__ = base;
   };
   dart.setExtensionBaseClass = function(derived, base) {
     derived.prototype[dart._extensionType] = derived;
-    dart.setBaseClass(derived, base);
+    derived.prototype.__proto__ = base.prototype;
   };
   dart.throwCastError = function(object, actual, type) {
     dart.throw(new _js_helper.CastErrorImplementation(object, dart.typeName(actual), dart.typeName(type)));
