@@ -49,7 +49,6 @@ void main() {
   {
     C c = new C(0, 1);
     Expect.isTrue(c is C);
-    Expect.isTrue(c is! C);
     Expect.isTrue(c.f is ToVoid<int>);
     Expect.isTrue(C.g is Id<int>);
   }
