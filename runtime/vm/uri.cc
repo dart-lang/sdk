@@ -370,7 +370,7 @@ static const char* MergePaths(const char* base_path, const char* ref_path) {
   }
 
   // We need to find the last '/' in base_path.
-  char* last_slash = strrchr(base_path, '/');
+  const char* last_slash = strrchr(base_path, '/');
   if (last_slash == NULL) {
     // There is no slash in the base_path.  Return the ref_path unchanged.
     return ref_path;
