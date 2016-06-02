@@ -20,114 +20,18 @@ import 'package:path/path.dart' as pathos;
 /**
  * The [ResultProvider] that provides results from input package summaries.
  */
-class InputPackagesResultProvider extends ResultProvider {
-  final InternalAnalysisContext _context;
-
-  _FileBasedSummaryResynthesizer _resynthesizer;
-  SummaryResultProvider _sdkProvider;
-
-  InputPackagesResultProvider(this._context, SummaryDataStore dataStore) {
-    InternalAnalysisContext sdkContext = _context.sourceFactory.dartSdk.context;
-    _sdkProvider = sdkContext.resultProvider;
-    // Set the type provider to prevent the context from computing it.
-    _context.typeProvider = sdkContext.typeProvider;
-    // Create a chained resynthesizer.
-    _resynthesizer = new _FileBasedSummaryResynthesizer(
-        _sdkProvider.resynthesizer,
-        _context,
-        _context.typeProvider,
-        _context.sourceFactory,
-        _context.analysisOptions.strongMode,
-        dataStore);
+class InputPackagesResultProvider extends ResynthesizerResultProvider {
+  InputPackagesResultProvider(
+      InternalAnalysisContext context, SummaryDataStore dataStore)
+      : super(context, dataStore) {
+    AnalysisContext sdkContext = context.sourceFactory.dartSdk.context;
+    createResynthesizer(sdkContext, sdkContext.typeProvider);
   }
 
   @override
-  bool compute(CacheEntry entry, ResultDescriptor result) {
-    if (_sdkProvider.compute(entry, result)) {
-      return true;
-    }
-    AnalysisTarget target = entry.target;
-    // Only library results are supported for now.
-    if (target is Source) {
-      Uri uri = target.uri;
-      // We know how to server results to input packages.
-      String uriString = uri.toString();
-      if (!_resynthesizer.hasLibrarySummary(uriString)) {
-        return false;
-      }
-      // Provide known results.
-      if (result == LIBRARY_ELEMENT1 ||
-          result == LIBRARY_ELEMENT2 ||
-          result == LIBRARY_ELEMENT3 ||
-          result == LIBRARY_ELEMENT4 ||
-          result == LIBRARY_ELEMENT5 ||
-          result == LIBRARY_ELEMENT6 ||
-          result == LIBRARY_ELEMENT7 ||
-          result == LIBRARY_ELEMENT8 ||
-          result == LIBRARY_ELEMENT9 ||
-          result == LIBRARY_ELEMENT ||
-          false) {
-        LibraryElement libraryElement =
-            _resynthesizer.getLibraryElement(uriString);
-        entry.setValue(result, libraryElement, TargetedResult.EMPTY_LIST);
-        return true;
-      } else if (result == READY_LIBRARY_ELEMENT2 ||
-          result == READY_LIBRARY_ELEMENT6 ||
-          result == READY_LIBRARY_ELEMENT7) {
-        entry.setValue(result, true, TargetedResult.EMPTY_LIST);
-        return true;
-      } else if (result == SOURCE_KIND) {
-        if (_resynthesizer._dataStore.linkedMap.containsKey(uriString)) {
-          entry.setValue(result, SourceKind.LIBRARY, TargetedResult.EMPTY_LIST);
-          return true;
-        }
-        if (_resynthesizer._dataStore.unlinkedMap.containsKey(uriString)) {
-          entry.setValue(result, SourceKind.PART, TargetedResult.EMPTY_LIST);
-          return true;
-        }
-        return false;
-      }
-    } else if (target is LibrarySpecificUnit) {
-      String uriString = target.library.uri.toString();
-      if (!_resynthesizer.hasLibrarySummary(uriString)) {
-        return false;
-      }
-      if (result == CREATED_RESOLVED_UNIT1 ||
-          result == CREATED_RESOLVED_UNIT2 ||
-          result == CREATED_RESOLVED_UNIT3 ||
-          result == CREATED_RESOLVED_UNIT4 ||
-          result == CREATED_RESOLVED_UNIT5 ||
-          result == CREATED_RESOLVED_UNIT6 ||
-          result == CREATED_RESOLVED_UNIT7 ||
-          result == CREATED_RESOLVED_UNIT8 ||
-          result == CREATED_RESOLVED_UNIT9 ||
-          result == CREATED_RESOLVED_UNIT10 ||
-          result == CREATED_RESOLVED_UNIT11 ||
-          result == CREATED_RESOLVED_UNIT12) {
-        entry.setValue(result, true, TargetedResult.EMPTY_LIST);
-        return true;
-      }
-      if (result == COMPILATION_UNIT_ELEMENT) {
-        String libraryUri = target.library.uri.toString();
-        String unitUri = target.unit.uri.toString();
-        CompilationUnitElement unit = _resynthesizer.getElement(
-            new ElementLocationImpl.con3(<String>[libraryUri, unitUri]));
-        if (unit != null) {
-          entry.setValue(result, unit, TargetedResult.EMPTY_LIST);
-          return true;
-        }
-      }
-    } else if (target is VariableElement) {
-      if (!_resynthesizer
-          .hasLibrarySummary(target.library.source.uri.toString())) {
-        return false;
-      }
-      if (result == PROPAGATED_VARIABLE || result == INFERRED_STATIC_VARIABLE) {
-        entry.setValue(result, target, TargetedResult.EMPTY_LIST);
-        return true;
-      }
-    }
-    return false;
+  bool hasResultsForSource(Source source) {
+    String uriString = source.uri.toString();
+    return resynthesizer.hasLibrarySummary(uriString);
   }
 }
 
@@ -208,6 +112,147 @@ class InSummarySource extends Source {
 
   @override
   String toString() => uri.toString();
+}
+
+/**
+ * The [ResultProvider] that provides results using summary resynthesizer.
+ */
+abstract class ResynthesizerResultProvider extends ResultProvider {
+  final InternalAnalysisContext _context;
+  final SummaryDataStore _dataStore;
+
+  _FileBasedSummaryResynthesizer _resynthesizer;
+  SummaryResultProvider _sdkProvider;
+
+  ResynthesizerResultProvider(this._context, this._dataStore);
+
+  SummaryResynthesizer get resynthesizer => _resynthesizer;
+
+  /**
+   * Add a new [bundle] to the resynthesizer.
+   */
+  void addBundle(String path, PackageBundle bundle) {
+    _dataStore.addBundle(path, bundle);
+  }
+
+  @override
+  bool compute(CacheEntry entry, ResultDescriptor result) {
+    if (_sdkProvider != null && _sdkProvider.compute(entry, result)) {
+      return true;
+    }
+    AnalysisTarget target = entry.target;
+    // Check whether there are results for the source.
+    if (!hasResultsForSource(target.source)) {
+      return false;
+    }
+    // Constant expressions are always resolved in summaries.
+    if (result == CONSTANT_EXPRESSION_RESOLVED &&
+        target is ConstantEvaluationTarget) {
+      entry.setValue(result, true, TargetedResult.EMPTY_LIST);
+      return true;
+    }
+    // Provide results for Source.
+    if (target is Source) {
+      String uriString = target.uri.toString();
+      // Provide known results.
+      if (result == LIBRARY_ELEMENT1 ||
+          result == LIBRARY_ELEMENT2 ||
+          result == LIBRARY_ELEMENT3 ||
+          result == LIBRARY_ELEMENT4 ||
+          result == LIBRARY_ELEMENT5 ||
+          result == LIBRARY_ELEMENT6 ||
+          result == LIBRARY_ELEMENT7 ||
+          result == LIBRARY_ELEMENT8 ||
+          result == LIBRARY_ELEMENT9 ||
+          result == LIBRARY_ELEMENT) {
+        LibraryElement libraryElement =
+            resynthesizer.getLibraryElement(uriString);
+        entry.setValue(result, libraryElement, TargetedResult.EMPTY_LIST);
+        return true;
+      } else if (result == READY_LIBRARY_ELEMENT2 ||
+          result == READY_LIBRARY_ELEMENT6 ||
+          result == READY_LIBRARY_ELEMENT7) {
+        entry.setValue(result, true, TargetedResult.EMPTY_LIST);
+        return true;
+      } else if (result == SOURCE_KIND) {
+        if (_dataStore.linkedMap.containsKey(uriString)) {
+          entry.setValue(result, SourceKind.LIBRARY, TargetedResult.EMPTY_LIST);
+          return true;
+        }
+        if (_dataStore.unlinkedMap.containsKey(uriString)) {
+          entry.setValue(result, SourceKind.PART, TargetedResult.EMPTY_LIST);
+          return true;
+        }
+        return false;
+      }
+    } else if (target is LibrarySpecificUnit) {
+      if (!hasResultsForSource(target.library)) {
+        return false;
+      }
+      if (result == CREATED_RESOLVED_UNIT1 ||
+          result == CREATED_RESOLVED_UNIT2 ||
+          result == CREATED_RESOLVED_UNIT3 ||
+          result == CREATED_RESOLVED_UNIT4 ||
+          result == CREATED_RESOLVED_UNIT5 ||
+          result == CREATED_RESOLVED_UNIT6 ||
+          result == CREATED_RESOLVED_UNIT7 ||
+          result == CREATED_RESOLVED_UNIT8 ||
+          result == CREATED_RESOLVED_UNIT9 ||
+          result == CREATED_RESOLVED_UNIT10 ||
+          result == CREATED_RESOLVED_UNIT11 ||
+          result == CREATED_RESOLVED_UNIT12) {
+        entry.setValue(result, true, TargetedResult.EMPTY_LIST);
+        return true;
+      }
+      if (result == COMPILATION_UNIT_ELEMENT) {
+        String libraryUri = target.library.uri.toString();
+        String unitUri = target.unit.uri.toString();
+        CompilationUnitElement unit = resynthesizer.getElement(
+            new ElementLocationImpl.con3(<String>[libraryUri, unitUri]));
+        if (unit != null) {
+          entry.setValue(result, unit, TargetedResult.EMPTY_LIST);
+          return true;
+        }
+      }
+    } else if (target is VariableElement) {
+      if (!hasResultsForSource(target.library.source)) {
+        return false;
+      }
+      if (result == PROPAGATED_VARIABLE || result == INFERRED_STATIC_VARIABLE) {
+        entry.setValue(result, target, TargetedResult.EMPTY_LIST);
+        return true;
+      }
+    }
+    // Unknown target.
+    return false;
+  }
+
+  /**
+   * Create the [resynthesizer] instance.
+   *
+   * Subclasses must call this method in their constructors.
+   */
+  void createResynthesizer(
+      InternalAnalysisContext sdkContext, TypeProvider typeProvider) {
+    // Set the type provider to prevent the context from computing it.
+    _context.typeProvider = typeProvider;
+    // Create a chained resynthesizer.
+    _sdkProvider = sdkContext?.resultProvider;
+    _resynthesizer = new _FileBasedSummaryResynthesizer(
+        _sdkProvider?.resynthesizer,
+        _context,
+        typeProvider,
+        _context.sourceFactory,
+        _context.analysisOptions.strongMode,
+        _dataStore);
+  }
+
+  /**
+   * Return `true` if this result provider can provide a result for the
+   * given [source].  The provider must ensure that [addBundle] is invoked for
+   * every bundle that would be required to provide results for the [source].
+   */
+  bool hasResultsForSource(Source source);
 }
 
 /**
