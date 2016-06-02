@@ -520,12 +520,23 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
             .isSubtype(type, backend.listImplementation.rawType)) {
           backend.registerInstantiatedType(type, world, registry);
         }
+        // TODO(johnniwinther): Improve spec string precision to handle type
+        // arguments and implements relations that preserve generics. Currently
+        // we cannot distinguish between `List`, `List<dynamic>`, and
+        // `List<int>` and take all to mean `List<E>`; in effect not including
+        // any native subclasses of generic classes.
+        // TODO(johnniwinther,sra): Find and replace uses of `List` with the
+        // actual implementation classes such as `JSArray` et al.
+        enqueueUnusedClassesMatching((ClassElement nativeClass) {
+          InterfaceType nativeType = nativeClass.thisType;
+          InterfaceType specType = type.element.thisType;
+          return compiler.types.isSubtype(nativeType, specType);
+        }, cause, 'subtypeof($type)');
+      } else if (type.isDynamic) {
+        enqueueUnusedClassesMatching((_) => true, cause, 'subtypeof($type)');
+      } else {
+        assert(type is VoidType);
       }
-      assert(type is DartType);
-      enqueueUnusedClassesMatching(
-          (nativeClass) => compiler.types.isSubtype(nativeClass.thisType, type),
-          cause,
-          'subtypeof($type)');
     }
 
     // Give an info so that library developers can compile with -v to find why
