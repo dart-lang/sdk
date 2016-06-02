@@ -1685,7 +1685,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /**
    * The constructor to which this constructor is redirecting.
    */
-  ConstructorElement redirectedConstructor;
+  ConstructorElement _redirectedConstructor;
 
   /**
    * The initializers for this constructor (used for evaluating constant
@@ -1756,7 +1756,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  ClassElement get enclosingElement => super.enclosingElement as ClassElement;
+  ClassElementImpl get enclosingElement =>
+      super.enclosingElement as ClassElementImpl;
 
   @override
   TypeParameterizedElementMixin get enclosingTypeParameterContext =>
@@ -1852,6 +1853,30 @@ class ConstructorElementImpl extends ExecutableElementImpl
   void set periodOffset(int periodOffset) {
     assert(serializedExecutable == null);
     _periodOffset = periodOffset;
+  }
+
+  @override
+  ConstructorElement get redirectedConstructor {
+    if (serializedExecutable != null && _redirectedConstructor == null) {
+      if (serializedExecutable.isRedirectedConstructor) {
+        if (serializedExecutable.isFactory) {
+          _redirectedConstructor = enclosingUnit.resynthesizerContext
+              .resolveConstructorRef(
+                  enclosingElement, serializedExecutable.redirectedConstructor);
+        } else {
+          _redirectedConstructor = enclosingElement.getNamedConstructor(
+              serializedExecutable.redirectedConstructorName);
+        }
+      } else {
+        return null;
+      }
+    }
+    return _redirectedConstructor;
+  }
+
+  void set redirectedConstructor(ConstructorElement redirectedConstructor) {
+    assert(serializedExecutable == null);
+    _redirectedConstructor = redirectedConstructor;
   }
 
   @override
@@ -7367,6 +7392,13 @@ abstract class ResynthesizerContext {
    * Build explicit top-level variables.
    */
   UnitExplicitTopLevelVariables buildTopLevelVariables();
+
+  /**
+   * Resolve an [EntityRef] into a constructor.  If the reference is
+   * unresolved, return `null`.
+   */
+  ConstructorElement resolveConstructorRef(
+      TypeParameterizedElementMixin typeParameterContext, EntityRef entry);
 
   /**
    * Build the appropriate [DartType] object corresponding to a slot id in the

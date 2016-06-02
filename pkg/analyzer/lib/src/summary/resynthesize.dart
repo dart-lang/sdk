@@ -634,7 +634,7 @@ class _ConstExprBuilder {
       InterfaceType definingType = resynthesizer._createConstructorDefiningType(
           context?.typeParameterContext, info, ref.typeArguments);
       constructorElement =
-          resynthesizer._createConstructorElement(definingType, info);
+          resynthesizer._getConstructorForInfo(definingType, info);
       typeNode = _buildTypeAst(definingType);
     } else {
       if (info.enclosing != null) {
@@ -859,52 +859,6 @@ class _DeferredClassElement extends ClassElementHandle {
       _executablesResynthesized = true;
       unitResynthesizer.buildClassExecutables(actualElement, serializedClass);
     }
-  }
-}
-
-/**
- * The constructor element that has been resynthesized from a summary.  The
- * actual element won't be constructed until it is requested.  But properties
- * [displayName], [enclosingElement] and [name] can be used without creating
- * the actual element.
- */
-class _DeferredConstructorElement extends ConstructorElementHandle {
-  /**
-   * The type defining this constructor element.  If [_isMember] is `false`,
-   * then the type parameters of [_definingType] are not guaranteed to be
-   * valid.
-   */
-  final InterfaceType _definingType;
-
-  /**
-   * The constructor name.
-   */
-  final String name;
-
-  factory _DeferredConstructorElement(InterfaceType definingType, String name) {
-    List<String> components = definingType.element.location.components.toList();
-    components.add(name);
-    ElementLocationImpl location = new ElementLocationImpl.con3(components);
-    return new _DeferredConstructorElement._(definingType, name, location);
-  }
-
-  _DeferredConstructorElement._(
-      this._definingType, this.name, ElementLocation location)
-      : super(null, location);
-
-  @override
-  ConstructorElement get actualElement =>
-      enclosingElement.getNamedConstructor(name);
-
-  @override
-  AnalysisContext get context => _definingType.element.context;
-
-  @override
-  String get displayName => name;
-
-  @override
-  ClassElement get enclosingElement {
-    return _definingType.element;
   }
 }
 
@@ -1529,6 +1483,13 @@ class _ResynthesizerContext implements ResynthesizerContext {
   }
 
   @override
+  ConstructorElement resolveConstructorRef(
+      TypeParameterizedElementMixin typeParameterContext, EntityRef entry) {
+    return _unitResynthesizer._getConstructorForEntry(
+        typeParameterContext, entry);
+  }
+
+  @override
   DartType resolveLinkedType(
       int slot, TypeParameterizedElementMixin typeParameterContext) {
     return _unitResynthesizer.buildLinkedType(slot, typeParameterContext);
@@ -1808,25 +1769,6 @@ class _UnitResynthesizer {
     ConstructorElementImpl constructor =
         new ConstructorElementImpl.forSerialized(
             serializedExecutable, constCycles, classElement);
-    if (serializedExecutable.isRedirectedConstructor) {
-      if (serializedExecutable.isFactory) {
-        EntityRef redirectedConstructor =
-            serializedExecutable.redirectedConstructor;
-        _ReferenceInfo info = getReferenceInfo(redirectedConstructor.reference);
-        List<EntityRef> typeArguments = redirectedConstructor.typeArguments;
-        constructor.redirectedConstructor = _createConstructorElement(
-            _createConstructorDefiningType(classElement, info, typeArguments),
-            info);
-      } else {
-        List<String> locationComponents = unit.location.components.toList();
-        locationComponents.add(classElement.name);
-        locationComponents.add(serializedExecutable.redirectedConstructorName);
-        constructor.redirectedConstructor = new _DeferredConstructorElement._(
-            classElement.type,
-            serializedExecutable.redirectedConstructorName,
-            new ElementLocationImpl.con3(locationComponents));
-      }
-    }
     holder.addConstructor(constructor);
   }
 
@@ -2243,7 +2185,7 @@ class _UnitResynthesizer {
    * Return the defining type for a [ConstructorElement] by applying
    * [typeArgumentRefs] to the given linked [info].
    */
-  InterfaceType _createConstructorDefiningType(
+  DartType _createConstructorDefiningType(
       TypeParameterizedElementMixin typeParameterContext,
       _ReferenceInfo info,
       List<EntityRef> typeArgumentRefs) {
@@ -2262,22 +2204,38 @@ class _UnitResynthesizer {
   }
 
   /**
+   * Return the [ConstructorElement] corresponding to the given [entry].
+   */
+  ConstructorElement _getConstructorForEntry(
+      TypeParameterizedElementMixin typeParameterContext, EntityRef entry) {
+    _ReferenceInfo info = getReferenceInfo(entry.reference);
+    DartType type = _createConstructorDefiningType(
+        typeParameterContext, info, entry.typeArguments);
+    if (type is InterfaceType) {
+      return _getConstructorForInfo(type, info);
+    }
+    return null;
+  }
+
+  /**
    * Return the [ConstructorElement] corresponding to the given linked [info],
    * using the [classType] which has already been computed (e.g. by
    * [_createConstructorDefiningType]).  Both cases when [info] is a
    * [ClassElement] and [ConstructorElement] are supported.
    */
-  ConstructorElement _createConstructorElement(
+  ConstructorElement _getConstructorForInfo(
       InterfaceType classType, _ReferenceInfo info) {
-    bool isClass = info.element is ClassElement;
-    String name = isClass ? '' : info.name;
-    _DeferredConstructorElement element =
-        new _DeferredConstructorElement(classType, name);
-    if (info.numTypeParameters != 0) {
-      return new ConstructorMember(element, classType);
-    } else {
-      return element;
+    ConstructorElement element;
+    Element infoElement = info.element;
+    if (infoElement is ConstructorElement) {
+      element = infoElement;
+    } else if (infoElement is ClassElement) {
+      element = infoElement.unnamedConstructor;
     }
+    if (element != null && info.numTypeParameters != 0) {
+      return new ConstructorMember(element, classType);
+    }
+    return element;
   }
 
   /**
