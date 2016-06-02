@@ -649,6 +649,21 @@ f(A a) {
     verify([source]);
   }
 
+  void test_deprecatedAnnotationUse_call() {
+    Source source = addSource(r'''
+class A {
+  @deprecated
+  call() {}
+  m() {
+    A a = new A();
+    a();
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    verify([source]);
+  }
+
   void test_deprecatedAnnotationUse_Deprecated() {
     Source source = addSource(r'''
 class A {
@@ -667,28 +682,6 @@ class A {
   @deprecated
   m() {}
   n() {m();}
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  void test_deprecatedAnnotationUse_positional() {
-    Source source = addSource(r'''
-class A {
-  m([@deprecated int x]) {}
-  n() {m(1);}
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  void test_deprecatedAnnotationUse_named() {
-    Source source = addSource(r'''
-class A {
-  m({@deprecated int x}) {}
-  n() {m(x: 1);}
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
@@ -793,6 +786,17 @@ f() {
     verify([source]);
   }
 
+  void test_deprecatedAnnotationUse_named() {
+    Source source = addSource(r'''
+class A {
+  m({@deprecated int x}) {}
+  n() {m(x: 1);}
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    verify([source]);
+  }
+
   void test_deprecatedAnnotationUse_operator() {
     Source source = addSource(r'''
 class A {
@@ -802,6 +806,17 @@ class A {
 f(A a) {
   A b;
   return a + b;
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    verify([source]);
+  }
+
+  void test_deprecatedAnnotationUse_positional() {
+    Source source = addSource(r'''
+class A {
+  m([@deprecated int x]) {}
+  n() {m(1);}
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
@@ -844,21 +859,6 @@ class A {
 }
 class B extends A {
   B() : super.named() {}
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  void test_deprecatedAnnotationUse_call() {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  call() {}
-  m() {
-    A a = new A();
-    a();
-  }
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
@@ -1051,11 +1051,26 @@ class A {
   @protected
   int a;
 }
+abstract class B {
+  int b() => new A().a;
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_field_OK() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  int a;
+}
 abstract class B implements A {
   int b() => a;
 }''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1074,7 +1089,39 @@ main() {
     verify([source]);
   }
 
+  void test_invalidUseOfProtectedMember_function_OK() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  int a() => 0;
+}
+
+abstract class B implements A {
+  int b() => a();
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_invalidUseOfProtectedMember_getter() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  int get a => 42;
+}
+class B {
+  A a;
+  int b() => a.a;
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_getter_OK() {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
 class A {
@@ -1085,7 +1132,7 @@ abstract class B implements A {
   int b() => a;
 }''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1120,21 +1167,6 @@ class B {
     verify([source]);
   }
 
-  void test_invalidUseOfProtectedMember_method_2() {
-    Source source = addSource(r'''
-import 'package:meta/meta.dart';
-class A {
-  @protected
-  void a(){ }
-}
-abstract class B implements A {
-  void b() => a();
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
-    verify([source]);
-  }
-
   void test_invalidUseOfProtectedMember_OK_1() {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
@@ -1146,7 +1178,7 @@ class B extends A {
   void b() => a();
 }''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, []);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1161,7 +1193,7 @@ class B extends Object with A {
   void b() => a();
 }''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, []);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1175,7 +1207,7 @@ class B extends A {
   static m2(A a) => a.m1();
 }''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, []);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1193,7 +1225,7 @@ main() {
   new B().a();
 }''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, []);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1209,7 +1241,7 @@ class B extends A {
 }
 ''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, []);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1225,7 +1257,7 @@ class B extends A {
 }
 ''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, []);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1243,11 +1275,29 @@ class B extends A {
 }
 ''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, []);
+    assertNoErrors(source);
     verify([source]);
   }
 
   void test_invalidUseOfProtectedMember_setter() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void set a(int i) { }
+}
+class B{
+  A a;
+  b(int i) {
+    a.a = i;
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_setter_OK() {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
 class A {
@@ -1260,7 +1310,7 @@ abstract class B implements A {
   }
 }''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1368,19 +1418,19 @@ Future<int> f() async {}
     verify([source]);
   }
 
-  void test_missingReturn_function() {
-    Source source = addSource("int f() {}");
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.MISSING_RETURN]);
-    verify([source]);
-  }
-
   void test_missingReturn_factory() {
     Source source = addSource(r'''
 class A {
   factory A() {}
 }
 ''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
+  void test_missingReturn_function() {
+    Source source = addSource("int f() {}");
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_RETURN]);
     verify([source]);
@@ -1796,26 +1846,24 @@ m(i) {
     verify([source]);
   }
 
-  void test_undefinedIdentifier_importHide() {
+  void test_undefinedGetter() {
     Source source = addSource(r'''
-library L;
-import 'lib1.dart' hide a;''');
-    addNamedSource("/lib1.dart", "library lib1;");
+class A {}
+f(var a) {
+  if(a is A) {
+    return a.m;
+  }
+}''');
     computeLibrarySourceErrors(source);
-    assertErrors(
-        source, [HintCode.UNUSED_IMPORT, HintCode.UNDEFINED_HIDDEN_NAME]);
-    verify([source]);
+    assertErrors(source, [HintCode.UNDEFINED_GETTER]);
   }
 
-  void test_undefinedIdentifier_importShow() {
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart' show a;''');
-    addNamedSource("/lib1.dart", "library lib1;");
-    computeLibrarySourceErrors(source);
-    assertErrors(
-        source, [HintCode.UNUSED_IMPORT, HintCode.UNDEFINED_SHOWN_NAME]);
-    verify([source]);
+  void test_undefinedGetter_message() {
+    // The implementation of HintCode.UNDEFINED_SETTER assumes that
+    // UNDEFINED_SETTER in StaticTypeWarningCode and StaticWarningCode are the
+    // same, this verifies that assumption.
+    expect(StaticWarningCode.UNDEFINED_GETTER.message,
+        StaticTypeWarningCode.UNDEFINED_GETTER.message);
   }
 
   void test_undefinedIdentifier_exportHide() {
@@ -1838,24 +1886,26 @@ export 'lib1.dart' show a;''');
     verify([source]);
   }
 
-  void test_undefinedGetter() {
+  void test_undefinedIdentifier_importHide() {
     Source source = addSource(r'''
-class A {}
-f(var a) {
-  if(a is A) {
-    return a.m;
-  }
-}''');
+library L;
+import 'lib1.dart' hide a;''');
+    addNamedSource("/lib1.dart", "library lib1;");
     computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.UNDEFINED_GETTER]);
+    assertErrors(
+        source, [HintCode.UNUSED_IMPORT, HintCode.UNDEFINED_HIDDEN_NAME]);
+    verify([source]);
   }
 
-  void test_undefinedGetter_message() {
-    // The implementation of HintCode.UNDEFINED_SETTER assumes that
-    // UNDEFINED_SETTER in StaticTypeWarningCode and StaticWarningCode are the
-    // same, this verifies that assumption.
-    expect(StaticWarningCode.UNDEFINED_GETTER.message,
-        StaticTypeWarningCode.UNDEFINED_GETTER.message);
+  void test_undefinedIdentifier_importShow() {
+    Source source = addSource(r'''
+library L;
+import 'lib1.dart' show a;''');
+    addNamedSource("/lib1.dart", "library lib1;");
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [HintCode.UNUSED_IMPORT, HintCode.UNDEFINED_SHOWN_NAME]);
+    verify([source]);
   }
 
   void test_undefinedMethod() {
@@ -3055,84 +3105,6 @@ class B {}''');
     verify([source, source2]);
   }
 
-  void test_unusedShownName() {
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart' show A, B;
-A a;''');
-    Source source2 = addNamedSource(
-        "/lib1.dart",
-        r'''
-library lib1;
-class A {}
-class B {}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
-    assertNoErrors(source2);
-    verify([source, source2]);
-  }
-
-  void test_unusedShownName_topLevelVariable() {
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart' show var1, var2;
-import 'lib1.dart' show var3, var4;
-int a = var1;
-int b = var2;
-int c = var3;''');
-    Source source2 = addNamedSource(
-        "/lib1.dart",
-        r'''
-library lib1;
-const int var1 = 1;
-const int var2 = 2;
-const int var3 = 3;
-const int var4 = 4;''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
-    assertNoErrors(source2);
-    verify([source, source2]);
-  }
-
-  void test_unusedShownName_as() {
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart' as p show A, B;
-p.A a;''');
-    Source source2 = addNamedSource(
-        "/lib1.dart",
-        r'''
-library lib1;
-class A {}
-class B {}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
-    assertNoErrors(source2);
-    verify([source, source2]);
-  }
-
-  void test_unusedShownName_duplicates() {
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart' show A, B;
-import 'lib1.dart' show C, D;
-A a;
-C c;''');
-    Source source2 = addNamedSource(
-        "/lib1.dart",
-        r'''
-library lib1;
-class A {}
-class B {}
-class C {}
-class D {}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(
-        source, [HintCode.UNUSED_SHOWN_NAME, HintCode.UNUSED_SHOWN_NAME]);
-    assertNoErrors(source2);
-    verify([source, source2]);
-  }
-
   void test_unusedLocalVariable_inCatch_exception() {
     enableUnusedLocalVariable = true;
     Source source = addSource(r'''
@@ -3318,6 +3290,84 @@ main() {
     computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
+  }
+
+  void test_unusedShownName() {
+    Source source = addSource(r'''
+library L;
+import 'lib1.dart' show A, B;
+A a;''');
+    Source source2 = addNamedSource(
+        "/lib1.dart",
+        r'''
+library lib1;
+class A {}
+class B {}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
+    assertNoErrors(source2);
+    verify([source, source2]);
+  }
+
+  void test_unusedShownName_as() {
+    Source source = addSource(r'''
+library L;
+import 'lib1.dart' as p show A, B;
+p.A a;''');
+    Source source2 = addNamedSource(
+        "/lib1.dart",
+        r'''
+library lib1;
+class A {}
+class B {}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
+    assertNoErrors(source2);
+    verify([source, source2]);
+  }
+
+  void test_unusedShownName_duplicates() {
+    Source source = addSource(r'''
+library L;
+import 'lib1.dart' show A, B;
+import 'lib1.dart' show C, D;
+A a;
+C c;''');
+    Source source2 = addNamedSource(
+        "/lib1.dart",
+        r'''
+library lib1;
+class A {}
+class B {}
+class C {}
+class D {}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [HintCode.UNUSED_SHOWN_NAME, HintCode.UNUSED_SHOWN_NAME]);
+    assertNoErrors(source2);
+    verify([source, source2]);
+  }
+
+  void test_unusedShownName_topLevelVariable() {
+    Source source = addSource(r'''
+library L;
+import 'lib1.dart' show var1, var2;
+import 'lib1.dart' show var3, var4;
+int a = var1;
+int b = var2;
+int c = var3;''');
+    Source source2 = addNamedSource(
+        "/lib1.dart",
+        r'''
+library lib1;
+const int var1 = 1;
+const int var2 = 2;
+const int var3 = 3;
+const int var4 = 4;''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
+    assertNoErrors(source2);
+    verify([source, source2]);
   }
 
   void test_useOfVoidResult_assignmentExpression_function() {

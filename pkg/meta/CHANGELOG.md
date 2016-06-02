@@ -1,3 +1,6 @@
+## 0.12.2
+* Updated `@protected` to include implemented interfaces (linter#252).
+
 ## 0.12.1
 * Fixed markdown in dartdocs.
 

@@ -700,13 +700,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     }
 
     ClassElement invokingClass = decl.element?.enclosingElement;
-    if (invokingClass != null) {
-      if (!_hasSuperClassOrMixin(invokingClass, definingClass.type)) {
-        _errorReporter.reportErrorForNode(
-            HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
-            node,
-            [node.methodName.toString(), definingClass.name]);
-      }
+    if (!_hasSuperType(invokingClass, definingClass.type)) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
+          node,
+          [node.methodName.toString(), definingClass.name]);
     }
   }
 
@@ -731,8 +729,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
             HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
             identifier,
             [identifier.name.toString(), definingClass.name]);
-      } else if (!_hasSuperClassOrMixin(
-          accessingClass.element, definingClass.type)) {
+      } else if (!_hasSuperType(accessingClass.element, definingClass.type)) {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
             identifier,
@@ -962,6 +959,25 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Check for situations where the result of a method or function is used, when
+   * it returns 'void'.
+   *
+   * See [HintCode.USE_OF_VOID_RESULT].
+   */
+  void _checkForUseOfVoidResult(Expression expression) {
+    // TODO(jwren) Many other situations of use could be covered. We currently
+    // cover the cases var x = m() and x = m(), but we could also cover cases
+    // such as m().x, m()[k], a + m(), f(m()), return m().
+    if (expression is MethodInvocation) {
+      if (identical(expression.staticType, VoidTypeImpl.instance)) {
+        SimpleIdentifier methodName = expression.methodName;
+        _errorReporter.reportErrorForNode(
+            HintCode.USE_OF_VOID_RESULT, methodName, [methodName.name]);
+      }
+    }
+  }
+
+  /**
    * Check for the passed class declaration for the
    * [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE] hint code.
    *
@@ -990,25 +1006,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 //    return false;
 //  }
 
-  /**
-   * Check for situations where the result of a method or function is used, when
-   * it returns 'void'.
-   *
-   * See [HintCode.USE_OF_VOID_RESULT].
-   */
-  void _checkForUseOfVoidResult(Expression expression) {
-    // TODO(jwren) Many other situations of use could be covered. We currently
-    // cover the cases var x = m() and x = m(), but we could also cover cases
-    // such as m().x, m()[k], a + m(), f(m()), return m().
-    if (expression is MethodInvocation) {
-      if (identical(expression.staticType, VoidTypeImpl.instance)) {
-        SimpleIdentifier methodName = expression.methodName;
-        _errorReporter.reportErrorForNode(
-            HintCode.USE_OF_VOID_RESULT, methodName, [methodName.name]);
-      }
-    }
-  }
-
   bool _hasSuperClassOrMixin(ClassElement element, InterfaceType type) {
     List<ClassElement> seenClasses = <ClassElement>[];
     while (element != null && !seenClasses.contains(element)) {
@@ -1026,6 +1023,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
     return false;
   }
+
+  bool _hasSuperType(ClassElement element, InterfaceType type) =>
+      element != null && element.allSupertypes.contains(type);
 
   /**
    * Given a parenthesized expression, this returns the parent (or recursively grand-parent) of the
