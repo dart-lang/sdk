@@ -132,9 +132,14 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
         element, definitions,
         isConst: isConst, checkType: checkType);
     if (!isConst && value == null) {
-      lazyStatics.add(element);
+      registerLazyStatic(element);
     }
     return value;
+  }
+
+  @override
+  void registerLazyStatic(FieldElement element) {
+    lazyStatics.add(element);
   }
 
   void addCompileTimeConstantForEmission(ConstantValue constant) {

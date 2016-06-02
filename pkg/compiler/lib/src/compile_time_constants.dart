@@ -104,6 +104,9 @@ abstract class BackendConstantEnvironment extends ConstantEnvironment {
 
   /// Returns the compile-time constant value of [metadata].
   ConstantValue getConstantValueForMetadata(MetadataAnnotation metadata);
+
+  /// Register that [element] needs lazy initialization.
+  void registerLazyStatic(FieldElement element);
 }
 
 /// Interface for the task that compiles the constant environments for the

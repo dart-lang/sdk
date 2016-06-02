@@ -131,6 +131,17 @@ class DeserializerSystemImpl extends DeserializerSystem {
     if (element is ExecutableElement) {
       getResolvedAst(element);
     }
+    if (element.isField && !element.isConst) {
+      FieldElement field = element;
+      if (field.isTopLevel || field.isStatic) {
+        if (field.constant == null) {
+          // TODO(johnniwinther): Find a cleaner way to do this. Maybe
+          // `Feature.LAZY_FIELD` of the resolution impact should be used
+          // instead.
+          _compiler.backend.constants.registerLazyStatic(element);
+        }
+      }
+    }
     return _impactTransformer.transformResolutionImpact(resolutionImpact);
   }
 
