@@ -1032,12 +1032,6 @@ class _LibraryResynthesizer {
   LibraryElementImpl library;
 
   /**
-   * Classes which should have their supertype set to "object" once
-   * resynthesis is complete.  Only used if [isCoreLibrary] is `true`.
-   */
-  List<ClassElementImpl> delayedObjectSubclasses = <ClassElementImpl>[];
-
-  /**
    * Map of compilation unit elements that have been resynthesized so far.  The
    * key is the URI of the compilation unit.
    */
@@ -1162,14 +1156,6 @@ class _LibraryResynthesizer {
     populateUnit(definingUnitResynthesizer);
     for (_UnitResynthesizer partResynthesizer in partResynthesizers) {
       populateUnit(partResynthesizer);
-    }
-    // Update delayed Object class references.
-    if (isCoreLibrary) {
-      ClassElement objectElement = library.getType('Object');
-      assert(objectElement != null);
-      for (ClassElementImpl classElement in delayedObjectSubclasses) {
-        classElement.supertype = objectElement.type;
-      }
     }
     // Create the synthetic element for `loadLibrary`.
     // Until the client received dart:core and dart:async, we cannot do this,
@@ -1689,9 +1675,6 @@ class _UnitResynthesizer {
     if (libraryResynthesizer.isCoreLibrary &&
         serializedClass.supertype == null) {
       classElement = buildClassImpl(serializedClass, null);
-      if (!serializedClass.hasNoSupertype) {
-        libraryResynthesizer.delayedObjectSubclasses.add(classElement);
-      }
     } else {
       classElement = new _DeferredClassElement(this, unit, serializedClass);
     }
@@ -1753,12 +1736,6 @@ class _UnitResynthesizer {
     classElement.hasBeenInferred = summaryResynthesizer.strongMode;
     InterfaceTypeImpl correspondingType =
         new InterfaceTypeImpl(handle ?? classElement);
-    if (serializedClass.supertype != null) {
-      classElement.supertype =
-          buildType(serializedClass.supertype, classElement);
-    } else if (!libraryResynthesizer.isCoreLibrary) {
-      classElement.supertype = typeProvider.objectType;
-    }
     // TODO(scheglov) move to ClassElementImpl
     correspondingType.typeArguments = classElement.typeParameterTypes;
     classElement.type = correspondingType;
@@ -1870,7 +1847,6 @@ class _UnitResynthesizer {
         new EnumElementImpl.forSerialized(serializedEnum, unit);
     InterfaceType enumType = new InterfaceTypeImpl(classElement);
     classElement.type = enumType;
-    classElement.supertype = typeProvider.objectType;
     ElementHolder memberHolder = new ElementHolder();
     // Build the 'index' field.
     FieldElementImpl indexField = new FieldElementImpl('index', -1);

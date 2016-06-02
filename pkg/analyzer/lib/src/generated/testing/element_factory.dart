@@ -146,7 +146,6 @@ class ElementFactory {
     EnumElementImpl enumElement = new EnumElementImpl(enumName, -1);
     InterfaceTypeImpl enumType = new InterfaceTypeImpl(enumElement);
     enumElement.type = enumType;
-    enumElement.supertype = objectType;
     //
     // Populate the fields.
     //

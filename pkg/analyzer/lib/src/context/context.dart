@@ -466,13 +466,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   TypeProvider get typeProvider {
+    if (_typeProvider != null) {
+      return _typeProvider;
+    }
+
     // Make sure a task didn't accidentally try to call back into the context
     // to retrieve the type provider.
     assert(!driver.isTaskRunning);
 
-    if (_typeProvider != null) {
-      return _typeProvider;
-    }
     Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
     if (coreSource == null) {
       throw new AnalysisException("Could not create a source for dart:core");

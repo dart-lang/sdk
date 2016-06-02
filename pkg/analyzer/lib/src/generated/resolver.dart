@@ -3348,7 +3348,6 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
     //
     EnumElementImpl enumElement = node.name.staticElement as EnumElementImpl;
     InterfaceType enumType = enumElement.type;
-    enumElement.supertype = _typeProvider.objectType;
     //
     // Populate the fields.
     //

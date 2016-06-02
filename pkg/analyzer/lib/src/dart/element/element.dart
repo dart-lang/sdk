@@ -53,7 +53,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
    * explicit superclass.
    */
   @override
-  InterfaceType supertype;
+  InterfaceType _supertype;
 
   /**
    * The type defined by the class.
@@ -816,6 +816,26 @@ class ClassElementImpl extends AbstractClassElementImpl {
       return _unlinkedClass.nameOffset;
     }
     return super.nameOffset;
+  }
+
+  @override
+  InterfaceType get supertype {
+    if (_unlinkedClass != null && _supertype == null) {
+      if (_unlinkedClass.supertype != null) {
+        _supertype = enclosingUnit.resynthesizerContext
+            .resolveTypeRef(_unlinkedClass.supertype, this);
+      } else if (_unlinkedClass.hasNoSupertype) {
+        return null;
+      } else {
+        _supertype = context.typeProvider.objectType;
+      }
+    }
+    return _supertype;
+  }
+
+  void set supertype(InterfaceType supertype) {
+    assert(_unlinkedClass == null);
+    _supertype = supertype;
   }
 
   @override
@@ -3034,6 +3054,9 @@ class EnumElementImpl extends AbstractClassElementImpl {
     }
     return super.nameOffset;
   }
+
+  @override
+  InterfaceType get supertype => context.typeProvider.objectType;
 
   @override
   List<TypeParameterElement> get typeParameters =>
