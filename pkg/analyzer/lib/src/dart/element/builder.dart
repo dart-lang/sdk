@@ -623,11 +623,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     setElementDocumentationComment(enumElement, node);
     InterfaceTypeImpl enumType = new InterfaceTypeImpl(enumElement);
     enumElement.type = enumType;
-    // The equivalent code for enums in the spec shows a single constructor,
-    // but that constructor is not callable (since it is a compile-time error
-    // to subclass, mix-in, implement, or explicitly instantiate an enum).  So
-    // we represent this as having no constructors.
-    enumElement.constructors = ConstructorElement.EMPTY_LIST;
     //
     // Build the elements for the constants. These are minimal elements; the
     // rest of the constant elements (and elements for other fields) must be

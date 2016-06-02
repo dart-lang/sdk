@@ -201,10 +201,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     }
   }
 
-  void compareClassElements(
-      ClassElement resynthesized, ClassElement original, String desc) {
-    AbstractClassElementImpl r = AbstractClassElementImpl.getImpl(resynthesized);
-    AbstractClassElementImpl o = AbstractClassElementImpl.getImpl(original);
+  void compareClassElements(ClassElement r, ClassElement o, String desc) {
     compareElements(r, o, desc);
     expect(r.fields.length, o.fields.length, reason: '$desc fields.length');
     for (int i = 0; i < r.fields.length; i++) {
@@ -246,7 +243,9 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
           r.methods[i], o.methods[i], '$desc.${o.methods[i].name}');
     }
     compareTypes(r.type, o.type, desc);
-    expect(r.hasBeenInferred, o.hasBeenInferred, reason: desc);
+    if (r is ClassElementImpl && o is ClassElementImpl) {
+      expect(r.hasBeenInferred, o.hasBeenInferred, reason: desc);
+    }
   }
 
   void compareCompilationUnitElements(CompilationUnitElementImpl resynthesized,

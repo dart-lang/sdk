@@ -44,36 +44,9 @@ abstract class AbstractClassElementImpl extends ElementImpl
   List<PropertyAccessorElement> _accessors = PropertyAccessorElement.EMPTY_LIST;
 
   /**
-   * For classes which are not mixin applications, a list containing all of the
-   * constructors contained in this class, or `null` if the list of
-   * constructors has not yet been built.
-   *
-   * For classes which are mixin applications, the list of constructors is
-   * computed on the fly by the [constructors] getter, and this field is
-   * `null`.
-   */
-  List<ConstructorElement> _constructors;
-
-  /**
    * A list containing all of the fields contained in this class.
    */
   List<FieldElement> _fields = FieldElement.EMPTY_LIST;
-
-  /**
-   * A list containing all of the mixins that are applied to the class being
-   * extended in order to derive the superclass of this class.
-   */
-  List<InterfaceType> _mixins;
-
-  /**
-   * A list containing all of the interfaces that are implemented by this class.
-   */
-  List<InterfaceType> _interfaces;
-
-  /**
-   * A list containing all of the methods contained in this class.
-   */
-  List<MethodElement> _methods = MethodElement.EMPTY_LIST;
 
   /**
    * The superclass of the class, or `null` if the class does not have an
@@ -87,17 +60,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
    */
   @override
   InterfaceType type;
-
-  /**
-   * A list containing all of the type parameters defined for this class.
-   */
-  List<TypeParameterElement> _typeParameters = TypeParameterElement.EMPTY_LIST;
-
-  /**
-   * A flag indicating whether the types associated with the instance members of
-   * this class have been inferred.
-   */
-  bool hasBeenInferred = false;
 
   /**
    * Initialize a newly created class element to have the given [name] at the
@@ -117,13 +79,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
       CompilationUnitElementImpl enclosingUnit)
       : super.forSerialized(enclosingUnit);
 
-  /**
-   * Set whether this class is abstract.
-   */
-  void set abstract(bool isAbstract) {
-    setModifier(Modifier.ABSTRACT, isAbstract);
-  }
-
   @override
   List<PropertyAccessorElement> get accessors => _accessors;
 
@@ -138,80 +93,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
   }
 
   @override
-  List<InterfaceType> get allSupertypes {
-    List<InterfaceType> list = new List<InterfaceType>();
-    _collectAllSupertypes(list);
-    return list;
-  }
-
-  @override
-  List<ConstructorElement> get constructors {
-    if (!isMixinApplication) {
-      assert(_constructors != null);
-      return _constructors ?? ConstructorElement.EMPTY_LIST;
-    }
-    return _computeMixinAppConstructors();
-  }
-
-  /**
-   * Set the constructors contained in this class to the given [constructors].
-   *
-   * Should only be used for class elements that are not mixin applications.
-   */
-  void set constructors(List<ConstructorElement> constructors) {
-    assert(!isMixinApplication);
-    for (ConstructorElement constructor in constructors) {
-      (constructor as ConstructorElementImpl).enclosingElement = this;
-    }
-    this._constructors = constructors;
-  }
-
-  @override
   String get displayName => name;
-
-  /**
-   * Return `true` if [CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS] should
-   * be reported for this class.
-   */
-  bool get doesMixinLackConstructors {
-    if (!isMixinApplication && mixins.isEmpty) {
-      // This class is not a mixin application and it doesn't have a "with"
-      // clause, so CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS is
-      // inapplicable.
-      return false;
-    }
-    if (supertype == null) {
-      // Should never happen, since Object is the only class that has no
-      // supertype, and it should have been caught by the test above.
-      assert(false);
-      return false;
-    }
-    // Find the nearest class in the supertype chain that is not a mixin
-    // application.
-    ClassElement nearestNonMixinClass = supertype.element;
-    if (nearestNonMixinClass.isMixinApplication) {
-      // Use a list to keep track of the classes we've seen, so that we won't
-      // go into an infinite loop in the event of a non-trivial loop in the
-      // class hierarchy.
-      List<ClassElement> classesSeen = <ClassElement>[this];
-      while (nearestNonMixinClass.isMixinApplication) {
-        if (classesSeen.contains(nearestNonMixinClass)) {
-          // Loop in the class hierarchy (which is reported elsewhere).  Don't
-          // confuse the user with further errors.
-          return false;
-        }
-        classesSeen.add(nearestNonMixinClass);
-        if (nearestNonMixinClass.supertype == null) {
-          // Should never happen, since Object is the only class that has no
-          // supertype, and it is not a mixin application.
-          assert(false);
-          return false;
-        }
-        nearestNonMixinClass = nearestNonMixinClass.supertype.element;
-      }
-    }
-    return !nearestNonMixinClass.constructors.any(isSuperConstructorAccessible);
-  }
 
   @override
   TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
@@ -230,151 +112,10 @@ abstract class AbstractClassElementImpl extends ElementImpl
   }
 
   @override
-  bool get hasNonFinalField {
-    List<ClassElement> classesToVisit = new List<ClassElement>();
-    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
-    classesToVisit.add(this);
-    while (!classesToVisit.isEmpty) {
-      ClassElement currentElement = classesToVisit.removeAt(0);
-      if (visitedClasses.add(currentElement)) {
-        // check fields
-        for (FieldElement field in currentElement.fields) {
-          if (!field.isFinal &&
-              !field.isConst &&
-              !field.isStatic &&
-              !field.isSynthetic) {
-            return true;
-          }
-        }
-        // check mixins
-        for (InterfaceType mixinType in currentElement.mixins) {
-          ClassElement mixinElement = mixinType.element;
-          classesToVisit.add(mixinElement);
-        }
-        // check super
-        InterfaceType supertype = currentElement.supertype;
-        if (supertype != null) {
-          ClassElement superElement = supertype.element;
-          if (superElement != null) {
-            classesToVisit.add(superElement);
-          }
-        }
-      }
-    }
-    // not found
-    return false;
-  }
-
-  @override
-  bool get hasReferenceToSuper => hasModifier(Modifier.REFERENCES_SUPER);
-
-  /**
-   * Set whether this class references 'super'.
-   */
-  void set hasReferenceToSuper(bool isReferencedSuper) {
-    setModifier(Modifier.REFERENCES_SUPER, isReferencedSuper);
-  }
-
-  @override
-  bool get hasStaticMember {
-    for (MethodElement method in _methods) {
-      if (method.isStatic) {
-        return true;
-      }
-    }
-    for (PropertyAccessorElement accessor in _accessors) {
-      if (accessor.isStatic) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  List<InterfaceType> get interfaces {
-    return _interfaces ?? const <InterfaceType>[];
-  }
-
-  void set interfaces(List<InterfaceType> interfaces) {
-    _interfaces = interfaces;
-  }
-
-  @override
-  bool get isAbstract {
-    return hasModifier(Modifier.ABSTRACT);
-  }
-
-  @override
   bool get isEnum;
 
   @override
-  bool get isMixinApplication {
-    return hasModifier(Modifier.MIXIN_APPLICATION);
-  }
-
-  @override
-  bool get isOrInheritsProxy =>
-      _safeIsOrInheritsProxy(this, new HashSet<ClassElement>());
-
-  @override
-  bool get isProxy {
-    for (ElementAnnotation annotation in metadata) {
-      if (annotation.isProxy) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get isValidMixin {
-    if (!context.analysisOptions.enableSuperMixins) {
-      if (hasReferenceToSuper) {
-        return false;
-      }
-      if (!supertype.isObject) {
-        return false;
-      }
-    }
-    for (ConstructorElement constructor in constructors) {
-      if (!constructor.isSynthetic && !constructor.isFactory) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  @override
   ElementKind get kind => ElementKind.CLASS;
-
-  @override
-  List<MethodElement> get methods => _methods;
-
-  /**
-   * Set the methods contained in this class to the given [methods].
-   */
-  void set methods(List<MethodElement> methods) {
-    for (MethodElement method in methods) {
-      (method as MethodElementImpl).enclosingElement = this;
-    }
-    this._methods = methods;
-  }
-
-  /**
-   * Set whether this class is a mixin application.
-   */
-  void set mixinApplication(bool isMixinApplication) {
-    setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
-  }
-
-  @override
-  List<InterfaceType> get mixins {
-    return _mixins ?? const <InterfaceType>[];
-  }
-
-  void set mixins(List<InterfaceType> mixins) {
-    _mixins = mixins;
-  }
 
   /**
    * Return resynthesized type parameter elements.
@@ -387,78 +128,10 @@ abstract class AbstractClassElementImpl extends ElementImpl
   TypeParameterizedElementMixin get typeParameterContext => this;
 
   @override
-  List<TypeParameterElement> get typeParameters {
-    return _typeParameters;
-  }
-
-  /**
-   * Set the type parameters defined for this class to the given
-   * [typeParameters].
-   */
-  void set typeParameters(List<TypeParameterElement> typeParameters) {
-    for (TypeParameterElement typeParameter in typeParameters) {
-      (typeParameter as TypeParameterElementImpl).enclosingElement = this;
-    }
-    this._typeParameters = typeParameters;
-  }
-
-  @override
   List<UnlinkedTypeParam> get unlinkedTypeParams => const <UnlinkedTypeParam>[];
 
   @override
-  ConstructorElement get unnamedConstructor {
-    for (ConstructorElement element in constructors) {
-      String name = element.displayName;
-      if (name == null || name.isEmpty) {
-        return element;
-      }
-    }
-    return null;
-  }
-
-  @override
   accept(ElementVisitor visitor) => visitor.visitClassElement(this);
-
-  @override
-  void appendTo(StringBuffer buffer) {
-    if (isAbstract) {
-      buffer.write('abstract ');
-    }
-    if (isEnum) {
-      buffer.write('enum ');
-    } else {
-      buffer.write('class ');
-    }
-    String name = displayName;
-    if (name == null) {
-      buffer.write("{unnamed class}");
-    } else {
-      buffer.write(name);
-    }
-    int variableCount = typeParameters.length;
-    if (variableCount > 0) {
-      buffer.write("<");
-      for (int i = 0; i < variableCount; i++) {
-        if (i > 0) {
-          buffer.write(", ");
-        }
-        (typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
-      }
-      buffer.write(">");
-    }
-    if (supertype != null && !supertype.isObject) {
-      buffer.write(' extends ');
-      buffer.write(supertype.displayName);
-    }
-    if (mixins.isNotEmpty) {
-      buffer.write(' with ');
-      buffer.write(mixins.map((t) => t.displayName).join(', '));
-    }
-    if (interfaces.isNotEmpty) {
-      buffer.write(' implements ');
-      buffer.write(interfaces.map((t) => t.displayName).join(', '));
-    }
-  }
 
   @override
   NamedCompilationUnitMember computeNode() {
@@ -483,28 +156,10 @@ abstract class AbstractClassElementImpl extends ElementImpl
         return accessorImpl;
       }
     }
-    for (ConstructorElement constructor in _constructors) {
-      ConstructorElementImpl constructorImpl = constructor;
-      if (constructorImpl.identifier == identifier) {
-        return constructorImpl;
-      }
-    }
     for (FieldElement field in _fields) {
       FieldElementImpl fieldImpl = field;
       if (fieldImpl.identifier == identifier) {
         return fieldImpl;
-      }
-    }
-    for (MethodElement method in _methods) {
-      MethodElementImpl methodImpl = method;
-      if (methodImpl.identifier == identifier) {
-        return methodImpl;
-      }
-    }
-    for (TypeParameterElement typeParameter in typeParameters) {
-      TypeParameterElementImpl typeParameterImpl = typeParameter;
-      if (typeParameterImpl.identifier == identifier) {
-        return typeParameterImpl;
       }
     }
     return null;
@@ -533,29 +188,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
   }
 
   @override
-  MethodElement getMethod(String methodName) {
-    int length = _methods.length;
-    for (int i = 0; i < length; i++) {
-      MethodElement method = _methods[i];
-      if (method.name == methodName) {
-        return method;
-      }
-    }
-    return null;
-  }
-
-  @override
-  ConstructorElement getNamedConstructor(String name) {
-    for (ConstructorElement element in constructors) {
-      String elementName = element.name;
-      if (elementName != null && elementName == name) {
-        return element;
-      }
-    }
-    return null;
-  }
-
-  @override
   PropertyAccessorElement getSetter(String setterName) {
     // TODO (jwren) revisit- should we append '=' here or require clients to
     // include it?
@@ -569,23 +201,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
       }
     }
     return null;
-  }
-
-  @override
-  bool isSuperConstructorAccessible(ConstructorElement constructor) {
-    // If this class has no mixins, then all superclass constructors are
-    // accessible.
-    if (mixins.isEmpty) {
-      return true;
-    }
-    // Otherwise only constructors that lack optional parameters are
-    // accessible (see dartbug.com/19576).
-    for (ParameterElement parameter in constructor.parameters) {
-      if (parameter.parameterKind != ParameterKind.REQUIRED) {
-        return false;
-      }
-    }
-    return true;
   }
 
   @override
@@ -635,131 +250,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(_accessors, visitor);
-    safelyVisitChildren(_constructors, visitor);
     safelyVisitChildren(_fields, visitor);
-    safelyVisitChildren(_methods, visitor);
-    safelyVisitChildren(_typeParameters, visitor);
-  }
-
-  void _collectAllSupertypes(List<InterfaceType> supertypes) {
-    List<InterfaceType> typesToVisit = new List<InterfaceType>();
-    List<ClassElement> visitedClasses = new List<ClassElement>();
-    typesToVisit.add(this.type);
-    while (!typesToVisit.isEmpty) {
-      InterfaceType currentType = typesToVisit.removeAt(0);
-      ClassElement currentElement = currentType.element;
-      if (!visitedClasses.contains(currentElement)) {
-        visitedClasses.add(currentElement);
-        if (!identical(currentType, this.type)) {
-          supertypes.add(currentType);
-        }
-        InterfaceType supertype = currentType.superclass;
-        if (supertype != null) {
-          typesToVisit.add(supertype);
-        }
-        for (InterfaceType type in currentElement.interfaces) {
-          typesToVisit.add(type);
-        }
-        for (InterfaceType type in currentElement.mixins) {
-          ClassElement element = type.element;
-          if (!visitedClasses.contains(element)) {
-            supertypes.add(type);
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Compute a list of constructors for this class, which is a mixin
-   * application.  If specified, [visitedClasses] is a list of the other mixin
-   * application classes which have been visited on the way to reaching this
-   * one (this is used to detect circularities).
-   */
-  List<ConstructorElement> _computeMixinAppConstructors(
-      [List<ClassElementImpl> visitedClasses = null]) {
-    // First get the list of constructors of the superclass which need to be
-    // forwarded to this class.
-    Iterable<ConstructorElement> constructorsToForward;
-    if (supertype == null) {
-      // Shouldn't ever happen, since the only class with no supertype is
-      // Object, and it isn't a mixin application.  But for safety's sake just
-      // assume an empty list.
-      assert(false);
-      constructorsToForward = <ConstructorElement>[];
-    } else if (!supertype.element.isMixinApplication) {
-      List<ConstructorElement> superclassConstructors =
-          supertype.element.constructors;
-      // Filter out any constructors with optional parameters (see
-      // dartbug.com/15101).
-      constructorsToForward =
-          superclassConstructors.where(isSuperConstructorAccessible);
-    } else {
-      if (visitedClasses == null) {
-        visitedClasses = <ClassElementImpl>[this];
-      } else {
-        if (visitedClasses.contains(this)) {
-          // Loop in the class hierarchy.  Don't try to forward any
-          // constructors.
-          return <ConstructorElement>[];
-        }
-        visitedClasses.add(this);
-      }
-      try {
-        constructorsToForward = getImpl(supertype.element)
-            ._computeMixinAppConstructors(visitedClasses);
-      } finally {
-        visitedClasses.removeLast();
-      }
-    }
-
-    // Figure out the type parameter substitution we need to perform in order
-    // to produce constructors for this class.  We want to be robust in the
-    // face of errors, so drop any extra type arguments and fill in any missing
-    // ones with `dynamic`.
-    List<DartType> parameterTypes =
-        TypeParameterTypeImpl.getTypes(supertype.typeParameters);
-    List<DartType> argumentTypes = new List<DartType>.filled(
-        parameterTypes.length, DynamicTypeImpl.instance);
-    for (int i = 0; i < supertype.typeArguments.length; i++) {
-      if (i >= argumentTypes.length) {
-        break;
-      }
-      argumentTypes[i] = supertype.typeArguments[i];
-    }
-
-    // Now create an implicit constructor for every constructor found above,
-    // substituting type parameters as appropriate.
-    return constructorsToForward
-        .map((ConstructorElement superclassConstructor) {
-      ConstructorElementImpl implicitConstructor =
-          new ConstructorElementImpl(superclassConstructor.name, -1);
-      implicitConstructor.synthetic = true;
-      implicitConstructor.redirectedConstructor = superclassConstructor;
-      implicitConstructor.returnType = type;
-      List<ParameterElement> superParameters = superclassConstructor.parameters;
-      int count = superParameters.length;
-      if (count > 0) {
-        List<ParameterElement> implicitParameters =
-            new List<ParameterElement>(count);
-        for (int i = 0; i < count; i++) {
-          ParameterElement superParameter = superParameters[i];
-          ParameterElementImpl implicitParameter =
-              new ParameterElementImpl(superParameter.name, -1);
-          implicitParameter.const3 = superParameter.isConst;
-          implicitParameter.final2 = superParameter.isFinal;
-          implicitParameter.parameterKind = superParameter.parameterKind;
-          implicitParameter.synthetic = true;
-          implicitParameter.type =
-              superParameter.type.substitute2(argumentTypes, parameterTypes);
-          implicitParameters[i] = implicitParameter;
-        }
-        implicitConstructor.parameters = implicitParameters;
-      }
-      implicitConstructor.enclosingElement = this;
-      implicitConstructor.type = new FunctionTypeImpl(implicitConstructor);
-      return implicitConstructor;
-    }).toList(growable: false);
   }
 
   PropertyAccessorElement _internalLookUpConcreteGetter(
@@ -909,33 +400,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
     return null;
   }
 
-  bool _safeIsOrInheritsProxy(
-      ClassElement classElt, HashSet<ClassElement> visitedClassElts) {
-    if (visitedClassElts.contains(classElt)) {
-      return false;
-    }
-    visitedClassElts.add(classElt);
-    if (classElt.isProxy) {
-      return true;
-    } else if (classElt.supertype != null &&
-        _safeIsOrInheritsProxy(classElt.supertype.element, visitedClassElts)) {
-      return true;
-    }
-    List<InterfaceType> supertypes = classElt.interfaces;
-    for (int i = 0; i < supertypes.length; i++) {
-      if (_safeIsOrInheritsProxy(supertypes[i].element, visitedClassElts)) {
-        return true;
-      }
-    }
-    supertypes = classElt.mixins;
-    for (int i = 0; i < supertypes.length; i++) {
-      if (_safeIsOrInheritsProxy(supertypes[i].element, visitedClassElts)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   /**
    * Return the [AbstractClassElementImpl] of the given [classElement].  May
    * throw an exception if the [AbstractClassElementImpl] cannot be provided
@@ -988,6 +452,44 @@ class ClassElementImpl extends AbstractClassElementImpl {
   final UnlinkedClass _unlinkedClass;
 
   /**
+   * A list containing all of the type parameters defined for this class.
+   */
+  List<TypeParameterElement> _typeParameters = TypeParameterElement.EMPTY_LIST;
+
+  /**
+   * A list containing all of the mixins that are applied to the class being
+   * extended in order to derive the superclass of this class.
+   */
+  List<InterfaceType> _mixins;
+
+  /**
+   * A list containing all of the interfaces that are implemented by this class.
+   */
+  List<InterfaceType> _interfaces;
+
+  /**
+   * For classes which are not mixin applications, a list containing all of the
+   * constructors contained in this class, or `null` if the list of
+   * constructors has not yet been built.
+   *
+   * For classes which are mixin applications, the list of constructors is
+   * computed on the fly by the [constructors] getter, and this field is
+   * `null`.
+   */
+  List<ConstructorElement> _constructors;
+
+  /**
+   * A list containing all of the methods contained in this class.
+   */
+  List<MethodElement> _methods = MethodElement.EMPTY_LIST;
+
+  /**
+   * A flag indicating whether the types associated with the instance members of
+   * this class have been inferred.
+   */
+  bool hasBeenInferred = false;
+
+  /**
    * Initialize a newly created class element to have the given [name] at the
    * given [offset] in the file that contains the declaration of this element.
    */
@@ -1014,7 +516,14 @@ class ClassElementImpl extends AbstractClassElementImpl {
    */
   void set abstract(bool isAbstract) {
     assert(_unlinkedClass == null);
-    super.abstract = isAbstract;
+    setModifier(Modifier.ABSTRACT, isAbstract);
+  }
+
+  @override
+  List<InterfaceType> get allSupertypes {
+    List<InterfaceType> list = new List<InterfaceType>();
+    _collectAllSupertypes(list);
+    return list;
   }
 
   @override
@@ -1031,6 +540,28 @@ class ClassElementImpl extends AbstractClassElementImpl {
       return _unlinkedClass.codeRange?.offset;
     }
     return super.codeOffset;
+  }
+
+  @override
+  List<ConstructorElement> get constructors {
+    if (!isMixinApplication) {
+      assert(_constructors != null);
+      return _constructors ?? ConstructorElement.EMPTY_LIST;
+    }
+    return _computeMixinAppConstructors();
+  }
+
+  /**
+   * Set the constructors contained in this class to the given [constructors].
+   *
+   * Should only be used for class elements that are not mixin applications.
+   */
+  void set constructors(List<ConstructorElement> constructors) {
+    assert(!isMixinApplication);
+    for (ConstructorElement constructor in constructors) {
+      (constructor as ConstructorElementImpl).enclosingElement = this;
+    }
+    this._constructors = constructors;
   }
 
   @override
@@ -1053,6 +584,111 @@ class ClassElementImpl extends AbstractClassElementImpl {
     return super.documentationComment;
   }
 
+  /**
+   * Return `true` if [CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS] should
+   * be reported for this class.
+   */
+  bool get doesMixinLackConstructors {
+    if (!isMixinApplication && mixins.isEmpty) {
+      // This class is not a mixin application and it doesn't have a "with"
+      // clause, so CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS is
+      // inapplicable.
+      return false;
+    }
+    if (supertype == null) {
+      // Should never happen, since Object is the only class that has no
+      // supertype, and it should have been caught by the test above.
+      assert(false);
+      return false;
+    }
+    // Find the nearest class in the supertype chain that is not a mixin
+    // application.
+    ClassElement nearestNonMixinClass = supertype.element;
+    if (nearestNonMixinClass.isMixinApplication) {
+      // Use a list to keep track of the classes we've seen, so that we won't
+      // go into an infinite loop in the event of a non-trivial loop in the
+      // class hierarchy.
+      List<ClassElement> classesSeen = <ClassElement>[this];
+      while (nearestNonMixinClass.isMixinApplication) {
+        if (classesSeen.contains(nearestNonMixinClass)) {
+          // Loop in the class hierarchy (which is reported elsewhere).  Don't
+          // confuse the user with further errors.
+          return false;
+        }
+        classesSeen.add(nearestNonMixinClass);
+        if (nearestNonMixinClass.supertype == null) {
+          // Should never happen, since Object is the only class that has no
+          // supertype, and it is not a mixin application.
+          assert(false);
+          return false;
+        }
+        nearestNonMixinClass = nearestNonMixinClass.supertype.element;
+      }
+    }
+    return !nearestNonMixinClass.constructors.any(isSuperConstructorAccessible);
+  }
+
+  @override
+  bool get hasNonFinalField {
+    List<ClassElement> classesToVisit = new List<ClassElement>();
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    classesToVisit.add(this);
+    while (!classesToVisit.isEmpty) {
+      ClassElement currentElement = classesToVisit.removeAt(0);
+      if (visitedClasses.add(currentElement)) {
+        // check fields
+        for (FieldElement field in currentElement.fields) {
+          if (!field.isFinal &&
+              !field.isConst &&
+              !field.isStatic &&
+              !field.isSynthetic) {
+            return true;
+          }
+        }
+        // check mixins
+        for (InterfaceType mixinType in currentElement.mixins) {
+          ClassElement mixinElement = mixinType.element;
+          classesToVisit.add(mixinElement);
+        }
+        // check super
+        InterfaceType supertype = currentElement.supertype;
+        if (supertype != null) {
+          ClassElement superElement = supertype.element;
+          if (superElement != null) {
+            classesToVisit.add(superElement);
+          }
+        }
+      }
+    }
+    // not found
+    return false;
+  }
+
+  @override
+  bool get hasReferenceToSuper => hasModifier(Modifier.REFERENCES_SUPER);
+
+  /**
+   * Set whether this class references 'super'.
+   */
+  void set hasReferenceToSuper(bool isReferencedSuper) {
+    setModifier(Modifier.REFERENCES_SUPER, isReferencedSuper);
+  }
+
+  @override
+  bool get hasStaticMember {
+    for (MethodElement method in _methods) {
+      if (method.isStatic) {
+        return true;
+      }
+    }
+    for (PropertyAccessorElement accessor in _accessors) {
+      if (accessor.isStatic) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @override
   List<InterfaceType> get interfaces {
     if (_unlinkedClass != null && _interfaces == null) {
@@ -1061,12 +697,12 @@ class ClassElementImpl extends AbstractClassElementImpl {
           .map((EntityRef t) => context.resolveTypeRef(t, this))
           .toList(growable: false);
     }
-    return super.interfaces;
+    return _interfaces ?? const <InterfaceType>[];
   }
 
   void set interfaces(List<InterfaceType> interfaces) {
     assert(_unlinkedClass == null);
-    super.interfaces = interfaces;
+    _interfaces = interfaces;
   }
 
   @override
@@ -1074,7 +710,7 @@ class ClassElementImpl extends AbstractClassElementImpl {
     if (_unlinkedClass != null) {
       return _unlinkedClass.isAbstract;
     }
-    return super.isAbstract;
+    return hasModifier(Modifier.ABSTRACT);
   }
 
   @override
@@ -1085,7 +721,39 @@ class ClassElementImpl extends AbstractClassElementImpl {
     if (_unlinkedClass != null) {
       return _unlinkedClass.isMixinApplication;
     }
-    return super.isMixinApplication;
+    return hasModifier(Modifier.MIXIN_APPLICATION);
+  }
+
+  @override
+  bool get isOrInheritsProxy =>
+      _safeIsOrInheritsProxy(this, new HashSet<ClassElement>());
+
+  @override
+  bool get isProxy {
+    for (ElementAnnotation annotation in metadata) {
+      if (annotation.isProxy) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get isValidMixin {
+    if (!context.analysisOptions.enableSuperMixins) {
+      if (hasReferenceToSuper) {
+        return false;
+      }
+      if (!supertype.isObject) {
+        return false;
+      }
+    }
+    for (ConstructorElement constructor in constructors) {
+      if (!constructor.isSynthetic && !constructor.isFactory) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @override
@@ -1097,12 +765,25 @@ class ClassElementImpl extends AbstractClassElementImpl {
     return super.metadata;
   }
 
+  @override
+  List<MethodElement> get methods => _methods;
+
+  /**
+   * Set the methods contained in this class to the given [methods].
+   */
+  void set methods(List<MethodElement> methods) {
+    for (MethodElement method in methods) {
+      (method as MethodElementImpl).enclosingElement = this;
+    }
+    this._methods = methods;
+  }
+
   /**
    * Set whether this class is a mixin application.
    */
   void set mixinApplication(bool isMixinApplication) {
     assert(_unlinkedClass == null);
-    super.mixinApplication = isMixinApplication;
+    setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
   }
 
   @override
@@ -1113,12 +794,12 @@ class ClassElementImpl extends AbstractClassElementImpl {
           .map((EntityRef t) => context.resolveTypeRef(t, this))
           .toList(growable: false);
     }
-    return super.mixins;
+    return _mixins ?? const <InterfaceType>[];
   }
 
   void set mixins(List<InterfaceType> mixins) {
     assert(_unlinkedClass == null);
-    super.mixins = mixins;
+    _mixins = mixins;
   }
 
   @override
@@ -1142,7 +823,7 @@ class ClassElementImpl extends AbstractClassElementImpl {
     if (_unlinkedClass != null) {
       return resynthesizedTypeParameters;
     }
-    return super.typeParameters;
+    return _typeParameters;
   }
 
   /**
@@ -1151,12 +832,293 @@ class ClassElementImpl extends AbstractClassElementImpl {
    */
   void set typeParameters(List<TypeParameterElement> typeParameters) {
     assert(_unlinkedClass == null);
-    super.typeParameters = typeParameters;
+    for (TypeParameterElement typeParameter in typeParameters) {
+      (typeParameter as TypeParameterElementImpl).enclosingElement = this;
+    }
+    this._typeParameters = typeParameters;
   }
 
   @override
   List<UnlinkedTypeParam> get unlinkedTypeParams =>
       _unlinkedClass.typeParameters;
+
+  @override
+  ConstructorElement get unnamedConstructor {
+    for (ConstructorElement element in constructors) {
+      String name = element.displayName;
+      if (name == null || name.isEmpty) {
+        return element;
+      }
+    }
+    return null;
+  }
+
+  @override
+  void appendTo(StringBuffer buffer) {
+    if (isAbstract) {
+      buffer.write('abstract ');
+    }
+    buffer.write('class ');
+    String name = displayName;
+    if (name == null) {
+      buffer.write("{unnamed class}");
+    } else {
+      buffer.write(name);
+    }
+    int variableCount = typeParameters.length;
+    if (variableCount > 0) {
+      buffer.write("<");
+      for (int i = 0; i < variableCount; i++) {
+        if (i > 0) {
+          buffer.write(", ");
+        }
+        (typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
+      }
+      buffer.write(">");
+    }
+    if (supertype != null && !supertype.isObject) {
+      buffer.write(' extends ');
+      buffer.write(supertype.displayName);
+    }
+    if (mixins.isNotEmpty) {
+      buffer.write(' with ');
+      buffer.write(mixins.map((t) => t.displayName).join(', '));
+    }
+    if (interfaces.isNotEmpty) {
+      buffer.write(' implements ');
+      buffer.write(interfaces.map((t) => t.displayName).join(', '));
+    }
+  }
+
+  @override
+  ElementImpl getChild(String identifier) {
+    ElementImpl child = super.getChild(identifier);
+    if (child != null) {
+      return child;
+    }
+    //
+    // The casts in this method are safe because the set methods would have
+    // thrown a CCE if any of the elements in the arrays were not of the
+    // expected types.
+    //
+    for (ConstructorElement constructor in _constructors) {
+      ConstructorElementImpl constructorImpl = constructor;
+      if (constructorImpl.identifier == identifier) {
+        return constructorImpl;
+      }
+    }
+    for (MethodElement method in _methods) {
+      MethodElementImpl methodImpl = method;
+      if (methodImpl.identifier == identifier) {
+        return methodImpl;
+      }
+    }
+    for (TypeParameterElement typeParameter in typeParameters) {
+      TypeParameterElementImpl typeParameterImpl = typeParameter;
+      if (typeParameterImpl.identifier == identifier) {
+        return typeParameterImpl;
+      }
+    }
+    return null;
+  }
+
+  @override
+  MethodElement getMethod(String methodName) {
+    int length = _methods.length;
+    for (int i = 0; i < length; i++) {
+      MethodElement method = _methods[i];
+      if (method.name == methodName) {
+        return method;
+      }
+    }
+    return null;
+  }
+
+  @override
+  ConstructorElement getNamedConstructor(String name) {
+    for (ConstructorElement element in constructors) {
+      String elementName = element.name;
+      if (elementName != null && elementName == name) {
+        return element;
+      }
+    }
+    return null;
+  }
+
+  @override
+  bool isSuperConstructorAccessible(ConstructorElement constructor) {
+    // If this class has no mixins, then all superclass constructors are
+    // accessible.
+    if (mixins.isEmpty) {
+      return true;
+    }
+    // Otherwise only constructors that lack optional parameters are
+    // accessible (see dartbug.com/19576).
+    for (ParameterElement parameter in constructor.parameters) {
+      if (parameter.parameterKind != ParameterKind.REQUIRED) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChildren(_constructors, visitor);
+    safelyVisitChildren(_methods, visitor);
+    safelyVisitChildren(_typeParameters, visitor);
+  }
+
+  void _collectAllSupertypes(List<InterfaceType> supertypes) {
+    List<InterfaceType> typesToVisit = new List<InterfaceType>();
+    List<ClassElement> visitedClasses = new List<ClassElement>();
+    typesToVisit.add(this.type);
+    while (!typesToVisit.isEmpty) {
+      InterfaceType currentType = typesToVisit.removeAt(0);
+      ClassElement currentElement = currentType.element;
+      if (!visitedClasses.contains(currentElement)) {
+        visitedClasses.add(currentElement);
+        if (!identical(currentType, this.type)) {
+          supertypes.add(currentType);
+        }
+        InterfaceType supertype = currentType.superclass;
+        if (supertype != null) {
+          typesToVisit.add(supertype);
+        }
+        for (InterfaceType type in currentElement.interfaces) {
+          typesToVisit.add(type);
+        }
+        for (InterfaceType type in currentElement.mixins) {
+          ClassElement element = type.element;
+          if (!visitedClasses.contains(element)) {
+            supertypes.add(type);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Compute a list of constructors for this class, which is a mixin
+   * application.  If specified, [visitedClasses] is a list of the other mixin
+   * application classes which have been visited on the way to reaching this
+   * one (this is used to detect circularities).
+   */
+  List<ConstructorElement> _computeMixinAppConstructors(
+      [List<ClassElementImpl> visitedClasses = null]) {
+    // First get the list of constructors of the superclass which need to be
+    // forwarded to this class.
+    Iterable<ConstructorElement> constructorsToForward;
+    if (supertype == null) {
+      // Shouldn't ever happen, since the only class with no supertype is
+      // Object, and it isn't a mixin application.  But for safety's sake just
+      // assume an empty list.
+      assert(false);
+      constructorsToForward = <ConstructorElement>[];
+    } else if (!supertype.element.isMixinApplication) {
+      List<ConstructorElement> superclassConstructors =
+          supertype.element.constructors;
+      // Filter out any constructors with optional parameters (see
+      // dartbug.com/15101).
+      constructorsToForward =
+          superclassConstructors.where(isSuperConstructorAccessible);
+    } else {
+      if (visitedClasses == null) {
+        visitedClasses = <ClassElementImpl>[this];
+      } else {
+        if (visitedClasses.contains(this)) {
+          // Loop in the class hierarchy.  Don't try to forward any
+          // constructors.
+          return <ConstructorElement>[];
+        }
+        visitedClasses.add(this);
+      }
+      try {
+        ClassElementImpl superElement = AbstractClassElementImpl
+            .getImpl(supertype.element) as ClassElementImpl;
+        constructorsToForward =
+            superElement._computeMixinAppConstructors(visitedClasses);
+      } finally {
+        visitedClasses.removeLast();
+      }
+    }
+
+    // Figure out the type parameter substitution we need to perform in order
+    // to produce constructors for this class.  We want to be robust in the
+    // face of errors, so drop any extra type arguments and fill in any missing
+    // ones with `dynamic`.
+    List<DartType> parameterTypes =
+        TypeParameterTypeImpl.getTypes(supertype.typeParameters);
+    List<DartType> argumentTypes = new List<DartType>.filled(
+        parameterTypes.length, DynamicTypeImpl.instance);
+    for (int i = 0; i < supertype.typeArguments.length; i++) {
+      if (i >= argumentTypes.length) {
+        break;
+      }
+      argumentTypes[i] = supertype.typeArguments[i];
+    }
+
+    // Now create an implicit constructor for every constructor found above,
+    // substituting type parameters as appropriate.
+    return constructorsToForward
+        .map((ConstructorElement superclassConstructor) {
+      ConstructorElementImpl implicitConstructor =
+          new ConstructorElementImpl(superclassConstructor.name, -1);
+      implicitConstructor.synthetic = true;
+      implicitConstructor.redirectedConstructor = superclassConstructor;
+      implicitConstructor.returnType = type;
+      List<ParameterElement> superParameters = superclassConstructor.parameters;
+      int count = superParameters.length;
+      if (count > 0) {
+        List<ParameterElement> implicitParameters =
+            new List<ParameterElement>(count);
+        for (int i = 0; i < count; i++) {
+          ParameterElement superParameter = superParameters[i];
+          ParameterElementImpl implicitParameter =
+              new ParameterElementImpl(superParameter.name, -1);
+          implicitParameter.const3 = superParameter.isConst;
+          implicitParameter.final2 = superParameter.isFinal;
+          implicitParameter.parameterKind = superParameter.parameterKind;
+          implicitParameter.synthetic = true;
+          implicitParameter.type =
+              superParameter.type.substitute2(argumentTypes, parameterTypes);
+          implicitParameters[i] = implicitParameter;
+        }
+        implicitConstructor.parameters = implicitParameters;
+      }
+      implicitConstructor.enclosingElement = this;
+      implicitConstructor.type = new FunctionTypeImpl(implicitConstructor);
+      return implicitConstructor;
+    }).toList(growable: false);
+  }
+
+  bool _safeIsOrInheritsProxy(
+      ClassElement classElt, HashSet<ClassElement> visitedClassElts) {
+    if (visitedClassElts.contains(classElt)) {
+      return false;
+    }
+    visitedClassElts.add(classElt);
+    if (classElt.isProxy) {
+      return true;
+    } else if (classElt.supertype != null &&
+        _safeIsOrInheritsProxy(classElt.supertype.element, visitedClassElts)) {
+      return true;
+    }
+    List<InterfaceType> supertypes = classElt.interfaces;
+    for (int i = 0; i < supertypes.length; i++) {
+      if (_safeIsOrInheritsProxy(supertypes[i].element, visitedClassElts)) {
+        return true;
+      }
+    }
+    supertypes = classElt.mixins;
+    for (int i = 0; i < supertypes.length; i++) {
+      if (_safeIsOrInheritsProxy(supertypes[i].element, visitedClassElts)) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
 /**
@@ -2966,6 +2928,9 @@ class EnumElementImpl extends AbstractClassElementImpl {
   }
 
   @override
+  List<InterfaceType> get allSupertypes => <InterfaceType>[supertype];
+
+  @override
   int get codeLength {
     if (_unlinkedEnum != null) {
       return _unlinkedEnum.codeRange?.length;
@@ -2979,6 +2944,15 @@ class EnumElementImpl extends AbstractClassElementImpl {
       return _unlinkedEnum.codeRange?.offset;
     }
     return super.codeOffset;
+  }
+
+  @override
+  List<ConstructorElement> get constructors {
+    // The equivalent code for enums in the spec shows a single constructor,
+    // but that constructor is not callable (since it is a compile-time error
+    // to subclass, mix-in, implement, or explicitly instantiate an enum).
+    // So we represent this as having no constructors.
+    return const <ConstructorElement>[];
   }
 
   @override
@@ -3001,11 +2975,16 @@ class EnumElementImpl extends AbstractClassElementImpl {
   }
 
   @override
-  List<InterfaceType> get interfaces => const <InterfaceType>[];
+  bool get hasNonFinalField => false;
 
-  void set interfaces(List<InterfaceType> interfaces) {
-    assert(false);
-  }
+  @override
+  bool get hasReferenceToSuper => false;
+
+  @override
+  bool get hasStaticMember => true;
+
+  @override
+  List<InterfaceType> get interfaces => const <InterfaceType>[];
 
   @override
   bool get isAbstract => false;
@@ -3017,6 +2996,15 @@ class EnumElementImpl extends AbstractClassElementImpl {
   bool get isMixinApplication => false;
 
   @override
+  bool get isOrInheritsProxy => false;
+
+  @override
+  bool get isProxy => false;
+
+  @override
+  bool get isValidMixin => false;
+
+  @override
   List<ElementAnnotation> get metadata {
     if (_unlinkedEnum != null) {
       return _metadata ??=
@@ -3025,19 +3013,11 @@ class EnumElementImpl extends AbstractClassElementImpl {
     return super.metadata;
   }
 
-  /**
-   * Set whether this class is a mixin application.
-   */
-  void set mixinApplication(bool isMixinApplication) {
-    assert(false);
-  }
+  @override
+  List<MethodElement> get methods => const <MethodElement>[];
 
   @override
   List<InterfaceType> get mixins => const <InterfaceType>[];
-
-  void set mixins(List<InterfaceType> mixins) {
-    assert(false);
-  }
 
   @override
   String get name {
@@ -3059,13 +3039,28 @@ class EnumElementImpl extends AbstractClassElementImpl {
   List<TypeParameterElement> get typeParameters =>
       const <TypeParameterElement>[];
 
-  /**
-   * Set the type parameters defined for this class to the given
-   * [typeParameters].
-   */
-  void set typeParameters(List<TypeParameterElement> typeParameters) {
-    assert(false);
+  @override
+  ConstructorElement get unnamedConstructor => null;
+
+  @override
+  void appendTo(StringBuffer buffer) {
+    buffer.write('enum ');
+    String name = displayName;
+    if (name == null) {
+      buffer.write("{unnamed enum}");
+    } else {
+      buffer.write(name);
+    }
   }
+
+  @override
+  MethodElement getMethod(String name) => null;
+
+  @override
+  ConstructorElement getNamedConstructor(String name) => null;
+
+  @override
+  bool isSuperConstructorAccessible(ConstructorElement constructor) => false;
 }
 
 /**

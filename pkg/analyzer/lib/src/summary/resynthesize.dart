@@ -1916,7 +1916,6 @@ class _UnitResynthesizer {
     // done
     classElement.fields = memberHolder.fields;
     classElement.accessors = memberHolder.accessors;
-    classElement.constructors = <ConstructorElement>[];
     unitHolder.addEnum(classElement);
   }
 

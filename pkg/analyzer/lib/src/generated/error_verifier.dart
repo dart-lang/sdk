@@ -208,7 +208,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * The class containing the AST nodes being visited, or `null` if we are not
    * in the scope of a class.
    */
-  AbstractClassElementImpl _enclosingClass;
+  ClassElementImpl _enclosingClass;
+
+  /**
+   * The enum containing the AST nodes being visited, or `null` if we are not
+   * in the scope of an enum.
+   */
+  ClassElement _enclosingEnum;
 
   /**
    * The method or function that we are currently visiting, or `null` if we are
@@ -622,13 +628,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitEnumDeclaration(EnumDeclaration node) {
-    ClassElementImpl outerClass = _enclosingClass;
+    ClassElement outerEnum = _enclosingEnum;
     try {
-      _isInNativeClass = false;
-      _enclosingClass = AbstractClassElementImpl.getImpl(node.element);
+      _enclosingEnum = node.element;
       return super.visitEnumDeclaration(node);
     } finally {
-      _enclosingClass = outerClass;
+      _enclosingEnum = outerEnum;
     }
   }
 
@@ -5362,6 +5367,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     Element enclosingElement = element.enclosingElement;
     if (identical(enclosingElement, _enclosingClass)) {
+      return;
+    }
+    if (identical(enclosingElement, _enclosingEnum)) {
       return;
     }
     if (enclosingElement is! ClassElement) {
