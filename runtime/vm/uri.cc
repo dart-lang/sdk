@@ -536,6 +536,7 @@ bool ResolveUri(const char* ref_uri,
       // described in the RFC.  We do not need to support this for
       // library resolution.  If we need to implement this later, we
       // can.
+      *target_uri = NULL;
       return false;
     }
 

@@ -562,25 +562,25 @@ TEST_CASE(ResolveUri_NormalizeEscapes_BrokenEscapeSequence) {
 TEST_CASE(ResolveUri_RelativeBase_NotImplemented) {
   const char* target_uri;
   EXPECT(!ResolveUri("../r1", "b1/b2", &target_uri));
-  EXPECT_STREQ("", target_uri);
+  EXPECT(target_uri == NULL);
 
   EXPECT(!ResolveUri("..", "b1/b2", &target_uri));
-  EXPECT_STREQ("", target_uri);
+  EXPECT(target_uri == NULL);
 
   EXPECT(!ResolveUri("../..", "b1/b2", &target_uri));
-  EXPECT_STREQ("", target_uri);
+  EXPECT(target_uri == NULL);
 
   EXPECT(!ResolveUri("../../..", "b1/b2", &target_uri));
-  EXPECT_STREQ("", target_uri);
+  EXPECT(target_uri == NULL);
 
   EXPECT(!ResolveUri("../../../r1", "b1/b2", &target_uri));
-  EXPECT_STREQ("", target_uri);
+  EXPECT(target_uri == NULL);
 
   EXPECT(!ResolveUri("../r1", "../../b1/b2/b3", &target_uri));
-  EXPECT_STREQ("", target_uri);
+  EXPECT(target_uri == NULL);
 
   EXPECT(!ResolveUri("../../../r1", "../../b1/b2/b3", &target_uri));
-  EXPECT_STREQ("", target_uri);
+  EXPECT(target_uri == NULL);
 }
 
 
