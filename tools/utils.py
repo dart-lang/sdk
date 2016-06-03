@@ -221,7 +221,7 @@ BUILD_MODES = {
 
 # Mapping table between OS and build output location.
 BUILD_ROOT = {
-  'win32': os.path.join('build'),
+  'win32': os.path.join('out'),
   'linux': os.path.join('out'),
   'freebsd': os.path.join('out'),
   'macos': os.path.join('xcodebuild'),

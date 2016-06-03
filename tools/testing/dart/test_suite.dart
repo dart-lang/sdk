@@ -2237,12 +2237,10 @@ class TestUtils {
   static String outputDir(Map configuration) {
     var result = '';
     var system = configuration['system'];
-    if (system == 'linux' || system == 'android') {
+    if (system == 'linux' || system == 'android' || system == 'windows') {
       result = 'out/';
     } else if (system == 'macos') {
       result = 'xcodebuild/';
-    } else if (system == 'windows') {
-      result = 'build/';
     } else {
       throw new Exception('Unknown operating system: "$system"');
     }
