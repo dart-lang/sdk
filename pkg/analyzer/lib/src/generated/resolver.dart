@@ -700,7 +700,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     }
 
     ClassElement invokingClass = decl.element?.enclosingElement;
-    if (!_hasSuperType(invokingClass, definingClass.type)) {
+    if (!_hasTypeOrSuperType(invokingClass, definingClass.type)) {
       _errorReporter.reportErrorForNode(
           HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
           node,
@@ -729,7 +729,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
             HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
             identifier,
             [identifier.name.toString(), definingClass.name]);
-      } else if (!_hasSuperType(accessingClass.element, definingClass.type)) {
+      } else if (!_hasTypeOrSuperType(
+          accessingClass.element, definingClass.type)) {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
             identifier,
@@ -1006,26 +1007,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 //    return false;
 //  }
 
-  bool _hasSuperClassOrMixin(ClassElement element, InterfaceType type) {
-    List<ClassElement> seenClasses = <ClassElement>[];
-    while (element != null && !seenClasses.contains(element)) {
-      if (element.type == type) {
-        return true;
-      }
-
-      if (element.mixins.any((InterfaceType t) => t == type)) {
-        return true;
-      }
-
-      seenClasses.add(element);
-      element = element.supertype?.element;
-    }
-
-    return false;
-  }
-
-  bool _hasSuperType(ClassElement element, InterfaceType type) =>
-      element != null && element.allSupertypes.contains(type);
+  bool _hasTypeOrSuperType(ClassElement element, InterfaceType type) =>
+      element != null &&
+      (element.type == type || element.allSupertypes.contains(type));
 
   /**
    * Given a parenthesized expression, this returns the parent (or recursively grand-parent) of the

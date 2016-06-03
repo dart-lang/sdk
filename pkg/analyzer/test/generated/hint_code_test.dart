@@ -1279,6 +1279,23 @@ class B extends A {
     verify([source]);
   }
 
+  void test_invalidUseOfProtectedMember_OK_setter_2() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  int _a;
+  @protected
+  void set a(int a) { _a = a; }
+  A(int a) {
+    this.a = a;
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_invalidUseOfProtectedMember_setter() {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
