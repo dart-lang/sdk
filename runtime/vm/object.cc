@@ -7139,11 +7139,10 @@ bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
       // This output can be copied into a file, then used with sed
       // to replace the old values.
       // sed -i .bak -f /tmp/newkeys runtime/vm/method_recognizer.h
-      THR_Print("s/V(%s, %d)/V(%s, %d)/\n",
-                prefix, fp, prefix, SourceFingerprint());
+      THR_Print("s/0x%08x/0x%08x/\n", fp, SourceFingerprint());
     } else {
       THR_Print("FP mismatch while recognizing method %s:"
-                " expecting %d found %d\n",
+                " expecting 0x%08x found 0x%08x\n",
                 ToFullyQualifiedCString(),
                 fp,
                 SourceFingerprint());
