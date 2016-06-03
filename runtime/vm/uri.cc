@@ -248,20 +248,6 @@ bool ParseUri(const char* uri, ParsedUri* parsed_uri) {
     parsed_uri->port = NULL;
   }
 
-  // Double slashes in the path do not parse.
-  bool saw_slash = false;
-  for (const char* pos = path_start; pos < question_pos; pos++) {
-    if (*pos == '/') {
-      if (saw_slash) {
-        ClearParsedUri(parsed_uri);
-        return false;
-      }
-      saw_slash = true;
-    } else {
-      saw_slash = false;
-    }
-  }
-
   // The path is the substring between the authority and the query.
   parsed_uri->path = NormalizeEscapes(path_start, (question_pos - path_start));
   return true;

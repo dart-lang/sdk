@@ -229,32 +229,6 @@ TEST_CASE(ParseUri_NoScheme_FragmentOnly) {
 }
 
 
-TEST_CASE(ParseUri_DoubleSlash1) {
-  ParsedUri uri;
-  EXPECT(!ParseUri("foo://example.com:8042/over//there?name=ferret", &uri));
-  EXPECT(uri.scheme == NULL);
-  EXPECT(uri.userinfo == NULL);
-  EXPECT(uri.host == NULL);
-  EXPECT(uri.port == NULL);
-  EXPECT(uri.path == NULL);
-  EXPECT(uri.query == NULL);
-  EXPECT(uri.fragment == NULL);
-}
-
-
-TEST_CASE(ParseUri_DoubleSlash2) {
-  ParsedUri uri;
-  EXPECT(!ParseUri("or//here", &uri));
-  EXPECT(uri.scheme == NULL);
-  EXPECT(uri.userinfo == NULL);
-  EXPECT(uri.host == NULL);
-  EXPECT(uri.port == NULL);
-  EXPECT(uri.path == NULL);
-  EXPECT(uri.query == NULL);
-  EXPECT(uri.fragment == NULL);
-}
-
-
 TEST_CASE(ParseUri_LowerCaseScheme) {
   ParsedUri uri;
   EXPECT(ParseUri("ScHeMe:path", &uri));
@@ -555,6 +529,17 @@ TEST_CASE(ResolveUri_NormalizeEscapes_BrokenEscapeSequence) {
                target_uri);
 }
 
+
+TEST_CASE(ResolveUri_DataUri) {
+  const char* data_uri =
+      "data:application/dart;charset=utf-8,%20%20%20%20%20%20%20%20import%20%22dart:isolate%22;%0A%0A%20%20%20%20%20%20%20%20import%20%22package:stream_channel/stream_channel.dart%22;%0A%0A%20%20%20%20%20%20%20%20import%20%22package:test/src/runner/plugin/remote_platform_helpers.dart%22;%0A%20%20%20%20%20%20%20%20import%20%22package:test/src/runner/vm/catch_isolate_errors.dart%22;%0A%0A%20%20%20%20%20%20%20%20import%20%22file:///home/sra/xxxx/dev_compiler/test/all_tests.dart%22%20as%20test;%0A%0A%20%20%20%20%20%20%20%20void%20main(_,%20SendPort%20message)%20%7B%0A%20%20%20%20%20%20%20%20%20%20var%20channel%20=%20serializeSuite(()%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20catchIsolateErrors();%0A%20%20%20%20%20%20%20%20%20%20%20%20return%20test.main;%0A%20%20%20%20%20%20%20%20%20%20%7D);%0A%20%20%20%20%20%20%20%20%20%20new%20IsolateChannel.connectSend(message).pipe(channel);%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20";  // NOLINT
+
+  const char* target_uri;
+  EXPECT(ResolveUri(data_uri,
+                    "bscheme://buser@bhost:11/base/path?baseQuery#bfragment",
+                    &target_uri));
+  EXPECT_STREQ(data_uri, target_uri);
+}
 
 // dart:core Uri allows for the base url to be relative (no scheme, no
 // authory, relative path) but this behavior is not in RFC 3986.  We
