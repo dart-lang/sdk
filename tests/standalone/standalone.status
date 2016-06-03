@@ -7,9 +7,6 @@
 # listed in tests/lib/analyzer/analyze_tests.status without the "standalone"
 # prefix.
 
-packages_file_test: Pass, Slow
-packages_file_test/none: Skip   # contains no tests.
-
 package/invalid_uri_test: Fail, OK # CompileTimeErrors intentionally
 package/scenarios/packages_file_strange_formatting/empty_package_dir_test: Fail, OK # CompileTimeErrors intentionally
 package/scenarios/empty_packages_file/empty_packages_file_discovery_test: Fail, OK # CompileTimeErrors intentionally
