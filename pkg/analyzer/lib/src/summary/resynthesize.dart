@@ -750,116 +750,6 @@ class _ConstExprBuilder {
 }
 
 /**
- * A class element that has been resynthesized from a summary.  The actual
- * element won't be constructed until it is requested.  But properties
- * [context],  [displayName], [enclosingElement] and [name] can be used without
- * creating the actual element.  This allows to put these elements into
- * namespaces without creating actual elements until they are really needed.
- */
-class _DeferredClassElement extends ClassElementHandle {
-  final _UnitResynthesizer unitResynthesizer;
-  final CompilationUnitElement unitElement;
-  final UnlinkedClass serializedClass;
-
-  ClassElementImpl _actualElement;
-
-  /**
-   * We don't resynthesize executables of classes until they are requested.
-   * TODO(scheglov) Check whether we need separate flags for separate kinds.
-   */
-  bool _executablesResynthesized = false;
-
-  @override
-  final String name;
-
-  factory _DeferredClassElement(_UnitResynthesizer unitResynthesizer,
-      CompilationUnitElement unitElement, UnlinkedClass serializedClass) {
-    String name = serializedClass.name;
-    List<String> components =
-        unitResynthesizer.unit.location.components.toList();
-    components.add(name);
-    ElementLocationImpl location = new ElementLocationImpl.con3(components);
-    return new _DeferredClassElement._(
-        unitResynthesizer, unitElement, serializedClass, name, location);
-  }
-
-  _DeferredClassElement._(this.unitResynthesizer, this.unitElement,
-      this.serializedClass, this.name, ElementLocation location)
-      : super(null, location);
-
-  @override
-  List<PropertyAccessorElement> get accessors {
-    _ensureExecutables();
-    return actualElement.accessors;
-  }
-
-  @override
-  ClassElementImpl get actualElement {
-    if (_actualElement == null) {
-      _actualElement = unitResynthesizer.buildClassImpl(serializedClass, this);
-      _actualElement.enclosingElement = unitElement;
-    }
-    return _actualElement;
-  }
-
-  @override
-  List<ConstructorElement> get constructors {
-    _ensureExecutables();
-    return actualElement.constructors;
-  }
-
-  @override
-  AnalysisContext get context => unitElement.context;
-
-  @override
-  String get displayName => name;
-
-  @override
-  CompilationUnitElement get enclosingElement {
-    return unitElement;
-  }
-
-  @override
-  List<FieldElement> get fields {
-    _ensureExecutables();
-    return actualElement.fields;
-  }
-
-  @override
-  List<MethodElement> get methods {
-    _ensureExecutables();
-    return actualElement.methods;
-  }
-
-  @override
-  void ensureAccessorsReady() {
-    _ensureExecutables();
-  }
-
-  @override
-  void ensureActualElementComplete() {
-    _ensureExecutables();
-  }
-
-  @override
-  void ensureConstructorsReady() {
-    _ensureExecutables();
-  }
-
-  @override
-  void ensureMethodsReady() {
-    _ensureExecutables();
-  }
-
-  /**
-   * Ensure that we have [actualElement], and it has all executables.
-   */
-  void _ensureExecutables() {
-    // TODO(scheglov) remove and clean up Handle
-  }
-}
-
-/**
  * Local function element representing the initializer for a variable that has
  * been resynthesized from a summary.  The actual element won't be constructed
  * until it is requested.  But properties [context] and [enclosingElement] can
@@ -1634,32 +1524,14 @@ class _UnitResynthesizer {
    * Resynthesize a [ClassElement] and place it in [unitHolder].
    */
   void buildClass(UnlinkedClass serializedClass) {
-    ClassElement classElement;
-    if (libraryResynthesizer.isCoreLibrary &&
-        serializedClass.supertype == null) {
-      classElement = buildClassImpl(serializedClass, null);
-    } else {
-      classElement = new _DeferredClassElement(this, unit, serializedClass);
-    }
-    unitHolder.addType(classElement);
-  }
-
-  /**
-   * Resynthesize a [ClassElementImpl].  If [handle] is not `null`, then
-   * executables are not resynthesized, and [InterfaceTypeImpl] is created
-   * around the [handle], so that executables are resynthesized lazily.
-   */
-  ClassElementImpl buildClassImpl(
-      UnlinkedClass serializedClass, ClassElementHandle handle) {
     ClassElementImpl classElement =
         new ClassElementImpl.forSerialized(serializedClass, unit);
     classElement.hasBeenInferred = summaryResynthesizer.strongMode;
-    InterfaceTypeImpl correspondingType =
-        new InterfaceTypeImpl(handle ?? classElement);
+    InterfaceTypeImpl correspondingType = new InterfaceTypeImpl(classElement);
     // TODO(scheglov) move to ClassElementImpl
     correspondingType.typeArguments = classElement.typeParameterTypes;
     classElement.type = correspondingType;
-    return classElement;
+    unitHolder.addType(classElement);
   }
 
   /**

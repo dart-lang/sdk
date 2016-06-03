@@ -386,7 +386,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
    */
   static AbstractClassElementImpl getImpl(ClassElement classElement) {
     if (classElement is ClassElementHandle) {
-      classElement.ensureActualElementComplete();
       return getImpl(classElement.actualElement);
     }
     return classElement as AbstractClassElementImpl;
