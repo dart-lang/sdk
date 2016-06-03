@@ -289,7 +289,6 @@ Language/Variables/final_t02: fail # Issue 21093
 Language/Variables/local_variable_t01: MissingCompileTimeError # Issue 21050
 LayoutTests/fast/dom/css-innerHTML_t01: SkipByDesign # Test is incorrect.
 LayoutTests/fast/loader/loadInProgress_t01: Skip # Issue 23466
-LayoutTests/fast/multicol/vertical-rl/image-inside-nested-blocks-with-border_t01: RuntimeError # co19 issue #65
 LibTest/collection/LinkedList/add_A01_t01: Pass, Slow # Slow tests that needs extra time to finish.
 LibTest/collection/ListBase/ListBase_class_A01_t01: RuntimeError # Please triage this failure
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: RuntimeError # Please triage this failure
@@ -1207,6 +1206,7 @@ LayoutTests/fast/multicol/newmulticol/balance_t10: RuntimeError # Please triage 
 LayoutTests/fast/multicol/vertical-lr/float-truncation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/vertical-rl/break-properties_t01: RuntimeError # co19 issue 63
 LayoutTests/fast/multicol/vertical-rl/float-truncation_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/multicol/vertical-rl/image-inside-nested-blocks-with-border_t01: RuntimeError # co19 issue #65
 LayoutTests/fast/multicol/widows_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/overflow/replaced-child-100percent-height-inside-fixed-container-with-overflow-auto_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/overflow/scrollbar-restored_t01: RuntimeError # Please triage this failure
