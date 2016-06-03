@@ -284,6 +284,7 @@ wheelevent_test: RuntimeError # Safarimobilesim does not support WheelEvent
 event_test: RuntimeError # Safarimobilesim does not support WheelEvent
 
 [ $runtime == safari ]
+audiobuffersourcenode_test/functional: RuntimeError
 input_element_test/supported_month: RuntimeError
 input_element_test/supported_time: RuntimeError
 input_element_test/supported_week: RuntimeError

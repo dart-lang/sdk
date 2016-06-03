@@ -3654,7 +3654,6 @@ LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: Skip
 LayoutTests/fast/dom/object-plugin-hides-properties_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/option-properties_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/partial-layout-non-overlay-scrollbars_t01: Pass, RuntimeError # Issue 53
-LayoutTests/fast/dom/partial-layout-overlay-scrollbars_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/set-innerHTML_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/shadow/access-document-of-detached-stylesheetlist-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/shadow/base-in-shadow-tree_t01: RuntimeError # Please triage this failure
@@ -3805,6 +3804,7 @@ LayoutTests/fast/filesystem/simple-required-arguments-getdirectory_t01: RuntimeE
 LayoutTests/fast/filesystem/simple-required-arguments-getfile_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/filesystem/simple-temporary_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/filesystem/snapshot-file-with-gc_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/flexbox/repaint-scrollbar_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/ValidityState-customError_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/ValidityState-typeMismatch-email_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/autocomplete_t01: RuntimeError # Please triage this failure
@@ -3914,14 +3914,14 @@ LayoutTests/fast/multicol/hit-test-end-of-column_t01: RuntimeError # Please tria
 LayoutTests/fast/multicol/hit-test-float_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/hit-test-gap-between-pages-flipped_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/newmulticol/balance-images_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/multicol/newmulticol/balance-maxheight_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/orphans-relayout_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/vertical-lr/float-truncation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/vertical-rl/break-properties_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/vertical-rl/float-truncation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/vertical-rl/image-inside-nested-blocks-with-border_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/overflow/child-100percent-height-inside-fixed-container-with-overflow-auto_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/overflow/child-100percent-height-inside-fixed-container-with-overflow-auto_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/overflow/replaced-child-100percent-height-inside-fixed-container-with-overflow-auto_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/overflow/scrollbar-restored_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/parser/foster-parent-adopted_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/parser/fragment-parser-doctype_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/parser/innerhtml-with-prefixed-elements_t01: RuntimeError # Please triage this failure
