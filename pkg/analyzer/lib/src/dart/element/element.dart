@@ -527,11 +527,24 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<ConstructorElement> get constructors {
-    if (!isMixinApplication) {
-      assert(_constructors != null);
-      return _constructors ?? ConstructorElement.EMPTY_LIST;
+    if (isMixinApplication) {
+      return _computeMixinAppConstructors();
     }
-    return _computeMixinAppConstructors();
+    if (_unlinkedClass != null && _constructors == null) {
+      _constructors = _unlinkedClass.executables
+          .where((e) => e.kind == UnlinkedExecutableKind.constructor)
+          .map((e) => new ConstructorElementImpl.forSerialized(e, this))
+          .toList(growable: false);
+      // Ensure at least implicit default constructor.
+      if (_constructors.isEmpty) {
+        ConstructorElementImpl constructor = new ConstructorElementImpl('', -1);
+        constructor.synthetic = true;
+        constructor.enclosingElement = this;
+        _constructors = <ConstructorElement>[constructor];
+      }
+    }
+    assert(_constructors != null);
+    return _constructors ?? const <ConstructorElement>[];
   }
 
   /**
@@ -540,6 +553,7 @@ class ClassElementImpl extends AbstractClassElementImpl
    * Should only be used for class elements that are not mixin applications.
    */
   void set constructors(List<ConstructorElement> constructors) {
+    assert(_unlinkedClass == null);
     assert(!isMixinApplication);
     for (ConstructorElement constructor in constructors) {
       (constructor as ConstructorElementImpl).enclosingElement = this;
@@ -1676,11 +1690,6 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
 class ConstructorElementImpl extends ExecutableElementImpl
     implements ConstructorElement {
   /**
-   * Set of slots corresponding to const constructors that are part of cycles.
-   */
-  final Set<int> _constCycles;
-
-  /**
    * The constructor to which this constructor is redirecting.
    */
   ConstructorElement _redirectedConstructor;
@@ -1712,22 +1721,18 @@ class ConstructorElementImpl extends ExecutableElementImpl
    * Initialize a newly created constructor element to have the given [name] and
    * [offset].
    */
-  ConstructorElementImpl(String name, int offset)
-      : _constCycles = null,
-        super(name, offset);
+  ConstructorElementImpl(String name, int offset) : super(name, offset);
 
   /**
    * Initialize a newly created constructor element to have the given [name].
    */
-  ConstructorElementImpl.forNode(Identifier name)
-      : _constCycles = null,
-        super.forNode(name);
+  ConstructorElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /**
    * Initialize using the given serialized information.
    */
-  ConstructorElementImpl.forSerialized(UnlinkedExecutable serializedExecutable,
-      this._constCycles, ClassElementImpl enclosingClass)
+  ConstructorElementImpl.forSerialized(
+      UnlinkedExecutable serializedExecutable, ClassElementImpl enclosingClass)
       : super.forSerialized(serializedExecutable, enclosingClass);
 
   /**
@@ -1780,7 +1785,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
   bool get isCycleFree {
     if (serializedExecutable != null) {
       return serializedExecutable.isConst &&
-          !_constCycles.contains(serializedExecutable.constCycleSlot);
+          !enclosingUnit.resynthesizerContext
+              .isInConstCycle(serializedExecutable.constCycleSlot);
     }
     return _isCycleFree;
   }
@@ -7403,6 +7409,11 @@ abstract class ResynthesizerContext {
    * Build explicit top-level variables.
    */
   UnitExplicitTopLevelVariables buildTopLevelVariables();
+
+  /**
+   * Return `true` if the given const constructor [slot] is a part of a cycle.
+   */
+  bool isInConstCycle(int slot);
 
   /**
    * Resolve an [EntityRef] into a constructor.  If the reference is

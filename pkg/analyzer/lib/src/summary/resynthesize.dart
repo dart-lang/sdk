@@ -1483,6 +1483,11 @@ class _ResynthesizerContext implements ResynthesizerContext {
   }
 
   @override
+  bool isInConstCycle(int slot) {
+    return _unitResynthesizer.constCycles.contains(slot);
+  }
+
+  @override
   ConstructorElement resolveConstructorRef(
       TypeParameterizedElementMixin typeParameterContext, EntityRef entry) {
     return _unitResynthesizer._getConstructorForEntry(
@@ -1701,32 +1706,19 @@ class _UnitResynthesizer {
     for (UnlinkedVariable serializedVariable in serializedClass.fields) {
       buildField(classElement, serializedVariable, memberHolder);
     }
-    bool constructorFound = false;
     for (UnlinkedExecutable serializedExecutable
         in serializedClass.executables) {
       switch (serializedExecutable.kind) {
-        case UnlinkedExecutableKind.constructor:
-          constructorFound = true;
-          buildConstructor(serializedExecutable, classElement, memberHolder);
-          break;
         case UnlinkedExecutableKind.getter:
         case UnlinkedExecutableKind.setter:
           buildClassExecutable(
               serializedExecutable, classElement, memberHolder);
           break;
+        case UnlinkedExecutableKind.constructor:
         case UnlinkedExecutableKind.functionOrMethod:
           // Resynthesized lazily.
           break;
       }
-    }
-    if (!serializedClass.isMixinApplication) {
-      if (!constructorFound) {
-        // Synthesize implicit constructors.
-        ConstructorElementImpl constructor = new ConstructorElementImpl('', -1);
-        constructor.synthetic = true;
-        memberHolder.addConstructor(constructor);
-      }
-      classElement.constructors = memberHolder.constructors;
     }
     classElement.accessors = memberHolder.accessors;
     classElement.fields = memberHolder.fields;
@@ -1753,20 +1745,6 @@ class _UnitResynthesizer {
       buildClassExecutables(classElement, serializedClass);
     }
     return classElement;
-  }
-
-  /**
-   * Resynthesize a [ConstructorElement] and place it in the given [holder].
-   * [classElement] is the element of the class for which this element is a
-   * constructor.
-   */
-  void buildConstructor(UnlinkedExecutable serializedExecutable,
-      ClassElementImpl classElement, ElementHolder holder) {
-    assert(serializedExecutable.kind == UnlinkedExecutableKind.constructor);
-    ConstructorElementImpl constructor =
-        new ConstructorElementImpl.forSerialized(
-            serializedExecutable, constCycles, classElement);
-    holder.addConstructor(constructor);
   }
 
   /**
