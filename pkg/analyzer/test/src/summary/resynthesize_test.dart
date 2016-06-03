@@ -3652,7 +3652,8 @@ get g {
   }
 
   test_localLabels_inConstructor() {
-    checkLibrary(r'''
+    checkLibrary(
+        r'''
 class C {
   C() {
     aaa: while (true) {}
@@ -3662,11 +3663,13 @@ class C {
     }
   }
 }
-''');
+''',
+        allowErrors: true);
   }
 
   test_localLabels_inMethod() {
-    checkLibrary(r'''
+    checkLibrary(
+        r'''
 class C {
   m() {
     aaa: while (true) {}
@@ -3676,11 +3679,13 @@ class C {
     }
   }
 }
-''');
+''',
+        allowErrors: true);
   }
 
   test_localLabels_inTopLevelFunction() {
-    checkLibrary(r'''
+    checkLibrary(
+        r'''
 main() {
   aaa: while (true) {}
   bbb: switch (42) {
@@ -3688,7 +3693,8 @@ main() {
       break;
   }
 }
-''');
+''',
+        allowErrors: true);
   }
 
   test_localVariables_inConstructor() {
