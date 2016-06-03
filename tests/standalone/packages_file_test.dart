@@ -245,7 +245,7 @@ void createConfigurations() {
       });
     }
 
-    String fixPaths(Map dirs) {
+    void fixPaths(Map dirs) {
       for (var name in dirs.keys) {
         var value = dirs[name];
         if (value is Map) {
@@ -934,7 +934,9 @@ class Configuration {
       config: config ?? this.config,
       mainFile: mainFile ??
           ((main == null) ? this.mainFile : "${this.mainPath}$main.dart"),
-      args: args ?? ([]..addAll(newArgs ?? const [])..addAll(this.args)),
+      args:
+          args ?? (<String>[]..addAll(newArgs ?? const <String>[])
+                             ..addAll(this.args)),
       expect: expect == null
           ? this.expect
           : new Map.from(this.expect)..addAll(expect ?? const {}));
