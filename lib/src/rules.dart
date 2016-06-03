@@ -42,6 +42,7 @@ import 'package:linter/src/rules/test_types_in_equals.dart';
 import 'package:linter/src/rules/throw_in_finally.dart';
 import 'package:linter/src/rules/type_annotate_public_apis.dart';
 import 'package:linter/src/rules/type_init_formals.dart';
+import 'package:linter/src/rules/unawaited_futures.dart';
 import 'package:linter/src/rules/unnecessary_brace_in_string_interp.dart';
 import 'package:linter/src/rules/unnecessary_getters_setters.dart';
 import 'package:linter/src/rules/unrelated_type_equality_checks.dart';
@@ -82,6 +83,7 @@ final Registry ruleRegistry = new Registry()
   ..register(new SuperGoesLast())
   ..register(new TypeInitFormals())
   ..register(new TypeAnnotatePublicApis())
+  ..register(new UnawaitedFutures())
   ..register(new UnnecessaryBraceInStringInterp())
   // Disabled pending fix: https://github.com/dart-lang/linter/issues/35
   //..register(new UnnecessaryGetters())
