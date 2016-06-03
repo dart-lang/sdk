@@ -650,7 +650,6 @@ LibTest/html/IFrameElement/appendHtml_A01_t02: Pass, RuntimeError # Issue 23462
 # Everything below this point is associated with co19 Issue 747
 #
 LayoutTests/fast/dynamic/insertAdjacentHTML_t01: Pass, RuntimeError
-LayoutTests/fast/layers/normal-flow-hit-test_t01: RuntimeError
 LayoutTests/fast/multicol/balance-unbreakable_t01: Pass, RuntimeError
 LayoutTests/fast/multicol/image-inside-nested-blocks-with-border_t01: RuntimeError
 LayoutTests/fast/multicol/newmulticol/balance_t01: Pass, RuntimeError
@@ -883,7 +882,6 @@ LayoutTests/fast/css/css-escaped-identifier_t01: RuntimeError # co19 issue 14
 LayoutTests/fast/css/css-properties-case-insensitive_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css3-nth-tokens-style_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/csstext-of-content-string_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/css/cursor-parsing_t01: RuntimeError # co19 issue 14
 LayoutTests/fast/css/deprecated-flexbox-auto-min-size_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/ex-unit-with-no-x-height_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/first-child-display-change-inverse_t01: RuntimeError # Please triage this failure
@@ -1137,6 +1135,7 @@ LayoutTests/fast/forms/focus_t01: Pass, RuntimeError # Please triage this failur
 LayoutTests/fast/forms/form-attribute_t01: RuntimeError # Issue 25155
 LayoutTests/fast/forms/input-appearance-elementFromPoint_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-hit-test-border_t01: Pass, RuntimeError # Please triage this failure
+LayoutTests/fast/forms/input-maxlength_t01: RuntimeError # co19 issue 62
 LayoutTests/fast/forms/input-inputmode_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-width-height-attributes-without-renderer-loaded-image_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/listbox-selection-2_t01: RuntimeError # Please triage this failure
@@ -1200,11 +1199,13 @@ LayoutTests/fast/multicol/hit-test-end-of-column_t01: RuntimeError # Please tria
 LayoutTests/fast/multicol/hit-test-float_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/hit-test-gap-between-pages_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/newmulticol/balance-images_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/multicol/newmulticol/balance-maxheight_t02: Pass
 LayoutTests/fast/multicol/newmulticol/balance_t07: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/newmulticol/balance_t08: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/newmulticol/balance_t09: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/newmulticol/balance_t10: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/vertical-lr/float-truncation_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/multicol/vertical-rl/break-properties_t01: RuntimeError # co19 issue 63
 LayoutTests/fast/multicol/vertical-rl/float-truncation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/widows_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/overflow/replaced-child-100percent-height-inside-fixed-container-with-overflow-auto_t01: RuntimeError # Please triage this failure
@@ -1236,7 +1237,6 @@ LayoutTests/fast/speechsynthesis/speech-synthesis-voices_t01: RuntimeError # Ple
 LayoutTests/fast/storage/disallowed-storage_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/storage/storage-disallowed-in-data-url_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/sub-pixel/cssom-subpixel-precision_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/sub-pixel/float-containing-block-with-margin_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/sub-pixel/replaced-element-baseline_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/table/anonymous-table-section-removed_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/caption-orthogonal-writing-mode-sizing_t01: RuntimeError # Please triage this failure
@@ -1672,6 +1672,7 @@ LibTest/async/Timer/Timer.periodic_A01_t01: Skip # Times out. Please triage this
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: Skip # Times out. Please triage this failure
 
 [ $compiler == dart2js && $runtime == chrome && $system != macos ]
+Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t01: RuntimeError # Issue 26615
 LayoutTests/fast/canvas/webgl/WebGLContextEvent_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/array-bounds-clamping_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/attrib-location-length-limits_t01: RuntimeError # Please triage this failure
@@ -1788,6 +1789,7 @@ LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JS
 
 [ $compiler == dart2js && $runtime == ff ]
 Language/Expressions/Postfix_Expressions/property_decrement_t02: Skip # Times out. Please triage this failure
+Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t01: RuntimeError # Issue 26615
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-self_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-justify-self_t01: RuntimeError # Please triage this failure
@@ -1853,6 +1855,7 @@ LayoutTests/fast/canvas/canvas-strokeRect-gradient-shadow_t01: Pass, RuntimeErro
 LayoutTests/fast/canvas/canvas-strokeRect-zeroSizeGradient_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-strokeText-invalid-maxWidth_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-strokeText-zeroSizeGradient_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/test-setting-canvas-color_t01: RuntimeError # co19 issue 64
 LayoutTests/fast/canvas/canvas-toDataURL-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/draw-custom-focus-ring_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/drawImage-with-valid-image_t01: RuntimeError # Please triage this failure
@@ -1950,6 +1953,7 @@ LayoutTests/fast/css/child-selector-implicit-tbody_t01: RuntimeError # Please tr
 LayoutTests/fast/css/computed-offset-with-zoom_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/content/content-none_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/content/content-normal_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/content/content-quotes-01_t01: RuntimeError # co19 issue 61
 LayoutTests/fast/css/content/content-quotes-06_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/counters/complex-before_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/counters/counter-cssText_t01: RuntimeError # Please triage this failure
@@ -2671,7 +2675,7 @@ LayoutTests/fast/multicol/vertical-lr/break-properties_t01: RuntimeError # Pleas
 LayoutTests/fast/multicol/vertical-lr/float-truncation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/vertical-lr/gap-non-negative_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/vertical-lr/image-inside-nested-blocks-with-border_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/multicol/vertical-rl/break-properties_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/multicol/vertical-rl/break-properties_t01: RuntimeError # co19 issue 63
 LayoutTests/fast/multicol/vertical-rl/float-truncation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/vertical-rl/gap-non-negative_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/vertical-rl/image-inside-nested-blocks-with-border_t01: RuntimeError # Please triage this failure
