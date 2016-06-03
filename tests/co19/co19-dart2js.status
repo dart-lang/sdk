@@ -289,6 +289,7 @@ Language/Variables/final_t02: fail # Issue 21093
 Language/Variables/local_variable_t01: MissingCompileTimeError # Issue 21050
 LayoutTests/fast/dom/css-innerHTML_t01: SkipByDesign # Test is incorrect.
 LayoutTests/fast/loader/loadInProgress_t01: Skip # Issue 23466
+LayoutTests/fast/multicol/vertical-rl/image-inside-nested-blocks-with-border_t01: RuntimeError # co19 issue #65
 LibTest/collection/LinkedList/add_A01_t01: Pass, Slow # Slow tests that needs extra time to finish.
 LibTest/collection/ListBase/ListBase_class_A01_t01: RuntimeError # Please triage this failure
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: RuntimeError # Please triage this failure
@@ -452,6 +453,7 @@ WebPlatformTest/dom/nodes/DOMImplementation-createHTMLDocument_t01: CompileTimeE
 WebPlatformTest/dom/nodes/Document-createElement_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Element-childElementCount-nochild_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Pass, Slow
+Language/Expressions/Function_Invocation/async_invokation_t04: RuntimeError, Pass # co19 issue 57
 
 [ $compiler == dart2js && $checked ]
 Language/Errors_and_Warnings/static_warning_t02: RuntimeError # Please triage this failure
@@ -517,7 +519,6 @@ Language/Expressions/Await_Expressions/execution_t03: RuntimeError # Issue 7728,
 Language/Expressions/Await_Expressions/execution_t04: RuntimeError # Issue 7728, timer not supported in jsshell
 Language/Expressions/Await_Expressions/execution_t05: RuntimeError # Issue 7728, timer not supported in jsshell
 Language/Expressions/Await_Expressions/execution_t06: RuntimeError # Issue 7728, timer not supported in jsshell
-Language/Expressions/Function_Invocation/async_invokation_t04: RuntimeError, Pass # co19 issue 57
 Language/Statements/For/Asynchronous_For_in/execution_t04: RuntimeError # Issue 7728, timer not supported in jsshell
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t04: RuntimeError # Issue 7728, timer not supported in jsshell
@@ -666,7 +667,6 @@ LayoutTests/fast/multicol/newmulticol/balance_t10: Pass, RuntimeError # I don't 
 LayoutTests/fast/multicol/newmulticol/balance-images_t01: Pass, RuntimeError
 LayoutTests/fast/multicol/column-width-zero_t01: Pass, RuntimeError
 LayoutTests/fast/multicol/widows_t01: Pass, RuntimeError
-LayoutTests/fast/multicol/vertical-lr/break-properties_t01: RuntimeError
 LayoutTests/fast/multicol/orphans-relayout_t01: Pass, RuntimeError
 LayoutTests/fast/media/mq-parsing_t01: Pass, RuntimeError # False passes on Firefox, but trying to keep these grouped with the issue.
 LayoutTests/fast/mediastream/RTCPeerConnection-AddRemoveStream_t01: Skip # Passes on Safari, Issue 23475
@@ -1673,6 +1673,7 @@ WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: Skip # 
 
 [ $compiler == dart2js && $runtime == chrome && $system != macos ]
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t01: RuntimeError # Issue 26615
+Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t04: RuntimeError # Issue 26615
 LayoutTests/fast/canvas/webgl/WebGLContextEvent_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/array-bounds-clamping_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/attrib-location-length-limits_t01: RuntimeError # Please triage this failure
@@ -1790,6 +1791,7 @@ LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JS
 [ $compiler == dart2js && $runtime == ff ]
 Language/Expressions/Postfix_Expressions/property_decrement_t02: Skip # Times out. Please triage this failure
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t01: RuntimeError # Issue 26615
+Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t04: RuntimeError # Issue 26615
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-self_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-justify-self_t01: RuntimeError # Please triage this failure
