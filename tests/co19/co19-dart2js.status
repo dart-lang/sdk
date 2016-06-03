@@ -652,7 +652,6 @@ LibTest/html/IFrameElement/appendHtml_A01_t02: Pass, RuntimeError # Issue 23462
 #
 LayoutTests/fast/dynamic/insertAdjacentHTML_t01: Pass, RuntimeError
 LayoutTests/fast/multicol/balance-unbreakable_t01: Pass, RuntimeError
-LayoutTests/fast/multicol/image-inside-nested-blocks-with-border_t01: RuntimeError
 LayoutTests/fast/multicol/newmulticol/balance_t01: Pass, RuntimeError
 LayoutTests/fast/multicol/newmulticol/balance-maxheight_t01: Pass, RuntimeError
 LayoutTests/fast/multicol/newmulticol/balance-maxheight_t02: RuntimeError
@@ -988,6 +987,7 @@ LayoutTests/fast/dom/HTMLObjectElement/form/test1_t01: RuntimeError # Issue 2515
 LayoutTests/fast/dom/HTMLObjectElement/set-type-to-null-crash_t01: RuntimeError # Issue 25155
 LayoutTests/fast/dom/HTMLOptionElement/collection-setter-getter_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLOutputElement/dom-settable-token-list_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/HTMLOutputElement/htmloutputelement_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLScriptElement/async-false-inside-async-false-load_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLScriptElement/async-inline-script_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLScriptElement/async-onbeforeload_t01: RuntimeError # Please triage this failure
@@ -1870,6 +1870,7 @@ LayoutTests/fast/canvas/webgl/context-lost-restored_t01: RuntimeError # Please t
 LayoutTests/fast/canvas/webgl/context-lost_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/oes-vertex-array-object_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/renderer-and-vendor-strings_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgb565_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba4444_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba5551_t01: RuntimeError # Please triage this failure
@@ -2657,7 +2658,7 @@ LayoutTests/fast/multicol/hit-test-end-of-column_t01: RuntimeError # Please tria
 LayoutTests/fast/multicol/hit-test-float_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/hit-test-gap-between-pages-flipped_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/hit-test-gap-between-pages_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/multicol/image-inside-nested-blocks-with-border_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/multicol/image-inside-nested-blocks-with-border_t01: RuntimeError # Uses -webkit-* style properties
 LayoutTests/fast/multicol/inherit-column-values_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/initial-column-values_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/inline-getclientrects_t01: RuntimeError # Please triage this failure
