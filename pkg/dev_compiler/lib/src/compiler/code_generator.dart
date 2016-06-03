@@ -3346,9 +3346,12 @@ class CodeGenerator extends GeneralizingAstVisitor
           if (_isDefinitelyNonNegative(left) && shiftCount != null) {
             return binary('# >>> #');
           }
-          // TODO(sra): If the context selects out only bits that can't be
-          // affected by the sign position we can use any JavaScript shift.
-          // E.g. `(x >> 6) & 3`.
+          // If the context selects out only bits that can't be affected by the
+          // sign position we can use any JavaScript shift, `(x >> 6) & 3`.
+          if (shiftCount != null &&
+              _parentMasksToWidth(node, 31 - shiftCount)) {
+            return binary('# >> #');
+          }
           return _emitSend(left, op.lexeme, [right]);
 
         case TokenType.LT_LT:
@@ -3376,18 +3379,34 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// JavaScript operations interpret their operands as signed and generate
   /// signed results.
   JS.Expression _coerceBitOperationResultToUnsigned(
-      Expression node, JS.Expression operation) {
+      Expression node, JS.Expression uncoerced) {
     // Don't coerce if the parent will coerce.
     AstNode parent = _parentOperation(node);
-    if (_nodeIsBitwiseOperation(parent)) return operation;
+    if (_nodeIsBitwiseOperation(parent)) return uncoerced;
 
     // Don't do a no-op coerce if the most significant bit is zero.
-    if (_is31BitUnsigned(node)) return operation;
+    if (_is31BitUnsigned(node)) return uncoerced;
 
-    // TODO(sra): If the consumer of the expression is '==' or '!=' to a
-    // constant that fits in 31 bits, adding a coercion does not change the
-    // result of the comparision, e.g.  `a & ~b == 0`.
-    return js.call('# >>> 0', operation);
+    // If the consumer of the expression is '==' or '!=' with a constant that
+    // fits in 31 bits, adding a coercion does not change the result of the
+    // comparision, e.g.  `a & ~b == 0`.
+    if (parent is BinaryExpression) {
+      var tokenType = parent.operator.type;
+      Expression left = parent.leftOperand;
+      Expression right = parent.rightOperand;
+      if (tokenType == TokenType.EQ_EQ || tokenType == TokenType.BANG_EQ) {
+        const int MAX = 0x7fffffff;
+        if (_asIntInRange(right, 0, MAX) != null) return uncoerced;
+        if (_asIntInRange(left, 0, MAX) != null) return uncoerced;
+      } else if (tokenType == TokenType.GT_GT) {
+        if (_isDefinitelyNonNegative(left) &&
+            _asIntInRange(right, 0, 31) != null) {
+          // Parent will generate `# >>> n`.
+          return uncoerced;
+        }
+      }
+    }
+    return js.call('# >>> 0', uncoerced);
   }
 
   AstNode _parentOperation(AstNode node) {
@@ -3412,29 +3431,54 @@ class CodeGenerator extends GeneralizingAstVisitor
     return false;
   }
 
-  Expression _skipParentheses(Expression expr) {
-    while (expr is ParenthesizedExpression) {
-      ParenthesizedExpression parenExpr = expr;
-      expr = parenExpr.expression;
-    }
-    return expr;
-  }
-
   int _asIntInRange(Expression expr, int low, int high) {
-    expr = _skipParentheses(expr);
+    expr = expr.unParenthesized;
     if (expr is IntegerLiteral) {
       if (expr.value >= low && expr.value <= high) return expr.value;
+      return null;
+    }
+    int finishIdentifier(SimpleIdentifier identifier) {
+      Element staticElement = identifier.staticElement;
+      if (staticElement is PropertyAccessorElement && staticElement.isGetter) {
+        PropertyInducingElement variable = staticElement.variable;
+        int value = variable?.constantValue?.toIntValue();
+        if (value != null && value >= low && value <= high) return value;
+      }
+      return null;
+    }
+    if (expr is SimpleIdentifier) {
+      return finishIdentifier(expr);
+    } else if (expr is PrefixedIdentifier && !expr.isDeferred) {
+      return finishIdentifier(expr.identifier);
     }
     return null;
   }
 
   bool _isDefinitelyNonNegative(Expression expr) {
-    expr = _skipParentheses(expr);
+    expr = expr.unParenthesized;
     if (expr is IntegerLiteral) {
       return expr.value >= 0;
     }
     if (_nodeIsBitwiseOperation(expr)) return true;
     // TODO(sra): Lengths of known list types etc.
+    return false;
+  }
+
+  /// Does the parent of [node] mask the result to [width] bits or fewer?
+  bool _parentMasksToWidth(AstNode node, int width) {
+    AstNode parent = _parentOperation(node);
+    if (parent == null) return false;
+    if (_nodeIsBitwiseOperation(parent)) {
+      if (parent is BinaryExpression &&
+          parent.operator.type == TokenType.AMPERSAND) {
+        Expression left = parent.leftOperand;
+        Expression right = parent.rightOperand;
+        final int MAX = (1 << width) - 1;
+        if (_asIntInRange(right, 0, MAX) != null) return true;
+        if (_asIntInRange(left, 0, MAX) != null) return true;
+      }
+      return _parentMasksToWidth(parent, width);
+    }
     return false;
   }
 
@@ -3450,8 +3494,8 @@ class CodeGenerator extends GeneralizingAstVisitor
       }
       if (++depth > 5) return MAX;
       if (expr is BinaryExpression) {
-        var left = _skipParentheses(expr.leftOperand);
-        var right = _skipParentheses(expr.rightOperand);
+        var left = expr.leftOperand.unParenthesized;
+        var right = expr.rightOperand.unParenthesized;
         switch (expr.operator.type) {
           case TokenType.AMPERSAND:
             return min(bitWidth(left, depth), bitWidth(right, depth));
@@ -3485,6 +3529,8 @@ class CodeGenerator extends GeneralizingAstVisitor
             return MAX;
         }
       }
+      int value = _asIntInRange(expr, 0, 0x7fffffff);
+      if (value != null) return value.bitLength;
       return MAX;
     }
     return bitWidth(expr, 0) < 32;
