@@ -1509,28 +1509,6 @@ class _UnitResynthesizer {
   }
 
   /**
-   * Build the annotations for the given [element].
-   */
-  void buildAnnotations(
-      ElementImpl element, List<UnlinkedConst> serializedAnnotations) {
-    if (serializedAnnotations.isNotEmpty) {
-      element.metadata = serializedAnnotations
-          .map((a) => buildAnnotation(element, a))
-          .toList();
-    }
-  }
-
-  /**
-   * Resynthesize a [ClassElement] and place it in [unitHolder].
-   */
-  void buildClass(UnlinkedClass serializedClass) {
-    ClassElementImpl classElement =
-        new ClassElementImpl.forSerialized(serializedClass, unit);
-    classElement.hasBeenInferred = summaryResynthesizer.strongMode;
-    unitHolder.addType(classElement);
-  }
-
-  /**
    * Build the documentation for the given [element].  Does nothing if
    * [serializedDocumentationComment] is `null`.
    */
@@ -1598,17 +1576,6 @@ class _UnitResynthesizer {
     classElement.fields = memberHolder.fields;
     classElement.accessors = memberHolder.accessors;
     unitHolder.addEnum(classElement);
-  }
-
-  /**
-   * Resynthesize a [FieldElement].
-   */
-  void buildField(ClassElementImpl enclosingClass,
-      UnlinkedVariable serializedVariable, ElementHolder holder) {
-    FieldElementImpl element = new FieldElementImpl.forSerializedFactory(
-        serializedVariable, enclosingClass);
-    holder.addField(element);
-    buildImplicitAccessors(element, holder);
   }
 
   /**
@@ -1898,10 +1865,8 @@ class _UnitResynthesizer {
    * contained in it.
    */
   void populateUnit() {
-    unlinkedUnit.classes.forEach(buildClass);
     unlinkedUnit.enums.forEach(buildEnum);
     unit.enums = unitHolder.enums;
-    unit.types = unitHolder.types;
   }
 
   Expression _buildConstExpression(ElementImpl context, UnlinkedConst uc) {

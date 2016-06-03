@@ -470,7 +470,7 @@ class ClassElementImpl extends AbstractClassElementImpl
    * A flag indicating whether the types associated with the instance members of
    * this class have been inferred.
    */
-  bool hasBeenInferred = false;
+  bool _hasBeenInferred = false;
 
   /**
    * Initialize a newly created class element to have the given [name] at the
@@ -654,6 +654,18 @@ class ClassElementImpl extends AbstractClassElementImpl
   void set fields(List<FieldElement> fields) {
     assert(_unlinkedClass == null);
     super.fields = fields;
+  }
+
+  bool get hasBeenInferred {
+    if (_unlinkedClass != null) {
+      return context.analysisOptions.strongMode;
+    }
+    return _hasBeenInferred;
+  }
+
+  void set hasBeenInferred(bool hasBeenInferred) {
+    assert(_unlinkedClass == null);
+    _hasBeenInferred = hasBeenInferred;
   }
 
   @override
@@ -1327,7 +1339,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /**
    * A list containing all of the types contained in this compilation unit.
    */
-  List<ClassElement> _types = ClassElement.EMPTY_LIST;
+  List<ClassElement> _types;
 
   /**
    * A list containing all of the variables contained in this compilation unit.
@@ -1567,12 +1579,20 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   TypeParameterizedElementMixin get typeParameterContext => null;
 
   @override
-  List<ClassElement> get types => _types;
+  List<ClassElement> get types {
+    if (_unlinkedUnit != null) {
+      _types ??= _unlinkedUnit.classes
+          .map((c) => new ClassElementImpl.forSerialized(c, this))
+          .toList(growable: false);
+    }
+    return _types ?? const <ClassElement>[];
+  }
 
   /**
    * Set the types contained in this compilation unit to the given [types].
    */
   void set types(List<ClassElement> types) {
+    assert(_unlinkedUnit == null);
     for (ClassElement type in types) {
       // Another implementation of ClassElement is _DeferredClassElement,
       // which is used to resynthesize classes lazily. We cannot cast it
@@ -1648,13 +1668,13 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
         return functionImpl;
       }
     }
-    for (FunctionTypeAliasElement typeAlias in _typeAliases) {
+    for (FunctionTypeAliasElement typeAlias in functionTypeAliases) {
       FunctionTypeAliasElementImpl typeAliasImpl = typeAlias;
       if (typeAliasImpl.identifier == identifier) {
         return typeAliasImpl;
       }
     }
-    for (ClassElement type in _types) {
+    for (ClassElement type in types) {
       ClassElementImpl typeImpl = type;
       if (typeImpl.name == identifier) {
         return typeImpl;
@@ -1689,7 +1709,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   ClassElement getType(String className) {
-    for (ClassElement type in _types) {
+    for (ClassElement type in types) {
       if (type.name == className) {
         return type;
       }
@@ -1730,8 +1750,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     safelyVisitChildren(accessors, visitor);
     safelyVisitChildren(_enums, visitor);
     safelyVisitChildren(functions, visitor);
-    safelyVisitChildren(_typeAliases, visitor);
-    safelyVisitChildren(_types, visitor);
+    safelyVisitChildren(functionTypeAliases, visitor);
+    safelyVisitChildren(types, visitor);
     safelyVisitChildren(topLevelVariables, visitor);
   }
 }
