@@ -111,6 +111,14 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// The dart:_interceptors JSArray element.
   final ClassElement _jsArray;
 
+  final ClassElement boolClass;
+  final ClassElement intClass;
+  final ClassElement interceptorClass;
+  final ClassElement nullClass;
+  final ClassElement numClass;
+  final ClassElement objectClass;
+  final ClassElement stringClass;
+
   ConstFieldVisitor _constField;
 
   /// The current function body being compiled.
@@ -140,7 +148,15 @@ class CodeGenerator extends GeneralizingAstVisitor
         _asyncStreamIterator =
             _getLibrary(c, 'dart:async').getType('StreamIterator').type,
         _jsArray = _getLibrary(c, 'dart:_interceptors').getType('JSArray'),
+        interceptorClass =
+            _getLibrary(c, 'dart:_interceptors').getType('Interceptor'),
         dartCoreLibrary = _getLibrary(c, 'dart:core'),
+        boolClass = _getLibrary(c, 'dart:core').getType('bool'),
+        intClass = _getLibrary(c, 'dart:core').getType('int'),
+        numClass = _getLibrary(c, 'dart:core').getType('num'),
+        nullClass = _getLibrary(c, 'dart:core').getType('Null'),
+        objectClass = _getLibrary(c, 'dart:core').getType('Object'),
+        stringClass = _getLibrary(c, 'dart:core').getType('String'),
         dartJSLibrary = _getLibrary(c, 'dart:js');
 
   LibraryElement get currentLibrary => _loader.currentElement.library;
@@ -544,9 +560,9 @@ class CodeGenerator extends GeneralizingAstVisitor
         hoistType: options.hoistTypeTests);
     if (_inWhitelistCode(node)) return jsFrom;
     if (isReifiedCoercion(node)) {
-      return js.call('dart.check(#, #)', [jsFrom, type]);
+      return js.call('#._check(#)', [type, jsFrom]);
     } else {
-      return js.call('dart.as(#, #)', [jsFrom, type]);
+      return js.call('#.as(#)', [type, jsFrom]);
     }
   }
 
@@ -572,7 +588,7 @@ class CodeGenerator extends GeneralizingAstVisitor
           nameType: options.nameTypeTests || options.hoistTypeTests,
           hoistType: options.hoistTypeTests);
 
-      result = js.call('dart.is(#, #)', [lhs, castType]);
+      result = js.call('#.is(#)', [castType, lhs]);
     }
 
     if (node.notOperator != null) {
@@ -726,6 +742,9 @@ class CodeGenerator extends GeneralizingAstVisitor
     // Emit things that come after the ES6 `class ... { ... }`.
     var jsPeerName = _getJSPeerName(classElem);
     _setBaseClass(classElem, className, jsPeerName, body);
+
+    _emitClassTypeTests(classElem, className, body);
+
     _defineNamedConstructors(ctors, body, className);
     _emitVirtualFieldSymbols(virtualFieldSymbols, body);
     _emitClassSignature(methods, classElem, ctors, extensions, className, body);
@@ -742,6 +761,183 @@ class CodeGenerator extends GeneralizingAstVisitor
     _emitStaticFields(staticFields, staticFieldOverrides, classElem, body);
     _registerExtensionType(classElem, jsPeerName, body);
     return _statement(body);
+  }
+
+  void _emitClassTypeTests(ClassElement classElem, JS.Expression className,
+      List<JS.Statement> body) {
+    if (classElem == objectClass) {
+      // We rely on ES6 static inheritance.  All types that are represented by
+      // class constructor functions will see these definitions, with [this]
+      // being bound to the class constructor.
+
+      // The 'instanceof' checks don't work for primitive types (which have fast
+      // definitions below) and don't work for native types. In those cases we
+      // fall through to the general purpose checking code.
+      body.add(js.statement(
+          '#.is = function is_Object(o) {'
+          '  if (o instanceof this) return true;'
+          '  return dart.is(o, this);'
+          '}',
+          className));
+      body.add(js.statement(
+          '#.as = function as_Object(o) {'
+          '  if (o == null || o instanceof this) return o;'
+          '  return dart.as(o, this);'
+          '}',
+          className));
+      body.add(js.statement(
+          '#._check = function check_Object(o) {'
+          '  if (o == null || o instanceof this) return o;'
+          '  return dart.check(o, this);'
+          '}',
+          className));
+      return;
+    }
+    if (classElem == stringClass) {
+      body.add(js.statement(
+          '#.is = function is_String(o) { return typeof o == "string"; }',
+          className));
+      body.add(js.statement(
+          '#.as = function as_String(o) {'
+          '  if (typeof o == "string" || o == null) return o;'
+          '  return dart.as(o, #);'
+          '}',
+          [className, className]));
+      body.add(js.statement(
+          '#._check = function check_String(o) {'
+          '  if (typeof o == "string" || o == null) return o;'
+          '  return dart.check(o, #);'
+          '}',
+          [className, className]));
+      return;
+    }
+    if (classElem == intClass) {
+      body.add(js.statement(
+          '#.is = function is_int(o) {'
+          '  return typeof o == "number" && Math.floor(o) == o;'
+          '}',
+          className));
+      body.add(js.statement(
+          '#.as = function as_int(o) {'
+          '  if ((typeof o == "number" && Math.floor(o) == o) || o == null)'
+          '    return o;'
+          '  return dart.as(o, #);'
+          '}',
+          [className, className]));
+      body.add(js.statement(
+          '#._check = function check_int(o) {'
+          '  if ((typeof o == "number" && Math.floor(o) == o) || o == null)'
+          '    return o;'
+          '  return dart.check(o, #);'
+          '}',
+          [className, className]));
+      return;
+    }
+    if (classElem == nullClass) {
+      body.add(js.statement(
+          '#.is = function is_Null(o) { return o == null; }', className));
+      body.add(js.statement(
+          '#.as = function as_Null(o) {'
+          '  if (o == null) return o;'
+          '  return dart.as(o, #);'
+          '}',
+          [className, className]));
+      body.add(js.statement(
+          '#._check = function check_Null(o) {'
+          '  if (o == null) return o;'
+          '  return dart.check(o, #);'
+          '}',
+          [className, className]));
+      return;
+    }
+    if (classElem == numClass) {
+      body.add(js.statement(
+          '#.is = function is_num(o) { return typeof o == "number"; }',
+          className));
+      body.add(js.statement(
+          '#.as = function as_num(o) {'
+          '  if (typeof o == "number" || o == null) return o;'
+          '  return dart.as(o, #);'
+          '}',
+          [className, className]));
+      body.add(js.statement(
+          '#._check = function check_num(o) {'
+          '  if (typeof o == "number" || o == null) return o;'
+          '  return dart.check(o, #);'
+          '}',
+          [className, className]));
+      return;
+    }
+    if (classElem == boolClass) {
+      body.add(js.statement(
+          '#.is = function is_bool(o) { return o === true || o === false; }',
+          className));
+      body.add(js.statement(
+          '#.as = function as_bool(o) {'
+          '  if (o === true || o === false || o == null) return o;'
+          '  return dart.as(o, #);'
+          '}',
+          [className, className]));
+      body.add(js.statement(
+          '#._check = function check_bool(o) {'
+          '  if (o === true || o === false || o == null) return o;'
+          '  return dart.check(o, #);'
+          '}',
+          [className, className]));
+      return;
+    }
+    // TODO(sra): Add special cases for hot tests like `x is html.Element`.
+
+    // `instanceof` check is futile for classes that are Interceptor classes.
+    ClassElement parent = classElem;
+    while (parent != objectClass) {
+      if (parent == interceptorClass) {
+        if (classElem == interceptorClass) {
+          // Place non-instanceof version of checks on Interceptor. All
+          // interceptor classes will inherit the methods via ES6 class static
+          // inheritance.
+          body.add(js.statement('dart.addTypeTests(#);', className));
+
+          // TODO(sra): We could place on the extension type a pointer to the
+          // peer constructor and use that for the `instanceof` check, e.g.
+          //
+          //    if (o instanceof this[_peerConstructor]) return o;
+          //
+        }
+        return;
+      }
+      parent = parent.type.superclass.element;
+    }
+
+    // Choose between 'simple' checks, which are often accelerated by
+    // `instanceof`, and other checks, which are slowed down by taking time to
+    // do an `instanceof` check that is futile or likely futile.
+    //
+    // The `instanceof` check is futile for (1) a class that is only used as a
+    // mixin, or (2) is only used as an interface in an `implements` clause, and
+    // is likely futile (3) if the class has type parameters, since `Foo` aka
+    // `Foo<dynamic>` is not a superclass of `Foo<int>`. The first two are
+    // whole-program properites, but we can check for the last case.
+
+    // Since ES6 classes have inheritance of static properties, we need only
+    // install checks that differ from the parent.
+
+    bool isSimple(ClassElement classElement) {
+      if (classElement.typeParameters.isNotEmpty) return false;
+      return true;
+    }
+
+    assert(classElem != objectClass);
+    bool thisIsSimple = isSimple(classElem);
+    bool superIsSimple = isSimple(classElem.type.superclass.element);
+
+    if (thisIsSimple == superIsSimple) return;
+
+    if (thisIsSimple) {
+      body.add(js.statement('dart.addSimpleTypeTests(#);', className));
+    } else {
+      body.add(js.statement('dart.addTypeTests(#);', className));
+    }
   }
 
   void _emitSuperHelperSymbols(
@@ -1732,7 +1928,7 @@ class CodeGenerator extends GeneralizingAstVisitor
             nameType: options.nameTypeTests || options.hoistTypeTests,
             hoistType: options.hoistTypeTests);
         if (!_inWhitelistCode(node)) {
-          body.add(js.statement('dart.as(#, #);', [jsParam, castType]));
+          body.add(js.statement('#._check(#);', [castType, jsParam]));
         }
       }
     }
@@ -4225,10 +4421,8 @@ class CodeGenerator extends GeneralizingAstVisitor
         nameType: options.nameTypeTests || options.hoistTypeTests,
         hoistType: options.hoistTypeTests);
 
-    return new JS.If(
-        js.call('dart.is(#, #)', [_visit(_catchParameter), castType]),
-        then,
-        otherwise);
+    return new JS.If(js.call('#.is(#)', [castType, _visit(_catchParameter)]),
+        then, otherwise);
   }
 
   JS.Statement _statement(List<JS.Statement> statements) {

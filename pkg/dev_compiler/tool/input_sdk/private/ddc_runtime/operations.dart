@@ -354,6 +354,41 @@ asInt(obj) {
   return obj;
 }
 
+/// Adds type type test predicates to a constructor for a non-parameterized
+/// type. Non-parameterized types can use `instanceof` for subclass checks and
+/// fall through to a helper for subtype tests.
+addSimpleTypeTests(ctor) => JS('', '''(() => {
+  $ctor.is = function is_C(object) {
+    // This is incorrect for classes [Null] and [Object], so we do not use
+    // [addSimpleTypeTests] for these classes.
+    if (object instanceof this) return true;
+    return dart.is(object, this);
+  };
+  $ctor.as = function as_C(object) {
+    if (object instanceof this) return object;
+    return dart.as(object, this);
+  };
+  $ctor._check = function check_C(object) {
+    if (object instanceof this) return object;
+    return dart.check(object, this);
+  };
+})()''');
+
+/// Adds type type test predicates to a constructor. Used for parmeterized
+/// types. We avoid `instanceof` for, e.g. `x is ListQueue` since there is
+/// no common class for `ListQueue<int>` and `ListQueue<String>`.
+addTypeTests(ctor) => JS('', '''(() => {
+  $ctor.as = function as_G(object) {
+    return dart.as(object, this);
+  };
+  $ctor.is = function is_G(object) {
+    return dart.is(object, this);
+  };
+  $ctor._check = function check_G(object) {
+    return dart.check(object, this);
+  };
+})()''');
+
 equals(x, y) => JS('', '''(() => {
   if ($x == null || $y == null) return $x == $y;
   let eq = $x['=='];

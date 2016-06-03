@@ -40,7 +40,24 @@ final _typeObject = JS('', 'Symbol("typeObject")');
 ///
 ///     get String name;
 ///     String toString();
+///
+/// These "runtime types" have methods for performing type checks. The methods
+/// have the following JavaScript names which are designed to not collide with
+/// static methods, which are also placed 'on' the class constructor function.
+///
+///     T.is(o): Implements 'o is T'.
+///     T.as(o): Implements 'o as T'.
+///     T._check(o): Implements the type assertion of 'T x = o;'
+///
+/// By convention, we used named JavaScript functions for these methods with the
+/// name 'is_X', 'as_X' and 'check_X' for various X to indicate the type or the
+/// implementation strategy for the test (e.g 'is_String', 'is_G' for generic
+/// types, etc.)
+
+/// TODO(sra): Why implement [Type]?  Other types that are represented by class
+/// constructors can't implement [Type].
 class TypeRep implements Type {
+  TypeRep() { _initialize; }
   String get name => this.toString();
 }
 
@@ -50,6 +67,32 @@ class Dynamic extends TypeRep {
 
 @JSExportName('dynamic')
 final _dynamic = new Dynamic();
+
+final _initialize = _initialize2();
+
+_initialize2() => JS('', '''(() => {
+  // JavaScript API forwards to runtime library.
+  $TypeRep.prototype.is = function is_T(object) {
+    return dart.is(object, this);
+  };
+  $TypeRep.prototype.as = function as_T(object) {
+    return dart.as(object, this);
+  };
+  $TypeRep.prototype._check = function check_T(object) {
+    return dart.check(object, this);
+  };
+
+  // Fast path for type `dynamic`.
+  $Dynamic.prototype.is = function is_Dynamic(object) {
+    return true;
+  };
+  $Dynamic.prototype.as = function as_Dynamic(object) {
+    return object;
+  };
+  $Dynamic.prototype._check = function check_Dynamic(object) {
+    return object;
+  };
+})()''');
 
 class Void extends TypeRep {
   toString() => 'void';
@@ -69,6 +112,8 @@ class JSObject extends TypeRep {
 
 final jsobject = new JSObject();
 
+// TODO(sra): Wrapped types and TypeReps are incompatible. TypeRep should not
+// implement Type and WrappedType should implement Type but not TypeRep.
 class WrappedType extends TypeRep {
   final _runtimeType;
   WrappedType(this._runtimeType);
