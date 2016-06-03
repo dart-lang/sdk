@@ -61,7 +61,7 @@ class LinkEntry<T> extends Link<T> {
   Link<T> tail;
 
   LinkEntry(T this.head, [Link<T> tail])
-      : this.tail = ((tail == null) ? new Link<T>() : tail);
+      : this.tail = ((tail == null) ? const Link() : tail);
 
   Link<T> prepend(T element) {
     // TODO(ahe): Use new Link<T>, but this cost 8% performance on VM.
