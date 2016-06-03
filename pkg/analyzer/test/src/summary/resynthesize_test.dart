@@ -233,9 +233,11 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     }
     expect(r.accessors.length, o.accessors.length,
         reason: '$desc accessors.length');
+    List<PropertyAccessorElement> rAccessors = _getSortedPropertyAccessors(r);
+    List<PropertyAccessorElement> oAccessors = _getSortedPropertyAccessors(o);
     for (int i = 0; i < r.accessors.length; i++) {
-      comparePropertyAccessorElements(r.accessors[i], o.accessors[i],
-          '$desc accessor ${o.accessors[i].name}');
+      comparePropertyAccessorElements(
+          rAccessors[i], oAccessors[i], '$desc accessor ${oAccessors[i].name}');
     }
     expect(r.methods.length, o.methods.length, reason: '$desc methods.length');
     for (int i = 0; i < r.methods.length; i++) {
@@ -1235,6 +1237,13 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     expect(initializer, new isInstanceOf<SimpleIdentifier>(), reason: desc);
     SimpleIdentifier identifier = initializer;
     expect(identifier.staticElement, isNull, reason: desc);
+  }
+
+  List<PropertyAccessorElement> _getSortedPropertyAccessors(
+      ClassElement classElement) {
+    List<PropertyAccessorElement> accessors = classElement.accessors.toList();
+    accessors.sort((a, b) => a.displayName.compareTo(b.displayName));
+    return accessors;
   }
 
   bool _hasModifier(Element element, Modifier modifier) {

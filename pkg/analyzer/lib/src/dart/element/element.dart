@@ -41,12 +41,12 @@ abstract class AbstractClassElementImpl extends ElementImpl
    * A list containing all of the accessors (getters and setters) contained in
    * this class.
    */
-  List<PropertyAccessorElement> _accessors = PropertyAccessorElement.EMPTY_LIST;
+  List<PropertyAccessorElement> _accessors;
 
   /**
    * A list containing all of the fields contained in this class.
    */
-  List<FieldElement> _fields = FieldElement.EMPTY_LIST;
+  List<FieldElement> _fields;
 
   /**
    * The type defined by the class.
@@ -73,7 +73,9 @@ abstract class AbstractClassElementImpl extends ElementImpl
       : super.forSerialized(enclosingUnit);
 
   @override
-  List<PropertyAccessorElement> get accessors => _accessors;
+  List<PropertyAccessorElement> get accessors {
+    return _accessors ?? const <PropertyAccessorElement>[];
+  }
 
   /**
    * Set the accessors contained in this class to the given [accessors].
@@ -89,7 +91,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
   String get displayName => name;
 
   @override
-  List<FieldElement> get fields => _fields;
+  List<FieldElement> get fields => _fields ?? const <FieldElement>[];
 
   /**
    * Set the fields contained in this class to the given [fields].
@@ -127,13 +129,13 @@ abstract class AbstractClassElementImpl extends ElementImpl
     // thrown a CCE if any of the elements in the arrays were not of the
     // expected types.
     //
-    for (PropertyAccessorElement accessor in _accessors) {
+    for (PropertyAccessorElement accessor in accessors) {
       PropertyAccessorElementImpl accessorImpl = accessor;
       if (accessorImpl.identifier == identifier) {
         return accessorImpl;
       }
     }
-    for (FieldElement field in _fields) {
+    for (FieldElement field in fields) {
       FieldElementImpl fieldImpl = field;
       if (fieldImpl.identifier == identifier) {
         return fieldImpl;
@@ -144,7 +146,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
 
   @override
   FieldElement getField(String name) {
-    for (FieldElement fieldElement in _fields) {
+    for (FieldElement fieldElement in fields) {
       if (name == fieldElement.name) {
         return fieldElement;
       }
@@ -154,9 +156,9 @@ abstract class AbstractClassElementImpl extends ElementImpl
 
   @override
   PropertyAccessorElement getGetter(String getterName) {
-    int length = _accessors.length;
+    int length = accessors.length;
     for (int i = 0; i < length; i++) {
-      PropertyAccessorElement accessor = _accessors[i];
+      PropertyAccessorElement accessor = accessors[i];
       if (accessor.isGetter && accessor.name == getterName) {
         return accessor;
       }
@@ -172,7 +174,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
     if (!StringUtilities.endsWithChar(setterName, 0x3D)) {
       setterName += '=';
     }
-    for (PropertyAccessorElement accessor in _accessors) {
+    for (PropertyAccessorElement accessor in accessors) {
       if (accessor.isSetter && accessor.name == setterName) {
         return accessor;
       }
@@ -226,8 +228,8 @@ abstract class AbstractClassElementImpl extends ElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
-    safelyVisitChildren(_accessors, visitor);
-    safelyVisitChildren(_fields, visitor);
+    safelyVisitChildren(accessors, visitor);
+    safelyVisitChildren(fields, visitor);
   }
 
   PropertyAccessorElement _internalLookUpConcreteGetter(
@@ -503,6 +505,20 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   @override
+  List<PropertyAccessorElement> get accessors {
+    if (_unlinkedClass != null && _accessors == null) {
+      _resynthesizeFieldsAndPropertyAccessors();
+    }
+    return _accessors ?? const <PropertyAccessorElement>[];
+  }
+
+  @override
+  void set accessors(List<PropertyAccessorElement> accessors) {
+    assert(_unlinkedClass == null);
+    super.accessors = accessors;
+  }
+
+  @override
   List<InterfaceType> get allSupertypes {
     List<InterfaceType> list = new List<InterfaceType>();
     _collectAllSupertypes(list);
@@ -629,6 +645,20 @@ class ClassElementImpl extends AbstractClassElementImpl
   TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
 
   @override
+  List<FieldElement> get fields {
+    if (_unlinkedClass != null && _fields == null) {
+      _resynthesizeFieldsAndPropertyAccessors();
+    }
+    return _fields ?? const <FieldElement>[];
+  }
+
+  @override
+  void set fields(List<FieldElement> fields) {
+    assert(_unlinkedClass == null);
+    super.fields = fields;
+  }
+
+  @override
   bool get hasNonFinalField {
     List<ClassElement> classesToVisit = new List<ClassElement>();
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
@@ -681,7 +711,7 @@ class ClassElementImpl extends AbstractClassElementImpl
         return true;
       }
     }
-    for (PropertyAccessorElement accessor in _accessors) {
+    for (PropertyAccessorElement accessor in accessors) {
       if (accessor.isStatic) {
         return true;
       }
@@ -1121,6 +1151,75 @@ class ClassElementImpl extends AbstractClassElementImpl
       implicitConstructor.enclosingElement = this;
       return implicitConstructor;
     }).toList(growable: false);
+  }
+
+  /**
+   * Resynthesize explicit fields and property accessors and fill [_fields] and
+   * [_accessors] with explicit and implicit elements.
+   */
+  void _resynthesizeFieldsAndPropertyAccessors() {
+    assert(_fields == null);
+    assert(_accessors == null);
+    // Build explicit fields and implicit property accessors.
+    var explicitFields = <FieldElement>[];
+    var implicitAccessors = <PropertyAccessorElement>[];
+    for (UnlinkedVariable v in _unlinkedClass.fields) {
+      FieldElementImpl field =
+          new FieldElementImpl.forSerializedFactory(v, this);
+      explicitFields.add(field);
+      implicitAccessors.add(
+          new PropertyAccessorElementImpl_ImplicitGetter(field)
+            ..enclosingElement = this);
+      if (!field.isConst && !field.isFinal) {
+        implicitAccessors.add(
+            new PropertyAccessorElementImpl_ImplicitSetter(field)
+              ..enclosingElement = this);
+      }
+    }
+    // Build explicit property accessors and implicit fields.
+    var explicitAccessors = <PropertyAccessorElement>[];
+    var implicitFields = <String, FieldElementImpl>{};
+    for (UnlinkedExecutable e in _unlinkedClass.executables) {
+      if (e.kind == UnlinkedExecutableKind.getter ||
+          e.kind == UnlinkedExecutableKind.setter) {
+        PropertyAccessorElementImpl accessor =
+            new PropertyAccessorElementImpl.forSerialized(e, this);
+        explicitAccessors.add(accessor);
+        // Prepare the field type.
+        DartType fieldType;
+        if (e.kind == UnlinkedExecutableKind.getter) {
+          fieldType = accessor.returnType;
+        } else {
+          fieldType = accessor.parameters[0].type;
+        }
+        // Create or update the implicit field.
+        String fieldName = accessor.displayName;
+        FieldElementImpl field = implicitFields[fieldName];
+        if (field == null) {
+          field = new FieldElementImpl(fieldName, -1);
+          implicitFields[fieldName] = field;
+          field.enclosingElement = this;
+          field.synthetic = true;
+          field.final2 = e.kind == UnlinkedExecutableKind.getter;
+          field.type = fieldType;
+        } else {
+          field.final2 = false;
+        }
+        accessor.variable = field;
+        if (e.kind == UnlinkedExecutableKind.getter) {
+          field.getter = accessor;
+        } else {
+          field.setter = accessor;
+        }
+      }
+    }
+    // Combine explicit and implicit fields and property accessors.
+    _fields = <FieldElement>[]
+      ..addAll(explicitFields)
+      ..addAll(implicitFields.values);
+    _accessors = <PropertyAccessorElement>[]
+      ..addAll(explicitAccessors)
+      ..addAll(implicitAccessors);
   }
 
   bool _safeIsOrInheritsProxy(
@@ -3838,6 +3937,22 @@ class FieldElementImpl extends PropertyInducingElementImpl
       UnlinkedVariable unlinkedVariable, ElementImpl enclosingElement)
       : super.forSerialized(unlinkedVariable, enclosingElement);
 
+  /**
+   * Initialize using the given serialized information.
+   */
+  factory FieldElementImpl.forSerializedFactory(
+      UnlinkedVariable unlinkedVariable, ClassElementImpl enclosingClass) {
+    if (unlinkedVariable.initializer?.bodyExpr != null &&
+        (unlinkedVariable.isConst ||
+            unlinkedVariable.isFinal && !unlinkedVariable.isStatic)) {
+      return new ConstFieldElementImpl.forSerialized(
+          unlinkedVariable, enclosingClass);
+    } else {
+      return new FieldElementImpl.forSerialized(
+          unlinkedVariable, enclosingClass);
+    }
+  }
+
   @override
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
 
@@ -3846,12 +3961,21 @@ class FieldElementImpl extends PropertyInducingElementImpl
       enclosingElement != null ? enclosingElement.isEnum : false;
 
   @override
+  bool get isStatic {
+    if (_unlinkedVariable != null) {
+      return _unlinkedVariable.isStatic;
+    }
+    return hasModifier(Modifier.STATIC);
+  }
+
+  @override
   ElementKind get kind => ElementKind.FIELD;
 
   /**
    * Set whether this field is static.
    */
   void set static(bool isStatic) {
+    assert(_unlinkedVariable == null);
     setModifier(Modifier.STATIC, isStatic);
   }
 

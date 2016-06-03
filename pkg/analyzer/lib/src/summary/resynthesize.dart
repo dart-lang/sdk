@@ -855,10 +855,7 @@ class _DeferredClassElement extends ClassElementHandle {
    * Ensure that we have [actualElement], and it has all executables.
    */
   void _ensureExecutables() {
-    if (!_executablesResynthesized) {
-      _executablesResynthesized = true;
-      unitResynthesizer.buildClassExecutables(actualElement, serializedClass);
-    }
+    // TODO(scheglov) remove and clean up Handle
   }
 }
 
@@ -1648,83 +1645,6 @@ class _UnitResynthesizer {
   }
 
   /**
-   * Resynthesize an [ExecutableElement] and place it in the given [holder].
-   */
-  void buildClassExecutable(UnlinkedExecutable serializedExecutable,
-      ElementImpl enclosingElement, ElementHolder holder) {
-    bool isTopLevel = holder == null;
-    if (holder == null) {
-      holder = unitHolder;
-    }
-    UnlinkedExecutableKind kind = serializedExecutable.kind;
-    String name = serializedExecutable.name;
-    if (kind == UnlinkedExecutableKind.setter) {
-      assert(name.endsWith('='));
-      name = name.substring(0, name.length - 1);
-    }
-    switch (kind) {
-      case UnlinkedExecutableKind.getter:
-      case UnlinkedExecutableKind.setter:
-        // Top-level accessors are created lazily.
-        if (isTopLevel) {
-          break;
-        }
-        // Class member accessors.
-        PropertyAccessorElementImpl executableElement =
-            new PropertyAccessorElementImpl.forSerialized(
-                serializedExecutable, enclosingElement);
-        DartType type;
-        if (kind == UnlinkedExecutableKind.getter) {
-          type = executableElement.returnType;
-        } else {
-          type = executableElement.parameters[0].type;
-        }
-        holder.addAccessor(executableElement);
-        FieldElementImpl field = buildImplicitField(name, type, kind, holder);
-        field.static = serializedExecutable.isStatic;
-        executableElement.variable = field;
-        if (kind == UnlinkedExecutableKind.getter) {
-          field.getter = executableElement;
-        } else {
-          field.setter = executableElement;
-        }
-        break;
-      default:
-        // The only other executable type is a constructor, and that is handled
-        // separately (in [buildConstructor].  So this code should be
-        // unreachable.
-        assert(false);
-    }
-  }
-
-  /**
-   * Fill the given [ClassElementImpl] with executable elements and fields.
-   */
-  void buildClassExecutables(
-      ClassElementImpl classElement, UnlinkedClass serializedClass) {
-    ElementHolder memberHolder = new ElementHolder();
-    for (UnlinkedVariable serializedVariable in serializedClass.fields) {
-      buildField(classElement, serializedVariable, memberHolder);
-    }
-    for (UnlinkedExecutable serializedExecutable
-        in serializedClass.executables) {
-      switch (serializedExecutable.kind) {
-        case UnlinkedExecutableKind.getter:
-        case UnlinkedExecutableKind.setter:
-          buildClassExecutable(
-              serializedExecutable, classElement, memberHolder);
-          break;
-        case UnlinkedExecutableKind.constructor:
-        case UnlinkedExecutableKind.functionOrMethod:
-          // Resynthesized lazily.
-          break;
-      }
-    }
-    classElement.accessors = memberHolder.accessors;
-    classElement.fields = memberHolder.fields;
-  }
-
-  /**
    * Resynthesize a [ClassElementImpl].  If [handle] is not `null`, then
    * executables are not resynthesized, and [InterfaceTypeImpl] is created
    * around the [handle], so that executables are resynthesized lazily.
@@ -1739,11 +1659,6 @@ class _UnitResynthesizer {
     // TODO(scheglov) move to ClassElementImpl
     correspondingType.typeArguments = classElement.typeParameterTypes;
     classElement.type = correspondingType;
-    // TODO(scheglov) Somehow Observatory shows too much time spent here
-    // during DDC run on the large codebase. I would expect only Object here.
-    if (handle == null) {
-      buildClassExecutables(classElement, serializedClass);
-    }
     return classElement;
   }
 
@@ -1823,17 +1738,8 @@ class _UnitResynthesizer {
    */
   void buildField(ClassElementImpl enclosingClass,
       UnlinkedVariable serializedVariable, ElementHolder holder) {
-    FieldElementImpl element;
-    if (serializedVariable.initializer?.bodyExpr != null &&
-        (serializedVariable.isConst ||
-            serializedVariable.isFinal && !serializedVariable.isStatic)) {
-      element = new ConstFieldElementImpl.forSerialized(
-          serializedVariable, enclosingClass);
-    } else {
-      element = new FieldElementImpl.forSerialized(
-          serializedVariable, enclosingClass);
-    }
-    element.static = serializedVariable.isStatic;
+    FieldElementImpl element = new FieldElementImpl.forSerializedFactory(
+        serializedVariable, enclosingClass);
     holder.addField(element);
     buildImplicitAccessors(element, holder);
   }
@@ -1849,27 +1755,6 @@ class _UnitResynthesizer {
     if (!(element.isConst || element.isFinal)) {
       PropertyAccessorElementImpl setter = buildImplicitSetter(element);
       holder?.addAccessor(setter);
-    }
-  }
-
-  /**
-   * Build the implicit field associated with a getter or setter, and place it
-   * in [holder].
-   */
-  FieldElementImpl buildImplicitField(String name, DartType type,
-      UnlinkedExecutableKind kind, ElementHolder holder) {
-    FieldElementImpl field = holder.getField(name);
-    if (field == null) {
-      field = new FieldElementImpl(name, -1);
-      field.synthetic = true;
-      field.final2 = kind == UnlinkedExecutableKind.getter;
-      field.type = type;
-      holder.addField(field);
-      return field;
-    } else {
-      // TODO(paulberry): what if the getter and setter have a type mismatch?
-      field.final2 = false;
-      return field;
     }
   }
 
