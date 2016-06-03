@@ -9964,8 +9964,7 @@ class TypeResolverVisitor extends ScopedVisitor {
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     super.visitConstructorDeclaration(node);
-    ExecutableElementImpl element = node.element as ExecutableElementImpl;
-    if (element == null) {
+    if (node.element == null) {
       ClassDeclaration classNode =
           node.getAncestor((node) => node is ClassDeclaration);
       StringBuffer buffer = new StringBuffer();
@@ -9982,10 +9981,6 @@ class TypeResolverVisitor extends ScopedVisitor {
       buffer.write(" was not set while trying to resolve types.");
       AnalysisEngine.instance.logger.logError(buffer.toString(),
           new CaughtException(new AnalysisException(), null));
-    } else {
-      ClassElement definingClass = element.enclosingElement as ClassElement;
-      element.returnType = definingClass.type;
-      element.type = new FunctionTypeImpl(element);
     }
     return null;
   }

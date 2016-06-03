@@ -96,7 +96,6 @@ class ElementFactory {
   static ConstructorElementImpl constructorElement(
       ClassElement definingClass, String name, bool isConst,
       [List<DartType> argumentTypes]) {
-    DartType type = definingClass.type;
     ConstructorElementImpl constructor = name == null
         ? new ConstructorElementImpl("", -1)
         : new ConstructorElementImpl(name, 0);
@@ -123,9 +122,7 @@ class ElementFactory {
     } else {
       constructor.parameters = <ParameterElement>[];
     }
-    constructor.returnType = type;
     constructor.enclosingElement = definingClass;
-    constructor.type = new FunctionTypeImpl(constructor);
     if (!constructor.isSynthetic) {
       constructor.constantInitializers = <ConstructorInitializer>[];
     }
@@ -137,8 +134,7 @@ class ElementFactory {
           [List<DartType> argumentTypes]) =>
       constructorElement(definingClass, name, false, argumentTypes);
 
-  static EnumElementImpl enumElement(
-      TypeProvider typeProvider, String enumName,
+  static EnumElementImpl enumElement(TypeProvider typeProvider, String enumName,
       [List<String> constantNames]) {
     //
     // Build the enum.

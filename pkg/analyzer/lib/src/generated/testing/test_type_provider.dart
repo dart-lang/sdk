@@ -149,7 +149,7 @@ class TestTypeProvider implements TypeProvider {
   InterfaceType _typeType;
 
   /**
-   * The type representing typenames that can't be resolved.
+   * The type representing type names that can't be resolved.
    */
   DartType _undefinedType;
 
@@ -683,10 +683,6 @@ class TestTypeProvider implements TypeProvider {
     }
     for (MethodElement method in classElement.methods) {
       (method as ExecutableElementImpl).type = new FunctionTypeImpl(method);
-    }
-    for (ConstructorElement constructor in classElement.constructors) {
-      (constructor as ExecutableElementImpl).type =
-          new FunctionTypeImpl(constructor);
     }
   }
 

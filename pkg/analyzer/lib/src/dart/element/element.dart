@@ -1085,7 +1085,6 @@ class ClassElementImpl extends AbstractClassElementImpl
           new ConstructorElementImpl(superclassConstructor.name, -1);
       implicitConstructor.synthetic = true;
       implicitConstructor.redirectedConstructor = superclassConstructor;
-      implicitConstructor.returnType = type;
       List<ParameterElement> superParameters = superclassConstructor.parameters;
       int count = superParameters.length;
       if (count > 0) {
@@ -1106,7 +1105,6 @@ class ClassElementImpl extends AbstractClassElementImpl
         implicitConstructor.parameters = implicitParameters;
       }
       implicitConstructor.enclosingElement = this;
-      implicitConstructor.type = new FunctionTypeImpl(implicitConstructor);
       return implicitConstructor;
     }).toList(growable: false);
   }
@@ -1881,6 +1879,19 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   DartType get returnType => enclosingElement.type;
+
+  void set returnType(DartType returnType) {
+    assert(false);
+  }
+
+  @override
+  FunctionType get type {
+    return _type ??= new FunctionTypeImpl(this);
+  }
+
+  void set type(FunctionType type) {
+    assert(false);
+  }
 
   @override
   accept(ElementVisitor visitor) => visitor.visitConstructorElement(this);

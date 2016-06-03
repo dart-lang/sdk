@@ -1724,9 +1724,6 @@ class _UnitResynthesizer {
         // Synthesize implicit constructors.
         ConstructorElementImpl constructor = new ConstructorElementImpl('', -1);
         constructor.synthetic = true;
-        constructor.returnType = classElement.type;
-        constructor.type = new FunctionTypeImpl.elementWithNameAndArgs(
-            constructor, null, classElement.type.typeArguments, false);
         memberHolder.addConstructor(constructor);
       }
       classElement.constructors = memberHolder.constructors;

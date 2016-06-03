@@ -1300,9 +1300,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     ConstructorElementImpl constructor =
         new ConstructorElementImpl.forNode(null);
     constructor.synthetic = true;
-    constructor.returnType = definingClass.type;
     constructor.enclosingElement = definingClass;
-    constructor.type = new FunctionTypeImpl(constructor);
     return <ConstructorElement>[constructor];
   }
 
