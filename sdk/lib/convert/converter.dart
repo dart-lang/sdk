@@ -52,7 +52,8 @@ abstract class Converter<S, T> implements StreamTransformer/*<S, T>*/ {
  *
  * For a non-chunked conversion converts the input in sequence.
  */
-class _FusedConverter<S, M, T> extends Converter<S, T> {
+class _FusedConverter<S, M, T> extends Converter<S, T>
+    implements ChunkedConverter<S, T, S, T> {
   final Converter<S, M> _first;
   final Converter<M, T> _second;
 

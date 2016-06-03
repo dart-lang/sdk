@@ -42,7 +42,8 @@ class SystemEncoding extends Encoding {
   }
 }
 
-class _WindowsCodePageEncoder extends Converter<String, List<int>> {
+class _WindowsCodePageEncoder extends Converter<String, List<int>>
+    implements ChunkedConverter<String, List<int>, String, List<int>> {
 
   const _WindowsCodePageEncoder();
 
@@ -94,7 +95,8 @@ class _WindowsCodePageEncoderSink extends StringConversionSinkBase {
 }
 
 
-class _WindowsCodePageDecoder extends Converter<List<int>, String> {
+class _WindowsCodePageDecoder extends Converter<List<int>, String>
+    implements ChunkedConverter<List<int>, String, List<int>, String> {
 
   const _WindowsCodePageDecoder();
 

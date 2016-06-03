@@ -159,7 +159,8 @@ class JsonCodec extends Codec<Object, String> {
 /**
  * This class converts JSON objects to strings.
  */
-class JsonEncoder extends Converter<Object, String> {
+class JsonEncoder extends Converter<Object, String>
+    implements ChunkedConverter<Object, String, Object, String> {
   /**
    * The string used for indention.
    *
@@ -284,7 +285,9 @@ class JsonEncoder extends Converter<Object, String> {
  * a JSON string, and then UTF-8 encoding the string, but without
  * creating an intermediate string.
  */
-class JsonUtf8Encoder extends Converter<Object, List<int>> {
+class JsonUtf8Encoder extends Converter<Object, List<int>>
+    implements ChunkedConverter<Object, List<int>, Object, List<int>> {
+
   /** Default buffer size used by the JSON-to-UTF-8 encoder. */
   static const int DEFAULT_BUFFER_SIZE = 256;
   /** Indentation used in pretty-print mode, `null` if not pretty. */
@@ -470,7 +473,8 @@ class _JsonUtf8EncoderSink extends ChunkedConversionSink<Object> {
 /**
  * This class parses JSON strings and builds the corresponding objects.
  */
-class JsonDecoder extends Converter<String, Object> {
+class JsonDecoder extends Converter<String, Object>
+    implements ChunkedConverter<String, Object, String, Object> {
   final _Reviver _reviver;
   /**
    * Constructs a new JsonDecoder.
