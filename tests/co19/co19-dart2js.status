@@ -1564,7 +1564,7 @@ WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t01: Skip # 
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t02: Skip # Times out. Please triage this failure
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t05: Skip # Times out. Please triage this failure
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t06: Skip # Times out. Please triage this failure
-WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: Pass, RuntimeError # Please triage this failure
+WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: Pass, RuntimeError, Timeout # Please triage this failure
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-003_t01: Pass, RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/events/retargeting-relatedtarget/test-003_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/html-elements-and-their-shadow-trees/test-001_t01: RuntimeError # Please triage this failure
@@ -1859,7 +1859,7 @@ LayoutTests/fast/canvas/canvas-strokeRect-gradient-shadow_t01: Pass, RuntimeErro
 LayoutTests/fast/canvas/canvas-strokeRect-zeroSizeGradient_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-strokeText-invalid-maxWidth_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-strokeText-zeroSizeGradient_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/test-setting-canvas-color_t01: RuntimeError # co19 issue 64
+LayoutTests/fast/css/test-setting-canvas-color_t01: Pass, RuntimeError # co19 issue 64 (depends on the FF version)
 LayoutTests/fast/canvas/canvas-toDataURL-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/draw-custom-focus-ring_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/drawImage-with-valid-image_t01: RuntimeError # Please triage this failure
@@ -3185,12 +3185,14 @@ Language/Classes/Constructors/Factories/return_wrong_type_t02: Pass, Slow # Issu
 Language/Classes/Constructors/Factories/return_type_t05: Pass, Slow # Issue 25940
 LayoutTests/fast/canvas/webgl/array-bounds-clamping_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/attrib-location-length-limits_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/bad-arguments-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/buffer-bind-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/buffer-data-array-buffer_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/canvas-2d-webgl-texture_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/canvas-resize-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/canvas-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/canvas-zero-size_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/css-webkit-canvas_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/compressed-tex-image_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/copy-tex-image-and-sub-image-2d_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/draw-arrays-out-of-bounds_t01: RuntimeError # Please triage this failure
@@ -3247,7 +3249,9 @@ LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-data-rgba444
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-data-rgba5551_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-data_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgb565_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba4444_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-uniform-binding-bugs_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-webgl_t01: RuntimeError # Please triage this failure
