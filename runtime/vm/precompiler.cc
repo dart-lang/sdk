@@ -413,6 +413,7 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     { "dart:_vmservice", "::", "boot" },
     { "dart:developer", "Metrics", "_printMetrics" },
     { "dart:developer", "::", "_runExtension" },
+    { "dart:isolate", "::", "_runPendingImmediateCallback" },
 #endif  // !PRODUCT
     // Fields
     { "dart:core", "Error", "_stackTrace" },
