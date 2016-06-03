@@ -754,6 +754,20 @@ static DART_NOINLINE bool InvokeNativeWrapper(
 #define DECLARE_A_X int32_t rD; USE(rD)
 #define DECODE_A_X rD = (static_cast<int32_t>(op) >> Bytecode::kDShift);
 
+
+#define SMI_FASTPATH_ICDATA_INC                                                \
+  do {                                                                         \
+    ASSERT(Bytecode::IsCallOpcode(*pc));                                       \
+    const uint16_t kidx = Bytecode::DecodeD(*pc);                              \
+    const RawICData* icdata = RAW_CAST(ICData, LOAD_CONSTANT(kidx));           \
+    RawObject** data = icdata->ptr()->ic_data_->ptr()->data();                 \
+    const intptr_t count_offset = ICData::CountIndexFor(2);                    \
+    const intptr_t raw_smi_old =                                               \
+        reinterpret_cast<intptr_t>(data[count_offset]);                        \
+    const intptr_t raw_smi_new = raw_smi_old + Smi::RawValue(1);               \
+    *reinterpret_cast<intptr_t*>(&data[count_offset]) = raw_smi_new;           \
+  } while (0);                                                                 \
+
 // Declare bytecode handler for a smi operation (e.g. AddTOS) with the
 // given result type and the given behavior specified as a function
 // that takes left and right operands and result slot and returns
@@ -764,6 +778,7 @@ static DART_NOINLINE bool InvokeNativeWrapper(
     const intptr_t rhs = reinterpret_cast<intptr_t>(SP[-0]);                   \
     ResultT* slot = reinterpret_cast<ResultT*>(SP - 1);                        \
     if (LIKELY(AreBothSmis(lhs, rhs) && !Func(lhs, rhs, slot))) {              \
+      SMI_FASTPATH_ICDATA_INC;                                                 \
       /* Fast path succeeded. Skip the generic call that follows. */           \
       pc++;                                                                    \
       /* We dropped 2 arguments and push result                   */           \
