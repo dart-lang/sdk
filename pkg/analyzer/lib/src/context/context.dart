@@ -732,8 +732,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       ClassElementImpl element =
           new ClassElementImpl.forNode(AstFactory.identifier3(typeName));
       element.supertype = objType;
-      InterfaceTypeImpl type = new InterfaceTypeImpl(element);
-      element.type = type;
       if (parameterNames != null) {
         int count = parameterNames.length;
         if (count > 0) {
@@ -750,7 +748,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             typeParameter.type = typeArguments[i];
           }
           element.typeParameters = typeParameters;
-          type.typeArguments = typeArguments;
         }
       }
       return element;

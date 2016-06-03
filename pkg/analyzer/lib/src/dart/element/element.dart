@@ -49,12 +49,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
   List<FieldElement> _fields;
 
   /**
-   * The type defined by the class.
-   */
-  @override
-  InterfaceType type;
-
-  /**
    * Initialize a newly created class element to have the given [name] at the
    * given [offset] in the file that contains the declaration of this element.
    */
@@ -439,6 +433,11 @@ class ClassElementImpl extends AbstractClassElementImpl
    * The superclass of the class, or `null` for [Object].
    */
   InterfaceType _supertype;
+
+  /**
+   * The type defined by the class.
+   */
+  InterfaceType _type;
 
   /**
    * A list containing all of the mixins that are applied to the class being
@@ -874,6 +873,16 @@ class ClassElementImpl extends AbstractClassElementImpl
   void set supertype(InterfaceType supertype) {
     assert(_unlinkedClass == null);
     _supertype = supertype;
+  }
+
+  @override
+  InterfaceType get type {
+    if (_type == null) {
+      InterfaceTypeImpl type = new InterfaceTypeImpl(this);
+      type.typeArguments = typeParameterTypes;
+      _type = type;
+    }
+    return _type;
   }
 
   @override
@@ -3128,6 +3137,11 @@ class EnumElementImpl extends AbstractClassElementImpl {
   final UnlinkedEnum _unlinkedEnum;
 
   /**
+   * The type defined by the enum.
+   */
+  InterfaceType _type;
+
+  /**
    * Initialize a newly created class element to have the given [name] at the
    * given [offset] in the file that contains the declaration of this element.
    */
@@ -3266,6 +3280,16 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   InterfaceType get supertype => context.typeProvider.objectType;
+
+  @override
+  InterfaceType get type {
+    if (_type == null) {
+      InterfaceTypeImpl type = new InterfaceTypeImpl(this);
+      type.typeArguments = const <DartType>[];
+      _type = type;
+    }
+    return _type;
+  }
 
   @override
   List<TypeParameterElement> get typeParameters =>

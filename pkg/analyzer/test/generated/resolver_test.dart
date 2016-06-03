@@ -2922,8 +2922,6 @@ class TypeProviderImplTest extends EngineTestCase {
     ClassElementImpl element =
         new ClassElementImpl.forNode(AstFactory.identifier3(typeName));
     element.supertype = superclassType;
-    InterfaceTypeImpl type = new InterfaceTypeImpl(element);
-    element.type = type;
     if (parameterNames != null) {
       int count = parameterNames.length;
       if (count > 0) {
@@ -2940,7 +2938,6 @@ class TypeProviderImplTest extends EngineTestCase {
           typeParameter.type = typeArguments[i];
         }
         element.typeParameters = typeParameters;
-        type.typeArguments = typeArguments;
       }
     }
     return element;

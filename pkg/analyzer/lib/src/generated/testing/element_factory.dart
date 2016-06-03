@@ -47,16 +47,8 @@ class ElementFactory {
     ClassElementImpl element = new ClassElementImpl(typeName, 0);
     element.constructors = const <ConstructorElement>[];
     element.supertype = superclassType;
-    InterfaceTypeImpl type = new InterfaceTypeImpl(element);
-    element.type = type;
     if (parameterNames != null) {
-      int count = parameterNames.length;
-      if (count > 0) {
-        element.typeParameters = typeParameters(parameterNames);
-        type.typeArguments = new List<DartType>.from(
-            element.typeParameters.map((p) => p.type),
-            growable: false);
-      }
+      element.typeParameters = typeParameters(parameterNames);
     }
     return element;
   }
@@ -140,8 +132,7 @@ class ElementFactory {
     // Build the enum.
     //
     EnumElementImpl enumElement = new EnumElementImpl(enumName, -1);
-    InterfaceTypeImpl enumType = new InterfaceTypeImpl(enumElement);
-    enumElement.type = enumType;
+    InterfaceTypeImpl enumType = enumElement.type;
     //
     // Populate the fields.
     //

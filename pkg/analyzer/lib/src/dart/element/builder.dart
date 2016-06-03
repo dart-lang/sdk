@@ -421,12 +421,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     ClassElementImpl element = new ClassElementImpl.forNode(className);
     _setCodeRange(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
-    List<TypeParameterElement> typeParameters = holder.typeParameters;
-    List<DartType> typeArguments = _createTypeParameterTypes(typeParameters);
-    InterfaceTypeImpl interfaceType = new InterfaceTypeImpl(element);
-    interfaceType.typeArguments = typeArguments;
-    element.type = interfaceType;
-    element.typeParameters = typeParameters;
+    element.typeParameters = holder.typeParameters;
     setElementDocumentationComment(element, node);
     element.abstract = node.isAbstract;
     element.accessors = holder.accessors;
@@ -473,12 +468,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     element.metadata = _createElementAnnotations(node.metadata);
     element.abstract = node.abstractKeyword != null;
     element.mixinApplication = true;
-    List<TypeParameterElement> typeParameters = holder.typeParameters;
-    element.typeParameters = typeParameters;
-    List<DartType> typeArguments = _createTypeParameterTypes(typeParameters);
-    InterfaceTypeImpl interfaceType = new InterfaceTypeImpl(element);
-    interfaceType.typeArguments = typeArguments;
-    element.type = interfaceType;
+    element.typeParameters = holder.typeParameters;
     setElementDocumentationComment(element, node);
     _currentHolder.addType(element);
     className.staticElement = element;
@@ -621,8 +611,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     _setCodeRange(enumElement, node);
     enumElement.metadata = _createElementAnnotations(node.metadata);
     setElementDocumentationComment(enumElement, node);
-    InterfaceTypeImpl enumType = new InterfaceTypeImpl(enumElement);
-    enumElement.type = enumType;
+    InterfaceTypeImpl enumType = enumElement.type;
     //
     // Build the elements for the constants. These are minimal elements; the
     // rest of the constant elements (and elements for other fields) must be

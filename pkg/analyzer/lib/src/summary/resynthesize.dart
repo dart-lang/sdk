@@ -1527,10 +1527,6 @@ class _UnitResynthesizer {
     ClassElementImpl classElement =
         new ClassElementImpl.forSerialized(serializedClass, unit);
     classElement.hasBeenInferred = summaryResynthesizer.strongMode;
-    InterfaceTypeImpl correspondingType = new InterfaceTypeImpl(classElement);
-    // TODO(scheglov) move to ClassElementImpl
-    correspondingType.typeArguments = classElement.typeParameterTypes;
-    classElement.type = correspondingType;
     unitHolder.addType(classElement);
   }
 
@@ -1555,8 +1551,7 @@ class _UnitResynthesizer {
     assert(!libraryResynthesizer.isCoreLibrary);
     EnumElementImpl classElement =
         new EnumElementImpl.forSerialized(serializedEnum, unit);
-    InterfaceType enumType = new InterfaceTypeImpl(classElement);
-    classElement.type = enumType;
+    InterfaceType enumType = classElement.type;
     ElementHolder memberHolder = new ElementHolder();
     // Build the 'index' field.
     FieldElementImpl indexField = new FieldElementImpl('index', -1);
