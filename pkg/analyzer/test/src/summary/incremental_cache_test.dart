@@ -121,6 +121,25 @@ main() {}
     expect(bundles, isNotNull);
   }
 
+  void test_getLibraryParts_hasParts() {
+    Source part1Source = addSource('/part1.dart', r'part of test;');
+    Source part2Source = addSource('/part2.dart', r'part of test;');
+    putTestLibrary(r'''
+library test;
+part 'part1.dart';
+part 'part2.dart';
+''');
+    expect(cache.getLibraryParts(testSource),
+        unorderedEquals([part1Source, part2Source]));
+  }
+
+  void test_getLibraryParts_noParts() {
+    putTestLibrary(r'''
+main() {}
+''');
+    expect(cache.getLibraryParts(testSource), isEmpty);
+  }
+
   void test_getSourceErrorsInLibrary_library() {
     verifyNoTestUnitErrors = false;
     putTestLibrary(r'''

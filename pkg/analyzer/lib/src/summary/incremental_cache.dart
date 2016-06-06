@@ -160,6 +160,26 @@ class IncrementalCache {
   }
 
   /**
+   * Return the parts of the given [librarySource], or `null` if unknown.
+   */
+  List<Source> getLibraryParts(Source librarySource) {
+    try {
+      CacheSourceContent contentSource = _getCacheSourceContent(librarySource);
+      if (contentSource != null) {
+        return contentSource.partUris.map((String partUri) {
+          Source partSource = _resolveUri(librarySource, partUri);
+          if (partSource == null) {
+            throw new StateError(
+                'Unable to resolve $partUri in $librarySource');
+          }
+          return partSource;
+        }).toList();
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  /**
    * Return cached errors in the given [source] in the context of the given
    * [librarySource], or `null` if the cache does not have this information.
    */

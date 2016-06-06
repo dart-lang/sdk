@@ -99,6 +99,15 @@ class _CacheBasedResultProvider extends ResynthesizerResultProvider {
     }
     // Source based results.
     if (target is Source) {
+      if (result == INCLUDED_PARTS) {
+        List<Source> parts = cache.getLibraryParts(target);
+        if (parts != null) {
+          entry.setValue(result, parts, TargetedResult.EMPTY_LIST);
+          return true;
+        } else {
+          return false;
+        }
+      }
       if (result == DART_ERRORS) {
         // TODO(scheglov) provide actual errors
         entry.setValue(result, <AnalysisError>[], TargetedResult.EMPTY_LIST);
