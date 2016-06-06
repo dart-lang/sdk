@@ -891,7 +891,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       } else {
         return new StaticAccess.parameter(target);
       }
-    } else if (target.isInitializingFormal){
+    } else if (target.isInitializingFormal) {
       return new StaticAccess.finalParameter(target);
     } else if (target.isVariable) {
       if (target.isFinal || target.isConst) {

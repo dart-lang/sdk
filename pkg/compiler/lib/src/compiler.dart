@@ -2022,10 +2022,17 @@ class _CompilerResolution implements Resolution {
         // Only analyze nodes with a corresponding [TreeElements].
         compiler.checker.check(element);
       }
-      WorldImpact worldImpact = compiler.backend.impactTransformer
-          .transformResolutionImpact(resolutionImpact);
-      return worldImpact;
+      return transformResolutionImpact(element, resolutionImpact);
     });
+  }
+
+  @override
+  WorldImpact transformResolutionImpact(
+      Element element, ResolutionImpact resolutionImpact) {
+    WorldImpact worldImpact = compiler.backend.impactTransformer
+        .transformResolutionImpact(resolutionImpact);
+    _worldImpactCache[element] = worldImpact;
+    return worldImpact;
   }
 
   @override

@@ -257,6 +257,9 @@ abstract class Resolution implements Frontend {
   /// Computes the [WorldImpact] for [element].
   WorldImpact computeWorldImpact(Element element);
 
+  WorldImpact transformResolutionImpact(
+      Element element, ResolutionImpact resolutionImpact);
+
   /// Removes the [WorldImpact] for [element] from the resolution cache. Later
   /// calls to [getWorldImpact] or [computeWorldImpact] returns an empty impact.
   void uncacheWorldImpact(Element element);

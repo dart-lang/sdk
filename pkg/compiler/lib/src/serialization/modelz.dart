@@ -482,7 +482,9 @@ class LibraryElementZ extends DeserializedElementZ
 
   @override
   Iterable<ImportElement> getImportsFor(Element element) {
-    return _unsupported('getImportsFor');
+    // TODO(johnniwinther): Serialize this to support deferred access to
+    // serialized entities.
+    return <ImportElement>[];
   }
 
   String toString() {
@@ -1334,8 +1336,13 @@ class RedirectingFactoryConstructorElementZ extends ConstructorElementZ {
 }
 
 class ForwardingConstructorElementZ extends ElementZ
-    with AnalyzableElementMixin, AstElementMixinZ
-    implements ConstructorElement {
+    with
+        AnalyzableElementMixin,
+        AstElementMixinZ
+    implements
+        ConstructorElement,
+        // TODO(johnniwinther): Sort out whether a constructor is a method.
+        MethodElement {
   final MixinApplicationElement enclosingClass;
   final ConstructorElement definingConstructor;
 

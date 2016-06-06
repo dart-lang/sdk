@@ -9,7 +9,7 @@ part of js_backend;
  */
 class TypeVariableHandler {
   final Compiler _compiler;
-  FunctionElement _typeVariableConstructor;
+  ConstructorElement _typeVariableConstructor;
 
   /**
    * Set to 'true' on first encounter of a class with type variables.
@@ -77,43 +77,23 @@ class TypeVariableHandler {
     for (TypeVariableType currentTypeVariable in cls.typeVariables) {
       TypeVariableElement typeVariableElement = currentTypeVariable.element;
 
-      AstConstant name = new AstConstant(
-          typeVariableElement,
-          typeVariableElement.node,
-          new StringConstantExpression(currentTypeVariable.name),
-          _backend.constantSystem
-              .createString(new DartString.literal(currentTypeVariable.name)));
       jsAst.Expression boundIndex =
           _metadataCollector.reifyType(typeVariableElement.bound);
       ConstantValue boundValue = new SyntheticConstantValue(
           SyntheticConstantKind.TYPEVARIABLE_REFERENCE, boundIndex);
       ConstantExpression boundExpression =
           new SyntheticConstantExpression(boundValue);
-      AstConstant bound = new AstConstant(typeVariableElement,
-          typeVariableElement.node, boundExpression, boundValue);
-      AstConstant type = new AstConstant(
-          typeVariableElement,
-          typeVariableElement.node,
-          new TypeConstantExpression(cls.rawType),
-          _backend.constantSystem.createType(_backend.compiler, cls.rawType));
-      List<AstConstant> arguments = [type, name, bound];
+      ConstantExpression constant = new ConstructedConstantExpression(
+          _typeVariableConstructor.enclosingClass.thisType,
+          _typeVariableConstructor,
+          const CallStructure.unnamed(3), [
+        new TypeConstantExpression(cls.rawType),
+        new StringConstantExpression(currentTypeVariable.name),
+        new SyntheticConstantExpression(boundValue)
+      ]);
 
-      // TODO(johnniwinther): Support a less front-end specific creation of
-      // constructed constants.
-      AstConstant constant =
-          CompileTimeConstantEvaluator.makeConstructedConstant(
-              _compiler,
-              _backend.constants,
-              typeVariableElement,
-              typeVariableElement.node,
-              typeVariableType,
-              _typeVariableConstructor,
-              typeVariableType,
-              _typeVariableConstructor,
-              const CallStructure.unnamed(3),
-              arguments,
-              arguments);
-      ConstantValue value = constant.value;
+      _backend.constants.evaluate(constant);
+      ConstantValue value = _backend.constants.getConstantValue(constant);
       _backend.registerCompileTimeConstant(value, _compiler.globalDependencies);
       _backend.addCompileTimeConstantForEmission(value);
       _backend.constants.addCompileTimeConstantForEmission(value);

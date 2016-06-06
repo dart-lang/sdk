@@ -28,17 +28,15 @@ import 'task.dart';
 
 class DeserializerSystemImpl extends DeserializerSystem {
   final Compiler _compiler;
+  final Resolution resolution;
   final DeserializationContext deserializationContext;
   final List<LibraryElement> deserializedLibraries = <LibraryElement>[];
   final ResolutionImpactDeserializer _resolutionImpactDeserializer;
   final ResolvedAstDeserializerPlugin _resolvedAstDeserializer;
-  final ImpactTransformer _impactTransformer;
 
-  factory DeserializerSystemImpl(
-      Compiler compiler, ImpactTransformer impactTransformer) {
-    DeserializationContext context =
-        new DeserializationContext(
-            compiler.reporter, compiler.resolution, compiler.libraryLoader);
+  factory DeserializerSystemImpl(Compiler compiler) {
+    DeserializationContext context = new DeserializationContext(
+        compiler.reporter, compiler.resolution, compiler.libraryLoader);
     DeserializerPlugin backendDeserializer =
         compiler.backend.serialization.deserializer;
     context.plugins.add(backendDeserializer);
@@ -49,14 +47,14 @@ class DeserializerSystemImpl extends DeserializerSystem {
         new ResolvedAstDeserializerPlugin(
             compiler.parsingContext, backendDeserializer);
     context.plugins.add(resolvedAstDeserializer);
-    return new DeserializerSystemImpl._(compiler, context, impactTransformer,
+    return new DeserializerSystemImpl._(compiler, compiler.resolution, context,
         resolutionImpactDeserializer, resolvedAstDeserializer);
   }
 
   DeserializerSystemImpl._(
       this._compiler,
+      this.resolution,
       this.deserializationContext,
-      this._impactTransformer,
       this._resolutionImpactDeserializer,
       this._resolvedAstDeserializer);
 
@@ -142,7 +140,7 @@ class DeserializerSystemImpl extends DeserializerSystem {
         }
       }
     }
-    return _impactTransformer.transformResolutionImpact(resolutionImpact);
+    return resolution.transformResolutionImpact(element, resolutionImpact);
   }
 
   @override
@@ -204,7 +202,6 @@ class ResolutionImpactDeserializer extends DeserializerPlugin {
       }
       return null;
     });
-
   }
 }
 

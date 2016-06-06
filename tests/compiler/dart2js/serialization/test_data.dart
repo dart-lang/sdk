@@ -357,6 +357,18 @@ main() {
 }
 ''',
   }),
+
+  const Test('Deferred loading', const {
+    'main.dart': '''
+import 'a.dart' deferred as lib;
+main() {
+  lib.foo();
+}
+''',
+    'a.dart': '''
+void foo() {}
+''',
+  }),
 ];
 
 class Test {

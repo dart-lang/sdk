@@ -117,8 +117,7 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
   void deserializeFromText(Uri sourceUri, String serializedData) {
     measure(() {
       if (deserializer == null) {
-        deserializer = new DeserializerSystemImpl(
-            compiler, compiler.backend.impactTransformer);
+        deserializer = new DeserializerSystemImpl(compiler);
       }
       DeserializerSystemImpl deserializerImpl = deserializer;
       DeserializationContext context = deserializerImpl.deserializationContext;

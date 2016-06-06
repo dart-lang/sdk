@@ -383,7 +383,10 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
 
   @override
   bool visitClassElement(ClassElement element1, ClassElement element2) {
-    if (!strategy.test(element1, element2, 'isUnnamedMixinApplication',
+    if (!strategy.test(
+        element1,
+        element2,
+        'isUnnamedMixinApplication',
         element1.isUnnamedMixinApplication,
         element2.isUnnamedMixinApplication)) {
       return false;

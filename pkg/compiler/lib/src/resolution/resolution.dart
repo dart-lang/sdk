@@ -362,7 +362,7 @@ class ResolverTask extends CompilerTask {
       DartType type = visitor.resolveTypeAnnotation(tree.type);
       assert(invariant(
           element,
-              element.variables.type == null ||
+          element.variables.type == null ||
               // Crude check but we have no equivalence relation that
               // equates malformed types, like matching creations of type
               // `Foo<Unresolved>`.

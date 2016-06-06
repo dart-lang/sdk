@@ -549,7 +549,7 @@ class ConstructedConstantExpression extends ConstantExpression {
 
   @override
   void _createStructuredText(StringBuffer sb) {
-    sb.write('Constructored(type=$type,constructor=$target,'
+    sb.write('Constructed(type=$type,constructor=$target,'
         'callStructure=$callStructure,arguments=[');
     String delimiter = '';
     for (ConstantExpression value in arguments) {
@@ -561,6 +561,8 @@ class ConstructedConstantExpression extends ConstantExpression {
   }
 
   Map<FieldElement, ConstantExpression> computeInstanceFields() {
+    assert(invariant(target, target.constantConstructor != null,
+        message: "No constant constructor computed for $target."));
     return target.constantConstructor
         .computeInstanceFields(arguments, callStructure);
   }
