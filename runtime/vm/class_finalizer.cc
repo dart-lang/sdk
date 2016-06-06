@@ -993,13 +993,16 @@ void ClassFinalizer::CheckTypeArgumentBounds(const Class& cls,
           !(type_arg.Equals(type_param) &&
             instantiated_bound.Equals(declared_bound))) {
         // If type_arg is a type parameter, its declared bound may not be
-        // resolved yet.
+        // finalized yet.
         if (type_arg.IsTypeParameter()) {
           const Class& type_arg_cls = Class::Handle(
               TypeParameter::Cast(type_arg).parameterized_class());
           AbstractType& bound = AbstractType::Handle(
               TypeParameter::Cast(type_arg).bound());
-          ResolveType(type_arg_cls, bound);
+          if (!bound.IsFinalized() && !bound.IsBeingFinalized()) {
+            bound = FinalizeType(type_arg_cls, bound, kCanonicalize);
+            TypeParameter::Cast(type_arg).set_bound(bound);
+          }
         }
         // This may be called only if type needs to be finalized, therefore
         // seems OK to allocate finalized types in old space.
@@ -1920,7 +1923,7 @@ void ClassFinalizer::ApplyMixinAppAlias(const Class& mixin_app_class,
     inserted_class_name = Symbols::New(thread, inserted_class_name);
     const Script& script = Script::Handle(zone, mixin_app_class.script());
     inserted_class = Class::New(
-        inserted_class_name, script, mixin_app_class.token_pos());
+        library, inserted_class_name, script, mixin_app_class.token_pos());
     inserted_class.set_is_synthesized_class();
     library.AddClass(inserted_class);
 
@@ -2516,20 +2519,22 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
 // values field. We also don't have to generate the code for these getters
 // from thin air (no source code is available).
 void ClassFinalizer::AllocateEnumValues(const Class &enum_cls) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   const Field& index_field =
-      Field::Handle(enum_cls.LookupInstanceField(Symbols::Index()));
+      Field::Handle(zone, enum_cls.LookupInstanceField(Symbols::Index()));
   ASSERT(!index_field.IsNull());
   const Field& values_field =
-      Field::Handle(enum_cls.LookupStaticField(Symbols::Values()));
+      Field::Handle(zone, enum_cls.LookupStaticField(Symbols::Values()));
   ASSERT(!values_field.IsNull());
-  ASSERT(Instance::Handle(values_field.StaticValue()).IsArray());
+  ASSERT(Instance::Handle(zone, values_field.StaticValue()).IsArray());
   Array& values_list = Array::Handle(
-      Array::RawCast(values_field.StaticValue()));
+      zone, Array::RawCast(values_field.StaticValue()));
 
-  const Array& fields = Array::Handle(enum_cls.fields());
-  Field& field = Field::Handle();
-  Instance& ordinal_value = Instance::Handle();
-  Instance& enum_value = Instance::Handle();
+  const Array& fields = Array::Handle(zone, enum_cls.fields());
+  Field& field = Field::Handle(zone);
+  Instance& ordinal_value = Instance::Handle(zone);
+  Instance& enum_value = Instance::Handle(zone);
 
   for (intptr_t i = 0; i < fields.Length(); i++) {
     field = Field::RawCast(fields.At(i));
@@ -2542,7 +2547,7 @@ void ClassFinalizer::AllocateEnumValues(const Class &enum_cls) {
     enum_value = Instance::New(enum_cls, Heap::kOld);
     enum_value.SetField(index_field, ordinal_value);
     const char* error_msg = "";
-    enum_value = enum_value.CheckAndCanonicalize(&error_msg);
+    enum_value = enum_value.CheckAndCanonicalize(thread, &error_msg);
     ASSERT(!enum_value.IsNull());
     ASSERT(enum_value.IsCanonical());
     field.SetStaticValue(enum_value, true);
@@ -2553,7 +2558,7 @@ void ClassFinalizer::AllocateEnumValues(const Class &enum_cls) {
   }
   values_list.MakeImmutable();
   const char* error_msg = NULL;
-  values_list ^= values_list.CheckAndCanonicalize(&error_msg);
+  values_list ^= values_list.CheckAndCanonicalize(thread, &error_msg);
   ASSERT(!values_list.IsNull());
 }
 
@@ -2809,7 +2814,8 @@ RawType* ClassFinalizer::ResolveMixinAppType(
     mixin_app_class = library.LookupLocalClass(mixin_app_class_name);
     if (mixin_app_class.IsNull()) {
       mixin_app_class_name = Symbols::New(thread, mixin_app_class_name);
-      mixin_app_class = Class::New(mixin_app_class_name,
+      mixin_app_class = Class::New(library,
+                                   mixin_app_class_name,
                                    script,
                                    mixin_type.token_pos());
       mixin_app_class.set_super_type(mixin_super_type);

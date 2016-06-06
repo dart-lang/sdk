@@ -32,6 +32,10 @@ namespace dart {
 
 DEFINE_FLAG(bool, enable_simd_inline, true,
     "Enable inlining of SIMD related method calls.");
+DEFINE_FLAG(bool, inline_smi_string_hashcode, true,
+    "Inline hashcode for Smi and one-byte strings in case of megamorphic call");
+DEFINE_FLAG(int, inline_smi_string_hashcode_ratio, 50,
+    "Minimal hotness (0..100) of one-byte-string before inlining its hashcode");
 DEFINE_FLAG(int, min_optimization_counter_threshold, 5000,
     "The minimum invocation count for a function.");
 DEFINE_FLAG(int, optimization_counter_scale, 2000,
@@ -58,6 +62,7 @@ DECLARE_FLAG(int, inlining_depth_threshold);
 DECLARE_FLAG(int, inlining_caller_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_max_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_min_size_threshold);
+DECLARE_FLAG(int, reload_every);
 
 static void PrecompilationModeHandler(bool value) {
   if (value) {
@@ -79,9 +84,8 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_inlining_constant_arguments_max_size_threshold = 100;
     FLAG_inlining_constant_arguments_min_size_threshold = 30;
 
-    FLAG_allow_absolute_addresses = false;
+    FLAG_background_compilation = false;
     FLAG_always_megamorphic_calls = true;
-    FLAG_collect_dynamic_function_names = true;
     FLAG_fields_may_be_reset = true;
     FLAG_ic_range_profiling = false;
     FLAG_interpret_irregexp = true;
@@ -96,7 +100,6 @@ static void PrecompilationModeHandler(bool value) {
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     // Set flags affecting runtime accordingly for dart_noopt.
-    FLAG_background_compilation = false;
     FLAG_collect_code = false;
     FLAG_support_debugger = false;
     FLAG_deoptimize_alot = false;  // Used in some tests.
@@ -115,7 +118,6 @@ DEFINE_FLAG_HANDLER(PrecompilationModeHandler,
 
 #ifdef DART_PRECOMPILED_RUNTIME
 
-COMPILE_ASSERT(!FLAG_background_compilation);
 COMPILE_ASSERT(!FLAG_collect_code);
 COMPILE_ASSERT(!FLAG_deoptimize_alot);  // Used in some tests.
 COMPILE_ASSERT(!FLAG_enable_mirrors);
@@ -155,6 +157,31 @@ void CompilerDeoptInfo::EmitMaterializations(Environment* env,
       builder->AddMaterialization(mat);
     }
   }
+}
+
+
+// Returns true if OnebyteString is a frequent receiver class. We inline
+// Smi check as well, since a Smi check must be done anyway.
+// TODO(srdjan): Add check and code if Smi class is hot.
+bool FlowGraphCompiler::ShouldInlineSmiStringHashCode(const ICData& ic_data) {
+  if (!FLAG_inline_smi_string_hashcode ||
+     (ic_data.target_name() != Symbols::hashCode().raw())) {
+    return false;
+  }
+  // Precompiled code has no ICData, optimistically inline it.
+  if (ic_data.IsNull() || (ic_data.NumberOfChecks() == 0)) {
+    return true;
+  }
+  // Check if OneByteString is hot enough.
+  const ICData& ic_data_sorted =
+      ICData::Handle(ic_data.AsUnaryClassChecksSortedByCount());
+  ASSERT(ic_data_sorted.NumberOfChecks() > 0);
+  if (ic_data_sorted.GetReceiverClassIdAt(0) == kOneByteStringCid) {
+    const intptr_t total_count = ic_data_sorted.AggregateCount();
+    const intptr_t ratio = (ic_data_sorted.GetCountAt(0) * 100) / total_count;
+    return ratio > FLAG_inline_smi_string_hashcode_ratio;
+  }
+  return false;
 }
 
 
@@ -253,11 +280,6 @@ bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
 
 
 void FlowGraphCompiler::InitCompiler() {
-#ifndef PRODUCT
-  TimelineDurationScope tds(thread(),
-                            Timeline::GetCompilerStream(),
-                            "InitCompiler");
-#endif  // !PRODUCT
   pc_descriptors_list_ = new(zone()) DescriptorList(64);
   exception_handlers_list_ = new(zone()) ExceptionHandlerList();
   block_info_.Clear();
@@ -332,7 +354,9 @@ bool FlowGraphCompiler::CanOSRFunction() const {
 
 
 bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
-  if (FLAG_stacktrace_every > 0 || FLAG_deoptimize_every > 0) {
+  if ((FLAG_stacktrace_every > 0) ||
+      (FLAG_deoptimize_every > 0) ||
+      (FLAG_reload_every > 0)) {
     return true;
   }
   if (FLAG_stacktrace_filter != NULL &&
@@ -503,7 +527,7 @@ void FlowGraphCompiler::VisitBlocks() {
       continue;
     }
 
-#if defined(DEBUG)
+#if defined(DEBUG) && !defined(TARGET_ARCH_DBC)
     if (!is_optimizing()) {
       FrameStateClear();
     }
@@ -557,14 +581,14 @@ void FlowGraphCompiler::VisitBlocks() {
         EndCodeSourceRange(instr->token_pos());
       }
 
-#if defined(DEBUG)
+#if defined(DEBUG) && !defined(TARGET_ARCH_DBC)
       if (!is_optimizing()) {
         FrameStateUpdateWith(instr);
       }
 #endif
     }
 
-#if defined(DEBUG)
+#if defined(DEBUG) && !defined(TARGET_ARCH_DBC)
     ASSERT(is_optimizing() || FrameStateIsSafeToCall());
 #endif
   }
@@ -620,15 +644,7 @@ void FlowGraphCompiler::VisitBlocks() {
 
 
 void FlowGraphCompiler::Bailout(const char* reason) {
-  const Function& function = parsed_function_.function();
-  Report::MessageF(Report::kBailout,
-                   Script::Handle(function.script()),
-                   function.token_pos(),
-                   Report::AtLocation,
-                   "FlowGraphCompiler Bailout: %s %s",
-                   String::Handle(function.name()).ToCString(),
-                   reason);
-  UNREACHABLE();
+  parsed_function_.Bailout("FlowGraphCompiler", reason);
 }
 
 
@@ -1147,26 +1163,30 @@ bool FlowGraphCompiler::TryIntrinsify() {
 }
 
 
+// DBC is very different from other architectures in how it performs instance
+// and static calls because it does not use stubs.
+#if !defined(TARGET_ARCH_DBC)
 void FlowGraphCompiler::GenerateInstanceCall(
     intptr_t deopt_id,
     TokenPosition token_pos,
     intptr_t argument_count,
     LocationSummary* locs,
     const ICData& ic_data_in) {
-  const ICData& ic_data = ICData::ZoneHandle(ic_data_in.Original());
+  ICData& ic_data = ICData::ZoneHandle(ic_data_in.Original());
   if (FLAG_precompiled_mode) {
+    ic_data = ic_data.AsUnaryClassChecks();
     EmitSwitchableInstanceCall(ic_data, argument_count,
                                deopt_id, token_pos, locs);
     return;
   }
   if (FLAG_always_megamorphic_calls) {
-    EmitMegamorphicInstanceCall(ic_data, argument_count,
+    EmitMegamorphicInstanceCall(ic_data_in, argument_count,
                                 deopt_id, token_pos, locs,
                                 CatchClauseNode::kInvalidTryIndex);
     return;
   }
   ASSERT(!ic_data.IsNull());
-  if (is_optimizing() && (ic_data.NumberOfUsedChecks() == 0)) {
+  if (is_optimizing() && (ic_data_in.NumberOfUsedChecks() == 0)) {
     // Emit IC call that will count and thus may need reoptimization at
     // function entry.
     ASSERT(may_reoptimize() || flow_graph().IsCompiledForOsr());
@@ -1188,7 +1208,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
   }
 
   if (is_optimizing()) {
-    EmitMegamorphicInstanceCall(ic_data, argument_count,
+    EmitMegamorphicInstanceCall(ic_data_in, argument_count,
                                 deopt_id, token_pos, locs,
                                 CatchClauseNode::kInvalidTryIndex);
     return;
@@ -1285,7 +1305,7 @@ void FlowGraphCompiler::GenerateListTypeCheck(Register kClassIdReg,
   CheckClassIds(kClassIdReg, args, is_instance_lbl, &unknown);
   assembler()->Bind(&unknown);
 }
-
+#endif  // !defined(TARGET_ARCH_DBC)
 
 void FlowGraphCompiler::EmitComment(Instruction* instr) {
   if (!FLAG_support_il_printer || !FLAG_support_disassembler) {
@@ -1300,6 +1320,8 @@ void FlowGraphCompiler::EmitComment(Instruction* instr) {
 }
 
 
+#if !defined(TARGET_ARCH_DBC)
+// TODO(vegorov) enable edge-counters on DBC if we consider them beneficial.
 bool FlowGraphCompiler::NeedsEdgeCounter(TargetEntryInstr* block) {
   // Only emit an edge counter if there is not goto at the end of the block,
   // except for the entry block.
@@ -1320,18 +1342,17 @@ static Register AllocateFreeRegister(bool* blocked_registers) {
   UNREACHABLE();
   return kNoRegister;
 }
-
-
-static uword RegMaskBit(Register reg) {
-  return ((reg) != kNoRegister) ? (1 << (reg)) : 0;
-}
+#endif
 
 
 void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   ASSERT(!is_optimizing());
-
   instr->InitializeLocationSummary(zone(),
                                    false);  // Not optimizing.
+
+  // No need to allocate registers based on LocationSummary on DBC as in
+  // unoptimized mode it's a stack based bytecode just like IR itself.
+#if !defined(TARGET_ARCH_DBC)
   LocationSummary* locs = instr->locs();
 
   bool blocked_registers[kNumberOfCpuRegisters];
@@ -1368,7 +1389,7 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   }
 
   // Allocate all unallocated input locations.
-  const bool should_pop = !instr->IsPushArgument() && !instr->IsPushTemp();
+  const bool should_pop = !instr->IsPushArgument();
   for (intptr_t i = locs->input_count() - 1; i >= 0; i--) {
     Location loc = locs->in(i);
     Register reg = kNoRegister;
@@ -1421,6 +1442,12 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
     }
     locs->set_out(0, result_location);
   }
+#endif  // !defined(TARGET_ARCH_DBC)
+}
+
+
+static uword RegMaskBit(Register reg) {
+  return ((reg) != kNoRegister) ? (1 << (reg)) : 0;
 }
 
 
@@ -1837,6 +1864,9 @@ NOT_IN_PRODUCT(
 }
 
 
+#if !defined(TARGET_ARCH_DBC)
+// DBC emits calls very differently from other architectures due to its
+// interpreted nature.
 void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     const ICData& ic_data,
     intptr_t argument_count,
@@ -1880,15 +1910,17 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     }
   }
 }
+#endif
 
-
-#if defined(DEBUG)
+#if defined(DEBUG) && !defined(TARGET_ARCH_DBC)
+// TODO(vegorov) re-enable frame state tracking on DBC. It is
+// currently disabled because it relies on LocationSummaries and
+// we don't use them during unoptimized compilation on DBC.
 void FlowGraphCompiler::FrameStateUpdateWith(Instruction* instr) {
   ASSERT(!is_optimizing());
 
   switch (instr->tag()) {
     case Instruction::kPushArgument:
-    case Instruction::kPushTemp:
       // Do nothing.
       break;
 
@@ -1953,7 +1985,7 @@ void FlowGraphCompiler::FrameStateClear() {
   ASSERT(!is_optimizing());
   frame_state_.TruncateTo(0);
 }
-#endif
+#endif  // defined(DEBUG) && !defined(TARGET_ARCH_DBC)
 
 
 }  // namespace dart

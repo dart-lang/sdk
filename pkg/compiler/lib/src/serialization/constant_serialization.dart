@@ -170,7 +170,7 @@ class ConstantSerializer
   @override
   void visitDeferred(DeferredConstantExpression exp, ObjectEncoder encoder) {
     throw new UnsupportedError(
-        "ConstantSerializer.visitDeferred: ${exp.getText()}");
+        "ConstantSerializer.visitDeferred: ${exp.toDartText()}");
   }
 }
 
@@ -232,11 +232,13 @@ class ConstantDeserializer {
             decoder.getConstant(Key.NAME),
             decoder.getConstant(Key.DEFAULT, isOptional: true));
       case ConstantExpressionKind.LIST:
-        return new ListConstantExpression(
-            decoder.getType(Key.TYPE), decoder.getConstants(Key.VALUES));
+        return new ListConstantExpression(decoder.getType(Key.TYPE),
+            decoder.getConstants(Key.VALUES, isOptional: true));
       case ConstantExpressionKind.MAP:
-        return new MapConstantExpression(decoder.getType(Key.TYPE),
-            decoder.getConstants(Key.KEYS), decoder.getConstants(Key.VALUES));
+        return new MapConstantExpression(
+            decoder.getType(Key.TYPE),
+            decoder.getConstants(Key.KEYS, isOptional: true),
+            decoder.getConstants(Key.VALUES, isOptional: true));
       case ConstantExpressionKind.NULL:
         return new NullConstantExpression();
       case ConstantExpressionKind.STRING:
@@ -249,7 +251,7 @@ class ConstantDeserializer {
         return new StringLengthConstantExpression(
             decoder.getConstant(Key.EXPRESSION));
       case ConstantExpressionKind.SYMBOL:
-        break;
+        return new SymbolConstantExpression(decoder.getString(Key.NAME));
       case ConstantExpressionKind.TYPE:
         return new TypeConstantExpression(decoder.getType(Key.TYPE));
       case ConstantExpressionKind.UNARY:

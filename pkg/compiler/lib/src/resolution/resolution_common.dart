@@ -6,7 +6,6 @@ library dart2js.resolution.common;
 
 import '../common.dart';
 import '../common/resolution.dart' show Resolution;
-import '../common/tasks.dart' show DeferredAction;
 import '../compiler.dart' show Compiler;
 import '../elements/elements.dart';
 import '../tree/tree.dart';
@@ -34,7 +33,7 @@ class CommonResolverVisitor<R> extends Visitor<R> {
   /** Convenience method for visiting nodes that may be null. */
   R visit(Node node) => (node == null) ? null : node.accept(this);
 
-  void addDeferredAction(Element element, DeferredAction action) {
+  void addDeferredAction(Element element, void action()) {
     compiler.enqueuer.resolution.addDeferredAction(element, action);
   }
 }

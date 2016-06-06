@@ -18,15 +18,14 @@ import '../elements/elements.dart'
         MemberElement,
         MemberSignature,
         MixinApplicationElement,
-        Name,
-        PublicName;
+        Name;
 import '../util/util.dart';
 
 part 'member_impl.dart';
 
 abstract class MembersCreator {
   final ClassElement cls;
-  final Compiler compiler;
+  final Resolution resolution;
 
   final Iterable<String> computedMemberNames;
   final Map<Name, Member> classMembers;
@@ -35,17 +34,12 @@ abstract class MembersCreator {
       new Map<dynamic, Set<MessageKind>>();
 
   MembersCreator(
-      Compiler this.compiler,
-      ClassElement this.cls,
-      Iterable<String> this.computedMemberNames,
-      Map<Name, Member> this.classMembers) {
+      this.resolution, this.cls, this.computedMemberNames, this.classMembers) {
     assert(invariant(cls, cls.isDeclaration,
         message: "Members may only be computed on declarations."));
   }
 
-  DiagnosticReporter get reporter => compiler.reporter;
-
-  Resolution get resolution => compiler.resolution;
+  DiagnosticReporter get reporter => resolution.reporter;
 
   void reportMessage(var marker, MessageKind kind, report()) {
     Set<MessageKind> messages =
@@ -119,12 +113,12 @@ abstract class MembersCreator {
     }
 
     if (names != null) {
-      _computeClassMember(compiler, superclass, name, names);
+      _computeClassMember(resolution, superclass, name, names);
       for (Name memberName in names) {
         inheritClassMember(superclass.lookupClassMember(memberName));
       }
     } else {
-      computeAllClassMembers(compiler, superclass);
+      computeAllClassMembers(resolution, superclass);
       superclass.forEachClassMember(inheritClassMember);
     }
   }
@@ -156,13 +150,13 @@ abstract class MembersCreator {
 
         if (names != null) {
           _computeClassMember(
-              compiler, mixinApplication.mixin, nameText, names);
+              resolution, mixinApplication.mixin, nameText, names);
           for (Name memberName in names) {
             inheritMixinMember(
                 mixinApplication.mixin.lookupClassMember(memberName));
           }
         } else {
-          computeAllClassMembers(compiler, mixinApplication.mixin);
+          computeAllClassMembers(resolution, mixinApplication.mixin);
           mixinApplication.mixin.forEachClassMember(inheritMixinMember);
         }
       }
@@ -315,12 +309,12 @@ abstract class MembersCreator {
   void checkImplementsFunctionWithCall() {
     assert(!cls.isAbstract);
 
-    ClassElement functionClass = compiler.coreClasses.functionClass;
+    ClassElement functionClass = resolution.coreClasses.functionClass;
     if (cls.asInstanceOf(functionClass) == null) return;
     if (cls.lookupMember(Identifiers.call) != null) return;
     // TODO(johnniwinther): Make separate methods for backend exceptions.
     // Avoid warnings on backend implementation classes for closures.
-    if (compiler.backend.isBackendLibrary(cls.library)) return;
+    if (resolution.target.isTargetSpecificLibrary(cls.library)) return;
 
     reportMessage(functionClass, MessageKind.UNIMPLEMENTED_METHOD, () {
       reporter.reportWarningMessage(cls, MessageKind.UNIMPLEMENTED_METHOD_ONE, {
@@ -369,7 +363,8 @@ abstract class MembersCreator {
         for (Member inherited in superMember.declarations) {
           if (cls == inherited.declarer.element) {
             // An error should already have been reported.
-            assert(invariant(declared.element, compiler.compilationFailed));
+            assert(invariant(
+                declared.element, resolution.reporter.hasReportedError));
             continue;
           }
 
@@ -390,9 +385,10 @@ abstract class MembersCreator {
           // superMember.declarations. Investigate why.
         } else if (cls == inherited.declarer.element) {
           // An error should already have been reported.
-          assert(invariant(declared.element, compiler.compilationFailed,
-              message: "Member $inherited inherited from its "
-                  "declaring class: ${cls}."));
+          assert(
+              invariant(declared.element, resolution.reporter.hasReportedError,
+                  message: "Member $inherited inherited from its "
+                      "declaring class: ${cls}."));
           continue;
         }
 
@@ -428,7 +424,7 @@ abstract class MembersCreator {
               MessageKind.CANNOT_OVERRIDE_GETTER_WITH_METHOD_CONT);
         } else {
           DartType inheritedType = inherited.functionType;
-          if (!compiler.types.isSubtype(declaredType, inheritedType)) {
+          if (!resolution.types.isSubtype(declaredType, inheritedType)) {
             void reportWarning(
                 var marker, MessageKind warningKind, MessageKind infoKind) {
               reportMessage(marker, MessageKind.INVALID_OVERRIDE_METHOD, () {
@@ -512,11 +508,11 @@ abstract class MembersCreator {
 
   /// Compute all class and interface names by the [name] in [cls].
   static void computeClassMembersByName(
-      Compiler compiler, ClassMemberMixin cls, String name) {
+      Resolution resolution, ClassMemberMixin cls, String name) {
     if (cls.isMemberComputed(name)) return;
     LibraryElement library = cls.library;
     _computeClassMember(
-        compiler,
+        resolution,
         cls,
         name,
         new Setlet<Name>()
@@ -524,23 +520,24 @@ abstract class MembersCreator {
           ..add(new Name(name, library, isSetter: true)));
   }
 
-  static void _computeClassMember(Compiler compiler, ClassMemberMixin cls,
+  static void _computeClassMember(Resolution resolution, ClassMemberMixin cls,
       String name, Setlet<Name> names) {
-    cls.computeClassMember(compiler, name, names);
+    cls.computeClassMember(resolution, name, names);
   }
 
   /// Compute all class and interface names in [cls].
-  static void computeAllClassMembers(Compiler compiler, ClassMemberMixin cls) {
-    cls.computeAllClassMembers(compiler);
+  static void computeAllClassMembers(
+      Resolution resolution, ClassMemberMixin cls) {
+    cls.computeAllClassMembers(resolution);
   }
 }
 
 /// Class member creator for classes where the interface members are known to
 /// be a subset of the class members.
 class ClassMembersCreator extends MembersCreator {
-  ClassMembersCreator(Compiler compiler, ClassElement cls,
+  ClassMembersCreator(Resolution resolution, ClassElement cls,
       Iterable<String> computedMemberNames, Map<Name, Member> classMembers)
-      : super(compiler, cls, computedMemberNames, classMembers);
+      : super(resolution, cls, computedMemberNames, classMembers);
 
   Map<Name, Member> computeMembers(String name, Setlet<Name> names) {
     computeSuperMembers(name, names);
@@ -566,12 +563,12 @@ class InterfaceMembersCreator extends MembersCreator {
   final Map<Name, MemberSignature> interfaceMembers;
 
   InterfaceMembersCreator(
-      Compiler compiler,
+      Resolution resolution,
       ClassElement cls,
       Iterable<String> computedMemberNames,
       Map<Name, Member> classMembers,
       Map<Name, MemberSignature> this.interfaceMembers)
-      : super(compiler, cls, computedMemberNames, classMembers);
+      : super(resolution, cls, computedMemberNames, classMembers);
 
   Map<Name, Member> computeMembers(String name, Setlet<Name> names) {
     Map<Name, Setlet<Member>> inheritedInterfaceMembers =
@@ -635,13 +632,14 @@ class InterfaceMembersCreator extends MembersCreator {
       InterfaceType superinterface = link.head;
       if (names != null) {
         MembersCreator._computeClassMember(
-            compiler, superinterface.element, name, names);
+            resolution, superinterface.element, name, names);
         for (Name memberName in names) {
           inheritInterfaceMember(superinterface,
               superinterface.element.lookupInterfaceMember(memberName));
         }
       } else {
-        MembersCreator.computeAllClassMembers(compiler, superinterface.element);
+        MembersCreator.computeAllClassMembers(
+            resolution, superinterface.element);
         inheritInterfaceMembers(superinterface);
       }
     }
@@ -698,7 +696,7 @@ class InterfaceMembersCreator extends MembersCreator {
             if (someAreGetters) break outer;
           }
           for (MemberSignature other in inheritedMembers) {
-            if (!compiler.types
+            if (!resolution.types
                 .isSubtype(inherited.functionType, other.functionType)) {
               continue outer;
             }
@@ -834,9 +832,9 @@ abstract class ClassMemberMixin implements ClassElement {
 
   /// Creates the necessary maps and [MembersCreator] for compute members of
   /// this class.
-  MembersCreator _prepareCreator(Compiler compiler) {
+  MembersCreator _prepareCreator(Resolution resolution) {
     if (classMembers == null) {
-      ensureResolved(compiler.resolution);
+      ensureResolved(resolution);
       classMembers = new Map<Name, Member>();
 
       if (interfaceMembersAreClassMembers) {
@@ -854,8 +852,8 @@ abstract class ClassMemberMixin implements ClassElement {
     }
     return interfaceMembersAreClassMembers
         ? new ClassMembersCreator(
-            compiler, this, computedMemberNames, classMembers)
-        : new InterfaceMembersCreator(compiler, this, computedMemberNames,
+            resolution, this, computedMemberNames, classMembers)
+        : new InterfaceMembersCreator(resolution, this, computedMemberNames,
             classMembers, interfaceMembers);
   }
 
@@ -864,14 +862,15 @@ abstract class ClassMemberMixin implements ClassElement {
   /// Compute the members by the name [name] for this class. [names] collects
   /// the set of possible variations of [name], including getter, setter and
   /// and private names.
-  void computeClassMember(Compiler compiler, String name, Setlet<Name> names) {
+  void computeClassMember(
+      Resolution resolution, String name, Setlet<Name> names) {
     if (isMemberComputed(name)) return;
     if (Name.isPrivateName(name)) {
       names
         ..add(new Name(name, library))
         ..add(new Name(name, library, isSetter: true));
     }
-    MembersCreator creator = _prepareCreator(compiler);
+    MembersCreator creator = _prepareCreator(resolution);
     creator.computeMembersByName(name, names);
     if (computedMemberNames == null) {
       computedMemberNames = _EMPTY_MEMBERS_NAMES;
@@ -887,9 +886,9 @@ abstract class ClassMemberMixin implements ClassElement {
     }
   }
 
-  void computeAllClassMembers(Compiler compiler) {
+  void computeAllClassMembers(Resolution resolution) {
     if (areAllMembersComputed()) return;
-    MembersCreator creator = _prepareCreator(compiler);
+    MembersCreator creator = _prepareCreator(resolution);
     creator.computeAllMembers();
     computedMemberNames = null;
     assert(invariant(this, areAllMembersComputed()));

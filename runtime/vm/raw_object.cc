@@ -181,16 +181,15 @@ intptr_t RawObject::SizeFromClass() const {
       // Get the (constant) instance size out of the class object.
       // TODO(koda): Add Size(ClassTable*) interface to allow caching in loops.
       Isolate* isolate = Isolate::Current();
-      ClassTable* class_table = isolate->class_table();
 #if defined(DEBUG)
+      ClassTable* class_table = isolate->class_table();
       if (!class_table->IsValidIndex(class_id) ||
           !class_table->HasValidClassAt(class_id)) {
         FATAL2("Invalid class id: %" Pd " from tags %" Px "\n",
                class_id, ptr()->tags_);
       }
 #endif  // DEBUG
-      RawClass* raw_class = class_table->At(class_id);
-      ASSERT(raw_class->ptr()->id_ == class_id);
+      RawClass* raw_class = isolate->GetClassForHeapWalkAt(class_id);
       instance_size =
           raw_class->ptr()->instance_size_in_words_ << kWordSizeLog2;
     }
@@ -713,7 +712,7 @@ intptr_t RawInstance::VisitInstancePointers(RawInstance* raw_obj,
   intptr_t instance_size = SizeTag::decode(tags);
   if (instance_size == 0) {
     RawClass* cls =
-        visitor->isolate()->class_table()->At(raw_obj->GetClassId());
+        visitor->isolate()->GetClassForHeapWalkAt(raw_obj->GetClassId());
     instance_size = cls->ptr()->instance_size_in_words_ << kWordSizeLog2;
   }
 

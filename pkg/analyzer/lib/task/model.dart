@@ -7,7 +7,7 @@ library analyzer.task.model;
 import 'dart:collection';
 import 'dart:developer';
 
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart' show AnalysisError;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -185,11 +185,11 @@ abstract class AnalysisTask {
    * Return the value of the input with the given [name]. Throw an exception if
    * the input value is not defined.
    */
-  Object getRequiredInput(String name) {
+  Object/*=E*/ getRequiredInput/*<E>*/(String name) {
     if (inputs == null || !inputs.containsKey(name)) {
       throw new AnalysisException("Could not $description: missing $name");
     }
-    return inputs[name];
+    return inputs[name] as Object/*=E*/;
   }
 
   /**
@@ -456,6 +456,13 @@ abstract class ResultCachingPolicy<T> {
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class ResultDescriptor<V> {
+  /**
+   * A comparator that can be used to sort result descriptors by their name.
+   */
+  static final Comparator<ResultDescriptor> SORT_BY_NAME =
+      (ResultDescriptor first, ResultDescriptor second) =>
+          first.name.compareTo(second.name);
+
   /**
    * Initialize a newly created analysis result to have the given [name] and
    * [defaultValue].

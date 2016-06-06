@@ -36,8 +36,9 @@ class ExpectedMatch {
     this.range = new SourceRange(offset, length);
   }
 
-  bool operator ==(SearchMatch match) {
-    return match.element == this.element &&
+  bool operator ==(Object match) {
+    return match is SearchMatch &&
+        match.element == this.element &&
         match.kind == this.kind &&
         match.isResolved == this.isResolved &&
         match.isQualified == this.isQualified &&

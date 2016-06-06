@@ -32,6 +32,8 @@ UNIT_TEST_CASE(Id) {
 #else  // defined(HOST_ARCH_MIPS)
   EXPECT_STREQ("simmips", CPU::Id());
 #endif  // defined(HOST_ARCH_MIPS)
+#elif defined(TARGET_ARCH_DBC)
+  EXPECT_STREQ("dbc", CPU::Id());
 #else
 #error Architecture was not detected as supported by Dart.
 #endif

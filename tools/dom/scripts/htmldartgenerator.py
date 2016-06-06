@@ -177,7 +177,7 @@ class HtmlDartGenerator(object):
 
     # Never remove operations that are added as a result of an implements they
     # are pure interfaces (mixins to this interface).
-    if (IsPureInterface(parent_name)):
+    if (IsPureInterface(parent_name, self._database)):
       return
 
     for operation in parent.operations:
@@ -587,7 +587,7 @@ class HtmlDartGenerator(object):
         inits = self._members_emitter.Emit(
             '\n  $(METADATA)'
             'factory $CONSTRUCTOR($PARAMS) {\n'
-            '    var e = $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
+            '    $CONSTRUCTOR e = $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
             '$!INITS'
             '    return e;\n'
             '  }\n',

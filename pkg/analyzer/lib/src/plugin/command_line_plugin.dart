@@ -33,12 +33,12 @@ class CommandLinePlugin implements Plugin {
    * The extension point that allows plugins to register new parser
    * contributors.
    */
-  ExtensionPoint parserContributorExtensionPoint;
+  ExtensionPoint<ArgParserContributor> parserContributorExtensionPoint;
 
   /**
    * The extension point that allows plugins to register new result processors.
    */
-  ExtensionPoint resultProcessorExtensionPoint;
+  ExtensionPoint<ArgResultsProcessor> resultProcessorExtensionPoint;
 
   /**
    * Initialize a newly created plugin.
@@ -64,39 +64,16 @@ class CommandLinePlugin implements Plugin {
 
   @override
   void registerExtensionPoints(RegisterExtensionPoint registerExtensionPoint) {
-    parserContributorExtensionPoint = registerExtensionPoint(
-        PARSER_CONTRIBUTOR_EXTENSION_POINT,
-        _validateParserContributorExtension);
-    resultProcessorExtensionPoint = registerExtensionPoint(
-        RESULT_PROCESSOR_EXTENSION_POINT, _validateResultProcessorExtension);
+    parserContributorExtensionPoint = new ExtensionPoint<ArgParserContributor>(
+        this, PARSER_CONTRIBUTOR_EXTENSION_POINT, null);
+    registerExtensionPoint(parserContributorExtensionPoint);
+    resultProcessorExtensionPoint = new ExtensionPoint<ArgResultsProcessor>(
+        this, RESULT_PROCESSOR_EXTENSION_POINT, null);
+    registerExtensionPoint(resultProcessorExtensionPoint);
   }
 
   @override
   void registerExtensions(RegisterExtension registerExtension) {
     // There are no default extensions.
-  }
-
-  /**
-   * Validate the given extension by throwing an [ExtensionError] if it is not a
-   * valid parser contributor.
-   */
-  void _validateParserContributorExtension(Object extension) {
-    if (extension is! ArgParserContributor) {
-      String id = parserContributorExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError(
-          'Extensions to $id must be an ArgParserContributor');
-    }
-  }
-
-  /**
-   * Validate the given extension by throwing an [ExtensionError] if it is not a
-   * valid result processor.
-   */
-  void _validateResultProcessorExtension(Object extension) {
-    if (extension is! ArgResultsProcessor) {
-      String id = resultProcessorExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError(
-          'Extensions to $id must be an ArgResultsProcessor');
-    }
   }
 }

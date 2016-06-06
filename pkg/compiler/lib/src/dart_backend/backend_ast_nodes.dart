@@ -852,7 +852,7 @@ class Unparser {
           write(v.toString());
         }
       } else {
-        write(e.value.unparse());
+        write(e.value.toDartText());
       }
     } else if (e is LiteralList) {
       if (e.isConst) {

@@ -54,6 +54,7 @@ class OpTypeTest {
       bool statementLabel: false,
       bool staticMethodBody: false,
       bool typeNames: false,
+      bool varNames: false,
       bool voidReturn: false,
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION}) {
     expect(visitor.includeCaseLabelSuggestions, caseLabel, reason: 'caseLabel');
@@ -66,6 +67,7 @@ class OpTypeTest {
     expect(visitor.includeStatementLabelSuggestions, statementLabel,
         reason: 'statementLabel');
     expect(visitor.includeTypeNameSuggestions, typeNames, reason: 'typeNames');
+    expect(visitor.includeVarNameSuggestions, varNames, reason: 'varNames');
     expect(visitor.includeVoidReturnSuggestions, voidReturn,
         reason: 'voidReturn');
     expect(visitor.inStaticMethodBody, staticMethodBody,
@@ -97,6 +99,19 @@ class OpTypeTest {
     assertOpType(namedArgs: true, returnValue: true, typeNames: true);
   }
 
+  test_ArgumentList_namedParam() {
+    // SimpleIdentifier  NamedExpression  ArgumentList  MethodInvocation
+    // ExpressionStatement
+    addTestSource('void main() {expect(foo: ^)}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_ArgumentList_prefixedIdentifier() {
+    // SimpleIdentifier  PrefixedIdentifier  ArgumentList
+    addTestSource('void main() {expect(aa.^)}');
+    assertOpType(returnValue: true, typeNames: true, prefixed: true);
+  }
+
   test_ArgumentList_resolved() {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('void main() {int.parse(^)}', resolved: true);
@@ -121,19 +136,6 @@ class OpTypeTest {
     assertOpType(namedArgs: true);
   }
 
-  test_ArgumentList_namedParam() {
-    // SimpleIdentifier  NamedExpression  ArgumentList  MethodInvocation
-    // ExpressionStatement
-    addTestSource('void main() {expect(foo: ^)}');
-    assertOpType(returnValue: true, typeNames: true);
-  }
-
-  test_ArgumentList_prefixedIdentifier() {
-    // SimpleIdentifier  PrefixedIdentifier  ArgumentList
-    addTestSource('void main() {expect(aa.^)}');
-    assertOpType(returnValue: true, typeNames: true, prefixed: true);
-  }
-
   test_AsExpression() {
     // SimpleIdentifier  TypeName  AsExpression
     addTestSource('class A {var b; X _c; foo() {var a; (a as ^).foo();}');
@@ -149,7 +151,7 @@ class OpTypeTest {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('class A {} main() {int a; int ^b = 1;}');
-    assertOpType();
+    assertOpType(varNames: true);
   }
 
   test_AssignmentExpression_RHS() {
@@ -544,7 +546,25 @@ class OpTypeTest {
   test_ExpressionStatement_name() {
     // ExpressionStatement  Block  BlockFunctionBody  MethodDeclaration
     addTestSource('class C {a() {C ^}}');
-    assertOpType();
+    assertOpType(varNames: true);
+  }
+
+  test_ExpressionStatement_name_semicolon() {
+    // ExpressionStatement  Block  BlockFunctionBody  MethodDeclaration
+    addTestSource('class C {a() {C ^;}}');
+    assertOpType(varNames: true);
+  }
+
+  test_ExpressionStatement_prefixed_name() {
+    // ExpressionStatement  Block  BlockFunctionBody  MethodDeclaration
+    addTestSource('class C {a() {x.Y ^}}');
+    assertOpType(varNames: true);
+  }
+
+  test_ExpressionStatement_prefixed_name_semicolon() {
+    // ExpressionStatement  Block  BlockFunctionBody  MethodDeclaration
+    addTestSource('class C {a() {x.Y ^;}}');
+    assertOpType(varNames: true);
   }
 
   test_ExtendsClause() {
@@ -557,7 +577,7 @@ class OpTypeTest {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // FieldDeclaration
     addTestSource('class C {A ^}');
-    assertOpType();
+    assertOpType(varNames: true);
   }
 
   test_FieldDeclaration_name_var() {
@@ -648,15 +668,29 @@ class OpTypeTest {
   test_ForStatement_condition() {
     // SimpleIdentifier  ForStatement
     addTestSource('main() {for (int index = 0; i^)}');
-    // TODO (danrubel) may want to exclude methods/functions with void return
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    assertOpType(returnValue: true, typeNames: true);
   }
 
   test_ForStatement_initializer() {
     // SimpleIdentifier  ForStatement
     addTestSource('main() {List a; for (^)}');
-    // TODO (danrubel) may want to exclude methods/functions with void return
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    assertOpType(typeNames: true);
+  }
+
+  test_ForStatement_initializer_inKeyword() {
+    addTestSource('main() { for (var v i^) }');
+    assertOpType();
+  }
+
+  test_ForStatement_initializer_type() {
+    // SimpleIdentifier  ForStatement
+    addTestSource('main() {List a; for (i^ v = 0;)}');
+    assertOpType(typeNames: true);
+  }
+
+  test_ForStatement_initializer_variableNameEmpty_afterType() {
+    addTestSource('main() { for (String ^) }');
+    assertOpType(varNames: true);
   }
 
   test_ForStatement_updaters() {
@@ -1407,8 +1441,19 @@ class C2 {
   test_TopLevelVariableDeclaration_typed_name() {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // TopLevelVariableDeclaration
+    // _OpTypeAstVisitor.visitVariableDeclarationList is executed with this
+    // source, but _OpTypeAstVisitor.visitTopLevelVariableDeclaration is called
+    // for test_TopLevelVariableDeclaration_typed_name_semicolon
     addTestSource('class A {} B ^');
-    assertOpType();
+    assertOpType(varNames: true);
+  }
+
+  test_TopLevelVariableDeclaration_typed_name_semicolon() {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // TopLevelVariableDeclaration
+    // See comment in test_TopLevelVariableDeclaration_typed_name
+    addTestSource('class A {} B ^;');
+    assertOpType(varNames: true);
   }
 
   test_TopLevelVariableDeclaration_untyped_name() {
@@ -1453,14 +1498,14 @@ class C2 {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('main() {List<int> m^}');
-    assertOpType();
+    assertOpType(varNames: true);
   }
 
   test_VariableDeclaration_name_hasSome_simpleType() {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('main() {String m^}');
-    assertOpType();
+    assertOpType(varNames: true);
   }
 
   test_VariableDeclarationList_final() {

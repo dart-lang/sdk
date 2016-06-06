@@ -15,32 +15,34 @@ import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart';
-import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
+import '../js_emitter/js_emitter.dart' show NativeEmitter;
 import '../native/native.dart' as native;
 import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../util/util.dart';
-import '../world.dart' show ClassWorld, World;
-
-import 'nodes.dart';
+import '../world.dart' show ClassWorld;
 import 'codegen_helpers.dart';
+import 'nodes.dart';
 import 'variable_allocator.dart';
 
 class SsaCodeGeneratorTask extends CompilerTask {
   final JavaScriptBackend backend;
+  final Compiler compiler;
   final SourceInformationStrategy sourceInformationFactory;
 
   SsaCodeGeneratorTask(JavaScriptBackend backend, this.sourceInformationFactory)
       : this.backend = backend,
-        super(backend.compiler);
+        this.compiler = backend.compiler,
+        super(backend.compiler.measurer);
 
   String get name => 'SSA code generator';
   NativeEmitter get nativeEmitter => backend.emitter.nativeEmitter;
 
   js.Fun buildJavaScriptFunction(
-      FunctionElement element, List<js.Parameter> parameters, js.Block body) {
+      ResolvedAst resolvedAst, List<js.Parameter> parameters, js.Block body) {
+    FunctionElement element = resolvedAst.element;
     js.AsyncModifier asyncModifier = element.asyncMarker.isAsync
         ? (element.asyncMarker.isYielding
             ? const js.AsyncModifier.asyncStar()
@@ -51,8 +53,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
     return new js.Fun(parameters, body, asyncModifier: asyncModifier)
         .withSourceInformation(sourceInformationFactory
-            .createBuilderForContext(element)
-            .buildDeclaration(element));
+            .createBuilderForContext(resolvedAst)
+            .buildDeclaration(resolvedAst));
   }
 
   js.Expression generateCode(CodegenWorkItem work, HGraph graph) {
@@ -63,12 +65,12 @@ class SsaCodeGeneratorTask extends CompilerTask {
     }
   }
 
-  js.Expression generateLazyInitializer(work, graph) {
+  js.Expression generateLazyInitializer(CodegenWorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen", graph);
       SourceInformation sourceInformation = sourceInformationFactory
-          .createBuilderForContext(work.element)
-          .buildDeclaration(work.element);
+          .createBuilderForContext(work.resolvedAst)
+          .buildDeclaration(work.resolvedAst);
       SsaCodeGenerator codegen = new SsaCodeGenerator(backend, work);
       codegen.visitGraph(graph);
       return new js.Fun(codegen.parameters, codegen.body)
@@ -85,7 +87,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
       SsaCodeGenerator codegen = new SsaCodeGenerator(backend, work);
       codegen.visitGraph(graph);
       compiler.tracer.traceGraph("codegen", graph);
-      return buildJavaScriptFunction(element, codegen.parameters, codegen.body);
+      return buildJavaScriptFunction(
+          work.resolvedAst, codegen.parameters, codegen.body);
     });
   }
 }
@@ -1613,7 +1616,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     var isolate = new js.VariableUse(
         backend.namer.globalObjectFor(helpers.interceptorsLibrary));
     Selector selector = node.selector;
-    TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
     js.Name methodName = backend.registerOneShotInterceptor(selector);
     push(js
         .propertyCall(isolate, methodName, arguments)
@@ -2182,15 +2184,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       {SourceInformation sourceInformation}) {
     js.Expression jsHelper = backend.emitter.staticFunctionAccess(helper);
     List arguments = [];
-    var location;
     if (argument is List) {
-      location = argument[0];
       argument.forEach((instruction) {
         use(instruction);
         arguments.add(pop());
       });
     } else {
-      location = argument;
       use(argument);
       arguments.add(pop());
     }
@@ -2208,7 +2207,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       Element element = work.element;
       if (element is FunctionElement && element.asyncMarker.isYielding) {
         // `return <expr>;` is illegal in a sync* or async* function.
-        // To have the the async-translator working, we avoid introducing
+        // To have the async-translator working, we avoid introducing
         // `return` nodes.
         pushStatement(new js.ExpressionStatement(value)
             .withSourceInformation(sourceInformation));

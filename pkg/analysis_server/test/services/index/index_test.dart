@@ -248,6 +248,28 @@ class A {
     findLocationTest(locations, 'test();', false);
   }
 
+  test_indexDeclarations_afterIndexUnit() async {
+    resolveTestUnit('''
+var a = 0;
+var b = a + 1;
+''');
+    index.indexUnit(testUnit);
+    TopLevelVariableElement a = findElement('a');
+    // We can find references.
+    {
+      List<Location> locations = await index.getRelations(
+          a.getter, IndexRelationKind.IS_REFERENCED_BY);
+      findLocationTest(locations, 'a + 1', false);
+    }
+    // Attempt to index just declarations - we still can find references.
+    index.indexDeclarations(testUnit);
+    {
+      List<Location> locations = await index.getRelations(
+          a.getter, IndexRelationKind.IS_REFERENCED_BY);
+      findLocationTest(locations, 'a + 1', false);
+    }
+  }
+
   test_indexDeclarations_nullUnit() async {
     index.indexDeclarations(null);
   }

@@ -3,6 +3,7 @@ import 'dart:io' as io;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -63,6 +64,7 @@ class InputPackagesResultProvider extends ResultProvider {
           result == LIBRARY_ELEMENT6 ||
           result == LIBRARY_ELEMENT7 ||
           result == LIBRARY_ELEMENT8 ||
+          result == LIBRARY_ELEMENT9 ||
           result == LIBRARY_ELEMENT ||
           false) {
         LibraryElement libraryElement =
@@ -70,8 +72,8 @@ class InputPackagesResultProvider extends ResultProvider {
         entry.setValue(result, libraryElement, TargetedResult.EMPTY_LIST);
         return true;
       } else if (result == READY_LIBRARY_ELEMENT2 ||
-          result == READY_LIBRARY_ELEMENT5 ||
-          result == READY_LIBRARY_ELEMENT6) {
+          result == READY_LIBRARY_ELEMENT6 ||
+          result == READY_LIBRARY_ELEMENT7) {
         entry.setValue(result, true, TargetedResult.EMPTY_LIST);
         return true;
       } else if (result == SOURCE_KIND) {
@@ -84,6 +86,36 @@ class InputPackagesResultProvider extends ResultProvider {
           return true;
         }
         return false;
+      }
+    } else if (target is LibrarySpecificUnit) {
+      String uriString = target.library.uri.toString();
+      if (!_resynthesizer.hasLibrarySummary(uriString)) {
+        return false;
+      }
+      if (result == CREATED_RESOLVED_UNIT1 ||
+          result == CREATED_RESOLVED_UNIT2 ||
+          result == CREATED_RESOLVED_UNIT3 ||
+          result == CREATED_RESOLVED_UNIT4 ||
+          result == CREATED_RESOLVED_UNIT5 ||
+          result == CREATED_RESOLVED_UNIT6 ||
+          result == CREATED_RESOLVED_UNIT7 ||
+          result == CREATED_RESOLVED_UNIT8 ||
+          result == CREATED_RESOLVED_UNIT9 ||
+          result == CREATED_RESOLVED_UNIT10 ||
+          result == CREATED_RESOLVED_UNIT11 ||
+          result == CREATED_RESOLVED_UNIT12) {
+        entry.setValue(result, true, TargetedResult.EMPTY_LIST);
+        return true;
+      }
+      if (result == COMPILATION_UNIT_ELEMENT) {
+        String libraryUri = target.library.uri.toString();
+        String unitUri = target.unit.uri.toString();
+        CompilationUnitElement unit = _resynthesizer.getElement(
+            new ElementLocationImpl.con3(<String>[libraryUri, unitUri]));
+        if (unit != null) {
+          entry.setValue(result, unit, TargetedResult.EMPTY_LIST);
+          return true;
+        }
       }
     } else if (target is VariableElement) {
       if (!_resynthesizer
@@ -102,6 +134,8 @@ class InputPackagesResultProvider extends ResultProvider {
 /**
  * The [UriResolver] that knows about sources that are served from their
  * summaries.
+ *
+ * TODO(scheglov) rename to `InSummaryUriResolver` - it's not `package:` specific.
  */
 class InSummaryPackageUriResolver extends UriResolver {
   final SummaryDataStore _dataStore;
@@ -111,9 +145,10 @@ class InSummaryPackageUriResolver extends UriResolver {
   @override
   Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     actualUri ??= uri;
-    UnlinkedUnit unit = _dataStore.unlinkedMap[uri.toString()];
+    String uriString = uri.toString();
+    UnlinkedUnit unit = _dataStore.unlinkedMap[uriString];
     if (unit != null) {
-      String summaryPath = _dataStore.uriToSummaryPath[uri.toString()];
+      String summaryPath = _dataStore.uriToSummaryPath[uriString];
       if (unit.fallbackModePath.isNotEmpty) {
         return new _InSummaryFallbackSource(
             new JavaFile(unit.fallbackModePath), actualUri, summaryPath);
@@ -153,7 +188,7 @@ class InSummarySource extends Source {
   int get hashCode => uri.hashCode;
 
   @override
-  bool get isInSystemLibrary => false;
+  bool get isInSystemLibrary => uri.scheme == DartUriResolver.DART_SCHEME;
 
   @override
   int get modificationStamp => 0;
@@ -182,6 +217,11 @@ class InSummarySource extends Source {
  */
 class SummaryDataStore {
   /**
+   * List of all [PackageBundle]s.
+   */
+  final List<PackageBundle> bundles = <PackageBundle>[];
+
+  /**
    * Map from the URI of a compilation unit to the unlinked summary of that
    * compilation unit.
    */
@@ -205,6 +245,7 @@ class SummaryDataStore {
    * Add the given [bundle] loaded from the file with the given [path].
    */
   void addBundle(String path, PackageBundle bundle) {
+    bundles.add(bundle);
     for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
       String uri = bundle.unlinkedUnitUris[i];
       uriToSummaryPath[uri] = path;

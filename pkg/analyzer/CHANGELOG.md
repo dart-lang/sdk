@@ -1,3 +1,10 @@
+## 0.27.4-alpha.7.1
+* Restore EmbedderUriResolver API.
+
+## 0.27.4
+
+* Added support for 'analysis_options.yaml' files as an alternative to '.analysis_options' files.
+
 ## 0.27.1
 * Moved the public and private API's for the element model into their proper places.
 * Added back support for auto-processing of plugins.

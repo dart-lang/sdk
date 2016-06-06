@@ -7,7 +7,7 @@ library analyzer.test.src.task.strong_mode_test;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/strong_mode.dart';
 import 'package:unittest/unittest.dart';

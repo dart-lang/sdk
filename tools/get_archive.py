@@ -132,7 +132,7 @@ def GetDartiumRevision(name, bot, directory, version_file, latest_pattern,
         result, out = Gsutil('ls', permanent_prefix % {'osname' : osname,
             'num1': the_revision_num, 'num2': '*', 'bot': bot })
         if result == 0:
-          # First try to find one with the the second number the same as the
+          # First try to find one with the second number the same as the
           # requested number.
           latest = out.split()[0]
           # Now test that the permissions are correct so you can actually

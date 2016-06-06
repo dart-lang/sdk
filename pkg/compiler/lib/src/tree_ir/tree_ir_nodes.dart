@@ -295,7 +295,7 @@ class Constant extends Expression {
   accept(ExpressionVisitor visitor) => visitor.visitConstant(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitConstant(this, arg);
 
-  String toString() => 'Constant(value=${value.toStructuredString()})';
+  String toString() => 'Constant(value=${value.toStructuredText()})';
 }
 
 class This extends Expression {
@@ -396,7 +396,7 @@ class Conditional extends Expression {
 
 /// An && or || expression. The operator is internally represented as a boolean
 /// [isAnd] to simplify rewriting of logical operators.
-/// Note the the result of && and || is one of the arguments, which might not be
+/// Note the result of && and || is one of the arguments, which might not be
 /// boolean. 'ShortCircuitOperator' might have been a better name.
 class LogicalOperator extends Expression {
   Expression left;

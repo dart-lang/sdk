@@ -45,7 +45,7 @@ abstract class BytesBuilder {
   /**
    * Returns the contents of `this` and clears `this`.
    *
-   * The list returned is a view of the the internal buffer, limited to the
+   * The list returned is a view of the internal buffer, limited to the
    * [length].
    */
   List<int> takeBytes();
@@ -113,7 +113,7 @@ class _CopyingBytesBuilder implements BytesBuilder {
     _length = required;
   }
 
-  void addByte(int byte) => add([byte]);
+  void addByte(int byte) { add([byte]); }
 
   List<int> takeBytes() {
     if (_buffer == null) return new Uint8List(0);
@@ -153,17 +153,20 @@ class _CopyingBytesBuilder implements BytesBuilder {
 
 class _BytesBuilder implements BytesBuilder {
   int _length = 0;
-  final List _chunks = [];
+  final List<Uint8List> _chunks = [];
 
   void add(List<int> bytes) {
-    if (bytes is! Uint8List) {
+    Uint8List typedBytes;
+    if (bytes is Uint8List) {
+      typedBytes = bytes;
+    } else {
       bytes = new Uint8List.fromList(bytes);
     }
-    _chunks.add(bytes);
-    _length += bytes.length;
+    _chunks.add(typedBytes);
+    _length += typedBytes.length;
   }
 
-  void addByte(int byte) => add([byte]);
+  void addByte(int byte) { add([byte]); }
 
   List<int> takeBytes() {
     if (_chunks.length == 0) return new Uint8List(0);

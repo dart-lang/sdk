@@ -705,6 +705,7 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
     implements SemanticSendVisitor<T, dynamic> {
   final Compiler compiler;
   final AstElement analyzedElement;
+  final ResolvedAst resolvedAst;
   final TypeSystem<T> types;
   final E inferrer;
   final Map<JumpTarget, List<LocalsHandler<T>>> breaksFor =
@@ -713,7 +714,8 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
       new Map<JumpTarget, List<LocalsHandler<T>>>();
   LocalsHandler<T> locals;
   final List<T> cascadeReceiverStack = new List<T>();
-  final TreeElements elements;
+
+  TreeElements get elements => resolvedAst.elements;
 
   bool accumulateIsChecks = false;
   bool conditionIsSimple = false;
@@ -733,14 +735,16 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
     }
   }
 
-  InferrerVisitor(
-      AstElement analyzedElement, this.inferrer, this.types, this.compiler,
+  InferrerVisitor(AstElement analyzedElement, this.resolvedAst, this.inferrer,
+      this.types, this.compiler,
       [LocalsHandler<T> handler])
       : this.analyzedElement = analyzedElement,
-        this.locals = handler,
-        this.elements = analyzedElement.resolvedAst.elements {
+        this.locals = handler {
     if (handler != null) return;
-    Node node = analyzedElement.node;
+    Node node;
+    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+      node = resolvedAst.node;
+    }
     FieldInitializationScope<T> fieldScope =
         analyzedElement.isGenerativeConstructor
             ? new FieldInitializationScope<T>(types)

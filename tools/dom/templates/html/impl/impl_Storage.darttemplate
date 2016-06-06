@@ -37,11 +37,11 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS
   }
 
   // TODO(nweiz): update this when maps support lazy iteration
-  bool containsValue(String value) => values.any((e) => e == value);
+  bool containsValue(Object value) => values.any((e) => e == value);
 
-  bool containsKey(String key) => _getItem(key) != null;
+  bool containsKey(Object key) => _getItem(key) != null;
 
-  String operator [](String key) => _getItem(key);
+  String operator [](Object key) => _getItem(key);
 
   void operator []=(String key, String value) { _setItem(key, value); }
 
@@ -50,7 +50,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS
     return this[key];
   }
 
-  String remove(String key) {
+  String remove(Object key) {
     final value = this[key];
     _removeItem(key);
     return value;
@@ -68,13 +68,13 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS
   }
 
   Iterable<String> get keys {
-    final keys = [];
+    final keys = <String>[];
     forEach((k, v) => keys.add(k));
     return keys;
   }
 
   Iterable<String> get values {
-    final values = [];
+    final values = <String>[];
     forEach((k, v) => values.add(v));
     return values;
   }

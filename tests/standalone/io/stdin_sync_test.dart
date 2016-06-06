@@ -12,7 +12,7 @@ void testReadByte() {
   void test(String line, List<String> expected) {
     var script = Platform.script.resolve("stdin_sync_script.dart").toFilePath();
     Process.start(Platform.executable,
-                  ["--checked", script]..addAll(
+                  [script]..addAll(
                       expected.map(JSON.encode))).then((process) {
       process.stdin.write(line);
       process.stdin.close();

@@ -22,7 +22,7 @@ class PathFilter {
   /// Construct a new path filter rooted at [root] with [ignorePatterns].
   /// If [pathContext] is not specified, then the system path context is used.
   PathFilter(this.root, List<String> ignorePatterns, [path.Context pathContext])
-      : this.pathContext = pathContext != null ? pathContext : path.context {
+      : this.pathContext = pathContext ?? path.context {
     setIgnorePatterns(ignorePatterns);
   }
 

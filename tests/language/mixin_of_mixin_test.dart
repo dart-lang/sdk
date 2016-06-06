@@ -34,26 +34,27 @@ class T5 extends D with M2 {} // extends a class which declares m2()
 class T6 extends D with M3 {} // extends a class which declares m3()
 
 main() {
+  /// none: static type warning, ok
   new T1().a();  /// 01: static type warning, runtime error
   new T1().b();  /// 02: static type warning, runtime error
-  new T1().c();  /// 03: ok
+  new T1().c();  /// 03: static type warning, ok
   new T2().a();  /// 04: static type warning, runtime error
   new T2().b();  /// 05: static type warning, runtime error
   new T2().c();  /// 06: static type warning, runtime error
-  new T2().m2(); /// 07: ok
+  new T2().m2(); /// 07: static type warning, ok
   new T3().a();  /// 08: static type warning, runtime error
   new T3().b();  /// 09: static type warning, runtime error
   new T3().c();  /// 10: static type warning, runtime error
-  new T3().m3(); /// 11: ok
+  new T3().m3(); /// 11: static type warning, ok
   new T4().a();  /// 12: static type warning, runtime error
   new T4().b();  /// 13: static type warning, runtime error
-  new T4().c();  /// 14: ok
+  new T4().c();  /// 14: static type warning, ok
   new T5().a();  /// 15: static type warning, runtime error
   new T5().b();  /// 16: static type warning, runtime error
   new T5().c();  /// 17: static type warning, runtime error
-  new T5().m2(); /// 18: ok
+  new T5().m2(); /// 18: static type warning, ok
   new T6().a();  /// 19: static type warning, runtime error
   new T6().b();  /// 20: static type warning, runtime error
   new T6().c();  /// 21: static type warning, runtime error
-  new T6().m3(); /// 22: ok
+  new T6().m3(); /// 22: static type warning, ok
 }

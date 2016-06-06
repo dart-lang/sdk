@@ -69,7 +69,7 @@ void main() {
     // 2. Some code was refactored, and there are more methods.
     // Either situation could be problematic, but in situation 2, it is often
     // acceptable to increase [expectedMethodCount] a little.
-    int expectedMethodCount = 431;
+    int expectedMethodCount = 449;
     Expect.isTrue(
         generatedCode.length <= expectedMethodCount,
         'Too many compiled methods: '
@@ -137,7 +137,7 @@ void main() {
     for (var dependency in backend.metadataConstants) {
       ConstantValue constant = dependency.constant;
       Expect.isFalse(compiledConstants.contains(constant),
-                     constant.toStructuredString());
+                     constant.toStructuredText());
     }
 
     // The type literal 'Foo' is both used as metadata, and as a plain value in

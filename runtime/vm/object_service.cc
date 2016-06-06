@@ -8,6 +8,7 @@
 #include "vm/object_store.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/type_table.h"
 
 namespace dart {
 
@@ -187,9 +188,15 @@ void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
   // The index in the canonical_type_arguments table cannot be used as part of
   // the object id (as in typearguments/id), because the indices are not
   // preserved when the table grows and the entries get rehashed. Use the ring.
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   ObjectStore* object_store = isolate->object_store();
-  const Array& table = Array::Handle(object_store->canonical_type_arguments());
+  CanonicalTypeArgumentsSet typeargs_table(
+      zone, object_store->canonical_type_arguments());
+  const Array& table =
+      Array::Handle(HashTables::ToArray(typeargs_table, false));
+  typeargs_table.Release();
   ASSERT(table.Length() > 0);
   AddCommonObjectProperties(&jsobj, "TypeArguments", ref);
   jsobj.AddServiceId(*this);
@@ -430,18 +437,19 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const String& encoded_uri = String::Handle(String::EncodeIRI(uri));
   ASSERT(!encoded_uri.IsNull());
   const Library& lib = Library::Handle(FindLibrary());
-  if (kind() == RawScript::kEvaluateTag) {
+  if (lib.IsNull()) {
     jsobj.AddServiceId(*this);
   } else {
-    ASSERT(!lib.IsNull());
-    jsobj.AddFixedServiceId("libraries/%" Pd "/scripts/%s",
-        lib.index(), encoded_uri.ToCString());
+    jsobj.AddFixedServiceId("libraries/%" Pd "/scripts/%s/%" Px64 "",
+                            lib.index(), encoded_uri.ToCString(),
+                            load_timestamp());
   }
   jsobj.AddPropertyStr("uri", uri);
   jsobj.AddProperty("_kind", GetKindAsCString());
   if (ref) {
     return;
   }
+  jsobj.AddPropertyTimeMillis("_loadTime", load_timestamp());
   if (!lib.IsNull()) {
     jsobj.AddProperty("library", lib);
   }
@@ -1034,27 +1042,33 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj,
     return;
   }
 
-  // Walk the superclass chain, adding all instance fields.
+  // Add all fields in layout order, from superclass to subclass.
+  GrowableArray<Class*> classes;
   Class& cls = Class::Handle(this->clazz());
+  do {
+    classes.Add(&Class::Handle(cls.raw()));
+    cls = cls.SuperClass();
+  } while (!cls.IsNull());
+
+  Array& field_array = Array::Handle();
+  Field& field = Field::Handle();
+  Instance& field_value = Instance::Handle();
   {
-    Instance& fieldValue = Instance::Handle();
     JSONArray jsarr(jsobj, "fields");
-    while (!cls.IsNull()) {
-      const Array& field_array = Array::Handle(cls.fields());
-      Field& field = Field::Handle();
+    for (intptr_t i = classes.length() - 1; i >= 0; i--) {
+      field_array = classes[i]->fields();
       if (!field_array.IsNull()) {
-        for (intptr_t i = 0; i < field_array.Length(); i++) {
-          field ^= field_array.At(i);
+        for (intptr_t j = 0; j < field_array.Length(); j++) {
+          field ^= field_array.At(j);
           if (!field.is_static()) {
-            fieldValue ^= GetField(field);
+            field_value ^= GetField(field);
             JSONObject jsfield(&jsarr);
             jsfield.AddProperty("type", "BoundField");
             jsfield.AddProperty("decl", field);
-            jsfield.AddProperty("value", fieldValue);
+            jsfield.AddProperty("value", field_value);
           }
         }
       }
-      cls = cls.SuperClass();
     }
   }
 
@@ -1123,11 +1137,13 @@ void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("kind", "Type");
   if (IsCanonical()) {
     const Class& type_cls = Class::Handle(type_class());
-    intptr_t id = type_cls.FindCanonicalTypeIndex(*this);
-    ASSERT(id >= 0);
-    intptr_t cid = type_cls.id();
-    jsobj.AddFixedServiceId("classes/%" Pd "/types/%" Pd "", cid, id);
-    jsobj.AddProperty("typeClass", type_cls);
+    if (type_cls.CanonicalType() == raw()) {
+      intptr_t cid = type_cls.id();
+      jsobj.AddFixedServiceId("classes/%" Pd "/types/%d", cid, 0);
+      jsobj.AddProperty("typeClass", type_cls);
+    } else {
+      jsobj.AddServiceId(*this);
+    }
   } else {
     jsobj.AddServiceId(*this);
   }

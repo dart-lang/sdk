@@ -35,11 +35,6 @@ accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
 accessor_conflict_import_test: RuntimeError # Issue 25626
 
-# Experimental feature: Syntactic support for generic methods.
-generic_functions_test: CompileTimeError # Issue 25835
-generic_methods_test: CompileTimeError # Issue 25835
-generic_sends_test: CompileTimeError # Issue 25835
-
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 async_star_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
@@ -49,6 +44,15 @@ async_star_no_cancel2_test: RuntimeError # Need triage
 
 [ $compiler == dart2js && $browser ]
 config_import_test: Fail # Test flag is not passed to the compiler.
+
+# Experimental feature: Syntactic support for generic methods.
+generic_functions_test: CompileTimeError # DartOptions not passed to compiler.
+generic_local_functions_test: CompileTimeError # DartOptions not passed to compiler.
+generic_methods_test: CompileTimeError # DartOptions not passed to compiler.
+generic_sends_test: CompileTimeError # DartOptions not passed to compiler.
+generic_methods_new_test: CompiletimeError # DartOptions not passed to compiler.
+generic_methods_function_type_test: CompiletimeError # DartOptions not passed to compiler.
+generic_methods_type_expression_test: CompiletimeError # DartOptions not passed to compiler.
 
 [ $compiler == dart2js ]
 invocation_mirror_empty_arguments_test: Fail # Issue 24331
@@ -111,6 +115,9 @@ multiline_newline_test/06: MissingCompileTimeError # Issue 23888
 multiline_newline_test/none: RuntimeError # Issue 23888
 
 [ $compiler == dart2js && $checked ]
+async_return_types_test/nestedFuture: Fail # Issue 26429
+async_return_types_test/wrongTypeParameter: Fail # Issue 26429
+regress_26133_test: RuntimeError # Issue 26429
 type_variable_bounds_test/02: Fail # Issue 12702
 type_variable_bounds2_test/01: Fail # Issue 12702
 type_variable_bounds2_test/04: Fail # Issue 12702

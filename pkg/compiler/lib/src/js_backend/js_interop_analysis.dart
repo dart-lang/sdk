@@ -5,15 +5,9 @@
 /// Analysis to determine how to generate code for typed JavaScript interop.
 library compiler.src.js_backend.js_interop_analysis;
 
-import '../diagnostics/messages.dart' show MessageKind;
 import '../constants/values.dart'
-    show
-        ConstantValue,
-        ConstructedConstantValue,
-        ListConstantValue,
-        NullConstantValue,
-        StringConstantValue,
-        TypeConstantValue;
+    show ConstantValue, ConstructedConstantValue, StringConstantValue;
+import '../diagnostics/messages.dart' show MessageKind;
 import '../elements/elements.dart'
     show
         ClassElement,
@@ -23,12 +17,10 @@ import '../elements/elements.dart'
         LibraryElement,
         ParameterElement,
         MetadataAnnotation;
-
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../universe/selector.dart' show Selector;
 import '../universe/universe.dart' show SelectorConstraints;
-
 import 'backend_helpers.dart' show BackendHelpers;
 import 'js_backend.dart' show JavaScriptBackend;
 

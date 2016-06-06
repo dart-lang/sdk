@@ -48,9 +48,10 @@ def main():
   link_args = sys.argv[4:]
 
   # Check arguments.
-  if target_arch not in ['arm', 'arm64', 'ia32', 'x64']:
+  if target_arch not in ['arm', 'arm64', 'ia32', 'x64', 'simdbc', 'simdbc64']:
     raise Exception(sys.argv[0] +
-        " first argument must be 'arm', 'arm64', 'ia32', or 'x64'")
+        " first argument must be 'arm', 'arm64', 'ia32', 'x64', "
+        "'simdbc', or 'simdbc64'")
   if link_type not in ['executable', 'library', 'shared_library']:
     raise Exception(sys.argv[0] +
                     " second argument must be 'executable' or 'library'")
@@ -77,7 +78,7 @@ def main():
 
   # Set up the directory of the Android NDK cross-compiler toolchain.
   toolchain_arch = 'arm-linux-androideabi-4.9'
-  if target_arch == 'arm64':
+  if target_arch == 'arm64' or target_arch == "simdbc64":
     toolchain_arch = 'aarch64-linux-android-4.9'
   if target_arch == 'ia32':
     toolchain_arch = 'x86-4.9'
@@ -91,7 +92,7 @@ def main():
 
   # Set up the path to the linker executable.
   android_linker = os.path.join(android_toolchain, 'arm-linux-androideabi-g++')
-  if target_arch == 'arm64':
+  if target_arch == 'arm64' or target_arch == "simdbc64":
     android_linker = os.path.join(
         android_toolchain, 'aarch64-linux-android-c++')
   if target_arch == 'ia32':
@@ -102,7 +103,7 @@ def main():
   # Grab the path to libgcc.a, which we must explicitly add to the link,
   # by invoking the cross-compiler with the -print-libgcc-file-name flag.
   android_gcc = os.path.join(android_toolchain, 'arm-linux-androideabi-gcc')
-  if target_arch == 'arm64':
+  if target_arch == 'arm64' or target_arch == "simdbc64":
     android_gcc = os.path.join(android_toolchain, 'aarch64-linux-android-gcc')
   if target_arch == 'ia32':
     android_gcc = os.path.join(android_toolchain, 'i686-linux-android-gcc')
@@ -116,7 +117,7 @@ def main():
   android_ndk_sysroot = os.path.join(android_ndk_root,
       'platforms', 'android-14', 'arch-arm')
   libdir = 'lib'
-  if target_arch == 'arm64':
+  if target_arch == 'arm64' or target_arch == "simdbc64":
     android_ndk_sysroot = os.path.join(android_ndk_root,
       'platforms', 'android-21', 'arch-arm64')
   if target_arch == 'ia32':

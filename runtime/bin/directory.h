@@ -7,6 +7,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/reference_counting.h"
 #include "bin/thread.h"
 #include "platform/globals.h"
 
@@ -107,9 +108,7 @@ class DirectoryListing {
   }
 
   virtual ~DirectoryListing() {
-    while (!IsEmpty()) {
-      Pop();
-    }
+    PopAll();
   }
 
   virtual bool HandleDirectory(const char* dir_name) = 0;
@@ -131,6 +130,12 @@ class DirectoryListing {
 
   bool IsEmpty() const {
     return top_ == NULL;
+  }
+
+  void PopAll() {
+    while (!IsEmpty()) {
+      Pop();
+    }
   }
 
   DirectoryListingEntry* top() const {
@@ -166,7 +171,8 @@ class DirectoryListing {
 };
 
 
-class AsyncDirectoryListing : public DirectoryListing {
+class AsyncDirectoryListing : public ReferenceCounted<AsyncDirectoryListing>,
+                              public DirectoryListing {
  public:
   enum Response {
     kListFile = 0,
@@ -179,9 +185,12 @@ class AsyncDirectoryListing : public DirectoryListing {
   AsyncDirectoryListing(const char* dir_name,
                         bool recursive,
                         bool follow_links)
-      : DirectoryListing(dir_name, recursive, follow_links) {}
+      : ReferenceCounted(),
+        DirectoryListing(dir_name, recursive, follow_links),
+        array_(NULL),
+        index_(0),
+        length_(0) {}
 
-  virtual ~AsyncDirectoryListing() {}
   virtual bool HandleDirectory(const char* dir_name);
   virtual bool HandleFile(const char* file_name);
   virtual bool HandleLink(const char* file_name);
@@ -200,11 +209,13 @@ class AsyncDirectoryListing : public DirectoryListing {
   }
 
  private:
+  virtual ~AsyncDirectoryListing() {}
   bool AddFileSystemEntityToResponse(Response response, const char* arg);
   CObjectArray* array_;
   intptr_t index_;
   intptr_t length_;
 
+  friend class ReferenceCounted<AsyncDirectoryListing>;
   DISALLOW_IMPLICIT_CONSTRUCTORS(AsyncDirectoryListing);
 };
 
@@ -238,6 +249,7 @@ class SyncDirectoryListing: public DirectoryListing {
   Dart_Handle file_type_;
   Dart_Handle link_type_;
 
+  DISALLOW_ALLOCATION()
   DISALLOW_IMPLICIT_CONSTRUCTORS(SyncDirectoryListing);
 };
 

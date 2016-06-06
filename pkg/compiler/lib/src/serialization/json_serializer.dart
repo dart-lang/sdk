@@ -113,7 +113,7 @@ class PrettyPrintEncoder implements ValueVisitor {
 
   @override
   void visitConstant(ConstantValue value, String indentation) {
-    buffer.write('Constant(${value.id}):${value.constant.getText()}');
+    buffer.write('Constant(${value.id}):${value.constant.toDartText()}');
   }
 
   @override

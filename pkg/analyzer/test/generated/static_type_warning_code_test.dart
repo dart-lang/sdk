@@ -470,7 +470,49 @@ f() {
 ''');
   }
 
-  void test_illegal_return_type_async_function() {
+  void test_illegalAsyncGeneratorReturnType_function_nonStream() {
+    assertErrorsInCode(
+        '''
+int f() async* {}
+''',
+        [StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE]);
+  }
+
+  void test_illegalAsyncGeneratorReturnType_function_subtypeOfStream() {
+    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    assertErrorsInCode(
+        '''
+import 'dart:async';
+abstract class SubStream<T> implements Stream<T> {}
+SubStream<int> f() async* {}
+''',
+        [StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE]);
+  }
+
+  void test_illegalAsyncGeneratorReturnType_method_nonStream() {
+    assertErrorsInCode(
+        '''
+class C {
+  int f() async* {}
+}
+''',
+        [StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE]);
+  }
+
+  void test_illegalAsyncGeneratorReturnType_method_subtypeOfStream() {
+    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    assertErrorsInCode(
+        '''
+import 'dart:async';
+abstract class SubStream<T> implements Stream<T> {}
+class C {
+  SubStream<int> f() async* {}
+}
+''',
+        [StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE]);
+  }
+
+  void test_illegalAsyncReturnType_function_nonFuture() {
     assertErrorsInCode(
         '''
 int f() async {}
@@ -481,29 +523,24 @@ int f() async {}
         ]);
   }
 
-  void test_illegal_return_type_async_generator_function() {
+  void test_illegalAsyncReturnType_function_subtypeOfFuture() {
+    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
     assertErrorsInCode(
         '''
-int f() async* {}
-''',
-        [StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE]);
-  }
-
-  void test_illegal_return_type_async_generator_method() {
-    assertErrorsInCode(
-        '''
-class C {
-  int f() async* {}
+import 'dart:async';
+abstract class SubFuture<T> implements Future<T> {}
+SubFuture<int> f() async {
+  return 0;
 }
 ''',
-        [StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE]);
+        [StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE]);
   }
 
-  void test_illegal_return_type_async_method() {
+  void test_illegalAsyncReturnType_method_nonFuture() {
     assertErrorsInCode(
         '''
 class C {
-  int f() async {}
+  int m() async {}
 }
 ''',
         [
@@ -512,7 +549,22 @@ class C {
         ]);
   }
 
-  void test_illegal_return_type_sync_generator_function() {
+  void test_illegalAsyncReturnType_method_subtypeOfFuture() {
+    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    assertErrorsInCode(
+        '''
+import 'dart:async';
+abstract class SubFuture<T> implements Future<T> {}
+class C {
+  SubFuture<int> m() async {
+    return 0;
+  }
+}
+''',
+        [StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE]);
+  }
+
+  void test_illegalSyncGeneratorReturnType_function_nonIterator() {
     assertErrorsInCode(
         '''
 int f() sync* {}
@@ -520,11 +572,33 @@ int f() sync* {}
         [StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE]);
   }
 
-  void test_illegal_return_type_sync_generator_method() {
+  void test_illegalSyncGeneratorReturnType_function_subclassOfIterator() {
+    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    assertErrorsInCode(
+        '''
+abstract class SubIterator<T> implements Iterator<T> {}
+SubIterator<int> f() sync* {}
+''',
+        [StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE]);
+  }
+
+  void test_illegalSyncGeneratorReturnType_method_nonIterator() {
     assertErrorsInCode(
         '''
 class C {
   int f() sync* {}
+}
+''',
+        [StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE]);
+  }
+
+  void test_illegalSyncGeneratorReturnType_method_subclassOfIterator() {
+    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    assertErrorsInCode(
+        '''
+abstract class SubIterator<T> implements Iterator<T> {}
+class C {
+  SubIterator<int> f() sync* {}
 }
 ''',
         [StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE]);
@@ -1214,6 +1288,64 @@ var b = 1 is G<B>;
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
+  void test_typeArgumentNotMatchingBounds_methodInvocation_localFunction() {
+    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    assertErrorsInCode(
+        r'''
+class Point<T extends num> {
+  Point(T x, T y);
+}
+
+main() {
+  Point/*<T>*/ f/*<T extends num>*/(num/*=T*/ x, num/*=T*/ y) {
+    return new Point/*<T>*/(x, y);
+  }
+  print(f/*<String>*/('hello', 'world'));
+}
+''',
+        [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+  }
+
+  void test_typeArgumentNotMatchingBounds_methodInvocation_method() {
+    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    assertErrorsInCode(
+        r'''
+class Point<T extends num> {
+  Point(T x, T y);
+}
+
+class PointFactory {
+  Point/*<T>*/ point/*<T extends num>*/(num/*=T*/ x, num/*=T*/ y) {
+    return new Point/*<T>*/(x, y);
+  }
+}
+
+f(PointFactory factory) {
+  print(factory.point/*<String>*/('hello', 'world'));
+}
+''',
+        [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+  }
+
+  void test_typeArgumentNotMatchingBounds_methodInvocation_topLevelFunction() {
+    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    assertErrorsInCode(
+        r'''
+class Point<T extends num> {
+  Point(T x, T y);
+}
+
+Point/*<T>*/ f/*<T extends num>*/(num/*=T*/ x, num/*=T*/ y) {
+  return new Point/*<T>*/(x, y);
+}
+
+main() {
+  print(f/*<String>*/('hello', 'world'));
+}
+''',
+        [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+  }
+
   void test_typeArgumentNotMatchingBounds_methodReturnType() {
     assertErrorsInCode(
         r'''
@@ -1245,6 +1377,17 @@ class B extends A {}
 class C extends B {}
 class G<E extends B> {}
 f() { return new G<A>(); }
+''',
+        [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+  }
+
+  void test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias() {
+    assertErrorsInCode(
+        r'''
+class A {}
+class B {}
+typedef F<T extends A>();
+F<B> fff;
 ''',
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
@@ -2286,5 +2429,52 @@ main() {
       }
     }
     verify([source]);
+  }
+
+  void test_legalAsyncGeneratorReturnType_function_supertypeOfStream() {
+    assertErrorsInCode(
+        '''
+import 'dart:async';
+f() async* { yield 42; }
+dynamic f2() async* { yield 42; }
+Object f3() async* { yield 42; }
+Stream f4() async* { yield 42; }
+Stream<dynamic> f5() async* { yield 42; }
+Stream<Object> f6() async* { yield 42; }
+Stream<num> f7() async* { yield 42; }
+Stream<int> f8() async* { yield 42; }
+''',
+        []);
+  }
+
+  void test_legalAsyncReturnType_function_supertypeOfFuture() {
+    assertErrorsInCode(
+        '''
+import 'dart:async';
+f() async { return 42; }
+dynamic f2() async { return 42; }
+Object f3() async { return 42; }
+Future f4() async { return 42; }
+Future<dynamic> f5() async { return 42; }
+Future<Object> f6() async { return 42; }
+Future<num> f7() async { return 42; }
+Future<int> f8() async { return 42; }
+''',
+        []);
+  }
+
+  void test_legalSyncGeneratorReturnType_function_supertypeOfIterable() {
+    assertErrorsInCode(
+        '''
+f() sync* { yield 42; }
+dynamic f2() sync* { yield 42; }
+Object f3() sync* { yield 42; }
+Iterable f4() sync* { yield 42; }
+Iterable<dynamic> f5() sync* { yield 42; }
+Iterable<Object> f6() sync* { yield 42; }
+Iterable<num> f7() sync* { yield 42; }
+Iterable<int> f8() sync* { yield 42; }
+''',
+        []);
   }
 }

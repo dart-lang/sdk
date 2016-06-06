@@ -18,6 +18,7 @@
 #include "vm/snapshot_ids.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/timeline.h"
 #include "vm/verified_memory.h"
 #include "vm/version.h"
 
@@ -142,11 +143,6 @@ const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
   ASSERT(kLengthIndex == length_offset());
   ASSERT((kSnapshotFlagIndex * sizeof(int64_t)) == kind_offset());
   ASSERT((kHeapObjectTag & kInlined));
-  // The kWatchedBit and kMarkBit are only set during GC operations. This
-  // allows the two low bits in the header to be used for snapshotting.
-  ASSERT(kObjectId ==
-         ((1 << RawObject::kWatchedBit) | (1 << RawObject::kMarkBit)));
-  ASSERT((kObjectAlignmentMask & kObjectId) == kObjectId);
   const Snapshot* snapshot = reinterpret_cast<const Snapshot*>(raw_memory);
   // If the raw length is negative or greater than what the local machine can
   // handle, then signal an error.
@@ -182,7 +178,6 @@ SnapshotReader::SnapshotReader(
       instructions_buffer_(instructions_buffer),
       data_buffer_(data_buffer),
       kind_(kind),
-      snapshot_code_(instructions_buffer != NULL),
       thread_(thread),
       zone_(thread->zone()),
       heap_(isolate()->heap()),
@@ -205,7 +200,7 @@ SnapshotReader::SnapshotReader(
       megamorphic_cache_(MegamorphicCache::Handle(zone_)),
       error_(UnhandledException::Handle(zone_)),
       max_vm_isolate_object_id_(
-          (kind == Snapshot::kFull) ?
+          (Snapshot::IsFull(kind)) ?
               Object::vm_isolate_snapshot_object_table().Length() : 0),
       backward_references_(backward_refs),
       instructions_reader_(NULL) {
@@ -228,7 +223,7 @@ RawObject* SnapshotReader::ReadObject() {
         (*backward_references_)[i].set_state(kIsDeserialized);
       }
     }
-    if (kind() != Snapshot::kFull) {
+    if (!Snapshot::IsFull(kind())) {
       ProcessDeferredCanonicalizations();
     }
     return obj.raw();
@@ -242,7 +237,7 @@ RawObject* SnapshotReader::ReadObject() {
 
 
 RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
-  ASSERT(kind_ != Snapshot::kFull);
+  ASSERT(!Snapshot::IsFull(kind_));
   // Read the class header information and lookup the class.
   intptr_t class_header = Read<int32_t>();
   ASSERT((class_header & kSmiTagMask) != kSmiTag);
@@ -254,7 +249,7 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
   AddBackRef(object_id, &cls, kIsDeserialized);
   // Read the library/class information and lookup the class.
   str_ ^= ReadObjectImpl(class_header, kAsInlinedObject, kInvalidPatchIndex, 0);
-  library_ = Library::LookupLibrary(str_);
+  library_ = Library::LookupLibrary(thread(), str_);
   if (library_.IsNull() || !library_.Loaded()) {
     SetReadException("Invalid object found in message.");
   }
@@ -281,7 +276,7 @@ RawFunction* SnapshotReader::ReadFunctionId(intptr_t object_id) {
   AddBackRef(object_id, &func, kIsDeserialized);
   // Read the library/class/function information and lookup the function.
   str_ ^= ReadObjectImpl(func_header, kAsInlinedObject, kInvalidPatchIndex, 0);
-  library_ = Library::LookupLibrary(str_);
+  library_ = Library::LookupLibrary(thread(), str_);
   if (library_.IsNull() || !library_.Loaded()) {
     SetReadException("Expected a library name, but found an invalid name.");
   }
@@ -307,7 +302,7 @@ RawFunction* SnapshotReader::ReadFunctionId(intptr_t object_id) {
 
 RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
                                                      intptr_t class_header) {
-  ASSERT(kind_ != Snapshot::kFull);
+  ASSERT(!Snapshot::IsFull(kind_));
 
   // First create a function object and associate it with the specified
   // 'object_id'.
@@ -317,7 +312,7 @@ RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
 
   // Read the library/class/function information and lookup the function.
   str_ ^= ReadObjectImpl(kAsInlinedObject);
-  library_ = Library::LookupLibrary(str_);
+  library_ = Library::LookupLibrary(thread(), str_);
   if (library_.IsNull() || !library_.Loaded()) {
     SetReadException("Invalid Library object found in message.");
   }
@@ -488,7 +483,7 @@ RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
     instance_size = cls_.instance_size();
     ASSERT(instance_size > 0);
     // Allocate the instance and read in all the fields for the object.
-    if (kind_ == Snapshot::kFull) {
+    if (Snapshot::IsFull(kind_)) {
       *result ^= AllocateUninitialized(cls_.id(), instance_size);
     } else {
       *result ^= Object::Allocate(cls_.id(), instance_size, HEAP_SPACE(kind_));
@@ -530,7 +525,7 @@ RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
       // snapshot (kFull, kScript) with asserts.
       offset += kWordSize;
     }
-    if (kind_ == Snapshot::kFull) {
+    if (Snapshot::IsFull(kind_)) {
       // We create an uninitialized object in the case of full snapshots, so
       // we need to initialize any remaining padding area with the Null object.
       while (offset < instance_size) {
@@ -539,10 +534,10 @@ RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
       }
     }
     if (RawObject::IsCanonical(tags)) {
-      if (kind_ == Snapshot::kFull) {
+      if (Snapshot::IsFull(kind_)) {
         result->SetCanonical();
       } else {
-        *result = result->CheckAndCanonicalize(NULL);
+        *result = result->CheckAndCanonicalize(thread(), NULL);
         ASSERT(!result->IsNull());
       }
     }
@@ -592,7 +587,7 @@ class HeapLocker : public StackResource {
 
 
 RawApiError* SnapshotReader::ReadFullSnapshot() {
-  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(Snapshot::IsFull(kind_));
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
@@ -600,7 +595,7 @@ RawApiError* SnapshotReader::ReadFullSnapshot() {
   ASSERT(object_store != NULL);
 
   // First read the version string, and check that it matches.
-  RawApiError* error = VerifyVersion();
+  RawApiError* error = VerifyVersionAndFeatures();
   if (error != ApiError::null()) {
     return error;
   }
@@ -614,9 +609,8 @@ RawApiError* SnapshotReader::ReadFullSnapshot() {
     HeapLocker hl(thread, old_space());
 
     // Read in all the objects stored in the object store.
-    RawObject** toobj = snapshot_code() ? object_store->to()
-                                        : object_store->to_snapshot();
-    intptr_t num_flds = (toobj - object_store->from());
+    intptr_t num_flds =
+        (object_store->to_snapshot(kind_) - object_store->from());
     for (intptr_t i = 0; i <= num_flds; i++) {
       *(object_store->from() + i) = ReadObjectImpl(kAsInlinedObject);
     }
@@ -627,7 +621,7 @@ RawApiError* SnapshotReader::ReadFullSnapshot() {
       }
     }
 
-    if (snapshot_code()) {
+    if (kind_ == Snapshot::kAppNoJIT) {
       ICData& ic = ICData::Handle(thread->zone());
       Object& funcOrCode = Object::Handle(thread->zone());
       Code& code = Code::Handle(thread->zone());
@@ -647,7 +641,6 @@ RawApiError* SnapshotReader::ReadFullSnapshot() {
       }
     }
 
-
     // Validate the class table.
 #if defined(DEBUG)
     isolate->ValidateClassTable();
@@ -655,8 +648,17 @@ RawApiError* SnapshotReader::ReadFullSnapshot() {
 
     // Setup native resolver for bootstrap impl.
     Bootstrap::SetupNativeResolver();
-    return ApiError::null();
   }
+
+  Class& cls = Class::Handle(thread->zone());
+  for (intptr_t i = 0; i < backward_references_->length(); i++) {
+    if ((*backward_references_)[i].reference()->IsClass()) {
+      cls ^= (*backward_references_)[i].reference()->raw();
+      cls.RehashConstants(thread->zone());
+    }
+  }
+
+  return ApiError::null();
 }
 
 
@@ -664,7 +666,7 @@ RawObject* SnapshotReader::ReadScriptSnapshot() {
   ASSERT(kind_ == Snapshot::kScript);
 
   // First read the version string, and check that it matches.
-  RawApiError* error = VerifyVersion();
+  RawApiError* error = VerifyVersionAndFeatures();
   if (error != ApiError::null()) {
     return error;
   }
@@ -687,7 +689,7 @@ RawObject* SnapshotReader::ReadScriptSnapshot() {
 }
 
 
-RawApiError* SnapshotReader::VerifyVersion() {
+RawApiError* SnapshotReader::VerifyVersionAndFeatures() {
   // If the version string doesn't match, return an error.
   // Note: New things are allocated only if we're going to return an error.
 
@@ -700,7 +702,7 @@ RawApiError* SnapshotReader::VerifyVersion() {
     OS::SNPrint(message_buffer,
                 kMessageBufferSize,
                 "No full snapshot version found, expected '%s'",
-                Version::SnapshotString());
+                expected_version);
     // This can also fail while bringing up the VM isolate, so make sure to
     // allocate the error message in old space.
     const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
@@ -716,8 +718,8 @@ RawApiError* SnapshotReader::VerifyVersion() {
     OS::SNPrint(message_buffer,
                 kMessageBufferSize,
                 "Wrong %s snapshot version, expected '%s' found '%s'",
-                (kind_ == Snapshot::kFull) ? "full" : "script",
-                Version::SnapshotString(),
+                (Snapshot::IsFull(kind_)) ? "full" : "script",
+                expected_version,
                 actual_version);
     free(actual_version);
     // This can also fail while bringing up the VM isolate, so make sure to
@@ -726,12 +728,40 @@ RawApiError* SnapshotReader::VerifyVersion() {
     return ApiError::New(msg, Heap::kOld);
   }
   Advance(version_len);
+
+  const char* expected_features = Dart::FeaturesString(kind_);
+  ASSERT(expected_features != NULL);
+  const intptr_t expected_len = strlen(expected_features);
+
+  const char* features = reinterpret_cast<const char*>(CurrentBufferAddress());
+  ASSERT(features != NULL);
+  intptr_t buffer_len = OS::StrNLen(features, PendingBytes());
+  if ((buffer_len != expected_len) ||
+      strncmp(features, expected_features, expected_len)) {
+    const intptr_t kMessageBufferSize = 256;
+    char message_buffer[kMessageBufferSize];
+    char* actual_features = OS::StrNDup(features, buffer_len < 128 ? buffer_len
+                                                                   : 128);
+    OS::SNPrint(message_buffer,
+                kMessageBufferSize,
+                "Wrong features in snapshot, expected '%s' found '%s'",
+                expected_features,
+                actual_features);
+    free(const_cast<char*>(expected_features));
+    free(actual_features);
+    // This can also fail while bringing up the VM isolate, so make sure to
+    // allocate the error message in old space.
+    const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
+    return ApiError::New(msg, Heap::kOld);
+  }
+  free(const_cast<char*>(expected_features));
+  Advance(expected_len + 1);
   return ApiError::null();
 }
 
 
 #define ALLOC_NEW_OBJECT_WITH_LEN(type, length)                                \
-  ASSERT(kind_ == Snapshot::kFull);                                            \
+  ASSERT(Snapshot::IsFull(kind_));                                            \
   ASSERT_NO_SAFEPOINT_SCOPE();                                                 \
   Raw##type* obj = reinterpret_cast<Raw##type*>(                               \
       AllocateUninitialized(k##type##Cid, type::InstanceSize(length)));        \
@@ -765,7 +795,7 @@ RawTypeArguments* SnapshotReader::NewTypeArguments(intptr_t len) {
 
 
 RawObjectPool* SnapshotReader::NewObjectPool(intptr_t len) {
-  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(Snapshot::IsFull(kind_));
   ASSERT_NO_SAFEPOINT_SCOPE();
   RawObjectPool* obj = reinterpret_cast<RawObjectPool*>(
       AllocateUninitialized(kObjectPoolCid, ObjectPool::InstanceSize(len)));
@@ -776,7 +806,7 @@ RawObjectPool* SnapshotReader::NewObjectPool(intptr_t len) {
 
 RawLocalVarDescriptors* SnapshotReader::NewLocalVarDescriptors(
     intptr_t num_entries) {
-  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(Snapshot::IsFull(kind_));
   ASSERT_NO_SAFEPOINT_SCOPE();
   RawLocalVarDescriptors* obj = reinterpret_cast<RawLocalVarDescriptors*>(
       AllocateUninitialized(kLocalVarDescriptorsCid,
@@ -788,7 +818,7 @@ RawLocalVarDescriptors* SnapshotReader::NewLocalVarDescriptors(
 
 RawExceptionHandlers* SnapshotReader::NewExceptionHandlers(
     intptr_t num_entries) {
-  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(Snapshot::IsFull(kind_));
   ASSERT_NO_SAFEPOINT_SCOPE();
   RawExceptionHandlers* obj = reinterpret_cast<RawExceptionHandlers*>(
       AllocateUninitialized(kExceptionHandlersCid,
@@ -799,7 +829,7 @@ RawExceptionHandlers* SnapshotReader::NewExceptionHandlers(
 
 
 RawPcDescriptors* SnapshotReader::NewPcDescriptors(intptr_t len) {
-  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(Snapshot::IsFull(kind_));
   ASSERT_NO_SAFEPOINT_SCOPE();
   RawPcDescriptors* obj = reinterpret_cast<RawPcDescriptors*>(
       AllocateUninitialized(kPcDescriptorsCid,
@@ -810,7 +840,7 @@ RawPcDescriptors* SnapshotReader::NewPcDescriptors(intptr_t len) {
 
 
 RawCodeSourceMap* SnapshotReader::NewCodeSourceMap(intptr_t len) {
-  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(Snapshot::IsFull(kind_));
   ASSERT_NO_SAFEPOINT_SCOPE();
   RawCodeSourceMap* obj = reinterpret_cast<RawCodeSourceMap*>(
       AllocateUninitialized(kCodeSourceMapCid,
@@ -821,7 +851,7 @@ RawCodeSourceMap* SnapshotReader::NewCodeSourceMap(intptr_t len) {
 
 
 RawStackmap* SnapshotReader::NewStackmap(intptr_t len) {
-  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(Snapshot::IsFull(kind_));
   ASSERT_NO_SAFEPOINT_SCOPE();
   RawStackmap* obj = reinterpret_cast<RawStackmap*>(
       AllocateUninitialized(kStackmapCid, Stackmap::InstanceSize(len)));
@@ -831,7 +861,7 @@ RawStackmap* SnapshotReader::NewStackmap(intptr_t len) {
 
 
 RawContextScope* SnapshotReader::NewContextScope(intptr_t num_variables) {
-  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(Snapshot::IsFull(kind_));
   ASSERT_NO_SAFEPOINT_SCOPE();
   RawContextScope* obj = reinterpret_cast<RawContextScope*>(
       AllocateUninitialized(kContextScopeCid,
@@ -843,7 +873,7 @@ RawContextScope* SnapshotReader::NewContextScope(intptr_t num_variables) {
 
 RawCode* SnapshotReader::NewCode(intptr_t pointer_offsets_length) {
   ASSERT(pointer_offsets_length == 0);
-  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(Snapshot::IsFull(kind_));
   ASSERT_NO_SAFEPOINT_SCOPE();
   RawCode* obj = reinterpret_cast<RawCode*>(
       AllocateUninitialized(kCodeCid, Code::InstanceSize(0)));
@@ -852,7 +882,7 @@ RawCode* SnapshotReader::NewCode(intptr_t pointer_offsets_length) {
 
 
 RawTokenStream* SnapshotReader::NewTokenStream(intptr_t len) {
-  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(Snapshot::IsFull(kind_));
   ASSERT_NO_SAFEPOINT_SCOPE();
   stream_ = reinterpret_cast<RawTokenStream*>(
       AllocateUninitialized(kTokenStreamCid, TokenStream::InstanceSize()));
@@ -870,7 +900,7 @@ RawTokenStream* SnapshotReader::NewTokenStream(intptr_t len) {
 
 
 RawContext* SnapshotReader::NewContext(intptr_t num_variables) {
-  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(Snapshot::IsFull(kind_));
   ASSERT_NO_SAFEPOINT_SCOPE();
   RawContext* obj = reinterpret_cast<RawContext*>(
       AllocateUninitialized(kContextCid, Context::InstanceSize(num_variables)));
@@ -880,7 +910,7 @@ RawContext* SnapshotReader::NewContext(intptr_t num_variables) {
 
 
 RawClass* SnapshotReader::NewClass(intptr_t class_id) {
-  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(Snapshot::IsFull(kind_));
   ASSERT_NO_SAFEPOINT_SCOPE();
   if (class_id < kNumPredefinedCids) {
     ASSERT((class_id >= kInstanceCid) &&
@@ -899,7 +929,7 @@ RawClass* SnapshotReader::NewClass(intptr_t class_id) {
 
 
 RawInstance* SnapshotReader::NewInstance() {
-  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(Snapshot::IsFull(kind_));
   ASSERT_NO_SAFEPOINT_SCOPE();
   RawInstance* obj = reinterpret_cast<RawInstance*>(
       AllocateUninitialized(kInstanceCid, Instance::InstanceSize()));
@@ -908,7 +938,7 @@ RawInstance* SnapshotReader::NewInstance() {
 
 
 RawMint* SnapshotReader::NewMint(int64_t value) {
-  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(Snapshot::IsFull(kind_));
   ASSERT_NO_SAFEPOINT_SCOPE();
   RawMint* obj = reinterpret_cast<RawMint*>(
       AllocateUninitialized(kMintCid, Mint::InstanceSize()));
@@ -918,7 +948,7 @@ RawMint* SnapshotReader::NewMint(int64_t value) {
 
 
 RawDouble* SnapshotReader::NewDouble(double value) {
-  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(Snapshot::IsFull(kind_));
   ASSERT_NO_SAFEPOINT_SCOPE();
   RawDouble* obj = reinterpret_cast<RawDouble*>(
       AllocateUninitialized(kDoubleCid, Double::InstanceSize()));
@@ -928,7 +958,7 @@ RawDouble* SnapshotReader::NewDouble(double value) {
 
 
 RawTypedData* SnapshotReader::NewTypedData(intptr_t class_id, intptr_t len) {
-  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(Snapshot::IsFull(kind_));
   ASSERT_NO_SAFEPOINT_SCOPE();
   const intptr_t lengthInBytes = len * TypedData::ElementSizeInBytes(class_id);
   RawTypedData* obj = reinterpret_cast<RawTypedData*>(
@@ -939,7 +969,7 @@ RawTypedData* SnapshotReader::NewTypedData(intptr_t class_id, intptr_t len) {
 
 
 #define ALLOC_NEW_OBJECT(type)                                                 \
-  ASSERT(kind_ == Snapshot::kFull);                                            \
+  ASSERT(Snapshot::IsFull(kind_));                                            \
   ASSERT_NO_SAFEPOINT_SCOPE();                                                 \
   return reinterpret_cast<Raw##type*>(                                         \
       AllocateUninitialized(k##type##Cid, type::InstanceSize()));              \
@@ -1072,7 +1102,7 @@ RawRegExp* SnapshotReader::NewRegExp() {
 
 RawFloat32x4* SnapshotReader::NewFloat32x4(float v0, float v1, float v2,
                                            float v3) {
-  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(Snapshot::IsFull(kind_));
   ASSERT_NO_SAFEPOINT_SCOPE();
   RawFloat32x4* obj = reinterpret_cast<RawFloat32x4*>(
       AllocateUninitialized(kFloat32x4Cid, Float32x4::InstanceSize()));
@@ -1086,7 +1116,7 @@ RawFloat32x4* SnapshotReader::NewFloat32x4(float v0, float v1, float v2,
 
 RawInt32x4* SnapshotReader::NewInt32x4(uint32_t v0, uint32_t v1, uint32_t v2,
                                        uint32_t v3) {
-  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(Snapshot::IsFull(kind_));
   ASSERT_NO_SAFEPOINT_SCOPE();
   RawInt32x4* obj = reinterpret_cast<RawInt32x4*>(
       AllocateUninitialized(kInt32x4Cid, Int32x4::InstanceSize()));
@@ -1099,7 +1129,7 @@ RawInt32x4* SnapshotReader::NewInt32x4(uint32_t v0, uint32_t v1, uint32_t v2,
 
 
 RawFloat64x2* SnapshotReader::NewFloat64x2(double v0, double v1) {
-  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(Snapshot::IsFull(kind_));
   ASSERT_NO_SAFEPOINT_SCOPE();
   RawFloat64x2* obj = reinterpret_cast<RawFloat64x2*>(
       AllocateUninitialized(kFloat64x2Cid, Float64x2::InstanceSize()));
@@ -1130,7 +1160,7 @@ RawObject* SnapshotReader::NewInteger(int64_t value) {
   if (Smi::IsValid(value)) {
     return Smi::New(static_cast<intptr_t>(value));
   }
-  if (kind_ == Snapshot::kFull) {
+  if (Snapshot::IsFull(kind_)) {
     return NewMint(value);
   }
   return Mint::NewCanonical(value);
@@ -1154,13 +1184,9 @@ int32_t InstructionsWriter::GetOffsetFor(RawInstructions* instructions,
   }
 #endif
 
-  intptr_t payload_size = instructions->ptr()->size_;
-  payload_size = Utils::RoundUp(payload_size, OS::PreferredCodeAlignment());
-
+  intptr_t heap_size = instructions->Size();
   intptr_t offset = next_offset_;
-  ASSERT(Utils::IsAligned(next_offset_, OS::PreferredCodeAlignment()));
-  next_offset_ += payload_size;
-  ASSERT(Utils::IsAligned(next_offset_, OS::PreferredCodeAlignment()));
+  next_offset_ += heap_size;
   instructions_.Add(InstructionsData(instructions, code, offset));
 
   return offset;
@@ -1188,8 +1214,11 @@ static void EnsureIdentifier(char* label) {
 }
 
 
-void InstructionsWriter::WriteAssembly() {
-  Zone* zone = Thread::Current()->zone();
+void AssemblyInstructionsWriter::Write() {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  NOT_IN_PRODUCT(TimelineDurationScope tds(thread,
+      Timeline::GetIsolateStream(), "WriteInstructions"));
 
   // Handlify collected raw pointers as building the names below
   // will allocate on the Dart heap.
@@ -1204,12 +1233,12 @@ void InstructionsWriter::WriteAssembly() {
     data.obj_ = &Object::Handle(zone, data.raw_obj_);
   }
 
-  stream_.Print(".text\n");
-  stream_.Print(".globl _kInstructionsSnapshot\n");
+  assembly_stream_.Print(".text\n");
+  assembly_stream_.Print(".globl _kInstructionsSnapshot\n");
   // Start snapshot at page boundary.
   ASSERT(VirtualMemory::PageSize() >= OS::kMaxPreferredCodeAlignment);
-  stream_.Print(".balign %" Pd ", 0\n", VirtualMemory::PageSize());
-  stream_.Print("_kInstructionsSnapshot:\n");
+  assembly_stream_.Print(".balign %" Pd ", 0\n", VirtualMemory::PageSize());
+  assembly_stream_.Print("_kInstructionsSnapshot:\n");
 
   // This head also provides the gap to make the instructions snapshot
   // look like a HeapPage.
@@ -1229,26 +1258,52 @@ void InstructionsWriter::WriteAssembly() {
 
     ASSERT(insns.raw()->Size() % sizeof(uint64_t) == 0);
 
-    // 1. Write a label at the entry point.
+    // 1. Write from the header to the entry point.
+    {
+      NoSafepointScope no_safepoint;
+
+      uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
+      uword entry = beginning + Instructions::HeaderSize();
+
+      ASSERT(Utils::IsAligned(beginning, sizeof(uint64_t)));
+      ASSERT(Utils::IsAligned(entry, sizeof(uint64_t)));
+
+      // Write Instructions with the mark and VM heap bits set.
+      uword marked_tags = insns.raw_ptr()->tags_;
+      marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
+      marked_tags = RawObject::MarkBit::update(true, marked_tags);
+
+      WriteWordLiteral(marked_tags);
+      beginning += sizeof(uword);
+
+      for (uword* cursor = reinterpret_cast<uword*>(beginning);
+           cursor < reinterpret_cast<uword*>(entry);
+           cursor++) {
+        WriteWordLiteral(*cursor);
+      }
+    }
+
+    // 2. Write a label at the entry point.
     owner = code.owner();
     if (owner.IsNull()) {
       const char* name = StubCode::NameOfStub(insns.EntryPoint());
-      stream_.Print("Precompiled_Stub_%s:\n", name);
+      assembly_stream_.Print("Precompiled_Stub_%s:\n", name);
     } else if (owner.IsClass()) {
       str = Class::Cast(owner).Name();
       const char* name = str.ToCString();
       EnsureIdentifier(const_cast<char*>(name));
-      stream_.Print("Precompiled_AllocationStub_%s_%" Pd ":\n", name, i);
+      assembly_stream_.Print("Precompiled_AllocationStub_%s_%" Pd ":\n",
+                             name, i);
     } else if (owner.IsFunction()) {
       const char* name = Function::Cast(owner).ToQualifiedCString();
       EnsureIdentifier(const_cast<char*>(name));
-      stream_.Print("Precompiled_%s_%" Pd ":\n", name, i);
+      assembly_stream_.Print("Precompiled_%s_%" Pd ":\n", name, i);
     } else {
       UNREACHABLE();
     }
 
     {
-      // 2. Write from the entry point to the end.
+      // 3. Write from the entry point to the end.
       NoSafepointScope no_safepoint;
       uword beginning = reinterpret_cast<uword>(insns.raw()) - kHeapObjectTag;
       uword entry = beginning + Instructions::HeaderSize();
@@ -1268,24 +1323,25 @@ void InstructionsWriter::WriteAssembly() {
     }
   }
 #if defined(TARGET_OS_LINUX)
-  stream_.Print(".section .rodata\n");
+  assembly_stream_.Print(".section .rodata\n");
 #elif defined(TARGET_OS_MACOS)
-  stream_.Print(".const\n");
+  assembly_stream_.Print(".const\n");
 #else
   // Unsupported platform.
   UNREACHABLE();
 #endif
-  stream_.Print(".globl _kDataSnapshot\n");
+  assembly_stream_.Print(".globl _kDataSnapshot\n");
   // Start snapshot at page boundary.
-  stream_.Print(".balign %" Pd ", 0\n", VirtualMemory::PageSize());
-  stream_.Print("_kDataSnapshot:\n");
+  assembly_stream_.Print(".balign %" Pd ", 0\n", VirtualMemory::PageSize());
+  assembly_stream_.Print("_kDataSnapshot:\n");
   WriteWordLiteral(next_object_offset_);  // Data length.
   COMPILE_ASSERT(OS::kMaxPreferredCodeAlignment >= kObjectAlignment);
-  stream_.Print(".balign %" Pd ", 0\n", OS::kMaxPreferredCodeAlignment);
+  assembly_stream_.Print(".balign %" Pd ", 0\n",
+                         OS::kMaxPreferredCodeAlignment);
 
   for (intptr_t i = 0; i < objects_.length(); i++) {
     const Object& obj = *objects_[i].obj_;
-    stream_.Print("Precompiled_Obj_%d:\n", i);
+    assembly_stream_.Print("Precompiled_Obj_%d:\n", i);
 
     NoSafepointScope no_safepoint;
     uword start = reinterpret_cast<uword>(obj.raw()) - kHeapObjectTag;
@@ -1301,6 +1357,112 @@ void InstructionsWriter::WriteAssembly() {
          cursor < reinterpret_cast<uword*>(end);
          cursor++) {
       WriteWordLiteral(*cursor);
+    }
+  }
+}
+
+
+void BlobInstructionsWriter::Write() {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  NOT_IN_PRODUCT(TimelineDurationScope tds(thread,
+      Timeline::GetIsolateStream(), "WriteInstructions"));
+
+  // Handlify collected raw pointers as building the names below
+  // will allocate on the Dart heap.
+  for (intptr_t i = 0; i < instructions_.length(); i++) {
+    InstructionsData& data = instructions_[i];
+    data.insns_ = &Instructions::Handle(zone, data.raw_insns_);
+    ASSERT(data.raw_code_ != NULL);
+    data.code_ = &Code::Handle(zone, data.raw_code_);
+  }
+  for (intptr_t i = 0; i < objects_.length(); i++) {
+    ObjectData& data = objects_[i];
+    data.obj_ = &Object::Handle(zone, data.raw_obj_);
+  }
+
+  // This head also provides the gap to make the instructions snapshot
+  // look like a HeapPage.
+  intptr_t instructions_length = next_offset_;
+  instructions_blob_stream_.WriteWord(instructions_length);
+  intptr_t header_words = InstructionsSnapshot::kHeaderSize / sizeof(uword);
+  for (intptr_t i = 1; i < header_words; i++) {
+    instructions_blob_stream_.WriteWord(0);
+  }
+
+  for (intptr_t i = 0; i < instructions_.length(); i++) {
+    const Instructions& insns = *instructions_[i].insns_;
+
+    // 1. Write from the header to the entry point.
+    {
+      NoSafepointScope no_safepoint;
+
+      uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
+      uword entry = beginning + Instructions::HeaderSize();
+
+      ASSERT(Utils::IsAligned(beginning, sizeof(uint64_t)));
+      ASSERT(Utils::IsAligned(entry, sizeof(uint64_t)));
+
+      // Write Instructions with the mark and VM heap bits set.
+      uword marked_tags = insns.raw_ptr()->tags_;
+      marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
+      marked_tags = RawObject::MarkBit::update(true, marked_tags);
+
+      instructions_blob_stream_.WriteWord(marked_tags);
+      beginning += sizeof(uword);
+
+      for (uword* cursor = reinterpret_cast<uword*>(beginning);
+           cursor < reinterpret_cast<uword*>(entry);
+           cursor++) {
+        instructions_blob_stream_.WriteWord(*cursor);
+      }
+    }
+
+    // 2. Write from the entry point to the end.
+    {
+      NoSafepointScope no_safepoint;
+      uword beginning = reinterpret_cast<uword>(insns.raw()) - kHeapObjectTag;
+      uword entry = beginning + Instructions::HeaderSize();
+      uword payload_size = insns.size();
+      payload_size = Utils::RoundUp(payload_size, OS::PreferredCodeAlignment());
+      uword end = entry + payload_size;
+
+      ASSERT(Utils::IsAligned(beginning, sizeof(uint64_t)));
+      ASSERT(Utils::IsAligned(entry, sizeof(uint64_t)));
+      ASSERT(Utils::IsAligned(end, sizeof(uint64_t)));
+
+      for (uword* cursor = reinterpret_cast<uword*>(entry);
+           cursor < reinterpret_cast<uword*>(end);
+           cursor++) {
+        instructions_blob_stream_.WriteWord(*cursor);
+      }
+    }
+  }
+
+  rodata_blob_stream_.WriteWord(next_object_offset_);  // Data length.
+  COMPILE_ASSERT(OS::kMaxPreferredCodeAlignment >= kObjectAlignment);
+  while (!Utils::IsAligned(rodata_blob_stream_.bytes_written(),
+                           OS::kMaxPreferredCodeAlignment)) {
+    rodata_blob_stream_.WriteWord(0);
+  }
+
+  for (intptr_t i = 0; i < objects_.length(); i++) {
+    const Object& obj = *objects_[i].obj_;
+
+    NoSafepointScope no_safepoint;
+    uword start = reinterpret_cast<uword>(obj.raw()) - kHeapObjectTag;
+    uword end = start + obj.raw()->Size();
+
+    // Write object header with the mark and VM heap bits set.
+    uword marked_tags = obj.raw()->ptr()->tags_;
+    marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
+    marked_tags = RawObject::MarkBit::update(true, marked_tags);
+    rodata_blob_stream_.WriteWord(marked_tags);
+    start += sizeof(uword);
+    for (uword* cursor = reinterpret_cast<uword*>(start);
+         cursor < reinterpret_cast<uword*>(end);
+         cursor++) {
+      rodata_blob_stream_.WriteWord(*cursor);
     }
   }
 }
@@ -1430,8 +1592,8 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
     }
   }
 
-  ASSERT(Symbols::IsVMSymbolId(object_id));
-  return Symbols::GetVMSymbol(object_id);  // return VM symbol.
+  ASSERT(Symbols::IsPredefinedSymbolId(object_id));
+  return Symbols::GetPredefinedSymbol(object_id);  // return VM symbol.
 }
 
 
@@ -1442,7 +1604,7 @@ RawObject* SnapshotReader::ReadIndexedObject(intptr_t object_id,
   if (IsObjectStoreClassId(class_id)) {
     return isolate()->class_table()->At(class_id);  // get singleton class.
   }
-  if (kind_ != Snapshot::kFull) {
+  if (!Snapshot::IsFull(kind_)) {
     if (IsObjectStoreTypeId(object_id)) {
       return GetType(object_store(), object_id);  // return type obj.
     }
@@ -1460,7 +1622,7 @@ RawObject* SnapshotReader::ReadIndexedObject(intptr_t object_id,
 void SnapshotReader::AddPatchRecord(intptr_t object_id,
                                     intptr_t patch_object_id,
                                     intptr_t patch_offset) {
-  if (patch_object_id != kInvalidPatchIndex && kind() != Snapshot::kFull) {
+  if (patch_object_id != kInvalidPatchIndex && !Snapshot::IsFull(kind())) {
     ASSERT(object_id >= kMaxPredefinedObjectIds);
     intptr_t index = (object_id - kMaxPredefinedObjectIds);
     ASSERT(index >= max_vm_isolate_object_id_);
@@ -1541,6 +1703,7 @@ void SnapshotReader::ArrayReadFrom(intptr_t object_id,
 
 
 VmIsolateSnapshotReader::VmIsolateSnapshotReader(
+    Snapshot::Kind kind,
     const uint8_t* buffer,
     intptr_t size,
     const uint8_t* instructions_buffer,
@@ -1550,10 +1713,11 @@ VmIsolateSnapshotReader::VmIsolateSnapshotReader(
                        size,
                        instructions_buffer,
                        data_buffer,
-                       Snapshot::kFull,
+                       kind,
                        new ZoneGrowableArray<BackRefNode>(
                            kNumVmIsolateSnapshotReferences),
                        thread) {
+  ASSERT(Snapshot::IsFull(kind));
 }
 
 
@@ -1572,7 +1736,7 @@ VmIsolateSnapshotReader::~VmIsolateSnapshotReader() {
 
 
 RawApiError* VmIsolateSnapshotReader::ReadVmIsolateSnapshot() {
-  ASSERT(kind() == Snapshot::kFull);
+  ASSERT(Snapshot::IsFull(kind()));
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
@@ -1581,7 +1745,7 @@ RawApiError* VmIsolateSnapshotReader::ReadVmIsolateSnapshot() {
   ASSERT(object_store != NULL);
 
   // First read the version string, and check that it matches.
-  RawApiError* error = VerifyVersion();
+  RawApiError* error = VerifyVersionAndFeatures();
   if (error != ApiError::null()) {
     return error;
   }
@@ -1602,7 +1766,7 @@ RawApiError* VmIsolateSnapshotReader::ReadVmIsolateSnapshot() {
     // only memory.
     *(ArrayHandle()) ^= ReadObject();
 
-    if (snapshot_code()) {
+    if (Snapshot::IncludesCode(kind())) {
       StubCode::ReadFrom(this);
     }
 
@@ -1616,7 +1780,8 @@ RawApiError* VmIsolateSnapshotReader::ReadVmIsolateSnapshot() {
 }
 
 
-IsolateSnapshotReader::IsolateSnapshotReader(const uint8_t* buffer,
+IsolateSnapshotReader::IsolateSnapshotReader(Snapshot::Kind kind,
+                                             const uint8_t* buffer,
                                              intptr_t size,
                                              const uint8_t* instructions_buffer,
                                              const uint8_t* data_buffer,
@@ -1625,11 +1790,12 @@ IsolateSnapshotReader::IsolateSnapshotReader(const uint8_t* buffer,
                      size,
                      instructions_buffer,
                      data_buffer,
-                     Snapshot::kFull,
+                     kind,
                      new ZoneGrowableArray<BackRefNode>(
                          kNumInitialReferencesInFullSnapshot),
                      thread) {
-  isolate()->set_compilation_allowed(instructions_buffer_ == NULL);
+  isolate()->set_compilation_allowed(kind != Snapshot::kAppNoJIT);
+  ASSERT(Snapshot::IsFull(kind));
 }
 
 
@@ -1674,19 +1840,18 @@ MessageSnapshotReader::~MessageSnapshotReader() {
 }
 
 
-SnapshotWriter::SnapshotWriter(Snapshot::Kind kind,
-                               Thread* thread,
+SnapshotWriter::SnapshotWriter(Thread* thread,
+                               Snapshot::Kind kind,
                                uint8_t** buffer,
                                ReAlloc alloc,
                                intptr_t initial_size,
                                ForwardList* forward_list,
                                InstructionsWriter* instructions_writer,
                                bool can_send_any_object,
-                               bool snapshot_code,
-                               bool vm_isolate_is_symbolic)
+                               bool writing_vm_isolate)
     : BaseWriter(buffer, alloc, initial_size),
-      kind_(kind),
       thread_(thread),
+      kind_(kind),
       object_store_(isolate()->object_store()),
       class_table_(isolate()->class_table()),
       forward_list_(forward_list),
@@ -1695,8 +1860,7 @@ SnapshotWriter::SnapshotWriter(Snapshot::Kind kind,
       exception_msg_(NULL),
       unmarked_objects_(false),
       can_send_any_object_(can_send_any_object),
-      snapshot_code_(snapshot_code),
-      vm_isolate_is_symbolic_(vm_isolate_is_symbolic) {
+      writing_vm_isolate_(writing_vm_isolate) {
   ASSERT(forward_list_ != NULL);
 }
 
@@ -1788,9 +1952,15 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
     }
   }
 
-  if (kind() == Snapshot::kFull) {
+  if (writing_vm_isolate_) {
+    // When we are writing the VM isolate snapshot, write out the object
+    // itself instead of a VM object id.
+    return false;
+  }
+
+  if (Snapshot::IsFull(kind())) {
     // Check it is a predefined symbol in the VM isolate.
-    id = Symbols::LookupVMSymbol(rawobj);
+    id = Symbols::LookupPredefinedSymbol(rawobj);
     if (id != kInvalidIndex) {
       WriteVMIsolateObject(id);
       return true;
@@ -1824,10 +1994,6 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
           break;
       }
     }
-  }
-
-  if (!vm_isolate_is_symbolic()) {
-    return false;
   }
 
   const Object& obj = Object::Handle(rawobj);
@@ -1873,26 +2039,23 @@ class ScriptVisitor : public ObjectVisitor {
 };
 
 
-FullSnapshotWriter::FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
+FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
+                                       uint8_t** vm_isolate_snapshot_buffer,
                                        uint8_t** isolate_snapshot_buffer,
-                                       uint8_t** instructions_snapshot_buffer,
                                        ReAlloc alloc,
-                                       bool snapshot_code,
-                                       bool vm_isolate_is_symbolic)
+                                       InstructionsWriter* instructions_writer)
     : thread_(Thread::Current()),
+      kind_(kind),
       vm_isolate_snapshot_buffer_(vm_isolate_snapshot_buffer),
       isolate_snapshot_buffer_(isolate_snapshot_buffer),
-      instructions_snapshot_buffer_(instructions_snapshot_buffer),
       alloc_(alloc),
       vm_isolate_snapshot_size_(0),
       isolate_snapshot_size_(0),
-      instructions_snapshot_size_(0),
       forward_list_(NULL),
-      instructions_writer_(NULL),
+      instructions_writer_(instructions_writer),
       scripts_(Array::Handle(zone())),
-      symbol_table_(Array::Handle(zone())),
-      snapshot_code_(snapshot_code),
-      vm_isolate_is_symbolic_(vm_isolate_is_symbolic) {
+      saved_symbol_table_(Array::Handle(zone())),
+      new_vm_symbol_table_(Array::Handle(zone())) {
   ASSERT(isolate_snapshot_buffer_ != NULL);
   ASSERT(alloc_ != NULL);
   ASSERT(isolate() != NULL);
@@ -1901,64 +2064,82 @@ FullSnapshotWriter::FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
   ASSERT(heap() != NULL);
   ObjectStore* object_store = isolate()->object_store();
   ASSERT(object_store != NULL);
-  // Ensure the class table is valid.
+
 #if defined(DEBUG)
+  // Ensure the class table is valid.
   isolate()->ValidateClassTable();
 #endif
+  // Can't have any mutation happening while we're serializing.
+  ASSERT(isolate()->background_compiler() == NULL);
 
-  // Collect all the script objects and their accompanying token stream objects
-  // into an array so that we can write it out as part of the VM isolate
-  // snapshot. We first count the number of script objects, allocate an array
-  // and then fill it up with the script objects.
-  ScriptVisitor scripts_counter(thread());
-  heap()->IterateOldObjects(&scripts_counter);
-  intptr_t count = scripts_counter.count();
-  scripts_ = Array::New(count, Heap::kOld);
-  ScriptVisitor script_visitor(thread(), &scripts_);
-  heap()->IterateOldObjects(&script_visitor);
-
+  intptr_t first_object_id = -1;
   if (vm_isolate_snapshot_buffer != NULL) {
-    // Stash the symbol table away for writing and reading into the vm isolate,
-    // and reset the symbol table for the regular isolate so that we do not
-    // write these symbols into the snapshot of a regular dart isolate.
-    symbol_table_ = object_store->symbol_table();
+    NOT_IN_PRODUCT(TimelineDurationScope tds(thread(),
+        Timeline::GetIsolateStream(), "PrepareNewVMIsolate"));
+
+    // Collect all the script objects and their accompanying token stream
+    // objects into an array so that we can write it out as part of the VM
+    // isolate snapshot. We first count the number of script objects, allocate
+    // an array and then fill it up with the script objects.
+    ScriptVisitor scripts_counter(thread());
+    heap()->IterateOldObjects(&scripts_counter);
+    Dart::vm_isolate()->heap()->IterateOldObjects(&scripts_counter);
+    intptr_t count = scripts_counter.count();
+    scripts_ = Array::New(count, Heap::kOld);
+    ScriptVisitor script_visitor(thread(), &scripts_);
+    heap()->IterateOldObjects(&script_visitor);
+    Dart::vm_isolate()->heap()->IterateOldObjects(&script_visitor);
+    ASSERT(script_visitor.count() == count);
+
+    // Tuck away the current symbol table.
+    saved_symbol_table_ = object_store->symbol_table();
+
+    // Create a unified symbol table that will be written as the vm isolate's
+    // symbol table.
+    new_vm_symbol_table_ = Symbols::UnifiedSymbolTable();
+
+    // Create an empty symbol table that will be written as the isolate's symbol
+    // table.
     Symbols::SetupSymbolTable(isolate());
+
+    first_object_id = kMaxPredefinedObjectIds;
+  } else {
+    intptr_t max_vm_isolate_object_id =
+        Object::vm_isolate_snapshot_object_table().Length();
+    first_object_id = kMaxPredefinedObjectIds + max_vm_isolate_object_id;
   }
 
-  forward_list_ = new ForwardList(thread(), SnapshotWriter::FirstObjectId());
+  forward_list_ = new ForwardList(thread(), first_object_id);
   ASSERT(forward_list_ != NULL);
-
-  if (instructions_snapshot_buffer != NULL) {
-    instructions_writer_ = new InstructionsWriter(instructions_snapshot_buffer,
-                                                  alloc,
-                                                  kInitialSize);
-  }
 }
 
 
 FullSnapshotWriter::~FullSnapshotWriter() {
   delete forward_list_;
   // We may run Dart code afterwards, restore the symbol table if needed.
-  if (!symbol_table_.IsNull()) {
-    isolate()->object_store()->set_symbol_table(symbol_table_);
-    symbol_table_ = Array::null();
+  if (!saved_symbol_table_.IsNull()) {
+    isolate()->object_store()->set_symbol_table(saved_symbol_table_);
+    saved_symbol_table_ = Array::null();
   }
+  new_vm_symbol_table_ = Array::null();
   scripts_ = Array::null();
 }
 
 
 void FullSnapshotWriter::WriteVmIsolateSnapshot() {
+  NOT_IN_PRODUCT(TimelineDurationScope tds(thread(),
+      Timeline::GetIsolateStream(), "WriteVmIsolateSnapshot"));
+
   ASSERT(vm_isolate_snapshot_buffer_ != NULL);
-  SnapshotWriter writer(Snapshot::kFull,
-                        thread(),
+  SnapshotWriter writer(thread(),
+                        kind_,
                         vm_isolate_snapshot_buffer_,
                         alloc_,
                         kInitialSize,
                         forward_list_,
                         instructions_writer_,
                         true, /* can_send_any_object */
-                        snapshot_code_,
-                        vm_isolate_is_symbolic_);
+                        true /* writing_vm_isolate */);
   // Write full snapshot for the VM isolate.
   // Setup for long jump in case there is an exception while writing
   // the snapshot.
@@ -1968,27 +2149,25 @@ void FullSnapshotWriter::WriteVmIsolateSnapshot() {
     writer.ReserveHeader();
 
     // Write out the version string.
-    writer.WriteVersion();
+    writer.WriteVersionAndFeatures();
 
     /*
      * Now Write out the following
      * - the symbol table
      * - all the scripts and token streams for these scripts
-     *
+     * - the stub code (precompiled snapshots only)
      **/
     // Write out the symbol table.
-    writer.WriteObject(symbol_table_.raw());
+    writer.WriteObject(new_vm_symbol_table_.raw());
 
     // Write out all the script objects and the accompanying token streams
     // for the bootstrap libraries so that they are in the VM isolate
     // read only memory.
     writer.WriteObject(scripts_.raw());
 
-    if (snapshot_code_) {
-      ASSERT(!vm_isolate_is_symbolic_);
+    if (Snapshot::IncludesCode(kind_)) {
       StubCode::WriteTo(&writer);
     }
-
 
     writer.FillHeader(writer.kind());
 
@@ -2000,16 +2179,18 @@ void FullSnapshotWriter::WriteVmIsolateSnapshot() {
 
 
 void FullSnapshotWriter::WriteIsolateFullSnapshot() {
-  SnapshotWriter writer(Snapshot::kFull,
-                        thread(),
+  NOT_IN_PRODUCT(TimelineDurationScope tds(thread(),
+      Timeline::GetIsolateStream(), "WriteIsolateFullSnapshot"));
+
+  SnapshotWriter writer(thread(),
+                        kind_,
                         isolate_snapshot_buffer_,
                         alloc_,
                         kInitialSize,
                         forward_list_,
                         instructions_writer_,
                         true, /* can_send_any_object */
-                        snapshot_code_,
-                        true /* vm_isolate_is_symbolic */);
+                        false /* writing_vm_isolate */);
   ObjectStore* object_store = isolate()->object_store();
   ASSERT(object_store != NULL);
 
@@ -2022,7 +2203,7 @@ void FullSnapshotWriter::WriteIsolateFullSnapshot() {
     writer.ReserveHeader();
 
     // Write out the version string.
-    writer.WriteVersion();
+    writer.WriteVersionAndFeatures();
 
     // Write out the full snapshot.
 
@@ -2030,8 +2211,7 @@ void FullSnapshotWriter::WriteIsolateFullSnapshot() {
     // is the root set for all dart allocated objects at this point.
     SnapshotWriterVisitor visitor(&writer, false);
     visitor.VisitPointers(object_store->from(),
-                          snapshot_code_ ? object_store->to()
-                                         : object_store->to_snapshot());
+                          object_store->to_snapshot(kind_));
 
     // Write out all forwarded objects.
     writer.WriteForwardedObjects();
@@ -2050,9 +2230,8 @@ void FullSnapshotWriter::WriteFullSnapshot() {
     WriteVmIsolateSnapshot();
   }
   WriteIsolateFullSnapshot();
-  if (snapshot_code_) {
-    instructions_writer_->WriteAssembly();
-    instructions_snapshot_size_ = instructions_writer_->BytesWritten();
+  if (Snapshot::IncludesCode(kind_)) {
+    instructions_writer_->Write();
 
     OS::Print("VMIsolate(CodeSize): %" Pd "\n", VmIsolateSnapshotSize());
     OS::Print("Isolate(CodeSize): %" Pd "\n", IsolateSnapshotSize());
@@ -2066,28 +2245,12 @@ void FullSnapshotWriter::WriteFullSnapshot() {
 }
 
 
-PrecompiledSnapshotWriter::PrecompiledSnapshotWriter(
-    uint8_t** vm_isolate_snapshot_buffer,
-    uint8_t** isolate_snapshot_buffer,
-    uint8_t** instructions_snapshot_buffer,
-    ReAlloc alloc)
-  : FullSnapshotWriter(vm_isolate_snapshot_buffer,
-                       isolate_snapshot_buffer,
-                       instructions_snapshot_buffer,
-                       alloc,
-                       true, /* snapshot_code */
-                       false /* vm_isolate_is_symbolic */) {
-}
-
-
-PrecompiledSnapshotWriter::~PrecompiledSnapshotWriter() {}
-
-
 ForwardList::ForwardList(Thread* thread, intptr_t first_object_id)
     : thread_(thread),
       first_object_id_(first_object_id),
       nodes_(),
       first_unprocessed_object_id_(first_object_id) {
+  ASSERT(first_object_id > 0);
 }
 
 
@@ -2106,7 +2269,6 @@ intptr_t ForwardList::AddObject(Zone* zone,
   Node* node = new Node(&obj, state);
   ASSERT(node != NULL);
   nodes_.Add(node);
-  ASSERT(SnapshotWriter::FirstObjectId() > 0);
   ASSERT(object_id != 0);
   heap()->SetObjectId(raw, object_id);
   return object_id;
@@ -2115,7 +2277,6 @@ intptr_t ForwardList::AddObject(Zone* zone,
 
 intptr_t ForwardList::FindObject(RawObject* raw) {
   NoSafepointScope no_safepoint;
-  ASSERT(SnapshotWriter::FirstObjectId() > 0);
   intptr_t id = heap()->GetObjectId(raw);
   ASSERT(id == 0 || NodeForObjectId(id)->obj()->raw() == raw);
   return (id == 0) ? static_cast<intptr_t>(kInvalidIndex) : id;
@@ -2161,14 +2322,14 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
 
   // Check if it is a code object in that case just write a Null object
   // as we do not want code objects in the snapshot.
-  if (cid == kCodeCid && !snapshot_code()) {
+  if (cid == kCodeCid && !Snapshot::IncludesCode(kind_)) {
     WriteVMIsolateObject(kNullObject);
     return true;
   }
 
   // Check if classes are not being serialized and it is preinitialized type
   // or a predefined internal VM class in the object store.
-  if (kind_ != Snapshot::kFull) {
+  if (!Snapshot::IsFull(kind_)) {
     // Check if it is an internal VM class which is in the object store.
     if (cid == kClassCid) {
       RawClass* raw_class = reinterpret_cast<RawClass*>(rawobj);
@@ -2323,7 +2484,7 @@ void ForwardList::SerializeAll(ObjectVisitor* writer) {
 
 
 void SnapshotWriter::WriteClassId(RawClass* cls) {
-  ASSERT(kind_ != Snapshot::kFull);
+  ASSERT(!Snapshot::IsFull(kind_));
   int class_id = cls->ptr()->id_;
   ASSERT(!IsSingletonClassId(class_id) && !IsObjectStoreClassId(class_id));
 
@@ -2566,33 +2727,32 @@ void SnapshotWriter::ThrowException(Exceptions::ExceptionType type,
 }
 
 
-void SnapshotWriter::WriteVersion() {
+void SnapshotWriter::WriteVersionAndFeatures() {
   const char* expected_version = Version::SnapshotString();
   ASSERT(expected_version != NULL);
   const intptr_t version_len = strlen(expected_version);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_version), version_len);
-}
 
-
-intptr_t SnapshotWriter::FirstObjectId() {
-  intptr_t max_vm_isolate_object_id =
-      Object::vm_isolate_snapshot_object_table().Length();
-  return kMaxPredefinedObjectIds + max_vm_isolate_object_id;
+  const char* expected_features = Dart::FeaturesString(kind_);
+  ASSERT(expected_features != NULL);
+  const intptr_t features_len = strlen(expected_features);
+  WriteBytes(reinterpret_cast<const uint8_t*>(expected_features),
+             features_len + 1);
+  free(const_cast<char*>(expected_features));
 }
 
 
 ScriptSnapshotWriter::ScriptSnapshotWriter(uint8_t** buffer,
                                            ReAlloc alloc)
-    : SnapshotWriter(Snapshot::kScript,
-                     Thread::Current(),
+    : SnapshotWriter(Thread::Current(),
+                     Snapshot::kScript,
                      buffer,
                      alloc,
                      kInitialSize,
                      &forward_list_,
                      NULL, /* instructions_writer */
                      true, /* can_send_any_object */
-                     false, /* snapshot_code */
-                     true /* vm_isolate_is_symbolic */),
+                     false /* writing_vm_isolate */),
       forward_list_(thread(), kMaxPredefinedObjectIds) {
   ASSERT(buffer != NULL);
   ASSERT(alloc != NULL);
@@ -2612,7 +2772,7 @@ void ScriptSnapshotWriter::WriteScriptSnapshot(const Library& lib) {
     ReserveHeader();
 
     // Write out the version string.
-    WriteVersion();
+    WriteVersionAndFeatures();
 
     // Write out the library object.
     {
@@ -2640,16 +2800,15 @@ void SnapshotWriterVisitor::VisitPointers(RawObject** first, RawObject** last) {
 MessageWriter::MessageWriter(uint8_t** buffer,
                              ReAlloc alloc,
                              bool can_send_any_object)
-    : SnapshotWriter(Snapshot::kMessage,
-                     Thread::Current(),
+    : SnapshotWriter(Thread::Current(),
+                     Snapshot::kMessage,
                      buffer,
                      alloc,
                      kInitialSize,
                      &forward_list_,
                      NULL, /* instructions_writer */
                      can_send_any_object,
-                     false, /* snapshot_code */
-                     true /* vm_isolate_is_symbolic */),
+                     false /* writing_vm_isolate */),
       forward_list_(thread(), kMaxPredefinedObjectIds) {
   ASSERT(buffer != NULL);
   ASSERT(alloc != NULL);

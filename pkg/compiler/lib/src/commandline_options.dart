@@ -52,10 +52,25 @@ class Flags {
   static const String conditionalDirectives = '--conditional-directives';
 
   // Experimental flags.
+
+  // Considerations about this feature (esp. locations where generalizations
+  // or changes are required for full support of generic methods) are marked
+  // with 'GENERIC_METHODS'. The approach taken is to parse generic methods,
+  // introduce AST nodes for them, generate corresponding types (such that
+  // front end treatment is consistent with the code that programmers wrote),
+  // but considering all method type variables to have bound `dynamic` no
+  // matter which bound they have syntactically (such that their value as types
+  // is unchecked), and then replacing method type variables by a `DynamicType`
+  // (such that the backend does not need to take method type arguments into
+  // account).
   static const String genericMethodSyntax = '--generic-method-syntax';
+  static const String resolveOnly = '--resolve-only';
 }
 
 class Option {
   static const String showPackageWarnings =
       '${Flags.showPackageWarnings}|${Flags.showPackageWarnings}=.*';
+
+  // Experimental options.
+  static const String resolutionInput = '--resolution-input=.+';
 }

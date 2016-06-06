@@ -14,6 +14,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_io.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -23,15 +24,100 @@ import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
+import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/options.dart';
-import 'package:protobuf/protobuf.dart';
+import 'package:bazel_worker/bazel_worker.dart';
 
-import 'message_grouper.dart';
-import 'worker_protocol.pb.dart';
+/**
+ * Persistent Bazel worker.
+ */
+class AnalyzerWorkerLoop extends SyncWorkerLoop {
+  final StringBuffer errorBuffer = new StringBuffer();
+  final StringBuffer outBuffer = new StringBuffer();
+
+  final String dartSdkPath;
+
+  AnalyzerWorkerLoop(SyncWorkerConnection connection, {this.dartSdkPath})
+      : super(connection: connection);
+
+  factory AnalyzerWorkerLoop.std(
+      {io.Stdin stdinStream, io.Stdout stdoutStream, String dartSdkPath}) {
+    SyncWorkerConnection connection = new StdSyncWorkerConnection(
+        stdinStream: stdinStream, stdoutStream: stdoutStream);
+    return new AnalyzerWorkerLoop(connection, dartSdkPath: dartSdkPath);
+  }
+
+  /**
+   * Performs analysis with given [options].
+   */
+  void analyze(CommandLineOptions options) {
+    new BuildMode(options, new AnalysisStats()).analyze();
+    AnalysisEngine.instance.clearCaches();
+  }
+
+  /**
+   * Perform a single loop step.
+   */
+  @override
+  WorkResponse performRequest(WorkRequest request) {
+    errorBuffer.clear();
+    outBuffer.clear();
+    try {
+      // Add in the dart-sdk argument if `dartSdkPath` is not null, otherwise it
+      // will try to find the currently installed sdk.
+      var arguments = new List.from(request.arguments);
+      if (dartSdkPath != null &&
+          !arguments.any((arg) => arg.startsWith('--dart-sdk'))) {
+        arguments.add('--dart-sdk=$dartSdkPath');
+      }
+      // Prepare options.
+      CommandLineOptions options =
+          CommandLineOptions.parse(arguments, (String msg) {
+        throw new ArgumentError(msg);
+      });
+      // Analyze and respond.
+      analyze(options);
+      String msg = _getErrorOutputBuffersText();
+      return new WorkResponse()
+        ..exitCode = EXIT_CODE_OK
+        ..output = msg;
+    } catch (e, st) {
+      String msg = _getErrorOutputBuffersText();
+      msg += '$e\n$st';
+      return new WorkResponse()
+        ..exitCode = EXIT_CODE_ERROR
+        ..output = msg;
+    }
+  }
+
+  /**
+   * Run the worker loop.
+   */
+  @override
+  void run() {
+    errorSink = errorBuffer;
+    outSink = outBuffer;
+    exitHandler = (int exitCode) {
+      return throw new StateError('Exit called: $exitCode');
+    };
+    super.run();
+  }
+
+  String _getErrorOutputBuffersText() {
+    String msg = '';
+    if (errorBuffer.isNotEmpty) {
+      msg += errorBuffer.toString() + '\n';
+    }
+    if (outBuffer.isNotEmpty) {
+      msg += outBuffer.toString() + '\n';
+    }
+    return msg;
+  }
+}
 
 /**
  * Analyzer used when the "--build-mode" option is supplied.
@@ -46,7 +132,7 @@ class BuildMode {
   Map<Uri, JavaFile> uriToFileMap;
   final List<Source> explicitSources = <Source>[];
 
-  PackageBundleAssembler assembler = new PackageBundleAssembler();
+  PackageBundleAssembler assembler;
   final Set<Source> processedSources = new Set<Source>();
   final Map<Uri, UnlinkedUnit> uriToUnit = <Uri, UnlinkedUnit>{};
 
@@ -97,6 +183,8 @@ class BuildMode {
     }
 
     // Write summary.
+    assembler = new PackageBundleAssembler(
+        excludeHashes: options.buildSummaryExcludeInformative);
     if (options.buildSummaryOutput != null) {
       if (options.buildSummaryOnlyAst && !options.buildSummaryFallback) {
         _serializeAstBasedSummary(explicitSources);
@@ -120,7 +208,6 @@ class BuildMode {
       PackageBundleBuilder sdkBundle = assembler.assemble();
       if (options.buildSummaryExcludeInformative) {
         sdkBundle.flushInformative();
-        sdkBundle.unlinkedUnitHashes = null;
       }
       io.File file = new io.File(options.buildSummaryOutput);
       file.writeAsBytesSync(sdkBundle.toBuffer(), mode: io.FileMode.WRITE_ONLY);
@@ -153,18 +240,29 @@ class BuildMode {
   }
 
   void _createContext() {
-    DirectoryBasedDartSdk sdk =
-        new DirectoryBasedDartSdk(new JavaFile(options.dartSdkPath));
-    sdk.analysisOptions =
-        Driver.createAnalysisOptionsForCommandLineOptions(options);
-    sdk.useSummary = true;
-
     // Read the summaries.
     summaryDataStore = new SummaryDataStore(options.buildSummaryInputs);
 
+    DartSdk sdk;
+    PackageBundle sdkBundle;
+    if (options.dartSdkSummaryPath != null) {
+      SummaryBasedDartSdk summarySdk = new SummaryBasedDartSdk(
+          options.dartSdkSummaryPath, options.strongMode);
+      sdk = summarySdk;
+      sdkBundle = summarySdk.bundle;
+    } else {
+      DirectoryBasedDartSdk directorySdk =
+          new DirectoryBasedDartSdk(new JavaFile(options.dartSdkPath));
+      directorySdk.analysisOptions =
+          Driver.createAnalysisOptionsForCommandLineOptions(options);
+      directorySdk.useSummary = !options.buildSummaryOnlyAst;
+      sdk = directorySdk;
+      sdkBundle = directorySdk.getSummarySdkBundle();
+    }
+
     // In AST mode include SDK bundle to avoid parsing SDK sources.
     if (options.buildSummaryOnlyAst) {
-      summaryDataStore.addBundle(null, sdk.getSummarySdkBundle());
+      summaryDataStore.addBundle(null, sdkBundle);
     }
 
     // Create the context.
@@ -183,10 +281,12 @@ class BuildMode {
       }
     });
 
-    // Configure using summaries.
-    context.typeProvider = sdk.context.typeProvider;
-    context.resultProvider =
-        new InputPackagesResultProvider(context, summaryDataStore);
+    if (!options.buildSummaryOnlyAst) {
+      // Configure using summaries.
+      context.typeProvider = sdk.context.typeProvider;
+      context.resultProvider =
+          new InputPackagesResultProvider(context, summaryDataStore);
+    }
   }
 
   /**
@@ -238,6 +338,11 @@ class BuildMode {
       // Parse the source and serialize its AST.
       Uri uri = Uri.parse(absoluteUri);
       Source source = context.sourceFactory.forUri2(uri);
+      if (!source.exists()) {
+        // TODO(paulberry): we should report a warning/error because DDC
+        // compilations are unlikely to work.
+        return null;
+      }
       return uriToUnit.putIfAbsent(uri, () {
         CompilationUnit unit = context.computeResult(source, PARSED_UNIT);
         UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
@@ -271,144 +376,5 @@ class BuildMode {
       uriToFileMap[uri] = new JavaFile(path);
     }
     return uriToFileMap;
-  }
-}
-
-/**
- * Default implementation of [WorkerConnection] that works with stdio.
- */
-class StdWorkerConnection implements WorkerConnection {
-  final MessageGrouper _messageGrouper;
-  final io.Stdout _stdoutStream;
-
-  StdWorkerConnection(io.Stdin stdinStream, this._stdoutStream)
-      : _messageGrouper = new MessageGrouper(stdinStream);
-
-  @override
-  WorkRequest readRequest() {
-    var buffer = _messageGrouper.next;
-    if (buffer == null) return null;
-
-    return new WorkRequest.fromBuffer(buffer);
-  }
-
-  @override
-  void writeResponse(WorkResponse response) {
-    var responseBuffer = response.writeToBuffer();
-
-    var writer = new CodedBufferWriter();
-    writer.writeInt32NoTag(responseBuffer.length);
-    writer.writeRawBytes(responseBuffer);
-
-    _stdoutStream.add(writer.toBuffer());
-  }
-}
-
-/**
- * Connection between a worker and input / output.
- */
-abstract class WorkerConnection {
-  /**
-   * Read a new [WorkRequest]. Returns [null] when there are no more requests.
-   */
-  WorkRequest readRequest();
-
-  /**
-   * Write the given [response] as bytes to the output.
-   */
-  void writeResponse(WorkResponse response);
-}
-
-/**
- * Persistent Bazel worker.
- */
-class WorkerLoop {
-  static const int EXIT_CODE_OK = 0;
-  static const int EXIT_CODE_ERROR = 15;
-
-  final WorkerConnection connection;
-
-  final StringBuffer errorBuffer = new StringBuffer();
-  final StringBuffer outBuffer = new StringBuffer();
-
-  final String dartSdkPath;
-
-  WorkerLoop(this.connection, {this.dartSdkPath});
-
-  factory WorkerLoop.std(
-      {io.Stdin stdinStream, io.Stdout stdoutStream, String dartSdkPath}) {
-    stdinStream ??= io.stdin;
-    stdoutStream ??= io.stdout;
-    WorkerConnection connection =
-        new StdWorkerConnection(stdinStream, stdoutStream);
-    return new WorkerLoop(connection, dartSdkPath: dartSdkPath);
-  }
-
-  /**
-   * Performs analysis with given [options].
-   */
-  void analyze(CommandLineOptions options) {
-    options.dartSdkPath ??= dartSdkPath;
-    new BuildMode(options, new AnalysisStats()).analyze();
-  }
-
-  /**
-   * Perform a single loop step.  Return `true` if should exit the loop.
-   */
-  bool performSingle() {
-    try {
-      WorkRequest request = connection.readRequest();
-      if (request == null) {
-        return true;
-      }
-      // Prepare options.
-      CommandLineOptions options =
-          CommandLineOptions.parse(request.arguments, (String msg) {
-        throw new ArgumentError(msg);
-      });
-      // Analyze and respond.
-      analyze(options);
-      String msg = _getErrorOutputBuffersText();
-      connection.writeResponse(new WorkResponse()
-        ..exitCode = EXIT_CODE_OK
-        ..output = msg);
-    } catch (e, st) {
-      String msg = _getErrorOutputBuffersText();
-      msg += '$e \n $st';
-      connection.writeResponse(new WorkResponse()
-        ..exitCode = EXIT_CODE_ERROR
-        ..output = msg);
-    }
-    return false;
-  }
-
-  /**
-   * Run the worker loop.
-   */
-  void run() {
-    errorSink = errorBuffer;
-    outSink = outBuffer;
-    exitHandler = (int exitCode) {
-      return throw new StateError('Exit called: $exitCode');
-    };
-    while (true) {
-      errorBuffer.clear();
-      outBuffer.clear();
-      bool shouldExit = performSingle();
-      if (shouldExit) {
-        break;
-      }
-    }
-  }
-
-  String _getErrorOutputBuffersText() {
-    String msg = '';
-    if (errorBuffer.isNotEmpty) {
-      msg += errorBuffer.toString() + '\n';
-    }
-    if (outBuffer.isNotEmpty) {
-      msg += outBuffer.toString() + '\n';
-    }
-    return msg;
   }
 }

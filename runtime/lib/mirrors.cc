@@ -354,8 +354,7 @@ static RawInstance* CreateClassMirror(const Class& cls,
 }
 
 
-static RawInstance* CreateLibraryMirror(const Library& lib) {
-  Thread* thread = Thread::Current();
+static RawInstance* CreateLibraryMirror(Thread* thread, const Library& lib) {
   Zone* zone = thread->zone();
   ASSERT(!lib.IsNull());
   const Array& args = Array::Handle(zone, Array::New(3));
@@ -405,14 +404,15 @@ static RawInstance* CreateCombinatorMirror(const Object& identifiers,
 }
 
 
-static RawInstance* CreateLibraryDependencyMirror(const Instance& importer,
+static RawInstance* CreateLibraryDependencyMirror(Thread* thread,
+                                                  const Instance& importer,
                                                   const Namespace& ns,
                                                   const LibraryPrefix& prefix,
                                                   const bool is_import,
                                                   const bool is_deferred) {
   const Library& importee = Library::Handle(ns.library());
   const Instance& importee_mirror =
-      Instance::Handle(CreateLibraryMirror(importee));
+      Instance::Handle(CreateLibraryMirror(thread, importee));
   if (importee_mirror.IsNull()) {
     // Imported library is censored: censor the import.
     return Instance::null();
@@ -462,7 +462,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_fromPrefix, 1) {
   if (!deferred_lib.Loaded()) {
     return Instance::null();
   }
-  return CreateLibraryMirror(deferred_lib);
+  return CreateLibraryMirror(thread, deferred_lib);
 }
 
 
@@ -483,7 +483,8 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_libraryDependencies, 2) {
   for (intptr_t i = 0; i < ports.Length(); i++) {
     ns ^= ports.At(i);
     if (!ns.IsNull()) {
-      dep = CreateLibraryDependencyMirror(lib_mirror, ns, prefix, true, false);
+      dep = CreateLibraryDependencyMirror(
+          thread, lib_mirror, ns, prefix, true, false);
       if (!dep.IsNull()) {
         deps.Add(dep);
       }
@@ -494,7 +495,8 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_libraryDependencies, 2) {
   ports = lib.exports();
   for (intptr_t i = 0; i < ports.Length(); i++) {
     ns ^= ports.At(i);
-    dep = CreateLibraryDependencyMirror(lib_mirror, ns, prefix, false, false);
+    dep = CreateLibraryDependencyMirror(
+        thread, lib_mirror, ns, prefix, false, false);
     if (!dep.IsNull()) {
       deps.Add(dep);
     }
@@ -511,8 +513,8 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_libraryDependencies, 2) {
       for (intptr_t i = 0; i < ports.Length(); i++) {
         ns ^= ports.At(i);
         if (!ns.IsNull()) {
-          dep = CreateLibraryDependencyMirror(lib_mirror, ns, prefix, true,
-                                              prefix.is_deferred_load());
+          dep = CreateLibraryDependencyMirror(
+              thread, lib_mirror, ns, prefix, true, prefix.is_deferred_load());
           if (!dep.IsNull()) {
             deps.Add(dep);
           }
@@ -578,7 +580,7 @@ static RawInstance* CreateIsolateMirror() {
   const Library& root_library = Library::Handle(thread->zone(),
       isolate->object_store()->root_library());
   const Instance& root_library_mirror =
-      Instance::Handle(CreateLibraryMirror(root_library));
+      Instance::Handle(CreateLibraryMirror(thread, root_library));
 
   const Array& args = Array::Handle(Array::New(2));
   args.SetAt(0, debug_name);
@@ -800,7 +802,7 @@ DEFINE_NATIVE_ENTRY(MirrorSystem_libraries, 0) {
 
   for (int i = 0; i < num_libraries; i++) {
     library ^= libraries.At(i);
-    library_mirror = CreateLibraryMirror(library);
+    library_mirror = CreateLibraryMirror(thread, library);
     if (!library_mirror.IsNull() && library.Loaded()) {
       library_mirrors.Add(library_mirror);
     }
@@ -1931,7 +1933,7 @@ DEFINE_NATIVE_ENTRY(MethodMirror_owner, 2) {
   }
   const Class& owner = Class::Handle(func.Owner());
   if (owner.IsTopLevel()) {
-    return CreateLibraryMirror(Library::Handle(owner.library()));
+    return CreateLibraryMirror(thread, Library::Handle(owner.library()));
   }
 
   AbstractType& type = AbstractType::Handle(owner.DeclarationType());
@@ -1978,7 +1980,7 @@ static RawInstance* CreateSourceLocation(const String& uri,
 
 DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, reflectee, arguments->NativeArgAt(0));
-  Object& decl = Object::Handle();
+  Object& decl = Object::Handle(zone);
   if (reflectee.IsMirrorReference()) {
     const MirrorReference& decl_ref = MirrorReference::Cast(reflectee);
     decl = decl_ref.referent();
@@ -1988,7 +1990,7 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
     UNREACHABLE();
   }
 
-  Script& script = Script::Handle();
+  Script& script = Script::Handle(zone);
   TokenPosition token_pos = TokenPosition::kNoSource;
 
   if (decl.IsFunction()) {
@@ -2016,7 +2018,7 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
     token_pos = field.token_pos();
   } else if (decl.IsTypeParameter()) {
     const TypeParameter& type_var = TypeParameter::Cast(decl);
-    const Class& owner = Class::Handle(type_var.parameterized_class());
+    const Class& owner = Class::Handle(zone, type_var.parameterized_class());
     script = owner.script();
     token_pos = type_var.token_pos();
   } else if (decl.IsLibrary()) {
@@ -2024,20 +2026,20 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
     if (lib.raw() == Library::NativeWrappersLibrary()) {
       return Instance::null();  // No source.
     }
-    const Array& scripts = Array::Handle(lib.LoadedScripts());
+    const Array& scripts = Array::Handle(zone, lib.LoadedScripts());
     for (intptr_t i = 0; i < scripts.Length(); i++) {
       script ^= scripts.At(i);
       if (script.kind() == RawScript::kLibraryTag) break;
     }
     ASSERT(!script.IsNull());
-    const String& libname = String::Handle(lib.name());
+    const String& libname = String::Handle(zone, lib.name());
     if (libname.Length() == 0) {
       // No library declaration.
-      const String& uri = String::Handle(script.url());
+      const String& uri = String::Handle(zone, script.url());
       return CreateSourceLocation(uri, 1, 1);
     }
-    const TokenStream& stream = TokenStream::Handle(script.tokens());
-    TokenStream::Iterator tkit(stream, TokenPosition::kMinSource);
+    const TokenStream& stream = TokenStream::Handle(zone, script.tokens());
+    TokenStream::Iterator tkit(zone, stream, TokenPosition::kMinSource);
     if (tkit.CurrentTokenKind() == Token::kSCRIPTTAG) tkit.Advance();
     token_pos = tkit.CurrentPosition();
   }
@@ -2045,7 +2047,7 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
   ASSERT(!script.IsNull());
   ASSERT(token_pos != TokenPosition::kNoSource);
 
-  const String& uri = String::Handle(script.url());
+  const String& uri = String::Handle(zone, script.url());
   intptr_t from_line = 0;
   intptr_t from_col = 0;
   if (script.HasSource()) {
@@ -2068,18 +2070,7 @@ DEFINE_NATIVE_ENTRY(TypedefMirror_referent, 1) {
   ASSERT(cls.IsTypedefClass());
   const Function& sig_func = Function::Handle(cls.signature_function());
   Type& referent_type = Type::Handle(sig_func.SignatureType());
-  // If the scope class of the function type is not generic, replace it with
-  // Closure class (Function::SignatureType() keeps it).
   ASSERT(cls.raw() == referent_type.type_class());
-  if (!cls.IsGeneric()) {
-    referent_type = Type::New(
-        Class::Handle(Isolate::Current()->object_store()->closure_class()),
-        TypeArguments::Handle(referent_type.arguments()),
-        referent_type.token_pos());
-    referent_type.set_signature(sig_func);
-    referent_type ^= ClassFinalizer::FinalizeType(
-        cls, referent_type, ClassFinalizer::kCanonicalize);
-  }
   referent_type ^= InstantiateType(referent_type, type);
   return CreateFunctionTypeMirror(referent_type);
 }

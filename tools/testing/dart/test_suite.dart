@@ -234,21 +234,6 @@ abstract class TestSuite {
     return dartExecutable;
   }
 
-  String get dartVmProductBinaryFileName {
-    // Controlled by user with the option "--dart".
-    String dartExecutable = configuration['dart'];
-
-    if (dartExecutable == '') {
-      String suffix = executableBinarySuffix;
-      dartExecutable = useSdk
-          ? '$buildDir/dart-sdk/bin/dart_product$suffix'
-          : '$buildDir/dart_product$suffix';
-    }
-
-    TestUtils.ensureExists(dartExecutable, configuration);
-    return dartExecutable;
-  }
-
   String get d8FileName {
     var suffix = getExecutableSuffix('d8');
     var d8Dir = TestUtils.dartDir.append('third_party/d8');
@@ -1625,7 +1610,7 @@ class StandardTestSuite extends TestSuite {
    *     // OtherScripts=file1.dart file2.dart
    *
    *   - You can indicate whether a test is treated as a web-only test by
-   *   using an explicit import to a part of the the dart:html library:
+   *   using an explicit import to a part of the dart:html library:
    *
    *     import 'dart:html';
    *     import 'dart:web_audio';
@@ -1778,11 +1763,11 @@ class StandardTestSuite extends TestSuite {
   }
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
-    var COMPILERS = const ['none', 'precompiler', 'dart2app'];
+    var COMPILERS = const ['none', 'precompiler', 'dart2app', 'dart2appjit'];
     var RUNTIMES = const [
       'none',
       'dart_precompiled',
-      'dart_product',
+      'dart_app',
       'vm',
       'drt',
       'dartium',
@@ -2198,7 +2183,9 @@ class TestUtils {
   }
 
   static deleteTempSnapshotDirectory(Map configuration) {
-    if (configuration['compiler'] == 'dart2app') {
+    if (configuration['compiler'] == 'dart2app' ||
+        configuration['compiler'] == 'dart2appjit' ||
+        configuration['compiler'] == 'precompiler') {
       var checked = configuration['checked'] ? '-checked' : '';
       var minified = configuration['minified'] ? '-minified' : '';
       var csp = configuration['csp'] ? '-csp' : '';
@@ -2248,12 +2235,14 @@ class TestUtils {
   static String outputDir(Map configuration) {
     var result = '';
     var system = configuration['system'];
-    if (system == 'linux') {
+    if (system == 'linux' || system == 'android') {
       result = 'out/';
     } else if (system == 'macos') {
       result = 'xcodebuild/';
     } else if (system == 'windows') {
       result = 'build/';
+    } else {
+      throw new Exception('Unknown operating system: "$system"');
     }
     return result;
   }
@@ -2350,9 +2339,22 @@ class TestUtils {
       default:
         throw 'Unrecognized mode configuration: ${configuration['mode']}';
     }
+    var os;
+    switch (configuration['system']) {
+      case 'android':
+        os = 'Android';
+        break;
+      case 'linux':
+      case 'macos':
+      case 'windows':
+        os = '';
+        break;
+      default:
+        throw 'Unrecognized operating system: ${configuration['system']}';
+    }
     var arch = configuration['arch'].toUpperCase();
-    var normal = '$mode$arch';
-    var cross = '${mode}X$arch';
+    var normal = '$mode$os$arch';
+    var cross = '$mode${os}X$arch';
     var outDir = outputDir(configuration);
     var normalDir = new Directory(new Path('$outDir$normal').toNativePath());
     var crossDir = new Directory(new Path('$outDir$cross').toNativePath());

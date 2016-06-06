@@ -5,21 +5,21 @@
 library dump_info;
 
 import 'dart:convert'
-    show ChunkedConversionSink, HtmlEscape, JsonEncoder, StringConversionSink;
+    show ChunkedConversionSink, JsonEncoder, StringConversionSink;
 
 import 'package:dart2js_info/info.dart';
 
-import 'common.dart';
 import 'common/tasks.dart' show CompilerTask;
-import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
+import 'common.dart';
 import 'compiler.dart' show Compiler;
+import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
 import 'deferred_load.dart' show OutputUnit;
 import 'elements/elements.dart';
 import 'elements/visitor.dart';
 import 'info/send_info.dart' show collectSendMeasurements;
+import 'js/js.dart' as jsAst;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'js_emitter/full_emitter/emitter.dart' as full show Emitter;
-import 'js/js.dart' as jsAst;
 import 'types/types.dart' show TypeMask;
 import 'universe/universe.dart' show ReceiverConstraint;
 import 'universe/world_impact.dart'
@@ -139,7 +139,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
     _elementToInfo[element] = info;
     if (element.isConst) {
       var value = compiler.backend.constantCompilerTask
-          .getConstantValueForVariable(element);
+          .getConstantValue(element.constant);
       if (value != null) {
         info.initializer = _constantToInfo[value];
       }
@@ -368,8 +368,11 @@ abstract class InfoReporter {
 
 class DumpInfoTask extends CompilerTask implements InfoReporter {
   static const ImpactUseCase IMPACT_USE = const ImpactUseCase('Dump info');
+  final Compiler compiler;
 
-  DumpInfoTask(Compiler compiler) : super(compiler);
+  DumpInfoTask(Compiler compiler)
+      : compiler = compiler,
+        super(compiler.measurer);
 
   String get name => "Dump Info";
 
@@ -579,7 +582,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         dart2jsVersion:
             compiler.options.hasBuildId ? compiler.options.buildId : null,
         compilationMoment: new DateTime.now(),
-        compilationDuration: compiler.totalCompileTime.elapsed,
+        compilationDuration: compiler.measurer.wallClock.elapsed,
         toJsonDuration: stopwatch.elapsedMilliseconds,
         dumpInfoDuration: this.timing,
         noSuchMethodEnabled: compiler.backend.enabledNoSuchMethod,
@@ -588,7 +591,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     ChunkedConversionSink<Object> sink = encoder.startChunkedConversion(
         new StringConversionSink.fromStringSink(buffer));
     sink.add(new AllInfoJsonCodec().encode(result));
-    reporter.reportInfo(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
+    compiler.reporter.reportInfo(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
       'text': "View the dumped .info.json file at "
           "https://dart-lang.github.io/dump-info-visualizer"
     });

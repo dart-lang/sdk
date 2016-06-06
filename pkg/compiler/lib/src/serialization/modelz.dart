@@ -10,28 +10,28 @@
 library dart2js.serialization.modelz;
 
 import '../common.dart';
+import '../common/names.dart';
 import '../common/resolution.dart' show Resolution;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
-import '../core_types.dart';
 import '../dart_types.dart';
+import '../elements/common.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show FunctionSignatureX;
-import '../elements/common.dart';
 import '../elements/visitor.dart';
 import '../io/source_file.dart';
 import '../ordered_typeset.dart';
 import '../resolution/class_members.dart' as class_members;
-import '../resolution/tree_elements.dart' show TreeElements;
 import '../resolution/scope.dart' show Scope;
+import '../resolution/tree_elements.dart' show TreeElements;
 import '../script.dart';
 import '../serialization/constant_serialization.dart';
 import '../tokens/token.dart' show Token;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link, LinkBuilder;
-
 import 'keys.dart';
 import 'serialization.dart';
+import 'serialization_util.dart';
 
 /// Compute a [Link] from an [Iterable].
 Link toLink(Iterable iterable) {
@@ -65,15 +65,10 @@ abstract class ElementZ extends Element with ElementCommon {
   FunctionElement asFunctionElement() => null;
 
   @override
-  Scope buildScope() => _unsupported('analyzableElement');
+  Scope buildScope() => _unsupported('buildScope');
 
   @override
   ClassElement get enclosingClass => null;
-
-  @override
-  Element get enclosingClassOrCompilationUnit {
-    return _unsupported('enclosingClassOrCompilationUnit');
-  }
 
   @override
   LibraryElement get implementationLibrary => library;
@@ -82,22 +77,19 @@ abstract class ElementZ extends Element with ElementCommon {
   bool get isAbstract => false;
 
   @override
-  bool get isAssignable => _unsupported('isAssignable');
-
-  @override
   bool get isClassMember => false;
 
   @override
-  bool get isClosure => _unsupported('isClosure');
+  bool get isClosure => false;
 
   @override
-  bool get isConst => _unsupported('isConst');
+  bool get isConst => false;
 
   @override
   bool get isDeferredLoaderGetter => false;
 
   @override
-  bool get isFinal => _unsupported('isFinal');
+  bool get isFinal => false;
 
   @override
   bool get isInstanceMember => false;
@@ -114,9 +106,8 @@ abstract class ElementZ extends Element with ElementCommon {
   @override
   bool get isStatic => false;
 
-  // TODO(johnniwinther): Find a more precise semantics for this.
   @override
-  bool get isSynthesized => true;
+  bool get isSynthesized => false;
 
   @override
   bool get isTopLevel => false;
@@ -124,11 +115,6 @@ abstract class ElementZ extends Element with ElementCommon {
   // TODO(johnniwinther): Support metadata.
   @override
   Iterable<MetadataAnnotation> get metadata => const <MetadataAnnotation>[];
-
-  @override
-  Element get outermostEnclosingMemberOrTopLevel {
-    return _unsupported('outermostEnclosingMemberOrTopLevel');
-  }
 
   @override
   Token get position => _unsupported('position');
@@ -142,10 +128,14 @@ abstract class DeserializedElementZ extends ElementZ {
   @override
   String get name => _decoder.getString(Key.NAME);
 
+  // TODO(johnniwinther): Should this be cached?
+  @override
+  int get sourceOffset => _decoder.getInt(Key.OFFSET, isOptional: true);
+
   @override
   SourceSpan get sourcePosition {
     // TODO(johnniwinther): Should this be cached?
-    int offset = _decoder.getInt(Key.OFFSET, isOptional: true);
+    int offset = sourceOffset;
     if (offset == null) return null;
     Uri uri = _decoder.getUri(Key.URI, isOptional: true);
     if (uri == null) {
@@ -260,18 +250,32 @@ abstract class AnalyzableElementMixin implements AnalyzableElement, ElementZ {
   TreeElements get treeElements => _unsupported('treeElements');
 }
 
-abstract class AstElementMixin implements AstElement, ElementZ {
+abstract class AstElementMixinZ implements AstElement, ElementZ {
+  ResolvedAst _resolvedAst;
+
+  // TODO(johnniwinther): This is needed for the token invariant assertion. Find
+  // another way to bypass the test for modelz.
   @override
-  bool get hasNode => _unsupported('hasNode');
+  bool get hasNode => false;
 
   @override
-  bool get hasResolvedAst => _unsupported('hasResolvedAst');
+  bool get hasResolvedAst => _resolvedAst != null;
 
   @override
   get node => _unsupported('node');
 
   @override
-  ResolvedAst get resolvedAst => _unsupported('resolvedAst');
+  ResolvedAst get resolvedAst {
+    assert(invariant(this, _resolvedAst != null,
+        message: "ResolvedAst has not been set for $this."));
+    return _resolvedAst;
+  }
+
+  void set resolvedAst(ResolvedAst value) {
+    assert(invariant(this, _resolvedAst == null,
+        message: "ResolvedAst has already been set for $this."));
+    _resolvedAst = value;
+  }
 }
 
 abstract class ContainerMixin
@@ -335,6 +339,9 @@ class AbstractFieldElementZ extends ElementZ implements AbstractFieldElement {
   Element get enclosingElement => _canonicalElement.enclosingElement;
 
   @override
+  int get sourceOffset => _canonicalElement.sourceOffset;
+
+  @override
   SourceSpan get sourcePosition => _canonicalElement.sourcePosition;
 
   @override
@@ -362,6 +369,9 @@ class LibraryElementZ extends DeserializedElementZ
 
   @override
   String get name => entryCompilationUnit.name;
+
+  @override
+  SourceSpan get sourcePosition => entryCompilationUnit.sourcePosition;
 
   @override
   accept(ElementVisitor visitor, arg) {
@@ -484,6 +494,8 @@ class LibraryElementZ extends DeserializedElementZ
 
 class ScriptZ implements Script {
   final Uri resourceUri;
+  SourceFile _file;
+  bool _isSynthesized = false;
 
   ScriptZ(this.resourceUri);
 
@@ -493,13 +505,33 @@ class ScriptZ implements Script {
   }
 
   @override
-  SourceFile get file => throw new UnsupportedError('ScriptZ.file');
+  SourceFile get file {
+    if (_file == null) {
+      throw new UnsupportedError('ScriptZ.file');
+    }
+    return _file;
+  }
+
+  void set file(SourceFile value) {
+    _file = value;
+  }
+
+  // TODO(johnniwinther): Decide if it is meaningful to serialize erroneous
+  // elements.
+  @override
+  bool get isSynthesized => _isSynthesized;
+
+  void set isSynthesized(bool value) {
+    _isSynthesized = value;
+  }
 
   @override
-  bool get isSynthesized => throw new UnsupportedError('ScriptZ.isSynthesized');
-
-  @override
-  String get name => resourceUri.toString();
+  String get name {
+    if (_file != null) {
+      return _file.filename;
+    }
+    return resourceUri.toString();
+  }
 
   // TODO(johnniwinther): Support the distinction between [readableUri] and
   // [resourceUri]; needed for platform libraries.
@@ -507,7 +539,12 @@ class ScriptZ implements Script {
   Uri get readableUri => resourceUri;
 
   @override
-  String get text => throw new UnsupportedError('ScriptZ.text');
+  String get text {
+    if (_file != null) {
+      return _file.slowText();
+    }
+    throw new UnsupportedError('ScriptZ.text');
+  }
 }
 
 class CompilationUnitElementZ extends DeserializedElementZ
@@ -526,6 +563,9 @@ class CompilationUnitElementZ extends DeserializedElementZ
 
   @override
   Element get enclosingElement => library;
+
+  @override
+  SourceSpan get sourcePosition => new SourceSpan(script.resourceUri, 0, 0);
 
   @override
   accept(ElementVisitor visitor, arg) {
@@ -588,6 +628,7 @@ abstract class LibraryMemberMixin implements DeserializedElementZ {
 
 abstract class ClassMemberMixin implements DeserializedElementZ {
   ClassElement _class;
+  CompilationUnitElement _compilationUnit;
 
   @override
   Element get enclosingElement => enclosingClass;
@@ -607,7 +648,16 @@ abstract class ClassMemberMixin implements DeserializedElementZ {
   LibraryElement get library => enclosingClass.library;
 
   @override
-  CompilationUnitElement get compilationUnit => enclosingClass.compilationUnit;
+  CompilationUnitElement get compilationUnit {
+    if (_compilationUnit == null) {
+      _compilationUnit =
+          _decoder.getElement(Key.COMPILATION_UNIT, isOptional: true);
+      if (_compilationUnit == null) {
+        _compilationUnit = enclosingClass.compilationUnit;
+      }
+    }
+    return _compilationUnit;
+  }
 }
 
 abstract class InstanceMemberMixin implements DeserializedElementZ {
@@ -662,30 +712,34 @@ abstract class ParametersMixin
       bool optionalParametersAreNamed = false;
       List<DartType> parameterTypes = <DartType>[];
       List<DartType> optionalParameterTypes = <DartType>[];
-      List<String> namedParameters = <String>[];
-      List<DartType> namedParameterTypes = <DartType>[];
       for (ParameterElement parameter in parameters) {
         if (parameter.isOptional) {
           optionalParameterCount++;
-          requiredParameters.add(parameter);
+          optionalParameters.add(parameter);
           orderedOptionalParameters.add(parameter);
           if (parameter.isNamed) {
             optionalParametersAreNamed = true;
-            namedParameters.add(parameter.name);
-            namedParameterTypes.add(parameter.type);
           } else {
             optionalParameterTypes.add(parameter.type);
           }
         } else {
           requiredParameterCount++;
-          optionalParameters.add(parameter);
+          requiredParameters.add(parameter);
           parameterTypes.add(parameter.type);
         }
       }
+      List<String> namedParameters = const <String>[];
+      List<DartType> namedParameterTypes = const <DartType>[];
       if (optionalParametersAreNamed) {
+        namedParameters = <String>[];
+        namedParameterTypes = <DartType>[];
         orderedOptionalParameters.sort((Element a, Element b) {
           return a.name.compareTo(b.name);
         });
+        for (ParameterElement parameter in orderedOptionalParameters) {
+          namedParameters.add(parameter.name);
+          namedParameterTypes.add(parameter.type);
+        }
       }
 
       FunctionType type = new FunctionType(
@@ -718,9 +772,6 @@ abstract class ParametersMixin
 abstract class FunctionTypedElementMixin
     implements FunctionElement, DeserializedElementZ {
   @override
-  AsyncMarker get asyncMarker => _unsupported('asyncMarker');
-
-  @override
   FunctionElement asFunctionElement() => this;
 
   @override
@@ -728,9 +779,15 @@ abstract class FunctionTypedElementMixin
     return _decoder.getBool(Key.IS_EXTERNAL,
         isOptional: true, defaultValue: false);
   }
+
+  @override
+  List<DartType> get typeVariables => functionSignature.typeVariables;
 }
 
-abstract class ClassElementMixin implements ElementZ, ClassElement {
+abstract class ClassElementMixin
+    implements ElementZ, ClassElement, class_members.ClassMemberMixin {
+  bool _isResolved = false;
+
   InterfaceType _createType(List<DartType> typeArguments) {
     return new InterfaceType(this, typeArguments);
   }
@@ -739,21 +796,7 @@ abstract class ClassElementMixin implements ElementZ, ClassElement {
   ElementKind get kind => ElementKind.CLASS;
 
   @override
-  void addBackendMember(Element element) => _unsupported('addBackendMember');
-
-  @override
-  void forEachBackendMember(void f(Element member)) {
-    _unsupported('forEachBackendMember');
-  }
-
-  @override
-  bool get hasBackendMembers => _unsupported('hasBackendMembers');
-
-  @override
   bool get hasConstructor => _unsupported('hasConstructor');
-
-  @override
-  bool hasFieldShadowedBy(Element fieldMember) => _unsupported('');
 
   @override
   bool get hasIncompleteHierarchy => _unsupported('hasIncompleteHierarchy');
@@ -765,11 +808,6 @@ abstract class ClassElementMixin implements ElementZ, ClassElement {
   bool get isEnumClass => false;
 
   @override
-  Element lookupBackendMember(String memberName) {
-    return _unsupported('lookupBackendMember');
-  }
-
-  @override
   ConstructorElement lookupDefaultConstructor() {
     ConstructorElement constructor = lookupConstructor("");
     if (constructor != null && constructor.parameters.isEmpty) {
@@ -779,21 +817,23 @@ abstract class ClassElementMixin implements ElementZ, ClassElement {
   }
 
   @override
-  void reverseBackendMembers() => _unsupported('reverseBackendMembers');
-
-  @override
   ClassElement get superclass => supertype != null ? supertype.element : null;
 
   @override
   void ensureResolved(Resolution resolution) {
-    resolution.registerClass(this);
+    if (!_isResolved) {
+      _isResolved = true;
+      class_members.MembersCreator
+          .computeClassMembersByName(resolution, this, Identifiers.call);
+      resolution.registerClass(this);
+    }
   }
 }
 
 class ClassElementZ extends DeserializedElementZ
     with
         AnalyzableElementMixin,
-        AstElementMixin,
+        AstElementMixinZ,
         ClassElementCommon,
         class_members.ClassMemberMixin,
         ContainerMixin,
@@ -883,39 +923,23 @@ class ClassElementZ extends DeserializedElementZ
   @override
   FunctionType get callType {
     _ensureSuperHierarchy();
+    // TODO(johnniwinther): Why can't this always be computed in ensureResolved?
     return _callType;
   }
 }
 
 abstract class MixinApplicationElementMixin
     implements ElementZ, MixinApplicationElement {
-  Link<ConstructorElement> _constructors;
-
   @override
-  bool get isMixinApplication => false;
+  bool get isMixinApplication => true;
 
   @override
   ClassElement get mixin => mixinType.element;
-
-  Link<ConstructorElement> get constructors {
-    if (_constructors == null) {
-      LinkBuilder<ConstructorElement> builder =
-          new LinkBuilder<ConstructorElement>();
-      for (ConstructorElement definingConstructor in superclass.constructors) {
-        if (definingConstructor.isGenerativeConstructor &&
-            definingConstructor.memberName.isAccessibleFrom(library)) {
-          builder.addLast(
-              new ForwardingConstructorElementZ(this, definingConstructor));
-        }
-      }
-      _constructors = builder.toLink();
-    }
-    return _constructors;
-  }
 }
 
 class NamedMixinApplicationElementZ extends ClassElementZ
-    with MixinApplicationElementCommon, MixinApplicationElementMixin {
+    with MixinApplicationElementMixin {
+  Link<Element> _constructors;
   InterfaceType _mixinType;
 
   NamedMixinApplicationElementZ(ObjectDecoder decoder) : super(decoder);
@@ -931,7 +955,7 @@ class UnnamedMixinApplicationElementZ extends ElementZ
         class_members.ClassMemberMixin,
         TypeDeclarationMixin<InterfaceType>,
         AnalyzableElementMixin,
-        AstElementMixin,
+        AstElementMixinZ,
         MixinApplicationElementCommon,
         MixinApplicationElementMixin {
   final String name;
@@ -939,6 +963,7 @@ class UnnamedMixinApplicationElementZ extends ElementZ
   final InterfaceType supertype;
   final Link<DartType> interfaces;
   OrderedTypeSet _allSupertypesAndSelf;
+  Link<ConstructorElement> _constructors;
 
   UnnamedMixinApplicationElementZ(
       ClassElement subclass, InterfaceType supertype, InterfaceType mixin)
@@ -951,7 +976,29 @@ class UnnamedMixinApplicationElementZ extends ElementZ
   CompilationUnitElement get compilationUnit => _subclass.compilationUnit;
 
   @override
+  bool get isTopLevel => true;
+
+  @override
   bool get isUnnamedMixinApplication => true;
+
+  Link<ConstructorElement> get constructors {
+    if (_constructors == null) {
+      LinkBuilder<ConstructorElement> builder =
+          new LinkBuilder<ConstructorElement>();
+      for (ConstructorElement definingConstructor in superclass.constructors) {
+        if (definingConstructor.isGenerativeConstructor &&
+            definingConstructor.memberName.isAccessibleFrom(library)) {
+          ForwardingConstructorElementZ constructor =
+              new ForwardingConstructorElementZ(this, definingConstructor);
+          constructor.resolvedAst = new SynthesizedResolvedAst(
+              constructor, ResolvedAstKind.FORWARDING_CONSTRUCTOR);
+          builder.addLast(constructor);
+        }
+      }
+      _constructors = builder.toLink();
+    }
+    return _constructors;
+  }
 
   @override
   List<DartType> _getTypeVariables() {
@@ -1006,6 +1053,9 @@ class UnnamedMixinApplicationElementZ extends ElementZ
   InterfaceType get mixinType => interfaces.head;
 
   @override
+  int get sourceOffset => _subclass.sourceOffset;
+
+  @override
   SourceSpan get sourcePosition => _subclass.sourcePosition;
 }
 
@@ -1029,14 +1079,18 @@ class EnumClassElementZ extends ClassElementZ implements EnumClassElement {
 abstract class ConstructorElementZ extends DeserializedElementZ
     with
         AnalyzableElementMixin,
-        AstElementMixin,
+        AstElementMixinZ,
         ClassMemberMixin,
         FunctionTypedElementMixin,
         ParametersMixin,
         TypedElementMixin,
         MemberElementMixin
-    implements ConstructorElement {
+    implements
+        ConstructorElement,
+        // TODO(johnniwinther): Sort out whether a constructor is a method.
+        MethodElement {
   ConstantConstructor _constantConstructor;
+  ConstructorElement _effectiveTarget;
 
   ConstructorElementZ(ObjectDecoder decoder) : super(decoder);
 
@@ -1072,46 +1126,48 @@ abstract class ConstructorElementZ extends DeserializedElementZ
   }
 
   @override
-  AsyncMarker get asyncMarker => _unsupported('asyncMarker');
+  AsyncMarker get asyncMarker => AsyncMarker.SYNC;
 
   @override
-  InterfaceType computeEffectiveTargetType(InterfaceType newType) {
-    return _unsupported('computeEffectiveTargetType');
-  }
+  ConstructorElement get definingConstructor => null;
 
   @override
-  ConstructorElement get definingConstructor {
-    return _unsupported('definingConstructor');
-  }
+  bool get hasEffectiveTarget => true;
 
   @override
   ConstructorElement get effectiveTarget {
-    return _unsupported('effectiveTarget');
+    if (_effectiveTarget == null) {
+      _effectiveTarget =
+          _decoder.getElement(Key.EFFECTIVE_TARGET, isOptional: true);
+      if (_effectiveTarget == null) {
+        _effectiveTarget = this;
+      }
+    }
+    return _effectiveTarget;
   }
 
   @override
-  ConstructorElement get immediateRedirectionTarget {
-    return _unsupported('immediateRedirectionTarget');
-  }
+  ConstructorElement get immediateRedirectionTarget => null;
+
+  // TODO(johnniwinther): Should serialization support erroneous element
+  // relations?
+  @override
+  bool get isEffectiveTargetMalformed => false;
 
   @override
-  bool get isEffectiveTargetMalformed {
-    return _unsupported('isEffectiveTargetMalformed');
-  }
+  bool get isCyclicRedirection => false;
 
   @override
-  bool get isRedirectingFactory => _unsupported('isRedirectingFactory');
+  bool get isRedirectingFactory => false;
 
   @override
-  bool get isRedirectingGenerative => _unsupported('isRedirectingGenerative');
+  bool get isRedirectingGenerative => false;
 
   @override
-  bool get isCyclicRedirection => _unsupported('isCyclicRedirection');
+  PrefixElement get redirectionDeferredPrefix => null;
 
   @override
-  PrefixElement get redirectionDeferredPrefix {
-    return _unsupported('redirectionDeferredPrefix');
-  }
+  InterfaceType computeEffectiveTargetType(InterfaceType newType) => newType;
 }
 
 class GenerativeConstructorElementZ extends ConstructorElementZ {
@@ -1121,8 +1177,22 @@ class GenerativeConstructorElementZ extends ConstructorElementZ {
   ElementKind get kind => ElementKind.GENERATIVE_CONSTRUCTOR;
 
   @override
-  bool get isEffectiveTargetMalformed =>
-      _unsupported('isEffectiveTargetMalformed');
+  bool get isRedirectingGenerative => _decoder.getBool(Key.IS_REDIRECTING);
+}
+
+class DefaultConstructorElementZ extends ConstructorElementZ {
+  DefaultConstructorElementZ(ObjectDecoder decoder) : super(decoder);
+
+  @override
+  ElementKind get kind => ElementKind.GENERATIVE_CONSTRUCTOR;
+
+  @override
+  bool get isSynthesized => true;
+
+  @override
+  ConstructorElement get definingConstructor {
+    return enclosingClass.superclass.lookupConstructor('');
+  }
 }
 
 class FactoryConstructorElementZ extends ConstructorElementZ {
@@ -1130,14 +1200,70 @@ class FactoryConstructorElementZ extends ConstructorElementZ {
 
   @override
   ElementKind get kind => ElementKind.FACTORY_CONSTRUCTOR;
+}
+
+class RedirectingFactoryConstructorElementZ extends ConstructorElementZ {
+  InterfaceType _effectiveTargetType;
+  ConstructorElement _immediateRedirectionTarget;
+  PrefixElement _redirectionDeferredPrefix;
+
+  RedirectingFactoryConstructorElementZ(ObjectDecoder decoder) : super(decoder);
 
   @override
-  bool get isEffectiveTargetMalformed =>
-      _unsupported('isEffectiveTargetMalformed');
+  ElementKind get kind => ElementKind.FACTORY_CONSTRUCTOR;
+
+  @override
+  bool get isRedirectingFactory => true;
+
+  void _ensureEffectiveTarget() {
+    if (_effectiveTarget == null) {
+      _effectiveTarget =
+          _decoder.getElement(Key.EFFECTIVE_TARGET, isOptional: true);
+      if (_effectiveTarget == null) {
+        _effectiveTarget = this;
+        _effectiveTargetType = enclosingClass.thisType;
+      } else {
+        _effectiveTargetType = _decoder.getType(Key.EFFECTIVE_TARGET_TYPE);
+      }
+    }
+  }
+
+  @override
+  ConstructorElement get effectiveTarget {
+    _ensureEffectiveTarget();
+    return _effectiveTarget;
+  }
+
+  @override
+  InterfaceType computeEffectiveTargetType(InterfaceType newType) {
+    _ensureEffectiveTarget();
+    return _effectiveTargetType.substByContext(newType);
+  }
+
+  void _ensureRedirection() {
+    if (_immediateRedirectionTarget == null) {
+      _immediateRedirectionTarget =
+          _decoder.getElement(Key.IMMEDIATE_REDIRECTION_TARGET);
+      _redirectionDeferredPrefix =
+          _decoder.getElement(Key.PREFIX, isOptional: true);
+    }
+  }
+
+  @override
+  ConstructorElement get immediateRedirectionTarget {
+    _ensureRedirection();
+    return _immediateRedirectionTarget;
+  }
+
+  @override
+  PrefixElement get redirectionDeferredPrefix {
+    _ensureRedirection();
+    return _redirectionDeferredPrefix;
+  }
 }
 
 class ForwardingConstructorElementZ extends ElementZ
-    with AnalyzableElementMixin, AstElementMixin
+    with AnalyzableElementMixin, AstElementMixinZ
     implements ConstructorElement {
   final MixinApplicationElement enclosingClass;
   final ConstructorElement definingConstructor;
@@ -1157,7 +1283,7 @@ class ForwardingConstructorElementZ extends ElementZ
 
   @override
   InterfaceType computeEffectiveTargetType(InterfaceType newType) {
-    return enclosingClass.thisType;
+    return enclosingClass.thisType.substByContext(newType);
   }
 
   @override
@@ -1170,6 +1296,9 @@ class ForwardingConstructorElementZ extends ElementZ
   ConstantConstructor get constantConstructor => null;
 
   @override
+  bool get hasEffectiveTarget => true;
+
+  @override
   ConstructorElement get effectiveTarget => this;
 
   @override
@@ -1177,7 +1306,9 @@ class ForwardingConstructorElementZ extends ElementZ
 
   @override
   FunctionSignature get functionSignature {
-    return _unsupported('functionSignature');
+    // TODO(johnniwinther): Ensure that the function signature (and with it the
+    // function type) substitutes type variables correctly.
+    return definingConstructor.functionSignature;
   }
 
   @override
@@ -1205,6 +1336,9 @@ class ForwardingConstructorElementZ extends ElementZ
 
   @override
   bool get isRedirectingGenerative => false;
+
+  @override
+  bool get isSynthesized => true;
 
   @override
   ElementKind get kind => ElementKind.GENERATIVE_CONSTRUCTOR;
@@ -1236,6 +1370,9 @@ class ForwardingConstructorElementZ extends ElementZ
   PrefixElement get redirectionDeferredPrefix => null;
 
   @override
+  int get sourceOffset => enclosingClass.sourceOffset;
+
+  @override
   SourceSpan get sourcePosition => enclosingClass.sourcePosition;
 
   @override
@@ -1244,6 +1381,9 @@ class ForwardingConstructorElementZ extends ElementZ
     // variables correctly.
     return definingConstructor.type;
   }
+
+  @override
+  List<DartType> get typeVariables => _unsupported("typeVariables");
 }
 
 abstract class MemberElementMixin
@@ -1255,16 +1395,17 @@ abstract class MemberElementMixin
   Name get memberName => new Name(name, library);
 
   @override
-  List<FunctionElement> get nestedClosures => const <FunctionElement>[];
+  List<FunctionElement> get nestedClosures => <FunctionElement>[];
 }
 
 abstract class FieldElementZ extends DeserializedElementZ
     with
         AnalyzableElementMixin,
-        AstElementMixin,
+        AstElementMixinZ,
         TypedElementMixin,
         MemberElementMixin
     implements FieldElement {
+  bool _isConst;
   ConstantExpression _constant;
 
   FieldElementZ(ObjectDecoder decoder) : super(decoder);
@@ -1280,14 +1421,25 @@ abstract class FieldElementZ extends DeserializedElementZ
   @override
   bool get isFinal => _decoder.getBool(Key.IS_FINAL);
 
+  void _ensureConstant() {
+    if (_isConst == null) {
+      _isConst = _decoder.getBool(Key.IS_CONST);
+      _constant = _decoder.getConstant(Key.CONSTANT, isOptional: true);
+    }
+  }
+
   @override
-  bool get isConst => _decoder.getBool(Key.IS_CONST);
+  bool get isConst {
+    _ensureConstant();
+    return _isConst;
+  }
+
+  @override
+  bool get hasConstant => true;
 
   @override
   ConstantExpression get constant {
-    if (isConst && _constant == null) {
-      _constant = _decoder.getConstant(Key.CONSTANT);
-    }
+    _ensureConstant();
     return _constant;
   }
 
@@ -1319,7 +1471,7 @@ class InstanceFieldElementZ extends FieldElementZ
 abstract class FunctionElementZ extends DeserializedElementZ
     with
         AnalyzableElementMixin,
-        AstElementMixin,
+        AstElementMixinZ,
         ParametersMixin,
         FunctionTypedElementMixin,
         TypedElementMixin,
@@ -1333,6 +1485,11 @@ abstract class FunctionElementZ extends DeserializedElementZ
   @override
   accept(ElementVisitor visitor, arg) {
     return visitor.visitMethodElement(this, arg);
+  }
+
+  @override
+  AsyncMarker get asyncMarker {
+    return _decoder.getEnum(Key.ASYNC_MARKER, AsyncMarker.values);
   }
 
   @override
@@ -1393,7 +1550,7 @@ abstract class LocalExecutableMixin
 class LocalFunctionElementZ extends DeserializedElementZ
     with
         LocalExecutableMixin,
-        AstElementMixin,
+        AstElementMixinZ,
         ParametersMixin,
         FunctionTypedElementMixin,
         TypedElementMixin
@@ -1407,12 +1564,17 @@ class LocalFunctionElementZ extends DeserializedElementZ
 
   @override
   ElementKind get kind => ElementKind.FUNCTION;
+
+  @override
+  AsyncMarker get asyncMarker {
+    return _decoder.getEnum(Key.ASYNC_MARKER, AsyncMarker.values);
+  }
 }
 
 abstract class GetterElementZ extends DeserializedElementZ
     with
         AnalyzableElementMixin,
-        AstElementMixin,
+        AstElementMixinZ,
         FunctionTypedElementMixin,
         ParametersMixin,
         TypedElementMixin,
@@ -1430,6 +1592,9 @@ abstract class GetterElementZ extends DeserializedElementZ
   accept(ElementVisitor visitor, arg) {
     return visitor.visitGetterElement(this, arg);
   }
+
+  @override
+  AsyncMarker get asyncMarker => AsyncMarker.SYNC;
 }
 
 class TopLevelGetterElementZ extends GetterElementZ with LibraryMemberMixin {
@@ -1449,7 +1614,7 @@ class InstanceGetterElementZ extends GetterElementZ
 abstract class SetterElementZ extends DeserializedElementZ
     with
         AnalyzableElementMixin,
-        AstElementMixin,
+        AstElementMixinZ,
         FunctionTypedElementMixin,
         ParametersMixin,
         TypedElementMixin,
@@ -1467,6 +1632,9 @@ abstract class SetterElementZ extends DeserializedElementZ
   accept(ElementVisitor visitor, arg) {
     return visitor.visitSetterElement(this, arg);
   }
+
+  @override
+  AsyncMarker get asyncMarker => AsyncMarker.SYNC;
 }
 
 class TopLevelSetterElementZ extends SetterElementZ with LibraryMemberMixin {
@@ -1538,7 +1706,7 @@ abstract class TypeDeclarationMixin<T extends GenericType>
 class TypedefElementZ extends DeserializedElementZ
     with
         AnalyzableElementMixin,
-        AstElementMixin,
+        AstElementMixinZ,
         LibraryMemberMixin,
         ParametersMixin,
         TypeDeclarationMixin<TypedefType>
@@ -1580,7 +1748,7 @@ class TypedefElementZ extends DeserializedElementZ
 }
 
 class TypeVariableElementZ extends DeserializedElementZ
-    with AnalyzableElementMixin, AstElementMixin, TypedElementMixin
+    with AnalyzableElementMixin, AstElementMixinZ, TypedElementMixin
     implements TypeVariableElement {
   TypeDeclarationElement _typeDeclaration;
   TypeVariableType _type;
@@ -1638,7 +1806,7 @@ class TypeVariableElementZ extends DeserializedElementZ
 }
 
 class SyntheticTypeVariableElementZ extends ElementZ
-    with AnalyzableElementMixin, AstElementMixin
+    with AnalyzableElementMixin, AstElementMixinZ
     implements TypeVariableElement {
   final TypeDeclarationElement typeDeclaration;
   final int index;
@@ -1695,11 +1863,14 @@ class SyntheticTypeVariableElementZ extends ElementZ
   LibraryElement get library => typeDeclaration.library;
 
   @override
+  int get sourceOffset => typeDeclaration.sourceOffset;
+
+  @override
   SourceSpan get sourcePosition => typeDeclaration.sourcePosition;
 }
 
-class ParameterElementZ extends DeserializedElementZ
-    with AnalyzableElementMixin, AstElementMixin, TypedElementMixin
+abstract class ParameterElementZ extends DeserializedElementZ
+    with AnalyzableElementMixin, AstElementMixinZ, TypedElementMixin
     implements ParameterElement {
   FunctionElement _functionDeclaration;
   ConstantExpression _constant;
@@ -1708,9 +1879,13 @@ class ParameterElementZ extends DeserializedElementZ
   ParameterElementZ(ObjectDecoder decoder) : super(decoder);
 
   @override
-  accept(ElementVisitor visitor, arg) {
-    return visitor.visitParameterElement(this, arg);
-  }
+  bool get isFinal => _decoder.getBool(Key.IS_FINAL);
+
+  @override
+  bool get isConst => false;
+
+  @override
+  bool get hasConstant => true;
 
   @override
   ConstantExpression get constant {
@@ -1745,8 +1920,13 @@ class ParameterElementZ extends DeserializedElementZ
   @override
   FunctionSignature get functionSignature => _unsupported('functionSignature');
 
+  // TODO(johnniwinther): Remove [initializer] and [node] on
+  // [ParameterElementZ] when the inference does need these.
   @override
-  Expression get initializer => _unsupported('initializer');
+  Expression initializer;
+
+  @override
+  Node node;
 
   @override
   bool get isNamed => _decoder.getBool(Key.IS_NAMED);
@@ -1755,13 +1935,29 @@ class ParameterElementZ extends DeserializedElementZ
   bool get isOptional => _decoder.getBool(Key.IS_OPTIONAL);
 
   @override
-  ElementKind get kind => ElementKind.PARAMETER;
-
-  @override
   LibraryElement get library => executableContext.library;
 
   @override
   MemberElement get memberContext => executableContext.memberContext;
+
+  @override
+  List<DartType> get typeVariables => functionSignature.typeVariables;
+}
+
+class LocalParameterElementZ extends ParameterElementZ
+    implements LocalParameterElement {
+  LocalParameterElementZ(ObjectDecoder decoder) : super(decoder);
+
+  @override
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitParameterElement(this, arg);
+  }
+
+  @override
+  bool get isLocal => true;
+
+  @override
+  ElementKind get kind => ElementKind.PARAMETER;
 }
 
 class InitializingFormalElementZ extends ParameterElementZ
@@ -1790,7 +1986,7 @@ class InitializingFormalElementZ extends ParameterElementZ
 class LocalVariableElementZ extends DeserializedElementZ
     with
         AnalyzableElementMixin,
-        AstElementMixin,
+        AstElementMixinZ,
         LocalExecutableMixin,
         TypedElementMixin
     implements LocalVariableElement {
@@ -1808,13 +2004,19 @@ class LocalVariableElementZ extends DeserializedElementZ
   ElementKind get kind => ElementKind.VARIABLE;
 
   @override
+  bool get isFinal => _decoder.getBool(Key.IS_FINAL);
+
+  @override
   bool get isConst {
     if (_isConst == null) {
-      _constant = _decoder.getConstant(Key.CONSTANT);
+      _constant = _decoder.getConstant(Key.CONSTANT, isOptional: true);
       _isConst = _constant != null;
     }
     return _isConst;
   }
+
+  @override
+  bool get hasConstant => true;
 
   @override
   ConstantExpression get constant {

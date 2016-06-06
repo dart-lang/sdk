@@ -28,9 +28,9 @@ const Base64Codec BASE64 = const Base64Codec();
  *
  * Examples:
  *
- *     var encoded = BASE64.encode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
- *                                  0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
- *     var decoded = BASE64.decode("YmzDpWLDpnJncsO4ZAo=");
+ *     var encoded = BASE64URL.encode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
+ *                                     0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
+ *     var decoded = BASE64URL.decode("YmzDpWLDpnJncsO4ZAo=");
  */
 const Base64Codec BASE64URL = const Base64Codec.urlSafe();
 
@@ -70,8 +70,9 @@ class Base64Codec extends Codec<List<int>, String> {
  *
  * The results are ASCII strings using a restricted alphabet.
  */
-class Base64Encoder extends
-    ChunkedConverter<List<int>, String, List<int>, String> {
+class Base64Encoder extends Converter<List<int>, String>
+    implements ChunkedConverter<List<int>, String, List<int>, String> {
+
   final bool _urlSafe;
 
   const Base64Encoder() : _urlSafe = false;
@@ -341,8 +342,8 @@ class _Utf8Base64EncoderSink extends _Base64EncoderSink {
  *
  * The encoding is required to be properly padded.
  */
-class Base64Decoder extends
-    ChunkedConverter<String, List<int>, String, List<int>> {
+class Base64Decoder extends Converter<String, List<int>>
+    implements ChunkedConverter<String, List<int>, String, List<int>> {
 
   const Base64Decoder();
 

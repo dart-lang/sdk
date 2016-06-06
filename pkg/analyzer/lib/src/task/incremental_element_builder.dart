@@ -303,7 +303,7 @@ class TokenUtils {
   static Token getBeginTokenNotComment(AstNode node) {
     Token oldBeginToken = node.beginToken;
     if (oldBeginToken is CommentToken) {
-      oldBeginToken = (oldBeginToken as CommentToken).parent;
+      return oldBeginToken.parent;
     }
     return oldBeginToken;
   }

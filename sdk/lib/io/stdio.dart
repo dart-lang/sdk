@@ -57,7 +57,7 @@ class Stdin extends _StdStream implements Stream<List<int>> {
                        bool retainNewlines: false}) {
     const CR = 13;
     const LF = 10;
-    final List line = [];
+    final List<int> line = <int>[];
     // On Windows, if lineMode is disabled, only CR is received.
     bool crIsNewline = Platform.isWindows &&
         (stdioType(stdin) == StdioType.TERMINAL) &&
@@ -254,13 +254,14 @@ class _StdSink implements IOSink {
   void set encoding(Encoding encoding) {
     _sink.encoding = encoding;
   }
-  void write(object) => _sink.write(object);
-  void writeln([object = "" ]) => _sink.writeln(object);
-  void writeAll(objects, [sep = ""]) => _sink.writeAll(objects, sep);
-  void add(List<int> data) => _sink.add(data);
-  void addError(error, [StackTrace stackTrace]) =>
-      _sink.addError(error, stackTrace);
-  void writeCharCode(int charCode) => _sink.writeCharCode(charCode);
+  void write(object) { _sink.write(object); }
+  void writeln([object = "" ]) { _sink.writeln(object); }
+  void writeAll(objects, [sep = ""]) { _sink.writeAll(objects, sep); }
+  void add(List<int> data) { _sink.add(data); }
+  void addError(error, [StackTrace stackTrace]) {
+    _sink.addError(error, stackTrace);
+  }
+  void writeCharCode(int charCode) { _sink.writeCharCode(charCode); }
   Future addStream(Stream<List<int>> stream) => _sink.addStream(stream);
   Future flush() => _sink.flush();
   Future close() => _sink.close();
@@ -327,13 +328,18 @@ StdioType stdioType(object) {
     return StdioType.FILE;
   }
   if (object is Socket) {
-    switch (_StdIOUtils._socketType(object._nativeSocket)) {
-      case _STDIO_HANDLE_TYPE_TERMINAL: return StdioType.TERMINAL;
-      case _STDIO_HANDLE_TYPE_PIPE: return StdioType.PIPE;
-      case _STDIO_HANDLE_TYPE_FILE:  return StdioType.FILE;
+    int socketType = _StdIOUtils._socketType(object);
+    if (socketType == null) return StdioType.OTHER;
+    switch (socketType) {
+      case _STDIO_HANDLE_TYPE_TERMINAL:
+        return StdioType.TERMINAL;
+      case _STDIO_HANDLE_TYPE_PIPE:
+        return StdioType.PIPE;
+      case _STDIO_HANDLE_TYPE_FILE:
+        return StdioType.FILE;
     }
   }
-  if (object is IOSink) {
+  if (object is _IOSinkImpl) {
     try {
       if (object._target is _FileStreamConsumer) {
         return StdioType.FILE;
@@ -349,6 +355,7 @@ StdioType stdioType(object) {
 class _StdIOUtils {
   external static _getStdioOutputStream(int fd);
   external static Stdin _getStdioInputStream();
-  external static int _socketType(nativeSocket);
+  /// Returns the socket type or `null` if [socket] is not a builtin socket.
+  external static int _socketType(Socket socket);
   external static _getStdioHandleType(int fd);
 }

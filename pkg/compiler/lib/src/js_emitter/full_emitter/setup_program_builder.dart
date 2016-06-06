@@ -403,7 +403,7 @@ function $setupProgramName(programData, typesOffset) {
         // that we have a string.
         if (!superclass || typeof superclass != "string") {
           // Inlined special case of InheritFrom here for performance reasons.
-          // Fix up the the Dart Object class' prototype.
+          // Fix up the Dart Object class' prototype.
           var constructor = allClasses[cls];
           var prototype = constructor.prototype;
           prototype.constructor = constructor;

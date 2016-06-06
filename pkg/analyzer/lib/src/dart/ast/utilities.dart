@@ -933,9 +933,10 @@ class AstCloner implements AstVisitor<AstNode> {
     if (token == null) {
       return;
     }
-    if (token is CommentToken) {
-      token = (token as CommentToken).parent;
+    Token nonComment(Token token) {
+      return token is CommentToken ? token.parent : token;
     }
+    token = nonComment(token);
     if (_lastCloned == null) {
       _lastCloned = new Token(TokenType.EOF, -1);
       _lastCloned.setNext(_lastCloned);
@@ -2268,7 +2269,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
         if (leftOperand is num && rightOperand is num) {
           return leftOperand ~/ rightOperand;
         }
-      } else {}
+      }
       break;
     }
     // TODO(brianwilkerson) This doesn't handle numeric conversions.
@@ -2315,10 +2316,11 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
     for (MapLiteralEntry entry in node.entries) {
       Object key = entry.key.accept(this);
       Object value = entry.value.accept(this);
-      if (key is! String || identical(value, NOT_A_CONSTANT)) {
+      if (key is String && !identical(value, NOT_A_CONSTANT)) {
+        map[key] = value;
+      } else {
         return NOT_A_CONSTANT;
       }
-      map[(key as String)] = value;
     }
     return map;
   }
@@ -2411,17 +2413,17 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
    */
   Object _getConstantValue(Element element) {
     // TODO(brianwilkerson) Implement this
-    if (element is FieldElement) {
-      FieldElement field = element;
-      if (field.isStatic && field.isConst) {
-        //field.getConstantValue();
-      }
-      //    } else if (element instanceof VariableElement) {
-      //      VariableElement variable = (VariableElement) element;
-      //      if (variable.isStatic() && variable.isConst()) {
-      //        //variable.getConstantValue();
-      //      }
-    }
+//    if (element is FieldElement) {
+//      FieldElement field = element;
+//      if (field.isStatic && field.isConst) {
+//        //field.getConstantValue();
+//      }
+//      //    } else if (element instanceof VariableElement) {
+//      //      VariableElement variable = (VariableElement) element;
+//      //      if (variable.isStatic() && variable.isConst()) {
+//      //        //variable.getConstantValue();
+//      //      }
+//    }
     return NOT_A_CONSTANT;
   }
 }
@@ -2504,17 +2506,14 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
   @override
   Element visitIdentifier(Identifier node) {
     AstNode parent = node.parent;
-    // Type name in Annotation
     if (parent is Annotation) {
-      Annotation annotation = parent;
-      if (identical(annotation.name, node) &&
-          annotation.constructorName == null) {
-        return annotation.element;
+      // Type name in Annotation
+      if (identical(parent.name, node) && parent.constructorName == null) {
+        return parent.element;
       }
-    }
-    // Extra work to map Constructor Declarations to their associated
-    // Constructor Elements
-    if (parent is ConstructorDeclaration) {
+    } else if (parent is ConstructorDeclaration) {
+      // Extra work to map Constructor Declarations to their associated
+      // Constructor Elements
       Identifier returnType = parent.returnType;
       if (identical(returnType, node)) {
         SimpleIdentifier name = parent.name;
@@ -2526,8 +2525,7 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
           return element.unnamedConstructor;
         }
       }
-    }
-    if (parent is LibraryIdentifier) {
+    } else if (parent is LibraryIdentifier) {
       AstNode grandParent = parent.parent;
       if (grandParent is PartOfDirective) {
         Element element = grandParent.element;
@@ -3681,7 +3679,7 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
    */
   NodeLocator(int startOffset, [int endOffset])
       : this._startOffset = startOffset,
-        this._endOffset = endOffset == null ? startOffset : endOffset;
+        this._endOffset = endOffset ?? startOffset;
 
   /**
    * Return the node that was found that corresponds to the given source range
@@ -3785,7 +3783,7 @@ class NodeLocator2 extends UnifyingAstVisitor<Object> {
    */
   NodeLocator2(int startOffset, [int endOffset])
       : this._startOffset = startOffset,
-        this._endOffset = endOffset == null ? startOffset : endOffset;
+        this._endOffset = endOffset ?? startOffset;
 
   /**
    * Search within the given AST [node] and return the node that was found,
@@ -5613,7 +5611,9 @@ class ResolutionCopier implements AstVisitor<bool> {
   bool visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     FunctionExpressionInvocation toNode =
         this._toNode as FunctionExpressionInvocation;
-    if (_and(_isEqualNodes(node.function, toNode.function),
+    if (_and(
+        _isEqualNodes(node.function, toNode.function),
+        _isEqualNodes(node.typeArguments, toNode.typeArguments),
         _isEqualNodes(node.argumentList, toNode.argumentList))) {
       toNode.propagatedElement = node.propagatedElement;
       toNode.propagatedInvokeType = node.propagatedInvokeType;
@@ -5878,6 +5878,7 @@ class ResolutionCopier implements AstVisitor<bool> {
     if (_and(
         _isEqualNodes(node.target, toNode.target),
         _isEqualTokens(node.operator, toNode.operator),
+        _isEqualNodes(node.typeArguments, toNode.typeArguments),
         _isEqualNodes(node.methodName, toNode.methodName),
         _isEqualNodes(node.argumentList, toNode.argumentList))) {
       toNode.propagatedInvokeType = node.propagatedInvokeType;

@@ -48,7 +48,10 @@ abstract class SecurityContext {
    * NB: This function calls [ReadFileAsBytesSync], and will block on file IO.
    * Prefer using [usePrivateKeyBytes].
    *
-   * iOS note: Not yet implemented.
+   * iOS note: Only PKCS12 data is supported. It should contain both the private
+   * key and the certificate chain. On iOS one call to [usePrivateKey] with this
+   * data is used instead of two calls to [useCertificateChain] and
+   * [usePrivateKey].
    */
   void usePrivateKey(String file, {String password});
 
@@ -57,8 +60,6 @@ abstract class SecurityContext {
    *
    * Like [usePrivateKey], but takes the contents of the file as a list
    * of bytes.
-   *
-   * iOS note: Not yet implemented.
    */
   void usePrivateKeyBytes(List<int> keyBytes, {String password});
 
@@ -74,6 +75,13 @@ abstract class SecurityContext {
    *
    * NB: This function calls [ReadFileAsBytesSync], and will block on file IO.
    * Prefer using [setTrustedCertificatesBytes].
+   *
+   * iOS note: On iOS, this call takes only the bytes for a single DER
+   * encoded X509 certificate. It may be called multiple times to add
+   * multiple trusted certificates to the context. A DER encoded certificate
+   * can be obtained from a PEM encoded certificate by using the openssl tool:
+   *
+   *   $ openssl x509 -outform der -in cert.pem -out cert.der
    */
   void setTrustedCertificates(String file, {String password});
 
@@ -82,13 +90,6 @@ abstract class SecurityContext {
    * client connections, when connecting to a secure server.
    *
    * Like [setTrustedCertificates] but takes the contents of the file.
-   *
-   * iOS note: On iOS, this call takes only the bytes for a single DER
-   * encoded X509 certificate. It may be called multiple times to add
-   * multiple trusted certificates to the context. A DER encoded certificate
-   * can be obtained from a PEM encoded certificate by using the openssl tool:
-   *
-   *   $ openssl x509 -outform der -in cert.pem -out cert.der
    */
   void setTrustedCertificatesBytes(List<int> certBytes, {String password});
 
@@ -107,7 +108,8 @@ abstract class SecurityContext {
    * NB: This function calls [ReadFileAsBytesSync], and will block on file IO.
    * Prefer using [useCertificateChainBytes].
    *
-   * iOS note: Not yet implemented.
+   * iOS note: As noted above, [usePrivateKey] does the job of both
+   * that call and this one. On iOS, this call is a no-op.
    */
   void useCertificateChain(String file, {String password});
 
@@ -116,8 +118,6 @@ abstract class SecurityContext {
    * when making secure connections, including the server certificate.
    *
    * Like [useCertificateChain] but takes the contents of the file.
-   *
-   * iOS note: Not yet implemented.
    */
   void useCertificateChainBytes(List<int> chainBytes, {String password});
 
@@ -135,7 +135,7 @@ abstract class SecurityContext {
    * NB: This function calls [ReadFileAsBytesSync], and will block on file IO.
    * Prefer using [setClientAuthoritiesBytes].
    *
-   * iOS note: Not yet implemented.
+   * iOS note: This call is not supported.
    */
   void setClientAuthorities(String file, {String password});
 
@@ -145,8 +145,6 @@ abstract class SecurityContext {
    * client.
    *
    * Like [setClientAuthority] but takes the contents of the file.
-   *
-   * iOS note: Not yet implemented.
    */
   void setClientAuthoritiesBytes(List<int> authCertBytes, {String password});
 

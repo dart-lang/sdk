@@ -245,6 +245,9 @@ class FixProcessor {
       _addFix_createConstructor_insteadOfSyntheticDefault();
       _addFix_addMissingParameter();
     }
+    if (errorCode == StaticWarningCode.FUNCTION_WITHOUT_CALL) {
+      _addFix_addMissingMethodCall();
+    }
     if (errorCode == StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR) {
       _addFix_createConstructor_named();
     }
@@ -413,6 +416,32 @@ class FixProcessor {
       _replaceReturnTypeWithFuture(body);
       _addFix(DartFixKind.ADD_ASYNC, []);
     }
+  }
+
+  void _addFix_addMissingMethodCall() {
+    ClassDeclaration targetClass = node.parent as ClassDeclaration;
+    // prepare SourceBuilder
+    int insertOffset = targetClass.end - 1;
+    SourceBuilder sb = new SourceBuilder(file, insertOffset);
+    // prepare environment
+    String prefix = utils.getIndent(1);
+    String prefix2 = utils.getIndent(2);
+    // start method
+    sb.append(prefix);
+    sb.append('call() {');
+    // TO-DO
+    sb.append(eol);
+    sb.append(prefix2);
+    sb.append('// TODO: implement call');
+    sb.append(eol);
+    // close method
+    sb.append(prefix);
+    sb.append('}');
+    sb.append(eol);
+    // add proposal
+    exitPosition = new Position(file, insertOffset);
+    _insertBuilder(sb, unitElement);
+    _addFix(DartFixKind.CREATE_MISSING_METHOD_CALL, []);
   }
 
   void _addFix_addMissingParameter() {
@@ -1044,8 +1073,7 @@ class FixProcessor {
         } else {
           ClassDeclaration enclosingClass =
               node.getAncestor((node) => node is ClassDeclaration);
-          targetElement =
-              enclosingClass != null ? enclosingClass.element : null;
+          targetElement = enclosingClass?.element;
           argument = nameNode;
         }
       }
@@ -1647,7 +1675,6 @@ class FixProcessor {
           VariableDeclarationList declarationList = variable.parent;
           Token keywordToken = declarationList.keyword;
           if (declarationList.variables.length == 1 &&
-              keywordToken is KeywordToken &&
               keywordToken.keyword == Keyword.FINAL) {
             if (declarationList.type != null) {
               SourceRange range =
@@ -2146,10 +2173,7 @@ class FixProcessor {
       if (n is MethodInvocation &&
           n.offset == errorOffset &&
           n.length == errorLength) {
-        Expression target = n.target;
-        while (target is ParenthesizedExpression) {
-          target = (target as ParenthesizedExpression).expression;
-        }
+        Expression target = n.target.unParenthesized;
         // replace "/" with "~/"
         BinaryExpression binary = target as BinaryExpression;
         _addReplaceEdit(rf.rangeToken(binary.operator), '~/');
@@ -2596,7 +2620,7 @@ class FixProcessor {
     // return myFunction();
     if (parent is ReturnStatement) {
       ExecutableElement executable = getEnclosingExecutableElement(expression);
-      return executable != null ? executable.returnType : null;
+      return executable?.returnType;
     }
     // int v = myFunction();
     if (parent is VariableDeclaration) {
@@ -2654,7 +2678,7 @@ class FixProcessor {
     // foo( myFunction() );
     if (parent is ArgumentList) {
       ParameterElement parameter = expression.bestParameterElement;
-      return parameter != null ? parameter.type : null;
+      return parameter?.type;
     }
     // bool
     {

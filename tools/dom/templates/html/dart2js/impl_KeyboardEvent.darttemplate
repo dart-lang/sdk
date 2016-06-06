@@ -14,15 +14,15 @@
  */
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
-  /** 
-   * Programmatically create a KeyboardEvent. 
+  /**
+   * Programmatically create a KeyboardEvent.
    *
    * Due to browser differences, keyCode, charCode, or keyIdentifier values
    * cannot be specified in this base level constructor. This constructor
    * enables the user to programmatically create and dispatch a [KeyboardEvent],
    * but it will not contain any particular key content. For programmatically
    * creating keyboard events with specific key value contents, see the custom
-   * Event [KeyEvent]. 
+   * Event [KeyEvent].
    */
   factory $CLASSNAME(String type,
       {Window view, bool canBubble: true, bool cancelable: true,
@@ -31,7 +31,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     if (view == null) {
       view = window;
     }
-    final e = document._createEvent("KeyboardEvent");
+    KeyboardEvent e = document._createEvent("KeyboardEvent");
     e._initKeyboardEvent(type, canBubble, cancelable, view, "",
         keyLocation, ctrlKey, altKey, shiftKey, metaKey);
     return e;

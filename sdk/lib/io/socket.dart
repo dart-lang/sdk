@@ -141,12 +141,21 @@ abstract class InternetAddress {
    */
   external static Future<List<InternetAddress>> lookup(
       String host, {InternetAddressType type: InternetAddressType.ANY});
+
+  /**
+   * Clones the given [address] with the new [host].
+   *
+   * The [address] must be an [InternetAddress] that was created with one
+   * of the static methods of this class.
+   */
+  external static InternetAddress _cloneWithNewHost(
+      InternetAddress address, String host);
 }
 
 
 /**
- * A [NetworkInterface] represent an active network interface on the current
- * system. It contains a list of [InternetAddress]s, that's bound to the
+ * A [NetworkInterface] represents an active network interface on the current
+ * system. It contains a list of [InternetAddress]es that are bound to the
  * interface.
  */
 abstract class NetworkInterface {
@@ -161,10 +170,17 @@ abstract class NetworkInterface {
   String get index;
 
   /**
-   * Get a list of [InternetAddress]s currently bound to this
+   * Get a list of [InternetAddress]es currently bound to this
    * [NetworkInterface].
    */
   List<InternetAddress> get addresses;
+
+  /**
+   * Whether [list] is supported.
+   *
+   * [list] is currently unsupported on Android.
+   */
+  external static bool get listSupported;
 
   /**
    * Query the system for [NetworkInterface]s.
@@ -552,6 +568,10 @@ abstract class Socket implements Stream<List<int>>, IOSink {
    * Returns the remote [InternetAddress] connected to by this socket.
    */
   InternetAddress get remoteAddress;
+
+  Future<Socket> close();
+
+  Future<Socket> get done;
 }
 
 

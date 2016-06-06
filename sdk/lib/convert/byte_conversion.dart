@@ -64,8 +64,8 @@ class _ByteAdapterSink extends ByteConversionSinkBase {
 
   _ByteAdapterSink(this._sink);
 
-  void add(List<int> chunk) => _sink.add(chunk);
-  void close() => _sink.close();
+  void add(List<int> chunk) { _sink.add(chunk); }
+  void close() { _sink.close(); }
 }
 
 /**

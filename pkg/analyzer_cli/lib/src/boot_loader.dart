@@ -7,6 +7,7 @@ library analyzer_cli.src.boot_loader;
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/src/context/context.dart';
@@ -108,7 +109,7 @@ class BootLoader {
     errorSink.writeln('Plugin configuration skipped: $details');
   };
 
-  /// Reads plugin config info from `.analysis_options`.
+  /// Reads plugin config info from the analysis options file.
   PluginConfigOptionsProcessor _pluginOptionsProcessor =
       new PluginConfigOptionsProcessor(_pluginConfigErrorHandler);
 
@@ -126,12 +127,26 @@ class BootLoader {
         args: args, packageRootPath: options.packageRootPath);
   }
 
-  void _processAnalysisOptions(CommandLineOptions options) {
+  File _getOptionsFile(
+      CommandLineOptions options, ResourceProvider resourceProvider) {
+    String analysisOptionsFile = options.analysisOptionsFile;
+    if (analysisOptionsFile != null) {
+      return resourceProvider.getFile(analysisOptionsFile);
+    }
+    File file =
+        resourceProvider.getFile(engine.AnalysisEngine.ANALYSIS_OPTIONS_FILE);
+    if (!file.exists) {
+      file = resourceProvider
+          .getFile(engine.AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+    }
+    return file;
+  }
+
+  void _processAnalysisOptions(CommandLineOptions commandLineOptions) {
     // Determine options file path.
-    var filePath = options.analysisOptionsFile ??
-        engine.AnalysisEngine.ANALYSIS_OPTIONS_FILE;
     try {
-      var file = PhysicalResourceProvider.INSTANCE.getFile(filePath);
+      File file = _getOptionsFile(
+          commandLineOptions, PhysicalResourceProvider.INSTANCE);
       AnalysisOptionsProvider analysisOptionsProvider =
           new AnalysisOptionsProvider();
       Map<String, YamlNode> options =

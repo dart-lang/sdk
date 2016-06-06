@@ -5,13 +5,11 @@
 library dart2js.parser.member_listener;
 
 import '../common.dart';
-import '../elements/elements.dart'
-    show Element, ElementKind, Elements, MetadataAnnotation;
+import '../elements/elements.dart' show Element, ElementKind, Elements;
 import '../elements/modelx.dart'
     show ClassElementX, ElementX, FieldElementX, VariableList;
 import '../tokens/token.dart' show Token;
 import '../tree/tree.dart';
-
 import 'element_listener.dart' show ScannerOptions;
 import 'node_listener.dart' show NodeListener;
 import 'partial_elements.dart'

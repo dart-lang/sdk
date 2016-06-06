@@ -114,12 +114,14 @@ void ARMDecoder::PrintCondition(Instr* instr) {
 // formatting, except for register alias pp (r5).
 // See for example the command "objdump -d <binary file>".
 static const char* reg_names[kNumberOfCpuRegisters] = {
-#if defined(TARGET_OS_MACOS)
+#if defined(TARGET_ABI_IOS)
   "r0", "r1", "r2", "r3", "r4", "pp", "r6", "fp",
   "r8", "r9", "r10", "r11", "ip", "sp", "lr", "pc",
-#else
+#elif defined(TARGET_ABI_EABI)
   "r0", "r1", "r2", "r3", "r4", "pp", "r6", "r7",
   "r8", "r9", "r10", "fp", "ip", "sp", "lr", "pc",
+#else
+#error Unknown ABI
 #endif
 };
 

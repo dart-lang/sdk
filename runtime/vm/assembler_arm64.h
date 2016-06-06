@@ -1378,20 +1378,17 @@ class Assembler : public ValueObject {
   void LeaveStubFrame();
 
   void UpdateAllocationStats(intptr_t cid,
-                             Heap::Space space,
-                             bool inline_isolate = true);
+                             Heap::Space space);
 
   void UpdateAllocationStatsWithSize(intptr_t cid,
                                      Register size_reg,
-                                     Heap::Space space,
-                                     bool inline_isolate = true);
+                                     Heap::Space space);
 
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.
   void MaybeTraceAllocation(intptr_t cid,
                             Register temp_reg,
-                            Label* trace,
-                            bool inline_isolate = true);
+                            Label* trace);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.

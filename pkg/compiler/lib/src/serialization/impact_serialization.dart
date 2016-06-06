@@ -4,16 +4,15 @@
 
 library dart2js.serialization.impact;
 
-import '../dart_types.dart';
+import '../common.dart';
 import '../common/resolution.dart';
 import '../constants/expressions.dart';
+import '../dart_types.dart';
 import '../elements/elements.dart';
-import '../universe/call_structure.dart';
 import '../universe/selector.dart';
-import '../universe/world_impact.dart';
 import '../universe/use.dart';
+import '../universe/world_impact.dart';
 import '../util/enumset.dart';
-
 import 'keys.dart';
 import 'serialization.dart';
 import 'serialization_util.dart';
@@ -21,12 +20,15 @@ import 'serialization_util.dart';
 /// Visitor that serializes a [ResolutionImpact] object using an
 /// [ObjectEncoder].
 class ImpactSerializer implements WorldImpactVisitor {
+  final Element element;
   final ObjectEncoder objectEncoder;
   final ListEncoder staticUses;
   final ListEncoder dynamicUses;
   final ListEncoder typeUses;
+  final SerializerPlugin nativeDataSerializer;
 
-  ImpactSerializer(ObjectEncoder objectEncoder)
+  ImpactSerializer(
+      this.element, ObjectEncoder objectEncoder, this.nativeDataSerializer)
       : this.objectEncoder = objectEncoder,
         staticUses = objectEncoder.createList(Key.STATIC_USES),
         dynamicUses = objectEncoder.createList(Key.DYNAMIC_USES),
@@ -56,6 +58,12 @@ class ImpactSerializer implements WorldImpactVisitor {
         useEncoder.setBool(Key.IS_EMPTY, use.isEmpty);
       }
     }
+    if (resolutionImpact.nativeData.isNotEmpty) {
+      ListEncoder encoder = objectEncoder.createList(Key.NATIVE);
+      for (dynamic data in resolutionImpact.nativeData) {
+        nativeDataSerializer.onData(data, encoder.createObject());
+      }
+    }
   }
 
   @override
@@ -66,14 +74,10 @@ class ImpactSerializer implements WorldImpactVisitor {
 
   @override
   void visitStaticUse(StaticUse staticUse) {
-    if (staticUse.element.isGenerativeConstructor &&
-        staticUse.element.enclosingClass.isUnnamedMixinApplication) {
-      // TODO(johnniwinther): Handle static use of forwarding constructors.
-      return;
-    }
     ObjectEncoder object = staticUses.createObject();
     object.setEnum(Key.KIND, staticUse.kind);
-    object.setElement(Key.ELEMENT, staticUse.element);
+    serializeElementReference(
+        element, Key.ELEMENT, Key.NAME, object, staticUse.element);
   }
 
   @override
@@ -95,31 +99,39 @@ class DeserializedResolutionImpact extends WorldImpact
   final Iterable<MapLiteralUse> mapLiterals;
   final Iterable<StaticUse> staticUses;
   final Iterable<TypeUse> typeUses;
+  final Iterable<dynamic> nativeData;
 
   DeserializedResolutionImpact(
-      {this.constSymbolNames,
-      this.constantLiterals,
-      this.dynamicUses,
+      {this.constSymbolNames: const <String>[],
+      this.constantLiterals: const <ConstantExpression>[],
+      this.dynamicUses: const <DynamicUse>[],
       EnumSet<Feature> features,
-      this.listLiterals,
-      this.mapLiterals,
-      this.staticUses,
-      this.typeUses})
+      this.listLiterals: const <ListLiteralUse>[],
+      this.mapLiterals: const <MapLiteralUse>[],
+      this.staticUses: const <StaticUse>[],
+      this.typeUses: const <TypeUse>[],
+      this.nativeData: const <dynamic>[]})
       : this._features = features;
 
-  Iterable<Feature> get features => _features.iterable(Feature.values);
+  Iterable<Feature> get features {
+    return _features != null
+        ? _features.iterable(Feature.values)
+        : const <Feature>[];
+  }
 }
 
 class ImpactDeserializer {
   /// Deserializes a [WorldImpact] from [objectDecoder].
-  static ResolutionImpact deserializeImpact(ObjectDecoder objectDecoder) {
+  static ResolutionImpact deserializeImpact(Element element,
+      ObjectDecoder objectDecoder, DeserializerPlugin nativeDataDeserializer) {
     ListDecoder staticUseDecoder = objectDecoder.getList(Key.STATIC_USES);
     List<StaticUse> staticUses = <StaticUse>[];
     for (int index = 0; index < staticUseDecoder.length; index++) {
       ObjectDecoder object = staticUseDecoder.getObject(index);
       StaticUseKind kind = object.getEnum(Key.KIND, StaticUseKind.values);
-      Element element = object.getElement(Key.ELEMENT);
-      staticUses.add(new StaticUse.internal(element, kind));
+      Element usedElement =
+          deserializeElementReference(element, Key.ELEMENT, Key.NAME, object);
+      staticUses.add(new StaticUse.internal(usedElement, kind));
     }
 
     ListDecoder dynamicUseDecoder = objectDecoder.getList(Key.DYNAMIC_USES);
@@ -178,6 +190,20 @@ class ImpactDeserializer {
       }
     }
 
+    ListDecoder nativeDataDecoder =
+        objectDecoder.getList(Key.NATIVE, isOptional: true);
+    List<dynamic> nativeData = const <dynamic>[];
+    if (nativeDataDecoder != null) {
+      nativeData = <dynamic>[];
+      for (int i = 0; i < nativeDataDecoder.length; i++) {
+        dynamic data =
+            nativeDataDeserializer.onData(nativeDataDecoder.getObject(i));
+        if (data != null) {
+          nativeData.add(data);
+        }
+      }
+    }
+
     return new DeserializedResolutionImpact(
         constSymbolNames: constSymbolNames,
         constantLiterals: constantLiterals,
@@ -186,6 +212,7 @@ class ImpactDeserializer {
         listLiterals: listLiterals,
         mapLiterals: mapLiterals,
         staticUses: staticUses,
-        typeUses: typeUses);
+        typeUses: typeUses,
+        nativeData: nativeData);
   }
 }

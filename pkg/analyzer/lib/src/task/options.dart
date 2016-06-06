@@ -21,7 +21,7 @@ import 'package:analyzer/task/model.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
-/// The errors produced while parsing `.analysis_options` files.
+/// The errors produced while parsing an analysis options file.
 ///
 /// The list will be empty if there were no errors, but will not be `null`.
 final ListResultDescriptor<AnalysisError> ANALYSIS_OPTIONS_ERRORS =
@@ -48,6 +48,8 @@ class AnalyzerOptions {
   static const String enableGenericMethods = 'enableGenericMethods';
   static const String enableStrictCallChecks = 'enableStrictCallChecks';
   static const String enableSuperMixins = 'enableSuperMixins';
+
+  /// This option is deprecated.
   static const String enableConditionalDirectives =
       "enableConditionalDirectives";
   static const String errors = 'errors';
@@ -202,7 +204,7 @@ class ErrorFilterOptionValidator extends OptionsValidator {
   }
 }
 
-/// A task that generates errors for an `.analysis_options` file.
+/// A task that generates errors for an analysis options file.
 class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
   /// The name of the input whose value is the content of the file.
   static const String CONTENT_INPUT_NAME = 'CONTENT_INPUT_NAME';
@@ -274,7 +276,8 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
    */
   static TaskSuitability suitabilityFor(AnalysisTarget target) {
     if (target is Source &&
-        target.shortName == AnalysisEngine.ANALYSIS_OPTIONS_FILE) {
+        (target.shortName == AnalysisEngine.ANALYSIS_OPTIONS_FILE ||
+            target.shortName == AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE)) {
       return TaskSuitability.HIGHEST;
     }
     return TaskSuitability.NONE;
@@ -322,7 +325,7 @@ class LinterOptionsValidator extends TopLevelOptionValidator {
   LinterOptionsValidator() : super('linter', const ['rules']);
 }
 
-/// Validates options defined in an `.analysis_options` file.
+/// Validates options defined in an analysis options file.
 class OptionsFileValidator {
   // TODO(pq): move to an extension point.
   final List<OptionsValidator> _validators = [
@@ -493,14 +496,6 @@ class _OptionsProcessor {
         AnalysisOptionsImpl options =
             new AnalysisOptionsImpl.from(context.analysisOptions);
         options.enableGenericMethods = true;
-        context.analysisOptions = options;
-      }
-    }
-    if (feature == AnalyzerOptions.enableConditionalDirectives) {
-      if (isTrue(value)) {
-        AnalysisOptionsImpl options =
-            new AnalysisOptionsImpl.from(context.analysisOptions);
-        options.enableConditionalDirectives = true;
         context.analysisOptions = options;
       }
     }

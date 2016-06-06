@@ -275,8 +275,9 @@ class GZipCodec extends Codec<List<int>, List<int>> {
  * The [ZLibEncoder] encoder is used by [ZLibCodec] and [GZipCodec] to compress
  * data.
  */
-class ZLibEncoder extends
-    ChunkedConverter<List<int>, List<int>, List<int>, List<int>> {
+class ZLibEncoder extends Converter<List<int>, List<int>>
+    implements ChunkedConverter<List<int>, List<int>, List<int>, List<int>> {
+
   /**
    * When true, `GZip` frames will be added to the compressed data.
    */
@@ -379,8 +380,7 @@ class ZLibEncoder extends
 /**
  * The [ZLibDecoder] is used by [ZLibCodec] and [GZipCodec] to decompress data.
  */
-class ZLibDecoder extends
-    ChunkedConverter<List<int>, List<int>, List<int>, List<int>> {
+class ZLibDecoder extends  Converter<List<int>, List<int>> {
   /**
    * Base two logarithm of the window size (the size of the history buffer). It
    * should be in the range `8..15`. Larger values result in better compression
@@ -494,7 +494,7 @@ class _FilterSink extends ByteConversionSink {
       _filter.process(bufferAndStart.buffer,
                       bufferAndStart.start,
                       end - (start - bufferAndStart.start));
-      var out;
+      List<int> out;
       while ((out = _filter.processed(flush: false)) != null) {
         _sink.add(out);
       }
@@ -512,7 +512,7 @@ class _FilterSink extends ByteConversionSink {
     // message would not have a GZip frame (if compressed with GZip).
     if (_empty) _filter.process(const [], 0, 0);
     try {
-      var out;
+      List<int> out;
       while ((out = _filter.processed(end: true)) != null) {
         _sink.add(out);
       }

@@ -14,7 +14,8 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
-import 'package:analyzer/src/generated/source_io.dart' show FileBasedSource;
+import 'package:analyzer/src/generated/source_io.dart'
+    show FileBasedSource, FileUriResolver, PackageUriResolver;
 import 'package:analyzer/task/model.dart';
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
@@ -111,7 +112,7 @@ class CustomUriResolver extends UriResolver {
     if (!fileUri.isAbsolute) return null;
 
     JavaFile javaFile = new JavaFile.fromUri(fileUri);
-    return new FileBasedSource(javaFile, actualUri != null ? actualUri : uri);
+    return new FileBasedSource(javaFile, actualUri ?? uri);
   }
 }
 
@@ -217,6 +218,11 @@ class LineInfo {
   }
 
   /**
+   * The number of lines.
+   */
+  int get lineCount => _lineStarts.length;
+
+  /**
    * Return the location information for the character at the given [offset].
    */
   LineInfo_Location getLocation(int offset) {
@@ -258,7 +264,7 @@ class LineInfo {
    * [lineNumber].
    */
   int getOffsetOfLine(int lineNumber) {
-    if (lineNumber < 0 || lineNumber >= _lineStarts.length) {
+    if (lineNumber < 0 || lineNumber >= lineCount) {
       throw new ArgumentError('Invalid line number: $lineNumber');
     }
     return _lineStarts[lineNumber];
@@ -435,7 +441,7 @@ abstract class Source implements AnalysisTarget {
   /**
    * Get the contents and timestamp of this source.
    *
-   * Clients should consider using the the method [AnalysisContext.getContents]
+   * Clients should consider using the method [AnalysisContext.getContents]
    * because contexts can have local overrides of the content of a source that the source is not
    * aware of.
    *
@@ -486,7 +492,7 @@ abstract class Source implements AnalysisTarget {
    * will be returned, but if the contents of the source have been modified one
    * or more times (even if the net change is zero) the stamps will be different.
    *
-   * Clients should consider using the the method
+   * Clients should consider using the method
    * [AnalysisContext.getModificationStamp] because contexts can have local
    * overrides of the content of a source that the source is not aware of.
    */
@@ -535,7 +541,7 @@ abstract class Source implements AnalysisTarget {
   /**
    * Return `true` if this source exists.
    *
-   * Clients should consider using the the method [AnalysisContext.exists] because
+   * Clients should consider using the method [AnalysisContext.exists] because
    * contexts can have local overrides of the content of a source that the source is not aware of
    * and a source with local content is considered to exist even if there is no file on disk.
    *
@@ -750,12 +756,10 @@ class SourceRange {
   int get hashCode => 31 * offset + length;
 
   @override
-  bool operator ==(Object obj) {
-    if (obj is! SourceRange) {
-      return false;
-    }
-    SourceRange sourceRange = obj as SourceRange;
-    return sourceRange.offset == offset && sourceRange.length == length;
+  bool operator ==(Object other) {
+    return other is SourceRange &&
+        other.offset == offset &&
+        other.length == length;
   }
 
   /**
@@ -891,6 +895,20 @@ class UriKind extends Enum<UriKind> {
       break;
     }
     return null;
+  }
+
+  /**
+   * Return the URI kind corresponding to the given scheme string.
+   */
+  static UriKind fromScheme(String scheme) {
+    if (scheme == PackageUriResolver.PACKAGE_SCHEME) {
+      return UriKind.PACKAGE_URI;
+    } else if (scheme == DartUriResolver.DART_SCHEME) {
+      return UriKind.DART_URI;
+    } else if (scheme == FileUriResolver.FILE_SCHEME) {
+      return UriKind.FILE_URI;
+    }
+    return UriKind.FILE_URI;
   }
 }
 

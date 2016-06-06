@@ -84,8 +84,8 @@ class _FusedCodec<S, M, T> extends Codec<S, T> {
   final Codec<S, M> _first;
   final Codec<M, T> _second;
 
-  Converter<S, T> get encoder => _first.encoder.fuse(_second.encoder);
-  Converter<T, S> get decoder => _second.decoder.fuse(_first.decoder);
+  Converter<S, T> get encoder => _first.encoder.fuse/*<T>*/(_second.encoder);
+  Converter<T, S> get decoder => _second.decoder.fuse/*<S>*/(_first.decoder);
 
   _FusedCodec(this._first, this._second);
 }

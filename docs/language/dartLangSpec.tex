@@ -1807,9 +1807,9 @@ If two members override each other, it is a static warning if their type signatu
 \item \label{requiredParams}
 If two members override each other, it is a static warning if the overriding member has more required parameters  than the overridden one (\ref{instanceMethods}). 
 \item  \label{optionalPositionals}
-If two members override each other, it is a static warning if the overriding member has fewer  positional parameters than the the overridden one (\ref{instanceMethods}).
+If two members override each other, it is a static warning if the overriding member has fewer  positional parameters than the overridden one (\ref{instanceMethods}).
 \item  \label{namedParams}
-If two members override each other, it is a static warning if the overriding member does not have all the named parameters that the the overridden one has (\ref{instanceMethods}).
+If two members override each other, it is a static warning if the overriding member does not have all the named parameters that the overridden one has (\ref{instanceMethods}).
 \item Setters, getters and operators never have optional parameters of any kind; it's a compile-time error (\ref{operators}, \ref{getters}, \ref{setters}).
 \item It is a compile-time error if a member has the same name as its enclosing class (\ref{classes}).
 \item A class has an implicit interface (\ref{classes}). 
@@ -1839,7 +1839,7 @@ If two members override each other, it is a static warning if the overriding mem
 % what about rules about classes that fail to implement their interfaces?
 
 \LMHash{}
-A class has a set of direct superinterfaces. This set includes the interface of its superclass and the interfaces specified in the the \IMPLEMENTS{}  clause of the class.
+A class has a set of direct superinterfaces. This set includes the interface of its superclass and the interfaces specified in the \IMPLEMENTS{}  clause of the class.
 % and any superinterfaces specified by interface injection (\ref{interfaceInjection}).  \Q{The latter needs to be worded carefully - when do interface injection clauses execute and in what scope?}
 
 \begin{grammar}
@@ -2815,7 +2815,7 @@ All string literals implement the built-in class \code{String}. It is a compile-
 \LMLabel{stringInterpolation}
 
 \LMHash{}
-It is possible to embed expressions within non-raw string literals, such that the these expressions are evaluated, and the resulting values are converted into strings and concatenated with the enclosing string. This process is known as {\em string interpolation}.
+It is possible to embed expressions within non-raw string literals, such that these expressions are evaluated, and the resulting values are converted into strings and concatenated with the enclosing string. This process is known as {\em string interpolation}.
 
  \begin{grammar}
 {\bf stringInterpolation:}`\$' IDENTIFIER\_NO\_DOLLAR;
@@ -3059,7 +3059,7 @@ The rules for where a thrown exception will be handled must necessarily differ b
 }
 
 \LMHash{}
-If the object being thrown is an instance of class \code{Error} or a subclass thereof, its \code{stackTrace} getter will return the stack trace current at the point where the the object was first thrown.
+If the object being thrown is an instance of class \code{Error} or a subclass thereof, its \code{stackTrace} getter will return the stack trace current at the point where the object was first thrown.
 
 \LMHash{}
 The static type of a throw expression is $\bot$.
@@ -5683,7 +5683,7 @@ Instead, each iteration has its own distinct variable.  The first iteration uses
 \LMHash{}
 It is a static warning if the static type of $c$ may not be assigned to \cd{bool}.
 
-%A for statement of the form \code{ \FOR{} ($d$ ; $c$; $e$) $s$} is equivalent to the the following code:
+%A for statement of the form \code{ \FOR{} ($d$ ; $c$; $e$) $s$} is equivalent to the following code:
 
 %\code{
 %\{$d$;
@@ -6306,7 +6306,7 @@ The {\em break statement} consists of the reserved word \BREAK{} and an optional
  \end{grammar}
  
 \LMHash{}
-Let $s_b$ be a \BREAK{} statement. If $s_b$ is of the form  \code{\BREAK{} $L$;}, then let $s_E$ be the the innermost labeled statement with label $L$ enclosing $s_b$. If $s_b$ is of the form \code{\BREAK{};},  then let $s_E$ be the the innermost  \DO{} (\ref{do}), \FOR{} (\ref{for}), \SWITCH{} (\ref{switch}) or \WHILE{} (\ref{while}) statement enclosing  $s_b$. It is a compile-time error if no such statement $s_E$ exists within the innermost function in which  $s_b$ occurs.  Furthermore, let $s_1, \ldots, s_n$ be those \TRY{} statements that are both enclosed in $s_E$ and that enclose  $s_b$, and that have a \FINALLY{} clause. Lastly, let $f_j$ be the \FINALLY{} clause of $s_j, 1 \le j \le n$.   Executing  $s_b$ first executes $f_1, \ldots,  f_n$ in innermost-clause-first  order and then terminates $s_E$. 
+Let $s_b$ be a \BREAK{} statement. If $s_b$ is of the form  \code{\BREAK{} $L$;}, then let $s_E$ be the innermost labeled statement with label $L$ enclosing $s_b$. If $s_b$ is of the form \code{\BREAK{};},  then let $s_E$ be the innermost  \DO{} (\ref{do}), \FOR{} (\ref{for}), \SWITCH{} (\ref{switch}) or \WHILE{} (\ref{while}) statement enclosing  $s_b$. It is a compile-time error if no such statement $s_E$ exists within the innermost function in which  $s_b$ occurs.  Furthermore, let $s_1, \ldots, s_n$ be those \TRY{} statements that are both enclosed in $s_E$ and that enclose  $s_b$, and that have a \FINALLY{} clause. Lastly, let $f_j$ be the \FINALLY{} clause of $s_j, 1 \le j \le n$.   Executing  $s_b$ first executes $f_1, \ldots,  f_n$ in innermost-clause-first  order and then terminates $s_E$. 
 
 \LMHash{}
 If $s_E$ is an asynchronous for loop (\ref{asynchronousFor-in}), its associated stream subscription is canceled. Furthermore, let $a_k$ be the set of asynchronous for loops  and yield-each statements (\ref{yieldEach}) enclosing $s_b$ that are enclosed in $s_E , 1 \le k \le m$, where $a_k$ is enclosed in $a_{k+1}$.   The stream subscriptions associated with $a_j$ are canceled, $1 \le j \le m$, innermost first, so that $a_j$ is canceled before $a_{j+1}$. 
@@ -6326,7 +6326,7 @@ The {\em continue statement} consists of the reserved word \CONTINUE{} and an op
  \end{grammar}      
  
 \LMHash{}
- Let $s_c$ be a \CONTINUE{} statement. If $s_c$ is of the form  \code{\CONTINUE{} $L$;}, then let $s_E$ be the the innermost labeled \DO{} (\ref{do}), \FOR{} (\ref{for}) or \WHILE{} (\ref{while}) statement or case clause with label $L$ enclosing $s_c$. If $s_c$ is of the form \code{\CONTINUE{};}  then let $s_E$ be the the innermost  \DO{} (\ref{do}), \FOR{} (\ref{for}) or \WHILE{} (\ref{while}) statement enclosing  $s_c$. It is a compile-time error if no such statement or case clause $s_E$ exists within the innermost function in which  $s_c$ occurs.  Furthermore, let $s_1, \ldots, s_n$ be those \TRY{} statements that are both enclosed in $s_E$ and that enclose  $s_c$, and that have a \FINALLY{} clause. Lastly, let $f_j$ be the \FINALLY{} clause of $s_j, 1 \le j \le n$.   Executing  $s_c$ first executes $f_1, \ldots,  f_n$ in innermost-clause-first  order. Then, if $s_E$ is a case clause, control is transferred to the case clause. Otherwise, $s_E$ is necessarily a loop and execution resumes after the last statement in the loop body.
+ Let $s_c$ be a \CONTINUE{} statement. If $s_c$ is of the form  \code{\CONTINUE{} $L$;}, then let $s_E$ be the innermost labeled \DO{} (\ref{do}), \FOR{} (\ref{for}) or \WHILE{} (\ref{while}) statement or case clause with label $L$ enclosing $s_c$. If $s_c$ is of the form \code{\CONTINUE{};}  then let $s_E$ be the innermost  \DO{} (\ref{do}), \FOR{} (\ref{for}) or \WHILE{} (\ref{while}) statement enclosing  $s_c$. It is a compile-time error if no such statement or case clause $s_E$ exists within the innermost function in which  $s_c$ occurs.  Furthermore, let $s_1, \ldots, s_n$ be those \TRY{} statements that are both enclosed in $s_E$ and that enclose  $s_c$, and that have a \FINALLY{} clause. Lastly, let $f_j$ be the \FINALLY{} clause of $s_j, 1 \le j \le n$.   Executing  $s_c$ first executes $f_1, \ldots,  f_n$ in innermost-clause-first  order. Then, if $s_E$ is a case clause, control is transferred to the case clause. Otherwise, $s_E$ is necessarily a loop and execution resumes after the last statement in the loop body.
  
  \commentary{
  In a while loop, that would be the boolean expression before the body. In a do loop, it would be the boolean expression after the body. In a for loop, it would be the increment clause.  In other words, execution continues to the next iteration of the loop.
@@ -6980,7 +6980,7 @@ The intent is that, during development, Dart programmers can rely on a package m
 }
 
 \LMHash{}
-Otherwise, any relative URI is interpreted as relative to the the location of the current library. All further interpretation of URIs is implementation dependent. 
+Otherwise, any relative URI is interpreted as relative to the location of the current library. All further interpretation of URIs is implementation dependent. 
 
 \commentary{This means it is dependent on the embedder.}
 

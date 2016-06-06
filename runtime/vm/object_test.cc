@@ -21,15 +21,11 @@ namespace dart {
 
 DECLARE_FLAG(bool, write_protect_code);
 
-static RawLibrary* CreateDummyLibrary(const String& library_name) {
-  return Library::New(library_name);
-}
-
 
 static RawClass* CreateDummyClass(const String& class_name,
                                   const Script& script) {
-  const Class& cls = Class::Handle(
-      Class::New(class_name, script, TokenPosition::kNoSource));
+  const Class& cls = Class::Handle(Class::New(
+      Library::Handle(), class_name, script, TokenPosition::kNoSource));
   cls.set_is_synthesized_class();  // Dummy class for testing.
   return cls.raw();
 }
@@ -166,16 +162,12 @@ VM_TEST_CASE(TypeArguments) {
 
 
 VM_TEST_CASE(TokenStream) {
-  String& source = String::Handle(String::New("= ( 9 , ."));
-  String& private_key = String::Handle(String::New(""));
-  Scanner scanner(source, private_key);
-  const Scanner::GrowableTokenStream& ts = scanner.GetStream();
-  EXPECT_EQ(6, ts.length());
-  EXPECT_EQ(Token::kLPAREN, ts[1].kind);
+  Zone* zone = Thread::Current()->zone();
+  String& source = String::Handle(zone, String::New("= ( 9 , ."));
+  String& private_key = String::Handle(zone, String::New(""));
   const TokenStream& token_stream = TokenStream::Handle(
-      TokenStream::New(ts, private_key, false));
-  TokenStream::Iterator iterator(token_stream, TokenPosition::kMinSource);
-  // EXPECT_EQ(6, token_stream.Length());
+      zone, TokenStream::New(source, private_key, false));
+  TokenStream::Iterator iterator(zone, token_stream, TokenPosition::kMinSource);
   iterator.Advance();  // Advance to '(' token.
   EXPECT_EQ(Token::kLPAREN, iterator.CurrentTokenKind());
   iterator.Advance();
@@ -2690,6 +2682,11 @@ VM_TEST_CASE(CheckedHandle) {
 }
 
 
+static RawLibrary* CreateDummyLibrary(const String& library_name) {
+  return Library::New(library_name);
+}
+
+
 static RawFunction* CreateFunction(const char* name) {
   Thread* thread = Thread::Current();
   const String& class_name = String::Handle(Symbols::New(thread, "ownerClass"));
@@ -4008,7 +4005,7 @@ TEST_CASE(FunctionSourceFingerprint) {
   TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   const String& name = String::Handle(String::New(TestCase::url()));
-  const Library& lib = Library::Handle(Library::LookupLibrary(name));
+  const Library& lib = Library::Handle(Library::LookupLibrary(thread, name));
   EXPECT(!lib.IsNull());
 
   const Class& class_a = Class::Handle(
@@ -4073,7 +4070,7 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
 
   // With no breakpoint, function A.b is inlineable.
   const String& name = String::Handle(String::New(TestCase::url()));
-  const Library& vmlib = Library::Handle(Library::LookupLibrary(name));
+  const Library& vmlib = Library::Handle(Library::LookupLibrary(thread, name));
   EXPECT(!vmlib.IsNull());
   const Class& class_a = Class::Handle(
       vmlib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
@@ -4082,10 +4079,8 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
   EXPECT(func_b.CanBeInlined());
 
   // After setting a breakpoint in a function A.b, it is no longer inlineable.
-  Breakpoint* bpt =
-      Isolate::Current()->debugger()->SetBreakpointAtLine(name,
-                                                          kBreakpointLine);
-  ASSERT(bpt != NULL);
+  result = Dart_SetBreakpoint(NewString(TestCase::url()), kBreakpointLine);
+  EXPECT_VALID(result);
   EXPECT(!func_b.CanBeInlined());
 }
 

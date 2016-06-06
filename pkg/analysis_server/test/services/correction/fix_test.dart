@@ -2254,6 +2254,22 @@ main() {
 ''');
   }
 
+  test_createMissingMethodCall() async {
+    resolveTestUnit('''
+class C implements Function {
+}
+''');
+    await assertHasFix(
+        DartFixKind.CREATE_MISSING_METHOD_CALL,
+        '''
+class C implements Function {
+  call() {
+    // TODO: implement call
+  }
+}
+''');
+  }
+
   test_createMissingOverrides_field_untyped() async {
     resolveTestUnit('''
 class A {

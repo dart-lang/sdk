@@ -52,6 +52,11 @@ _postEvent(String eventKind, String eventData) {
 
 
 @patch
+bool _isDartStreamEnabled() {
+  return false;
+}
+
+@patch
 int _getTraceClock() {
   // TODO.
   return _clockValue++;
@@ -59,8 +64,14 @@ int _getTraceClock() {
 int _clockValue = 0;
 
 @patch
+int _getThreadCpuClock() {
+  return -1;
+}
+
+
+@patch
 void _reportCompleteEvent(int start,
-                          int end,
+                          int startCpu,
                           String category,
                           String name,
                           String argumentsAsJson) {

@@ -5,8 +5,8 @@
 library dart2js.common.registry;
 
 import '../dart_types.dart' show InterfaceType;
+import '../elements/elements.dart' show Element;
 import '../enqueue.dart' show Enqueuer;
-import '../elements/elements.dart' show Element, FunctionElement;
 import '../universe/use.dart' show DynamicUse, StaticUse;
 
 /// Interface for registration of element dependencies.

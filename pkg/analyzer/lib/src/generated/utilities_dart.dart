@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/element/element.dart' show ElementImpl;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/util/fast_uri.dart';
 
 /**
  * Resolve the [containedUri] against [baseUri] using Dart rules.
@@ -33,12 +34,12 @@ Uri resolveRelativeUri(Uri baseUri, Uri containedUri) {
       if (scheme == DartUriResolver.DART_SCHEME && part.indexOf('/') < 0) {
         part = "$part/$part.dart";
       }
-      baseUri = parseUriWithException("$scheme:/$part");
+      baseUri = FastUri.parse("$scheme:/$part");
     }
     Uri result = baseUri.resolveUri(containedUri);
     if (isOpaque) {
       result =
-          parseUriWithException("${result.scheme}:${result.path.substring(1)}");
+          FastUri.parse("${result.scheme}:${result.path.substring(1)}");
     }
     return result;
   } catch (exception, stackTrace) {

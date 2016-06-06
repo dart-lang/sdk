@@ -282,8 +282,13 @@ static void VerifyStackTrace(Dart_StackTrace trace,
     res = Dart_ActivationFrameGetFramePointer(frame, &frame_pointer);
     EXPECT_TRUE(res);
     if (i > 0) {
+#if !defined(TARGET_ARCH_DBC)
       // We expect the stack to grow from high to low addresses.
       EXPECT_GT(frame_pointer, last_frame_pointer);
+#else
+      // On DBC stack grows upwards from low to high addresses.
+      EXPECT_LT(frame_pointer, last_frame_pointer);
+#endif
     }
     last_frame_pointer = frame_pointer;
     if (i < expected_frames) {

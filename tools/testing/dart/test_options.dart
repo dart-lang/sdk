@@ -73,9 +73,9 @@ class TestOptionsParser {
           (only valid with the following runtimes: none)
 
    dart2app: Compile the Dart code into an app snapshot before running the test
-          (only valid with the following runtimes: dart_product)''',
+          (only valid with the following runtimes: dart_app)''',
           ['-c', '--compiler'],
-          ['none', 'precompiler', 'dart2js', 'dart2analyzer', 'dart2app'],
+          ['none', 'precompiler', 'dart2js', 'dart2analyzer', 'dart2app', 'dart2appjit'],
           'none'),
       // TODO(antonm): fix the option drt.
       new _TestOptionSpecification(
@@ -86,7 +86,7 @@ class TestOptionsParser {
     dart_precompiled: Run a precompiled snapshot on a variant of the standalone
                       dart vm lacking a JIT.
 
-    dart_product: Run a full app snapshot in product mode.
+    dart_app: Run a full app snapshot, with or without cached unoptimized code.
 
     d8: Run JavaScript from the command line using v8.
 
@@ -111,7 +111,7 @@ class TestOptionsParser {
           [
             'vm',
             'dart_precompiled',
-            'dart_product',
+            'dart_app',
             'd8',
             'jsshell',
             'drt',
@@ -148,14 +148,16 @@ class TestOptionsParser {
             'simarmv6',
             'simarmv5te',
             'simarm64',
-            'simmips'
+            'simmips',
+            'simdbc',
+            'simdbc64',
           ],
           'x64'),
       new _TestOptionSpecification(
           'system',
           'The operating system to run tests on',
           ['-s', '--system'],
-          ['linux', 'macos', 'windows'],
+          ['linux', 'macos', 'windows', 'android'],
           Platform.operatingSystem),
       new _TestOptionSpecification(
           'checked', 'Run tests in checked mode', ['--checked'], [], false,
@@ -182,6 +184,9 @@ class TestOptionsParser {
           type: 'bool'),
       new _TestOptionSpecification(
           'noopt', 'Run an in-place precompilation', ['--noopt'], [], false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'use_blobs', 'Use mmap instead of shared libraries for precompilation', ['--use-blobs'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
           'timeout', 'Timeout in seconds', ['-t', '--timeout'], [], -1,
@@ -640,7 +645,10 @@ Note: currently only implemented for dart2js.''',
         validRuntimes = const ['none'];
         break;
       case 'dart2app':
-        validRuntimes = const ['dart_product'];
+        validRuntimes = const ['dart_app'];
+        break;
+      case 'dart2appjit':
+        validRuntimes = const ['dart_app'];
         break;
       case 'precompiler':
         validRuntimes = const ['dart_precompiled'];
@@ -688,7 +696,7 @@ Note: currently only implemented for dart2js.''',
   List<Map> _expandConfigurations(Map configuration) {
     // Expand the pseudo-values such as 'all'.
     if (configuration['arch'] == 'all') {
-      configuration['arch'] = 'ia32,x64,simarm,simarm64,simmips';
+      configuration['arch'] = 'ia32,x64,simarm,simarm64,simmips,simdbc';
     }
     if (configuration['mode'] == 'all') {
       configuration['mode'] = 'debug,release,product';

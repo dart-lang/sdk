@@ -17,8 +17,9 @@ const Function& RegisterFakeFunction(const char* name, const Code& code) {
   Thread* thread = Thread::Current();
   const String& class_name = String::Handle(Symbols::New(thread, "ownerClass"));
   const Script& script = Script::Handle();
+  const Library& lib = Library::Handle(Library::CoreLibrary());
   const Class& owner_class =
-      Class::Handle(Class::New(class_name, script,
+      Class::Handle(Class::New(lib, class_name, script,
                                TokenPosition::kNoSource));
   const String& function_name = String::ZoneHandle(Symbols::New(thread, name));
   const Function& function = Function::ZoneHandle(
@@ -34,7 +35,6 @@ const Function& RegisterFakeFunction(const char* name, const Code& code) {
   const Array& functions = Array::Handle(Array::New(1));
   functions.SetAt(0, function);
   owner_class.SetFunctions(functions);
-  Library& lib = Library::Handle(Library::CoreLibrary());
   lib.AddClass(owner_class);
   function.AttachCode(code);
   return function;

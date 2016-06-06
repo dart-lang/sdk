@@ -44,7 +44,6 @@ DEFINE_FLAG(uint64_t, stop_sim_at, ULLONG_MAX,
 // The runtime then does a Longjmp on that buffer to return to the simulator.
 class SimulatorSetjmpBuffer {
  public:
-  int Setjmp() { return setjmp(buffer_); }
   void Longjmp() {
     // "This" is now the last setjmp buffer.
     simulator_->set_last_setjmp_buffer(this);
@@ -1546,7 +1545,7 @@ void Simulator::SupervisorCall(Instr* instr) {
           ASSERT(sizeof(NativeArguments) == 4*kWordSize);
           arguments.thread_ = reinterpret_cast<Thread*>(get_register(R0));
           arguments.argc_tag_ = get_register(R1);
-          arguments.argv_ = reinterpret_cast<RawObject*(*)[]>(get_register(R2));
+          arguments.argv_ = reinterpret_cast<RawObject**>(get_register(R2));
           arguments.retval_ = reinterpret_cast<RawObject**>(get_register(R3));
           SimulatorRuntimeCall target =
               reinterpret_cast<SimulatorRuntimeCall>(external);
@@ -3760,7 +3759,7 @@ int64_t Simulator::Call(int32_t entry,
   int32_t r6_val = get_register(R6);
   int32_t r7_val = get_register(R7);
   int32_t r8_val = get_register(R8);
-#if !defined(TARGET_OS_MACOS)
+#if defined(TARGET_ABI_EABI)
   int32_t r9_val = get_register(R9);
 #endif
   int32_t r10_val = get_register(R10);
@@ -3794,7 +3793,7 @@ int64_t Simulator::Call(int32_t entry,
   set_register(R6, callee_saved_value);
   set_register(R7, callee_saved_value);
   set_register(R8, callee_saved_value);
-#if !defined(TARGET_OS_MACOS)
+#if defined(TARGET_ABI_EABI)
   set_register(R9, callee_saved_value);
 #endif
   set_register(R10, callee_saved_value);
@@ -3822,7 +3821,7 @@ int64_t Simulator::Call(int32_t entry,
   ASSERT(callee_saved_value == get_register(R6));
   ASSERT(callee_saved_value == get_register(R7));
   ASSERT(callee_saved_value == get_register(R8));
-#if !defined(TARGET_OS_MACOS)
+#if defined(TARGET_ABI_EABI)
   ASSERT(callee_saved_value == get_register(R9));
 #endif
   ASSERT(callee_saved_value == get_register(R10));
@@ -3845,7 +3844,7 @@ int64_t Simulator::Call(int32_t entry,
   set_register(R6, r6_val);
   set_register(R7, r7_val);
   set_register(R8, r8_val);
-#if !defined(TARGET_OS_MACOS)
+#if defined(TARGET_ABI_EABI)
   set_register(R9, r9_val);
 #endif
   set_register(R10, r10_val);

@@ -6,7 +6,7 @@ library dart2js.compile_time_constant_evaluator;
 
 import 'common.dart';
 import 'common/resolution.dart' show Resolution;
-import 'common/tasks.dart' show CompilerTask;
+import 'common/tasks.dart' show CompilerTask, Measurer;
 import 'compiler.dart' show Compiler;
 import 'constant_system_dart.dart';
 import 'constants/constant_system.dart';
@@ -16,7 +16,8 @@ import 'constants/values.dart';
 import 'core_types.dart' show CoreTypes;
 import 'dart_types.dart';
 import 'elements/elements.dart';
-import 'elements/modelx.dart' show FunctionElementX;
+import 'elements/modelx.dart'
+    show FieldElementX, FunctionElementX, ConstantVariableMixin;
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'resolution/operators.dart';
 import 'tree/tree.dart';
@@ -29,15 +30,16 @@ abstract class ConstantEnvironment {
   /// The [ConstantSystem] used by this environment.
   ConstantSystem get constantSystem;
 
+  /// Returns `true` if a value has been computed for [expression].
+  bool hasConstantValue(ConstantExpression expression);
+
   /// Returns the constant value computed for [expression].
   // TODO(johnniwinther): Support directly evaluation of [expression].
   ConstantValue getConstantValue(ConstantExpression expression);
 
   /// Returns the constant value for the initializer of [element].
+  @deprecated
   ConstantValue getConstantValueForVariable(VariableElement element);
-
-  /// Returns the constant for the initializer of [element].
-  ConstantExpression getConstantForVariable(VariableElement element);
 }
 
 /// A class that can compile and provide constants for variables, nodes and
@@ -54,7 +56,7 @@ abstract class ConstantCompiler extends ConstantEnvironment {
 
   /// Computes the compile-time constant for the variable initializer,
   /// if possible.
-  void compileVariable(VariableElement element);
+  ConstantExpression compileVariable(VariableElement element);
 
   /// Compiles the constant for [node].
   ///
@@ -108,7 +110,7 @@ abstract class BackendConstantEnvironment extends ConstantEnvironment {
 /// frontend and backend interpretation of compile-time constants.
 abstract class ConstantCompilerTask extends CompilerTask
     implements ConstantCompiler {
-  ConstantCompilerTask(Compiler compiler) : super(compiler);
+  ConstantCompilerTask(Measurer measurer) : super(measurer);
 
   /// Copy all cached constant values from [task].
   ///
@@ -156,13 +158,9 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
   CoreTypes get coreTypes => compiler.coreTypes;
 
   @override
+  @deprecated
   ConstantValue getConstantValueForVariable(VariableElement element) {
     return getConstantValue(initialVariableValues[element.declaration]);
-  }
-
-  @override
-  ConstantExpression getConstantForVariable(VariableElement element) {
-    return initialVariableValues[element.declaration];
   }
 
   ConstantExpression compileConstant(VariableElement element) {
@@ -190,10 +188,21 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
       ConstantExpression result = initialVariableValues[element.declaration];
       return result;
     }
+    if (element.hasConstant) {
+      if (element.constant != null) {
+        if (compiler.serialization.supportsDeserialization) {
+          evaluate(element.constant);
+        }
+        assert(invariant(element, hasConstantValue(element.constant),
+            message: "Constant expression has not been evaluated: "
+                "${element.constant.toStructuredText()}."));
+      }
+      return element.constant;
+    }
     AstElement currentElement = element.analyzableElement;
-    return reporter.withCurrentElement(currentElement, () {
+    return reporter.withCurrentElement(element, () {
       // TODO(johnniwinther): Avoid this eager analysis.
-      _analyzeElementEagerly(compiler, currentElement);
+      compiler.resolution.ensureResolved(currentElement.declaration);
 
       ConstantExpression constant = compileVariableWithDefinitions(
           element, currentElement.resolvedAst.elements,
@@ -209,7 +218,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
    * error.
    */
   ConstantExpression compileVariableWithDefinitions(
-      VariableElement element, TreeElements definitions,
+      ConstantVariableMixin element, TreeElements definitions,
       {bool isConst: false, bool checkType: true}) {
     Node node = element.node;
     if (pendingVariables.contains(element)) {
@@ -241,9 +250,17 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
         ConstantValue value = getConstantValue(expression);
         if (elementType.isMalformed && !value.isNull) {
           if (isConst) {
-            ErroneousElement element = elementType.element;
-            reporter.reportErrorMessage(
-                node, element.messageKind, element.messageArguments);
+            // TODO(johnniwinther): Check that it is possible to reach this
+            // point in a situation where `elementType is! MalformedType`.
+            if (elementType is MalformedType) {
+              ErroneousElement element = elementType.element;
+              reporter.reportErrorMessage(
+                  node, element.messageKind, element.messageArguments);
+            } else {
+              assert(elementType is MethodTypeVariableType);
+              reporter.reportErrorMessage(
+                  node, MessageKind.TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED);
+            }
           } else {
             // We need to throw an exception at runtime.
             expression = null;
@@ -265,6 +282,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
       }
     }
     if (expression != null) {
+      element.constant = expression;
       initialVariableValues[element.declaration] = expression;
     } else {
       assert(invariant(element, !isConst,
@@ -291,6 +309,10 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
       return constant.expression;
     }
     return null;
+  }
+
+  bool hasConstantValue(ConstantExpression expression) {
+    return constantValueMap.containsKey(expression);
   }
 
   ConstantValue getConstantValue(ConstantExpression expression) {
@@ -582,7 +604,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     if (send.isPropertyAccess) {
       AstConstant result;
       if (Elements.isStaticOrTopLevelFunction(element)) {
-        FunctionElementX function = element;
+        FunctionElement function = element;
         function.computeType(resolution);
         result = new AstConstant(
             context,
@@ -847,7 +869,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     // TODO(ahe): This is nasty: we must eagerly analyze the
     // constructor to ensure the redirectionTarget has been computed
     // correctly.  Find a way to avoid this.
-    _analyzeElementEagerly(compiler, constructor);
+    resolution.ensureResolved(constructor.declaration);
 
     // The redirection chain of this element may not have been resolved through
     // a post-process action, so we have to make sure it is done here.
@@ -1092,6 +1114,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
   final ConstructorElement constructor;
   final Map<Element, AstConstant> definitions;
   final Map<Element, AstConstant> fieldValues;
+  final ResolvedAst resolvedAst;
 
   /**
    * Documentation wanted -- johnniwinther
@@ -1103,10 +1126,14 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       : this.constructor = constructor,
         this.definitions = new Map<Element, AstConstant>(),
         this.fieldValues = new Map<Element, AstConstant>(),
-        super(handler, _analyzeElementEagerly(compiler, constructor), compiler,
-            isConst: true) {
+        this.resolvedAst =
+            compiler.resolution.computeResolvedAst(constructor.declaration),
+        super(handler, null, compiler, isConst: true) {
     assert(invariant(constructor, constructor.isImplementation));
   }
+
+  @override
+  TreeElements get elements => resolvedAst.elements;
 
   AstConstant visitSend(Send send) {
     Element element = elements[send];
@@ -1181,7 +1208,8 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
    * the [fieldValues] map.
    */
   void evaluateConstructorInitializers() {
-    if (constructor.isSynthesized) {
+    ResolvedAst resolvedAst = constructor.resolvedAst;
+    if (resolvedAst.kind != ResolvedAstKind.PARSED) {
       List<AstConstant> compiledArguments = <AstConstant>[];
 
       Function compileArgument = (element) => definitions[element];
@@ -1192,7 +1220,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       evaluateSuperOrRedirectSend(compiledArguments, target);
       return;
     }
-    FunctionExpression functionNode = constructor.node;
+    FunctionExpression functionNode = resolvedAst.node;
     NodeList initializerList = functionNode.initializers;
 
     bool foundSuperOrRedirect = false;
@@ -1330,12 +1358,6 @@ class ErroneousAstConstant extends AstConstant {
             // TODO(johnniwinther): Return a [NonConstantValue] instead.
             new ErroneousConstantExpression(),
             new NullConstantValue());
-}
-
-// TODO(johnniwinther): Clean this up.
-TreeElements _analyzeElementEagerly(Compiler compiler, AstElement element) {
-  compiler.resolution.computeWorldImpact(element.declaration);
-  return element.resolvedAst.elements;
 }
 
 class _CompilerEnvironment implements Environment {

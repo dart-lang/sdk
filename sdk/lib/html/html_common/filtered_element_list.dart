@@ -26,12 +26,8 @@ class FilteredElementList extends ListBase<Element> implements NodeListWrapper {
 
   // We can't memoize this, since it's possible that children will be messed
   // with externally to this class.
-  //
-  // We can't use where directly because the types don't agree and there's
-  // no way to cast it, so take advantage of being in the SDK to construct
-  // a WhereIterable directly. Even so it has to be of dynamic.
   Iterable<Element> get _iterable =>
-      new WhereIterable(_childNodes, (n) => n is Element);
+      _childNodes.where((n) => n is Element).map/*<Element>*/((n) => n as Element);
   List<Element> get _filtered =>
       new List<Element>.from(_iterable, growable: false);
 

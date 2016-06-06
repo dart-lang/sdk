@@ -12,14 +12,20 @@ import 'package:analyzer/src/util/yaml.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
-/// Provide the options found in the `.analysis_options` file.
+/// Provide the options found in the analysis options file.
 class AnalysisOptionsProvider {
-  /// Provide the options found in [root]/[ANALYSIS_OPTIONS_FILE].
+  /// Provide the options found in either
+  /// [root]/[AnalysisEngine.ANALYSIS_OPTIONS_FILE] or
+  /// [root]/[AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE].
   /// Return an empty options map if the file does not exist.
   Map<String, YamlNode> getOptions(Folder root, {bool crawlUp: false}) {
     Resource resource;
     for (Folder folder = root; folder != null; folder = folder.parent) {
       resource = folder.getChild(AnalysisEngine.ANALYSIS_OPTIONS_FILE);
+      if (resource.exists) {
+        break;
+      }
+      resource = folder.getChild(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
       if (resource.exists || !crawlUp) {
         break;
       }
@@ -38,19 +44,21 @@ class AnalysisOptionsProvider {
   /// Provide the options found in [optionsSource].
   /// Return an empty options map if the source is null.
   Map<String, YamlNode> getOptionsFromString(String optionsSource) {
-    var options = <String, YamlNode>{};
+    Map<String, YamlNode> options = <String, YamlNode>{};
     if (optionsSource == null) {
       return options;
     }
 
-    YamlNode doc;
-    try {
-      doc = loadYamlNode(optionsSource);
-    } on YamlException catch (e) {
-      throw new OptionsFormatException(e.message, e.span);
-    } catch (e) {
-      throw new OptionsFormatException('Unable to parse YAML document.');
+    YamlNode safelyLoadYamlNode() {
+      try {
+        return loadYamlNode(optionsSource);
+      } on YamlException catch (e) {
+        throw new OptionsFormatException(e.message, e.span);
+      } catch (e) {
+        throw new OptionsFormatException('Unable to parse YAML document.');
+      }
     }
+    YamlNode doc = safelyLoadYamlNode();
 
     // Empty options.
     if (doc is YamlScalar && doc.value == null) {
@@ -62,7 +70,7 @@ class AnalysisOptionsProvider {
           doc.span);
     }
     if (doc is YamlMap) {
-      (doc as YamlMap).nodes.forEach((k, v) {
+      doc.nodes.forEach((k, YamlNode v) {
         var key;
         if (k is YamlScalar) {
           key = k.value;
@@ -71,7 +79,7 @@ class AnalysisOptionsProvider {
           throw new OptionsFormatException(
               'Bad options file format (expected String scope key, '
               'got ${k.runtimeType})',
-              k != null ? k.span : doc.span);
+              (k ?? doc).span);
         }
         if (v != null && v is! YamlNode) {
           throw new OptionsFormatException(

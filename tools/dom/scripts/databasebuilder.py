@@ -301,7 +301,7 @@ class DatabaseBuilder(object):
         continue
       if sig in res:
         op = res[sig]
-        # Only report if the the operations that match are either both suppressed
+        # Only report if the operations that match are either both suppressed
         # or both not suppressed.  Optional args aren't part of type signature
         # for this routine. Suppressing a non-optional type and supplementing
         # with an optional type appear the same.

@@ -437,8 +437,8 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
   // R1: instance class.
   // Check immediate superclass equality.
   __ LoadFieldFromOffset(R2, R1, Class::super_type_offset());
-  __ LoadFieldFromOffset(R2, R2, Type::type_class_offset());
-  __ CompareObject(R2, type_class);
+  __ LoadFieldFromOffset(R2, R2, Type::type_class_id_offset());
+  __ CompareImmediate(R2, Smi::RawValue(type_class.id()));
   __ b(is_instance_lbl, EQ);
 
   const Register kTypeArgumentsReg = kNoRegister;
@@ -1300,7 +1300,29 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
       MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
 
   __ Comment("MegamorphicCall");
+  // Load receiver into R0.
   __ LoadFromOffset(R0, SP, (argument_count - 1) * kWordSize);
+  Label done;
+  if (ShouldInlineSmiStringHashCode(ic_data)) {
+    Label megamorphic_call;
+    __ Comment("Inlined get:hashCode for Smi and OneByteString");
+    __ tsti(R0, Immediate(kSmiTagMask));
+    __ b(&done, EQ);  // Is Smi (result is receiver).
+
+    __ CompareClassId(R0, kOneByteStringCid);
+    __ b(&megamorphic_call, NE);
+
+    // Use R5 (cache for megamorphic call) as scratch.
+    __ mov(R5, R0);  // Preserve receiver in R5, result in R0.
+    __ ldr(R0, FieldAddress(R0, String::hash_offset()));
+    __ CompareRegisters(R0, ZR);
+    __ b(&done, NE);
+    __ mov(R0, R5);  // Restore receiver in R0,
+
+    __ Bind(&megamorphic_call);
+    __ Comment("Slow case: megamorphic call");
+  }
+
   __ LoadObject(R5, cache);
   if (FLAG_use_megamorphic_stub) {
     __ BranchLink(*StubCode::MegamorphicLookup_entry());
@@ -1309,6 +1331,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   }
   __ blr(R1);
 
+  __ Bind(&done);
   RecordSafepoint(locs, slow_path_argument_count);
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (FLAG_precompiled_mode) {
@@ -1345,21 +1368,9 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(
     LocationSummary* locs) {
   __ Comment("SwitchableCall");
   __ LoadFromOffset(R0, SP, (argument_count - 1) * kWordSize);
-  if (ic_data.NumArgsTested() == 1) {
-    __ LoadUniqueObject(R5, ic_data);
-    __ BranchLinkPatchable(*StubCode::ICLookupThroughFunction_entry());
-  } else {
-    const String& name = String::Handle(zone(), ic_data.target_name());
-    const Array& arguments_descriptor =
-        Array::ZoneHandle(zone(), ic_data.arguments_descriptor());
-    ASSERT(!arguments_descriptor.IsNull() &&
-           (arguments_descriptor.Length() > 0));
-    const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(zone(),
-        MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
-
-    __ LoadUniqueObject(R5, cache);
-    __ BranchLinkPatchable(*StubCode::MegamorphicLookup_entry());
-  }
+  ASSERT(ic_data.NumArgsTested() == 1);
+  __ LoadUniqueObject(R5, ic_data);
+  __ BranchLinkPatchable(*StubCode::ICLookupThroughFunction_entry());
   __ blr(R1);
 
   AddCurrentDescriptor(RawPcDescriptors::kOther,

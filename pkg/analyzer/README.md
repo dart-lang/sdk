@@ -15,22 +15,19 @@ by emailing our [list][].
 
 ## Configuring the analyzer
 
-Both `dartanalyzer` and Dart Analysis Server can be configured
-with a `.analysis_options` file. This YAML file can control which files
-and paths are analyzed, which lints are applied, and more.
+Both `dartanalyzer` and Dart Analysis Server can be configured with either an
+`analysis_options.yaml` or `.analysis_options` file. This YAML file can control
+which files and paths are analyzed, which lints are applied, and more.
 
-If you are embedding the analyzer library in your project, you are
-responsible for finding the `.analysis_options` file, parsing it,
-and configuring the analyzer.
+If you are embedding the analyzer library in your project, you are responsible
+for finding the analysis options file, parsing it, and configuring the analyzer.
 
-The `.analysis_options` file should live
-at the root of your project (for example, next to your `pubspec.yaml`).
-Different embedders of analyzer, such as `dartanalyzer` or Dart Analysis Server,
-may choose to find the file in various different ways. Consult their
-documentation to learn more.
+The analysis options file should live at the root of your project (for example,
+next to your `pubspec.yaml`). Different embedders of analyzer, such as
+`dartanalyzer` or Dart Analysis Server, may choose to find the file in various
+different ways. Consult their documentation to learn more.
 
-Here is an example file that instructs the analyzer
-to ignore two files:
+Here is an example file that instructs the analyzer to ignore two files:
 
 ```yaml
 analyzer:

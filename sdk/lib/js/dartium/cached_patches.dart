@@ -2644,15 +2644,6 @@ class RelatedEventImpl extends RelatedEvent implements js_library.JSObjectInterf
   get runtimeType => RelatedEvent;
   toString() => super.toString();
 }
-patch class ResourceProgressEvent {
-  static Type get instanceRuntimeType => ResourceProgressEventImpl;
-
-}
-class ResourceProgressEventImpl extends ResourceProgressEvent implements js_library.JSObjectInterfacesDom {
-  ResourceProgressEventImpl.internal_() : super.internal_();
-  get runtimeType => ResourceProgressEvent;
-  toString() => super.toString();
-}
 patch class RtcDataChannel {
   static Type get instanceRuntimeType => RtcDataChannelImpl;
 
@@ -3922,15 +3913,6 @@ class _HTMLMarqueeElementImpl extends _HTMLMarqueeElement implements js_library.
   get runtimeType => _HTMLMarqueeElement;
   toString() => super.toString();
 }
-patch class _MutationEvent {
-  static Type get instanceRuntimeType => _MutationEventImpl;
-
-}
-class _MutationEventImpl extends _MutationEvent implements js_library.JSObjectInterfacesDom {
-  _MutationEventImpl.internal_() : super.internal_();
-  get runtimeType => _MutationEvent;
-  toString() => super.toString();
-}
 patch class _NamedNodeMap {
   static Type get instanceRuntimeType => _NamedNodeMapImpl;
 
@@ -3965,6 +3947,15 @@ patch class _Request {
 class _RequestImpl extends _Request implements js_library.JSObjectInterfacesDom {
   _RequestImpl.internal_() : super.internal_();
   get runtimeType => _Request;
+  toString() => super.toString();
+}
+patch class _ResourceProgressEvent {
+  static Type get instanceRuntimeType => _ResourceProgressEventImpl;
+
+}
+class _ResourceProgressEventImpl extends _ResourceProgressEvent implements js_library.JSObjectInterfacesDom {
+  _ResourceProgressEventImpl.internal_() : super.internal_();
+  get runtimeType => _ResourceProgressEvent;
   toString() => super.toString();
 }
 patch class _Response {

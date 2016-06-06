@@ -102,7 +102,7 @@ part of dart.core;
  * the [intl](http://pub.dartlang.org/packages/intl) package.
  *
  */
-class DateTime implements Comparable {
+class DateTime implements Comparable<DateTime> {
   // Weekday constants that are returned by [weekday] method:
   static const int MONDAY = 1;
   static const int TUESDAY = 2;

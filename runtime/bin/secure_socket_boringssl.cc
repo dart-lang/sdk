@@ -121,7 +121,7 @@ static void DeleteFilter(
     Dart_WeakPersistentHandle handle,
     void* context_pointer) {
   SSLFilter* filter = reinterpret_cast<SSLFilter*>(context_pointer);
-  delete filter;
+  filter->Release();
 }
 
 
@@ -207,7 +207,7 @@ void FUNCTION_NAME(SecureSocket_Init)(Dart_NativeArguments args) {
   SSLFilter* filter = new SSLFilter();
   Dart_Handle err = SetFilter(args, filter);
   if (Dart_IsError(err)) {
-    delete filter;
+    filter->Release();
     Dart_PropagateError(err);
   }
   err = filter->Init(dart_this);
@@ -324,7 +324,11 @@ void FUNCTION_NAME(SecureSocket_PeerCertificate)
 
 
 void FUNCTION_NAME(SecureSocket_FilterPointer)(Dart_NativeArguments args) {
-  intptr_t filter_pointer = reinterpret_cast<intptr_t>(GetFilter(args));
+  SSLFilter* filter = GetFilter(args);
+  // This filter pointer is passed to the IO Service thread. The IO Service
+  // thread must Release() the pointer when it is done with it.
+  filter->Retain();
+  intptr_t filter_pointer = reinterpret_cast<intptr_t>(filter);
   Dart_SetReturnValue(args, Dart_NewInteger(filter_pointer));
 }
 
@@ -1086,6 +1090,8 @@ void FUNCTION_NAME(X509_EndValidity)(
 CObject* SSLFilter::ProcessFilterRequest(const CObjectArray& request) {
   CObjectIntptr filter_object(request[0]);
   SSLFilter* filter = reinterpret_cast<SSLFilter*>(filter_object.Value());
+  RefCntReleaseScope<SSLFilter> rs(filter);
+
   bool in_handshake = CObjectBool(request[1]).Value();
   int starts[SSLFilter::kNumBuffers];
   int ends[SSLFilter::kNumBuffers];

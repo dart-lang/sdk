@@ -12,8 +12,8 @@ import "package:async_helper/async_helper.dart";
 import '../../utils/dummy_compiler_test.dart' as dummy;
 import 'package:compiler/compiler.dart';
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/diagnostics/messages.dart' show
-    MessageKind, MessageTemplate;
+import 'package:compiler/src/diagnostics/messages.dart'
+    show MessageKind, MessageTemplate;
 
 import 'output_collector.dart';
 
@@ -175,12 +175,31 @@ main() {
     });
 
   // --analyze-signatures-only implies --analyze-only
+  runCompiler("", [Flags.analyzeSignaturesOnly, Flags.analyzeAll],
+      (String code, List errors, List warnings) {
+    Expect.isNull(code);
+    Expect.isTrue(errors.isEmpty);
+    Expect.isTrue(warnings.isEmpty);
+  });
+
+  // Test that --allow-native-extensions works.
   runCompiler(
-    "",
-    [Flags.analyzeSignaturesOnly, Flags.analyzeAll],
-    (String code, List errors, List warnings) {
-      Expect.isNull(code);
-      Expect.isTrue(errors.isEmpty);
-      Expect.isTrue(warnings.isEmpty);
-    });
+      """main() {}
+      foo() native 'foo';""",
+      [Flags.analyzeOnly, Flags.allowNativeExtensions],
+      (String code, List errors, List warnings) {
+    Expect.isNull(code);
+    Expect.isTrue(errors.isEmpty);
+    Expect.isTrue(warnings.isEmpty);
+  });
+  runCompiler(
+      """main() {}
+      foo() native 'foo';""",
+      [Flags.analyzeOnly],
+      (String code, List errors, List warnings) {
+    Expect.isNull(code);
+    Expect.isTrue(
+        errors.single.startsWith("'native' modifier is not supported."));
+    Expect.isTrue(warnings.isEmpty);
+  });
 }

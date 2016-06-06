@@ -218,28 +218,28 @@ Future testData(TestData data) async {
     var constant = field.constant;
     Expect.equals(data.kind, constant.kind,
         "Unexpected kind '${constant.kind}' for contant "
-        "`${constant.getText()}`, expected '${data.kind}'.");
-    Expect.equals(data.text, constant.getText(),
-        "Unexpected text '${constant.getText()}' for contant, "
+        "`${constant.toDartText()}`, expected '${data.kind}'.");
+    Expect.equals(data.text, constant.toDartText(),
+        "Unexpected text '${constant.toDartText()}' for contant, "
         "expected '${data.text}'.");
     if (data.type != null) {
       String instanceType = constant.computeInstanceType().toString();
       Expect.equals(data.type, instanceType,
           "Unexpected type '$instanceType' for contant "
-          "`${constant.getText()}`, expected '${data.type}'.");
+          "`${constant.toDartText()}`, expected '${data.type}'.");
     }
     if (data.fields != null) {
       Map instanceFields = constant.computeInstanceFields();
       Expect.equals(data.fields.length, instanceFields.length,
           "Unexpected field count ${instanceFields.length} for contant "
-          "`${constant.getText()}`, expected '${data.fields.length}'.");
+          "`${constant.toDartText()}`, expected '${data.fields.length}'.");
       instanceFields.forEach((field, expression) {
         String name = '$field';
-        String expression = instanceFields[field].getText();
+        String expression = instanceFields[field].toDartText();
         String expected = data.fields[name];
         Expect.equals(expected, expression,
             "Unexpected field expression ${expression} for field '$name' in "
-            "contant `${constant.getText()}`, expected '${expected}'.");
+            "contant `${constant.toDartText()}`, expected '${expected}'.");
       });
     }
   });

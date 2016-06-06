@@ -222,12 +222,13 @@ Future testSuperCalls() {
     ClassElement classA = compiler.mainApp.find("A");
     FunctionElement fooA = classA.lookupLocalMember("foo");
 
-    ResolverVisitor visitor =
-        new ResolverVisitor(compiler, fooB,
-            new ResolutionRegistry(compiler,
-                new CollectingTreeElements(fooB)));
+    ResolverVisitor visitor = new ResolverVisitor(
+        compiler,
+        fooB,
+        new ResolutionRegistry(compiler, new CollectingTreeElements(fooB)),
+        scope: new MockTypeVariablesScope(classB.buildScope()));
     FunctionExpression node =
-        (fooB as FunctionElementX).parseNode(compiler.parsing);
+        (fooB as FunctionElementX).parseNode(compiler.parsingContext);
     visitor.visit(node.body);
     Map mapping = map(visitor);
 
@@ -266,12 +267,14 @@ Future testThis() {
       compiler.resolveStatement("Foo foo;");
       ClassElement fooElement = compiler.mainApp.find("Foo");
       FunctionElement funElement = fooElement.lookupLocalMember("foo");
-      ResolverVisitor visitor =
-          new ResolverVisitor(compiler, funElement,
-              new ResolutionRegistry(compiler,
-                  new CollectingTreeElements(funElement)));
+      ResolverVisitor visitor = new ResolverVisitor(
+          compiler,
+          funElement,
+          new ResolutionRegistry(
+              compiler, new CollectingTreeElements(funElement)),
+          scope: new MockTypeVariablesScope(fooElement.buildScope()));
       FunctionExpression function =
-          (funElement as FunctionElementX).parseNode(compiler.parsing);
+          (funElement as FunctionElementX).parseNode(compiler.parsingContext);
       visitor.visit(function.body);
       Map mapping = map(visitor);
       List<Element> values = mapping.values.toList();
@@ -292,11 +295,14 @@ Future testThis() {
       compiler.resolveStatement("Foo foo;");
       ClassElement fooElement = compiler.mainApp.find("Foo");
       FunctionElement funElement = fooElement.lookupLocalMember("foo");
-      ResolverVisitor visitor = new ResolverVisitor(compiler, funElement,
-          new ResolutionRegistry(compiler,
-              new CollectingTreeElements(funElement)));
+      ResolverVisitor visitor = new ResolverVisitor(
+          compiler,
+          funElement,
+          new ResolutionRegistry(
+              compiler, new CollectingTreeElements(funElement)),
+          scope: new MockTypeVariablesScope(fooElement.buildScope()));
       FunctionExpression function =
-          (funElement as FunctionElementX).parseNode(compiler.parsing);
+          (funElement as FunctionElementX).parseNode(compiler.parsingContext);
       visitor.visit(function.body);
       DiagnosticCollector collector = compiler.diagnosticCollector;
       Expect.equals(0, collector.warnings.length);
@@ -581,10 +587,10 @@ Future testOneInterface() {
     // correctly.
     compiler.parseScript("abstract class Bar {}");
 
-    ResolverVisitor visitor =
-        new ResolverVisitor(compiler, null,
-            new ResolutionRegistry(compiler,
-                new CollectingTreeElements(null)));
+    ResolverVisitor visitor = new ResolverVisitor(
+        compiler,
+        null,
+        new ResolutionRegistry(compiler, new CollectingTreeElements(null)));
     compiler.resolveStatement("Foo bar;");
 
     ClassElement fooElement = compiler.mainApp.find('Foo');
@@ -619,7 +625,6 @@ Future testTwoInterfaces() {
 
 Future testFunctionExpression() {
   return MockCompiler.create((MockCompiler compiler) {
-    ResolverVisitor visitor = compiler.resolverVisitor();
     Map mapping = compiler.resolveStatement("int f() {}").map;
     Expect.equals(2, mapping.length);
     Element element;
@@ -665,7 +670,7 @@ Future testTopLevelFields() {
     VariableElementX element = compiler.mainApp.find("a");
     Expect.equals(ElementKind.FIELD, element.kind);
     VariableDefinitions node =
-        element.variables.parseNode(element, compiler.parsing);
+        element.variables.parseNode(element, compiler.parsingContext);
     Identifier typeName = node.type.typeName;
     Expect.equals(typeName.source, 'int');
 
@@ -677,9 +682,9 @@ Future testTopLevelFields() {
     Expect.isTrue(bElement != cElement);
 
     VariableDefinitions bNode =
-        bElement.variables.parseNode(bElement, compiler.parsing);
+        bElement.variables.parseNode(bElement, compiler.parsingContext);
     VariableDefinitions cNode =
-        cElement.variables.parseNode(cElement, compiler.parsing);
+        cElement.variables.parseNode(cElement, compiler.parsingContext);
     Expect.equals(bNode, cNode);
     Expect.isNull(bNode.type);
     Expect.isTrue(bNode.modifiers.isVar);
@@ -701,10 +706,11 @@ Future resolveConstructor(
     Element element;
     element = classElement.lookupConstructor(constructor);
     FunctionExpression tree = (element as FunctionElement).node;
-    ResolverVisitor visitor =
-        new ResolverVisitor(compiler, element,
-            new ResolutionRegistry(compiler,
-                new CollectingTreeElements(element)));
+    ResolverVisitor visitor = new ResolverVisitor(
+        compiler,
+        element,
+        new ResolutionRegistry(compiler, new CollectingTreeElements(element)),
+        scope: classElement.buildScope());
     new InitializerResolver(visitor, element, tree).resolveInitializers();
     visitor.visit(tree.body);
     Expect.equals(expectedElementCount, map(visitor).length,
@@ -1069,12 +1075,12 @@ Future testConstantExpressions() {
       Expect.equals(0, collector.errors.length);
       List<ConstantExpression> constants = elements.constants;
       String constantsText =
-          '[${constants.map((c) => c.getText()).join(', ')}]';
+          '[${constants.map((c) => c.toDartText()).join(', ')}]';
       Expect.equals(expectedConstants.length, constants.length,
           "Expected ${expectedConstants.length} constants for `${constant}` "
           "found $constantsText.");
       for (int index = 0; index < expectedConstants.length; index++) {
-        Expect.equals(expectedConstants[index], constants[index].getText(),
+        Expect.equals(expectedConstants[index], constants[index].toDartText(),
             "Expected ${expectedConstants} for `$constant`, "
             "found $constantsText.");
       }

@@ -28,13 +28,13 @@ main() {
     });
     test('test_NullEmbedderYamls', () {
       var resolver = new EmbedderUriResolver(null);
-      expect(resolver.length, equals(0));
+      expect(resolver.length, 0);
     });
     test('test_NoEmbedderYamls', () {
       var locator = new EmbedderYamlLocator({
         'fox': [pathTranslator.getResource('/empty')]
       });
-      expect(locator.embedderYamls.length, equals(0));
+      expect(locator.embedderYamls.length, 0);
     });
     test('test_EmbedderYaml', () {
       var locator = new EmbedderYamlLocator({
@@ -48,9 +48,10 @@ main() {
         expect(source.fullName, posixToOSPath(posixPath));
       }
 
-      // We have four mappings.
-      expect(resolver.length, equals(4));
+      // We have five mappings.
+      expect(resolver.length, 5);
       // Check that they map to the correct paths.
+      expectResolved('dart:core', '/tmp/core.dart');
       expectResolved('dart:fox', '/tmp/slippy.dart');
       expectResolved('dart:bear', '/tmp/grizzly.dart');
       expectResolved('dart:relative', '/relative.dart');
@@ -59,7 +60,7 @@ main() {
     test('test_BadYAML', () {
       var locator = new EmbedderYamlLocator(null);
       locator.addEmbedderYaml(null, r'''{{{,{{}}},}}''');
-      expect(locator.embedderYamls.length, equals(0));
+      expect(locator.embedderYamls.length, 0);
     });
     test('test_restoreAbsolute', () {
       var locator = new EmbedderYamlLocator({
@@ -75,10 +76,10 @@ main() {
         var restoreUri = resolver.restoreAbsolute(source);
         expect(restoreUri, isNotNull, reason: dartUri);
         // Verify that it is 'dart:fox'.
-        expect(restoreUri.toString(), equals(expected ?? dartUri));
+        expect(restoreUri.toString(), expected ?? dartUri);
         List<String> split = (expected ?? dartUri).split(':');
-        expect(restoreUri.scheme, equals(split[0]));
-        expect(restoreUri.path, equals(split[1]));
+        expect(restoreUri.scheme, split[0]);
+        expect(restoreUri.path, split[1]);
       }
 
       expectRestore('dart:deep');
@@ -115,7 +116,7 @@ main() {
       var lib = sdk.getSdkLibrary('dart:fox');
       expect(lib, isNotNull);
       expect(lib.path, posixToOSPath('/tmp/slippy.dart'));
-      expect(lib.shortName, 'fox');
+      expect(lib.shortName, 'dart:fox');
     });
     test('test_EmbedderSdk_mapDartUri', () {
       var locator = new EmbedderYamlLocator({
@@ -131,6 +132,7 @@ main() {
         expect(source.fullName, posixToOSPath(posixPath));
       }
 
+      expectSource('dart:core', '/tmp/core.dart');
       expectSource('dart:fox', '/tmp/slippy.dart');
       expectSource('dart:deep', '/tmp/deep/directory/file.dart');
       expectSource('dart:deep/part.dart', '/tmp/deep/directory/part.dart');
@@ -151,6 +153,7 @@ buildResourceProvider() {
         '/tmp/_embedder.yaml',
         r'''
 embedded_libs:
+  "dart:core" : "core.dart"
   "dart:fox": "slippy.dart"
   "dart:bear": "grizzly.dart"
   "dart:relative": "../relative.dart"

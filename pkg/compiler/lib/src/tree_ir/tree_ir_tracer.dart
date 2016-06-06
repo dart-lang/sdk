@@ -417,7 +417,7 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
   }
 
   String visitConstant(Constant node) {
-    return "${node.value.toStructuredString()}";
+    return "${node.value.toStructuredText()}";
   }
 
   String visitThis(This node) {
@@ -587,7 +587,6 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     return 'Await($value)';
   }
 
-  @override
   String visitYield(Yield node) {
     String value = visitExpression(node.input);
     return 'Yield($value)';

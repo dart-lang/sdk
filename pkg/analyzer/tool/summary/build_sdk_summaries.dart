@@ -19,7 +19,10 @@ main(List<String> args) {
     return;
   }
   String command = args[0];
-  if (command == 'multiple-outputs' && args.length >= 2 && args.length <= 3) {
+  if ((command == 'multiple-outputs' || command == 'strong-outputs') &&
+      args.length >= 2 &&
+      args.length <= 3) {
+    bool includeSpec = command != 'strong-outputs';
     //
     // Prepare the output path.
     //
@@ -34,7 +37,7 @@ main(List<String> args) {
     // Prepare results.
     //
     String sdkPath = args.length > 2 ? args[2] : null;
-    _Output output = _buildMultipleOutputs(sdkPath);
+    _Output output = _buildMultipleOutputs(sdkPath, includeSpec);
     if (output == null) {
       exitCode = 1;
       return;
@@ -42,7 +45,9 @@ main(List<String> args) {
     //
     // Write results.
     //
-    output.spec.writeMultiple(outputDirectoryPath, 'spec');
+    if (includeSpec) {
+      output.spec.writeMultiple(outputDirectoryPath, 'spec');
+    }
     output.strong.writeMultiple(outputDirectoryPath, 'strong');
   } else if (command == 'single-output' &&
       args.length >= 2 &&
@@ -52,7 +57,7 @@ main(List<String> args) {
     //
     // Prepare results.
     //
-    _Output output = _buildMultipleOutputs(sdkPath);
+    _Output output = _buildMultipleOutputs(sdkPath, true);
     if (output == null) {
       exitCode = 1;
       return;
@@ -106,7 +111,7 @@ const int _FIELD_SPEC_SUM = 0;
 const int _FIELD_STRONG_INDEX = 3;
 const int _FIELD_STRONG_SUM = 2;
 
-_Output _buildMultipleOutputs(String sdkPath) {
+_Output _buildMultipleOutputs(String sdkPath, bool includeSpec) {
   //
   // Validate the SDK path.
   //
@@ -122,7 +127,8 @@ _Output _buildMultipleOutputs(String sdkPath) {
   //
   // Build spec and strong outputs.
   //
-  _BuilderOutput spec = new _Builder(sdkPath, false).build();
+  _BuilderOutput spec =
+      includeSpec ? new _Builder(sdkPath, false).build() : null;
   _BuilderOutput strong = new _Builder(sdkPath, true).build();
   return new _Output(spec, strong);
 }
@@ -133,9 +139,10 @@ _Output _buildMultipleOutputs(String sdkPath) {
  */
 void _extractSingleOutput(String inputPath, int field, String outputPath) {
   List<int> bytes = new File(inputPath).readAsBytesSync();
-  fb.BufferPointer root = new fb.BufferPointer.fromBytes(bytes);
-  fb.BufferPointer table = root.derefObject();
-  List<int> fieldBytes = const fb.Uint8ListReader().vTableGet(table, field);
+  fb.BufferContext root = new fb.BufferContext.fromBytes(bytes);
+  int tableOffset = root.derefObject(0);
+  List<int> fieldBytes =
+      const fb.Uint8ListReader().vTableGet(root, tableOffset, field);
   new File(outputPath).writeAsBytesSync(fieldBytes, mode: FileMode.WRITE_ONLY);
 }
 
@@ -148,6 +155,8 @@ void _printUsage() {
   print('Where command can be one of the following:');
   print('  multiple-outputs output_directory_path [sdk_path]');
   print('    Generate separate summary and index files.');
+  print('  strong-outputs output_directory_path [sdk_path]');
+  print('    Generate separate summary and index files (strong mode only).');
   print('  single-output output_file_path [sdk_path]');
   print('    Generate a single file with summary and index.');
   print('  extract-spec-sum input_file output_file');
@@ -183,7 +192,7 @@ class _Builder {
     // Prepare SDK.
     //
     DirectoryBasedDartSdk sdk =
-        new DirectoryBasedDartSdk(new JavaFile(sdkPath));
+        new DirectoryBasedDartSdk(new JavaFile(sdkPath), strongMode);
     sdk.useSummary = false;
     sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = strongMode;
     context = sdk.context;
@@ -192,7 +201,9 @@ class _Builder {
     //
     Set<String> uriSet =
         sdk.sdkLibraries.map((SdkLibrary library) => library.shortName).toSet();
-    uriSet.add('dart:html/nativewrappers.dart');
+    if (!strongMode) {
+      uriSet.add('dart:html/nativewrappers.dart');
+    }
     uriSet.add('dart:html_common/html_common_dart2js.dart');
     //
     // Serialize each SDK library.

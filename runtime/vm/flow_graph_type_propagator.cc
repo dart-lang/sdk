@@ -251,17 +251,8 @@ void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
 
 
 void FlowGraphTypePropagator::VisitCheckClassId(CheckClassIdInstr* check) {
-  if (!check->Dependencies().IsNone()) {
-    // TODO(vegorov): If check is affected by side-effect we can still propagate
-    // the type further but not the cid.
-    return;
-  }
-
-  LoadClassIdInstr* load_cid =
-      check->value()->definition()->OriginalDefinition()->AsLoadClassId();
-  if (load_cid != NULL) {
-    SetCid(load_cid->object()->definition(), check->cid());
-  }
+  // Can't propagate the type/cid because it may cause illegal code motion and
+  // we don't track dependencies in all places via redefinitions.
 }
 
 
@@ -365,6 +356,8 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
         new CheckSmiInstr(assert->value()->Copy(zone()),
                           assert->env()->deopt_id(),
                           check->token_pos());
+    check_clone->AsCheckSmi()->set_licm_hoisted(
+        check->AsCheckSmi()->licm_hoisted());
   } else {
     ASSERT(check->IsCheckClass());
     check_clone =
@@ -372,6 +365,8 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
                             assert->env()->deopt_id(),
                             check->AsCheckClass()->unary_checks(),
                             check->token_pos());
+    check_clone->AsCheckClass()->set_licm_hoisted(
+        check->AsCheckClass()->licm_hoisted());
   }
   ASSERT(check_clone != NULL);
   ASSERT(assert->deopt_id() == assert->env()->deopt_id());
@@ -466,6 +461,11 @@ CompileType CompileType::Int() {
 }
 
 
+CompileType CompileType::Smi() {
+  return Create(kSmiCid, Type::ZoneHandle(Type::SmiType()));
+}
+
+
 CompileType CompileType::String() {
   return FromAbstractType(Type::ZoneHandle(Type::StringType()), kNonNullable);
 }
@@ -508,7 +508,7 @@ intptr_t CompileType::ToNullableCid() {
                 type_class.ToCString());
           }
           if (FLAG_use_cha_deopt) {
-            cha->AddToLeafClasses(type_class);
+            cha->AddToGuardedClasses(type_class, /*subclass_count=*/0);
           }
           cid_ = type_class.id();
         } else {
@@ -756,7 +756,8 @@ CompileType ParameterInstr::ComputeType() const {
                   type_class.ToCString());
             }
             if (FLAG_use_cha_deopt) {
-              thread->cha()->AddToLeafClasses(type_class);
+              thread->cha()->AddToGuardedClasses(
+                  type_class, /*subclass_count=*/0);
             }
             cid = type_class.id();
           }
@@ -914,11 +915,6 @@ CompileType LoadLocalInstr::ComputeType() const {
 }
 
 
-CompileType PushTempInstr::ComputeType() const {
-  return CompileType::Dynamic();
-}
-
-
 CompileType DropTempsInstr::ComputeType() const {
   return *value()->Type();
 }
@@ -930,8 +926,8 @@ CompileType StoreLocalInstr::ComputeType() const {
 }
 
 
-CompileType StringFromCharCodeInstr::ComputeType() const {
-  return CompileType::FromCid(cid_);
+CompileType OneByteStringFromCharCodeInstr::ComputeType() const {
+  return CompileType::FromCid(kOneByteStringCid);
 }
 
 
@@ -956,13 +952,18 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
     abstract_type = &AbstractType::ZoneHandle(field.type());
   }
   ASSERT(field.is_static());
-  if (field.is_final() && !FLAG_fields_may_be_reset) {
-    const Instance& obj = Instance::Handle(field.StaticValue());
-    if ((obj.raw() != Object::sentinel().raw()) &&
-        (obj.raw() != Object::transition_sentinel().raw()) &&
-        !obj.IsNull()) {
-      is_nullable = CompileType::kNonNullable;
-      cid = obj.GetClassId();
+  if (field.is_final()) {
+    if (!FLAG_fields_may_be_reset) {
+      const Instance& obj = Instance::Handle(field.StaticValue());
+      if ((obj.raw() != Object::sentinel().raw()) &&
+          (obj.raw() != Object::transition_sentinel().raw()) &&
+          !obj.IsNull()) {
+        is_nullable = CompileType::kNonNullable;
+        cid = obj.GetClassId();
+      }
+    } else if (field.guarded_cid() != kIllegalCid) {
+      cid = field.guarded_cid();
+      if (!IsNullableCid(cid)) is_nullable = CompileType::kNonNullable;
     }
   }
   if (Field::IsExternalizableCid(cid)) {

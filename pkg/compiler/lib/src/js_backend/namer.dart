@@ -346,7 +346,6 @@ class Namer {
   /// The non-minifying namer's [callPrefix] with a dollar after it.
   static const String _callPrefixDollar = r'call$';
 
-  static final jsAst.Name _literalSuper = new StringBackedName("super");
   static final jsAst.Name _literalDollar = new StringBackedName(r'$');
   static final jsAst.Name _literalUnderscore = new StringBackedName('_');
   static final jsAst.Name literalPlus = new StringBackedName('+');
@@ -479,6 +478,10 @@ class Namer {
         return asName('${callPrefix}\$2');
       case JsGetName.CALL_PREFIX3:
         return asName('${callPrefix}\$3');
+      case JsGetName.CALL_PREFIX4:
+        return asName('${callPrefix}\$4');
+      case JsGetName.CALL_PREFIX5:
+        return asName('${callPrefix}\$5');
       case JsGetName.CALL_CATCH_ALL:
         return asName(callCatchAllName);
       case JsGetName.REFLECTABLE:

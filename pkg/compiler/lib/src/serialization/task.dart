@@ -4,7 +4,8 @@
 
 library dart2js.serialization.task;
 
-import 'dart:async' show Future;
+import 'dart:async' show EventSink, Future;
+import '../common.dart';
 import '../common/resolution.dart' show ResolutionImpact, ResolutionWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../common/work.dart' show ItemCompilationContext;
@@ -12,6 +13,9 @@ import '../compiler.dart' show Compiler;
 import '../elements/elements.dart';
 import '../enqueue.dart' show ResolutionEnqueuer;
 import '../universe/world_impact.dart' show WorldImpact;
+import 'json_serializer.dart';
+import 'serialization.dart';
+import 'system.dart';
 
 /// A deserializer that can load a library element by reading it's information
 /// from a serialized form.
@@ -23,7 +27,10 @@ abstract class LibraryDeserializer {
 
 /// Task that supports deserialization of elements.
 class SerializationTask extends CompilerTask implements LibraryDeserializer {
-  SerializationTask(Compiler compiler) : super(compiler);
+  final Compiler compiler;
+  SerializationTask(Compiler compiler)
+      : compiler = compiler,
+        super(compiler.measurer);
 
   DeserializerSystem deserializer;
 
@@ -33,6 +40,9 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
   // TODO(johnniwinther): Make this more precise in terms of what needs to be
   // retained, for instance impacts, resolution data etc.
   bool supportSerialization = false;
+
+  /// If `true`, deserialized data is supported.
+  bool get supportsDeserialization => deserializer != null;
 
   /// Returns the [LibraryElement] for [resolvedUri] if available from
   /// serialization.
@@ -46,6 +56,16 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
     return deserializer != null && deserializer.isDeserialized(element);
   }
 
+  bool hasResolutionImpact(Element element) {
+    return deserializer != null && deserializer.hasResolutionImpact(element);
+  }
+
+  ResolutionImpact getResolutionImpact(Element element) {
+    return deserializer != null
+        ? deserializer.getResolutionImpact(element)
+        : null;
+  }
+
   /// Creates the [ResolutionWorkItem] for the deserialized [element].
   ResolutionWorkItem createResolutionWorkItem(
       Element element, ItemCompilationContext context) {
@@ -53,6 +73,59 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
     assert(isDeserialized(element));
     return new DeserializedResolutionWorkItem(
         element, context, deserializer.computeWorldImpact(element));
+  }
+
+  bool hasResolvedAst(ExecutableElement element) {
+    return deserializer != null ? deserializer.hasResolvedAst(element) : false;
+  }
+
+  ResolvedAst getResolvedAst(ExecutableElement element) {
+    return deserializer != null ? deserializer.getResolvedAst(element) : null;
+  }
+
+  Serializer createSerializer(Iterable<LibraryElement> libraries) {
+    return measure(() {
+      assert(supportSerialization);
+
+      Serializer serializer =
+          new Serializer(shouldInclude: (e) => libraries.contains(e.library));
+      SerializerPlugin backendSerializer =
+          compiler.backend.serialization.serializer;
+      serializer.plugins.add(backendSerializer);
+      serializer.plugins.add(new ResolutionImpactSerializer(
+          compiler.resolution, backendSerializer));
+      serializer.plugins.add(new ResolvedAstSerializerPlugin(
+          compiler.resolution, backendSerializer));
+
+      for (LibraryElement library in libraries) {
+        serializer.serialize(library);
+      }
+      return serializer;
+    });
+  }
+
+  void serializeToSink(
+      EventSink<String> sink, Iterable<LibraryElement> libraries) {
+    measure(() {
+      sink
+        ..add(createSerializer(libraries)
+            .toText(const JsonSerializationEncoder()))
+        ..close();
+    });
+  }
+
+  void deserializeFromText(Uri sourceUri, String serializedData) {
+    measure(() {
+      if (deserializer == null) {
+        deserializer = new DeserializerSystemImpl(
+            compiler, compiler.backend.impactTransformer);
+      }
+      DeserializerSystemImpl deserializerImpl = deserializer;
+      DeserializationContext context = deserializerImpl.deserializationContext;
+      Deserializer dataDeserializer = new Deserializer.fromText(
+          context, sourceUri, serializedData, const JsonSerializationDecoder());
+      context.deserializers.add(dataDeserializer);
+    });
   }
 }
 
@@ -84,7 +157,9 @@ class DeserializedResolutionWorkItem implements ResolutionWorkItem {
 abstract class DeserializerSystem {
   Future<LibraryElement> readLibrary(Uri resolvedUri);
   bool isDeserialized(Element element);
-  ResolvedAst getResolvedAst(Element element);
+  bool hasResolvedAst(ExecutableElement element);
+  ResolvedAst getResolvedAst(ExecutableElement element);
+  bool hasResolutionImpact(Element element);
   ResolutionImpact getResolutionImpact(Element element);
   WorldImpact computeWorldImpact(Element element);
 }

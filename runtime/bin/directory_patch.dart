@@ -13,6 +13,26 @@ patch class _Directory {
       native "Directory_Delete";
   /* patch */ static _rename(String path, String newPath)
       native "Directory_Rename";
-  /* patch */ static List _list(String path, bool recursive, bool followLinks)
-      native "Directory_List";
+  /* patch */ static void _fillWithDirectoryListing(
+      List<FileSystemEntity> list, String path, bool recursive,
+      bool followLinks)
+      native "Directory_FillWithDirectoryListing";
+}
+
+patch class _AsyncDirectoryListerOps {
+  /* patch */ factory _AsyncDirectoryListerOps(int pointer) =>
+      new _AsyncDirectoryListerOpsImpl(pointer);
+}
+
+class _AsyncDirectoryListerOpsImpl extends NativeFieldWrapperClass1
+                                   implements _AsyncDirectoryListerOps {
+  _AsyncDirectoryListerOpsImpl._();
+
+  factory _AsyncDirectoryListerOpsImpl(int pointer)
+      => new _AsyncDirectoryListerOpsImpl._().._setPointer(pointer);
+
+  void _setPointer(int pointer)
+      native "Directory_SetAsyncDirectoryListerPointer";
+  int getPointer()
+      native "Directory_GetAsyncDirectoryListerPointer";
 }

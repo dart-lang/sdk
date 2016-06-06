@@ -4,6 +4,8 @@
 
 part of dart.developer;
 
+const bool _isProduct = const bool.fromEnvironment("dart.vm.product");
+
 typedef dynamic TimelineSyncFunction();
 typedef Future TimelineAsyncFunction();
 
@@ -13,36 +15,58 @@ class Timeline {
   /// a [Map] of [arguments]. This operation must be finished before
   /// returning to the event queue.
   static void startSync(String name, {Map arguments}) {
+    if (_isProduct) {
+      return;
+    }
     if (name is! String) {
       throw new ArgumentError.value(name,
                                     'name',
                                     'Must be a String');
     }
-    var block = new _SyncBlock._(name, _getTraceClock());
+    if (!_isDartStreamEnabled()) {
+      // Push a null onto the stack and return.
+      _stack.add(null);
+      return;
+    }
+    var block = new _SyncBlock._(name, _getTraceClock(), _getThreadCpuClock());
     if (arguments is Map) {
-      block.arguments.addAll(arguments);
+      block._appendArguments(arguments);
     }
     _stack.add(block);
   }
 
   /// Finish the last synchronous operation that was started.
   static void finishSync() {
+    if (_isProduct) {
+      return;
+    }
     if (_stack.length == 0) {
       throw new StateError(
           'Uneven calls to startSync and finishSync');
     }
     // Pop top item off of stack.
     var block = _stack.removeLast();
+    if (block == null) {
+      // Dart stream was disabled when startSync was called.
+      return;
+    }
     // Finish it.
     block.finish();
   }
 
   /// Emit an instant event.
   static void instantSync(String name, {Map arguments}) {
+    if (_isProduct) {
+      return;
+    }
     if (name is! String) {
       throw new ArgumentError.value(name,
                                     'name',
                                     'Must be a String');
+    }
+    if (!_isDartStreamEnabled()) {
+      // Stream is disabled.
+      return;
     }
     Map instantArguments;
     if (arguments is Map) {
@@ -101,6 +125,9 @@ class TimelineTask {
   /// Start a synchronous operation within this task named [name].
   /// Optionally takes a [Map] of [arguments].
   void start(String name, {Map arguments}) {
+    if (_isProduct) {
+      return;
+    }
     if (name is! String) {
       throw new ArgumentError.value(name,
                                     'name',
@@ -108,7 +135,7 @@ class TimelineTask {
     }
     var block = new _AsyncBlock._(name, _taskId);
     if (arguments is Map) {
-      block.arguments.addAll(arguments);
+      block._appendArguments(arguments);
     }
     _stack.add(block);
     block._start();
@@ -116,6 +143,9 @@ class TimelineTask {
 
   /// Emit an instant event for this task.
   void instant(String name, {Map arguments}) {
+    if (_isProduct) {
+      return;
+    }
     if (name is! String) {
       throw new ArgumentError.value(name,
                                     'name',
@@ -135,6 +165,9 @@ class TimelineTask {
 
   /// Finish the last synchronous operation that was started.
   void finish() {
+    if (_isProduct) {
+      return;
+    }
     if (_stack.length == 0) {
       throw new StateError(
           'Uneven calls to start and finish');
@@ -171,7 +204,7 @@ class _AsyncBlock {
   final int _taskId;
   /// An (optional) set of arguments which will be serialized to JSON and
   /// associated with this block.
-  final Map arguments = {};
+  Map _arguments;
 
   _AsyncBlock._(this.name, this._taskId);
 
@@ -182,7 +215,7 @@ class _AsyncBlock {
                      'b',
                      category,
                      name,
-                     _argumentsAsJson(arguments));
+                     _argumentsAsJson(_arguments));
   }
 
   // Emit the finish event.
@@ -193,6 +226,13 @@ class _AsyncBlock {
                      category,
                      name,
                      _argumentsAsJson(null));
+  }
+
+  void _appendArguments(Map arguments) {
+    if (_arguments == null) {
+      _arguments = {};
+    }
+    _arguments.addAll(arguments);
   }
 }
 
@@ -205,22 +245,35 @@ class _SyncBlock {
   final String name;
   /// An (optional) set of arguments which will be serialized to JSON and
   /// associated with this block.
-  final Map arguments = {};
+  Map _arguments;
   // The start time stamp.
   final int _start;
+  // The start time stamp of the thread cpu clock.
+  final int _startCpu;
 
   _SyncBlock._(this.name,
-               this._start);
+               this._start,
+               this._startCpu);
 
   /// Finish this block of time. At this point, this block can no longer be
   /// used.
   void finish() {
     // Report event to runtime.
     _reportCompleteEvent(_start,
-                         _getTraceClock(),
+                         _startCpu,
                          category,
                          name,
-                         _argumentsAsJson(arguments));
+                         _argumentsAsJson(_arguments));
+  }
+
+  void _appendArguments(Map arguments) {
+    if (arguments == null) {
+      return;
+    }
+    if (_arguments == null) {
+      _arguments = {};
+    }
+    _arguments.addAll(arguments);
   }
 }
 
@@ -238,11 +291,17 @@ String _argumentsAsJson(Map arguments) {
   return JSON.encode(arguments);
 }
 
+/// Returns true if the Dart Timeline stream is enabled.
+external bool _isDartStreamEnabled();
+
 /// Returns the next async task id.
 external int _getNextAsyncId();
 
 /// Returns the current value from the trace clock.
 external int _getTraceClock();
+
+/// Returns the current value from the thread CPU usage clock.
+external int _getThreadCpuClock();
 
 /// Returns the isolate's main port number.
 external int _getIsolateNum();
@@ -257,7 +316,7 @@ external void _reportTaskEvent(int start,
 
 /// Reports a complete synchronous event.
 external void _reportCompleteEvent(int start,
-                                   int end,
+                                   int startCpu,
                                    String category,
                                    String name,
                                    String argumentsAsJson);

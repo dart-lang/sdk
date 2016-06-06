@@ -31,6 +31,8 @@ Language/Libraries_and_Scripts/URIs/syntax_t15: fail, OK
 # co19 issue #615: Expect import missing
 LibTest/collection/LinkedList/LinkedList_A01_t01: Fail, OK
 
+Language/Generics/syntax_t04: StaticWarning # co19 issue #56
+
 LibTest/isolate/IsolateStream/any_A01_t01: Fail # co19-roll r706: Please triage this failure.
 LibTest/isolate/IsolateStream/asBroadcastStream_A01_t01: Fail # co19-roll r706: Please triage this failure.
 LibTest/isolate/IsolateStream/contains_A01_t01: Fail # co19-roll r706: Please triage this failure.

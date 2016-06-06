@@ -22,26 +22,47 @@
 
 #include "include/dart_api.h"
 
+#include "platform/hashmap.h"
 #include "platform/globals.h"
 
 namespace dart {
 namespace bin {
 
+// Exit code indicating an API error.
+static const int kApiErrorExitCode = 253;
+// Exit code indicating a compilation error.
+static const int kCompilationErrorExitCode = 254;
+// Exit code indicating an unhandled error that is not a compilation error.
+static const int kErrorExitCode = 255;
+// Exit code indicating a vm restart request.  Never returned to the user.
+static const int kRestartRequestExitCode = 1000;
+
 #define CHECK_RESULT(result)                                                   \
   if (Dart_IsError(result)) {                                                  \
+    intptr_t exit_code = 0;                                                    \
     Log::PrintErr("Error: %s", Dart_GetError(result));                         \
+    if (Dart_IsCompilationError(result)) {                                     \
+      exit_code = kCompilationErrorExitCode;                                   \
+    } else if (Dart_IsApiError(result)) {                                      \
+      exit_code = kApiErrorExitCode;                                           \
+    } else if (Dart_IsVMRestartRequest(result)) {                              \
+      exit_code = kRestartRequestExitCode;                                     \
+    } else {                                                                   \
+      exit_code = kErrorExitCode;                                              \
+    }                                                                          \
     Dart_ExitScope();                                                          \
     Dart_ShutdownIsolate();                                                    \
-    exit(255);                                                                 \
-  }                                                                            \
+    exit(exit_code);                                                           \
+  }
 
 
 // Global state that indicates whether a snapshot is to be created and
 // if so which file to write the snapshot into.
 static const char* vm_isolate_snapshot_filename = NULL;
 static const char* isolate_snapshot_filename = NULL;
-static const char* instructions_snapshot_filename = NULL;
-static const char* embedder_entry_points_manifest = NULL;
+static const char* assembly_filename = NULL;
+static const char* instructions_blob_filename = NULL;
+static const char* rodata_blob_filename = NULL;
 static const char* package_root = NULL;
 
 
@@ -54,6 +75,10 @@ static char* app_script_name = NULL;
 // Global state that captures the URL mappings specified on the command line.
 static CommandLineOptions* url_mapping = NULL;
 
+// Global state that captures the entry point manifest files specified on the
+// command line.
+static CommandLineOptions* entry_points_files = NULL;
+
 static bool IsValidFlag(const char* name,
                         const char* prefix,
                         intptr_t prefix_length) {
@@ -61,6 +86,92 @@ static bool IsValidFlag(const char* name,
   return ((name_length > prefix_length) &&
           (strncmp(name, prefix, prefix_length) == 0));
 }
+
+
+// The environment provided through the command line using -D options.
+static dart::HashMap* environment = NULL;
+
+static void* GetHashmapKeyFromString(char* key) {
+  return reinterpret_cast<void*>(key);
+}
+
+static bool ProcessEnvironmentOption(const char* arg) {
+  ASSERT(arg != NULL);
+  if (*arg == '\0') {
+    return false;
+  }
+  if (*arg != '-') {
+    return false;
+  }
+  if (*(arg + 1) != 'D') {
+    return false;
+  }
+  arg = arg + 2;
+  if (*arg == '\0') {
+    return true;
+  }
+  if (environment == NULL) {
+    environment = new HashMap(&HashMap::SameStringValue, 4);
+  }
+  // Split the name=value part of the -Dname=value argument.
+  char* name;
+  char* value = NULL;
+  const char* equals_pos = strchr(arg, '=');
+  if (equals_pos == NULL) {
+    // No equal sign (name without value) currently not supported.
+    Log::PrintErr("No value given to -D option\n");
+    return false;
+  } else {
+    int name_len = equals_pos - arg;
+    if (name_len == 0) {
+      Log::PrintErr("No name given to -D option\n");
+      return false;
+    }
+    // Split name=value into name and value.
+    name = reinterpret_cast<char*>(malloc(name_len + 1));
+    strncpy(name, arg, name_len);
+    name[name_len] = '\0';
+    value = strdup(equals_pos + 1);
+  }
+  HashMap::Entry* entry = environment->Lookup(
+      GetHashmapKeyFromString(name), HashMap::StringHash(name), true);
+  ASSERT(entry != NULL);  // Lookup adds an entry if key not found.
+  entry->value = value;
+  return true;
+}
+
+
+static Dart_Handle EnvironmentCallback(Dart_Handle name) {
+  uint8_t* utf8_array;
+  intptr_t utf8_len;
+  Dart_Handle result = Dart_Null();
+  Dart_Handle handle = Dart_StringToUTF8(name, &utf8_array, &utf8_len);
+  if (Dart_IsError(handle)) {
+    handle = Dart_ThrowException(
+        DartUtils::NewDartArgumentError(Dart_GetError(handle)));
+  } else {
+    char* name_chars = reinterpret_cast<char*>(malloc(utf8_len + 1));
+    memmove(name_chars, utf8_array, utf8_len);
+    name_chars[utf8_len] = '\0';
+    const char* value = NULL;
+    if (environment != NULL) {
+      HashMap::Entry* entry = environment->Lookup(
+          GetHashmapKeyFromString(name_chars),
+          HashMap::StringHash(name_chars),
+          false);
+      if (entry != NULL) {
+        value = reinterpret_cast<char*>(entry->value);
+      }
+    }
+    if (value != NULL) {
+      result = Dart_NewStringFromUTF8(reinterpret_cast<const uint8_t*>(value),
+                                      strlen(value));
+    }
+    free(name_chars);
+  }
+  return result;
+}
+
 
 
 static const char* ProcessOption(const char* option, const char* name) {
@@ -92,10 +203,30 @@ static bool ProcessIsolateSnapshotOption(const char* option) {
 }
 
 
-static bool ProcessInstructionsSnapshotOption(const char* option) {
-  const char* name = ProcessOption(option, "--instructions_snapshot=");
+static bool ProcessAssemblyOption(const char* option) {
+  const char* name = ProcessOption(option, "--assembly=");
   if (name != NULL) {
-    instructions_snapshot_filename = name;
+    assembly_filename = name;
+    return true;
+  }
+  return false;
+}
+
+
+static bool ProcessInstructionsBlobOption(const char* option) {
+  const char* name = ProcessOption(option, "--instructions_blob=");
+  if (name != NULL) {
+    instructions_blob_filename = name;
+    return true;
+  }
+  return false;
+}
+
+
+static bool ProcessRodataBlobOption(const char* option) {
+  const char* name = ProcessOption(option, "--rodata_blob=");
+  if (name != NULL) {
+    rodata_blob_filename = name;
     return true;
   }
   return false;
@@ -105,7 +236,7 @@ static bool ProcessInstructionsSnapshotOption(const char* option) {
 static bool ProcessEmbedderEntryPointsManifestOption(const char* option) {
   const char* name = ProcessOption(option, "--embedder_entry_points_manifest=");
   if (name != NULL) {
-    embedder_entry_points_manifest = name;
+    entry_points_files->AddArgument(name);
     return true;
   }
   return false;
@@ -114,6 +245,9 @@ static bool ProcessEmbedderEntryPointsManifestOption(const char* option) {
 
 static bool ProcessPackageRootOption(const char* option) {
   const char* name = ProcessOption(option, "--package_root=");
+  if (name == NULL) {
+    name = ProcessOption(option, "--package-root=");
+  }
   if (name != NULL) {
     package_root = name;
     return true;
@@ -135,13 +269,18 @@ static bool ProcessURLmappingOption(const char* option) {
 }
 
 
+static bool IsSnapshottingForPrecompilation() {
+  return (assembly_filename != NULL) || (instructions_blob_filename != NULL);
+}
+
+
 // Parse out the command line arguments. Returns -1 if the arguments
 // are incorrect, 0 otherwise.
 static int ParseArguments(int argc,
                           char** argv,
                           CommandLineOptions* vm_options,
                           char** script_name) {
-  const char* kPrefix = "--";
+  const char* kPrefix = "-";
   const intptr_t kPrefixLen = strlen(kPrefix);
 
   // Skip the binary name.
@@ -151,10 +290,13 @@ static int ParseArguments(int argc,
   while ((i < argc) && IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
     if (ProcessVmIsolateSnapshotOption(argv[i]) ||
         ProcessIsolateSnapshotOption(argv[i]) ||
-        ProcessInstructionsSnapshotOption(argv[i]) ||
+        ProcessAssemblyOption(argv[i]) ||
+        ProcessInstructionsBlobOption(argv[i]) ||
+        ProcessRodataBlobOption(argv[i]) ||
         ProcessEmbedderEntryPointsManifestOption(argv[i]) ||
         ProcessURLmappingOption(argv[i]) ||
-        ProcessPackageRootOption(argv[i])) {
+        ProcessPackageRootOption(argv[i]) ||
+        ProcessEnvironmentOption(argv[i])) {
       i += 1;
       continue;
     }
@@ -180,29 +322,33 @@ static int ParseArguments(int argc,
     return -1;
   }
 
-  if ((instructions_snapshot_filename != NULL) &&
-      (embedder_entry_points_manifest == NULL)) {
+  bool precompiled_as_assembly = assembly_filename != NULL;
+  bool precompiled_as_blobs = (instructions_blob_filename != NULL) ||
+                              (rodata_blob_filename != NULL);
+  if (precompiled_as_assembly && precompiled_as_blobs) {
+    Log::PrintErr(
+      "Cannot request a precompiled snapshot simultaneously as "
+      "assembly (--assembly=<output.file>) and as blobs "
+      "(--instructions-blob=<output.file> and "
+      "--rodata-blob=<output.file>)\n\n");
+    return -1;
+  }
+  if ((instructions_blob_filename != NULL) != (rodata_blob_filename != NULL)) {
+    Log::PrintErr(
+      "Requesting a precompiled snapshot as blobs requires both "
+      "(--instructions-blob=<output.file> and "
+      "--rodata-blob=<output.file>)\n\n");
+    return -1;
+  }
+  if (IsSnapshottingForPrecompilation() &&
+      (entry_points_files->count() == 0)) {
     Log::PrintErr(
         "Specifying an instructions snapshot filename indicates precompilation"
         ". But no embedder entry points manifest was specified.\n\n");
     return -1;
   }
 
-  if ((embedder_entry_points_manifest != NULL) &&
-      (instructions_snapshot_filename == NULL)) {
-    Log::PrintErr(
-        "Specifying the embedder entry points manifest indicates "
-        "precompilation. But no instuctions snapshot was specified.\n\n");
-    return -1;
-  }
-
   return 0;
-}
-
-
-static bool IsSnapshottingForPrecompilation(void) {
-  return embedder_entry_points_manifest != NULL &&
-         instructions_snapshot_filename != NULL;
 }
 
 
@@ -214,7 +360,7 @@ static void WriteSnapshotFile(const char* filename,
   if (!file->WriteFully(buffer, size)) {
     Log::PrintErr("Error: Failed to write snapshot file.\n\n");
   }
-  delete file;
+  file->Release();
 }
 
 
@@ -469,17 +615,23 @@ static void PrintUsage() {
 "  optional.                                                                 \n"
 "                                                                            \n"
 "  Precompilation:                                                           \n"
-"  In order to configure the snapshotter for precompilation, both the        \n"
-"  instructions snapshot and embedder entry points manifest must be          \n"
-"  specified. Assembly for the target architecture will be dumped into the   \n"
-"  instructions snapshot. This must be linked into the target binary in a    \n"
-"  separate step. The embedder entry points manifest lists the standalone    \n"
-"  entry points into the VM. Not specifying these will cause the tree shaker \n"
-"  to disregard the same as being used. The format of this manifest is as    \n"
-"  follows. Each line in the manifest is a comma separated list of three     \n"
-"  elements. The first entry is the library URI, the second entry is the     \n"
-"  class name and the final entry the function name. The file must be        \n"
-"  terminated with a newline charater.                                       \n"
+"  In order to configure the snapshotter for precompilation, either          \n"
+"  --assembly=outputfile or --instructions_blob=outputfile1 and              \n"
+"  --rodata_blob=outputfile2 must be specified. If the former is choosen,    \n"
+"  assembly for the target architecture will be output into the given file,  \n"
+"  which must be compiled separately and either statically linked or         \n"
+"  dynamically loaded in the target executable. The symbols                  \n"
+"  kInstructionsSnapshot and kDataSnapshot must be passed to Dart_Initialize.\n"
+"  If the latter is choosen, binary data is output into the given files,     \n"
+"  which should be mmapped and passed to Dart_Initialize, with the           \n"
+"  instruction blob being mapped as executable.                              \n"
+"  In both cases, a entry points manifest must be given to list the places   \n"
+"  in the Dart program the embedder calls from the C API (Dart_Invoke, etc). \n"
+"  Not specifying these may cause the tree shaker to remove them from the    \n"
+"  program. The format of this manifest is as follows. Each line in the      \n"
+"  manifest is a comma separated list of three elements. The first entry is  \n"
+"  the library URI, the second entry is the class name and the final entry   \n"
+"  the function name. The file must be terminated with a newline charater.   \n"
 "                                                                            \n"
 "    Example:                                                                \n"
 "      dart:something,SomeClass,doSomething                                  \n"
@@ -497,12 +649,18 @@ static void PrintUsage() {
 "                                      the command line to load the          \n"
 "                                      libraries.                            \n"
 "                                                                            \n"
-"    --instructions_snapshot=<file>    (Precompilation only) Contains the    \n"
+"    --assembly=<file>                 (Precompilation only) Contains the    \n"
 "                                      assembly that must be linked into     \n"
 "                                      the target binary                     \n"
 "                                                                            \n"
-"    --embedder_entry_points_manifest=<file> (Precompilation only) Contains  \n"
-"                                      the stanalone embedder entry points\n");
+"    --instructions_blob=<file>        (Precompilation only) Contains the    \n"
+"    --rodata_blob=<file>              instructions and read-only data that  \n"
+"                                      must be mapped into the target binary \n"
+"                                                                            \n"
+"    --embedder_entry_points_manifest=<file> (Precompilation or app          \n"
+"                                      snapshots) Contains embedder's entry  \n"
+"                                      points into Dart code from the C API. \n"
+"\n");
 }
 
 
@@ -510,9 +668,7 @@ static void VerifyLoaded(Dart_Handle library) {
   if (Dart_IsError(library)) {
     const char* err_msg = Dart_GetError(library);
     Log::PrintErr("Errors encountered while loading: %s\n", err_msg);
-    Dart_ExitScope();
-    Dart_ShutdownIsolate();
-    exit(255);
+    CHECK_RESULT(library);
   }
   ASSERT(Dart_IsLibrary(library));
 }
@@ -781,31 +937,34 @@ int64_t ParseEntryPointsManifestLines(FILE* file,
 }
 
 
-static Dart_QualifiedFunctionName* ParseEntryPointsManifestFile(
-    const char* path) {
-  if (path == NULL) {
-    return NULL;
-  }
+static Dart_QualifiedFunctionName* ParseEntryPointsManifestFiles() {
+  // Total number of entries across all manifest files.
+  int64_t entry_count = 0;
 
-  FILE* file = fopen(path, "r");
-
-  if (file == NULL) {
-    Log::PrintErr("Could not open entry points manifest file\n");
-    return NULL;
-  }
-
-  // Parse the file once but don't store the results. This is done to first
+  // Parse the files once but don't store the results. This is done to first
   // determine the number of entries in the manifest
-  int64_t entry_count = ParseEntryPointsManifestLines(file, NULL);
+  for (intptr_t i = 0; i < entry_points_files->count(); i++) {
+    const char* path = entry_points_files->GetArgument(i);
 
-  if (entry_count <= 0) {
-    Log::PrintErr(
-        "Manifest file specified is invalid or contained no entries\n");
+    FILE* file = fopen(path, "r");
+
+    if (file == NULL) {
+      Log::PrintErr("Could not open entry points manifest file `%s`\n", path);
+      return NULL;
+    }
+
+    int64_t entries = ParseEntryPointsManifestLines(file, NULL);
     fclose(file);
-    return NULL;
-  }
 
-  rewind(file);
+    if (entries <= 0) {
+      Log::PrintErr(
+          "Manifest file `%s` specified is invalid or contained no entries\n",
+          path);
+      return NULL;
+    }
+
+    entry_count += entries;
+  }
 
   // Allocate enough storage for the entries in the file plus a termination
   // sentinel and parse it again to populate the allocation
@@ -813,10 +972,16 @@ static Dart_QualifiedFunctionName* ParseEntryPointsManifestFile(
       reinterpret_cast<Dart_QualifiedFunctionName*>(
           calloc(entry_count + 1, sizeof(Dart_QualifiedFunctionName)));
 
-  int64_t parsed_entry_count = ParseEntryPointsManifestLines(file, entries);
-  ASSERT(parsed_entry_count == entry_count);
+  int64_t parsed_entry_count = 0;
+  for (intptr_t i = 0; i < entry_points_files->count(); i++) {
+    const char* path = entry_points_files->GetArgument(i);
+    FILE* file = fopen(path, "r");
+    parsed_entry_count +=
+        ParseEntryPointsManifestLines(file, &entries[parsed_entry_count]);
+    fclose(file);
+  }
 
-  fclose(file);
+  ASSERT(parsed_entry_count == entry_count);
 
   // The entries allocation must be explicitly cleaned up via
   // |CleanupEntryPointsCollection|
@@ -825,8 +990,7 @@ static Dart_QualifiedFunctionName* ParseEntryPointsManifestFile(
 
 
 static Dart_QualifiedFunctionName* ParseEntryPointsManifestIfPresent() {
-  Dart_QualifiedFunctionName* entries =
-      ParseEntryPointsManifestFile(embedder_entry_points_manifest);
+  Dart_QualifiedFunctionName* entries = ParseEntryPointsManifestFiles();
   if ((entries == NULL) && IsSnapshottingForPrecompilation()) {
     Log::PrintErr(
         "Could not find native embedder entry points during precompilation\n");
@@ -874,34 +1038,58 @@ static void CreateAndWritePrecompiledSnapshot(
   intptr_t vm_isolate_size = 0;
   uint8_t* isolate_buffer = NULL;
   intptr_t isolate_size = 0;
-  uint8_t* instructions_buffer = NULL;
-  intptr_t instructions_size = 0;
+  uint8_t* assembly_buffer = NULL;
+  intptr_t assembly_size = 0;
+  uint8_t* instructions_blob_buffer = NULL;
+  intptr_t instructions_blob_size = 0;
+  uint8_t* rodata_blob_buffer = NULL;
+  intptr_t rodata_blob_size = 0;
 
   // Precompile with specified embedder entry points
   result = Dart_Precompile(standalone_entry_points, true);
   CHECK_RESULT(result);
 
-  // Create a precompiled snapshot. This gives us an instruction buffer with
-  // machine code
-  result = Dart_CreatePrecompiledSnapshot(&vm_isolate_buffer,
-                                          &vm_isolate_size,
-                                          &isolate_buffer,
-                                          &isolate_size,
-                                          &instructions_buffer,
-                                          &instructions_size);
-  CHECK_RESULT(result);
+  // Create a precompiled snapshot.
+  bool as_assembly = assembly_filename != NULL;
+  if (as_assembly) {
+    result = Dart_CreatePrecompiledSnapshotAssembly(&vm_isolate_buffer,
+                                                    &vm_isolate_size,
+                                                    &isolate_buffer,
+                                                    &isolate_size,
+                                                    &assembly_buffer,
+                                                    &assembly_size);
+    CHECK_RESULT(result);
+  } else {
+    result = Dart_CreatePrecompiledSnapshotBlob(&vm_isolate_buffer,
+                                                &vm_isolate_size,
+                                                &isolate_buffer,
+                                                &isolate_size,
+                                                &instructions_blob_buffer,
+                                                &instructions_blob_size,
+                                                &rodata_blob_buffer,
+                                                &rodata_blob_size);
+    CHECK_RESULT(result);
+  }
 
-  // Now write the vm isolate, isolate and instructions snapshots out to the
-  // specified files and exit.
+  // Now write the snapshot pieces out to the specified files and exit.
   WriteSnapshotFile(vm_isolate_snapshot_filename,
                     vm_isolate_buffer,
                     vm_isolate_size);
   WriteSnapshotFile(isolate_snapshot_filename,
                     isolate_buffer,
                     isolate_size);
-  WriteSnapshotFile(instructions_snapshot_filename,
-                    instructions_buffer,
-                    instructions_size);
+  if (as_assembly) {
+    WriteSnapshotFile(assembly_filename,
+                      assembly_buffer,
+                      assembly_size);
+  } else {
+    WriteSnapshotFile(instructions_blob_filename,
+                      instructions_blob_buffer,
+                      instructions_blob_size);
+    WriteSnapshotFile(rodata_blob_filename,
+                      rodata_blob_buffer,
+                      rodata_blob_size);
+  }
   Dart_ExitScope();
 
   // Shutdown the isolate.
@@ -998,6 +1186,10 @@ int main(int argc, char** argv) {
   CommandLineOptions url_mapping_array(argc);
   url_mapping = &url_mapping_array;
 
+  // Initialize the entrypoints array.
+  CommandLineOptions entry_points_files_array(argc);
+  entry_points_files = &entry_points_files_array;
+
   // Parse command line arguments.
   if (ParseArguments(argc,
                      argv,
@@ -1067,6 +1259,9 @@ int main(int argc, char** argv) {
   Dart_Handle library;
   Dart_EnterScope();
 
+  result = Dart_SetEnvironmentCallback(EnvironmentCallback);
+  CHECK_RESULT(result);
+
   ASSERT(vm_isolate_snapshot_filename != NULL);
   ASSERT(isolate_snapshot_filename != NULL);
   // Load up the script before a snapshot is created.
@@ -1108,6 +1303,8 @@ int main(int argc, char** argv) {
       exit(255);
     }
     Dart_EnterScope();
+    result = Dart_SetEnvironmentCallback(EnvironmentCallback);
+    CHECK_RESULT(result);
 
     // Set up the library tag handler in such a manner that it will use the
     // URL mapping specified on the command line to load the libraries.
@@ -1129,8 +1326,7 @@ int main(int argc, char** argv) {
     result = Dart_FinalizeLoading(false);
     CHECK_RESULT(result);
 
-    if (entry_points == NULL) {
-      ASSERT(!IsSnapshottingForPrecompilation());
+    if (!IsSnapshottingForPrecompilation()) {
       CreateAndWriteSnapshot();
     } else {
       CreateAndWritePrecompiledSnapshot(entry_points);

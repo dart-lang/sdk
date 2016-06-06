@@ -23,12 +23,14 @@ patch _parseJson(String json, reviver(var key, var value)) {
 
 patch class Utf8Decoder {
   /* patch */
-  Converter<List<int>, dynamic> fuse(Converter<String, dynamic> next) {
+  Converter<List<int>, dynamic/*=T*/> fuse/*<T>*/(
+      Converter<String, dynamic/*=T*/> next) {
     if (next is JsonDecoder) {
-      return new _JsonUtf8Decoder(next._reviver, this._allowMalformed);
+      return new _JsonUtf8Decoder(next._reviver, this._allowMalformed)
+          as dynamic/*=Converter<List<int>, T>*/;
     }
     // TODO(lrn): Recognize a fused decoder where the next step is JsonDecoder.
-    return super.fuse(next);
+    return super.fuse/*<T>*/(next);
   }
 
   // Allow intercepting of UTF-8 decoding when built-in lists are passed.
@@ -39,8 +41,7 @@ patch class Utf8Decoder {
   }
 }
 
-class _JsonUtf8Decoder extends
-    ChunkedConverter<List<int>, Object, List<int>, Object> {
+class _JsonUtf8Decoder extends Converter<List<int>, Object> {
   final _Reviver _reviver;
   final bool _allowMalformed;
 

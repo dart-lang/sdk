@@ -25,6 +25,41 @@ namespace dart {
 #endif
 
 
+// The Linux/Android ABI and the iOS ABI differ in their choice of frame
+// pointer, their treatment of R9, and the interproduceral stack alignment.
+
+// EABI (Linux, Android)
+// See "Procedure Call Standard for the ARM Architecture".
+// R0-R1:  Argument / result / volatile
+// R2-R3:  Argument / volatile
+// R4-R10: Preserved
+// R11:    Frame pointer
+// R12:    Volatile
+// R13:    Stack pointer
+// R14:    Link register
+// R15:    Program counter
+// Stack alignment: 4 bytes always, 8 bytes at public interfaces
+
+// Linux (Debian armhf) and Android also differ in whether floating point
+// arguments are passed in registers. Linux uses hardfp and Android uses
+// softfp. See TargetCPUFeatures::hardfp_supported().
+
+// iOS ABI
+// See "iOS ABI Function Call Guide"
+// R0-R1: Argument / result / volatile
+// R2-R3: Argument / volatile
+// R4-R6: Preserved
+// R7:    Frame pointer
+// R8-R9: Preserved
+// R12:   Volatile
+// R13:   Stack pointer
+// R14:   Link register
+// R15:   Program counter
+// Stack alignment: 4 bytes always, 4 bytes at public interfaces
+
+// iOS passes floating point arguments in registers (hardfp)
+
+
 enum Register {
   R0  =  0,
   R1  =  1,
@@ -46,12 +81,14 @@ enum Register {
   kNoRegister = -1,  // Signals an illegal register.
 
   // Aliases.
-#if defined(TARGET_OS_MACOS)
+#if defined(TARGET_ABI_IOS)
   FP   = R7,
   NOTFP = R11,
-#else
+#elif defined(TARGET_ABI_EABI)
   FP   = R11,
   NOTFP = R7,
+#else
+#error Unknown ABI
 #endif
   IP  = R12,
   SP  = R13,
@@ -246,7 +283,7 @@ const Register ICREG = R9;  // IC data register.
 const Register ARGS_DESC_REG = R4;
 const Register CODE_REG = R6;
 const Register THR = R10;  // Caches current thread in generated code.
-const Register CALLEE_SAVED_TEMP = R6;
+const Register CALLEE_SAVED_TEMP = R8;
 
 // R15 encodes APSR in the vmrs instruction.
 const Register APSR = R15;
@@ -268,16 +305,18 @@ const RegList kAllCpuRegistersList = 0xFFFF;
 // C++ ABI call registers.
 const RegList kAbiArgumentCpuRegs =
     (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3);
-#if defined(TARGET_OS_MACOS)
+#if defined(TARGET_ABI_IOS)
 const RegList kAbiPreservedCpuRegs =
     (1 << R4)  | (1 << R5) | (1 << R6) | (1 << R8) |
     (1 << R10) | (1 << R11);
 const int kAbiPreservedCpuRegCount = 6;
-#else
+#elif defined(TARGET_ABI_EABI)
 const RegList kAbiPreservedCpuRegs =
     (1 << R4) | (1 << R5) | (1 << R6) | (1 << R7) |
     (1 << R8) | (1 << R9) | (1 << R10);
 const int kAbiPreservedCpuRegCount = 7;
+#else
+#error Unknown ABI
 #endif
 const QRegister kAbiFirstPreservedFpuReg = Q4;
 const QRegister kAbiLastPreservedFpuReg = Q7;
@@ -296,9 +335,9 @@ const RegList kDartAvailableCpuRegs =
 // Registers available to Dart that are not preserved by runtime calls.
 const RegList kDartVolatileCpuRegs =
     kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;
-#if defined(TARGET_OS_MACOS)
+#if defined(TARGET_ABI_IOS)
 const int kDartVolatileCpuRegCount = 6;
-#else
+#elif defined(TARGET_ABI_EABI)
 const int kDartVolatileCpuRegCount = 5;
 #endif
 const QRegister kDartFirstVolatileFpuReg = Q0;

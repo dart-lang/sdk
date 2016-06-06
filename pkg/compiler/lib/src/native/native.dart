@@ -13,24 +13,32 @@ export 'js.dart';
 export 'scanner.dart';
 export 'ssa.dart';
 
+const Iterable<String> _allowedDartSchemePaths = const <String>[
+  'async',
+  'html',
+  'html_common',
+  'indexed_db',
+  'js',
+  'svg',
+  '_native_typed_data',
+  'web_audio',
+  'web_gl',
+  'web_sql'
+];
+
 bool maybeEnableNative(Compiler compiler, LibraryElement library) {
-  String libraryName = library.canonicalUri.toString();
-  if (library.entryCompilationUnit.script.name
-          .contains('sdk/tests/compiler/dart2js_native') ||
-      library.entryCompilationUnit.script.name
-          .contains('sdk/tests/compiler/dart2js_extra') ||
-      libraryName == 'dart:async' ||
-      libraryName == 'dart:html' ||
-      libraryName == 'dart:html_common' ||
-      libraryName == 'dart:indexed_db' ||
-      libraryName == 'dart:js' ||
-      libraryName == 'dart:svg' ||
-      libraryName == 'dart:_native_typed_data' ||
-      libraryName == 'dart:web_audio' ||
-      libraryName == 'dart:web_gl' ||
-      libraryName == 'dart:web_sql' ||
-      compiler.options.allowNativeExtensions) {
-    return true;
+  bool allowedTestLibrary() {
+    String scriptName = library.entryCompilationUnit.script.name;
+    return scriptName.contains('sdk/tests/compiler/dart2js_native') ||
+        scriptName.contains('sdk/tests/compiler/dart2js_extra');
   }
-  return false;
+  bool allowedDartLibary() {
+    Uri uri = library.canonicalUri;
+    if (uri.scheme != 'dart') return false;
+    return _allowedDartSchemePaths.contains(uri.path);
+  }
+
+  return allowedTestLibrary() ||
+      allowedDartLibary() ||
+      compiler.options.allowNativeExtensions;
 }

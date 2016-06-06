@@ -8,6 +8,7 @@ import 'dart:async';
 import 'package:expect/expect.dart';
 import 'compiler_helper.dart' as mock;
 import 'memory_compiler.dart' as memory;
+import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/dart_types.dart';
 import 'package:compiler/src/compiler.dart'
@@ -30,6 +31,8 @@ GenericType instantiate(TypeDeclarationElement element,
 
 class TypeEnvironment {
   final Compiler compiler;
+
+  Resolution get resolution => compiler.resolution;
 
   static Future<TypeEnvironment> create(
       String source, {bool useMockCompiler: true,

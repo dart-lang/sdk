@@ -35,6 +35,7 @@ class HandleVisitor;
 class Heap;
 class ICData;
 class IsolateProfilerData;
+class IsolateReloadContext;
 class IsolateSpawnState;
 class Log;
 class MessageHandler;
@@ -47,12 +48,12 @@ class RawInstance;
 class RawArray;
 class RawContext;
 class RawDouble;
+class RawError;
+class RawField;
 class RawGrowableObjectArray;
 class RawMint;
 class RawObject;
 class RawInteger;
-class RawError;
-class RawField;
 class RawFloat32x4;
 class RawInt32x4;
 class RawUserTag;
@@ -88,6 +89,18 @@ class NoOOBMessageScope : public StackResource {
   ~NoOOBMessageScope();
  private:
   DISALLOW_COPY_AND_ASSIGN(NoOOBMessageScope);
+};
+
+
+// Disallow isolate reload.
+class NoReloadScope : public StackResource {
+ public:
+  NoReloadScope(Isolate* isolate, Thread* thread);
+  ~NoReloadScope();
+
+ private:
+  Isolate* isolate_;
+  DISALLOW_COPY_AND_ASSIGN(NoReloadScope);
 };
 
 
@@ -149,6 +162,9 @@ class Isolate : public BaseIsolate {
   static intptr_t class_table_offset() {
     return OFFSET_OF(Isolate, class_table_);
   }
+
+  // Prefers old classes when we are in the middle of a reload.
+  RawClass* GetClassForHeapWalkAt(intptr_t cid);
 
   static intptr_t ic_miss_code_offset() {
     return OFFSET_OF(Isolate, ic_miss_code_);
@@ -228,6 +244,8 @@ class Isolate : public BaseIsolate {
     library_tag_handler_ = value;
   }
 
+  void SetupInstructionsSnapshotPage(
+      const uint8_t* instructions_snapshot_buffer);
   void SetupDataSnapshotPage(
       const uint8_t* instructions_snapshot_buffer);
 
@@ -235,6 +253,10 @@ class Isolate : public BaseIsolate {
 
   // Marks all libraries as loaded.
   void DoneLoading();
+  void DoneFinalizing();
+
+  void OnStackReload();
+  void ReloadSources(bool test_mode = false);
 
   bool MakeRunnable();
   void Run();
@@ -381,7 +403,25 @@ class Isolate : public BaseIsolate {
     return background_compiler_;
   }
   void set_background_compiler(BackgroundCompiler* value) {
+    // Do not overwrite a background compiler (memory leak).
+    ASSERT((value == NULL) || (background_compiler_ == NULL));
     background_compiler_ = value;
+  }
+
+  void enable_background_compiler() {
+    background_compiler_disabled_depth_--;
+    if (background_compiler_disabled_depth_ < 0) {
+      FATAL("Mismatched number of calls to disable_background_compiler and "
+            "enable_background_compiler.");
+    }
+  }
+
+  void disable_background_compiler() {
+    background_compiler_disabled_depth_++;
+  }
+
+  bool is_background_compiler_disabled() const {
+    return background_compiler_disabled_depth_ > 0;
   }
 
   void UpdateLastAllocationProfileAccumulatorResetTimestamp() {
@@ -427,6 +467,22 @@ class Isolate : public BaseIsolate {
   VMTagCounters* vm_tag_counters() {
     return &vm_tag_counters_;
   }
+
+  bool IsReloading() const {
+    return reload_context_ != NULL;
+  }
+
+  IsolateReloadContext* reload_context() {
+    return reload_context_;
+  }
+
+  bool HasAttemptedReload() const {
+    return has_attempted_reload_;
+  }
+
+  bool CanReload() const;
+
+  void ReportReloadError(const Error& error);
 
   uword user_tag() const {
     return user_tag_;
@@ -504,14 +560,6 @@ class Isolate : public BaseIsolate {
 
   static const intptr_t kInvalidGen = 0;
 
-  void IncrFieldInvalidationGen() {
-    AtomicOperations::IncrementBy(&field_invalidation_gen_, 1);
-    if (field_invalidation_gen_ == kInvalidGen) {
-      AtomicOperations::IncrementBy(&field_invalidation_gen_, 1);
-    }
-  }
-  intptr_t field_invalidation_gen() const { return field_invalidation_gen_; }
-
   void IncrLoadingInvalidationGen() {
     AtomicOperations::IncrementBy(&loading_invalidation_gen_, 1);
     if (loading_invalidation_gen_ == kInvalidGen) {
@@ -521,14 +569,6 @@ class Isolate : public BaseIsolate {
   intptr_t loading_invalidation_gen() {
     return AtomicOperations::LoadRelaxedIntPtr(&loading_invalidation_gen_);
   }
-
-  // Used by mutator thread to notify background compiler which fields
-  // triggered code invalidation.
-  void AddDisablingField(const Field& field);
-  // Returns Field::null() if none available in the list. Can be called
-  // only from background compiler and while mutator thread is at safepoint.
-  RawField* GetDisablingField();
-  void ClearDisablingFieldList();
 
   // Used by background compiler which field became boxed and must trigger
   // deoptimization in the mutator thread.
@@ -713,6 +753,7 @@ class Isolate : public BaseIsolate {
 
   // Background compilation.
   BackgroundCompiler* background_compiler_;
+  intptr_t background_compiler_disabled_depth_;
 
   // We use 6 list entries for each pending service extension calls.
   enum {
@@ -748,22 +789,23 @@ class Isolate : public BaseIsolate {
   // Invalidation generations; used to track events occuring in parallel
   // to background compilation. The counters may overflow, which is OK
   // since we check for equality to detect if an event occured.
-  intptr_t field_invalidation_gen_;
   intptr_t loading_invalidation_gen_;
   intptr_t top_level_parsing_count_;
 
-  // Protect access to boxed_field_list_ and disabling_field_list_.
+  // Protect access to boxed_field_list_.
   Mutex* field_list_mutex_;
   // List of fields that became boxed and that trigger deoptimization.
   RawGrowableObjectArray* boxed_field_list_;
-  // List of fields that were disabling code while background compiler
-  // was running.
-  RawGrowableObjectArray* disabling_field_list_;
 
   // This guards spawn_count_. An isolate cannot complete shutdown and be
   // destroyed while there are child isolates in the midst of a spawn.
   Monitor* spawn_count_monitor_;
   intptr_t spawn_count_;
+
+  // Has a reload ever been attempted?
+  bool has_attempted_reload_;
+  intptr_t no_reload_scope_depth_;  // we can only reload when this is 0.
+  IsolateReloadContext* reload_context_;
 
 #define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
   type metric_##variable##_;
@@ -791,12 +833,15 @@ class Isolate : public BaseIsolate {
 REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
 #undef REUSABLE_FRIEND_DECLARATION
 
+  friend class Become;  // VisitObjectPointers
   friend class GCMarker;  // VisitObjectPointers
   friend class SafepointHandler;
   friend class Scavenger;  // VisitObjectPointers
   friend class ServiceIsolate;
   friend class Thread;
   friend class Timeline;
+  friend class NoReloadScope;  // reload_block
+
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };

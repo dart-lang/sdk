@@ -72,22 +72,29 @@ void EntryFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(thread() == Thread::Current());
   // Visit objects between SP and (FP - callee_save_area).
   ASSERT(visitor != NULL);
+#if !defined(TARGET_ARCH_DBC)
   RawObject** first = reinterpret_cast<RawObject**>(sp());
   RawObject** last = reinterpret_cast<RawObject**>(
       fp() + (kExitLinkSlotFromEntryFp - 1) * kWordSize);
   visitor->VisitPointers(first, last);
+#else
+  // On DBC stack is growing upwards which implies fp() <= sp().
+  RawObject** first = reinterpret_cast<RawObject**>(fp());
+  RawObject** last = reinterpret_cast<RawObject**>(sp());
+  visitor->VisitPointers(first, last);
+#endif
 }
 
 
 void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+  ASSERT(thread() == Thread::Current());
+  ASSERT(visitor != NULL);
   // NOTE: This code runs while GC is in progress and runs within
   // a NoHandleScope block. Hence it is not ok to use regular Zone or
   // Scope handles. We use direct stack handles, the raw pointers in
   // these handles are not traversed. The use of handles is mainly to
   // be able to reuse the handle based code and avoid having to add
   // helper functions to the raw object interface.
-  ASSERT(thread() == Thread::Current());
-  ASSERT(visitor != NULL);
   NoSafepointScope no_safepoint;
   Code code;
   code = LookupDartCode();
@@ -101,9 +108,11 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     Array maps;
     maps = Array::null();
     Stackmap map;
-    const uword entry = code.EntryPoint();
+    const uword entry = reinterpret_cast<uword>(code.instructions()->ptr()) +
+                        Instructions::HeaderSize();
     map = code.GetStackmap(pc() - entry, &maps, &map);
     if (!map.IsNull()) {
+#if !defined(TARGET_ARCH_DBC)
       RawObject** first = reinterpret_cast<RawObject**>(sp());
       RawObject** last = reinterpret_cast<RawObject**>(
           fp() + (kFirstLocalSlotFromFp * kWordSize));
@@ -148,16 +157,58 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
       last = reinterpret_cast<RawObject**>(
           fp() + (kFirstObjectSlotFromFp * kWordSize));
       visitor->VisitPointers(first, last);
+#else
+      RawObject** first = reinterpret_cast<RawObject**>(fp());
+      RawObject** last = reinterpret_cast<RawObject**>(sp());
+
+      // Visit fixed prefix of the frame.
+      ASSERT((first + kFirstObjectSlotFromFp) < first);
+      visitor->VisitPointers(first + kFirstObjectSlotFromFp, first - 1);
+
+      // A stack map is present in the code object, use the stack map to
+      // visit frame slots which are marked as having objects.
+      //
+      // The layout of the frame is (lower addresses to the left):
+      // | registers | outgoing arguments |
+      // |XXXXXXXXXXX|--------------------|
+      //
+      // The DBC registers are described in the stack map.
+      // The outgoing arguments are assumed to be tagged; the number
+      // of outgoing arguments is not explicitly tracked.
+      ASSERT(map.SlowPathBitCount() == 0);
+
+      // Visit DBC registers that contain tagged values.
+      intptr_t length = map.Length();
+      for (intptr_t bit = 0; bit < length; ++bit) {
+        if (map.IsObject(bit)) {
+          visitor->VisitPointer(first + bit);
+        }
+      }
+
+      // Visit outgoing arguments.
+      if ((first + length) <= last) {
+        visitor->VisitPointers(first + length, last);
+      }
+#endif  // !defined(TARGET_ARCH_DBC)
       return;
     }
 
     // No stack map, fall through.
   }
+
+#if !defined(TARGET_ARCH_DBC)
   // For normal unoptimized Dart frames and Stub frames each slot
   // between the first and last included are tagged objects.
   RawObject** first = reinterpret_cast<RawObject**>(sp());
   RawObject** last = reinterpret_cast<RawObject**>(
       fp() + (kFirstObjectSlotFromFp * kWordSize));
+#else
+  // On DBC stack grows upwards: fp() <= sp().
+  RawObject** first = reinterpret_cast<RawObject**>(
+      fp() + (kFirstObjectSlotFromFp * kWordSize));
+  RawObject** last = reinterpret_cast<RawObject**>(sp());
+#endif  // !defined(TARGET_ARCH_DBC)
+
   visitor->VisitPointers(first, last);
 }
 
@@ -319,6 +370,7 @@ StackFrameIterator::StackFrameIterator(uword last_fp, bool validate,
 }
 
 
+#if !defined(TARGET_ARCH_DBC)
 StackFrameIterator::StackFrameIterator(uword fp, uword sp, uword pc,
                                        bool validate, Thread* thread)
     : validate_(validate),
@@ -333,6 +385,7 @@ StackFrameIterator::StackFrameIterator(uword fp, uword sp, uword pc,
   frames_.sp_ = sp;
   frames_.pc_ = pc;
 }
+#endif
 
 
 StackFrame* StackFrameIterator::NextFrame() {
@@ -353,6 +406,7 @@ StackFrame* StackFrameIterator::NextFrame() {
       return NULL;
     }
     UnpoisonStack(frames_.fp_);
+#if !defined(TARGET_ARCH_DBC)
     if (frames_.pc_ == 0) {
       // Iteration starts from an exit frame given by its fp.
       current_frame_ = NextExitFrame();
@@ -364,6 +418,12 @@ StackFrame* StackFrameIterator::NextFrame() {
       // Iteration starts from a Dart or stub frame given by its fp, sp, and pc.
       current_frame_ = frames_.NextFrame(validate_);
     }
+#else
+    // Iteration starts from an exit frame given by its fp. This is the only
+    // mode supported on DBC.
+    ASSERT(frames_.pc_ == 0);
+    current_frame_ = NextExitFrame();
+#endif  // !defined(TARGET_ARCH_DBC)
     return current_frame_;
   }
   ASSERT((validate_ == kDontValidateFrames) || current_frame_->IsValid());

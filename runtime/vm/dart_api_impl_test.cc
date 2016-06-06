@@ -6799,7 +6799,7 @@ TEST_CASE(ParsePatchLibrary) {
                             kPatchNoClassChars };
   const String& lib_url = String::Handle(String::New("theLibrary"));
 
-  const Library& lib = Library::Handle(Library::LookupLibrary(lib_url));
+  const Library& lib = Library::Handle(Library::LookupLibrary(thread, lib_url));
 
   for (int i = 0; i < 3; i++) {
     const String& patch_url = String::Handle(String::New(patchNames[i]));
@@ -8939,6 +8939,41 @@ TEST_CASE(ExternalStringPolymorphicDeoptimize) {
       "  for (var i = 0; i < 10000; i++) compareA(strA);\n"
       "  A.change_str(strA);\n"
       "  return compareA('AA' + 'AA');\n"
+      "}\n";
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars,
+                               &ExternalStringDeoptimize_native_lookup);
+  Dart_Handle result = Dart_Invoke(lib,
+                                   NewString("main"),
+                                   0,
+                                   NULL);
+  EXPECT_VALID(result);
+  bool value = false;
+  result = Dart_BooleanValue(result, &value);
+  EXPECT_VALID(result);
+  EXPECT(value);
+
+  FLAG_support_externalizable_strings = saved_flag;
+}
+
+
+TEST_CASE(ExternalStringLoadElimination) {
+  const bool saved_flag = FLAG_support_externalizable_strings;
+  FLAG_support_externalizable_strings = true;
+
+  const char* kScriptChars =
+      "class A {\n"
+      "  static change_str(String s) native 'A_change_str';\n"
+      "}\n"
+      "double_char0(str) {\n"
+      "  return str.codeUnitAt(0) + str.codeUnitAt(0);\n"
+      "}\n"
+      "main() {\n"
+      "  var externalA = 'AA' + 'AA';\n"
+      "  A.change_str(externalA);\n"
+      "  for (var i = 0; i < 10000; i++) double_char0(externalA);\n"
+      "  var result = double_char0(externalA);\n"
+      "  return result == 130;\n"
       "}\n";
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars,

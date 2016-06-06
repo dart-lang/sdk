@@ -10,8 +10,8 @@ part of dart.convert;
 abstract class Encoding extends Codec<String, List<int>> {
   const Encoding();
 
-  ChunkedConverter<String, List<int>, String, List<int>> get encoder;
-  ChunkedConverter<List<int>, String, List<int>, String> get decoder;
+  Converter<String, List<int>> get encoder;
+  Converter<List<int>, String> get decoder;
 
   Future<String> decodeStream(Stream<List<int>> byteStream) {
     return byteStream

@@ -78,7 +78,7 @@ abstract class MapMixin<K, V> implements Map<K, V> {
   int get length => keys.length;
   bool get isEmpty => keys.isEmpty;
   bool get isNotEmpty => keys.isNotEmpty;
-  Iterable<V> get values => new _MapBaseValueIterable<V>(this);
+  Iterable<V> get values => new _MapBaseValueIterable<K, V>(this);
   String toString() => Maps.mapToString(this);
 }
 
@@ -111,9 +111,9 @@ abstract class UnmodifiableMapBase<K, V> =
  * It accesses the values by iterating over the keys of the map, and using the
  * map's `operator[]` to lookup the keys.
  */
-class _MapBaseValueIterable<V> extends Iterable<V>
-                               implements EfficientLength {
-  final Map _map;
+class _MapBaseValueIterable<K, V> extends Iterable<V>
+                                  implements EfficientLength {
+  final Map<K, V> _map;
   _MapBaseValueIterable(this._map);
 
   int get length => _map.length;
@@ -123,7 +123,7 @@ class _MapBaseValueIterable<V> extends Iterable<V>
   V get single => _map[_map.keys.single];
   V get last => _map[_map.keys.last];
 
-  Iterator<V> get iterator => new _MapBaseValueIterator<V>(_map);
+  Iterator<V> get iterator => new _MapBaseValueIterator<K, V>(_map);
 }
 
 /**
@@ -132,12 +132,14 @@ class _MapBaseValueIterable<V> extends Iterable<V>
  * Iterates over the values of a map by iterating its keys and lookup up the
  * values.
  */
-class _MapBaseValueIterator<V> implements Iterator<V> {
-  final Iterator _keys;
-  final Map _map;
+class _MapBaseValueIterator<K, V> implements Iterator<V> {
+  final Iterator<K> _keys;
+  final Map<K, V> _map;
   V _current = null;
 
-  _MapBaseValueIterator(Map map) : _map = map, _keys = map.keys.iterator;
+  _MapBaseValueIterator(Map<K, V> map)
+      : _map = map,
+        _keys = map.keys.iterator;
 
   bool moveNext() {
     if (_keys.moveNext()) {

@@ -44,6 +44,9 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   }
 
   @override
+  bool get mayCheckTypesOfLocals => false;
+
+  @override
   bool get skipBrokenAstInference => true;
 
   @override
@@ -63,7 +66,7 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   }
 
   @override
-  void compareLocalVariableElementLists(ExecutableElement resynthesized,
+  void compareLocalElementsOfExecutable(ExecutableElement resynthesized,
       ExecutableElement original, String desc) {
     // We don't resynthesize local elements during link.
     // So, we should not compare them.
@@ -79,26 +82,26 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_async_allReturnsAreValues() {
-    super.test_blockBodiedLambdas_async_allReturnsAreValues();
+  void test_blockBodiedLambdas_async_allReturnsAreFutures_topLevel() {
+    super.test_blockBodiedLambdas_async_allReturnsAreFutures_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_async_alReturnsAreFutures() {
-    super.test_blockBodiedLambdas_async_alReturnsAreFutures();
+  void test_blockBodiedLambdas_async_allReturnsAreValues_topLevel() {
+    super.test_blockBodiedLambdas_async_allReturnsAreValues_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_async_mixOfValuesAndFutures() {
-    super.test_blockBodiedLambdas_async_mixOfValuesAndFutures();
+  void test_blockBodiedLambdas_async_mixOfValuesAndFutures_topLevel() {
+    super.test_blockBodiedLambdas_async_mixOfValuesAndFutures_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_asyncStar() {
-    super.test_blockBodiedLambdas_asyncStar();
+  void test_blockBodiedLambdas_asyncStar_topLevel() {
+    super.test_blockBodiedLambdas_asyncStar_topLevel();
   }
 
   @override
@@ -109,32 +112,20 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_doesNotInferBottom_async() {
-    super.test_blockBodiedLambdas_doesNotInferBottom_async();
+  void test_blockBodiedLambdas_doesNotInferBottom_async_topLevel() {
+    super.test_blockBodiedLambdas_doesNotInferBottom_async_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_doesNotInferBottom_asyncStar() {
-    super.test_blockBodiedLambdas_doesNotInferBottom_asyncStar();
+  void test_blockBodiedLambdas_doesNotInferBottom_asyncStar_topLevel() {
+    super.test_blockBodiedLambdas_doesNotInferBottom_asyncStar_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_doesNotInferBottom_sync() {
-    super.test_blockBodiedLambdas_doesNotInferBottom_sync();
-  }
-
-  @override
-  @failingTest
-  void test_blockBodiedLambdas_doesNotInferBottom_syncStar() {
-    super.test_blockBodiedLambdas_doesNotInferBottom_syncStar();
-  }
-
-  @override
-  @failingTest
-  void test_blockBodiedLambdas_downwardsIncompatibleWithUpwardsInference() {
-    super.test_blockBodiedLambdas_downwardsIncompatibleWithUpwardsInference();
+  void test_blockBodiedLambdas_doesNotInferBottom_syncStar_topLevel() {
+    super.test_blockBodiedLambdas_doesNotInferBottom_syncStar_topLevel();
   }
 
   @override
@@ -145,62 +136,20 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_nestedLambdas() {
-    super.test_blockBodiedLambdas_nestedLambdas();
+  void test_blockBodiedLambdas_nestedLambdas_topLevel() {
+    super.test_blockBodiedLambdas_nestedLambdas_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_noReturn() {
-    super.test_blockBodiedLambdas_noReturn();
+  void test_blockBodiedLambdas_syncStar_topLevel() {
+    super.test_blockBodiedLambdas_syncStar_topLevel();
   }
 
   @override
-  @failingTest
-  void test_blockBodiedLambdas_syncStar() {
-    super.test_blockBodiedLambdas_syncStar();
-  }
-
-  @override
-  @failingTest
   void test_canInferAlsoFromStaticAndInstanceFieldsFlagOn() {
+    variablesWithNotConstInitializers.add('a2');
     super.test_canInferAlsoFromStaticAndInstanceFieldsFlagOn();
-  }
-
-  @override
-  @failingTest
-  void test_downwardsInferenceAnnotations() {
-    super.test_downwardsInferenceAnnotations();
-  }
-
-  @override
-  @failingTest
-  void test_downwardsInferenceAsyncAwait() {
-    super.test_downwardsInferenceAsyncAwait();
-  }
-
-  @override
-  @failingTest
-  void test_downwardsInferenceForEach() {
-    super.test_downwardsInferenceForEach();
-  }
-
-  @override
-  @failingTest
-  void test_downwardsInferenceOnFunctionOfTUsingTheT() {
-    super.test_downwardsInferenceOnFunctionOfTUsingTheT();
-  }
-
-  @override
-  @failingTest
-  void test_downwardsInferenceOnGenericFunctionExpressions() {
-    super.test_downwardsInferenceOnGenericFunctionExpressions();
-  }
-
-  @override
-  @failingTest
-  void test_downwardsInferenceYieldYieldStar() {
-    super.test_downwardsInferenceYieldYieldStar();
   }
 
   @override
@@ -245,10 +194,87 @@ var d = foo.bar;
   ''');
   }
 
+  void test_infer_extractProperty_getter_sequence() {
+    var unit = checkFile(r'''
+class A {
+  B b = new B();
+}
+class B {
+  C c = new C();
+}
+class C {
+  int d;
+}
+var a = new A();
+var v = a.b.c.d;
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'int');
+  }
+
+  void test_infer_extractProperty_getter_sequence_generic() {
+    var unit = checkFile(r'''
+class A<T> {
+  B<T> b = new B<T>();
+}
+class B<K> {
+  C<List<K>, int> c = new C<List<K>, int>();
+}
+class C<K, V> {
+  Map<K, V> d;
+}
+var a = new A<double>();
+var v = a.b.c.d;
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'Map<List<double>, int>');
+  }
+
+  void test_infer_extractProperty_getter_sequence_withUnresolved() {
+    var unit = checkFile(r'''
+class A {
+  B b = new B();
+}
+class B {
+  int c;
+}
+var a = new A();
+var v = a.b.foo.c;
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'dynamic');
+  }
+
   void test_infer_extractProperty_method() {
-    checkFile(r'''
+    var unit = checkFile(r'''
+class A {
+  int m(double p1, String p2) => 42;
+}
+var a = new A();
+var v = a.m;
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), '(double, String) → int');
+  }
+
+  void test_infer_extractProperty_method2() {
+    var unit = checkFile(r'''
 var a = 1.round;
   ''');
+    expect(unit.topLevelVariables[0].type.toString(), '() → int');
+  }
+
+  void test_infer_extractProperty_method_sequence() {
+    var unit = checkFile(r'''
+class A {
+  B b = new B();
+}
+class B {
+  C c = new C();
+}
+class C {
+  int m(double p1, String p2) => 42;
+}
+var a = new A();
+var v = a.b.c.m;
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), '(double, String) → int');
   }
 
   void test_infer_invokeConstructor_factoryRedirected() {
@@ -319,6 +345,160 @@ var b2 = new B<int>();
   ''');
   }
 
+  void test_infer_invokeMethodRef_function() {
+    var unit = checkFile(r'''
+int m() => 0;
+var a = m();
+  ''');
+    expect(unit.topLevelVariables[0].type.toString(), 'int');
+  }
+
+  void test_infer_invokeMethodRef_function_generic() {
+    var unit = checkFile(r'''
+/*=Map<int, V>*/ m/*<V>*/(/*=V*/ a) => null;
+var a = m(2.3);
+  ''');
+    expect(unit.topLevelVariables[0].type.toString(), 'Map<int, double>');
+  }
+
+  void test_infer_invokeMethodRef_function_importedWithPrefix() {
+    addFile(
+        r'''
+int m() => 0;
+''',
+        name: '/a.dart');
+    var unit = checkFile(r'''
+import 'a.dart' as p;
+var a = p.m();
+  ''');
+    expect(unit.topLevelVariables[0].type.toString(), 'int');
+  }
+
+  void test_infer_invokeMethodRef_method() {
+    var unit = checkFile(r'''
+class A {
+  int m() => 0;
+}
+var a = new A();
+var b = a.m();
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'int');
+  }
+
+  void test_infer_invokeMethodRef_method_g() {
+    var unit = checkFile(r'''
+class A {
+  /*=T*/ m/*<T>*/(/*=T*/ a) => null;
+}
+var a = new A();
+var b = a.m(1.0);
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'double');
+  }
+
+  void test_infer_invokeMethodRef_method_genericSequence() {
+    var unit = checkFile(r'''
+class A<T> {
+  B<T> b = new B<T>();
+}
+class B<K> {
+  C<List<K>, int> c = new C<List<K>, int>();
+}
+class C<K, V> {
+  Map<K, V> m() => null;
+}
+var a = new A<double>();
+var v = a.b.c.m();
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'Map<List<double>, int>');
+  }
+
+  void test_infer_invokeMethodRef_method_gg() {
+    var unit = checkFile(r'''
+class A<K> {
+  /*=Map<K, V>*/ m/*<V>*/(/*=V*/ a) => null;
+}
+var a = new A<int>();
+var b = a.m(1.0);
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'Map<int, double>');
+  }
+
+  void test_infer_invokeMethodRef_method_importedWithPrefix() {
+    addFile(
+        r'''
+class A {
+  int m() => 0;
+}
+var a = new A();
+''',
+        name: '/a.dart');
+    var unit = checkFile(r'''
+import 'a.dart' as p;
+var b = p.a.m();
+  ''');
+    expect(unit.topLevelVariables[0].type.toString(), 'int');
+  }
+
+  void test_infer_invokeMethodRef_method_importedWithPrefix2() {
+    addFile(
+        r'''
+class A {
+  B b = new B();
+}
+class B {
+  int m() => 0;
+}
+var a = new A();
+''',
+        name: '/a.dart');
+    var unit = checkFile(r'''
+import 'a.dart' as p;
+var b = p.a.b.m();
+  ''');
+    expect(unit.topLevelVariables[0].type.toString(), 'int');
+  }
+
+  void test_infer_invokeMethodRef_method_withInferredTypeInLibraryCycle() {
+    var unit = checkFile('''
+class Base {
+  int m() => 0;
+}
+class A extends Base {
+  m() => 0; // Inferred return type: int
+}
+var a = new A();
+var b = a.m();
+    ''');
+    // Type inference operates on static and top level variables prior to
+    // instance members.  So at the time `b` is inferred, `A.m` still has return
+    // type `dynamic`.
+    expect(unit.topLevelVariables[1].type.toString(), 'dynamic');
+  }
+
+  void test_infer_invokeMethodRef_method_withInferredTypeOutsideLibraryCycle() {
+    addFile(
+        '''
+class Base {
+  int m() => 0;
+}
+class A extends Base {
+  m() => 0; // Inferred return type: int
+}
+''',
+        name: '/a.dart');
+    var unit = checkFile('''
+import 'a.dart';
+var a = new A();
+var b = a.m();
+''');
+    // Since a.dart is in a separate library file from the compilation unit
+    // containing `a` and `b`, its types are inferred first; then `a` and `b`'s
+    // types are inferred.  So the inferred return type of `int` should be
+    // propagated to `b`.
+    expect(unit.topLevelVariables[1].type.toString(), 'int');
+  }
+
   @override
   @failingTest
   void test_inferCorrectlyOnMultipleVariablesDeclaredTogether() {
@@ -333,26 +513,15 @@ var b2 = new B<int>();
 
   @override
   @failingTest
-  void test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields() {
-    super.test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields();
+  void test_inferredType_opAssignToProperty_prefixedIdentifier() {
+    super.test_inferredType_opAssignToProperty_prefixedIdentifier();
   }
 
   @override
   @failingTest
-  void test_inferTypesOnGenericInstantiations_4() {
-    super.test_inferTypesOnGenericInstantiations_4();
-  }
-
-  @override
-  @failingTest
-  void test_inferTypesOnGenericInstantiations_5() {
-    super.test_inferTypesOnGenericInstantiations_5();
-  }
-
-  @override
-  @failingTest
-  void test_inferTypesOnGenericInstantiationsInLibraryCycle() {
-    super.test_inferTypesOnGenericInstantiationsInLibraryCycle();
+  void test_inferredType_opAssignToProperty_prefixedIdentifier_viaInterface() {
+    super
+        .test_inferredType_opAssignToProperty_prefixedIdentifier_viaInterface();
   }
 
   void test_invokeMethod_notGeneric_genericClass() {
@@ -375,24 +544,6 @@ var v = new C().m(1, b: 'bbb', c: 2.0);
     expect(unit.topLevelVariables[0].type.toString(), 'int');
   }
 
-  @override
-  @failingTest
-  void test_listLiteralsShouldNotInferBottom() {
-    super.test_listLiteralsShouldNotInferBottom();
-  }
-
-  @override
-  @failingTest
-  void test_mapLiteralsShouldNotInferBottom() {
-    super.test_mapLiteralsShouldNotInferBottom();
-  }
-
-  @override
-  @failingTest
-  void test_nullLiteralShouldNotInferAsBottom() {
-    super.test_nullLiteralShouldNotInferAsBottom();
-  }
-
   LibraryElementImpl _checkSource(
       SummaryResynthesizer resynthesizer, Source source) {
     LibraryElementImpl resynthesized =
@@ -410,12 +561,13 @@ class ResynthesizeAstTest extends ResynthesizeTest
   bool get checkPropagatedTypes => false;
 
   @override
-  void checkLibrary(String text,
+  LibraryElementImpl checkLibrary(String text,
       {bool allowErrors: false, bool dumpSummaries: false}) {
     Source source = addTestSource(text);
     LibraryElementImpl resynthesized = _encodeDecodeLibraryElement(source);
     LibraryElementImpl original = context.computeLibraryElement(source);
     checkLibraryElements(original, resynthesized);
+    return resynthesized;
   }
 
   @override
@@ -424,48 +576,6 @@ class ResynthesizeAstTest extends ResynthesizeTest
   @override
   TestSummaryResynthesizer encodeDecodeLibrarySource(Source source) {
     return _encodeLibrary(source);
-  }
-
-  @override
-  @failingTest
-  void test_constructor_initializers_field_notConst() {
-    super.test_constructor_initializers_field_notConst();
-  }
-
-  @override
-  @failingTest
-  void test_inferred_function_type_in_generic_class_constructor() {
-    super.test_inferred_function_type_in_generic_class_constructor();
-  }
-
-  @override
-  @failingTest
-  void test_metadata_constructor_call_named() {
-    super.test_metadata_constructor_call_named();
-  }
-
-  @override
-  @failingTest
-  void test_metadata_constructor_call_named_prefixed() {
-    super.test_metadata_constructor_call_named_prefixed();
-  }
-
-  @override
-  @failingTest
-  void test_metadata_constructor_call_unnamed() {
-    super.test_metadata_constructor_call_unnamed();
-  }
-
-  @override
-  @failingTest
-  void test_metadata_constructor_call_with_args() {
-    super.test_metadata_constructor_call_with_args();
-  }
-
-  @override
-  @failingTest
-  void test_type_reference_to_import_part_in_subdir() {
-    super.test_type_reference_to_import_part_in_subdir();
   }
 }
 

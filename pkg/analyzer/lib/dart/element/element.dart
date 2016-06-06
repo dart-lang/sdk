@@ -757,12 +757,13 @@ abstract class Element implements AnalysisTarget {
    * [predicate] returns `true`, or `null` if there is no such ancestor. Note
    * that this element will never be returned.
    */
-  Element getAncestor(Predicate<Element> predicate);
+  Element/*=E*/ getAncestor/*<E extends Element >*/(
+      Predicate<Element> predicate);
 
   /**
    * Return a display name for the given element that includes the path to the
    * compilation unit in which the type is defined. If [shortName] is `null`
-   * then [getDisplayName] will be used as the name of this element. Otherwise
+   * then [displayName] will be used as the name of this element. Otherwise
    * the provided name will be used.
    */
   // TODO(brianwilkerson) Make the parameter optional.
@@ -852,6 +853,13 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
    * required.
    */
   bool get isRequired;
+
+  /**
+   * Return a representation of the value of this annotation, forcing the value
+   * to be computed if it had not previously been computed, or `null` if the
+   * value of this annotation could not be computed because of errors.
+   */
+  DartObject computeConstantValue();
 }
 
 /**
@@ -1862,6 +1870,11 @@ abstract class TypeParameterElement implements TypeDefiningElement {
  */
 abstract class TypeParameterizedElement implements Element {
   /**
+   * The type of this element, which will be a parameterized type.
+   */
+  ParameterizedType get type;
+
+  /**
    * Return a list containing all of the type parameters declared by this
    * element directly. This does not include type parameters that are declared
    * by any enclosing elements.
@@ -1996,4 +2009,12 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
    * 'var').
    */
   DartType get type;
+
+  /**
+   * Return a representation of the value of this variable, forcing the value
+   * to be computed if it had not previously been computed, or `null` if either
+   * this variable was not declared with the 'const' modifier or if the value of
+   * this variable could not be computed because of errors.
+   */
+  DartObject computeConstantValue();
 }

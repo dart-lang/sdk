@@ -240,6 +240,9 @@ ARCH_FAMILY = {
   'simarmv5te': 'ia32',
   'simmips': 'ia32',
   'simarm64': 'ia32',
+  'simdbc': 'ia32',
+  'simdbc64': 'ia32',
+  'armsimdbc': 'arm',
 }
 
 ARCH_GUESS = GuessArchitecture()

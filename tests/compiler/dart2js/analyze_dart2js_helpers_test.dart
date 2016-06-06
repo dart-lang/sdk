@@ -94,7 +94,7 @@ class HelperAnalyzer extends TraversalVisitor {
   }
 
   void analyze(ResolvedAst resolvedAst) {
-    if (resolvedAst.node == null) {
+    if (resolvedAst.kind != ResolvedAstKind.PARSED) {
       // Skip synthesized members.
       return;
     }

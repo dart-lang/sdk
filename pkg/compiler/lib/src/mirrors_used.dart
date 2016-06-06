@@ -4,8 +4,8 @@
 
 library dart2js.mirrors_used;
 
-import 'common.dart';
 import 'common/tasks.dart' show CompilerTask;
+import 'common.dart';
 import 'compile_time_constants.dart' show ConstantCompiler;
 import 'compiler.dart' show Compiler;
 import 'constants/expressions.dart';
@@ -16,7 +16,7 @@ import 'constants/values.dart'
         ListConstantValue,
         StringConstantValue,
         TypeConstantValue;
-import 'dart_types.dart' show DartType, InterfaceType, TypeKind;
+import 'dart_types.dart' show DartType, InterfaceType;
 import 'elements/elements.dart'
     show
         ClassElement,
@@ -27,8 +27,7 @@ import 'elements/elements.dart'
         ScopeContainerElement,
         VariableElement;
 import 'resolution/tree_elements.dart' show TreeElements;
-import 'tree/tree.dart'
-    show Import, LibraryTag, NamedArgument, NewExpression, Node;
+import 'tree/tree.dart' show NamedArgument, NewExpression, Node;
 
 /**
  * Compiler task that analyzes MirrorsUsed annotations.
@@ -81,8 +80,11 @@ import 'tree/tree.dart'
 class MirrorUsageAnalyzerTask extends CompilerTask {
   Set<LibraryElement> librariesWithUsage;
   MirrorUsageAnalyzer analyzer;
+  final Compiler compiler;
 
-  MirrorUsageAnalyzerTask(Compiler compiler) : super(compiler) {
+  MirrorUsageAnalyzerTask(Compiler compiler)
+      : compiler = compiler,
+        super(compiler.measurer) {
     analyzer = new MirrorUsageAnalyzer(compiler, this);
   }
 
@@ -151,9 +153,8 @@ class MirrorUsageAnalyzer {
   final Map<ConstantValue, List<Element>> cachedElements;
   MirrorUsage mergedMirrorUsage;
 
-  MirrorUsageAnalyzer(Compiler compiler, this.task)
-      : compiler = compiler,
-        librariesWithUsage = new Set<LibraryElement>(),
+  MirrorUsageAnalyzer(this.compiler, this.task)
+      : librariesWithUsage = new Set<LibraryElement>(),
         cachedStrings = new Map<ConstantValue, List<String>>(),
         cachedElements = new Map<ConstantValue, List<Element>>();
 

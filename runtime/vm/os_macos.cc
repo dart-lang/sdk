@@ -90,7 +90,9 @@ int64_t OS::GetCurrentTimeMicros() {
 }
 
 
+#if !TARGET_OS_IOS
 static mach_timebase_info_data_t timebase_info;
+#endif
 
 
 int64_t OS::GetCurrentMonotonicTicks() {
@@ -109,6 +111,10 @@ int64_t OS::GetCurrentMonotonicTicks() {
   origin += boottime.tv_usec;
   return now - origin;
 #else
+  if (timebase_info.denom == 0) {
+    kern_return_t kr = mach_timebase_info(&timebase_info);
+    ASSERT(KERN_SUCCESS == kr);
+  }
   ASSERT(timebase_info.denom != 0);
   // timebase_info converts absolute time tick units into nanoseconds.
   int64_t result = mach_absolute_time();
@@ -136,6 +142,27 @@ int64_t OS::GetCurrentMonotonicMicros() {
   ASSERT(GetCurrentMonotonicFrequency() == kNanosecondsPerSecond);
   return GetCurrentMonotonicTicks() / kNanosecondsPerMicrosecond;
 #endif  // TARGET_OS_IOS
+}
+
+
+int64_t OS::GetCurrentThreadCPUMicros() {
+  mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
+  thread_basic_info_data_t info_data;
+  thread_basic_info_t info = &info_data;
+  mach_port_t thread_port = mach_thread_self();
+  if (thread_port == MACH_PORT_NULL) {
+    return -1;
+  }
+  kern_return_t r = thread_info(thread_port, THREAD_BASIC_INFO,
+                                (thread_info_t)info, &count);
+  mach_port_deallocate(mach_task_self(), thread_port);
+  ASSERT(r == KERN_SUCCESS);
+  int64_t thread_cpu_micros =
+      (info->system_time.seconds + info->user_time.seconds);
+  thread_cpu_micros *= kMicrosecondsPerSecond;
+  thread_cpu_micros += info->user_time.microseconds;
+  thread_cpu_micros += info->system_time.microseconds;
+  return thread_cpu_micros;
 }
 
 
@@ -169,6 +196,8 @@ intptr_t OS::ActivationFrameAlignment() {
   return 16;  // iOS simulator
 #elif TARGET_ARCH_X64
   return 16;  // iOS simulator
+#elif TARGET_ARCH_DBC
+  return 16;
 #else
 #error Unimplemented
 #endif
@@ -181,8 +210,24 @@ intptr_t OS::ActivationFrameAlignment() {
 
 
 intptr_t OS::PreferredCodeAlignment() {
-  ASSERT(32 <= OS::kMaxPreferredCodeAlignment);
-  return 32;
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM64) ||                                              \
+    defined(TARGET_ARCH_DBC)
+  const int kMinimumAlignment = 32;
+#elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
+  const int kMinimumAlignment = 16;
+#else
+#error Unsupported architecture.
+#endif
+  intptr_t alignment = kMinimumAlignment;
+  // TODO(5411554): Allow overriding default code alignment for
+  // testing purposes.
+  // Flags::DebugIsInt("codealign", &alignment);
+  ASSERT(Utils::IsPowerOfTwo(alignment));
+  ASSERT(alignment >= kMinimumAlignment);
+  ASSERT(alignment <= OS::kMaxPreferredCodeAlignment);
+  return alignment;
 }
 
 
@@ -252,6 +297,23 @@ char* OS::StrNDup(const char* s, intptr_t n) {
   return reinterpret_cast<char*>(memmove(result, s, len));
 #else  // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
   return strndup(s, n);
+#endif  // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
+}
+
+
+intptr_t OS::StrNLen(const char* s, intptr_t n) {
+  // strnlen has only been added to Mac OS X in 10.7. We are supplying
+  // our own copy here if needed.
+#if !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || \
+    __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ <= 1060
+  intptr_t len = 0;
+  while ((len <= n) && (*s != '\0')) {
+    s++;
+    len++;
+  }
+  return len;
+#else  // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
+  return strnlen(s, n);
 #endif  // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
 }
 
@@ -373,8 +435,6 @@ void OS::InitOnce() {
   static bool init_once_called = false;
   ASSERT(init_once_called == false);
   init_once_called = true;
-  kern_return_t kr = mach_timebase_info(&timebase_info);
-  ASSERT(KERN_SUCCESS == kr);
 }
 
 

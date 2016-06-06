@@ -100,6 +100,9 @@ abstract class TreeElements {
 
   /// `true` if the [analyzedElement]'s source code contains a [TryStatement].
   bool get containsTryStatement;
+
+  /// Returns native data stored with [node].
+  getNativeData(Node node);
 }
 
 class TreeElementMapping extends TreeElements {
@@ -133,6 +136,9 @@ class TreeElementMapping extends TreeElements {
   /// Map from labeled goto statements to the labels they target.
   Map<GotoStatement, LabelDefinition> _targetLabels;
 
+  /// Map from nodes to native data.
+  Map<Node, dynamic> _nativeData;
+
   final int hashCode = ++_hashCodeCounter;
   static int _hashCodeCounter = 0;
 
@@ -156,8 +162,10 @@ class TreeElementMapping extends TreeElements {
     setTreeElement(node, element);
   }
 
+  @override
   operator [](Node node) => getTreeElement(node);
 
+  @override
   SendStructure getSendStructure(Send node) {
     if (_sendStructureMap == null) return null;
     return _sendStructureMap[node];
@@ -170,6 +178,7 @@ class TreeElementMapping extends TreeElements {
     _sendStructureMap[node] = sendStructure;
   }
 
+  @override
   NewStructure getNewStructure(NewExpression node) {
     if (_newStructureMap == null) return null;
     return _newStructureMap[node];
@@ -189,8 +198,10 @@ class TreeElementMapping extends TreeElements {
     _types[node] = type;
   }
 
+  @override
   DartType getType(Node node) => _types != null ? _types[node] : null;
 
+  @override
   Iterable<SourceSpan> get superUses {
     return _superUses != null ? _superUses : const <SourceSpan>[];
   }
@@ -217,6 +228,7 @@ class TreeElementMapping extends TreeElements {
     _setSelector(node, selector);
   }
 
+  @override
   Selector getSelector(Node node) => _getSelector(node);
 
   int getSelectorCount() => _selectors == null ? 0 : _selectors.length;
@@ -225,6 +237,7 @@ class TreeElementMapping extends TreeElements {
     _setSelector(node.selector, selector);
   }
 
+  @override
   Selector getGetterSelectorInComplexSendSet(SendSet node) {
     return _getSelector(node.selector);
   }
@@ -233,14 +246,17 @@ class TreeElementMapping extends TreeElements {
     _setSelector(node.assignmentOperator, selector);
   }
 
+  @override
   Selector getOperatorSelectorInComplexSendSet(SendSet node) {
     return _getSelector(node.assignmentOperator);
   }
 
+  @override
   Element getForInVariable(ForIn node) {
     return this[node];
   }
 
+  @override
   void setConstant(Node node, ConstantExpression constant) {
     if (_constants == null) {
       _constants = new Maplet<Node, ConstantExpression>();
@@ -248,18 +264,22 @@ class TreeElementMapping extends TreeElements {
     _constants[node] = constant;
   }
 
+  @override
   ConstantExpression getConstant(Node node) {
     return _constants != null ? _constants[node] : null;
   }
 
+  @override
   bool isTypeLiteral(Send node) {
     return getType(node) != null;
   }
 
+  @override
   DartType getTypeLiteralType(Send node) {
     return getType(node);
   }
 
+  @override
   List<Node> getPotentialMutations(VariableElement element) {
     if (_potentiallyMutated == null) return const <Node>[];
     List<Node> mutations = _potentiallyMutated[element];
@@ -274,6 +294,7 @@ class TreeElementMapping extends TreeElements {
     _potentiallyMutated.putIfAbsent(element, () => <Node>[]).add(mutationNode);
   }
 
+  @override
   List<Node> getPotentialMutationsIn(Node node, VariableElement element) {
     if (_potentiallyMutatedIn == null) return const <Node>[];
     Map<VariableElement, List<Node>> mutationsIn = _potentiallyMutatedIn[node];
@@ -295,6 +316,7 @@ class TreeElementMapping extends TreeElements {
     mutationMap.putIfAbsent(element, () => <Node>[]).add(mutationNode);
   }
 
+  @override
   List<Node> getPotentialMutationsInClosure(VariableElement element) {
     if (_potentiallyMutatedInClosure == null) return const <Node>[];
     List<Node> mutations = _potentiallyMutatedInClosure[element];
@@ -312,6 +334,7 @@ class TreeElementMapping extends TreeElements {
         .add(mutationNode);
   }
 
+  @override
   List<Node> getAccessesByClosureIn(Node node, VariableElement element) {
     if (_accessedByClosureIn == null) return const <Node>[];
     Map<VariableElement, List<Node>> accessesIn = _accessedByClosureIn[node];
@@ -334,16 +357,19 @@ class TreeElementMapping extends TreeElements {
 
   String toString() => 'TreeElementMapping($analyzedElement)';
 
+  @override
   void forEachConstantNode(f(Node n, ConstantExpression c)) {
     if (_constants != null) {
       _constants.forEach(f);
     }
   }
 
-  FunctionElement getFunctionDefinition(FunctionExpression node) {
+  @override
+  Element getFunctionDefinition(FunctionExpression node) {
     return this[node];
   }
 
+  @override
   ConstructorElement getRedirectingTargetConstructor(
       RedirectingFactoryBody node) {
     return this[node];
@@ -365,6 +391,7 @@ class TreeElementMapping extends TreeElements {
     }
   }
 
+  @override
   JumpTarget getTargetDefinition(Node node) {
     return _definedTargets != null ? _definedTargets[node] : null;
   }
@@ -376,6 +403,7 @@ class TreeElementMapping extends TreeElements {
     _usedTargets[node] = target;
   }
 
+  @override
   JumpTarget getTargetOf(GotoStatement node) {
     return _usedTargets != null ? _usedTargets[node] : null;
   }
@@ -396,6 +424,7 @@ class TreeElementMapping extends TreeElements {
     }
   }
 
+  @override
   LabelDefinition getLabelDefinition(Label label) {
     return _definedLabels != null ? _definedLabels[label] : null;
   }
@@ -408,6 +437,7 @@ class TreeElementMapping extends TreeElements {
     _targetLabels[node] = label;
   }
 
+  @override
   LabelDefinition getTargetLabel(GotoStatement node) {
     assert(node.target != null);
     return _targetLabels != null ? _targetLabels[node] : null;
@@ -424,24 +454,30 @@ class TreeElementMapping extends TreeElements {
     _typeMasks[node] = mask;
   }
 
+  @override
   void setTypeMask(Node node, TypeMask mask) {
     _setTypeMask(node, mask);
   }
 
+  @override
   TypeMask getTypeMask(Node node) => _getTypeMask(node);
 
+  @override
   void setGetterTypeMaskInComplexSendSet(SendSet node, TypeMask mask) {
     _setTypeMask(node.selector, mask);
   }
 
+  @override
   TypeMask getGetterTypeMaskInComplexSendSet(SendSet node) {
     return _getTypeMask(node.selector);
   }
 
+  @override
   void setOperatorTypeMaskInComplexSendSet(SendSet node, TypeMask mask) {
     _setTypeMask(node.assignmentOperator, mask);
   }
 
+  @override
   TypeMask getOperatorTypeMaskInComplexSendSet(SendSet node) {
     return _getTypeMask(node.assignmentOperator);
   }
@@ -450,27 +486,45 @@ class TreeElementMapping extends TreeElements {
   // we're using three selectors, we need to use children of the node,
   // and we arbitrarily choose which ones.
 
+  @override
   void setIteratorTypeMask(ForIn node, TypeMask mask) {
     _setTypeMask(node, mask);
   }
 
+  @override
   TypeMask getIteratorTypeMask(ForIn node) {
     return _getTypeMask(node);
   }
 
+  @override
   void setMoveNextTypeMask(ForIn node, TypeMask mask) {
     _setTypeMask(node.forToken, mask);
   }
 
+  @override
   TypeMask getMoveNextTypeMask(ForIn node) {
     return _getTypeMask(node.forToken);
   }
 
+  @override
   void setCurrentTypeMask(ForIn node, TypeMask mask) {
     _setTypeMask(node.inToken, mask);
   }
 
+  @override
   TypeMask getCurrentTypeMask(ForIn node) {
     return _getTypeMask(node.inToken);
+  }
+
+  void registerNativeData(Node node, dynamic nativeData) {
+    if (_nativeData == null) {
+      _nativeData = <Node, dynamic>{};
+    }
+    _nativeData[node] = nativeData;
+  }
+
+  @override
+  dynamic getNativeData(Node node) {
+    return _nativeData != null ? _nativeData[node] : null;
   }
 }

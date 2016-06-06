@@ -15,6 +15,17 @@ namespace dart {
 
 // Native implementations for the dart:developer library.
 
+DEFINE_NATIVE_ENTRY(Timeline_isDartStreamEnabled, 0) {
+  if (!FLAG_support_timeline) {
+    return Bool::False().raw();
+  }
+  if (Timeline::GetDartStream()->enabled()) {
+    return Bool::True().raw();
+  }
+  return Bool::False().raw();
+}
+
+
 DEFINE_NATIVE_ENTRY(Timeline_getIsolateNum, 0) {
   return Integer::New(static_cast<int64_t>(isolate->main_port()), Heap::kOld);
 }
@@ -34,6 +45,11 @@ DEFINE_NATIVE_ENTRY(Timeline_getNextAsyncId, 0) {
 
 DEFINE_NATIVE_ENTRY(Timeline_getTraceClock, 0) {
   return Integer::New(OS::GetCurrentMonotonicMicros(), Heap::kNew);
+}
+
+
+DEFINE_NATIVE_ENTRY(Timeline_getThreadCpuClock, 0) {
+  return Integer::New(OS::GetCurrentThreadCPUMicros(), Heap::kNew);
 }
 
 
@@ -108,7 +124,7 @@ DEFINE_NATIVE_ENTRY(Timeline_reportCompleteEvent, 5) {
     return Object::null();
   }
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, start, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, end, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, start_cpu, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(String, category, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(String, args, arguments->NativeArgAt(4));
@@ -124,24 +140,49 @@ DEFINE_NATIVE_ENTRY(Timeline_reportCompleteEvent, 5) {
     return Object::null();
   }
 
-  int64_t duration = end.AsInt64Value() - start.AsInt64Value();
+  const int64_t end = OS::GetCurrentMonotonicMicros();
+  const int64_t end_cpu = OS::GetCurrentThreadCPUMicros();
+  const int64_t duration = end - start.AsInt64Value();
+  const int64_t duration_cpu = end_cpu - start_cpu.AsInt64Value();
   int64_t pid = OS::ProcessId();
   OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != NULL);
   int64_t tid = OSThread::ThreadIdToIntPtr(os_thread->trace_id());
 
-  char* json = OS::SCreate(zone,
-      "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64 ","
-      "\"ts\":%" Pd64 ",\"ph\":\"X\",\"dur\":%" Pd64 ",\"args\":%s}",
-      name.ToCString(),
-      category.ToCString(),
-      tid,
-      pid,
-      start.AsInt64Value(),
-      duration,
-      args.ToCString());
+  char* json = NULL;
 
-  event->Duration("", start.AsInt64Value(), end.AsInt64Value());
+  if ((start_cpu.AsInt64Value() != -1) && (end_cpu != -1)) {
+    json = OS::SCreate(zone,
+        "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64 ","
+        "\"ts\":%" Pd64 ",\"ph\":\"X\",\"dur\":%" Pd64 ","
+        "\"tdur\":%" Pd64 ",\"args\":%s}",
+        name.ToCString(),
+        category.ToCString(),
+        tid,
+        pid,
+        start.AsInt64Value(),
+        duration,
+        duration_cpu,
+        args.ToCString());
+  } else {
+    json = OS::SCreate(zone,
+        "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64 ","
+        "\"ts\":%" Pd64 ",\"ph\":\"X\",\"dur\":%" Pd64 ",\"args\":%s}",
+        name.ToCString(),
+        category.ToCString(),
+        tid,
+        pid,
+        start.AsInt64Value(),
+        duration,
+        args.ToCString());
+  }
+  ASSERT(json != NULL);
+
+  event->Duration("",
+                  start.AsInt64Value(),
+                  end,
+                  start_cpu.AsInt64Value(),
+                  end_cpu);
   // json was allocated in the zone and a copy will be stored in event.
   event->CompleteWithPreSerializedJSON(json);
 

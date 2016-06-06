@@ -116,10 +116,10 @@ library dart2js.patchparser;
 
 import 'dart:async';
 
-import 'constants/values.dart' show ConstantValue;
+import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
 import 'compiler.dart' show Compiler;
-import 'common/tasks.dart' show CompilerTask;
+import 'constants/values.dart' show ConstantValue;
 import 'dart_types.dart' show DartType;
 import 'elements/elements.dart';
 import 'elements/modelx.dart'
@@ -128,18 +128,17 @@ import 'elements/modelx.dart'
         ClassElementX,
         GetterElementX,
         LibraryElementX,
-        MetadataAnnotationX,
         SetterElementX;
 import 'id_generator.dart';
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'library_loader.dart' show LibraryLoader;
 import 'options.dart' show ParserOptions;
-import 'parser/listener.dart' show Listener, ParserError;
 import 'parser/element_listener.dart' show ElementListener;
+import 'parser/listener.dart' show Listener, ParserError;
 import 'parser/member_listener.dart' show MemberListener;
+import 'parser/parser.dart' show Parser;
 import 'parser/partial_elements.dart' show PartialClassElement;
 import 'parser/partial_parser.dart' show PartialParser;
-import 'parser/parser.dart' show Parser;
 import 'scanner/scanner.dart' show Scanner;
 import 'script.dart';
 import 'tokens/token.dart' show StringToken, Token;
@@ -147,8 +146,12 @@ import 'tokens/token.dart' show StringToken, Token;
 class PatchParserTask extends CompilerTask {
   final String name = "Patching Parser";
   final ParserOptions parserOptions;
+  final Compiler compiler;
+  DiagnosticReporter get reporter => compiler.reporter;
 
-  PatchParserTask(Compiler compiler, this.parserOptions) : super(compiler);
+  PatchParserTask(Compiler compiler, this.parserOptions)
+      : compiler = compiler,
+        super(compiler.measurer);
 
   /**
    * Scans a library patch file, applies the method patches and
@@ -177,8 +180,8 @@ class PatchParserTask extends CompilerTask {
       // TODO(johnniwinther): Test that parts and exports are handled correctly.
       Script script = compilationUnit.script;
       Token tokens = new Scanner(script.file).tokenize();
-      Listener patchListener =
-          new PatchElementListener(compiler, compilationUnit, compiler);
+      Listener patchListener = new PatchElementListener(
+          compiler, compilationUnit, compiler.idGenerator);
       try {
         new PartialParser(patchListener, parserOptions).parseUnit(tokens);
       } on ParserError catch (e) {
@@ -217,7 +220,7 @@ class PatchMemberListener extends MemberListener {
 
   PatchMemberListener(Compiler compiler, ClassElement enclosingClass)
       : this.compiler = compiler,
-        super(compiler.parsing.getScannerOptionsFor(enclosingClass),
+        super(compiler.parsingContext.getScannerOptionsFor(enclosingClass),
             compiler.reporter, enclosingClass);
 
   @override
@@ -262,7 +265,7 @@ class PatchElementListener extends ElementListener implements Listener {
   PatchElementListener(Compiler compiler, CompilationUnitElement patchElement,
       IdGenerator idGenerator)
       : this.compiler = compiler,
-        super(compiler.parsing.getScannerOptionsFor(patchElement),
+        super(compiler.parsingContext.getScannerOptionsFor(patchElement),
             compiler.reporter, patchElement, idGenerator);
 
   @override

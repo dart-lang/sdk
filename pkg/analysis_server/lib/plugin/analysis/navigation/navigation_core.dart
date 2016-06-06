@@ -5,7 +5,7 @@
 library analysis_server.plugin.analysis.navigation.navigation_core;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart'
-    show ElementKind, Location, NavigationRegion, NavigationTarget;
+    show ElementKind, Location;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show Source;
 

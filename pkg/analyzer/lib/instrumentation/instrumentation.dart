@@ -85,7 +85,7 @@ class InstrumentationService {
 
   /**
    * Initialize a newly created instrumentation service to communicate with the
-   * given [instrumentationServer].
+   * given [_instrumentationServer].
    */
   InstrumentationService(this._instrumentationServer);
 
@@ -106,10 +106,8 @@ class InstrumentationService {
    */
   void logAnalysisTask(String context, AnalysisTask task) {
     if (_instrumentationServer != null) {
-      String description =
-          (task is AnalysisTask) ? task.description : task.toString();
       _instrumentationServer
-          .log(_join([TAG_ANALYSIS_TASK, context, description]));
+          .log(_join([TAG_ANALYSIS_TASK, context, task.description]));
     }
   }
 
@@ -322,9 +320,10 @@ class InstrumentationService {
   String _join(List<String> fields) {
     StringBuffer buffer = new StringBuffer();
     buffer.write(_timestamp);
-    for (String field in fields) {
+    int length = fields.length;
+    for (int i = 0; i < length; i++) {
       buffer.write(':');
-      _escape(buffer, field);
+      _escape(buffer, fields[i]);
     }
     return buffer.toString();
   }

@@ -212,10 +212,7 @@ class DynamicInvoke extends CoercionInfo {
   toErrorCode() => new HintCode(name, message);
 
   /// Whether this [node] is the target of a dynamic operation.
-  static bool get(AstNode node) {
-    var value = node.getProperty(_propertyName);
-    return value != null ? value : false;
-  }
+  static bool get(AstNode node) => node.getProperty(_propertyName) ?? false;
 
   /// Sets whether this node is the target of a dynamic operation.
   static bool set(AstNode node, bool value) {
@@ -472,7 +469,7 @@ abstract class StaticError extends StaticInfo {
 abstract class StaticInfo {
   /// Strong-mode error code names.
   ///
-  /// Used for error code configuration validation in `.analysis_options`.
+  /// Used for error code configuration validation in an analysis options file.
   static const List<String> names = const [
     //
     // Manually populated.

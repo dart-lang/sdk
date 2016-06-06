@@ -83,8 +83,8 @@ abstract class LinkedHashSet<E> implements HashSet<E> {
    *
    * Effectively a shorthand for:
    *
-   *     new LinkedHashSet(equals: identical,
-   *                       hashCode: identityHashCodeOf)
+   *     new LinkedHashSet<E>(equals: identical,
+   *                          hashCode: identityHashCode)
    */
   external factory LinkedHashSet.identity();
 
@@ -92,7 +92,7 @@ abstract class LinkedHashSet<E> implements HashSet<E> {
    * Create a linked hash set containing all [elements].
    *
    * Creates a linked hash set as by `new LinkedHashSet<E>()` and adds each
-   * element of`elements` to this set in the order they are iterated.
+   * element of `elements` to this set in the order they are iterated.
    *
    * All the [elements] should be assignable to [E].
    * The `elements` iterable itself may have any element type,
@@ -102,10 +102,11 @@ abstract class LinkedHashSet<E> implements HashSet<E> {
    *     Iterable<SuperType> tmp = superSet.where((e) => e is SubType);
    *     Set<SubType> subSet = new LinkedHashSet<SubType>.from(tmp);
    */
-  factory LinkedHashSet.from(Iterable<E> elements) {
+  factory LinkedHashSet.from(Iterable elements) {
     LinkedHashSet<E> result = new LinkedHashSet<E>();
-    for (final E element in elements) {
-      result.add(element);
+    for (final element in elements) {
+      E e = element as Object/*=E*/;
+      result.add(e);
     }
     return result;
   }

@@ -755,7 +755,7 @@ static bool IsLengthOneString(Definition* d) {
       return false;
     }
   } else {
-    return d->IsStringFromCharCode();
+    return d->IsOneByteStringFromCharCode();
   }
 }
 
@@ -789,9 +789,10 @@ bool JitOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
       ConstantInstr* char_code_left = flow_graph()->GetConstant(
           Smi::ZoneHandle(Z, Smi::New(static_cast<intptr_t>(str.CharAt(0)))));
       left_val = new(Z) Value(char_code_left);
-    } else if (left->IsStringFromCharCode()) {
+    } else if (left->IsOneByteStringFromCharCode()) {
       // Use input of string-from-charcode as left value.
-      StringFromCharCodeInstr* instr = left->AsStringFromCharCode();
+      OneByteStringFromCharCodeInstr* instr =
+          left->AsOneByteStringFromCharCode();
       left_val = new(Z) Value(instr->char_code()->definition());
       to_remove_left = instr;
     } else {
@@ -801,9 +802,10 @@ bool JitOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
 
     Definition* to_remove_right = NULL;
     Value* right_val = NULL;
-    if (right->IsStringFromCharCode()) {
+    if (right->IsOneByteStringFromCharCode()) {
       // Skip string-from-char-code, and use its input as right value.
-      StringFromCharCodeInstr* right_instr = right->AsStringFromCharCode();
+      OneByteStringFromCharCodeInstr* right_instr =
+          right->AsOneByteStringFromCharCode();
       right_val = new(Z) Value(right_instr->char_code()->definition());
       to_remove_right = right_instr;
     } else {
@@ -1764,11 +1766,24 @@ bool JitOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     return true;
   }
 
-  if (((recognized_kind == MethodRecognizer::kStringBaseCodeUnitAt) ||
-       (recognized_kind == MethodRecognizer::kStringBaseCharAt)) &&
-      (ic_data.NumberOfChecks() == 1) &&
-      ((class_ids[0] == kOneByteStringCid) ||
-       (class_ids[0] == kTwoByteStringCid))) {
+  if ((recognized_kind == MethodRecognizer::kOneByteStringCodeUnitAt) ||
+      (recognized_kind == MethodRecognizer::kTwoByteStringCodeUnitAt) ||
+      (recognized_kind == MethodRecognizer::kExternalOneByteStringCodeUnitAt) ||
+      (recognized_kind == MethodRecognizer::kExternalTwoByteStringCodeUnitAt)) {
+      ASSERT(ic_data.NumberOfChecks() == 1);
+      ASSERT((class_ids[0] == kOneByteStringCid) ||
+             (class_ids[0] == kTwoByteStringCid) ||
+             (class_ids[0] == kExternalOneByteStringCid) ||
+             (class_ids[0] == kExternalTwoByteStringCid));
+    return TryReplaceInstanceCallWithInline(call);
+  }
+
+  if ((recognized_kind == MethodRecognizer::kStringBaseCharAt) &&
+      (ic_data.NumberOfChecks() == 1)) {
+      ASSERT((class_ids[0] == kOneByteStringCid) ||
+             (class_ids[0] == kTwoByteStringCid) ||
+             (class_ids[0] == kExternalOneByteStringCid) ||
+             (class_ids[0] == kExternalTwoByteStringCid));
     return TryReplaceInstanceCallWithInline(call);
   }
 
@@ -1881,71 +1896,6 @@ bool JitOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     return TryInlineFloat64x2Method(call, recognized_kind);
   }
 
-  if (recognized_kind == MethodRecognizer::kIntegerLeftShiftWithMask32) {
-    ASSERT(call->ArgumentCount() == 3);
-    ASSERT(ic_data.NumArgsTested() == 2);
-    Definition* value = call->ArgumentAt(0);
-    Definition* count = call->ArgumentAt(1);
-    Definition* int32_mask = call->ArgumentAt(2);
-    if (HasOnlyTwoOf(ic_data, kSmiCid)) {
-      if (ic_data.HasDeoptReason(ICData::kDeoptBinaryMintOp)) {
-        return false;
-      }
-      // We cannot overflow. The input value must be a Smi
-      AddCheckSmi(value, call->deopt_id(), call->env(), call);
-      AddCheckSmi(count, call->deopt_id(), call->env(), call);
-      ASSERT(int32_mask->IsConstant());
-      const Integer& mask_literal = Integer::Cast(
-          int32_mask->AsConstant()->value());
-      const int64_t mask_value = mask_literal.AsInt64Value();
-      ASSERT(mask_value >= 0);
-      if (mask_value > Smi::kMaxValue) {
-        // The result will not be Smi.
-        return false;
-      }
-      BinarySmiOpInstr* left_shift =
-          new(Z) BinarySmiOpInstr(Token::kSHL,
-                                  new(Z) Value(value),
-                                  new(Z) Value(count),
-                                  call->deopt_id());
-      left_shift->mark_truncating();
-      if ((kBitsPerWord == 32) && (mask_value == 0xffffffffLL)) {
-        // No BIT_AND operation needed.
-        ReplaceCall(call, left_shift);
-      } else {
-        InsertBefore(call, left_shift, call->env(), FlowGraph::kValue);
-        BinarySmiOpInstr* bit_and =
-            new(Z) BinarySmiOpInstr(Token::kBIT_AND,
-                                    new(Z) Value(left_shift),
-                                    new(Z) Value(int32_mask),
-                                    call->deopt_id());
-        ReplaceCall(call, bit_and);
-      }
-      return true;
-    }
-
-    if (HasTwoMintOrSmi(ic_data) &&
-        HasOnlyOneSmi(ICData::Handle(Z,
-                                     ic_data.AsUnaryClassChecksForArgNr(1)))) {
-      if (!FlowGraphCompiler::SupportsUnboxedMints() ||
-          ic_data.HasDeoptReason(ICData::kDeoptBinaryMintOp)) {
-        return false;
-      }
-      ShiftMintOpInstr* left_shift =
-          new(Z) ShiftMintOpInstr(Token::kSHL,
-                                  new(Z) Value(value),
-                                  new(Z) Value(count),
-                                  call->deopt_id());
-      InsertBefore(call, left_shift, call->env(), FlowGraph::kValue);
-      BinaryMintOpInstr* bit_and =
-          new(Z) BinaryMintOpInstr(Token::kBIT_AND,
-                                   new(Z) Value(left_shift),
-                                   new(Z) Value(int32_mask),
-                                   call->deopt_id());
-      ReplaceCall(call, bit_and);
-      return true;
-    }
-  }
   return false;
 }
 
@@ -2441,7 +2391,7 @@ bool JitOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
             type_class.ToCString());
       }
       if (FLAG_use_cha_deopt) {
-        thread()->cha()->AddToLeafClasses(type_class);
+        thread()->cha()->AddToGuardedClasses(type_class, /*subclass_count=*/0);
       }
     } else {
       return false;
@@ -2967,7 +2917,7 @@ void JitOptimizer::VisitStoreInstanceField(
     // usage count of at least 1/kGetterSetterRatio of the getter usage count.
     // This is to avoid unboxing fields where the setter is never or rarely
     // executed.
-    const Field& field = Field::ZoneHandle(Z, instr->field().Original());
+    const Field& field = instr->field();
     const String& field_name = String::Handle(Z, field.name());
     const Class& owner = Class::Handle(Z, field.Owner());
     const Function& getter =
@@ -2991,7 +2941,8 @@ void JitOptimizer::VisitStoreInstanceField(
       // - deoptimize dependent code.
       if (Compiler::IsBackgroundCompilation()) {
         isolate()->AddDeoptimizingBoxedField(field);
-        Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+        Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
+            "Unboxing instance field while compiling");
         UNREACHABLE();
       }
       if (FLAG_trace_optimization || FLAG_trace_field_guards) {
@@ -3003,6 +2954,7 @@ void JitOptimizer::VisitStoreInstanceField(
           OS::Print("  getter usage count: %" Pd "\n", getter.usage_counter());
         }
       }
+      ASSERT(field.IsOriginal());
       field.set_is_unboxing_candidate(false);
       field.DeoptimizeDependentCode();
     } else {

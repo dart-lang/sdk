@@ -197,11 +197,16 @@ class MemberSorter {
               directive.documentationComment.offset,
               directive.documentationComment.end);
         }
+        String annotationText;
+        if (directive.metadata.beginToken != null) {
+          annotationText = code.substring(directive.metadata.beginToken.offset,
+              directive.metadata.endToken.end);
+        }
         int offset = directive.firstTokenAfterCommentAndMetadata.offset;
         int length = directive.end - offset;
         String text = code.substring(offset, offset + length);
-        directives.add(new _DirectiveInfo(
-            directive, kind, uriContent, documentationText, text));
+        directives.add(new _DirectiveInfo(directive, kind, uriContent,
+            documentationText, annotationText, text));
       }
     }
     // nothing to do
@@ -244,6 +249,10 @@ class MemberSorter {
             sb.write(libraryDocumentationDirective.documentationText);
             sb.write(endOfLine);
           }
+        }
+        if (directive.annotationText != null) {
+          sb.write(directive.annotationText);
+          sb.write(endOfLine);
         }
         sb.write(directive.text);
         sb.write(endOfLine);
@@ -369,10 +378,11 @@ class _DirectiveInfo implements Comparable<_DirectiveInfo> {
   final _DirectivePriority priority;
   final String uri;
   final String documentationText;
+  final String annotationText;
   final String text;
 
   _DirectiveInfo(this.directive, this.priority, this.uri,
-      this.documentationText, this.text);
+      this.documentationText, this.annotationText, this.text);
 
   @override
   int compareTo(_DirectiveInfo other) {

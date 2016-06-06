@@ -45,7 +45,7 @@ class BeginTokenWithComment extends BeginToken implements TokenWithComment {
   /**
    * Initialize a newly created token to have the given [type] at the given
    * [offset] and to be preceded by the comments reachable from the given
-   * [comment].
+   * [_precedingComment].
    */
   BeginTokenWithComment(TokenType type, int offset, this._precedingComment)
       : super(type, offset) {
@@ -142,9 +142,7 @@ class DocumentationCommentToken extends CommentToken {
  * A token representing a keyword in the language.
  */
 class KeywordToken extends SimpleToken {
-  /**
-   * The keyword being represented by this token.
-   */
+  @override
   final Keyword keyword;
 
   /**
@@ -176,7 +174,7 @@ class KeywordTokenWithComment extends KeywordToken implements TokenWithComment {
   /**
    * Initialize a newly created token to to represent the given [keyword] at the
    * given [offset] and to be preceded by the comments reachable from the given
-   * [comment].
+   * [_precedingComment].
    */
   KeywordTokenWithComment(Keyword keyword, int offset, this._precedingComment)
       : super(keyword, offset) {
@@ -251,6 +249,9 @@ class SimpleToken implements Token {
 
   @override
   bool get isUserDefinableOperator => type.isUserDefinableOperator;
+
+  @override
+  Keyword get keyword => null;
 
   @override
   int get length => lexeme.length;

@@ -6,13 +6,13 @@ library dart2js.enqueue;
 
 import 'dart:collection' show Queue;
 
-import 'common.dart';
+import 'common/codegen.dart' show CodegenWorkItem;
 import 'common/names.dart' show Identifiers;
 import 'common/resolution.dart' show Resolution;
-import 'common/work.dart' show ItemCompilationContext, WorkItem;
-import 'common/tasks.dart' show CompilerTask, DeferredAction, DeferredTask;
-import 'common/codegen.dart' show CodegenWorkItem;
 import 'common/resolution.dart' show ResolutionWorkItem;
+import 'common/tasks.dart' show CompilerTask;
+import 'common/work.dart' show ItemCompilationContext, WorkItem;
+import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'dart_types.dart' show DartType, InterfaceType;
 import 'elements/elements.dart'
@@ -25,10 +25,8 @@ import 'elements/elements.dart'
         Elements,
         FunctionElement,
         LibraryElement,
-        LocalFunctionElement,
         Member,
         MemberElement,
-        MethodElement,
         Name,
         TypedElement,
         TypedefElement;
@@ -41,18 +39,20 @@ import 'universe/use.dart'
     show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitor;
-import 'util/util.dart' show Link, Setlet;
+import 'util/util.dart' show Setlet;
 
 typedef ItemCompilationContext ItemCompilationContextCreator();
 
 class EnqueueTask extends CompilerTask {
   final ResolutionEnqueuer resolution;
   final CodegenEnqueuer codegen;
+  final Compiler compiler;
 
   String get name => 'Enqueue';
 
   EnqueueTask(Compiler compiler)
-      : resolution = new ResolutionEnqueuer(
+      : compiler = compiler,
+        resolution = new ResolutionEnqueuer(
             compiler,
             compiler.backend.createItemCompilationContext,
             compiler.options.analyzeOnly && compiler.options.analyzeMain
@@ -62,7 +62,7 @@ class EnqueueTask extends CompilerTask {
             compiler,
             compiler.backend.createItemCompilationContext,
             const TreeShakingEnqueuerStrategy()),
-        super(compiler) {
+        super(compiler.measurer) {
     codegen.task = this;
     resolution.task = this;
 
@@ -311,7 +311,8 @@ abstract class Enqueuer {
         recentClasses.add(superclass);
         superclass.ensureResolved(resolution);
         superclass.implementation.forEachMember(processInstantiatedClassMember);
-        if (isResolutionQueue && !superclass.isSynthesized) {
+        if (isResolutionQueue &&
+            !compiler.serialization.isDeserialized(superclass)) {
           compiler.resolver.checkClass(superclass);
         }
         // We only tell the backend once that [superclass] was instantiated, so
@@ -703,6 +704,8 @@ abstract class Enqueuer {
   void forgetElement(Element element) {
     universe.forgetElement(element, compiler);
     _processedClasses.remove(element);
+    instanceMembersByName[element.name]?.remove(element);
+    instanceFunctionsByName[element.name]?.remove(element);
   }
 }
 
@@ -713,11 +716,9 @@ class ResolutionEnqueuer extends Enqueuer {
 
   final Queue<ResolutionWorkItem> queue;
 
-  /**
-   * A deferred task queue for the resolution phase which is processed
-   * when the resolution queue has been emptied.
-   */
-  final Queue<DeferredTask> deferredTaskQueue;
+  /// Queue of deferred resolution actions to execute when the resolution queue
+  /// has been emptied.
+  final Queue<_DeferredAction> deferredQueue;
 
   static const ImpactUseCase IMPACT_USE =
       const ImpactUseCase('ResolutionEnqueuer');
@@ -732,7 +733,7 @@ class ResolutionEnqueuer extends Enqueuer {
             strategy),
         processedElements = new Set<AstElement>(),
         queue = new Queue<ResolutionWorkItem>(),
-        deferredTaskQueue = new Queue<DeferredTask>();
+        deferredQueue = new Queue<_DeferredAction>();
 
   bool get isResolutionQueue => true;
 
@@ -830,24 +831,26 @@ class ResolutionEnqueuer extends Enqueuer {
    *
    * The queue is processed in FIFO order.
    */
-  void addDeferredAction(Element element, DeferredAction action) {
+  void addDeferredAction(Element element, void action()) {
     if (queueIsClosed) {
       throw new SpannableAssertionFailure(
           element,
           "Resolution work list is closed. "
           "Trying to add deferred action for $element");
     }
-    deferredTaskQueue.add(new DeferredTask(element, action));
+    deferredQueue.add(new _DeferredAction(element, action));
   }
 
   bool onQueueEmpty(Iterable<ClassElement> recentClasses) {
-    emptyDeferredTaskQueue();
+    _emptyDeferredQueue();
     return super.onQueueEmpty(recentClasses);
   }
 
-  void emptyDeferredTaskQueue() {
-    while (!deferredTaskQueue.isEmpty) {
-      DeferredTask task = deferredTaskQueue.removeFirst();
+  void emptyDeferredQueueForTesting() => _emptyDeferredQueue();
+
+  void _emptyDeferredQueue() {
+    while (!deferredQueue.isEmpty) {
+      _DeferredAction task = deferredQueue.removeFirst();
       reporter.withCurrentElement(task.element, task.action);
     }
   }
@@ -1042,4 +1045,13 @@ class _EnqueuerImpactVisitor implements WorldImpactVisitor {
   void visitTypeUse(TypeUse typeUse) {
     enqueuer.registerTypeUse(typeUse);
   }
+}
+
+typedef void _DeferredActionFunction();
+
+class _DeferredAction {
+  final Element element;
+  final _DeferredActionFunction action;
+
+  _DeferredAction(this.element, this.action);
 }

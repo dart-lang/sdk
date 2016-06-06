@@ -11,6 +11,7 @@ import 'package:compiler/compiler.dart' as api;
 import 'package:compiler/src/common/names.dart' show
     Uris;
 import 'package:compiler/src/constants/expressions.dart';
+import 'package:compiler/src/dart_types.dart' show DartType;
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/source_span.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
@@ -27,6 +28,7 @@ import 'package:compiler/src/resolution/members.dart';
 import 'package:compiler/src/resolution/registry.dart';
 import 'package:compiler/src/resolution/scope.dart';
 import 'package:compiler/src/resolution/tree_elements.dart';
+import 'package:compiler/src/resolved_uri_translator.dart';
 import 'package:compiler/src/script.dart';
 import 'package:compiler/src/tree/tree.dart';
 import 'package:compiler/src/old_to_new_api.dart';
@@ -39,6 +41,7 @@ import 'package:compiler/src/elements/modelx.dart' show
     FunctionElementX;
 
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/common/tasks.dart' show Measurer;
 
 import 'package:compiler/src/deferred_load.dart' show
     DeferredLoadTask,
@@ -65,6 +68,9 @@ class MockCompiler extends Compiler {
   final String testedPatchVersion;
   final LibrarySourceProvider librariesOverride;
   final DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
+  final ResolvedUriTranslator resolvedUriTranslator =
+      new MockResolvedUriTranslator();
+  final Measurer measurer = new Measurer();
 
   MockCompiler.internal(
       {Map<String, String> coreSource,
@@ -221,10 +227,15 @@ class MockCompiler extends Compiler {
   TreeElementMapping resolveNodeStatement(Node tree,
                                           ExecutableElement element) {
     ResolverVisitor visitor =
-        new ResolverVisitor(this, element,
+        new ResolverVisitor(
+            this,
+            element,
             new ResolutionRegistry(this,
-                new CollectingTreeElements(element)));
-    if (visitor.scope is LibraryScope) {
+                new CollectingTreeElements(element)),
+            scope: new MockTypeVariablesScope(
+                element.enclosingElement.buildScope()));
+    if (visitor.scope is LibraryScope ||
+        visitor.scope is MockTypeVariablesScope) {
       visitor.scope = new MethodScope(visitor.scope, element);
     }
     visitor.visit(tree);
@@ -235,9 +246,12 @@ class MockCompiler extends Compiler {
   resolverVisitor() {
     Element mockElement = new MockElement(mainApp.entryCompilationUnit);
     ResolverVisitor visitor =
-        new ResolverVisitor(this, mockElement,
-          new ResolutionRegistry(this,
-              new CollectingTreeElements(mockElement)));
+        new ResolverVisitor(
+            this,
+            mockElement,
+            new ResolutionRegistry(
+                this, new CollectingTreeElements(mockElement)),
+            scope: mockElement.enclosingElement.buildScope());
     visitor.scope = new MethodScope(visitor.scope, mockElement);
     return visitor;
   }
@@ -256,9 +270,6 @@ class MockCompiler extends Compiler {
     // Do nothing. The mock core library is already handled in the constructor.
     return new Future.value();
   }
-
-  Uri translateResolvedUri(LibraryElement importingLibrary,
-                           Uri resolvedUri, Spannable spannable) => resolvedUri;
 
   // The mock library doesn't need any patches.
   Uri resolvePatchUri(String dartLibraryName) {
@@ -288,6 +299,17 @@ class MockCompiler extends Compiler {
   }
 }
 
+class MockResolvedUriTranslator implements ResolvedUriTranslator {
+  static final _emptySet = new Set();
+
+  Uri translate(LibraryElement importingLibrary, Uri resolvedUri,
+          [Spannable spannable]) =>
+      resolvedUri;
+  Set<Uri> get disallowedLibraryUris => _emptySet;
+  bool get mockableLibraryUsed => false;
+  Map<String, Uri> get sdkLibraries => const <String, Uri>{};
+}
+
 class CollectingTreeElements extends TreeElementMapping {
   final Map<Node, Element> map = new LinkedHashMap<Node, Element>();
 
@@ -308,6 +330,13 @@ class CollectingTreeElements extends TreeElementMapping {
     forEachConstantNode((_, c) => list.add(c));
     return list;
   }
+}
+
+class MockTypeVariablesScope extends TypeVariablesScope {
+  @override
+  List<DartType> get typeVariables => <DartType>[];
+  MockTypeVariablesScope(Scope parent) : super(parent);
+  String toString() => 'MockTypeVariablesScope($parent)';
 }
 
 // The mock compiler does not split the program in output units.

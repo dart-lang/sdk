@@ -140,6 +140,9 @@ class CompileType : public ValueObject {
   // Create non-nullable Int type.
   static CompileType Int();
 
+  // Create non-nullable Smi type.
+  static CompileType Smi();
+
   // Create non-nullable String type.
   static CompileType String();
 
@@ -451,7 +454,6 @@ class EmbeddedArray<T, 0> {
   M(PolymorphicInstanceCall)                                                   \
   M(StaticCall)                                                                \
   M(LoadLocal)                                                                 \
-  M(PushTemp)                                                                  \
   M(DropTemps)                                                                 \
   M(StoreLocal)                                                                \
   M(StrictCompare)                                                             \
@@ -512,7 +514,7 @@ class EmbeddedArray<T, 0> {
   M(CheckArrayBound)                                                           \
   M(Constraint)                                                                \
   M(StringToCharCode)                                                          \
-  M(StringFromCharCode)                                                        \
+  M(OneByteStringFromCharCode)                                                 \
   M(StringInterpolate)                                                         \
   M(InvokeMathCFunction)                                                       \
   M(MergedMath)                                                                \
@@ -2584,7 +2586,7 @@ class ConstraintInstr : public TemplateDefinition<1, NoThrow> {
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   // Constraints for branches have their target block stored in order
-  // to find the the comparsion that generated the constraint:
+  // to find the comparison that generated the constraint:
   // target->predecessor->last_instruction->comparison.
   void set_target(TargetEntryInstr* target) {
     target_ = target;
@@ -3030,7 +3032,8 @@ class TestCidsInstr : public ComparisonInstr {
                 const ZoneGrowableArray<intptr_t>& cid_results,
                 intptr_t deopt_id)
       : ComparisonInstr(token_pos, kind, value, NULL, deopt_id),
-        cid_results_(cid_results) {
+        cid_results_(cid_results),
+        licm_hoisted_(false) {
     ASSERT((kind == Token::kIS) || (kind == Token::kISNOT));
     set_operation_cid(kObjectCid);
   }
@@ -3046,6 +3049,8 @@ class TestCidsInstr : public ComparisonInstr {
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
 
   virtual CompileType ComputeType() const;
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool CanDeoptimize() const {
     return GetDeoptId() != Thread::kNoDeoptId;
@@ -3063,10 +3068,13 @@ class TestCidsInstr : public ComparisonInstr {
   virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
                                        BranchLabels labels);
 
+  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
+
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
   const ZoneGrowableArray<intptr_t>& cid_results_;
+  bool licm_hoisted_;
   DISALLOW_COPY_AND_ASSIGN(TestCidsInstr);
 };
 
@@ -3360,34 +3368,6 @@ class LoadLocalInstr : public TemplateDefinition<0, NoThrow> {
   const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadLocalInstr);
-};
-
-
-class PushTempInstr : public TemplateDefinition<1, NoThrow> {
- public:
-  explicit PushTempInstr(Value* value) {
-    SetInputAt(0, value);
-  }
-
-  DECLARE_INSTRUCTION(PushTemp)
-
-  Value* value() const { return inputs_[0]; }
-
-  virtual CompileType ComputeType() const;
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual EffectSet Effects() const {
-    UNREACHABLE();  // Eliminated by SSA construction.
-    return EffectSet::None();
-  }
-
-  virtual TokenPosition token_pos() const {
-    return TokenPosition::kTempMove;
-  }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(PushTempInstr);
 };
 
 
@@ -3953,17 +3933,14 @@ class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
 };
 
 
-class StringFromCharCodeInstr : public TemplateDefinition<1, NoThrow, Pure> {
+class OneByteStringFromCharCodeInstr
+    : public TemplateDefinition<1, NoThrow, Pure> {
  public:
-  StringFromCharCodeInstr(Value* char_code, intptr_t cid) : cid_(cid) {
-    ASSERT(char_code != NULL);
-    ASSERT(char_code->definition()->IsLoadIndexed());
-    ASSERT(char_code->definition()->AsLoadIndexed()->class_id() ==
-           kOneByteStringCid);
+  explicit OneByteStringFromCharCodeInstr(Value* char_code) {
     SetInputAt(0, char_code);
   }
 
-  DECLARE_INSTRUCTION(StringFromCharCode)
+  DECLARE_INSTRUCTION(OneByteStringFromCharCode)
   virtual CompileType ComputeType() const;
 
   Value* char_code() const { return inputs_[0]; }
@@ -3971,13 +3948,11 @@ class StringFromCharCodeInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsStringFromCharCode()->cid_ == cid_;
+    return true;
   }
 
  private:
-  const intptr_t cid_;
-
-  DISALLOW_COPY_AND_ASSIGN(StringFromCharCodeInstr);
+  DISALLOW_COPY_AND_ASSIGN(OneByteStringFromCharCodeInstr);
 };
 
 
@@ -7817,6 +7792,7 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const;
 
+  bool licm_hoisted() const { return licm_hoisted_; }
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -7852,6 +7828,7 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
 
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
+  bool licm_hoisted() const { return licm_hoisted_; }
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
 
  private:
@@ -8216,6 +8193,17 @@ class Environment : public ZoneAllocated {
   // environment's length in order to drop values (e.g., passed arguments)
   // from the copy.
   Environment* DeepCopy(Zone* zone, intptr_t length) const;
+
+#if defined(TARGET_ARCH_DBC)
+  // Return/ReturnTOS instruction drops incoming arguments so
+  // we have to drop outgoing arguments from the innermost environment.
+  // On all other architectures caller drops outgoing arguments itself
+  // hence the difference.
+  // Note: this method can only be used at the code generation stage because
+  // it mutates environment in unsafe way (e.g. does not update def-use
+  // chains).
+  void DropArguments(intptr_t argc);
+#endif
 
  private:
   friend class ShallowIterator;

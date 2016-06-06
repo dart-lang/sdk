@@ -8,6 +8,8 @@ library dart2js.serialization.keys;
 class Key {
   static const Key ALIAS = const Key('alias');
   static const Key ARGUMENTS = const Key('arguments');
+  static const Key ASYNC_MARKER = const Key('asyncMarker');
+  static const Key BODY = const Key('body');
   static const Key BOUND = const Key('bound');
   static const Key CACHED_TYPE = const Key('cachedType');
   static const Key CALL_STRUCTURE = const Key('callStructure');
@@ -20,10 +22,13 @@ class Key {
   static const Key CONSTANT = const Key('constant');
   static const Key CONSTANTS = const Key('constants');
   static const Key CONSTRUCTOR = const Key('constructor');
+  static const Key CONTAINS_TRY = const Key('containsTryStatement');
   static const Key DATA = const Key('data');
   static const Key DEFAULT = const Key('default');
   static const Key DEFAULTS = const Key('defaults');
   static const Key DYNAMIC_USES = const Key('dynamic-uses');
+  static const Key EFFECTIVE_TARGET = const Key('effectiveTarget');
+  static const Key EFFECTIVE_TARGET_TYPE = const Key('effectiveTargetType');
   static const Key ELEMENT = const Key('element');
   static const Key ELEMENTS = const Key('elements');
   static const Key EXECUTABLE_CONTEXT = const Key('executable-context');
@@ -38,6 +43,8 @@ class Key {
   static const Key GET_OR_SET = const Key('getOrSet');
   static const Key GETTER = const Key('getter');
   static const Key ID = const Key('id');
+  static const Key IMMEDIATE_REDIRECTION_TARGET =
+      const Key('immediateRedirectionTarget');
   static const Key IMPACTS = const Key('impacts');
   static const Key IMPORT = const Key('import');
   static const Key IMPORTS = const Key('imports');
@@ -45,7 +52,9 @@ class Key {
   static const Key INTERFACES = const Key('interfaces');
   static const Key INDEX = const Key('index');
   static const Key IS_ABSTRACT = const Key('isAbstract');
+  static const Key IS_BREAK_TARGET = const Key('isBreakTarget');
   static const Key IS_CONST = const Key('isConst');
+  static const Key IS_CONTINUE_TARGET = const Key('isContinueTarget');
   static const Key IS_DEFERRED = const Key('isDeferred');
   static const Key IS_EMPTY = const Key('isEmpty');
   static const Key IS_EXTERNAL = const Key('isExternal');
@@ -54,11 +63,18 @@ class Key {
   static const Key IS_OPERATOR = const Key('isOperator');
   static const Key IS_OPTIONAL = const Key('isOptional');
   static const Key IS_PROXY = const Key('isProxy');
+  static const Key IS_REDIRECTING = const Key('isRedirecting');
   static const Key IS_SETTER = const Key('isSetter');
   static const Key IS_UNNAMED_MIXIN_APPLICATION =
       const Key('isUnnamedMixinApplication');
+  static const Key JUMP_TARGET = const Key('jumpTarget');
+  static const Key JUMP_TARGETS = const Key('jumpTargets');
+  static const Key JUMP_TARGET_DEFINITION = const Key('jumpTargetDefinition');
   static const Key KEYS = const Key('keys');
   static const Key KIND = const Key('kind');
+  static const Key LABEL_DEFINITION = const Key('labelDefinition');
+  static const Key LABEL_DEFINITIONS = const Key('labelDefinitions');
+  static const Key LABELS = const Key('labels');
   static const Key LEFT = const Key('left');
   static const Key LENGTH = const Key('length');
   static const Key LIBRARY = const Key('library');
@@ -74,7 +90,10 @@ class Key {
   static const Key NAMED_ARGUMENTS = const Key('named-arguments');
   static const Key NAMED_PARAMETERS = const Key('named-parameters');
   static const Key NAMED_PARAMETER_TYPES = const Key('named-parameter-types');
+  static const Key NATIVE = const Key('native');
+  static const Key NESTING_LEVEL = const Key('nestingLevel');
   static const Key NEW_STRUCTURE = const Key('newStructure');
+  static const Key NODE = const Key('node');
   static const Key OFFSET = const Key('offset');
   static const Key OPERATOR = const Key('operator');
   static const Key OPTIONAL_PARAMETER_TYPES =
@@ -94,6 +113,7 @@ class Key {
   static const Key SUPERTYPES = const Key('supertypes');
   static const Key SYMBOLS = const Key('symbols');
   static const Key TAGS = const Key('tags');
+  static const Key TARGET_LABEL = const Key('targetLabel');
   static const Key TRUE = const Key('true');
   static const Key TYPE = const Key('type');
   static const Key TYPES = const Key('types');

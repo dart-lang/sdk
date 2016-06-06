@@ -33,7 +33,7 @@ class TestCase {
  *   3. Repeat step 2 until there are no more tests.
  *
  * The purpose of this test is to simulate edits (during setup), and then let
- * the the mutation observer to process the mutations followed by validation.
+ * the mutation observer to process the mutations followed by validation.
  */
 void runTests(List<TestCase> tests) {
   Completer completer = new Completer();

@@ -17,8 +17,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/resolver.dart'
-    show Namespace, TypeProvider;
+import 'package:analyzer/src/generated/resolver.dart' show Namespace;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
@@ -43,7 +42,12 @@ main() {
  */
 abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   Set<Source> otherLibrarySources = new Set<Source>();
-  bool constantInitializersAreInvalid = false;
+
+  /**
+   * Names of variables which have initializers that are not valid constants,
+   * so they are not resynthesized.
+   */
+  Set<String> variablesWithNotConstInitializers = new Set<String>();
 
   bool get checkPropagatedTypes => true;
 
@@ -106,16 +110,18 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     expect(resynthesized.hasExtUri, original.hasExtUri);
     compareCompilationUnitElements(resynthesized.definingCompilationUnit,
         original.definingCompilationUnit);
-    expect(resynthesized.parts.length, original.parts.length);
+    expect(resynthesized.parts.length, original.parts.length, reason: 'parts');
     for (int i = 0; i < resynthesized.parts.length; i++) {
       compareCompilationUnitElements(resynthesized.parts[i], original.parts[i]);
     }
-    expect(resynthesized.imports.length, original.imports.length);
+    expect(resynthesized.imports.length, original.imports.length,
+        reason: 'imports');
     for (int i = 0; i < resynthesized.imports.length; i++) {
       compareImportElements(resynthesized.imports[i], original.imports[i],
           'import ${original.imports[i].uri}');
     }
-    expect(resynthesized.exports.length, original.exports.length);
+    expect(resynthesized.exports.length, original.exports.length,
+        reason: 'exports');
     for (int i = 0; i < resynthesized.exports.length; i++) {
       compareExportElements(resynthesized.exports[i], original.exports[i],
           'export ${original.exports[i].uri}');
@@ -207,8 +213,8 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
 
   void compareClassElements(
       ClassElement resynthesized, ClassElement original, String desc) {
-    ClassElementImpl r = getActualElement(resynthesized, desc);
-    ClassElementImpl o = getActualElement(original, desc);
+    ClassElementImpl r = ClassElementImpl.getImpl(resynthesized);
+    ClassElementImpl o = ClassElementImpl.getImpl(original);
     compareElements(r, o, desc);
     expect(r.fields.length, o.fields.length, reason: '$desc fields.length');
     for (int i = 0; i < r.fields.length; i++) {
@@ -256,13 +262,15 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     compareUriReferencedElements(resynthesized, original, desc);
     expect(resynthesized.source, original.source);
     expect(resynthesized.librarySource, original.librarySource);
-    expect(resynthesized.types.length, original.types.length);
+    expect(resynthesized.types.length, original.types.length,
+        reason: '$desc types');
     for (int i = 0; i < resynthesized.types.length; i++) {
       compareClassElements(
           resynthesized.types[i], original.types[i], original.types[i].name);
     }
     expect(resynthesized.topLevelVariables.length,
-        original.topLevelVariables.length);
+        original.topLevelVariables.length,
+        reason: '$desc topLevelVariables');
     for (int i = 0; i < resynthesized.topLevelVariables.length; i++) {
       String name = resynthesized.topLevelVariables[i].name;
       compareTopLevelVariableElements(
@@ -271,25 +279,29 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
               .singleWhere((TopLevelVariableElement e) => e.name == name),
           'variable $name');
     }
-    expect(resynthesized.functions.length, original.functions.length);
+    expect(resynthesized.functions.length, original.functions.length,
+        reason: '$desc functions');
     for (int i = 0; i < resynthesized.functions.length; i++) {
       compareFunctionElements(resynthesized.functions[i], original.functions[i],
           'function ${original.functions[i].name}');
     }
     expect(resynthesized.functionTypeAliases.length,
-        original.functionTypeAliases.length);
+        original.functionTypeAliases.length,
+        reason: '$desc functionTypeAliases');
     for (int i = 0; i < resynthesized.functionTypeAliases.length; i++) {
       compareFunctionTypeAliasElements(
           resynthesized.functionTypeAliases[i],
           original.functionTypeAliases[i],
           original.functionTypeAliases[i].name);
     }
-    expect(resynthesized.enums.length, original.enums.length);
+    expect(resynthesized.enums.length, original.enums.length,
+        reason: '$desc enums');
     for (int i = 0; i < resynthesized.enums.length; i++) {
       compareClassElements(
           resynthesized.enums[i], original.enums[i], original.enums[i].name);
     }
-    expect(resynthesized.accessors.length, original.accessors.length);
+    expect(resynthesized.accessors.length, original.accessors.length,
+        reason: '$desc accessors');
     for (int i = 0; i < resynthesized.accessors.length; i++) {
       String name = resynthesized.accessors[i].name;
       if (original.accessors[i].isGetter) {
@@ -336,7 +348,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       } else if (oItem is ConstructorFieldInitializer &&
           rItem is ConstructorFieldInitializer) {
         compareConstAsts(rItem.fieldName, oItem.fieldName, desc);
-        if (constantInitializersAreInvalid) {
+        if (variablesWithNotConstInitializers.contains(rItem.fieldName.name)) {
           _assertUnresolvedIdentifier(rItem.expression, desc);
         } else {
           compareConstAsts(rItem.expression, oItem.expression, desc);
@@ -412,9 +424,13 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         compareConstAsts(r.identifier, o.identifier, desc);
       } else if (o is PropertyAccess && r is PropertyAccess) {
         compareConstAsts(r.target, o.target, desc);
-        expect(r.propertyName.name, o.propertyName.name, reason: desc);
-        compareElements(
-            r.propertyName.staticElement, o.propertyName.staticElement, desc);
+        String oName = o.propertyName.name;
+        String rName = r.propertyName.name;
+        expect(rName, oName, reason: desc);
+        if (oName == 'length') {
+          compareElements(
+              r.propertyName.staticElement, o.propertyName.staticElement, desc);
+        }
       } else if (o is PropertyAccess &&
           o.target is PrefixedIdentifier &&
           r is SimpleIdentifier) {
@@ -501,8 +517,13 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         expect(rType, isNotNull, reason: desc);
         compareConstAsts(rType.name, oType.name, desc);
         compareConstAsts(rConstructor.name, oConstructor.name, desc);
-        compareConstAstLists(rType.typeArguments?.arguments,
-            oType.typeArguments?.arguments, desc);
+        // In strong mode type inference is performed, so that
+        // `C<int> v = new C();` is serialized as `C<int> v = new C<int>();`.
+        // So, if there are not type arguments originally, not need to check.
+        if (oType.typeArguments?.arguments?.isNotEmpty ?? false) {
+          compareConstAstLists(rType.typeArguments?.arguments,
+              oType.typeArguments?.arguments, desc);
+        }
         compareConstAstLists(
             r.argumentList.arguments, o.argumentList.arguments, desc);
       } else if (o is AnnotationImpl && r is AnnotationImpl) {
@@ -649,8 +670,20 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       return;
     }
     expect(original, isNotNull);
-    expect(resynthesized, isNotNull);
-    expect(rImpl.runtimeType, oImpl.runtimeType);
+    expect(resynthesized, isNotNull, reason: desc);
+    if (rImpl is DefaultParameterElementImpl && oImpl is ParameterElementImpl) {
+      // This is ok provided the resynthesized parameter element doesn't have
+      // any evaluation result.
+      expect(rImpl.evaluationResult, isNull);
+    } else {
+      Type rRuntimeType;
+      if (rImpl is FunctionElementImpl) {
+        rRuntimeType = FunctionElementImpl;
+      } else {
+        rRuntimeType = rImpl.runtimeType;
+      }
+      expect(rRuntimeType, oImpl.runtimeType);
+    }
     expect(resynthesized.kind, original.kind);
     expect(resynthesized.location, original.location, reason: desc);
     expect(resynthesized.name, original.name);
@@ -661,11 +694,11 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         reason: desc);
     expect(resynthesized.docRange, original.docRange, reason: desc);
     compareMetadata(resynthesized.metadata, original.metadata, desc);
-    // Modifiers are a pain to test via handles.  So just test them via the
-    // actual element.
+
+    // Validate modifiers.
     for (Modifier modifier in Modifier.persistedValues) {
-      bool got = rImpl.hasModifier(modifier);
-      bool want = oImpl.hasModifier(modifier);
+      bool got = _hasModifier(resynthesized, modifier);
+      bool want = _hasModifier(original, modifier);
       expect(got, want,
           reason: 'Mismatch in $desc.$modifier: got $got, want $want');
     }
@@ -704,27 +737,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
           original.typeParameters[i],
           '$desc type parameter ${original.typeParameters[i].name}');
     }
-    if (original is! Member) {
-      List<FunctionElement> rFunctions = resynthesized.functions;
-      List<FunctionElement> oFunctions = original.functions;
-      expect(rFunctions, hasLength(oFunctions.length));
-      for (int i = 0; i < oFunctions.length; i++) {
-        compareFunctionElements(rFunctions[i], oFunctions[i],
-            '$desc local function ${oFunctions[i].name}');
-      }
-    }
-    if (original is! Member) {
-      List<LabelElement> rLabels = resynthesized.labels;
-      List<LabelElement> oLabels = original.labels;
-      expect(rLabels, hasLength(oLabels.length));
-      for (int i = 0; i < oLabels.length; i++) {
-        compareLabelElements(
-            rLabels[i], oLabels[i], '$desc label ${oLabels[i].name}');
-      }
-    }
-    if (original is! Member) {
-      compareLocalVariableElementLists(resynthesized, original, desc);
-    }
+    compareLocalElementsOfExecutable(resynthesized, original, desc);
   }
 
   void compareExportElements(ExportElementImpl resynthesized,
@@ -778,15 +791,18 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       ImportElementImpl original, String desc) {
     compareUriReferencedElements(resynthesized, original, desc);
     expect(resynthesized.importedLibrary.location,
-        original.importedLibrary.location);
-    expect(resynthesized.prefixOffset, original.prefixOffset);
+        original.importedLibrary.location,
+        reason: '$desc importedLibrary location');
+    expect(resynthesized.prefixOffset, original.prefixOffset,
+        reason: '$desc prefixOffset');
     if (original.prefix == null) {
-      expect(resynthesized.prefix, isNull);
+      expect(resynthesized.prefix, isNull, reason: '$desc prefix');
     } else {
       comparePrefixElements(
           resynthesized.prefix, original.prefix, original.prefix.name);
     }
-    expect(resynthesized.combinators.length, original.combinators.length);
+    expect(resynthesized.combinators.length, original.combinators.length,
+        reason: '$desc combinators');
     for (int i = 0; i < resynthesized.combinators.length; i++) {
       compareNamespaceCombinators(
           resynthesized.combinators[i], original.combinators[i]);
@@ -802,14 +818,34 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     compareElements(resynthesized, original, desc);
   }
 
-  void compareLocalVariableElementLists(ExecutableElement resynthesized,
+  void compareLocalElementsOfExecutable(ExecutableElement resynthesized,
       ExecutableElement original, String desc) {
-    List<LocalVariableElement> rVariables = resynthesized.localVariables;
-    List<LocalVariableElement> oVariables = original.localVariables;
-    expect(rVariables, hasLength(oVariables.length));
-    for (int i = 0; i < oVariables.length; i++) {
-      compareVariableElements(rVariables[i], oVariables[i],
-          '$desc local variable ${oVariables[i].name}');
+    if (original is! Member) {
+      List<FunctionElement> rFunctions = resynthesized.functions;
+      List<FunctionElement> oFunctions = original.functions;
+      expect(rFunctions, hasLength(oFunctions.length));
+      for (int i = 0; i < oFunctions.length; i++) {
+        compareFunctionElements(rFunctions[i], oFunctions[i],
+            '$desc local function ${oFunctions[i].name}');
+      }
+    }
+    if (original is! Member) {
+      List<LabelElement> rLabels = resynthesized.labels;
+      List<LabelElement> oLabels = original.labels;
+      expect(rLabels, hasLength(oLabels.length));
+      for (int i = 0; i < oLabels.length; i++) {
+        compareLabelElements(
+            rLabels[i], oLabels[i], '$desc label ${oLabels[i].name}');
+      }
+    }
+    if (original is! Member) {
+      List<LocalVariableElement> rVariables = resynthesized.localVariables;
+      List<LocalVariableElement> oVariables = original.localVariables;
+      expect(rVariables, hasLength(oVariables.length));
+      for (int i = 0; i < oVariables.length; i++) {
+        compareVariableElements(rVariables[i], oVariables[i],
+            '$desc local variable ${oVariables[i].name}');
+      }
     }
   }
 
@@ -833,12 +869,14 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       NamespaceCombinator resynthesized, NamespaceCombinator original) {
     if (original is ShowElementCombinatorImpl &&
         resynthesized is ShowElementCombinatorImpl) {
-      expect(resynthesized.shownNames, original.shownNames);
-      expect(resynthesized.offset, original.offset);
-      expect(resynthesized.end, original.end);
+      expect(resynthesized.shownNames, original.shownNames,
+          reason: 'shownNames');
+      expect(resynthesized.offset, original.offset, reason: 'offset');
+      expect(resynthesized.end, original.end, reason: 'end');
     } else if (original is HideElementCombinatorImpl &&
         resynthesized is HideElementCombinatorImpl) {
-      expect(resynthesized.hiddenNames, original.hiddenNames);
+      expect(resynthesized.hiddenNames, original.hiddenNames,
+          reason: 'hiddenNames');
     } else if (resynthesized.runtimeType != original.runtimeType) {
       fail(
           'Type mismatch: expected ${original.runtimeType}, got ${resynthesized.runtimeType}');
@@ -878,7 +916,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     compareVariableElements(resynthesized, original, desc);
     compareParameterElementLists(
         resynthesized.parameters, original.parameters, desc);
-    expect(resynthesized.parameterKind, original.parameterKind);
+    expect(resynthesized.parameterKind, original.parameterKind, reason: desc);
     expect(resynthesized.isInitializingFormal, original.isInitializingFormal,
         reason: desc);
     expect(resynthesized is FieldFormalParameterElementImpl,
@@ -1057,9 +1095,10 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   void compareUriReferencedElements(UriReferencedElementImpl resynthesized,
       UriReferencedElementImpl original, String desc) {
     compareElements(resynthesized, original, desc);
-    expect(resynthesized.uri, original.uri);
-    expect(resynthesized.uriOffset, original.uriOffset, reason: desc);
-    expect(resynthesized.uriEnd, original.uriEnd, reason: desc);
+    expect(resynthesized.uri, original.uri, reason: '$desc uri');
+    expect(resynthesized.uriOffset, original.uriOffset,
+        reason: '$desc uri uriOffset');
+    expect(resynthesized.uriEnd, original.uriEnd, reason: '$desc uriEnd');
   }
 
   void compareVariableElements(
@@ -1080,7 +1119,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
             resynthesized.constantValue, original.constantValue, desc);
       } else {
         Expression initializer = resynthesizedActual.constantInitializer;
-        if (constantInitializersAreInvalid) {
+        if (variablesWithNotConstInitializers.contains(resynthesized.name)) {
           _assertUnresolvedIdentifier(initializer, desc);
         } else {
           compareConstAsts(initializer, originalActual.constantInitializer,
@@ -1207,12 +1246,103 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     SimpleIdentifier identifier = initializer;
     expect(identifier.staticElement, isNull, reason: desc);
   }
+
+  bool _hasModifier(Element element, Modifier modifier) {
+    if (modifier == Modifier.ABSTRACT) {
+      if (element is ClassElement) {
+        return element.isAbstract;
+      }
+      if (element is ExecutableElement) {
+        return element.isAbstract;
+      }
+      return false;
+    } else if (modifier == Modifier.ASYNCHRONOUS) {
+      if (element is ExecutableElement) {
+        return element.isAsynchronous;
+      }
+      return false;
+    } else if (modifier == Modifier.CONST) {
+      if (element is VariableElement) {
+        return element.isConst;
+      }
+      return false;
+    } else if (modifier == Modifier.DEFERRED) {
+      if (element is ImportElement) {
+        return element.isDeferred;
+      }
+      return false;
+    } else if (modifier == Modifier.ENUM) {
+      if (element is ClassElement) {
+        return element.isEnum;
+      }
+      return false;
+    } else if (modifier == Modifier.EXTERNAL) {
+      if (element is ExecutableElement) {
+        return element.isExternal;
+      }
+      return false;
+    } else if (modifier == Modifier.FACTORY) {
+      if (element is ConstructorElement) {
+        return element.isFactory;
+      }
+      return false;
+    } else if (modifier == Modifier.FINAL) {
+      if (element is VariableElement) {
+        return element.isFinal;
+      }
+      return false;
+    } else if (modifier == Modifier.GENERATOR) {
+      if (element is ExecutableElement) {
+        return element.isGenerator;
+      }
+      return false;
+    } else if (modifier == Modifier.GETTER) {
+      if (element is PropertyAccessorElement) {
+        return element.isGetter;
+      }
+      return false;
+    } else if (modifier == Modifier.HAS_EXT_URI) {
+      if (element is LibraryElement) {
+        return element.hasExtUri;
+      }
+      return false;
+    } else if (modifier == Modifier.IMPLICIT_TYPE) {
+      if (element is ExecutableElement) {
+        return element.hasImplicitReturnType;
+      }
+      return false;
+    } else if (modifier == Modifier.MIXIN_APPLICATION) {
+      if (element is ClassElement) {
+        return element.isMixinApplication;
+      }
+      return false;
+    } else if (modifier == Modifier.REFERENCES_SUPER) {
+      if (element is ClassElement) {
+        return element.hasReferenceToSuper;
+      }
+      return false;
+    } else if (modifier == Modifier.SETTER) {
+      if (element is PropertyAccessorElement) {
+        return element.isSetter;
+      }
+      return false;
+    } else if (modifier == Modifier.STATIC) {
+      if (element is ExecutableElement) {
+        return element.isStatic;
+      }
+      return false;
+    } else if (modifier == Modifier.SYNTHETIC) {
+      return element.isSynthetic;
+    }
+    throw new UnimplementedError(
+        'Modifier $modifier for ${element?.runtimeType}');
+  }
 }
 
 @reflectiveTest
 class ResynthesizeElementTest extends ResynthesizeTest {
   @override
-  void checkLibrary(String text,
+  LibraryElementImpl checkLibrary(String text,
       {bool allowErrors: false, bool dumpSummaries: false}) {
     Source source = addTestSource(text);
     LibraryElementImpl original = context.computeLibraryElement(source);
@@ -1222,6 +1352,7 @@ class ResynthesizeElementTest extends ResynthesizeTest {
         source.uri.toString(),
         original);
     checkLibraryElements(original, resynthesized);
+    return resynthesized;
   }
 
   @override
@@ -1317,7 +1448,7 @@ class ResynthesizeElementTest extends ResynthesizeTest {
 
 @reflectiveTest
 abstract class ResynthesizeTest extends AbstractResynthesizeTest {
-  void checkLibrary(String text,
+  LibraryElementImpl checkLibrary(String text,
       {bool allowErrors: false, bool dumpSummaries: false});
 
   /**
@@ -1668,7 +1799,7 @@ f() {
   }
 
   test_const_invalid_field_const() {
-    constantInitializersAreInvalid = true;
+    variablesWithNotConstInitializers.add('f');
     checkLibrary(
         r'''
 class C {
@@ -1680,7 +1811,7 @@ int foo() => 42;
   }
 
   test_const_invalid_field_final() {
-    constantInitializersAreInvalid = true;
+    variablesWithNotConstInitializers.add('f');
     checkLibrary(
         r'''
 class C {
@@ -1692,7 +1823,7 @@ int foo() => 42;
   }
 
   test_const_invalid_topLevel() {
-    constantInitializersAreInvalid = true;
+    variablesWithNotConstInitializers.add('v');
     checkLibrary(
         r'''
 const v = 1 + foo();
@@ -2435,7 +2566,7 @@ class C {
   }
 
   test_constructor_initializers_field_notConst() {
-    constantInitializersAreInvalid = true;
+    variablesWithNotConstInitializers.add('x');
     checkLibrary(
         '''
 class C {
@@ -2467,6 +2598,17 @@ class C extends A {
 ''');
   }
 
+  test_constructor_initializers_superInvocation_namedExpression() {
+    checkLibrary('''
+class A {
+  const A.aaa(a, {int b});
+}
+class C extends A {
+  const C() : super.aaa(1, b: 2);
+}
+''');
+  }
+
   test_constructor_initializers_superInvocation_unnamed() {
     checkLibrary('''
 class A {
@@ -2483,6 +2625,15 @@ class C extends A {
 class C {
   const C() : this.named(1, 'bbb');
   const C.named(int a, String b);
+}
+''');
+  }
+
+  test_constructor_initializers_thisInvocation_namedExpression() {
+    checkLibrary('''
+class C {
+  const C() : this.named(1, b: 2);
+  const C.named(a, {int b});
 }
 ''');
   }
@@ -2750,6 +2901,71 @@ class D {
 ''');
   }
 
+  test_defaultValue_refersToGenericClass_constructor() {
+    checkLibrary('''
+class B<T> {
+  const B();
+}
+class C<T> {
+  const C([B<T> b = const B()]);
+}
+''');
+  }
+
+  test_defaultValue_refersToGenericClass_constructor2() {
+    checkLibrary('''
+abstract class A<T> {}
+class B<T> implements A<T> {
+  const B();
+}
+class C<T> implements A<Iterable<T>> {
+  const C([A<T> a = const B()]);
+}
+''');
+  }
+
+  test_defaultValue_refersToGenericClass_functionG() {
+    checkLibrary('''
+class B<T> {
+  const B();
+}
+void foo<T>([B<T> b = const B()]) {}
+''');
+  }
+
+  test_defaultValue_refersToGenericClass_methodG() {
+    checkLibrary('''
+class B<T> {
+  const B();
+}
+class C {
+  void foo<T>([B<T> b = const B()]) {}
+}
+''');
+  }
+
+  test_defaultValue_refersToGenericClass_methodG_classG() {
+    checkLibrary('''
+class B<T1, T2> {
+  const B();
+}
+class C<E1> {
+  void foo<E2>([B<E1, E2> b = const B()]) {}
+}
+''');
+  }
+
+  test_defaultValue_refersToGenericClass_methodNG() {
+    checkLibrary('''
+class B<T> {
+  const B();
+}
+class C<T> {
+  void foo([B<T> b = const B()]) {}
+}
+''');
+  }
+
   test_enum_documented() {
     checkLibrary('''
 // Extra comment so doc comment offset != 0
@@ -2929,6 +3145,20 @@ class C {
 
   test_field_untyped() {
     checkLibrary('class C { var x = 0; }');
+  }
+
+  test_function_async() {
+    checkLibrary(r'''
+import 'dart:async';
+Future f() async {}
+''');
+  }
+
+  test_function_asyncStar() {
+    checkLibrary(r'''
+import 'dart:async';
+Stream f() async* {}
+''');
   }
 
   test_function_documented() {
@@ -3165,6 +3395,18 @@ get x => null;''');
     checkLibrary('import "a.dart" as a; a.C c;');
   }
 
+  test_import_self() {
+    LibraryElementImpl resynthesized = checkLibrary('''
+import 'test.dart' as p;
+class C {}
+class D extends p.C {} // Prevent "unused import" warning
+''');
+    expect(resynthesized.imports, hasLength(2));
+    expect(resynthesized.imports[0].importedLibrary.location,
+        resynthesized.location);
+    expect(resynthesized.imports[1].importedLibrary.isDartCore, true);
+  }
+
   test_import_show() {
     addLibrary('dart:async');
     checkLibrary('''
@@ -3285,6 +3527,14 @@ f<T>() {
         ' abstract class D<U, V> { Map<V, U> get v; }');
   }
 
+  void test_inferred_type_refers_to_function_typed_param_of_typedef() {
+    checkLibrary('''
+typedef void F(int g(String s));
+h(F f) => null;
+var v = h(/*info:INFERRED_TYPE_CLOSURE*/(y) {});
+''');
+  }
+
   test_inferred_type_refers_to_function_typed_parameter_type_generic_class() {
     checkLibrary('class C<T, U> extends D<U, int> { void f(int x, g) {} }'
         ' abstract class D<V, W> { void f(int x, W g(V s)); }');
@@ -3303,9 +3553,31 @@ f<T>() {
         ' abstract class D { void f(int x, int g(String s)); }');
   }
 
+  test_inferred_type_refers_to_nested_function_typed_param() {
+    checkLibrary('''
+f(void g(int x, void h())) => null;
+var v = f((x, y) {});
+''');
+  }
+
+  test_inferred_type_refers_to_nested_function_typed_param_named() {
+    checkLibrary('''
+f({void g(int x, void h())}) => null;
+var v = f(g: (x, y) {});
+''');
+  }
+
   test_inferred_type_refers_to_setter_function_typed_parameter_type() {
     checkLibrary('class C extends D { void set f(g) {} }'
         ' abstract class D { void set f(int g(String s)); }');
+  }
+
+  void test_inferredType_usesSyntheticFunctionType_functionTypedParam() {
+    checkLibrary('''
+int f(int x(String y)) => null;
+String g(int x(String y)) => null;
+var v = [f, g];
+''');
   }
 
   test_initializer_executable_with_return_type_from_closure() {
@@ -3529,6 +3801,24 @@ get g {
   test_main_variable_via_export() {
     addLibrarySource('/a.dart', 'var main;');
     checkLibrary('export "a.dart";');
+  }
+
+  test_member_function_async() {
+    checkLibrary(r'''
+import 'dart:async';
+class C {
+  Future f() async {}
+}
+''');
+  }
+
+  test_member_function_asyncStar() {
+    checkLibrary(r'''
+import 'dart:async';
+class C {
+  Stream f() async* {}
+}
+''');
   }
 
   test_metadata_classDeclaration() {

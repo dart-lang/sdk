@@ -41,6 +41,8 @@
  */
 library analyzer.tool.summary.idl;
 
+import 'package:analyzer/dart/element/element.dart';
+
 import 'base.dart' as base;
 import 'base.dart' show Id, TopLevel;
 import 'format.dart' as generated;
@@ -202,8 +204,7 @@ abstract class EntityRef extends base.SummaryClass {
 
   /**
    * If this is an instantiation of a generic type or generic executable, the
-   * type arguments used to instantiate it.  Trailing type arguments of type
-   * `dynamic` are omitted.
+   * type arguments used to instantiate it (if any).
    */
   @Id(1)
   List<EntityRef> get typeArguments;
@@ -341,7 +342,12 @@ enum IndexSyntheticElementKind {
   /**
    * The synthetic `values` getter of an enum.
    */
-  enumValues
+  enumValues,
+
+  /**
+   * The containing unit itself.
+   */
+  unit
 }
 
 /**
@@ -622,6 +628,7 @@ abstract class PackageBundle extends base.SummaryClass {
    * is encoded as a hexadecimal string using lower case letters.
    */
   @Id(4)
+  @informative
   List<String> get unlinkedUnitHashes;
 
   /**
@@ -1117,10 +1124,10 @@ enum UnlinkedConstOperation {
   pushNull,
 
   /**
-   * Push the value of the constant constructor parameter with
-   * the name obtained from [UnlinkedConst.strings].
+   * Push the value of the function parameter with the name obtained from
+   * [UnlinkedConst.strings].
    */
-  pushConstructorParameter,
+  pushParameter,
 
   /**
    * Evaluate a (potentially qualified) identifier expression and push the
@@ -1448,12 +1455,28 @@ enum UnlinkedConstOperation {
    * Pop the top value from the stack and raise an exception with this value.
    */
   throwException,
+
+  /**
+   * Obtain two values `n` and `m` from [UnlinkedConst.ints].  Then, starting at
+   * the executable element for the expression being evaluated, if n > 0, pop to
+   * the nth enclosing function element.  Then, push the mth local function of
+   * that element onto the stack.
+   */
+  pushLocalFunctionReference,
 }
 
 /**
  * Unlinked summary information about a constructor initializer.
  */
 abstract class UnlinkedConstructorInitializer extends base.SummaryClass {
+  /**
+   * If there are `m` [arguments] and `n` [argumentNames], then each argument
+   * from [arguments] with index `i` such that `n + i - m >= 0`, should be used
+   * with the name at `n + i - m`.
+   */
+  @Id(4)
+  List<String> get argumentNames;
+
   /**
    * If [kind] is `thisInvocation` or `superInvocation`, the arguments of the
    * invocation.  Otherwise empty.
@@ -1615,6 +1638,14 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
   List<UnlinkedConst> get annotations;
 
   /**
+   * If this executable's function body is declared using `=>`, the expression
+   * to the right of the `=>`.  May be omitted if neither type inference nor
+   * constant evaluation depends on the function body.
+   */
+  @Id(29)
+  UnlinkedConst get bodyExpr;
+
+  /**
    * Code range of the executable.
    */
   @informative
@@ -1664,6 +1695,13 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
   bool get isAbstract;
 
   /**
+   * Indicates whether the executable has body marked as being asynchronous.
+   */
+  @informative
+  @Id(27)
+  bool get isAsynchronous;
+
+  /**
    * Indicates whether the executable is declared using the `const` keyword.
    */
   @Id(12)
@@ -1680,6 +1718,13 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
    */
   @Id(8)
   bool get isFactory;
+
+  /**
+   * Indicates whether the executable has body marked as being a generator.
+   */
+  @informative
+  @Id(28)
+  bool get isGenerator;
 
   /**
    * Indicates whether the executable is a redirected constructor.
@@ -1707,7 +1752,6 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
   /**
    * The list of local functions.
    */
-  @informative
   @Id(18)
   List<UnlinkedExecutable> get localFunctions;
 
@@ -2105,16 +2149,8 @@ abstract class UnlinkedParam extends base.SummaryClass {
    * Code range of the parameter.
    */
   @informative
-  @Id(14)
-  CodeRange get codeRange;
-
-  /**
-   * If the parameter has a default value, the constant expression in the
-   * default value.  Note that the presence of this expression does not mean
-   * that it is a valid, check [UnlinkedConst.isInvalid].
-   */
   @Id(7)
-  UnlinkedConst get defaultValue;
+  CodeRange get codeRange;
 
   /**
    * If the parameter has a default value, the source text of the constant
@@ -2268,8 +2304,8 @@ abstract class UnlinkedPublicName extends base.SummaryClass {
 
   /**
    * If this [UnlinkedPublicName] is a class, the list of members which can be
-   * referenced from constants or factory redirects - static constant fields,
-   * static methods, and constructors.  Otherwise empty.
+   * referenced statically - static fields, static methods, and constructors.
+   * Otherwise empty.
    *
    * Unnamed constructors are not included since they do not constitute a
    * separate name added to any namespace.
@@ -2586,16 +2622,8 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    * Code range of the variable.
    */
   @informative
-  @Id(14)
-  CodeRange get codeRange;
-
-  /**
-   * If [isConst] is true, and the variable has an initializer, the constant
-   * expression in the initializer.  Note that the presence of this expression
-   * does not mean that it is a valid, check [UnlinkedConst.isInvalid].
-   */
   @Id(5)
-  UnlinkedConst get constExpr;
+  CodeRange get codeRange;
 
   /**
    * Documentation comment for the variable, or `null` if there is no
@@ -2618,7 +2646,6 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    * The synthetic initializer function of the variable.  Absent if the variable
    * does not have an initializer.
    */
-  @informative
   @Id(13)
   UnlinkedExecutable get initializer;
 

@@ -149,7 +149,7 @@ abstract class int extends num {
    * for non-negative (unsigned) values.  Negative values are complemented to
    * return the bit position of the first bit that differs from the sign bit.
    *
-   * To find the the number of bits needed to store the value as a signed value,
+   * To find the number of bits needed to store the value as a signed value,
    * add one, i.e. use `x.bitLength + 1`.
    *
    *      x.bitLength == (-x-1).bitLength

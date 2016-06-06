@@ -16,8 +16,6 @@ import 'package:compiler/compiler_new.dart' show
     PackagesDiscoveryProvider;
 import 'package:compiler/src/diagnostics/messages.dart' show
     Message;
-import 'package:compiler/src/mirrors/source_mirrors.dart';
-import 'package:compiler/src/mirrors/analyze.dart';
 import 'package:compiler/src/null_compiler_output.dart' show
     NullCompilerOutput;
 import 'package:compiler/src/library_loader.dart' show
@@ -73,6 +71,7 @@ Future<CompilationResult> runCompiler(
     {Map<String, String> memorySourceFiles: const <String, String>{},
      Uri entryPoint,
      List<Uri> entryPoints,
+     List<Uri> resolutionInputs,
      CompilerDiagnostics diagnosticHandler,
      CompilerOutput outputProvider,
      List<String> options: const <String>[],
@@ -87,6 +86,7 @@ Future<CompilationResult> runCompiler(
   }
   CompilerImpl compiler = compilerFor(
       entryPoint: entryPoint,
+      resolutionInputs: resolutionInputs,
       memorySourceFiles: memorySourceFiles,
       diagnosticHandler: diagnosticHandler,
       outputProvider: outputProvider,
@@ -106,6 +106,7 @@ Future<CompilationResult> runCompiler(
 
 CompilerImpl compilerFor(
     {Uri entryPoint,
+     List<Uri> resolutionInputs,
      Map<String, String> memorySourceFiles: const <String, String>{},
      CompilerDiagnostics diagnosticHandler,
      CompilerOutput outputProvider,
@@ -149,6 +150,7 @@ CompilerImpl compilerFor(
       diagnosticHandler,
       new CompilerOptions.parse(
           entryPoint: entryPoint,
+          resolutionInputs: resolutionInputs,
           libraryRoot: libraryRoot,
           packageRoot: packageRoot,
           options: options,
@@ -181,15 +183,10 @@ CompilerImpl compilerFor(
 
     compiler.backend.constantCompilerTask.copyConstantValues(
         cachedCompiler.backend.constantCompilerTask);
-    compiler.symbolConstructor = cachedCompiler.symbolConstructor;
     compiler.mirrorSystemClass = cachedCompiler.mirrorSystemClass;
     compiler.mirrorsUsedClass = cachedCompiler.mirrorsUsedClass;
     compiler.mirrorSystemGetNameFunction =
         cachedCompiler.mirrorSystemGetNameFunction;
-    compiler.symbolImplementationClass =
-        cachedCompiler.symbolImplementationClass;
-    compiler.symbolValidatedConstructor =
-        cachedCompiler.symbolValidatedConstructor;
     compiler.mirrorsUsedConstructor = cachedCompiler.mirrorsUsedConstructor;
     compiler.deferredLibraryClass = cachedCompiler.deferredLibraryClass;
 
@@ -263,24 +260,4 @@ DiagnosticHandler createDiagnosticHandler(DiagnosticHandler diagnosticHandler,
     handler = (Uri uri, int begin, int end, String message, Diagnostic kind) {};
   }
   return handler;
-}
-
-Future<MirrorSystem> mirrorSystemFor(Map<String,String> memorySourceFiles,
-                                     {DiagnosticHandler diagnosticHandler,
-                                      List<String> options: const [],
-                                      bool showDiagnostics: true}) {
-  Uri libraryRoot = Uri.base.resolve('sdk/');
-  Uri packageRoot = Uri.base.resolve(Platform.packageRoot);
-
-  var provider = new MemorySourceFileProvider(memorySourceFiles);
-  var handler =
-      createDiagnosticHandler(diagnosticHandler, provider, showDiagnostics);
-
-  List<Uri> libraries = <Uri>[];
-  memorySourceFiles.forEach((String path, _) {
-    libraries.add(new Uri(scheme: 'memory', path: path));
-  });
-
-  return analyze(libraries, libraryRoot, packageRoot,
-                 provider, handler, options);
 }

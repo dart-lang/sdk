@@ -9,8 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisEngine, RecordingErrorListener;
+import 'package:analyzer/src/generated/engine.dart' show RecordingErrorListener;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart' show Source;
@@ -121,7 +120,7 @@ class ConstantEvaluator {
    * types.
    */
   ConstantEvaluator(this._source, this._typeProvider, {TypeSystem typeSystem})
-      : _typeSystem = typeSystem != null ? typeSystem : new TypeSystemImpl();
+      : _typeSystem = typeSystem ?? new TypeSystemImpl();
 
   EvaluationResult evaluate(Expression expression) {
     RecordingErrorListener errorListener = new RecordingErrorListener();

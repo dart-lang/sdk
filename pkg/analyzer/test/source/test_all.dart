@@ -8,6 +8,7 @@ import 'package:unittest/unittest.dart';
 
 import '../utils.dart';
 import 'analysis_options_provider_test.dart' as analysis_options_provider_test;
+import 'config_test.dart' as config_test;
 import 'embedder_test.dart' as embedder_test;
 import 'error_processor_test.dart' as error_processor_test;
 import 'package_map_provider_test.dart' as package_map_provider_test;
@@ -20,6 +21,7 @@ main() {
   initializeTestEnvironment();
   group('source', () {
     analysis_options_provider_test.main();
+    config_test.main();
     embedder_test.main();
     error_processor_test.main();
     package_map_provider_test.main();

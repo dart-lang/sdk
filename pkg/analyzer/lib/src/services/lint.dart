@@ -25,8 +25,7 @@ LintRegistry lintRegistry = new LintRegistry();
 /// Return lints associated with this [context], or an empty list if there are
 /// none.
 List<Linter> getLints(AnalysisContext context) =>
-    context.getConfigurationData(CONFIGURED_LINTS_KEY) as List<Linter> ??
-    _noLints;
+    context.getConfigurationData(CONFIGURED_LINTS_KEY) ?? _noLints;
 
 /// Associate these [lints] with the given [context].
 void setLints(AnalysisContext context, List<Linter> lints) {

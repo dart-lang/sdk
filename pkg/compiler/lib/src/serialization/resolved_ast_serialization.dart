@@ -10,18 +10,22 @@ import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
-import '../parser/parser.dart' show Parser;
+import '../elements/modelx.dart';
 import '../parser/listener.dart' show ParserError;
 import '../parser/node_listener.dart' show NodeListener;
+import '../parser/parser.dart' show Parser;
 import '../resolution/enum_creator.dart';
 import '../resolution/send_structure.dart';
 import '../resolution/tree_elements.dart';
-import '../tree/tree.dart';
 import '../tokens/token.dart';
+import '../tree/tree.dart';
 import '../universe/selector.dart';
+import '../util/util.dart';
 import 'keys.dart';
+import 'modelz.dart';
 import 'serialization.dart';
 import 'serialization_util.dart';
+import 'modelz.dart';
 
 /// Visitor that computes a node-index mapping.
 class AstIndexComputer extends Visitor {
@@ -54,13 +58,15 @@ enum AstKind {
 
 /// Serializer for [ResolvedAst]s.
 class ResolvedAstSerializer extends Visitor {
+  final SerializerPlugin nativeDataSerializer;
   final ObjectEncoder objectEncoder;
   final ResolvedAst resolvedAst;
   final AstIndexComputer indexComputer = new AstIndexComputer();
   final Map<int, ObjectEncoder> nodeData = <int, ObjectEncoder>{};
   ListEncoder _nodeDataEncoder;
 
-  ResolvedAstSerializer(this.objectEncoder, this.resolvedAst);
+  ResolvedAstSerializer(
+      this.objectEncoder, this.resolvedAst, this.nativeDataSerializer);
 
   AstElement get element => resolvedAst.element;
 
@@ -71,8 +77,37 @@ class ResolvedAstSerializer extends Visitor {
   Map<Node, int> get nodeIndices => indexComputer.nodeIndices;
   List<Node> get nodeList => indexComputer.nodeList;
 
+  Map<JumpTarget, int> jumpTargetMap = <JumpTarget, int>{};
+  Map<LabelDefinition, int> labelDefinitionMap = <LabelDefinition, int>{};
+
+  /// Returns the unique id for [jumpTarget], creating it if necessary.
+  int getJumpTargetId(JumpTarget jumpTarget) {
+    return jumpTargetMap.putIfAbsent(jumpTarget, () => jumpTargetMap.length);
+  }
+
+  /// Returns the unique id for [labelDefinition], creating it if necessary.
+  int getLabelDefinitionId(LabelDefinition labelDefinition) {
+    return labelDefinitionMap.putIfAbsent(
+        labelDefinition, () => labelDefinitionMap.length);
+  }
+
   /// Serializes [resolvedAst] into [objectEncoder].
   void serialize() {
+    objectEncoder.setEnum(Key.KIND, resolvedAst.kind);
+    switch (resolvedAst.kind) {
+      case ResolvedAstKind.PARSED:
+        serializeParsed();
+        break;
+      case ResolvedAstKind.DEFAULT_CONSTRUCTOR:
+      case ResolvedAstKind.FORWARDING_CONSTRUCTOR:
+        // No additional properties.
+        break;
+    }
+  }
+
+  /// Serialize [ResolvedAst] that is defined in terms of an AST together with
+  /// [TreeElements].
+  void serializeParsed() {
     objectEncoder.setUri(
         Key.URI,
         elements.analyzedElement.compilationUnit.script.resourceUri,
@@ -110,9 +145,68 @@ class ResolvedAstSerializer extends Visitor {
         }
       }
     }
-    objectEncoder.setEnum(Key.KIND, kind);
+    objectEncoder.setEnum(Key.SUB_KIND, kind);
     root.accept(indexComputer);
+    objectEncoder.setBool(Key.CONTAINS_TRY, elements.containsTryStatement);
+    if (resolvedAst.body != null) {
+      int index = nodeIndices[resolvedAst.body];
+      assert(invariant(element, index != null,
+          message: "No index for body of $element: "
+              "${resolvedAst.body} ($nodeIndices)."));
+      objectEncoder.setInt(Key.BODY, index);
+    }
     root.accept(this);
+    if (jumpTargetMap.isNotEmpty) {
+      ListEncoder list = objectEncoder.createList(Key.JUMP_TARGETS);
+      for (JumpTarget jumpTarget in jumpTargetMap.keys) {
+        serializeJumpTarget(jumpTarget, list.createObject());
+      }
+    }
+    if (labelDefinitionMap.isNotEmpty) {
+      ListEncoder list = objectEncoder.createList(Key.LABEL_DEFINITIONS);
+      for (LabelDefinition labelDefinition in labelDefinitionMap.keys) {
+        serializeLabelDefinition(labelDefinition, list.createObject());
+      }
+    }
+    if (element is FunctionElement) {
+      FunctionElement function = element;
+      function.functionSignature.forEachParameter((ParameterElement parameter) {
+        ParameterElement parameterImpl = parameter.implementation;
+        // TODO(johnniwinther): Should we support element->node mapping as well?
+        getNodeDataEncoder(parameterImpl.node)
+            .setElement(PARAMETER_NODE, parameter);
+        if (parameter.initializer != null) {
+          getNodeDataEncoder(parameterImpl.initializer)
+              .setElement(PARAMETER_INITIALIZER, parameter);
+        }
+      });
+    }
+  }
+
+  /// Serialize [target] into [encoder].
+  void serializeJumpTarget(JumpTarget jumpTarget, ObjectEncoder encoder) {
+    encoder.setElement(Key.EXECUTABLE_CONTEXT, jumpTarget.executableContext);
+    encoder.setInt(Key.NODE, nodeIndices[jumpTarget.statement]);
+    encoder.setInt(Key.NESTING_LEVEL, jumpTarget.nestingLevel);
+    encoder.setBool(Key.IS_BREAK_TARGET, jumpTarget.isBreakTarget);
+    encoder.setBool(Key.IS_CONTINUE_TARGET, jumpTarget.isContinueTarget);
+    if (jumpTarget.labels.isNotEmpty) {
+      List<int> labelIdList = <int>[];
+      for (LabelDefinition label in jumpTarget.labels) {
+        labelIdList.add(getLabelDefinitionId(label));
+      }
+      encoder.setInts(Key.LABELS, labelIdList);
+    }
+  }
+
+  /// Serialize [label] into [encoder].
+  void serializeLabelDefinition(
+      LabelDefinition labelDefinition, ObjectEncoder encoder) {
+    encoder.setInt(Key.NODE, nodeIndices[labelDefinition.label]);
+    encoder.setString(Key.NAME, labelDefinition.labelName);
+    encoder.setBool(Key.IS_BREAK_TARGET, labelDefinition.isBreakTarget);
+    encoder.setBool(Key.IS_CONTINUE_TARGET, labelDefinition.isContinueTarget);
+    encoder.setInt(Key.JUMP_TARGET, getJumpTargetId(labelDefinition.target));
   }
 
   /// Computes the [ListEncoder] for serializing data for nodes.
@@ -125,7 +219,9 @@ class ResolvedAstSerializer extends Visitor {
 
   /// Computes the [ObjectEncoder] for serializing data for [node].
   ObjectEncoder getNodeDataEncoder(Node node) {
+    assert(invariant(element, node != null, message: "Node must be non-null."));
     int id = nodeIndices[node];
+    assert(invariant(element, id != null, message: "Node without id: $node"));
     return nodeData.putIfAbsent(id, () {
       ObjectEncoder objectEncoder = nodeDataEncoder.createObject();
       objectEncoder.setInt(Key.ID, id);
@@ -137,13 +233,8 @@ class ResolvedAstSerializer extends Visitor {
   visitNode(Node node) {
     Element nodeElement = elements[node];
     if (nodeElement != null) {
-      if (nodeElement.enclosingClass != null &&
-          nodeElement.enclosingClass.isUnnamedMixinApplication) {
-        // TODO(johnniwinther): Handle references to members of unnamed mixin
-        // applications.
-      } else {
-        getNodeDataEncoder(node).setElement(Key.ELEMENT, nodeElement);
-      }
+      serializeElementReference(element, Key.ELEMENT, Key.NAME,
+          getNodeDataEncoder(node), nodeElement);
     }
     DartType type = elements.getType(node);
     if (type != null) {
@@ -162,7 +253,16 @@ class ResolvedAstSerializer extends Visitor {
     if (cachedType != null) {
       getNodeDataEncoder(node).setType(Key.CACHED_TYPE, cachedType);
     }
-    // TODO(johnniwinther): Serialize [JumpTarget]s.
+    JumpTarget jumpTargetDefinition = elements.getTargetDefinition(node);
+    if (jumpTargetDefinition != null) {
+      getNodeDataEncoder(node).setInt(
+          Key.JUMP_TARGET_DEFINITION, getJumpTargetId(jumpTargetDefinition));
+    }
+    var nativeData = elements.getNativeData(node);
+    if (nativeData != null) {
+      nativeDataSerializer.onData(
+          nativeData, getNodeDataEncoder(node).createObject(Key.NATIVE));
+    }
     node.visitChildren(this);
   }
 
@@ -189,13 +289,38 @@ class ResolvedAstSerializer extends Visitor {
   @override
   visitGotoStatement(GotoStatement node) {
     visitStatement(node);
-    // TODO(johnniwinther): Serialize [JumpTarget]s and [LabelDefinition]s.
+    JumpTarget jumpTarget = elements.getTargetOf(node);
+    if (jumpTarget != null) {
+      getNodeDataEncoder(node)
+          .setInt(Key.JUMP_TARGET, getJumpTargetId(jumpTarget));
+    }
+    if (node.target != null) {
+      LabelDefinition targetLabel = elements.getTargetLabel(node);
+      if (targetLabel != null) {
+        getNodeDataEncoder(node)
+            .setInt(Key.TARGET_LABEL, getLabelDefinitionId(targetLabel));
+      }
+    }
   }
 
   @override
   visitLabel(Label node) {
     visitNode(node);
-    // TODO(johnniwinther): Serialize[LabelDefinition]s.
+    LabelDefinition labelDefinition = elements.getLabelDefinition(node);
+    if (labelDefinition != null) {
+      getNodeDataEncoder(node)
+          .setInt(Key.LABEL_DEFINITION, getLabelDefinitionId(labelDefinition));
+    }
+  }
+
+  @override
+  visitFunctionExpression(FunctionExpression node) {
+    visitExpression(node);
+    Element function = elements.getFunctionDefinition(node);
+    if (function != null && function.isFunction && function.isLocal) {
+      // Mark root nodes of local functions; these need their own ResolvedAst.
+      getNodeDataEncoder(node).setElement(Key.FUNCTION, function);
+    }
   }
 }
 
@@ -211,20 +336,51 @@ class ResolvedAstDeserializer {
     return null;
   }
 
-  /// Deserializes the [ResolvedAst] for [element] from [objectDecoder].
+  /// Deserializes the [ResolvedAst]s for [element] and its nested local
+  /// functions from [objectDecoder] and adds these to [resolvedAstMap].
   /// [parsing] and [getBeginToken] are used for parsing the [Node] for
   /// [element] from its source code.
-  static ResolvedAst deserialize(Element element, ObjectDecoder objectDecoder,
-      Parsing parsing, Token getBeginToken(Uri uri, int charOffset)) {
+  static void deserialize(
+      Element element,
+      ObjectDecoder objectDecoder,
+      ParsingContext parsing,
+      Token getBeginToken(Uri uri, int charOffset),
+      DeserializerPlugin nativeDataDeserializer) {
+    ResolvedAstKind kind =
+        objectDecoder.getEnum(Key.KIND, ResolvedAstKind.values);
+    switch (kind) {
+      case ResolvedAstKind.PARSED:
+        deserializeParsed(element, objectDecoder, parsing, getBeginToken,
+            nativeDataDeserializer);
+        break;
+      case ResolvedAstKind.DEFAULT_CONSTRUCTOR:
+      case ResolvedAstKind.FORWARDING_CONSTRUCTOR:
+        (element as AstElementMixinZ).resolvedAst =
+            new SynthesizedResolvedAst(element, kind);
+        break;
+    }
+  }
+
+  /// Deserialize the [ResolvedAst]s for the member [element] (constructor,
+  /// method, or field) and its nested closures. The [ResolvedAst]s are added
+  /// to [resolvedAstMap].
+  static void deserializeParsed(
+      AstElementMixinZ element,
+      ObjectDecoder objectDecoder,
+      ParsingContext parsing,
+      Token getBeginToken(Uri uri, int charOffset),
+      DeserializerPlugin nativeDataDeserializer) {
     CompilationUnitElement compilationUnit = element.compilationUnit;
     DiagnosticReporter reporter = parsing.reporter;
+    Uri uri = objectDecoder.getUri(Key.URI);
 
     /// Returns the first [Token] for parsing the [Node] for [element].
     Token readBeginToken() {
-      Uri uri = objectDecoder.getUri(Key.URI);
       int charOffset = objectDecoder.getInt(Key.OFFSET);
       Token beginToken = getBeginToken(uri, charOffset);
       if (beginToken == null) {
+        // TODO(johnniwinther): Handle unfound tokens by adding an erronous
+        // resolved ast kind.
         reporter.internalError(
             element, "No token found for $element in $uri @ $charOffset");
       }
@@ -308,6 +464,7 @@ class ResolvedAstDeserializer {
           FunctionExpression toStringNode = builder.functionExpression(
               Modifiers.EMPTY,
               'toString',
+              null,
               builder.argumentList([]),
               builder.returnStatement(builder.indexGet(
                   builder.mapLiteral(mapEntries, isConst: true),
@@ -320,11 +477,12 @@ class ResolvedAstDeserializer {
           FunctionExpression constructorNode = builder.functionExpression(
               builder.modifiers(isConst: true),
               element.enclosingClass.name,
+              null,
               builder.argumentList([indexDefinition]),
               builder.emptyStatement());
           return constructorNode;
         case AstKind.ENUM_CONSTANT:
-          EnumConstantElement enumConstant = element;
+          EnumConstantElementZ enumConstant = element;
           EnumClassElement enumClass = element.enclosingClass;
           int index = enumConstant.index;
           AstBuilder builder = new AstBuilder(element.sourcePosition.begin);
@@ -366,21 +524,82 @@ class ResolvedAstDeserializer {
       }
     }
 
-    AstKind kind = objectDecoder.getEnum(Key.KIND, AstKind.values);
+    AstKind kind = objectDecoder.getEnum(Key.SUB_KIND, AstKind.values);
     Node root = computeNode(kind);
     TreeElementMapping elements = new TreeElementMapping(element);
     AstIndexComputer indexComputer = new AstIndexComputer();
     Map<Node, int> nodeIndices = indexComputer.nodeIndices;
     List<Node> nodeList = indexComputer.nodeList;
     root.accept(indexComputer);
-    ListDecoder dataDecoder = objectDecoder.getList(Key.DATA);
+    elements.containsTryStatement = objectDecoder.getBool(Key.CONTAINS_TRY);
+
+    Node body;
+    int bodyNodeIndex = objectDecoder.getInt(Key.BODY, isOptional: true);
+    if (bodyNodeIndex != null) {
+      assert(invariant(element, bodyNodeIndex < nodeList.length,
+          message: "Body node index ${bodyNodeIndex} out of range. "
+              "Node count: ${nodeList.length}"));
+      body = nodeList[bodyNodeIndex];
+    }
+
+    List<JumpTarget> jumpTargets = <JumpTarget>[];
+    Map<JumpTarget, List<int>> jumpTargetLabels = <JumpTarget, List<int>>{};
+    List<LabelDefinition> labelDefinitions = <LabelDefinition>[];
+
+    ListDecoder jumpTargetsDecoder =
+        objectDecoder.getList(Key.JUMP_TARGETS, isOptional: true);
+    if (jumpTargetsDecoder != null) {
+      for (int i = 0; i < jumpTargetsDecoder.length; i++) {
+        ObjectDecoder decoder = jumpTargetsDecoder.getObject(i);
+        ExecutableElement executableContext =
+            decoder.getElement(Key.EXECUTABLE_CONTEXT);
+        Node statement = nodeList[decoder.getInt(Key.NODE)];
+        int nestingLevel = decoder.getInt(Key.NESTING_LEVEL);
+        JumpTarget jumpTarget =
+            new JumpTargetX(statement, nestingLevel, executableContext);
+        jumpTarget.isBreakTarget = decoder.getBool(Key.IS_BREAK_TARGET);
+        jumpTarget.isContinueTarget = decoder.getBool(Key.IS_CONTINUE_TARGET);
+        jumpTargetLabels[jumpTarget] =
+            decoder.getInts(Key.LABELS, isOptional: true);
+        jumpTargets.add(jumpTarget);
+      }
+    }
+
+    ListDecoder labelDefinitionsDecoder =
+        objectDecoder.getList(Key.LABEL_DEFINITIONS, isOptional: true);
+    if (labelDefinitionsDecoder != null) {
+      for (int i = 0; i < labelDefinitionsDecoder.length; i++) {
+        ObjectDecoder decoder = labelDefinitionsDecoder.getObject(i);
+        Label label = nodeList[decoder.getInt(Key.NODE)];
+        String labelName = decoder.getString(Key.NAME);
+        JumpTarget target = jumpTargets[decoder.getInt(Key.JUMP_TARGET)];
+        LabelDefinitionX labelDefinition =
+            new LabelDefinitionX(label, labelName, target);
+        labelDefinition.isBreakTarget = decoder.getBool(Key.IS_BREAK_TARGET);
+        labelDefinition.isContinueTarget =
+            decoder.getBool(Key.IS_CONTINUE_TARGET);
+        labelDefinitions.add(labelDefinition);
+      }
+    }
+    jumpTargetLabels.forEach((JumpTargetX jumpTarget, List<int> labelIds) {
+      if (labelIds.isEmpty) return;
+      LinkBuilder<LabelDefinition> linkBuilder =
+          new LinkBuilder<LabelDefinition>();
+      for (int labelId in labelIds) {
+        linkBuilder.addLast(labelDefinitions[labelId]);
+      }
+      jumpTarget.labels = linkBuilder.toLink();
+    });
+
+    ListDecoder dataDecoder = objectDecoder.getList(Key.DATA, isOptional: true);
     if (dataDecoder != null) {
       for (int i = 0; i < dataDecoder.length; i++) {
         ObjectDecoder objectDecoder = dataDecoder.getObject(i);
         int id = objectDecoder.getInt(Key.ID);
         Node node = nodeList[id];
-        Element nodeElement =
-            objectDecoder.getElement(Key.ELEMENT, isOptional: true);
+        Element nodeElement = deserializeElementReference(
+            element, Key.ELEMENT, Key.NAME, objectDecoder,
+            isOptional: true);
         if (nodeElement != null) {
           elements[node] = nodeElement;
         }
@@ -415,8 +634,59 @@ class ResolvedAstDeserializer {
           elements.setNewStructure(
               node, deserializeNewStructure(newStructureDecoder));
         }
+        int targetDefinitionId =
+            objectDecoder.getInt(Key.JUMP_TARGET_DEFINITION, isOptional: true);
+        if (targetDefinitionId != null) {
+          elements.defineTarget(node, jumpTargets[targetDefinitionId]);
+        }
+        int targetOfId =
+            objectDecoder.getInt(Key.JUMP_TARGET, isOptional: true);
+        if (targetOfId != null) {
+          elements.registerTargetOf(node, jumpTargets[targetOfId]);
+        }
+        int labelDefinitionId =
+            objectDecoder.getInt(Key.LABEL_DEFINITION, isOptional: true);
+        if (labelDefinitionId != null) {
+          elements.defineLabel(node, labelDefinitions[labelDefinitionId]);
+        }
+        int targetLabelId =
+            objectDecoder.getInt(Key.TARGET_LABEL, isOptional: true);
+        if (targetLabelId != null) {
+          elements.registerTargetLabel(node, labelDefinitions[targetLabelId]);
+        }
+        ObjectDecoder nativeDataDecoder =
+            objectDecoder.getObject(Key.NATIVE, isOptional: true);
+        if (nativeDataDecoder != null) {
+          var nativeData = nativeDataDeserializer.onData(nativeDataDecoder);
+          if (nativeData != null) {
+            elements.registerNativeData(node, nativeData);
+          }
+        }
+        LocalFunctionElementZ function =
+            objectDecoder.getElement(Key.FUNCTION, isOptional: true);
+        if (function != null) {
+          FunctionExpression functionExpression = node;
+          function.resolvedAst = new ParsedResolvedAst(function,
+              functionExpression, functionExpression.body, elements, uri);
+        }
+        // TODO(johnniwinther): Remove these when inference doesn't need `.node`
+        // and `.initializer` of [ParameterElement]s.
+        ParameterElementZ parameter =
+            objectDecoder.getElement(PARAMETER_NODE, isOptional: true);
+        if (parameter != null) {
+          parameter.node = node;
+        }
+        parameter =
+            objectDecoder.getElement(PARAMETER_INITIALIZER, isOptional: true);
+        if (parameter != null) {
+          parameter.initializer = node;
+        }
       }
     }
-    return new ResolvedAst(element, root, elements);
+    element.resolvedAst =
+        new ParsedResolvedAst(element, root, body, elements, uri);
   }
 }
+
+const Key PARAMETER_NODE = const Key('parameter.node');
+const Key PARAMETER_INITIALIZER = const Key('parameter.initializer');

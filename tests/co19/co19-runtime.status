@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
 
 # Failures ok in tests below. VM moves super initializer to end of list.
 Language/Classes/Constructors/Generative_Constructors/execution_t03: Fail, OK
@@ -43,7 +43,7 @@ LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError # Dart issue 15617
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Issue 13596
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
 LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # co19 issue 599
 LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # co19 issue 599
 Language/Expressions/Instance_Creation/Const/abstract_class_t01: MissingCompileTimeError # Issue 22007
@@ -53,10 +53,10 @@ Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Fail
 Language/Libraries_and_Scripts/Exports/invalid_uri_t02: Fail
 Language/Libraries_and_Scripts/Parts/syntax_t06: Fail
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $mode == debug ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $mode == debug ]
 LibTest/core/List/List_class_A01_t02: Pass, Slow
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && ($arch != x64 && $arch != simarm64 && $arch != arm64) ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && ($arch != x64 && $arch != simarm64 && $arch != arm64) ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 
 [ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && ($arch == mips || $arch == arm64) ]
@@ -66,7 +66,7 @@ LibTest/core/List/List_class_A01_t02: Skip # co19 issue 673
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip # co19 issue 673
 LibTest/collection/ListBase/ListBase_class_A01_t02: Skip # co19 issue 673
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && ($arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simmips || $arch == simarm64) ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && ($arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simmips || $arch == simarm64) ]
 LibTest/core/Uri/Uri_A06_t03: Skip  # Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip  # Timeout
 LibTest/collection/ListBase/ListBase_class_A01_t01: Skip  # Timeout
@@ -77,19 +77,19 @@ LibTest/collection/ListBase/ListBase_class_A01_t02: Skip  # Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Slow
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
 LibTest/isolate/Isolate/spawn_A02_t01: Skip # co19 issue 667
 LibTest/html/*: SkipByDesign # dart:html not supported on VM.
 LayoutTests/fast/*: SkipByDesign # DOM not supported on VM.
 WebPlatformTest/*: SkipByDesign # dart:html not supported on VM.
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $mode == debug && $builder_tag == asan ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $mode == debug && $builder_tag == asan ]
 Language/Types/Interface_Types/subtype_t27: Skip  # Issue 21174.
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $arch == arm ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $arch == arm ]
 LibTest/typed_data/Float32x4/operator_multiplication_A01_t01: Fail # Dart issue 24416
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
 # co19 update Sep 29, 2015 (3ed795ea02e022ef19c77cf1b6095b7c8f5584d0)
 Language/Classes/Getters/type_object_t01: RuntimeError # Issue 23721
 Language/Classes/Getters/type_object_t02: RuntimeError # Issue 23721
@@ -127,7 +127,7 @@ Language/Mixins/declaring_constructor_t01: MissingCompileTimeError # co19 issue 
 Language/Mixins/not_object_superclass_t01: MissingCompileTimeError # co19 issue 43 and 44
 Language/Mixins/reference_to_super_t01: MissingCompileTimeError # co19 issue 43 and 44
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $checked ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $checked ]
 Language/Errors_and_Warnings/static_warning_t01: RuntimeError # co19 issue 45
 Language/Errors_and_Warnings/static_warning_t02: RuntimeError # co19 issue 45
 Language/Errors_and_Warnings/static_warning_t03: RuntimeError # co19 issue 45
@@ -138,7 +138,7 @@ Language/Errors_and_Warnings/static_warning_t06: RuntimeError # co19 issue 45
 [ $noopt || $compiler == precompiler || $mode == product ]
 Language/Metadata/*: SkipByDesign # Uses dart:mirrors
 
-[ $runtime == dart_precompiled || $runtime == dart_product ]
+[ $runtime == dart_precompiled || $runtime == dart_app ]
 LibTest/isolate/Isolate/spawnUri*: Skip # Isolate.spawnUri
 
 [ $noopt || $compiler == precompiler ]
@@ -146,20 +146,20 @@ LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Timeout
 LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
 LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
+
+[ $noopt || $compiler == precompiler || $compiler == dart2appjit ]
 Language/Mixins/Mixin_Application/error_t01: Pass
 Language/Mixins/Mixin_Application/error_t02: Pass
 Language/Mixins/declaring_constructor_t01: Pass
 
-[ $runtime == vm && $mode == product ]
-LibTest/typed_data/Float32List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
-LibTest/typed_data/Float32x4List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
-LibTest/typed_data/Float64List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
-LibTest/typed_data/Int16List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
-LibTest/typed_data/Int32List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
-LibTest/typed_data/Int64List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
-LibTest/typed_data/Int8List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
-LibTest/typed_data/Uint16List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
-LibTest/typed_data/Uint32List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
-LibTest/typed_data/Uint64List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
-LibTest/typed_data/Uint8ClampedList/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
-LibTest/typed_data/Uint8List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
+[ ($arch == simdbc || $arch == simdbc64) && $mode == debug ]
+# TODO(vegorov) These tests are very slow on unoptimized SIMDBC
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Timeout
+LibTest/collection/ListBase/ListBase_class_A01_t02: Timeout
+
+[ $compiler == precompiler && $runtime == dart_precompiled && $system == android ]
+LibTest/isolate/*: Skip # Issue #26373
+Language/Expressions/Spawning_an_Isolate/new_isolate_t01: Skip # Issue #26373
+
+LibTest/math/log_A01_t01: RuntimeError # Precision of Math.log (Issue #18998)
+Language/Expressions/Object_Identity/double_t02: RuntimeError # Issue #26374

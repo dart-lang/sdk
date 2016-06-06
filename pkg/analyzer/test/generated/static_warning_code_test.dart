@@ -4,6 +4,7 @@
 
 library analyzer.test.generated.static_warning_code_test;
 
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:unittest/unittest.dart';
@@ -19,6 +20,21 @@ main() {
 
 @reflectiveTest
 class StaticWarningCodeTest extends ResolverTestCase {
+  void fail_argumentTypeNotAssignable_tearOff_required() {
+    Source source = addSource(r'''
+class C {
+  Object/*=T*/ f/*<T>*/(Object/*=T*/ x) => x;
+}
+g(C c) {
+  var h = c.f/*<int>*/;
+  print(h('s'));
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
   void fail_undefinedGetter() {
     Source source = addSource(r'''
 ''');
@@ -2841,6 +2857,23 @@ class I {
 }
 class C implements I {
 }''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source,
+        [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO]);
+    verify([source]);
+  }
+
+  void
+      test_nonAbstractClassInheritsAbstractMemberTwo_variable_fromMixin_missingBoth() {
+    // 26411
+    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    Source source = addSource(r'''
+class A {
+  int f;
+}
+class B extends A {}
+class C extends Object with B {}
+''');
     computeLibrarySourceErrors(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO]);

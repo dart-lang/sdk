@@ -32,7 +32,6 @@ main() {
         expect(options.displayVersion, isFalse);
         expect(options.enableStrictCallChecks, isFalse);
         expect(options.enableSuperMixins, isFalse);
-        expect(options.enableConditionalDirectives, isFalse);
         expect(options.enableTypeChecks, isFalse);
         expect(options.hintsAreFatal, isFalse);
         expect(options.ignoreUnrecognizedFlags, isFalse);
@@ -256,6 +255,12 @@ class CommandLineOptionsTest extends AbstractStatusTest {
   test_buildMode() {
     _parse(['--build-mode', 'package:p/foo.dart|/path/to/p/lib/foo.dart']);
     expect(options.buildMode, isTrue);
+  }
+
+  test_buildMode_allowsEmptyFileList() {
+    _parse(['--build-mode']);
+    expect(options.buildMode, isTrue);
+    expect(options.sourceFiles, isEmpty);
   }
 
   test_buildSummaryFallback() {

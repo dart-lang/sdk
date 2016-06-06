@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/dart2js.dart' as entry;
 import 'package:compiler/src/apiimpl.dart';
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_new.dart';
 
 import 'source_map_validator_helper.dart';
 

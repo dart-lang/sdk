@@ -13,18 +13,17 @@ import '../elements/modelx.dart'
         ErroneousFieldElementX,
         ErroneousInitializingFormalElementX,
         FormalElementX,
-        FunctionElementX,
         FunctionSignatureX,
         InitializingFormalElementX,
-        LocalParameterElementX;
+        LocalParameterElementX,
+        TypeVariableElementX;
 import '../tree/tree.dart';
 import '../universe/use.dart' show TypeUse;
 import '../util/util.dart' show Link, LinkBuilder;
-
 import 'members.dart' show ResolverVisitor;
 import 'registry.dart' show ResolutionRegistry;
 import 'resolution_common.dart' show MappingVisitor;
-import 'scope.dart' show Scope;
+import 'scope.dart' show Scope, TypeVariablesScope;
 
 /**
  * [SignatureResolver] resolves function signatures.
@@ -42,12 +41,13 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
   VariableDefinitions currentDefinitions;
 
   SignatureResolver(Compiler compiler, FunctionTypedElement enclosingElement,
-      ResolutionRegistry registry,
+      Scope scope, ResolutionRegistry registry,
       {this.defaultValuesError, this.createRealParameters})
-      : this.enclosingElement = enclosingElement,
-        this.scope = enclosingElement.buildScope(),
-        this.resolver =
-            new ResolverVisitor(compiler, enclosingElement, registry),
+      : this.scope = scope,
+        this.enclosingElement = enclosingElement,
+        this.resolver = new ResolverVisitor(
+            compiler, enclosingElement, registry,
+            scope: scope),
         super(compiler, registry);
 
   bool get defaultValuesAllowed => defaultValuesError == null;
@@ -112,6 +112,8 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
     void computeFunctionType(FunctionExpression functionExpression) {
       FunctionSignature functionSignature = SignatureResolver.analyze(
           compiler,
+          scope,
+          functionExpression.typeVariables,
           functionExpression.parameters,
           functionExpression.returnType,
           element,
@@ -289,6 +291,8 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
    */
   static FunctionSignature analyze(
       Compiler compiler,
+      Scope scope,
+      NodeList typeVariables,
       NodeList formalParameters,
       Node returnNode,
       FunctionTypedElement element,
@@ -298,8 +302,34 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
       bool isFunctionExpression: false}) {
     DiagnosticReporter reporter = compiler.reporter;
 
+    List<DartType> createTypeVariables(NodeList typeVariableNodes) {
+      if (typeVariableNodes == null) return const <DartType>[];
+
+      // Create the types and elements corresponding to [typeVariableNodes].
+      Link<Node> nodes = typeVariableNodes.nodes;
+      List<DartType> arguments =
+          new List.generate(nodes.slowLength(), (int index) {
+        TypeVariable node = nodes.head;
+        String variableName = node.name.source;
+        nodes = nodes.tail;
+        TypeVariableElementX variableElement =
+            new TypeVariableElementX(variableName, element, index, node);
+        // GENERIC_METHODS: When method type variables are implemented fully we
+        // must resolve the actual bounds; currently we just claim that
+        // every method type variable has upper bound [dynamic].
+        variableElement.boundCache = const DynamicType();
+        TypeVariableType variableType =
+            new MethodTypeVariableType(variableElement);
+        variableElement.typeCache = variableType;
+        return variableType;
+      }, growable: false);
+      return arguments;
+    }
+
+    List<DartType> typeVariableTypes = createTypeVariables(typeVariables);
+    scope = new FunctionSignatureBuildingScope(scope, typeVariableTypes);
     SignatureResolver visitor = new SignatureResolver(
-        compiler, element, registry,
+        compiler, element, scope, registry,
         defaultValuesError: defaultValuesError,
         createRealParameters: createRealParameters);
     List<Element> parameters = const <Element>[];
@@ -413,6 +443,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
         namedParameters,
         namedParameterTypes);
     return new FunctionSignatureX(
+        typeVariables: typeVariableTypes,
         requiredParameters: parameters,
         optionalParameters: visitor.optionalParameters,
         requiredParameterCount: requiredParameterCount,
@@ -438,4 +469,16 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
     }
     return result;
   }
+}
+
+/// Used during `SignatureResolver.analyze` to provide access to the type
+/// variables of the function signature itself when its signature is analyzed.
+class FunctionSignatureBuildingScope extends TypeVariablesScope {
+  @override
+  final List<DartType> typeVariables;
+
+  FunctionSignatureBuildingScope(Scope parent, this.typeVariables)
+      : super(parent);
+
+  String toString() => 'FunctionSignatureBuildingScope($typeVariables)';
 }

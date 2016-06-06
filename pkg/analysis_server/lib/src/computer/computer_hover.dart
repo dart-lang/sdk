@@ -127,5 +127,5 @@ class DartUnitHoverComputer {
     return null;
   }
 
-  static _safeToString(obj) => obj != null ? obj.toString() : null;
+  static _safeToString(obj) => obj?.toString();
 }

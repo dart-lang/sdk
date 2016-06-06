@@ -25,9 +25,8 @@ $!MEMBERS
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  ElementList<Element> querySelectorAll(String selectors) {
-    return new _FrozenElementList._wrap(_querySelectorAll(selectors));
-  }
+  ElementList<Element /*=T*/> querySelectorAll/*<T extends Element>*/(String selectors) =>
+    new _FrozenElementList/*<T>*/._wrap(_querySelectorAll(selectors));
 
   /**
    * Alias for [querySelector]. Note this function is deprecated because its
@@ -45,7 +44,7 @@ $!MEMBERS
   @deprecated
   @Experimental()
   @DomName('Document.querySelectorAll')
-  ElementList<Element> queryAll(String relativeSelectors) =>
+  ElementList<Element /*=T*/> queryAll/*<T extends Element>*/(String relativeSelectors) =>
       querySelectorAll(relativeSelectors);
 
   /// Checks if [registerElement] is supported on the current platform.
@@ -114,5 +113,18 @@ $if DART2JS
       [int whatToShow, NodeFilter filter])
       => JS('TreeWalker', '#.createTreeWalker(#, #, #, false)',
           this, root, whatToShow, filter);
+$endif
+
+  @DomName('Document.visibilityState')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @Experimental()
+$if DART2JS
+  String get visibilityState => JS('String',
+    '(#.visibilityState || #.mozVisibilityState || #.msVisibilityState ||'
+      '#.webkitVisibilityState)', this, this, this, this);
+$else
+  String get visibilityState => _visibilityState;
 $endif
 }

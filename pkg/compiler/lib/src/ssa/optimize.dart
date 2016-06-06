@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
+import '../common/codegen.dart' show CodegenWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
@@ -20,13 +20,12 @@ import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
 import '../world.dart' show ClassWorld, World;
-
+import 'interceptor_simplifier.dart';
 import 'nodes.dart';
-import 'types_propagation.dart';
 import 'types.dart';
+import 'types_propagation.dart';
 import 'value_range_analyzer.dart';
 import 'value_set.dart';
-import 'interceptor_simplifier.dart';
 
 abstract class OptimizationPhase {
   String get name;
@@ -37,7 +36,7 @@ class SsaOptimizerTask extends CompilerTask {
   final JavaScriptBackend backend;
   SsaOptimizerTask(JavaScriptBackend backend)
       : this.backend = backend,
-        super(backend.compiler);
+        super(backend.compiler.measurer);
   String get name => 'SSA optimizer';
   Compiler get compiler => backend.compiler;
   Map<HInstruction, Range> ranges = <HInstruction, Range>{};
@@ -248,14 +247,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitParameterValue(HParameterValue node) {
-    // It is possible for the parameter value to be assigned to in the function
-    // body. If that happens then we should not forward the constant value to
-    // its uses since since the uses reachable from the assignment may have
-    // values in addition to the constant passed to the function.
-    if (node.usedBy
-        .any((user) => user is HLocalSet && identical(user.local, node))) {
-      return node;
-    }
+    // If the parameter is used as a mutable variable we cannot replace the
+    // variable with a value.
+    if (node.usedAsVariable()) return node;
     propagateConstantValueToUses(node);
     return node;
   }
@@ -785,6 +779,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     TypeMask inputType = input.instructionType;
     return inputType.isInMask(checkedType, classWorld) ? input : node;
   }
+
+  HInstruction removeCheck(HCheck node) => node.checkedInput;
 
   VariableElement findConcreteFieldForDynamicAccess(
       HInstruction receiver, Selector selector) {

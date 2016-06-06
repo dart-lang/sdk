@@ -68,8 +68,11 @@ class CommandLineOptions {
   /// Whether to suppress a nonzero exit code in build mode.
   final bool buildSuppressExitCode;
 
-  /// The path to the dart SDK
+  /// The path to the dart SDK.
   String dartSdkPath;
+
+  /// The path to the dart SDK summary file.
+  String dartSdkSummaryPath;
 
   /// A table mapping the names of defined variables to their values.
   final Map<String, String> definedVariables;
@@ -79,9 +82,6 @@ class CommandLineOptions {
 
   /// Whether to display version information
   final bool displayVersion;
-
-  /// Whether to enable conditional directives (DEP 40).
-  final bool enableConditionalDirectives;
 
   /// Whether to enable null-aware operators (DEP 9).
   final bool enableNullAwareOperators;
@@ -162,11 +162,11 @@ class CommandLineOptions {
         buildSummaryOutput = args['build-summary-output'],
         buildSuppressExitCode = args['build-suppress-exit-code'],
         dartSdkPath = args['dart-sdk'],
+        dartSdkSummaryPath = args['dart-sdk-summary'],
         definedVariables = definedVariables,
         analysisOptionsFile = args['options'],
         disableHints = args['no-hints'],
         displayVersion = args['version'],
-        enableConditionalDirectives = args['enable-conditional-directives'],
         enableNullAwareOperators = args['enable-null-aware-operators'],
         enableStrictCallChecks = args['enable-strict-call-checks'],
         enableSuperMixins = args['supermixin'],
@@ -197,7 +197,7 @@ class CommandLineOptions {
       [printAndFail(String msg) = printAndFail]) {
     CommandLineOptions options = _parse(args);
     // Check SDK.
-    {
+    if (!options.buildModePersistentWorker) {
       // Infer if unspecified.
       if (options.dartSdkPath == null) {
         Directory sdkDir = getSdkDir(args);
@@ -277,6 +277,8 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false)
       ..addOption('dart-sdk', help: 'The path to the Dart SDK.')
+      ..addOption('dart-sdk-summary',
+          help: 'The path to the Dart SDK summary file.', hide: true)
       ..addOption('packages',
           help:
               'Path to the package resolution configuration file, which supplies '
@@ -419,7 +421,8 @@ class CommandLineOptions {
           negatable: false,
           hide: true)
       ..addFlag('enable-conditional-directives',
-          help: 'Enable support for conditional directives (DEP 40).',
+          help:
+              'deprecated -- Enable support for conditional directives (DEP 40).',
           defaultsTo: false,
           negatable: false,
           hide: true)
@@ -434,7 +437,7 @@ class CommandLineOptions {
           negatable: false,
           hide: true)
       ..addFlag('enable-new-task-model',
-          help: 'Ennable new task model.',
+          help: 'deprecated -- Ennable new task model.',
           defaultsTo: false,
           negatable: false,
           hide: true)
@@ -511,7 +514,7 @@ class CommandLineOptions {
         exitHandler(0);
         return null; // Only reachable in testing.
       } else {
-        if (results.rest.isEmpty) {
+        if (results.rest.isEmpty && !results['build-mode']) {
           _showUsage(parser);
           exitHandler(15);
           return null; // Only reachable in testing.

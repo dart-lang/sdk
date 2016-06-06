@@ -8,13 +8,7 @@ import 'dart:collection';
 
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show
-        AnalysisEngine,
-        AnalysisErrorInfo,
-        AnalysisErrorInfoImpl,
-        AnalysisOptions,
-        CacheState,
-        InternalAnalysisContext;
+    show AnalysisEngine, AnalysisErrorInfo, CacheState, InternalAnalysisContext;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -47,6 +41,7 @@ class DartWorkManager implements WorkManager {
     LINTS,
     LIBRARY_UNIT_ERRORS,
     RESOLVE_TYPE_NAMES_ERRORS,
+    RESOLVE_TYPE_BOUNDS_ERRORS,
     RESOLVE_UNIT_ERRORS,
     STRONG_MODE_ERRORS,
     VARIABLE_REFERENCE_ERRORS,
@@ -87,7 +82,7 @@ class DartWorkManager implements WorkManager {
    * Initialize a newly created manager.
    */
   DartWorkManager(this.context) {
-    analysisCache.onResultInvalidated.listen((InvalidatedResult event) {
+    context.onResultInvalidated.listen((InvalidatedResult event) {
       if (event.descriptor == LIBRARY_ERRORS_READY) {
         CacheEntry entry = event.entry;
         if (entry.explicitlyAdded &&

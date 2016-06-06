@@ -85,23 +85,21 @@ template<typename KeyTraits, intptr_t kPayloadSize, intptr_t kMetaDataSize>
 class HashTable : public ValueObject {
  public:
   typedef KeyTraits Traits;
+  // Uses the passed in handles for all handle operations.
+  // 'Release' must be called at the end to obtain the final table
+  // after potential growth/shrinkage.
+  HashTable(Object* key, Smi* index, Array* data)
+      : key_handle_(key),
+        smi_handle_(index),
+        data_(data),
+        released_data_(NULL) {}
   // Uses 'zone' for handle allocation. 'Release' must be called at the end
   // to obtain the final table after potential growth/shrinkage.
   HashTable(Zone* zone, RawArray* data)
-      : zone_(zone),
-        key_handle_(Object::Handle(zone_)),
-        smi_handle_(Smi::Handle(zone_)),
-        data_(&Array::Handle(zone_, data)),
+      : key_handle_(&Object::Handle(zone)),
+        smi_handle_(&Smi::Handle(zone)),
+        data_(&Array::Handle(zone, data)),
         released_data_(NULL) {}
-  // Like above, except uses current zone.
-  explicit HashTable(RawArray* data)
-      : zone_(Thread::Current()->zone()),
-        key_handle_(Object::Handle(zone_)),
-        smi_handle_(Smi::Handle(zone_)),
-        data_(&Array::Handle(zone_, data)),
-        released_data_(NULL) {
-    ASSERT(!data_->IsNull());
-  }
 
   // Returns the final table. The handle is cleared when this HashTable is
   // destroyed.
@@ -134,9 +132,17 @@ class HashTable : public ValueObject {
   // Initializes an empty table.
   void Initialize() const {
     ASSERT(data_->Length() >= ArrayLengthForNumOccupied(0));
-    smi_handle_ = Smi::New(0);
-    data_->SetAt(kOccupiedEntriesIndex, smi_handle_);
-    data_->SetAt(kDeletedEntriesIndex, smi_handle_);
+    *smi_handle_ = Smi::New(0);
+    data_->SetAt(kOccupiedEntriesIndex, *smi_handle_);
+    data_->SetAt(kDeletedEntriesIndex, *smi_handle_);
+
+NOT_IN_PRODUCT(
+    data_->SetAt(kNumGrowsIndex, *smi_handle_);
+    data_->SetAt(kNumLT5LookupsIndex, *smi_handle_);
+    data_->SetAt(kNumLT25LookupsIndex, *smi_handle_);
+    data_->SetAt(kNumGT25LookupsIndex, *smi_handle_);
+)  // !PRODUCT
+
     for (intptr_t i = kHeaderSize; i < data_->Length(); ++i) {
       data_->SetAt(i, Object::sentinel());
     }
@@ -154,17 +160,21 @@ class HashTable : public ValueObject {
     const intptr_t num_entries = NumEntries();
     ASSERT(NumOccupied() < num_entries);
     // TODO(koda): Add salt.
+    NOT_IN_PRODUCT(intptr_t collisions = 0;)
     uword hash = KeyTraits::Hash(key);
     intptr_t probe = hash % num_entries;
     // TODO(koda): Consider quadratic probing.
     while (true) {
       if (IsUnused(probe)) {
+        NOT_IN_PRODUCT(UpdateCollisions(collisions);)
         return -1;
       } else if (!IsDeleted(probe)) {
-        key_handle_ = GetKey(probe);
-        if (KeyTraits::IsMatch(key, key_handle_)) {
+        *key_handle_ = GetKey(probe);
+        if (KeyTraits::IsMatch(key, *key_handle_)) {
+          NOT_IN_PRODUCT(UpdateCollisions(collisions);)
           return probe;
         }
+        NOT_IN_PRODUCT(collisions += 1;)
       }
       // Advance probe.
       probe++;
@@ -183,6 +193,7 @@ class HashTable : public ValueObject {
     const intptr_t num_entries = NumEntries();
     ASSERT(entry != NULL);
     ASSERT(NumOccupied() < num_entries);
+    NOT_IN_PRODUCT(intptr_t collisions = 0;)
     uword hash = KeyTraits::Hash(key);
     intptr_t probe = hash % num_entries;
     intptr_t deleted = -1;
@@ -190,17 +201,20 @@ class HashTable : public ValueObject {
     while (true) {
       if (IsUnused(probe)) {
         *entry = (deleted != -1) ? deleted : probe;
+        NOT_IN_PRODUCT(UpdateCollisions(collisions);)
         return false;
       } else if (IsDeleted(probe)) {
         if (deleted == -1) {
           deleted = probe;
         }
       } else {
-        key_handle_ = GetKey(probe);
-        if (KeyTraits::IsMatch(key, key_handle_)) {
+        *key_handle_ = GetKey(probe);
+        if (KeyTraits::IsMatch(key, *key_handle_)) {
           *entry = probe;
+          NOT_IN_PRODUCT(UpdateCollisions(collisions);)
           return true;
         }
+        NOT_IN_PRODUCT(collisions += 1;)
       }
       // Advance probe.
       probe++;
@@ -273,16 +287,69 @@ class HashTable : public ValueObject {
     return GetSmiValueAt(kDeletedEntriesIndex);
   }
   Object& KeyHandle() const {
-    return key_handle_;
+    return *key_handle_;
   }
   Smi& SmiHandle() const {
-    return smi_handle_;
+    return *smi_handle_;
   }
+
+NOT_IN_PRODUCT(
+  intptr_t NumGrows() const {
+    return GetSmiValueAt(kNumGrowsIndex);
+  }
+  intptr_t NumLT5Collisions() const {
+    return GetSmiValueAt(kNumLT5LookupsIndex);
+  }
+  intptr_t NumLT25Collisions() const {
+    return GetSmiValueAt(kNumLT25LookupsIndex);
+  }
+  intptr_t NumGT25Collisions() const {
+    return GetSmiValueAt(kNumGT25LookupsIndex);
+  }
+  void UpdateGrowth() const {
+    AdjustSmiValueAt(kNumGrowsIndex, 1);
+  }
+  void UpdateCollisions(intptr_t collisions) const {
+    if (data_->raw()->IsVMHeapObject()) {
+      return;
+    }
+    if (collisions < 5) {
+      AdjustSmiValueAt(kNumLT5LookupsIndex, 1);
+    } else if (collisions < 25) {
+      AdjustSmiValueAt(kNumLT25LookupsIndex, 1);
+    } else {
+      AdjustSmiValueAt(kNumGT25LookupsIndex, 1);
+    }
+  }
+  void PrintStats() const {
+    if (!KeyTraits::ReportStats()) {
+      return;
+    }
+    OS::Print("Stats for %s table :\n"
+              " Size of table = %" Pd ",Number of Occupied entries = %" Pd "\n"
+              " Number of Grows = %" Pd "\n"
+              " Number of look ups with < 5 collisions = %" Pd "\n"
+              " Number of look ups with < 25 collisions = %" Pd "\n"
+              " Number of look ups with > 25 collisions = %" Pd "\n",
+              KeyTraits::Name(),
+              NumEntries(), NumOccupied(),
+              NumGrows(),
+              NumLT5Collisions(), NumLT25Collisions(), NumGT25Collisions());
+  }
+)  // !PRODUCT
 
  protected:
   static const intptr_t kOccupiedEntriesIndex = 0;
   static const intptr_t kDeletedEntriesIndex = 1;
+#if defined(PRODUCT)
   static const intptr_t kHeaderSize = kDeletedEntriesIndex + 1;
+#else
+  static const intptr_t kNumGrowsIndex = 2;
+  static const intptr_t kNumLT5LookupsIndex = 3;
+  static const intptr_t kNumLT25LookupsIndex = 4;
+  static const intptr_t kNumGT25LookupsIndex = 5;
+  static const intptr_t kHeaderSize = kNumGT25LookupsIndex + 1;
+#endif
   static const intptr_t kMetaDataIndex = kHeaderSize;
   static const intptr_t kFirstKeyIndex = kHeaderSize + kMetaDataSize;
   static const intptr_t kEntrySize = 1 + kPayloadSize;
@@ -307,24 +374,21 @@ class HashTable : public ValueObject {
 
   intptr_t GetSmiValueAt(intptr_t index) const {
     ASSERT(!data_->IsNull());
-    ASSERT(Object::Handle(zone(), data_->At(index)).IsSmi());
+    ASSERT(!data_->At(index)->IsHeapObject());
     return Smi::Value(Smi::RawCast(data_->At(index)));
   }
 
   void SetSmiValueAt(intptr_t index, intptr_t value) const {
-    smi_handle_ = Smi::New(value);
-    data_->SetAt(index, smi_handle_);
+    *smi_handle_ = Smi::New(value);
+    data_->SetAt(index, *smi_handle_);
   }
 
   void AdjustSmiValueAt(intptr_t index, intptr_t delta) const {
     SetSmiValueAt(index, (GetSmiValueAt(index) + delta));
   }
 
-  Zone* zone() const { return zone_; }
-
-  Zone* zone_;
-  Object& key_handle_;
-  Smi& smi_handle_;
+  Object* key_handle_;
+  Smi* smi_handle_;
   // Exactly one of these is non-NULL, depending on whether Release was called.
   Array* data_;
   Array* released_data_;
@@ -339,9 +403,11 @@ class UnorderedHashTable : public HashTable<KeyTraits, kUserPayloadSize, 0> {
  public:
   typedef HashTable<KeyTraits, kUserPayloadSize, 0> BaseTable;
   static const intptr_t kPayloadSize = kUserPayloadSize;
-  explicit UnorderedHashTable(RawArray* data) : BaseTable(data) {}
-  UnorderedHashTable(Zone* zone, RawArray* data)
-      : BaseTable(zone, data) {}
+  explicit UnorderedHashTable(RawArray* data)
+      : BaseTable(Thread::Current()->zone(), data) {}
+  UnorderedHashTable(Zone* zone, RawArray* data) : BaseTable(zone, data) {}
+  UnorderedHashTable(Object* key, Smi* value, Array* data)
+      : BaseTable(key, value, data) {}
   // Note: Does not check for concurrent modification.
   class Iterator {
    public:
@@ -378,9 +444,12 @@ class EnumIndexHashTable
   typedef HashTable<KeyTraits, kUserPayloadSize + 1, 1> BaseTable;
   static const intptr_t kPayloadSize = kUserPayloadSize;
   static const intptr_t kNextEnumIndex = BaseTable::kMetaDataIndex;
+  EnumIndexHashTable(Object* key, Smi* value, Array* data)
+      : BaseTable(key, value, data) {}
   EnumIndexHashTable(Zone* zone, RawArray* data)
       : BaseTable(zone, data) {}
-  explicit EnumIndexHashTable(RawArray* data) : BaseTable(data) {}
+  explicit EnumIndexHashTable(RawArray* data)
+      : BaseTable(Thread::Current()->zone(), data) {}
   // Note: Does not check for concurrent modification.
   class Iterator {
    public:
@@ -440,7 +509,7 @@ class HashTables : public AllStatic {
   template<typename Table>
   static RawArray* New(intptr_t initial_capacity,
                        Heap::Space space = Heap::kNew) {
-    Table table(Array::New(
+    Table table(Thread::Current()->zone(), Array::New(
         Table::ArrayLengthForNumOccupied(initial_capacity), space));
     table.Initialize();
     return table.Release().raw();
@@ -448,7 +517,7 @@ class HashTables : public AllStatic {
 
   template<typename Table>
   static RawArray* New(const Array& array) {
-    Table table(array.raw());
+    Table table(Thread::Current()->zone(), array.raw());
     table.Initialize();
     return table.Release().raw();
   }
@@ -491,6 +560,7 @@ class HashTables : public AllStatic {
         table.data_->IsOld() ? Heap::kOld : Heap::kNew));
     Copy(table, new_table);
     *table.data_ = new_table.Release().raw();
+    NOT_IN_PRODUCT(table.UpdateGrowth(); table.PrintStats();)
   }
 
   // Serializes a table by concatenating its entries as an array.
@@ -520,8 +590,11 @@ class HashTables : public AllStatic {
 template<typename BaseIterTable>
 class HashMap : public BaseIterTable {
  public:
-  explicit HashMap(RawArray* data) : BaseIterTable(data) {}
+  explicit HashMap(RawArray* data)
+      : BaseIterTable(Thread::Current()->zone(), data) {}
   HashMap(Zone* zone, RawArray* data) : BaseIterTable(zone, data) {}
+  HashMap(Object* key, Smi* value, Array* data)
+      : BaseIterTable(key, value, data) {}
   template<typename Key>
   RawObject* GetOrNull(const Key& key, bool* present = NULL) const {
     intptr_t entry = BaseIterTable::FindKey(key);
@@ -606,8 +679,11 @@ template<typename KeyTraits>
 class UnorderedHashMap : public HashMap<UnorderedHashTable<KeyTraits, 1> > {
  public:
   typedef HashMap<UnorderedHashTable<KeyTraits, 1> > BaseMap;
-  explicit UnorderedHashMap(RawArray* data) : BaseMap(data) {}
+  explicit UnorderedHashMap(RawArray* data)
+      : BaseMap(Thread::Current()->zone(), data) {}
   UnorderedHashMap(Zone* zone, RawArray* data) : BaseMap(zone, data) {}
+  UnorderedHashMap(Object* key, Smi* value, Array* data)
+      : BaseMap(key, value, data) {}
 };
 
 
@@ -615,16 +691,22 @@ template<typename KeyTraits>
 class EnumIndexHashMap : public HashMap<EnumIndexHashTable<KeyTraits, 1> > {
  public:
   typedef HashMap<EnumIndexHashTable<KeyTraits, 1> > BaseMap;
-  explicit EnumIndexHashMap(RawArray* data) : BaseMap(data) {}
+  explicit EnumIndexHashMap(RawArray* data)
+      : BaseMap(Thread::Current()->zone(), data) {}
   EnumIndexHashMap(Zone* zone, RawArray* data) : BaseMap(zone, data) {}
+  EnumIndexHashMap(Object* key, Smi* value, Array* data)
+      : BaseMap(key, value, data) {}
 };
 
 
 template<typename BaseIterTable>
 class HashSet : public BaseIterTable {
  public:
-  explicit HashSet(RawArray* data) : BaseIterTable(data) {}
+  explicit HashSet(RawArray* data)
+      : BaseIterTable(Thread::Current()->zone(), data) {}
   HashSet(Zone* zone, RawArray* data) : BaseIterTable(zone, data) {}
+  HashSet(Object* key, Smi* value, Array* data)
+      : BaseIterTable(key, value, data) {}
   bool Insert(const Object& key) {
     EnsureCapacity();
     intptr_t entry = -1;
@@ -700,10 +782,13 @@ template<typename KeyTraits>
 class UnorderedHashSet : public HashSet<UnorderedHashTable<KeyTraits, 0> > {
  public:
   typedef HashSet<UnorderedHashTable<KeyTraits, 0> > BaseSet;
-  explicit UnorderedHashSet(RawArray* data) : BaseSet(data) {
+  explicit UnorderedHashSet(RawArray* data)
+      : BaseSet(Thread::Current()->zone(), data) {
     ASSERT(data != Array::null());
   }
   UnorderedHashSet(Zone* zone, RawArray* data) : BaseSet(zone, data) {}
+  UnorderedHashSet(Object* key, Smi* value, Array* data)
+      : BaseSet(key, value, data) {}
 };
 
 
@@ -711,8 +796,11 @@ template<typename KeyTraits>
 class EnumIndexHashSet : public HashSet<EnumIndexHashTable<KeyTraits, 0> > {
  public:
   typedef HashSet<EnumIndexHashTable<KeyTraits, 0> > BaseSet;
-  explicit EnumIndexHashSet(RawArray* data) : BaseSet(data) {}
+  explicit EnumIndexHashSet(RawArray* data)
+      : BaseSet(Thread::Current()->zone(), data) {}
   EnumIndexHashSet(Zone* zone, RawArray* data) : BaseSet(zone, data) {}
+  EnumIndexHashSet(Object* key, Smi* value, Array* data)
+      : BaseSet(key, value, data) {}
 };
 
 }  // namespace dart

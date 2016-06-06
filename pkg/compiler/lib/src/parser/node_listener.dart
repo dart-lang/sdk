@@ -7,12 +7,10 @@ library dart2js.parser.node_listener;
 import '../common.dart';
 import '../elements/elements.dart' show CompilationUnitElement;
 import '../native/native.dart' as native;
-import '../tokens/precedence_constants.dart' as Precedence
-    show BAD_INPUT_INFO, EOF_INFO, INDEX_INFO;
+import '../tokens/precedence_constants.dart' as Precedence show INDEX_INFO;
 import '../tokens/token.dart' show ErrorToken, StringToken, Token;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link;
-
 import 'element_listener.dart' show ElementListener, ScannerOptions;
 import 'partial_elements.dart' show PartialFunctionElement;
 
@@ -346,13 +344,13 @@ class NodeListener extends ElementListener {
     AsyncModifier asyncModifier = popNode();
     NodeList initializers = popNode();
     NodeList formals = popNode();
-    popNode(); // typeVariables
+    NodeList typeVariables = popNode();
     // The name can be an identifier or a send in case of named constructors.
     Expression name = popNode();
     TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
-    pushNode(new FunctionExpression(name, formals, body, type, modifiers,
-        initializers, getOrSet, asyncModifier));
+    pushNode(new FunctionExpression(name, typeVariables, formals, body, type,
+        modifiers, initializers, getOrSet, asyncModifier));
   }
 
   void endFunctionDeclaration(Token endToken) {
@@ -495,12 +493,12 @@ class NodeListener extends ElementListener {
     AsyncModifier asyncModifier = popNode();
     NodeList initializers = popNode();
     NodeList formalParameters = popNode();
-    popNode(); // typeVariables
+    NodeList typeVariables = popNode();
     Expression name = popNode();
     TypeAnnotation returnType = popNode();
     Modifiers modifiers = popNode();
-    pushNode(new FunctionExpression(name, formalParameters, body, returnType,
-        modifiers, initializers, getOrSet, asyncModifier));
+    pushNode(new FunctionExpression(name, typeVariables, formalParameters, body,
+        returnType, modifiers, initializers, getOrSet, asyncModifier));
   }
 
   void handleLiteralMap(
@@ -566,11 +564,12 @@ class NodeListener extends ElementListener {
 
   void handleFunctionTypedFormalParameter(Token endToken) {
     NodeList formals = popNode();
+    NodeList typeVariables = popNode();
     Identifier name = popNode();
     TypeAnnotation returnType = popNode();
     pushNode(null); // Signal "no type" to endFormalParameter.
-    pushNode(new FunctionExpression(
-        name, formals, null, returnType, Modifiers.EMPTY, null, null, null));
+    pushNode(new FunctionExpression(name, typeVariables, formals, null,
+        returnType, Modifiers.EMPTY, null, null, null));
   }
 
   void handleValuedFormalParameter(Token equals, Token token) {
@@ -676,7 +675,7 @@ class NodeListener extends ElementListener {
     Modifiers modifiers = popNode();
 
     pushNode(new FunctionExpression(
-        name, formals, body, null, modifiers, null, null, asyncModifier));
+        name, null, formals, body, null, modifiers, null, null, asyncModifier));
   }
 
   void endForIn(
@@ -755,8 +754,9 @@ class NodeListener extends ElementListener {
     Statement body = popNode();
     AsyncModifier asyncModifier = popNode();
     NodeList formals = popNode();
-    pushNode(new FunctionExpression(
-        null, formals, body, null, Modifiers.EMPTY, null, null, asyncModifier));
+    NodeList typeVariables = popNode();
+    pushNode(new FunctionExpression(null, typeVariables, formals, body, null,
+        Modifiers.EMPTY, null, null, asyncModifier));
   }
 
   void handleIsOperator(Token operathor, Token not, Token endToken) {

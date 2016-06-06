@@ -61,6 +61,9 @@ void main(List<String> arguments) {
     var optionsParser = new TestOptionsParser();
     var configurations = optionsParser.parse(arguments);
     if (configurations != null && configurations.length > 0) {
+      // All the testing is carried out asynchronously in tasks created by this
+      // call.
+      // TODO(26372): Ensure that all tasks complete before the returned future.
       testConfigurations(configurations);
     }
   });

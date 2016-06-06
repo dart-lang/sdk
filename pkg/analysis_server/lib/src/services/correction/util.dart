@@ -17,7 +17,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -1285,18 +1284,15 @@ class CorrectionUtils {
    */
   _InvertedCondition _invertCondition0(Expression expression) {
     if (expression is BooleanLiteral) {
-      BooleanLiteral literal = expression;
-      if (literal.value) {
+      if (expression.value) {
         return _InvertedCondition._simple("false");
       } else {
         return _InvertedCondition._simple("true");
       }
-    }
-    if (expression is BinaryExpression) {
-      BinaryExpression binary = expression;
-      TokenType operator = binary.operator.type;
-      Expression le = binary.leftOperand;
-      Expression re = binary.rightOperand;
+    } else if (expression is BinaryExpression) {
+      TokenType operator = expression.operator.type;
+      Expression le = expression.leftOperand;
+      Expression re = expression.rightOperand;
       _InvertedCondition ls = _invertCondition0(le);
       _InvertedCondition rs = _invertCondition0(re);
       if (operator == TokenType.LT) {
@@ -1325,37 +1321,22 @@ class CorrectionUtils {
         return _InvertedCondition._binary(
             TokenType.AMPERSAND_AMPERSAND.precedence, ls, " && ", rs);
       }
-    }
-    if (expression is IsExpression) {
-      IsExpression isExpression = expression;
-      String expressionSource = getNodeText(isExpression.expression);
-      String typeSource = getNodeText(isExpression.type);
-      if (isExpression.notOperator == null) {
+    } else if (expression is IsExpression) {
+      String expressionSource = getNodeText(expression.expression);
+      String typeSource = getNodeText(expression.type);
+      if (expression.notOperator == null) {
         return _InvertedCondition._simple("$expressionSource is! $typeSource");
       } else {
         return _InvertedCondition._simple("$expressionSource is $typeSource");
       }
-    }
-    if (expression is PrefixExpression) {
-      PrefixExpression prefixExpression = expression;
-      TokenType operator = prefixExpression.operator.type;
+    } else if (expression is PrefixExpression) {
+      TokenType operator = expression.operator.type;
       if (operator == TokenType.BANG) {
-        Expression operand = prefixExpression.operand;
-        while (operand is ParenthesizedExpression) {
-          ParenthesizedExpression pe = operand as ParenthesizedExpression;
-          operand = pe.expression;
-        }
+        Expression operand = expression.operand.unParenthesized;
         return _InvertedCondition._simple(getNodeText(operand));
       }
-    }
-    if (expression is ParenthesizedExpression) {
-      ParenthesizedExpression pe = expression;
-      Expression innerExpression = pe.expression;
-      while (innerExpression is ParenthesizedExpression) {
-        innerExpression =
-            (innerExpression as ParenthesizedExpression).expression;
-      }
-      return _invertCondition0(innerExpression);
+    } else if (expression is ParenthesizedExpression) {
+      return _invertCondition0(expression.unParenthesized);
     }
     DartType type = expression.bestType;
     if (type.displayName == "bool") {
@@ -1413,16 +1394,13 @@ class CorrectionUtils_InsertDesc {
  */
 class TokenUtils {
   /**
-   * @return the first [KeywordToken] with given [Keyword], may be <code>null</code> if
-   *         not found.
+   * Return the first token in the list of [tokens] representing the given
+   * [keyword], or `null` if there is no such token.
    */
-  static KeywordToken findKeywordToken(List<Token> tokens, Keyword keyword) {
+  static Token findKeywordToken(List<Token> tokens, Keyword keyword) {
     for (Token token in tokens) {
-      if (token is KeywordToken) {
-        KeywordToken keywordToken = token;
-        if (keywordToken.keyword == keyword) {
-          return keywordToken;
-        }
+      if (token.keyword == keyword) {
+        return token;
       }
     }
     return null;

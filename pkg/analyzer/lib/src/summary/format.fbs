@@ -147,7 +147,12 @@ enum IndexSyntheticElementKind : byte {
   /**
    * The synthetic `values` getter of an enum.
    */
-  enumValues
+  enumValues,
+
+  /**
+   * The containing unit itself.
+   */
+  unit
 }
 
 /**
@@ -279,10 +284,10 @@ enum UnlinkedConstOperation : byte {
   pushNull,
 
   /**
-   * Push the value of the constant constructor parameter with
-   * the name obtained from [UnlinkedConst.strings].
+   * Push the value of the function parameter with the name obtained from
+   * [UnlinkedConst.strings].
    */
-  pushConstructorParameter,
+  pushParameter,
 
   /**
    * Evaluate a (potentially qualified) identifier expression and push the
@@ -609,7 +614,15 @@ enum UnlinkedConstOperation : byte {
   /**
    * Pop the top value from the stack and raise an exception with this value.
    */
-  throwException
+  throwException,
+
+  /**
+   * Obtain two values `n` and `m` from [UnlinkedConst.ints].  Then, starting at
+   * the executable element for the expression being evaluated, if n > 0, pop to
+   * the nth enclosing function element.  Then, push the mth local function of
+   * that element onto the stack.
+   */
+  pushLocalFunctionReference
 }
 
 /**
@@ -897,8 +910,7 @@ table EntityRef {
 
   /**
    * If this is an instantiation of a generic type or generic executable, the
-   * type arguments used to instantiate it.  Trailing type arguments of type
-   * `dynamic` are omitted.
+   * type arguments used to instantiate it (if any).
    */
   typeArguments:[EntityRef] (id: 1);
 }
@@ -1460,6 +1472,13 @@ table UnlinkedConst {
  */
 table UnlinkedConstructorInitializer {
   /**
+   * If there are `m` [arguments] and `n` [argumentNames], then each argument
+   * from [arguments] with index `i` such that `n + i - m >= 0`, should be used
+   * with the name at `n + i - m`.
+   */
+  argumentNames:[string] (id: 4);
+
+  /**
    * If [kind] is `thisInvocation` or `superInvocation`, the arguments of the
    * invocation.  Otherwise empty.
    */
@@ -1578,6 +1597,13 @@ table UnlinkedExecutable {
   annotations:[UnlinkedConst] (id: 6);
 
   /**
+   * If this executable's function body is declared using `=>`, the expression
+   * to the right of the `=>`.  May be omitted if neither type inference nor
+   * constant evaluation depends on the function body.
+   */
+  bodyExpr:UnlinkedConst (id: 29);
+
+  /**
    * Code range of the executable.
    */
   codeRange:CodeRange (id: 26);
@@ -1619,6 +1645,11 @@ table UnlinkedExecutable {
   isAbstract:bool (id: 10);
 
   /**
+   * Indicates whether the executable has body marked as being asynchronous.
+   */
+  isAsynchronous:bool (id: 27);
+
+  /**
    * Indicates whether the executable is declared using the `const` keyword.
    */
   isConst:bool (id: 12);
@@ -1632,6 +1663,11 @@ table UnlinkedExecutable {
    * Indicates whether the executable is declared using the `factory` keyword.
    */
   isFactory:bool (id: 8);
+
+  /**
+   * Indicates whether the executable has body marked as being a generator.
+   */
+  isGenerator:bool (id: 28);
 
   /**
    * Indicates whether the executable is a redirected constructor.
@@ -1885,14 +1921,7 @@ table UnlinkedParam {
   /**
    * Code range of the parameter.
    */
-  codeRange:CodeRange (id: 14);
-
-  /**
-   * If the parameter has a default value, the constant expression in the
-   * default value.  Note that the presence of this expression does not mean
-   * that it is a valid, check [UnlinkedConst.isInvalid].
-   */
-  defaultValue:UnlinkedConst (id: 7);
+  codeRange:CodeRange (id: 7);
 
   /**
    * If the parameter has a default value, the source text of the constant
@@ -2006,8 +2035,8 @@ table UnlinkedPublicName {
 
   /**
    * If this [UnlinkedPublicName] is a class, the list of members which can be
-   * referenced from constants or factory redirects - static constant fields,
-   * static methods, and constructors.  Otherwise empty.
+   * referenced statically - static fields, static methods, and constructors.
+   * Otherwise empty.
    *
    * Unnamed constructors are not included since they do not constitute a
    * separate name added to any namespace.
@@ -2267,14 +2296,7 @@ table UnlinkedVariable {
   /**
    * Code range of the variable.
    */
-  codeRange:CodeRange (id: 14);
-
-  /**
-   * If [isConst] is true, and the variable has an initializer, the constant
-   * expression in the initializer.  Note that the presence of this expression
-   * does not mean that it is a valid, check [UnlinkedConst.isInvalid].
-   */
-  constExpr:UnlinkedConst (id: 5);
+  codeRange:CodeRange (id: 5);
 
   /**
    * Documentation comment for the variable, or `null` if there is no

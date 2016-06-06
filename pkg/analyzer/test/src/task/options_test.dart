@@ -23,7 +23,8 @@ import '../context/abstract_context.dart';
 main() {
   initializeTestEnvironment();
   runReflectiveTests(ContextConfigurationTest);
-  runReflectiveTests(GenerateOptionsErrorsTaskTest);
+  runReflectiveTests(GenerateNewOptionsErrorsTaskTest);
+  runReflectiveTests(GenerateOldOptionsErrorsTaskTest);
   runReflectiveTests(OptionsFileValidatorTest);
 }
 
@@ -67,16 +68,6 @@ analyzer:
     expect(analysisOptions.enableAsync, false);
   }
 
-  test_configure_enableConditionalDirectives() {
-    expect(analysisOptions.enableConditionalDirectives, true);
-    configureContext('''
-analyzer:
-  language:
-    enableConditionalDirectives: true
-''');
-    expect(analysisOptions.enableConditionalDirectives, true);
-  }
-
   test_configure_enableGenericMethods() {
     expect(analysisOptions.enableGenericMethods, false);
     configureContext('''
@@ -114,8 +105,7 @@ analyzer:
 ''');
 
     List<ErrorProcessor> processors =
-        context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS)
-        as List<ErrorProcessor>;
+        context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
     expect(processors, hasLength(2));
 
     var unused_local = new AnalysisError(
@@ -156,10 +146,19 @@ analyzer:
 }
 
 @reflectiveTest
-class GenerateOptionsErrorsTaskTest extends AbstractContextTest {
-  final optionsFilePath = '/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}';
+class GenerateNewOptionsErrorsTaskTest extends GenerateOptionsErrorsTaskTest {
+  String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
+}
 
+@reflectiveTest
+class GenerateOldOptionsErrorsTaskTest extends GenerateOptionsErrorsTaskTest {
+  String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}';
+}
+
+abstract class GenerateOptionsErrorsTaskTest extends AbstractContextTest {
   Source source;
+
+  String get optionsFilePath;
   LineInfo lineInfo(String source) =>
       GenerateOptionsErrorsTask.computeLineInfo(source);
 

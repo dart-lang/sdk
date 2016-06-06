@@ -280,7 +280,10 @@ class AnalysisDriver {
       if (task.caughtException == null) {
         List<TargetedResult> dependedOn = item.inputTargetedResults.toList();
         Map<ResultDescriptor, dynamic> outputs = task.outputs;
-        for (ResultDescriptor result in task.descriptor.results) {
+        List<ResultDescriptor> results = task.descriptor.results;
+        int resultLength = results.length;
+        for (int i = 0; i < resultLength; i++) {
+          ResultDescriptor result = results[i];
           // TODO(brianwilkerson) We could check here that a value was produced
           // and throw an exception if not (unless we want to allow null values).
           entry.setValue(result, outputs[result], dependedOn);
@@ -608,7 +611,7 @@ class WorkItem {
   /**
    * The inputs to the task that have been computed.
    */
-  Map<String, dynamic> inputs;
+  Map<String, dynamic> inputs = const <String, dynamic>{};
 
   /**
    * The exception that was found while trying to populate the inputs. If this
@@ -643,7 +646,6 @@ class WorkItem {
     if (!builder.moveNext()) {
       builder = null;
     }
-    inputs = new HashMap<String, dynamic>();
   }
 
   @override

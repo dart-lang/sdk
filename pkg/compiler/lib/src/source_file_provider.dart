@@ -8,16 +8,16 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
-
-import '../compiler.dart' as api show Diagnostic, DiagnosticHandler;
-import '../compiler_new.dart' as api show CompilerInput, CompilerDiagnostics;
-import 'dart2js.dart' show AbortLeg;
-import 'colors.dart' as colors;
-import 'io/source_file.dart';
-import 'filenames.dart';
-import 'util/uri_extras.dart';
 import 'dart:typed_data';
+
+import '../compiler.dart' as api show Diagnostic;
+import '../compiler_new.dart' as api;
 import '../compiler_new.dart';
+import 'colors.dart' as colors;
+import 'dart2js.dart' show AbortLeg;
+import 'filenames.dart';
+import 'io/source_file.dart';
+import 'util/uri_extras.dart';
 
 List<int> readAll(String filename) {
   var file = (new File(filename)).openSync();
@@ -238,9 +238,10 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
 
 typedef void MessageCallback(String message);
 
-class RandomAccessFileOutputProvider {
+class RandomAccessFileOutputProvider implements CompilerOutput {
   final Uri out;
   final Uri sourceMapOut;
+  final Uri resolutionOutput;
   final MessageCallback onInfo;
   final MessageCallback onFailure;
 
@@ -248,7 +249,7 @@ class RandomAccessFileOutputProvider {
   List<String> allOutputFiles = new List<String>();
 
   RandomAccessFileOutputProvider(this.out, this.sourceMapOut,
-      {this.onInfo, this.onFailure});
+      {this.onInfo, this.onFailure, this.resolutionOutput});
 
   static Uri computePrecompiledUri(Uri out) {
     String extension = 'precompiled.js';
@@ -262,6 +263,10 @@ class RandomAccessFileOutputProvider {
   }
 
   EventSink<String> call(String name, String extension) {
+    return createEventSink(name, extension);
+  }
+
+  EventSink<String> createEventSink(String name, String extension) {
     Uri uri;
     bool isPrimaryOutput = false;
     // TODO (johnniwinther, sigurdm): Make a better interface for
@@ -278,9 +283,14 @@ class RandomAccessFileOutputProvider {
             " \"Content-Security-Policy: script-src 'self'\"");
       } else if (extension == 'js.map' || extension == 'dart.map') {
         uri = sourceMapOut;
-      } else if (extension == "info.json") {
+      } else if (extension == 'info.json') {
         String outName = out.path.substring(out.path.lastIndexOf('/') + 1);
         uri = out.resolve('$outName.$extension');
+      } else if (extension == 'data') {
+        if (resolutionOutput == null) {
+          onFailure('Serialization target unspecified.');
+        }
+        uri = resolutionOutput;
       } else {
         onFailure('Unknown extension: $extension');
       }

@@ -4,9 +4,10 @@
 
 library dart2js.serialization;
 
-import '../elements/elements.dart';
+import '../common.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
+import '../elements/elements.dart';
 import '../util/enumset.dart';
 
 import 'constant_serialization.dart';
@@ -682,9 +683,24 @@ class Serializer {
     if (element == null) {
       throw new ArgumentError('Serializer._getElementDataObject(null)');
     }
+    element = element.declaration;
     DataObject dataObject = _elementMap[element];
     if (dataObject == null) {
       if (!shouldInclude(element)) {
+        /// Helper used to check that external references are serialized by
+        /// the right kind.
+        bool verifyElement(var found, var expected) {
+          found = found.declaration;
+          if (found == expected) return true;
+          if (found.isAbstractField && expected.isGetter) {
+            return found.getter == expected;
+          }
+          if (found.isAbstractField && expected.isSetter) {
+            return found.setter == expected;
+          }
+          return false;
+        }
+
         if (element.isLibrary) {
           LibraryElement library = element;
           _elementMap[element] = dataObject = new DataObject(
@@ -692,15 +708,15 @@ class Serializer {
               new EnumValue(SerializedElementKind.EXTERNAL_LIBRARY));
           ObjectEncoder encoder = new ObjectEncoder(this, dataObject.map);
           encoder.setUri(Key.URI, library.canonicalUri, library.canonicalUri);
-        } else if (element.isStatic) {
-          Value classId = _getElementId(element.enclosingClass);
-          _elementMap[element] = dataObject = new DataObject(
-              new IntValue(_elementMap.length),
-              new EnumValue(SerializedElementKind.EXTERNAL_STATIC_MEMBER));
-          ObjectEncoder encoder = new ObjectEncoder(this, dataObject.map);
-          encoder.setValue(Key.CLASS, classId);
-          encoder.setString(Key.NAME, element.name);
         } else if (element.isConstructor) {
+          assert(invariant(
+              element,
+              verifyElement(
+                  element.enclosingClass.implementation
+                      .lookupConstructor(element.name),
+                  element),
+              message: "Element $element is not found as a "
+                  "constructor of ${element.enclosingClass.implementation}."));
           Value classId = _getElementId(element.enclosingClass);
           _elementMap[element] = dataObject = new DataObject(
               new IntValue(_elementMap.length),
@@ -708,7 +724,31 @@ class Serializer {
           ObjectEncoder encoder = new ObjectEncoder(this, dataObject.map);
           encoder.setValue(Key.CLASS, classId);
           encoder.setString(Key.NAME, element.name);
+        } else if (element.isClassMember) {
+          assert(invariant(
+              element,
+              verifyElement(
+                  element.enclosingClass.lookupLocalMember(element.name),
+                  element),
+              message: "Element $element is not found as a "
+                  "class member of ${element.enclosingClass}."));
+          Value classId = _getElementId(element.enclosingClass);
+          _elementMap[element] = dataObject = new DataObject(
+              new IntValue(_elementMap.length),
+              new EnumValue(SerializedElementKind.EXTERNAL_CLASS_MEMBER));
+          ObjectEncoder encoder = new ObjectEncoder(this, dataObject.map);
+          encoder.setValue(Key.CLASS, classId);
+          encoder.setString(Key.NAME, element.name);
+          if (element.isAccessor) {
+            encoder.setBool(Key.GETTER, element.isGetter);
+          }
         } else {
+          assert(invariant(
+              element,
+              verifyElement(
+                  element.library.implementation.find(element.name), element),
+              message: "Element $element is not found as a "
+                  "library member of ${element.library.implementation}."));
           Value libraryId = _getElementId(element.library);
           _elementMap[element] = dataObject = new DataObject(
               new IntValue(_elementMap.length),
@@ -716,6 +756,9 @@ class Serializer {
           ObjectEncoder encoder = new ObjectEncoder(this, dataObject.map);
           encoder.setValue(Key.LIBRARY, libraryId);
           encoder.setString(Key.NAME, element.name);
+          if (element.isAccessor) {
+            encoder.setBool(Key.GETTER, element.isGetter);
+          }
         }
       } else {
         // Run through [ELEMENT_SERIALIZERS] sequentially to find the one that
@@ -856,6 +899,9 @@ class SerializerPlugin {
   /// Use [creatorEncoder] to create a data object with id [tag] for storing
   /// additional data for [element].
   void onElement(Element element, ObjectEncoder createEncoder(String tag)) {}
+
+  /// Called to serialize custom [data].
+  void onData(var data, ObjectEncoder encoder) {}
 }
 
 /// Plugin for deserializing additional data for an [Element].
@@ -867,22 +913,40 @@ class DeserializerPlugin {
   /// Use [getDecoder] to retrieve the data object with id [tag] stored for
   /// [element]. If not object is stored for [tag], [getDecoder] returns `null`.
   void onElement(Element element, ObjectDecoder getDecoder(String tag)) {}
+
+  /// Called to deserialize custom data from [decoder].
+  dynamic onData(ObjectDecoder decoder) {}
 }
 
 /// Context for parallel deserialization.
 class DeserializationContext {
+  final DiagnosticReporter reporter;
   Map<Uri, LibraryElement> _uriMap = <Uri, LibraryElement>{};
   List<Deserializer> deserializers = <Deserializer>[];
+  List<DeserializerPlugin> plugins = <DeserializerPlugin>[];
+
+  DeserializationContext(this.reporter);
 
   LibraryElement lookupLibrary(Uri uri) {
     return _uriMap.putIfAbsent(uri, () {
+      Uri foundUri;
+      LibraryElement foundLibrary;
       for (Deserializer deserializer in deserializers) {
         LibraryElement library = deserializer.lookupLibrary(uri);
         if (library != null) {
-          return library;
+          if (foundLibrary != null) {
+            reporter.reportErrorMessage(NO_LOCATION_SPANNABLE,
+                MessageKind.DUPLICATE_SERIALIZED_LIBRARY, {
+              'libraryUri': uri,
+              'sourceUri1': foundUri,
+              'sourceUri2': deserializer.sourceUri
+            });
+          }
+          foundUri = deserializer.sourceUri;
+          foundLibrary = library;
         }
       }
-      return null;
+      return foundLibrary;
     });
   }
 }
@@ -893,7 +957,7 @@ class DeserializationContext {
 class Deserializer {
   final DeserializationContext context;
   final SerializationDecoder decoder;
-  List<DeserializerPlugin> plugins = <DeserializerPlugin>[];
+  final Uri sourceUri;
   ObjectDecoder _headerObject;
   ListDecoder _elementList;
   ListDecoder _typeList;
@@ -902,9 +966,9 @@ class Deserializer {
   Map<int, DartType> _typeMap = {};
   Map<int, ConstantExpression> _constantMap = {};
 
-  Deserializer.fromText(this.context, String text, this.decoder) {
+  Deserializer.fromText(
+      this.context, this.sourceUri, String text, this.decoder) {
     _headerObject = new ObjectDecoder(this, decoder.decode(text));
-    context.deserializers.add(this);
   }
 
   /// Returns the [ListDecoder] for the [Element]s in this deserializer.
@@ -967,16 +1031,35 @@ class Deserializer {
       } else if (elementKind == SerializedElementKind.EXTERNAL_LIBRARY_MEMBER) {
         LibraryElement library = decoder.getElement(Key.LIBRARY);
         String name = decoder.getString(Key.NAME);
+        bool isGetter = decoder.getBool(Key.GETTER, isOptional: true);
         element = library.find(name);
         if (element == null) {
           throw new StateError("Missing library member for $name in $library.");
         }
-      } else if (elementKind == SerializedElementKind.EXTERNAL_STATIC_MEMBER) {
+        if (isGetter != null) {
+          AbstractFieldElement abstractField = element;
+          element = isGetter ? abstractField.getter : abstractField.setter;
+          if (element == null) {
+            throw new StateError(
+                "Missing ${isGetter ? 'getter' : 'setter'} for "
+                "$name in $library.");
+          }
+        }
+      } else if (elementKind == SerializedElementKind.EXTERNAL_CLASS_MEMBER) {
         ClassElement cls = decoder.getElement(Key.CLASS);
         String name = decoder.getString(Key.NAME);
+        bool isGetter = decoder.getBool(Key.GETTER, isOptional: true);
         element = cls.lookupLocalMember(name);
         if (element == null) {
-          throw new StateError("Missing static member for $name in $cls.");
+          throw new StateError("Missing class member for $name in $cls.");
+        }
+        if (isGetter != null) {
+          AbstractFieldElement abstractField = element;
+          element = isGetter ? abstractField.getter : abstractField.setter;
+          if (element == null) {
+            throw new StateError(
+                "Missing ${isGetter ? 'getter' : 'setter'} for $name in $cls.");
+          }
         }
       } else if (elementKind == SerializedElementKind.EXTERNAL_CONSTRUCTOR) {
         ClassElement cls = decoder.getElement(Key.CLASS);
@@ -993,7 +1076,7 @@ class Deserializer {
       MapDecoder pluginData = decoder.getMap(Key.DATA, isOptional: true);
       // Call plugins even when there is no data, so they can take action in
       // this case.
-      for (DeserializerPlugin plugin in plugins) {
+      for (DeserializerPlugin plugin in context.plugins) {
         plugin.onElement(element,
             (String tag) => pluginData?.getObject(tag, isOptional: true));
       }

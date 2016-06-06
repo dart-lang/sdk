@@ -61,6 +61,15 @@ class ConstantFinderTest {
     expect(_findAnnotations(), contains(_node));
   }
 
+  void test_visitAnnotation_enumConstant() {
+    // Analyzer ignores annotations on enum constant declarations.
+    Annotation annotation = AstFactory.annotation2(
+        AstFactory.identifier3('A'), null, AstFactory.argumentList());
+    _node = new EnumConstantDeclaration(
+        null, <Annotation>[annotation], AstFactory.identifier3('C'));
+    expect(_findConstants(), isEmpty);
+  }
+
   /**
    * Test an annotation that represents the invocation of a constant
    * constructor.

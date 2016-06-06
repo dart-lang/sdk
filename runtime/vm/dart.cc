@@ -47,6 +47,7 @@ int64_t Dart::start_time_ = 0;
 ThreadPool* Dart::thread_pool_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 ReadOnlyHandles* Dart::predefined_handles_ = NULL;
+Snapshot::Kind Dart::snapshot_kind_ = Snapshot::kInvalid;
 const uint8_t* Dart::instructions_snapshot_buffer_ = NULL;
 const uint8_t* Dart::data_snapshot_buffer_ = NULL;
 Dart_ThreadExitCallback Dart::thread_exit_callback_ = NULL;
@@ -80,21 +81,56 @@ class ReadOnlyHandles {
 };
 
 
-const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
-                           const uint8_t* instructions_snapshot,
-                           const uint8_t* data_snapshot,
-                           Dart_IsolateCreateCallback create,
-                           Dart_IsolateShutdownCallback shutdown,
-                           Dart_ThreadExitCallback thread_exit,
-                           Dart_FileOpenCallback file_open,
-                           Dart_FileReadCallback file_read,
-                           Dart_FileWriteCallback file_write,
-                           Dart_FileCloseCallback file_close,
-                           Dart_EntropySource entropy_source,
-                           Dart_GetVMServiceAssetsArchive get_service_assets) {
+static void CheckOffsets() {
+#define CHECK_OFFSET(expr, offset)                                             \
+  if ((expr) != (offset)) {                                                    \
+    FATAL2("%s == %" Pd, #expr, (expr));                                       \
+  }                                                                            \
+
+#if defined(TARGET_ARCH_ARM)
+  // These offsets are embedded in precompiled instructions. We need simarm
+  // (compiler) and arm (runtime) to agree.
+  CHECK_OFFSET(Heap::TopOffset(Heap::kNew), 8);
+  CHECK_OFFSET(Isolate::heap_offset(), 8);
+  CHECK_OFFSET(Thread::stack_limit_offset(), 4);
+  CHECK_OFFSET(Thread::object_null_offset(), 36);
+#endif
+#if defined(TARGET_ARCH_MIPS)
+  // These offsets are embedded in precompiled instructions. We need simmips
+  // (compiler) and mips (runtime) to agree.
+  CHECK_OFFSET(Heap::TopOffset(Heap::kNew), 8);
+  CHECK_OFFSET(Isolate::heap_offset(), 8);
+  CHECK_OFFSET(Thread::stack_limit_offset(), 4);
+  CHECK_OFFSET(Thread::object_null_offset(), 36);
+#endif
+#if defined(TARGET_ARCH_ARM64)
+  // These offsets are embedded in precompiled instructions. We need simarm64
+  // (compiler) and arm64 (runtime) to agree.
+  CHECK_OFFSET(Heap::TopOffset(Heap::kNew), 8);
+  CHECK_OFFSET(Isolate::heap_offset(), 16);
+  CHECK_OFFSET(Thread::stack_limit_offset(), 8);
+  CHECK_OFFSET(Thread::object_null_offset(), 72);
+#endif
+#undef CHECK_OFFSET
+}
+
+
+char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
+                     const uint8_t* instructions_snapshot,
+                     const uint8_t* data_snapshot,
+                     Dart_IsolateCreateCallback create,
+                     Dart_IsolateShutdownCallback shutdown,
+                     Dart_ThreadExitCallback thread_exit,
+                     Dart_FileOpenCallback file_open,
+                     Dart_FileReadCallback file_read,
+                     Dart_FileWriteCallback file_write,
+                     Dart_FileCloseCallback file_close,
+                     Dart_EntropySource entropy_source,
+                     Dart_GetVMServiceAssetsArchive get_service_assets) {
+  CheckOffsets();
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
-    return "VM already initialized or flags not initialized.";
+    return strdup("VM already initialized or flags not initialized.");
   }
   set_thread_exit_callback(thread_exit);
   SetFileCallbacks(file_open, file_read, file_write, file_close);
@@ -134,14 +170,12 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     ASSERT(vm_isolate_ == NULL);
     ASSERT(Flags::Initialized());
     const bool is_vm_isolate = true;
-    const bool precompiled = instructions_snapshot != NULL;
 
     // Setup default flags for the VM isolate.
     Dart_IsolateFlags api_flags;
     Isolate::FlagsInitialize(&api_flags);
     vm_isolate_ = Isolate::Init("vm-isolate", api_flags, is_vm_isolate);
     start_time_ = vm_isolate_->start_time();
-    vm_isolate_->set_compilation_allowed(!precompiled);
     // Verify assumptions about executing in the VM isolate.
     ASSERT(vm_isolate_ == Isolate::Current());
     ASSERT(vm_isolate_ == Thread::Current()->isolate());
@@ -156,29 +190,59 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     Object::InitOnce(vm_isolate_);
     ArgumentsDescriptor::InitOnce();
     ICData::InitOnce();
-    // When precompiled the stub code is initialized from the snapshot.
-    if (!precompiled) {
-      StubCode::InitOnce();
-    }
     if (vm_isolate_snapshot != NULL) {
       NOT_IN_PRODUCT(TimelineDurationScope tds(Timeline::GetVMStream(),
                                                "VMIsolateSnapshot"));
-      if (data_snapshot != NULL) {
-        vm_isolate_->SetupDataSnapshotPage(data_snapshot);
-      }
       const Snapshot* snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);
       if (snapshot == NULL) {
-        return "Invalid vm isolate snapshot seen.";
+        return strdup("Invalid vm isolate snapshot seen");
       }
-      ASSERT(snapshot->kind() == Snapshot::kFull);
-      VmIsolateSnapshotReader reader(snapshot->content(),
+      snapshot_kind_ = snapshot->kind();
+
+      if (Snapshot::IncludesCode(snapshot_kind_)) {
+        if (snapshot_kind_ == Snapshot::kAppNoJIT) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+          vm_isolate_->set_compilation_allowed(false);
+          if (!FLAG_precompiled_runtime) {
+            return strdup("Flag --precompilation was not specified");
+          }
+#else
+          return strdup("JIT runtime cannot run a precompiled snapshot");
+#endif
+        }
+        if (instructions_snapshot == NULL) {
+          return strdup("Missing instructions snapshot");
+        }
+        if (data_snapshot == NULL) {
+          return strdup("Missing rodata snapshot");
+        }
+        vm_isolate_->SetupInstructionsSnapshotPage(instructions_snapshot);
+        vm_isolate_->SetupDataSnapshotPage(data_snapshot);
+      } else if (Snapshot::IsFull(snapshot_kind_)) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+        return strdup("Precompiled runtime requires a precompiled snapshot");
+#else
+        if (instructions_snapshot != NULL) {
+          return strdup("Unexpected instructions snapshot");
+        }
+        if (data_snapshot != NULL) {
+          return strdup("Unexpected rodata snapshot");
+        }
+        StubCode::InitOnce();
+#endif
+      } else {
+        return strdup("Invalid vm isolate snapshot seen");
+      }
+      VmIsolateSnapshotReader reader(snapshot->kind(),
+                                     snapshot->content(),
                                      snapshot->length(),
                                      instructions_snapshot,
                                      data_snapshot,
                                      T);
       const Error& error = Error::Handle(reader.ReadVmIsolateSnapshot());
       if (!error.IsNull()) {
-        return error.ToCString();
+        // Must copy before leaving the zone.
+        return strdup(error.ToErrorCString());
       }
       NOT_IN_PRODUCT(if (tds.enabled()) {
         tds.SetNumArguments(2);
@@ -199,7 +263,13 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
         OS::Print("VM Isolate: Symbol table capacity : %" Pd "\n", capacity);
       }
     } else {
+#if defined(DART_PRECOMPILED_RUNTIME)
+      return strdup("Precompiled runtime requires a precompiled snapshot");
+#else
+      snapshot_kind_ = Snapshot::kNone;
+      StubCode::InitOnce();
       Symbols::InitOnce(vm_isolate_);
+#endif
     }
     // We need to initialize the constants here for the vm isolate thread due to
     // bootstrapping issues.
@@ -208,7 +278,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
     // Dart VM requires at least SSE2.
     if (!TargetCPUFeatures::sse2_supported()) {
-      return "SSE2 is required.";
+      return strdup("SSE2 is required.");
     }
 #endif
     {
@@ -438,11 +508,13 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
           String::New("Invalid snapshot."));
       return ApiError::New(message);
     }
-    ASSERT(snapshot->kind() == Snapshot::kFull);
+    ASSERT(Snapshot::IsFull(snapshot->kind()));
+    ASSERT(snapshot->kind() == snapshot_kind_);
     if (FLAG_trace_isolates) {
       OS::Print("Size of isolate snapshot = %" Pd "\n", snapshot->length());
     }
-    IsolateSnapshotReader reader(snapshot->content(),
+    IsolateSnapshotReader reader(snapshot->kind(),
+                                 snapshot->content(),
                                  snapshot->length(),
                                  Dart::instructions_snapshot_buffer(),
                                  Dart::data_snapshot_buffer(),
@@ -462,11 +534,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
       MegamorphicCacheTable::PrintSizes(I);
     }
   } else {
-    // Populate the isolate's symbol table with all symbols from the
-    // VM isolate. We do this so that when we generate a full snapshot
-    // for the isolate we have a unified symbol table that we can then
-    // read into the VM isolate.
-    Symbols::AddPredefinedSymbolsToIsolate();
+    ASSERT(snapshot_kind_ == Snapshot::kNone);
   }
 
   Object::VerifyBuiltinVtables();
@@ -481,7 +549,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // When running precompiled, the megamorphic miss function/code comes from the
   // snapshot.
-  if (!Dart::IsRunningPrecompiledCode()) {
+  if (!Snapshot::IncludesCode(Dart::snapshot_kind())) {
     MegamorphicCacheTable::InitMissHandler(I);
   }
 #endif
@@ -526,6 +594,58 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
         GrowableObjectArray::Handle(GrowableObjectArray::New()));
   }
   return Error::null();
+}
+
+
+const char* Dart::FeaturesString(Snapshot::Kind kind) {
+  TextBuffer buffer(64);
+
+  // Different fields are included for DEBUG/RELEASE/PRODUCT.
+#if defined(DEBUG)
+  buffer.AddString("debug");
+#elif defined(PRODUCT)
+  buffer.AddString("product");
+#else
+  buffer.AddString("release");
+#endif
+
+  if (Snapshot::IncludesCode(kind)) {
+    // Checked mode affects deopt ids.
+    buffer.AddString(FLAG_enable_asserts ? " asserts" : " no-asserts");
+    buffer.AddString(FLAG_enable_type_checks ? " type-checks"
+                                             : " no-type-checks");
+
+    // Generated code must match the host architecture and ABI.
+#if defined(TARGET_ARCH_ARM)
+#if defined(TARGET_ABI_IOS)
+    buffer.AddString(" arm-ios");
+#elif defined(TARGET_ABI_EABI)
+    buffer.AddString(" arm-eabi");
+#else
+#error Unknown ABI
+#endif
+    buffer.AddString(TargetCPUFeatures::hardfp_supported() ? " hardfp"
+                                                           : " softfp");
+#elif defined(TARGET_ARCH_ARM64)
+    buffer.AddString(" arm64");
+#elif defined(TARGET_ARCH_MIPS)
+    buffer.AddString(" mips");
+#elif defined(TARGET_ARCH_IA32)
+    buffer.AddString(" ia32");
+#elif defined(TARGET_ARCH_X64)
+#if defined(_WIN64)
+    buffer.AddString(" x64-win");
+#else
+    buffer.AddString(" x64-sysv");
+#endif
+#elif defined(TARGET_ARCH_DBC)
+    buffer.AddString(" dbc");
+#elif defined(TARGET_ARCH_DBC64)
+    buffer.AddString(" dbc64");
+#endif
+  }
+
+  return buffer.Steal();
 }
 
 

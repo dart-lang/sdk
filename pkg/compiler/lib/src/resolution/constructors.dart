@@ -77,7 +77,7 @@ class InitializerResolver {
     if (initialized.containsKey(field)) {
       reportDuplicateInitializerError(field, init, initialized[field]);
     } else if (field.isFinal) {
-      field.parseNode(visitor.resolution.parsing);
+      field.parseNode(visitor.resolution.parsingContext);
       Expression initializer = field.initializer;
       if (initializer != null) {
         reportDuplicateInitializerError(
@@ -171,7 +171,6 @@ class InitializerResolver {
     ConstructorElement foundConstructor =
         findConstructor(constructor.library, lookupTarget, constructorName);
 
-    final bool isImplicitSuperCall = false;
     final String className = lookupTarget.name;
     CallStructure callStructure = argumentsResult.callStructure;
     ConstructorElement calledConstructor = verifyThatConstructorMatchesCall(
@@ -250,7 +249,7 @@ class InitializerResolver {
   /// reported and an [ErroneousConstructorElement] is returned.
   ConstructorElement verifyThatConstructorMatchesCall(
       Node node,
-      ConstructorElementX lookedupConstructor,
+      ConstructorElement lookedupConstructor,
       CallStructure callStructure,
       String className,
       {String constructorName: '',
@@ -720,7 +719,17 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
   ConstructorResult constructorResultForType(Node node, DartType type,
       {PrefixElement prefix}) {
     String name = type.name;
-    if (type.isMalformed) {
+    if (type.isTypeVariable) {
+      return reportAndCreateErroneousConstructorElement(
+          node,
+          ConstructorResultKind.INVALID_TYPE,
+          type,
+          resolver.enclosingElement,
+          name,
+          MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
+          {'typeVariableName': name});
+    } else if (type.isMalformed) {
+      // `type is MalformedType`: `MethodTypeVariableType` is handled above.
       return new ConstructorResult.forError(
           ConstructorResultKind.INVALID_TYPE, type.element, type);
     } else if (type.isInterfaceType) {
@@ -734,15 +743,6 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
           name,
           MessageKind.CANNOT_INSTANTIATE_TYPEDEF,
           {'typedefName': name});
-    } else if (type.isTypeVariable) {
-      return reportAndCreateErroneousConstructorElement(
-          node,
-          ConstructorResultKind.INVALID_TYPE,
-          type,
-          resolver.enclosingElement,
-          name,
-          MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
-          {'typeVariableName': name});
     }
     return reporter.internalError(node, "Unexpected constructor type $type");
   }

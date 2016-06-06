@@ -45,8 +45,10 @@ class RawError;
 class RawGrowableObjectArray;
 class RawString;
 class RuntimeEntry;
+class Smi;
 class StackResource;
 class String;
+class TimelineStream;
 class TypeArguments;
 class TypeParameter;
 class Zone;
@@ -65,16 +67,16 @@ class Zone;
   V(Library)                                                                   \
   V(Object)                                                                    \
   V(PcDescriptors)                                                             \
+  V(Smi)                                                                       \
   V(String)                                                                    \
   V(TypeArguments)                                                             \
   V(TypeParameter)                                                             \
 
 
-// List of VM-global objects/addresses cached in each Thread object.
-#define CACHED_VM_OBJECTS_LIST(V)                                              \
-  V(RawObject*, object_null_, Object::null(), NULL)                            \
-  V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
-  V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)                   \
+#if defined(TARGET_ARCH_DBC)
+#define CACHED_VM_STUBS_LIST(V)
+#else
+#define CACHED_VM_STUBS_LIST(V)                                                \
   V(RawCode*, update_store_buffer_code_,                                       \
     StubCode::UpdateStoreBuffer_entry()->code(), NULL)                         \
   V(RawCode*, fix_callers_target_code_,                                        \
@@ -86,11 +88,28 @@ class Zone;
   V(RawCode*, call_to_runtime_stub_,                                           \
     StubCode::CallToRuntime_entry()->code(), NULL)                             \
 
-#define CACHED_ADDRESSES_LIST(V)                                               \
+#endif
+
+// List of VM-global objects/addresses cached in each Thread object.
+#define CACHED_VM_OBJECTS_LIST(V)                                              \
+  V(RawObject*, object_null_, Object::null(), NULL)                            \
+  V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
+  V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)                   \
+  CACHED_VM_STUBS_LIST(V)                                                      \
+
+#if defined(TARGET_ARCH_DBC)
+#define CACHED_VM_STUBS_ADDRESSES_LIST(V)
+#else
+#define CACHED_VM_STUBS_ADDRESSES_LIST(V)                                      \
   V(uword, update_store_buffer_entry_point_,                                   \
     StubCode::UpdateStoreBuffer_entry()->EntryPoint(), 0)                      \
   V(uword, call_to_runtime_entry_point_,                                       \
     StubCode::CallToRuntime_entry()->EntryPoint(), 0)                          \
+
+#endif
+
+#define CACHED_ADDRESSES_LIST(V)                                               \
+  CACHED_VM_STUBS_ADDRESSES_LIST(V)                                            \
   V(uword, native_call_wrapper_entry_point_,                                   \
     NativeEntry::NativeCallWrapperEntry(), 0)                                  \
   V(RawString**, predefined_symbols_address_,                                  \
@@ -175,6 +194,13 @@ class Thread : public BaseThread {
   // The true stack limit for this isolate.
   uword saved_stack_limit() const { return saved_stack_limit_; }
 
+#if defined(TARGET_ARCH_DBC)
+  // Access to the current stack limit for DBC interpreter.
+  uword stack_limit() const {
+    return stack_limit_;
+  }
+#endif
+
   // Stack overflow flags
   enum {
     kOsrRequest = 0x1,  // Current stack overflow caused by OSR request.
@@ -244,6 +270,11 @@ class Thread : public BaseThread {
   }
   bool IsMutatorThread() const;
   bool CanCollectGarbage() const;
+
+  // Offset of Dart TimelineStream object.
+  static intptr_t dart_stream_offset() {
+    return OFFSET_OF(Thread, dart_stream_);
+  }
 
   // Is |this| executing Dart code?
   bool IsExecutingDartCode() const;
@@ -628,6 +659,7 @@ RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #undef DECLARE_MEMBERS
 
+  TimelineStream* dart_stream_;
   OSThread* os_thread_;
   Monitor* thread_lock_;
   Zone* zone_;
@@ -643,6 +675,7 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #endif
   VMHandles reusable_handles_;
   uword saved_stack_limit_;
+  intptr_t defer_oob_messages_count_;
   uint16_t deferred_interrupts_mask_;
   uint16_t deferred_interrupts_;
   int32_t stack_overflow_count_;

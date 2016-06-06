@@ -9,12 +9,12 @@ library dart2js.source_information.start_end;
 
 import '../common.dart';
 import '../diagnostics/messages.dart' show MessageTemplate;
-import '../elements/elements.dart' show AstElement, LocalElement;
+import '../elements/elements.dart'
+    show AstElement, ResolvedAst, ResolvedAstKind;
 import '../js/js.dart' as js;
 import '../js/js_source_mapping.dart';
 import '../tokens/token.dart' show Token;
-import '../tree/tree.dart' show Node, Send;
-
+import '../tree/tree.dart' show Node;
 import 'source_file.dart';
 import 'source_information.dart';
 
@@ -61,30 +61,27 @@ class StartEndSourceInformation extends SourceInformation {
   // TODO(johnniwinther): Inline this in
   // [StartEndSourceInformationBuilder.buildDeclaration].
   static StartEndSourceInformation _computeSourceInformation(
-      AstElement element) {
-    AstElement implementation = element.implementation;
-    SourceFile sourceFile = implementation.compilationUnit.script.file;
-    String name = computeElementNameForSourceMaps(element);
-    Node node = implementation.node;
-    Token beginToken;
-    Token endToken;
-    if (node == null) {
+      ResolvedAst resolvedAst) {
+    String name = computeElementNameForSourceMaps(resolvedAst.element);
+    SourceFile sourceFile = computeSourceFile(resolvedAst);
+    int begin;
+    int end;
+    if (resolvedAst.kind != ResolvedAstKind.PARSED) {
       // Synthesized node. Use the enclosing element for the location.
-      beginToken = endToken = element.position;
+      begin = end = resolvedAst.element.sourcePosition.begin;
     } else {
-      beginToken = node.getBeginToken();
-      endToken = node.getEndToken();
+      Node node = resolvedAst.node;
+      begin = node.getBeginToken().charOffset;
+      end = node.getEndToken().charOffset;
     }
     // TODO(johnniwinther): find the right sourceFile here and remove offset
     // checks below.
     SourceLocation sourcePosition, endSourcePosition;
-    if (beginToken.charOffset < sourceFile.length) {
-      sourcePosition =
-          new OffsetSourceLocation(sourceFile, beginToken.charOffset, name);
+    if (begin < sourceFile.length) {
+      sourcePosition = new OffsetSourceLocation(sourceFile, begin, name);
     }
-    if (endToken.charOffset < sourceFile.length) {
-      endSourcePosition =
-          new OffsetSourceLocation(sourceFile, endToken.charOffset, name);
+    if (end < sourceFile.length) {
+      endSourcePosition = new OffsetSourceLocation(sourceFile, end, name);
     }
     return new StartEndSourceInformation(sourcePosition, endSourcePosition);
   }
@@ -116,8 +113,8 @@ class StartEndSourceInformationStrategy
   const StartEndSourceInformationStrategy();
 
   @override
-  SourceInformationBuilder createBuilderForContext(AstElement element) {
-    return new StartEndSourceInformationBuilder(element);
+  SourceInformationBuilder createBuilderForContext(ResolvedAst resolvedAst) {
+    return new StartEndSourceInformationBuilder(resolvedAst);
   }
 
   @override
@@ -158,12 +155,12 @@ class StartEndSourceInformationBuilder extends SourceInformationBuilder {
   final SourceFile sourceFile;
   final String name;
 
-  StartEndSourceInformationBuilder(AstElement element)
-      : sourceFile = element.compilationUnit.script.file,
-        name = computeElementNameForSourceMaps(element);
+  StartEndSourceInformationBuilder(ResolvedAst resolvedAst)
+      : sourceFile = computeSourceFile(resolvedAst),
+        name = computeElementNameForSourceMaps(resolvedAst.element);
 
-  SourceInformation buildDeclaration(AstElement element) {
-    return StartEndSourceInformation._computeSourceInformation(element);
+  SourceInformation buildDeclaration(ResolvedAst resolvedAst) {
+    return StartEndSourceInformation._computeSourceInformation(resolvedAst);
   }
 
   SourceLocation sourceFileLocationForToken(Token token) {
@@ -219,8 +216,8 @@ class StartEndSourceInformationBuilder extends SourceInformationBuilder {
   SourceInformation buildIf(Node node) => buildGeneric(node);
 
   @override
-  SourceInformationBuilder forContext(AstElement element,
+  SourceInformationBuilder forContext(ResolvedAst resolvedAst,
       {SourceInformation sourceInformation}) {
-    return new StartEndSourceInformationBuilder(element);
+    return new StartEndSourceInformationBuilder(resolvedAst);
   }
 }

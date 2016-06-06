@@ -33,4 +33,8 @@ class IsolateViewElement extends ObservatoryElement {
       await isolate.topFrame.function.load();
     }
   }
+
+  Future reloadSources() {
+    return isolate.reloadSources();
+  }
 }

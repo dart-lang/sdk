@@ -14,6 +14,7 @@
 #include "vm/object_store.h"
 #include "vm/regexp_assembler.h"
 #include "vm/symbols.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -31,15 +32,26 @@ namespace dart {
 intptr_t Intrinsifier::ParameterSlotFromSp() { return 0; }
 
 
+static bool IsABIPreservedRegister(Register reg) {
+  return ((1 << reg) & CallingConventions::kCalleeSaveCpuRegisters) != 0;
+}
+
+
 void Intrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
+  ASSERT(IsABIPreservedRegister(CODE_REG));
+  ASSERT(!IsABIPreservedRegister(ARGS_DESC_REG));
+  ASSERT(IsABIPreservedRegister(CALLEE_SAVED_TEMP));
+  ASSERT(CALLEE_SAVED_TEMP != CODE_REG);
+  ASSERT(CALLEE_SAVED_TEMP != ARGS_DESC_REG);
+
   assembler->Comment("IntrinsicCallPrologue");
-  assembler->movq(CALLEE_SAVED_TEMP, R10);
+  assembler->movq(CALLEE_SAVED_TEMP, ARGS_DESC_REG);
 }
 
 
 void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
   assembler->Comment("IntrinsicCallEpilogue");
-  assembler->movq(R10, CALLEE_SAVED_TEMP);
+  assembler->movq(ARGS_DESC_REG, CALLEE_SAVED_TEMP);
 }
 
 
@@ -141,8 +153,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_factor)          \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 1 * kWordSize;                      \
-  __ MaybeTraceAllocation(cid, &fall_through, false,                           \
-                          /* inline_isolate = */ false);                       \
+  __ MaybeTraceAllocation(cid, &fall_through, false);                          \
   __ movq(RDI, Address(RSP, kArrayLengthStackOffset));  /* Array length. */    \
   /* Check that length is a positive Smi. */                                   \
   /* RDI: requested array length argument. */                                  \
@@ -186,8 +197,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* next object start and initialize the object. */                           \
   __ movq(Address(R13, Heap::TopOffset(space)), RCX);                          \
   __ addq(RAX, Immediate(kHeapObjectTag));                                     \
-  __ UpdateAllocationStatsWithSize(cid, RDI, space,                            \
-                                   /* inline_isolate = */ false);              \
+  __ UpdateAllocationStatsWithSize(cid, RDI, space);                           \
   /* Initialize the tags. */                                                   \
   /* RAX: new object start as a tagged pointer. */                             \
   /* RCX: new object end address. */                                           \
@@ -1554,7 +1564,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ movzxw(RCX, FieldAddress(RDI, Class::num_type_arguments_offset()));
   __ cmpq(RCX, Immediate(0));
   __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
-  __ movq(RAX, FieldAddress(RDI, Class::canonical_types_offset()));
+  __ movq(RAX, FieldAddress(RDI, Class::canonical_type_offset()));
   __ CompareObject(RAX, Object::null_object());
   __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Not yet set.
   __ ret();
@@ -1572,35 +1582,6 @@ void Intrinsifier::String_getHashCode(Assembler* assembler) {
   __ ret();
   __ Bind(&fall_through);
   // Hash not yet computed.
-}
-
-
-void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
-  Label fall_through, try_two_byte_string;
-  __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
-  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // String.
-  __ testq(RCX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
-  // Range check.
-  __ cmpq(RCX, FieldAddress(RAX, String::length_offset()));
-  // Runtime throws exception.
-  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
-  __ CompareClassId(RAX, kOneByteStringCid);
-  __ j(NOT_EQUAL, &try_two_byte_string, Assembler::kNearJump);
-  __ SmiUntag(RCX);
-  __ movzxb(RAX, FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()));
-  __ SmiTag(RAX);
-  __ ret();
-
-  __ Bind(&try_two_byte_string);
-  __ CompareClassId(RAX, kTwoByteStringCid);
-  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
-  ASSERT(kSmiTagShift == 1);
-  __ movzxw(RAX, FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()));
-  __ SmiTag(RAX);
-  __ ret();
-
-  __ Bind(&fall_through);
 }
 
 
@@ -1845,8 +1826,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* ok,
                                      Label* failure,
                                      Register length_reg) {
-  __ MaybeTraceAllocation(kOneByteStringCid, failure, false,
-                          /* inline_isolate = */ false);
+  __ MaybeTraceAllocation(kOneByteStringCid, failure, false);
   if (length_reg != RDI) {
     __ movq(RDI, length_reg);
   }
@@ -1879,8 +1859,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // next object start and initialize the object.
   __ movq(Address(R13, Heap::TopOffset(space)), RCX);
   __ addq(RAX, Immediate(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(cid, RDI, space,
-                                   /* inline_isolate = */ false);
+  __ UpdateAllocationStatsWithSize(cid, RDI, space);
 
   // Initialize the tags.
   // RAX: new object start as a tagged pointer.
@@ -2116,6 +2095,29 @@ void Intrinsifier::UserTag_defaultTag(Assembler* assembler) {
 void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
   __ LoadIsolate(RAX);
   __ movq(RAX, Address(RAX, Isolate::current_tag_offset()));
+  __ ret();
+}
+
+
+void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler) {
+  if (!FLAG_support_timeline) {
+    __ LoadObject(RAX, Bool::False());
+    __ ret();
+    return;
+  }
+  Label true_label;
+  // Load TimelineStream*.
+  __ movq(RAX, Address(THR, Thread::dart_stream_offset()));
+  // Load uintptr_t from TimelineStream*.
+  __ movq(RAX, Address(RAX, TimelineStream::enabled_offset()));
+  __ cmpq(RAX, Immediate(0));
+  __ j(NOT_ZERO, &true_label, Assembler::kNearJump);
+  // Not enabled.
+  __ LoadObject(RAX, Bool::False());
+  __ ret();
+  // Enabled.
+  __ Bind(&true_label);
+  __ LoadObject(RAX, Bool::True());
   __ ret();
 }
 

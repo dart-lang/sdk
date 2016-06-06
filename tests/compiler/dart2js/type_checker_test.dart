@@ -2513,13 +2513,13 @@ analyzeTopLevel(String text, [expectedWarnings]) {
         classElement.forEachLocalMember((Element e) {
           if (!e.isSynthesized) {
             element = e;
-            node = element.parseNode(compiler.parsing);
+            node = element.parseNode(compiler.parsingContext);
             compiler.resolver.resolve(element);
             mapping = element.treeElements;
           }
         });
       } else {
-        node = element.parseNode(compiler.parsing);
+        node = element.parseNode(compiler.parsingContext);
         compiler.resolver.resolve(element);
         mapping = element.treeElements;
       }
@@ -2563,14 +2563,14 @@ analyze(MockCompiler compiler,
     new CompilationUnitElementX(new Script(null, null, null), compiler.mainApp);
   Element function = new MockElement(compilationUnit);
   TreeElements elements = compiler.resolveNodeStatement(node, function);
-  compiler.enqueuer.resolution.emptyDeferredTaskQueue();
+  compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
   TypeCheckerVisitor checker = new TypeCheckerVisitor(
       compiler, elements, compiler.types);
   DiagnosticCollector collector = compiler.diagnosticCollector;
   collector.clear();
   checker.analyze(node);
   if (flushDeferred) {
-    compiler.enqueuer.resolution.emptyDeferredTaskQueue();
+    compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
   }
   compareWarningKinds(text, warnings, collector.warnings);
   compareWarningKinds(text, errors, collector.errors);

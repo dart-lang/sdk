@@ -13,6 +13,7 @@ import "dart:io";
 import "dart:typed_data";
 
 import "package:async_helper/async_helper.dart";
+import "package:convert/convert.dart";
 import "package:crypto/crypto.dart";
 import "package:expect/expect.dart";
 import "package:path/path.dart";
@@ -467,8 +468,8 @@ class SecurityConfiguration {
         Expect.equals('websocket', request.headers.value(HttpHeaders.UPGRADE));
 
         var key = request.headers.value('Sec-WebSocket-Key');
-        var sha1 = new SHA1()..add("$key$WEB_SOCKET_GUID".codeUnits);
-        var accept = CryptoUtils.bytesToBase64(sha1.close());
+        var digest = sha1.convert("$key$WEB_SOCKET_GUID".codeUnits);
+        var accept = BASE64.encode(digest.bytes);
         request.response
             ..statusCode = HttpStatus.SWITCHING_PROTOCOLS
             ..headers.add(HttpHeaders.CONNECTION, "Upgrade")
@@ -535,7 +536,7 @@ class SecurityConfiguration {
       server.listen((request) {
         Expect.isTrue(WebSocketTransformer.isUpgradeRequest(request));
         String auth =
-              CryptoUtils.bytesToBase64(UTF8.encode(userInfo));
+              BASE64.encode(UTF8.encode(userInfo));
         Expect.equals('Basic $auth', request.headers['Authorization'][0]);
         Expect.equals(1, request.headers['Authorization'].length);
         WebSocketTransformer.upgrade(request).then((webSocket) {

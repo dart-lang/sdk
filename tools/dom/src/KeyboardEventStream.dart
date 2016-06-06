@@ -16,7 +16,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
    * The set of keys that have been pressed down without seeing their
    * corresponding keyup event.
    */
-  final List<KeyboardEvent> _keyDownList = <KeyboardEvent>[];
+  final List<KeyEvent> _keyDownList = <KeyEvent>[];
 
   /** The type of KeyEvent we are tracking (keyup, keydown, keypress). */
   final String _type;
@@ -75,8 +75,9 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
    * General constructor, performs basic initialization for our improved
    * KeyboardEvent controller.
    */
-  _KeyboardEventHandler(this._type): super(_EVENT_TYPE),
-      _stream = new _CustomKeyEventStreamImpl('event'), _target = null;
+  _KeyboardEventHandler(this._type):
+      _stream = new _CustomKeyEventStreamImpl('event'), _target = null,
+      super(_EVENT_TYPE);
 
   /**
    * Hook up all event listeners under the covers so we can estimate keycodes

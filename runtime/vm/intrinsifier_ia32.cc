@@ -21,6 +21,7 @@
 #include "vm/os.h"
 #include "vm/regexp_assembler.h"
 #include "vm/symbols.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -40,16 +41,16 @@ intptr_t Intrinsifier::ParameterSlotFromSp() { return 0; }
 
 
 void Intrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
+  COMPILE_ASSERT(CALLEE_SAVED_TEMP != ARGS_DESC_REG);
+
   assembler->Comment("IntrinsicCallPrologue");
-  assembler->movl(CALLEE_SAVED_TEMP, ICREG);
-  assembler->movl(CALLEE_SAVED_TEMP2, ARGS_DESC_REG);
+  assembler->movl(CALLEE_SAVED_TEMP, ARGS_DESC_REG);
 }
 
 
 void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
   assembler->Comment("IntrinsicCallEpilogue");
-  assembler->movl(ICREG, CALLEE_SAVED_TEMP);
-  assembler->movl(ARGS_DESC_REG, CALLEE_SAVED_TEMP2);
+  assembler->movl(ARGS_DESC_REG, CALLEE_SAVED_TEMP);
 }
 
 
@@ -199,8 +200,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_factor)          \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 1 * kWordSize;                      \
-  __ MaybeTraceAllocation(cid, EDI, &fall_through, false,                      \
-                          /* inline_isolate = */ false);                       \
+  __ MaybeTraceAllocation(cid, EDI, &fall_through, false);                     \
   __ movl(EDI, Address(ESP, kArrayLengthStackOffset));  /* Array length. */    \
   /* Check that length is a positive Smi. */                                   \
   /* EDI: requested array length argument. */                                  \
@@ -244,8 +244,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* next object start and initialize the object. */                           \
   __ movl(Address(ECX, Heap::TopOffset(space)), EBX);                          \
   __ addl(EAX, Immediate(kHeapObjectTag));                                     \
-  __ UpdateAllocationStatsWithSize(cid, EDI, ECX, space,                       \
-                                   /* inline_isolate = */ false);              \
+  __ UpdateAllocationStatsWithSize(cid, EDI, ECX, space);                      \
                                                                                \
   /* Initialize the tags. */                                                   \
   /* EAX: new object start as a tagged pointer. */                             \
@@ -1699,7 +1698,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ movzxw(EDI, FieldAddress(EBX, Class::num_type_arguments_offset()));
   __ cmpl(EDI, Immediate(0));
   __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
-  __ movl(EAX, FieldAddress(EBX, Class::canonical_types_offset()));
+  __ movl(EAX, FieldAddress(EBX, Class::canonical_type_offset()));
   __ CompareObject(EAX, Object::null_object());
   __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Not yet set.
   __ ret();
@@ -1717,35 +1716,6 @@ void Intrinsifier::String_getHashCode(Assembler* assembler) {
   __ ret();
   __ Bind(&fall_through);
   // Hash not yet computed.
-}
-
-
-void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
-  Label fall_through, try_two_byte_string;
-  __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
-  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // String.
-  __ testl(EBX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
-  // Range check.
-  __ cmpl(EBX, FieldAddress(EAX, String::length_offset()));
-  // Runtime throws exception.
-  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
-  __ CompareClassId(EAX, kOneByteStringCid, EDI);
-  __ j(NOT_EQUAL, &try_two_byte_string, Assembler::kNearJump);
-  __ SmiUntag(EBX);
-  __ movzxb(EAX, FieldAddress(EAX, EBX, TIMES_1, OneByteString::data_offset()));
-  __ SmiTag(EAX);
-  __ ret();
-
-  __ Bind(&try_two_byte_string);
-  __ CompareClassId(EAX, kTwoByteStringCid, EDI);
-  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
-  ASSERT(kSmiTagShift == 1);
-  __ movzxw(EAX, FieldAddress(EAX, EBX, TIMES_1, TwoByteString::data_offset()));
-  __ SmiTag(EAX);
-  __ ret();
-
-  __ Bind(&fall_through);
 }
 
 
@@ -1889,8 +1859,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* ok,
                                      Label* failure,
                                      Register length_reg) {
-  __ MaybeTraceAllocation(kOneByteStringCid, EAX, failure, false,
-                          /* inline_isolate = */ false);
+  __ MaybeTraceAllocation(kOneByteStringCid, EAX, failure, false);
   if (length_reg != EDI) {
     __ movl(EDI, length_reg);
   }
@@ -1924,8 +1893,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ movl(Address(ECX, Heap::TopOffset(space)), EBX);
   __ addl(EAX, Immediate(kHeapObjectTag));
 
-  __ UpdateAllocationStatsWithSize(cid, EDI, ECX, space,
-                                   /* inline_isolate = */ false);
+  __ UpdateAllocationStatsWithSize(cid, EDI, ECX, space);
 
   // Initialize the tags.
   // EAX: new object start as a tagged pointer.
@@ -2164,7 +2132,31 @@ void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
   __ ret();
 }
 
+
+void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler) {
+  if (!FLAG_support_timeline) {
+    __ LoadObject(EAX, Bool::False());
+    __ ret();
+    return;
+  }
+  Label true_label;
+  // Load TimelineStream*.
+  __ movl(EAX, Address(THR, Thread::dart_stream_offset()));
+  // Load uintptr_t from TimelineStream*.
+  __ movl(EAX, Address(EAX, TimelineStream::enabled_offset()));
+  __ cmpl(EAX, Immediate(0));
+  __ j(NOT_ZERO, &true_label, Assembler::kNearJump);
+  // Not enabled.
+  __ LoadObject(EAX, Bool::False());
+  __ ret();
+  // Enabled.
+  __ Bind(&true_label);
+  __ LoadObject(EAX, Bool::True());
+  __ ret();
+}
+
 #undef __
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32

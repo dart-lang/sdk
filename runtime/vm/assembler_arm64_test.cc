@@ -1687,8 +1687,6 @@ static void LeaveTestFrame(Assembler* assembler) {
 }
 
 
-
-
 // Loading immediate values with the object pool.
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPSmall, assembler) {
   __ SetupDartSP(kTestStackSpace);

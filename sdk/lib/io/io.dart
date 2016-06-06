@@ -190,7 +190,7 @@
  * tour](https://www.dartlang.org/docs/dart-up-and-running/ch03.html#dartio---io-for-command-line-apps).
  *
  * To learn more about I/O in Dart, refer to the [tutorial about writing
- * command-line apps](https://www.dartlang.org/docs/tutorials/io/).
+ * command-line apps](https://www.dartlang.org/docs/tutorials/cmdline/).
  */
 library dart.io;
 

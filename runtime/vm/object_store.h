@@ -247,6 +247,13 @@ class ObjectStore {
   RawArray* symbol_table() const { return symbol_table_; }
   void set_symbol_table(const Array& value) { symbol_table_ = value.raw(); }
 
+  RawArray* canonical_types() const {
+    return canonical_types_;
+  }
+  void set_canonical_types(const Array& value) {
+    canonical_types_ = value.raw();
+  }
+
   RawArray* canonical_type_arguments() const {
     return canonical_type_arguments_;
   }
@@ -330,6 +337,11 @@ class ObjectStore {
   RawGrowableObjectArray* libraries() const { return libraries_; }
   void set_libraries(const GrowableObjectArray& value) {
     libraries_ = value.raw();
+  }
+
+  RawArray* libraries_map() const { return libraries_map_; }
+  void set_libraries_map(const Array& value) {
+    libraries_map_ = value.raw();
   }
 
   RawGrowableObjectArray* closure_functions() const {
@@ -531,6 +543,7 @@ class ObjectStore {
   RawClass* error_class_;
   RawClass* weak_property_class_;
   RawArray* symbol_table_;
+  RawArray* canonical_types_;
   RawArray* canonical_type_arguments_;
   RawLibrary* async_library_;
   RawLibrary* builtin_library_;
@@ -548,6 +561,7 @@ class ObjectStore {
   RawLibrary* typed_data_library_;
   RawLibrary* vmservice_library_;
   RawGrowableObjectArray* libraries_;
+  RawArray* libraries_map_;
   RawGrowableObjectArray* closure_functions_;
   RawGrowableObjectArray* pending_classes_;
   RawGrowableObjectArray* pending_deferred_loads_;
@@ -564,9 +578,6 @@ class ObjectStore {
   RawFunction* handle_message_function_;
   RawArray* library_load_error_table_;
   RawArray* compile_time_constants_;
-  RawObject** to_snapshot() {
-    return reinterpret_cast<RawObject**>(&compile_time_constants_);
-  }
   RawArray* unique_dynamic_targets_;
   RawGrowableObjectArray* token_objects_;
   RawArray* token_objects_map_;
@@ -575,6 +586,22 @@ class ObjectStore {
   RawFunction* megamorphic_miss_function_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&megamorphic_miss_function_);
+  }
+  RawObject** to_snapshot(Snapshot::Kind kind) {
+    switch (kind) {
+      case Snapshot::kCore:
+        return reinterpret_cast<RawObject**>(&compile_time_constants_);
+      case Snapshot::kAppWithJIT:
+      case Snapshot::kAppNoJIT:
+        return to();
+      case Snapshot::kScript:
+      case Snapshot::kMessage:
+      case Snapshot::kNone:
+      case Snapshot::kInvalid:
+        break;
+    }
+    UNREACHABLE();
+    return NULL;
   }
 
   friend class FullSnapshotWriter;

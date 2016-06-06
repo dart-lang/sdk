@@ -597,12 +597,15 @@ class ScriptInsetElement extends ObservatoryElement {
     for (var range in sourceReport['ranges']) {
       int startLine = script.tokenToLine(range['startPos']);
       int endLine = script.tokenToLine(range['endPos']);
-      for (var line = startLine; line <= endLine; line++) {
-        var rangeList = _rangeMap[line];
-        if (rangeList == null) {
-          _rangeMap[line] = [range];
-        } else {
-          rangeList.add(range);
+      // TODO(turnidge): Track down the root cause of null startLine/endLine.
+      if ((startLine != null) && (endLine != null)) {
+        for (var line = startLine; line <= endLine; line++) {
+          var rangeList = _rangeMap[line];
+          if (rangeList == null) {
+            _rangeMap[line] = [range];
+          } else {
+            rangeList.add(range);
+          }
         }
       }
       if (_includeProfile && range['profile'] != null) {

@@ -15,8 +15,6 @@ from htmlrenamer import custom_html_constructors, html_interface_renames, \
     typed_array_renames
 
 _pure_interfaces = monitored.Set('generator._pure_interfaces', [
-    # TODO(sra): DOMStringMap should be a class implementing Map<String,String>.
-    'DOMStringMap',
     'AbstractWorker',
     'CanvasPathMethods',
     'ChildNode',
@@ -56,8 +54,154 @@ _pure_interfaces = monitored.Set('generator._pure_interfaces', [
     'WindowTimers',
     ])
 
-def IsPureInterface(interface_name):
-  return interface_name in _pure_interfaces
+_safe_interfaces = monitored.Set('generator._safe_interfaces', [
+    'double',
+    'Float32Array',
+    'Float64Array',
+    'Int8Array',
+    'Int16Array',
+    'Int32Array',
+    'Uint8Array',
+    'Uint8ClampedArray',
+    'Uint16Array',
+    'Uint32Array',
+    'ArrayBufferView',
+    'ArrayBuffer',
+    'SourceBuffer', # IDL lies about this class being a pure interface.
+    'Console', # this one is a bit of a hack as our console implementation
+              # in dart:html is non-standard for legacy reasons.
+    'AudioContext',
+    'AudioSourceNode',
+    'WebGLVertexArrayObjectOES', # Added a polyfill for this.
+    # Types where we can get access to the prototype easily enough.
+    # We might consider in the future treating these are regular interface types.
+    'StereoPannerNode',
+    'PannerNode',
+    'AudioNode',
+    'FontFaceSet',
+    'MemoryInfo',
+    'ConsoleBase',
+    'Geolocation',
+    'Animation',
+    'SourceBufferList',
+    'GamepadList',
+
+    # The following classes are enabled just to get the build to go.
+    # SpeechRecognitionResultList isn't really allowed but the codegen creates
+    # invalid output otherwise.
+
+    'SpeechRecognitionResultList',
+    'SQLResultSetRowList',
+    ])
+
+# These are interfaces that we have to treat as safe for dart2js and dartium
+# but going in dev compiler we should not treat as safe as these classes
+# really aren't guaranteed to have a stable interface name.
+_safe_interfaces_legacy = monitored.Set('generator._safe_interfaces_legacy', [
+    'ANGLEInstancedArrays',
+    'Bluetooth',
+    'Body',
+    'NonDocumentTypeChildNode',
+    'CHROMIUMSubscribeUniform',
+    'CHROMIUMValuebuffer',
+    'GeofencingRegion',
+    'Coordinates',
+    'DOMFileSystem',
+    'DirectoryEntry',
+    'DOMFileSystemSync',
+    'Entry',
+    'Database',
+    'DeprecatedStorageInfo',
+    'DeprecatedStorageQuota',
+    'DeviceAcceleration',
+    'DeviceRotationRate',
+    'DirectoryReader',
+    'EntrySync',
+    'DirectoryEntrySync',
+    'DirectoryReaderSync',
+    'NonElementParentNode',
+    'EXTBlendMinMax',
+    'EXTFragDepth',
+    'EXTShaderTextureLOD',
+    'EXTTextureFilterAnisotropic',
+    'EXTsRGB',
+    'EffectModel',
+    'FileEntry',
+    'FileEntrySync',
+    'FileWriter',
+    'FileWriterSync',
+    'FontFaceSetLoadEvent',
+    'Geofencing',
+    'Geoposition',
+    'Iterator',
+    'MediaDeviceInfo',
+    'MediaStreamTrackEvent',
+    'Metadata',
+    'NavigatorStorageUtils',
+    'StorageQuota',
+    'NavigatorUserMediaError',
+    'OESElementIndexUint',
+    'OESStandardDerivatives',
+    'OESTextureFloat',
+    'OESTextureFloatLinear',
+    'OESTextureHalfFloat',
+    'OESTextureHalfFloatLinear',
+    'OESVertexArrayObject',
+    'PagePopupController',
+    'PluginPlaceholderElement',
+    'PositionError',
+    'RTCDTMFSender',
+    'RTCDataChannel',
+    'RTCDataChannelEvent',
+    'RTCIceCandidateEvent',
+    'RTCStatsReport',
+    'RTCStatsResponse',
+    'ReadableByteStreamReader',
+    'ReadableStreamReader',
+    'ResourceProgressEvent',
+    'SQLError',
+    'SQLResultSet',
+    'SQLTransaction',
+    'SharedArrayBuffer',
+    'SourceInfo',
+    'SpeechRecognitionAlternative',
+    'SpeechRecognitionResult',
+    'SpeechSynthesis',
+    'SpeechSynthesisVoice',
+    'StorageInfo',
+    'StyleMedia',
+    'WebGL2RenderingContextBase',
+    'WebGLCompressedTextureATC',
+    'WebGLCompressedTextureETC1',
+    'WebGLCompressedTexturePVRTC',
+    'WebGLCompressedTextureS3TC',
+    'WebGLDebugRendererInfo',
+    'WebGLDebugShaders',
+    'WebGLDepthTexture',
+    'WebGLDrawBuffers',
+    'WebGLLoseContext',
+    'WorkerConsole',
+    'WorkerPerformance',
+    'XPathNSResolver',
+])
+
+# Classes we should just suppress?
+# SpeechGrammarList and friends
+
+def IsPureInterface(interface_name, database):
+  if (interface_name in _pure_interfaces):
+    return True
+  if (interface_name in _safe_interfaces or
+      interface_name in _safe_interfaces_legacy or
+      database.HasInterface(interface_name)):
+    return False
+
+  interface = database.GetInterface(interface_name)
+
+  if 'Constructor' in interface.ext_attrs:
+    return False
+
+  return interface.is_no_interface_object
 
 #
 # Classes which have native constructors but which we are suppressing because
@@ -163,7 +307,7 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
 
     'PannerNode': 'PannerNode,AudioPannerNode,webkitAudioPannerNode',
 
-    'RTCPeerConnection': 'RTCPeerConnection,mozRTCPeerConnection',
+    'RTCPeerConnection': 'RTCPeerConnection,webkitRTCPeerConnection,mozRTCPeerConnection',
 
     'RTCIceCandidate': 'RTCIceCandidate,mozRTCIceCandidate',
 
@@ -929,7 +1073,7 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
     # dart_type.
     if self._data.dart_type != None:
       return self.dart_type()
-    if IsPureInterface(self.idl_type()):
+    if IsPureInterface(self.idl_type(), self._type_registry._database):
       return self.idl_type()
     return self.interface_name()
 

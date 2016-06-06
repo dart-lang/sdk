@@ -12,6 +12,7 @@
 #include "vm/regexp.h"
 #include "vm/regexp_parser.h"
 #include "vm/regexp_interpreter.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -460,6 +461,13 @@ static intptr_t Prepare(const RegExp& regexp,
 
   if (regexp.bytecode(is_one_byte) == TypedData::null()) {
     const String& pattern = String::Handle(zone, regexp.pattern());
+    NOT_IN_PRODUCT(TimelineDurationScope tds(Thread::Current(),
+                                             Timeline::GetCompilerStream(),
+                                             "CompileIrregexpBytecode");
+    if (tds.enabled()) {
+      tds.SetNumArguments(1);
+      tds.CopyArgument(0, "pattern", pattern.ToCString());
+    });  // !PRODUCT
 
     const bool multiline = regexp.is_multi_line();
     RegExpCompileData* compile_data = new(zone) RegExpCompileData();

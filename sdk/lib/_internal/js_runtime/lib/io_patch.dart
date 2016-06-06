@@ -39,7 +39,17 @@ class _Directory {
     throw new UnsupportedError("Directory._rename");
   }
   @patch
-  static List _list(String path, bool recursive, bool followLinks) {
+  static void _fillWithDirectoryListing(
+      List<FileSystemEntity> list, String path, bool recursive,
+      bool followLinks) {
+    throw new UnsupportedError("Directory._fillWithDirectoryListing");
+  }
+}
+
+@patch
+class _AsyncDirectoryListerOps {
+  @patch
+  factory _AsyncDirectoryListerOps(int pointer) {
     throw new UnsupportedError("Directory._list");
   }
 }
@@ -135,58 +145,10 @@ class _File {
 }
 
 @patch
-class _RandomAccessFile {
+class _RandomAccessFileOps {
   @patch
-  static int _close(int id) {
-    throw new UnsupportedError("RandomAccessFile._close");
-  }
-  @patch
-  static int _getFD(int id) {
-    throw new UnsupportedError("RandomAccessFile._getFD");
-  }
-  @patch
-  static _readByte(int id) {
-    throw new UnsupportedError("RandomAccessFile._readByte");
-  }
-  @patch
-  static _read(int id, int bytes) {
-    throw new UnsupportedError("RandomAccessFile._read");
-  }
-  @patch
-  static _readInto(int id, List<int> buffer, int start, int end) {
-    throw new UnsupportedError("RandomAccessFile._readInto");
-  }
-  @patch
-  static _writeByte(int id, int value) {
-    throw new UnsupportedError("RandomAccessFile._writeByte");
-  }
-  @patch
-  static _writeFrom(int id, List<int> buffer, int start, int end) {
-    throw new UnsupportedError("RandomAccessFile._writeFrom");
-  }
-  @patch
-  static _position(int id) {
-    throw new UnsupportedError("RandomAccessFile._position");
-  }
-  @patch
-  static _setPosition(int id, int position) {
-    throw new UnsupportedError("RandomAccessFile._setPosition");
-  }
-  @patch
-  static _truncate(int id, int length) {
-    throw new UnsupportedError("RandomAccessFile._truncate");
-  }
-  @patch
-  static _length(int id) {
-    throw new UnsupportedError("RandomAccessFile._length");
-  }
-  @patch
-  static _flush(int id) {
-    throw new UnsupportedError("RandomAccessFile._flush");
-  }
-  @patch
-  static _lock(int id, int lock, int start, int end) {
-    throw new UnsupportedError("RandomAccessFile._lock");
+  factory _RandomAccessFileOps(int pointer) {
+    throw new UnsupportedError("RandomAccessFile");
   }
 }
 
@@ -348,10 +310,19 @@ class InternetAddress {
       String host, {InternetAddressType type: InternetAddressType.ANY}) {
     throw new UnsupportedError("InternetAddress.lookup");
   }
+  @patch
+  static InternetAddress _cloneWithNewHost(
+      InternetAddress address, String host) {
+    throw new UnsupportedError("InternetAddress._cloneWithNewHost");
+  }
 }
 
 @patch
 class NetworkInterface {
+  @patch
+  static bool get listSupported {
+    throw new UnsupportedError("NetworkInterface.listSupported");
+  }
   @patch
   static Future<List<NetworkInterface>> list({
       bool includeLoopback: false,
@@ -463,7 +434,7 @@ class _StdIOUtils {
     throw new UnsupportedError("StdIOUtils._getStdioOutputStream");
   }
   @patch
-  static int _socketType(nativeSocket) {
+  static int _socketType(Socket socket) {
     throw new UnsupportedError("StdIOUtils._socketType");
   }
   @patch

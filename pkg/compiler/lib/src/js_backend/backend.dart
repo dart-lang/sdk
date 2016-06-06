@@ -227,6 +227,8 @@ class JavaScriptBackend extends Backend {
 
   bool get supportsReflection => emitter.emitter.supportsReflection;
 
+  bool get supportsAsyncAwait => true;
+
   final Annotations annotations;
 
   /// Set of classes that need to be considered for reflection although not
@@ -511,6 +513,8 @@ class JavaScriptBackend extends Backend {
   final BackendHelpers helpers;
   final BackendImpacts impacts;
 
+  final JSFrontendAccess frontend;
+
   JavaScriptBackend(Compiler compiler,
       {bool generateSourceMap: true,
       bool useStartupEmitter: false,
@@ -529,6 +533,7 @@ class JavaScriptBackend extends Backend {
             : const JavaScriptSourceInformationStrategy(),
         helpers = new BackendHelpers(compiler),
         impacts = new BackendImpacts(compiler),
+        frontend = new JSFrontendAccess(compiler),
         super(compiler) {
     emitter = new CodeEmitterTask(
         compiler, namer, generateSourceMap, useStartupEmitter);
@@ -619,7 +624,7 @@ class JavaScriptBackend extends Backend {
     assert(invariant(element, element.isDeclaration, message: ""));
     if (element == helpers.streamIteratorConstructor ||
         element == helpers.compiler.symbolConstructor ||
-        element == helpers.compiler.symbolValidatedConstructor ||
+        helpers.isSymbolValidatedConstructor(element) ||
         element == helpers.syncCompleterConstructor ||
         element == coreClasses.symbolClass ||
         element == helpers.objectNoSuchMethod) {
@@ -1291,16 +1296,16 @@ class JavaScriptBackend extends Backend {
   }
 
   /// Called when resolving a call to a foreign function.
-  void registerForeignCall(Send node, Element element,
+  native.NativeBehavior resolveForeignCall(Send node, Element element,
       CallStructure callStructure, ForeignResolver resolver) {
     native.NativeResolutionEnqueuer nativeEnqueuer =
         compiler.enqueuer.resolution.nativeEnqueuer;
     if (element.name == 'JS') {
-      nativeEnqueuer.registerJsCall(node, resolver);
+      return nativeEnqueuer.resolveJsCall(node, resolver);
     } else if (element.name == 'JS_EMBEDDED_GLOBAL') {
-      nativeEnqueuer.registerJsEmbeddedGlobalCall(node, resolver);
+      return nativeEnqueuer.resolveJsEmbeddedGlobalCall(node, resolver);
     } else if (element.name == 'JS_BUILTIN') {
-      nativeEnqueuer.registerJsBuiltinCall(node, resolver);
+      return nativeEnqueuer.resolveJsBuiltinCall(node, resolver);
     } else if (element.name == 'JS_INTERCEPTOR_CONSTANT') {
       // The type constant that is an argument to JS_INTERCEPTOR_CONSTANT names
       // a class that will be instantiated outside the program by attaching a
@@ -1312,13 +1317,16 @@ class JavaScriptBackend extends Backend {
           TypeConstantExpression typeConstant = constant;
           if (typeConstant.type is InterfaceType) {
             resolver.registerInstantiatedType(typeConstant.type);
-            return;
+            // No native behavior for this call.
+            return null;
           }
         }
       }
       reporter.reportErrorMessage(
           node, MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
     }
+    // No native behavior for this call.
+    return null;
   }
 
   void enableNoSuchMethod(Enqueuer world) {
@@ -1443,8 +1451,16 @@ class JavaScriptBackend extends Backend {
   WorldImpact codegen(CodegenWorkItem work) {
     Element element = work.element;
     if (compiler.elementHasCompileTimeError(element)) {
-      generatedCode[element] = jsAst.js(
-          "function () { throw new Error('Compile time error in $element') }");
+      DiagnosticMessage message =
+          // If there's more than one error, the first is probably most
+          // informative, as the following errors may be side-effects of the
+          // first error.
+          compiler.elementsWithCompileTimeErrors[element].first;
+      String messageText = message.message.computeMessage();
+      jsAst.LiteralString messageLiteral =
+          js.escapedString("Compile time error in $element: $messageText");
+      generatedCode[element] =
+          js("function () { throw new Error(#); }", [messageLiteral]);
       return const CodegenImpact();
     }
     var kind = element.kind;
@@ -1457,9 +1473,13 @@ class JavaScriptBackend extends Backend {
       return const CodegenImpact();
     }
     if (kind.category == ElementCategory.VARIABLE) {
-      ConstantValue initialValue =
-          constants.getConstantValueForVariable(element);
-      if (initialValue != null) {
+      VariableElement variableElement = element;
+      ConstantExpression constant = variableElement.constant;
+      if (constant != null) {
+        ConstantValue initialValue = constants.getConstantValue(constant);
+        assert(invariant(variableElement, initialValue != null,
+            message: "Constant expression without value: "
+                "${constant.toStructuredText()}."));
         registerCompileTimeConstant(initialValue, work.registry);
         addCompileTimeConstantForEmission(initialValue);
         // We don't need to generate code for static or top-level
@@ -1834,7 +1854,9 @@ class JavaScriptBackend extends Backend {
       if (library.isPlatformLibrary &&
           // Don't patch library currently disallowed.
           !library.isSynthesized &&
-          !library.isPatched) {
+          !library.isPatched &&
+          // Don't patch deserialized libraries.
+          !compiler.serialization.isDeserialized(library)) {
         // Apply patch, if any.
         Uri patchUri = compiler.resolvePatchUri(library.canonicalUri.path);
         if (patchUri != null) {
@@ -2252,7 +2274,8 @@ class JavaScriptBackend extends Backend {
     lookupMapAnalysis.onCodegenStart();
   }
 
-  void onElementResolved(Element element, TreeElements elements) {
+  @override
+  void onElementResolved(Element element) {
     if (element.isMalformed) {
       // Elements that are marker as malformed during parsing or resolution
       // might be registered here. These should just be ignored.
@@ -2474,6 +2497,19 @@ class JavaScriptBackend extends Backend {
   }
 }
 
+class JSFrontendAccess implements Frontend {
+  final Compiler compiler;
+
+  JSFrontendAccess(this.compiler);
+
+  Resolution get resolution => compiler.resolution;
+
+  @override
+  ResolutionImpact getResolutionImpact(Element element) {
+    return resolution.getResolutionImpact(element);
+  }
+}
+
 /// Handling of special annotations for tests.
 class Annotations {
   static final Uri PACKAGE_EXPECT =
@@ -2554,6 +2590,11 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
   JavaScriptImpactTransformer(this.backend);
 
   BackendImpacts get impacts => backend.impacts;
+
+  // TODO(johnniwinther): Avoid this dependency.
+  ResolutionEnqueuer get resolutionEnqueuer {
+    return backend.compiler.enqueuer.resolution;
+  }
 
   @override
   WorldImpact transformResolutionImpact(ResolutionImpact worldImpact) {
@@ -2662,7 +2703,12 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           if (type.isTypedef) {
             backend.compiler.world.allTypedefs.add(type.element);
           }
-          if (type.isTypeVariable) {
+          if (type.isTypeVariable && type is! MethodTypeVariableType) {
+            // GENERIC_METHODS: The `is!` test above filters away method type
+            // variables, because they have the value `dynamic` with the
+            // incomplete support for generic methods offered with
+            // '--generic-method-syntax'. This must be revised in order to
+            // support generic methods fully.
             ClassElement cls = type.element.enclosingClass;
             backend.rti.registerClassUsingTypeVariableExpression(cls);
             registerBackendImpact(transformed, impacts.typeVariableExpression);
@@ -2714,8 +2760,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         registerBackendImpact(transformed, impacts.closure);
         LocalFunctionElement closure = staticUse.element;
         if (closure.type.containsTypeVariables) {
-          backend.compiler.enqueuer.resolution.universe
-              .closuresWithFreeTypeVariables
+          resolutionEnqueuer.universe.closuresWithFreeTypeVariables
               .add(closure);
           registerBackendImpact(transformed, impacts.computeSignature);
         }
@@ -2743,6 +2788,11 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           assert(invariant(NO_LOCATION_SPANNABLE, false,
               message: "Unexpected constant literal: ${constant.kind}."));
       }
+    }
+
+    for (native.NativeBehavior behavior in worldImpact.nativeData) {
+      resolutionEnqueuer.nativeEnqueuer
+          .registerNativeBehavior(behavior, worldImpact);
     }
 
     return transformed;

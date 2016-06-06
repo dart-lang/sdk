@@ -20,7 +20,7 @@ class ClassViewElement extends ObservatoryElement {
   @observable ObservableList mostRetained;
   SampleBufferControlElement sampleBufferControlElement;
   StackTraceTreeConfigElement stackTraceTreeConfigElement;
-  CpuProfileTreeElement cpuProfileTreeElement;
+  CpuProfileVirtualTreeElement cpuProfileTreeElement;
 
   ClassViewElement.created() : super.created();
 
@@ -70,6 +70,7 @@ class ClassViewElement extends ObservatoryElement {
     assert(stackTraceTreeConfigElement != null);
     stackTraceTreeConfigElement.onTreeConfigChange = onTreeConfigChange;
     stackTraceTreeConfigElement.show = false;
+    stackTraceTreeConfigElement.showFilter = false;
     cpuProfileTreeElement = shadowRoot.querySelector('#cpuProfileTree');
     assert(cpuProfileTreeElement != null);
     cpuProfileTreeElement.profile = sampleBufferControlElement.profile;
@@ -94,7 +95,9 @@ class ClassViewElement extends ObservatoryElement {
     cpuProfileTreeElement.render();
   }
 
-  onTreeConfigChange(String modeSelector, String directionSelector) {
+  onTreeConfigChange(String modeSelector,
+                     String directionSelector,
+                     String filter) {
     ProfileTreeDirection direction = ProfileTreeDirection.Exclusive;
     if (directionSelector != 'Up') {
       direction = ProfileTreeDirection.Inclusive;

@@ -21,6 +21,7 @@ namespace dart {
 class TestTraits {
  public:
   static const char* Name() { return "TestTraits"; }
+  static bool ReportStats() { return false; }
 
   static bool IsMatch(const char* key, const Object& obj) {
     return String::Cast(obj).Equals(key);
@@ -62,7 +63,7 @@ void Validate(const Table& table) {
 
 TEST_CASE(HashTable) {
   typedef HashTable<TestTraits, 2, 1> Table;
-  Table table(HashTables::New<Table>(5));
+  Table table(Thread::Current()->zone(), HashTables::New<Table>(5));
   // Ensure that we did get at least 5 entries.
   EXPECT_LE(5, table.NumEntries());
   EXPECT_EQ(0, table.NumOccupied());

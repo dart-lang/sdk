@@ -4,34 +4,26 @@
 
 library simple_types_inferrer;
 
-import '../closure.dart' show ClosureClassMap, ClosureScope;
+import '../closure.dart' show ClosureClassMap;
 import '../common.dart';
 import '../common/names.dart' show Selectors;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart' show ConstantValue, IntConstantValue;
 import '../core_types.dart' show CoreClasses, CoreTypes;
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir show Node;
-import '../dart_types.dart'
-    show DartType, FunctionType, InterfaceType, TypeKind;
+import '../dart_types.dart' show DartType;
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart' as js;
 import '../native/native.dart' as native;
-import '../resolution/tree_elements.dart' show TreeElements;
 import '../resolution/operators.dart' as op;
+import '../resolution/tree_elements.dart' show TreeElements;
 import '../tree/tree.dart' as ast;
-import '../types/types.dart'
-    show
-        TypesInferrer,
-        FlatTypeMask,
-        TypeMask,
-        ContainerTypeMask,
-        ValueTypeMask;
-import '../util/util.dart' show Link, Setlet;
+import '../types/types.dart' show TypeMask;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
+import '../util/util.dart' show Link, Setlet;
 import '../world.dart' show ClassWorld;
-
 import 'inferrer_visitor.dart';
 
 /**
@@ -264,6 +256,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
     return returnType;
   }
 
+  // TODO(johnniwinther): Pass the [ResolvedAst] instead of [owner].
   void updateSelectorInTree(
       AstElement owner, Spannable node, Selector selector, TypeMask mask) {
     if (node is cps_ir.Node) {
@@ -303,7 +296,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
         element.isField;
   }
 
-  void analyze(Element element, ArgumentsTypes arguments);
+  void analyze(ResolvedAst resolvedAst, ArgumentsTypes arguments);
 
   bool checkIfExposesThis(Element element) {
     element = element.implementation;
@@ -339,32 +332,44 @@ class SimpleTypeInferrerVisitor<T>
   final Setlet<Entity> capturedVariables = new Setlet<Entity>();
 
   SimpleTypeInferrerVisitor.internal(
-      analyzedElement, this.outermostElement, inferrer, compiler, locals)
-      : super(analyzedElement, inferrer, inferrer.types, compiler, locals),
+      AstElement analyzedElement,
+      ResolvedAst resolvedAst,
+      this.outermostElement,
+      inferrer,
+      compiler,
+      locals)
+      : super(analyzedElement, resolvedAst, inferrer, inferrer.types, compiler,
+            locals),
         this.inferrer = inferrer {
     assert(outermostElement != null);
   }
 
-  SimpleTypeInferrerVisitor(Element element, Compiler compiler,
-      InferrerEngine<T, TypeSystem<T>> inferrer, [LocalsHandler<T> handler])
+  SimpleTypeInferrerVisitor(Element element, ResolvedAst resolvedAst,
+      Compiler compiler, InferrerEngine<T, TypeSystem<T>> inferrer,
+      [LocalsHandler<T> handler])
       : this.internal(
             element,
+            resolvedAst,
             element.outermostEnclosingMemberOrTopLevel.implementation,
             inferrer,
             compiler,
             handler);
 
-  void analyzeSuperConstructorCall(Element target, ArgumentsTypes arguments) {
-    inferrer.analyze(target, arguments);
+  void analyzeSuperConstructorCall(
+      AstElement target, ArgumentsTypes arguments) {
+    ResolvedAst resolvedAst = target.resolvedAst;
+    inferrer.analyze(resolvedAst, arguments);
     isThisExposed = isThisExposed || inferrer.checkIfExposesThis(target);
   }
 
   T run() {
-    var node = analyzedElement.node;
+    var node;
+    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+      node = resolvedAst.node;
+    }
     ast.Expression initializer;
     if (analyzedElement.isField) {
-      VariableElement fieldElement = analyzedElement;
-      initializer = fieldElement.initializer;
+      initializer = resolvedAst.body;
       if (initializer == null) {
         // Eagerly bailout, because computing the closure data only
         // works for functions and field assignments.
@@ -375,8 +380,8 @@ class SimpleTypeInferrerVisitor<T>
     // be handled specially, in that we are computing their LUB at
     // each update, and reading them yields the type that was found in a
     // previous analysis of [outermostElement].
-    ClosureClassMap closureData = compiler.closureToClassMapper
-        .computeClosureToClassMapping(analyzedElement, node, elements);
+    ClosureClassMap closureData =
+        compiler.closureToClassMapper.computeClosureToClassMapping(resolvedAst);
     closureData.forEachCapturedVariable((variable, field) {
       locals.setCaptured(variable, field);
     });
@@ -402,8 +407,8 @@ class SimpleTypeInferrerVisitor<T>
       SimpleTypeInferrerVisitor visitor = this;
       if (inferrer.hasAlreadyComputedTypeOfParameterDefault(element)) return;
       if (element.functionDeclaration != analyzedElement) {
-        visitor = new SimpleTypeInferrerVisitor(
-            element.functionDeclaration, compiler, inferrer);
+        visitor = new SimpleTypeInferrerVisitor(element.functionDeclaration,
+            element.functionDeclaration.resolvedAst, compiler, inferrer);
       }
       T type =
           (defaultValue == null) ? types.nullType : visitor.visit(defaultValue);
@@ -475,7 +480,8 @@ class SimpleTypeInferrerVisitor<T>
         cls.forEachInstanceField((_, FieldElement field) {
           if (field.isFinal) return;
           T type = locals.fieldScope.readField(field);
-          if (type == null && field.initializer == null) {
+          ResolvedAst resolvedAst = field.resolvedAst;
+          if (type == null && resolvedAst.body == null) {
             inferrer.recordTypeOfNonFinalField(
                 spannable, field, types.nullType);
           }
@@ -552,7 +558,7 @@ class SimpleTypeInferrerVisitor<T>
     LocalsHandler closureLocals =
         new LocalsHandler<T>.from(locals, node, useOtherTryBlock: false);
     SimpleTypeInferrerVisitor visitor = new SimpleTypeInferrerVisitor<T>(
-        element, compiler, inferrer, closureLocals);
+        element, element.resolvedAst, compiler, inferrer, closureLocals);
     visitor.run();
     inferrer.recordReturnType(element, visitor.returnType);
 
@@ -654,16 +660,17 @@ class SimpleTypeInferrerVisitor<T>
     if (isThisExposed) return;
     inferrer.forEachElementMatching(selector, mask, (element) {
       if (element.isField) {
+        ResolvedAst elementResolvedAst = element.resolvedAst;
         if (!selector.isSetter &&
             isInClassOrSubclass(element) &&
-            !element.modifiers.isFinal &&
+            !element.isFinal &&
             locals.fieldScope.readField(element) == null &&
-            element.initializer == null) {
+            elementResolvedAst.body == null) {
           // If the field is being used before this constructor
           // actually had a chance to initialize it, say it can be
           // null.
           inferrer.recordTypeOfNonFinalField(
-              analyzedElement.node, element, types.nullType);
+              resolvedAst.node, element, types.nullType);
         }
         // Accessing a field does not expose [:this:].
         return true;
@@ -1299,8 +1306,9 @@ class SimpleTypeInferrerVisitor<T>
         element.isField &&
         Elements.isStaticOrTopLevelField(element) &&
         compiler.world.fieldNeverChanges(element)) {
+      FieldElement fieldElement = element;
       ConstantValue value =
-          compiler.backend.constants.getConstantValueForVariable(element);
+          compiler.backend.constants.getConstantValue(fieldElement.constant);
       if (value != null && value.isInt) {
         IntConstantValue intValue = value;
         return intValue.primitiveValue;
@@ -1513,8 +1521,7 @@ class SimpleTypeInferrerVisitor<T>
     String name = element.name;
     handleStaticSend(node, selector, mask, element, arguments);
     if (name == 'JS' || name == 'JS_EMBEDDED_GLOBAL' || name == 'JS_BUILTIN') {
-      native.NativeBehavior nativeBehavior =
-          compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
+      native.NativeBehavior nativeBehavior = elements.getNativeData(node);
       sideEffects.add(nativeBehavior.sideEffects);
       return inferrer.typeOfNativeBehavior(nativeBehavior);
     } else if (name == 'JS_OPERATOR_AS_PREFIX' || name == 'JS_STRING_CONCAT') {

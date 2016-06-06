@@ -107,6 +107,12 @@ class _InternalError {
   final String _msg;
 }
 
+patch class UnsupportedError {
+  static _throwNew(String msg) {
+    throw new UnsupportedError(msg);
+  }
+}
+
 patch class CyclicInitializationError {
   static _throwNew(String variableName) {
     throw new CyclicInitializationError(variableName);

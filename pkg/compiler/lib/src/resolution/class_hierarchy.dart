@@ -211,7 +211,11 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       FunctionElement constructor =
           new SynthesizedConstructorElementX.forDefault(superMember, element);
       if (superMember.isMalformed) {
-        compiler.elementsWithCompileTimeErrors.add(constructor);
+        ErroneousElement erroneousElement = superMember;
+        compiler.registerCompiletimeError(
+            constructor,
+            reporter.createMessage(node, erroneousElement.messageKind,
+                erroneousElement.messageArguments));
       }
       element.setDefaultConstructor(constructor, reporter);
     }
@@ -244,7 +248,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     return enumType;
   }
 
-  /// Resolves the mixed type for [mixinNode] and checks that the the mixin type
+  /// Resolves the mixed type for [mixinNode] and checks that the mixin type
   /// is a valid, non-blacklisted interface type. The mixin type is returned.
   DartType checkMixinType(TypeAnnotation mixinNode) {
     DartType mixinType = resolveType(mixinNode);
@@ -299,8 +303,11 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     String superName = supertype.name;
     String mixinName = mixinType.name;
     MixinApplicationElementX mixinApplication =
-        new UnnamedMixinApplicationElementX("${superName}+${mixinName}",
-            element.compilationUnit, compiler.getNextFreeId(), node);
+        new UnnamedMixinApplicationElementX(
+            "${superName}+${mixinName}",
+            element.compilationUnit,
+            compiler.idGenerator.getNextFreeId(),
+            node);
     // Create synthetic type variables for the mixin application.
     List<DartType> typeVariables = <DartType>[];
     int index = 0;
@@ -352,7 +359,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
   void doApplyMixinTo(MixinApplicationElementX mixinApplication,
       DartType supertype, DartType mixinType) {
-    Node node = mixinApplication.parseNode(resolution.parsing);
+    Node node = mixinApplication.parseNode(resolution.parsingContext);
 
     if (mixinApplication.supertype != null) {
       // [supertype] is not null if there was a cycle.
@@ -437,7 +444,6 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       previous = current;
       current = currentMixinApplication.mixin;
     }
-    registry.registerMixinUse(mixinApplication, mixin);
     return mixinType;
   }
 
@@ -551,7 +557,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   isBlackListed(DartType type) {
     LibraryElement lib = element.library;
     return !identical(lib, compiler.coreLibrary) &&
-        !compiler.backend.isBackendLibrary(lib) &&
+        !resolution.target.isTargetSpecificLibrary(lib) &&
         (type.isDynamic ||
             type == coreTypes.boolType ||
             type == coreTypes.numType ||

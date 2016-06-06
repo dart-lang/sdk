@@ -11,7 +11,6 @@ import '../dart_types.dart';
 import '../elements/elements.dart'
     show
         ConstructorElement,
-        Element,
         FieldElement,
         FunctionElement,
         PrefixElement,
@@ -83,11 +82,22 @@ abstract class ConstantExpression {
   /// environment values.
   DartType getKnownType(CoreTypes coreTypes) => null;
 
-  String getText() {
+  /// Returns a text string resembling the Dart code creating this constant.
+  String toDartText() {
     ConstExpPrinter printer = new ConstExpPrinter();
     accept(printer);
     return printer.toString();
   }
+
+  /// Returns a text string showing the structure of this constant.
+  String toStructuredText() {
+    StringBuffer sb = new StringBuffer();
+    _createStructuredText(sb);
+    return sb.toString();
+  }
+
+  /// Writes the structure of the constant into [sb].
+  void _createStructuredText(StringBuffer sb);
 
   int _computeHashCode();
 
@@ -109,10 +119,26 @@ abstract class ConstantExpression {
   }
 
   String toString() {
-    assertDebugMode('Use ConstantExpression.getText() instead of '
+    assertDebugMode('Use ConstantExpression.toDartText() or '
+        'ConstantExpression.toStructuredText() instead of '
         'ConstantExpression.toString()');
-    return getText();
+    return toDartText();
   }
+
+  /// Returns `true` if this expression is implicitly constant, that is, that
+  /// it doesn't declare its constness with the 'const' keyword.
+  ///
+  /// Implicit constants are simple literals, like bool, int and string
+  /// literals, constant references and compositions of implicit constants.
+  /// Explicit constants are constructor constants, and constant map and list
+  /// literals.
+  bool get isImplicit => true;
+
+  /// Returns `true` if this expression is only potentially constant, that is,
+  /// if it contains positional or named references, used to define constant
+  /// constructors.
+  // TODO(johnniwinther): Maybe make this final if we use it outside assertions.
+  bool get isPotential => true;
 }
 
 /// A synthetic constant used to recover from errors.
@@ -128,6 +154,11 @@ class ErroneousConstantExpression extends ConstantExpression {
       Environment environment, ConstantSystem constantSystem) {
     // TODO(johnniwinther): Use non-constant values for errors.
     return new NonConstantValue();
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Erroneous()');
   }
 
   @override
@@ -150,6 +181,11 @@ class SyntheticConstantExpression extends ConstantExpression {
   }
 
   @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Synthetic(value=${value.toStructuredText()})');
+  }
+
+  @override
   int _computeHashCode() => 13 * value.hashCode;
 
   accept(ConstantExpressionVisitor visitor, [context]) {
@@ -162,6 +198,12 @@ class SyntheticConstantExpression extends ConstantExpression {
   }
 
   ConstantExpressionKind get kind => ConstantExpressionKind.SYNTHETIC;
+
+  @override
+  bool get isPotential => false;
+
+  @override
+  bool get isImplicit => false;
 }
 
 /// A boolean, int, double, string, or null constant.
@@ -180,6 +222,11 @@ class BoolConstantExpression extends PrimitiveConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitBool(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Bool(value=${primitiveValue})');
   }
 
   @override
@@ -213,6 +260,11 @@ class IntConstantExpression extends PrimitiveConstantExpression {
   }
 
   @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Int(value=${primitiveValue})');
+  }
+
+  @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
     return constantSystem.createInt(primitiveValue);
@@ -240,6 +292,11 @@ class DoubleConstantExpression extends PrimitiveConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitDouble(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Double(value=${primitiveValue})');
   }
 
   @override
@@ -273,6 +330,11 @@ class StringConstantExpression extends PrimitiveConstantExpression {
   }
 
   @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('String(value=${primitiveValue})');
+  }
+
+  @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
     return constantSystem.createString(new DartString.literal(primitiveValue));
@@ -298,6 +360,11 @@ class NullConstantExpression extends PrimitiveConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitNull(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Null()');
   }
 
   @override
@@ -329,6 +396,18 @@ class ListConstantExpression extends ConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitList(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('List(type=$type,values=[');
+    String delimiter = '';
+    for (ConstantExpression value in values) {
+      sb.write(delimiter);
+      value._createStructuredText(sb);
+      delimiter = ',';
+    }
+    sb.write('])');
   }
 
   @override
@@ -364,6 +443,12 @@ class ListConstantExpression extends ConstantExpression {
 
   @override
   DartType getKnownType(CoreTypes coreTypes) => type;
+
+  @override
+  bool get isImplicit => false;
+
+  @override
+  bool get isPotential => values.any((e) => e.isPotential);
 }
 
 /// Literal map constant.
@@ -378,6 +463,20 @@ class MapConstantExpression extends ConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitMap(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Map(type=$type,entries=[');
+    for (int index = 0; index < keys.length; index++) {
+      if (index > 0) {
+        sb.write(',');
+      }
+      keys[index]._createStructuredText(sb);
+      sb.write('->');
+      values[index]._createStructuredText(sb);
+    }
+    sb.write('])');
   }
 
   @override
@@ -419,6 +518,14 @@ class MapConstantExpression extends ConstantExpression {
 
   @override
   DartType getKnownType(CoreTypes coreTypes) => type;
+
+  @override
+  bool get isImplicit => false;
+
+  @override
+  bool get isPotential {
+    return keys.any((e) => e.isPotential) || values.any((e) => e.isPotential);
+  }
 }
 
 /// Invocation of a const constructor.
@@ -438,6 +545,19 @@ class ConstructedConstantExpression extends ConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitConstructed(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Constructored(type=$type,constructor=$target,'
+        'callStructure=$callStructure,arguments=[');
+    String delimiter = '';
+    for (ConstantExpression value in arguments) {
+      sb.write(delimiter);
+      value._createStructuredText(sb);
+      delimiter = ',';
+    }
+    sb.write('])');
   }
 
   Map<FieldElement, ConstantExpression> computeInstanceFields() {
@@ -486,6 +606,14 @@ class ConstructedConstantExpression extends ConstantExpression {
     }
     return true;
   }
+
+  @override
+  bool get isImplicit => false;
+
+  @override
+  bool get isPotential {
+    return arguments.any((e) => e.isPotential);
+  }
 }
 
 /// String literal with juxtaposition and/or interpolations.
@@ -498,6 +626,18 @@ class ConcatenateConstantExpression extends ConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitConcatenate(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Concatenate(expressions=[');
+    String delimiter = '';
+    for (ConstantExpression value in expressions) {
+      sb.write(delimiter);
+      value._createStructuredText(sb);
+      delimiter = ',';
+    }
+    sb.write('])');
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
@@ -553,6 +693,11 @@ class ConcatenateConstantExpression extends ConstantExpression {
 
   @override
   DartType getKnownType(CoreTypes coreTypes) => coreTypes.stringType;
+
+  @override
+  bool get isPotential {
+    return expressions.any((e) => e.isPotential);
+  }
 }
 
 /// Symbol literal.
@@ -568,6 +713,11 @@ class SymbolConstantExpression extends ConstantExpression {
   }
 
   @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Symbol(name=$name)');
+  }
+
+  @override
   int _computeHashCode() => 13 * name.hashCode;
 
   @override
@@ -578,8 +728,7 @@ class SymbolConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
-    // TODO(johnniwinther): Implement this.
-    throw new UnsupportedError('SymbolConstantExpression.evaluate');
+    return constantSystem.createSymbol(environment.compiler, name);
   }
 
   @override
@@ -599,6 +748,11 @@ class TypeConstantExpression extends ConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitType(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Type(type=$type)');
   }
 
   @override
@@ -632,6 +786,11 @@ class VariableConstantExpression extends ConstantExpression {
   }
 
   @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Variable(element=$element)');
+  }
+
+  @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
     return element.constant.evaluate(environment, constantSystem);
@@ -656,6 +815,11 @@ class FunctionConstantExpression extends ConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitFunction(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Function(element=$element)');
   }
 
   @override
@@ -690,6 +854,15 @@ class BinaryConstantExpression extends ConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitBinary(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Binary(left=');
+    left._createStructuredText(sb);
+    sb.write(',op=$operator,right=');
+    right._createStructuredText(sb);
+    sb.write(')');
   }
 
   @override
@@ -770,6 +943,11 @@ class BinaryConstantExpression extends ConstantExpression {
         right == other.right;
   }
 
+  @override
+  bool get isPotential {
+    return left.isPotential || right.isPotential;
+  }
+
   static const Map<BinaryOperatorKind, int> PRECEDENCE_MAP = const {
     BinaryOperatorKind.EQ: 6,
     BinaryOperatorKind.NOT_EQ: 6,
@@ -808,6 +986,15 @@ class IdenticalConstantExpression extends ConstantExpression {
   }
 
   @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Identical(left=');
+    left._createStructuredText(sb);
+    sb.write(',right=');
+    right._createStructuredText(sb);
+    sb.write(')');
+  }
+
+  @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
     return constantSystem.identity.fold(
@@ -834,6 +1021,11 @@ class IdenticalConstantExpression extends ConstantExpression {
 
   @override
   DartType getKnownType(CoreTypes coreTypes) => coreTypes.boolType;
+
+  @override
+  bool get isPotential {
+    return left.isPotential || right.isPotential;
+  }
 }
 
 /// A unary constant expression like `-a`.
@@ -849,6 +1041,13 @@ class UnaryConstantExpression extends ConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitUnary(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Unary(op=$operator,expression=');
+    expression._createStructuredText(sb);
+    sb.write(')');
   }
 
   @override
@@ -880,6 +1079,11 @@ class UnaryConstantExpression extends ConstantExpression {
     return expression.getKnownType(coreTypes);
   }
 
+  @override
+  bool get isPotential {
+    return expression.isPotential;
+  }
+
   static const Map<UnaryOperatorKind, int> PRECEDENCE_MAP = const {
     UnaryOperatorKind.NOT: 14,
     UnaryOperatorKind.COMPLEMENT: 14,
@@ -897,6 +1101,13 @@ class StringLengthConstantExpression extends ConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitStringLength(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('StringLength(expression=');
+    expression._createStructuredText(sb);
+    sb.write(')');
   }
 
   @override
@@ -928,6 +1139,11 @@ class StringLengthConstantExpression extends ConstantExpression {
 
   @override
   DartType getKnownType(CoreTypes coreTypes) => coreTypes.intType;
+
+  @override
+  bool get isPotential {
+    return expression.isPotential;
+  }
 }
 
 /// A constant conditional expression like `a ? b : c`.
@@ -942,6 +1158,17 @@ class ConditionalConstantExpression extends ConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitConditional(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Conditional(condition=');
+    condition._createStructuredText(sb);
+    sb.write(',true=');
+    trueExp._createStructuredText(sb);
+    sb.write(',false=');
+    falseExp._createStructuredText(sb);
+    sb.write(')');
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
@@ -990,6 +1217,11 @@ class ConditionalConstantExpression extends ConstantExpression {
     }
     return null;
   }
+
+  @override
+  bool get isPotential {
+    return condition.isPotential || trueExp.isPotential || falseExp.isPotential;
+  }
 }
 
 /// A reference to a position parameter.
@@ -1004,6 +1236,11 @@ class PositionalArgumentReference extends ConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitPositional(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Positional(index=$index)');
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
@@ -1021,6 +1258,11 @@ class PositionalArgumentReference extends ConstantExpression {
       Environment environment, ConstantSystem constantSystem) {
     throw new UnsupportedError('PositionalArgumentReference.evaluate');
   }
+
+  @override
+  bool get isPotential {
+    return true;
+  }
 }
 
 /// A reference to a named parameter.
@@ -1037,6 +1279,11 @@ class NamedArgumentReference extends ConstantExpression {
     return visitor.visitNamed(this, context);
   }
 
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Named(name=$name)');
+  }
+
   ConstantExpression apply(NormalizedArguments arguments) {
     return arguments.getNamedArgument(name);
   }
@@ -1051,6 +1298,11 @@ class NamedArgumentReference extends ConstantExpression {
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
     throw new UnsupportedError('NamedArgumentReference.evaluate');
+  }
+
+  @override
+  bool get isPotential {
+    return true;
   }
 }
 
@@ -1069,6 +1321,17 @@ abstract class FromEnvironmentConstantExpression extends ConstantExpression {
   bool _equals(FromEnvironmentConstantExpression other) {
     return name == other.name && defaultValue == other.defaultValue;
   }
+
+  @override
+  bool get isImplicit {
+    return false;
+  }
+
+  @override
+  bool get isPotential {
+    return name.isPotential ||
+        (defaultValue != null && defaultValue.isPotential);
+  }
 }
 
 /// A `const bool.fromEnvironment` constant.
@@ -1084,6 +1347,19 @@ class BoolFromEnvironmentConstantExpression
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitBoolFromEnvironment(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('bool.fromEnvironment(name=');
+    name._createStructuredText(sb);
+    sb.write(',defaultValue=');
+    if (defaultValue != null) {
+      defaultValue._createStructuredText(sb);
+    } else {
+      sb.write('null');
+    }
+    sb.write(')');
   }
 
   @override
@@ -1134,6 +1410,19 @@ class IntFromEnvironmentConstantExpression
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitIntFromEnvironment(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('int.fromEnvironment(name=');
+    name._createStructuredText(sb);
+    sb.write(',defaultValue=');
+    if (defaultValue != null) {
+      defaultValue._createStructuredText(sb);
+    } else {
+      sb.write('null');
+    }
+    sb.write(')');
   }
 
   @override
@@ -1189,6 +1478,19 @@ class StringFromEnvironmentConstantExpression
   }
 
   @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('String.fromEnvironment(name=');
+    name._createStructuredText(sb);
+    sb.write(',defaultValue=');
+    if (defaultValue != null) {
+      defaultValue._createStructuredText(sb);
+    } else {
+      sb.write('null');
+    }
+    sb.write(')');
+  }
+
+  @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
     ConstantValue nameConstantValue =
@@ -1232,9 +1534,17 @@ class DeferredConstantExpression extends ConstantExpression {
   ConstantExpressionKind get kind => ConstantExpressionKind.DEFERRED;
 
   @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Deferred(prefix=$prefix,expression=');
+    expression._createStructuredText(sb);
+    sb.write(')');
+  }
+
+  @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
-    return expression.evaluate(environment, constantSystem);
+    return new DeferredConstantValue(
+        expression.evaluate(environment, constantSystem), prefix);
   }
 
   @override
@@ -1254,6 +1564,11 @@ class DeferredConstantExpression extends ConstantExpression {
   @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitDeferred(this, context);
+  }
+
+  @override
+  bool get isPotential {
+    return expression.isPotential;
   }
 }
 

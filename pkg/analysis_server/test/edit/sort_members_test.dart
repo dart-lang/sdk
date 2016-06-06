@@ -144,6 +144,40 @@ main() {
 ''');
   }
 
+  test_OK_directives_withAnnotation() async {
+    addTestFile('''
+library lib;
+
+export 'dart:bbb';
+@MyAnnotation(1)
+@MyAnnotation(2)
+import 'dart:bbb';
+@MyAnnotation(3)
+export 'dart:aaa';
+import 'dart:aaa';
+
+class MyAnnotation {
+  const MyAnnotation(_);
+}
+''');
+    return _assertSorted(r'''
+library lib;
+
+import 'dart:aaa';
+@MyAnnotation(1)
+@MyAnnotation(2)
+import 'dart:bbb';
+
+@MyAnnotation(3)
+export 'dart:aaa';
+export 'dart:bbb';
+
+class MyAnnotation {
+  const MyAnnotation(_);
+}
+''');
+  }
+
   test_OK_unitMembers_class() async {
     addTestFile('''
 class C {}

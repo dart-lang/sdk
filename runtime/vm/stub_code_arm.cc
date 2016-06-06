@@ -625,8 +625,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ b(&slow_case, GT);
 
   const intptr_t cid = kArrayCid;
-  __ MaybeTraceAllocation(cid, R4, &slow_case,
-                          /* inline_isolate = */ false);
+  __ MaybeTraceAllocation(cid, R4, &slow_case);
 
   const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ LoadImmediate(R9, fixed_size);
@@ -653,7 +652,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ LoadAllocationStatsAddress(R3, cid, /* inline_isolate = */ false);
+  __ LoadAllocationStatsAddress(R3, cid);
   __ str(NOTFP, Address(R8, Heap::TopOffset(space)));
   __ add(R0, R0, Operand(kHeapObjectTag));
 
@@ -773,9 +772,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
   __ Push(R4);
-#if defined(TARGET_OS_MAC)
+#if defined(TARGET_ABI_IOS)
   ASSERT(kExitLinkSlotFromEntryFp == -26);
-#else
+#elif defined(TARGET_ABI_EABI)
   ASSERT(kExitLinkSlotFromEntryFp == -27);
 #endif
   __ Push(R9);
@@ -859,8 +858,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     ASSERT(kSmiTagShift == 1);
     __ bic(R2, R2, Operand(kObjectAlignment - 1));
 
-    __ MaybeTraceAllocation(kContextCid, R8, &slow_case,
-                            /* inline_isolate = */ false);
+    __ MaybeTraceAllocation(kContextCid, R8, &slow_case);
     // Now allocate the object.
     // R1: number of context variables.
     // R2: object size.
@@ -891,7 +889,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R2: object size.
     // R3: next object start.
     // R9: heap.
-    __ LoadAllocationStatsAddress(R4, cid, /* inline_isolate = */ false);
+    __ LoadAllocationStatsAddress(R4, cid);
     __ str(R3, Address(R9, Heap::TopOffset(space)));
     __ add(R0, R0, Operand(kHeapObjectTag));
 
@@ -1083,7 +1081,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 
     // Load the address of the allocation stats table. We split up the load
     // and the increment so that the dependent load is not too nearby.
-    __ LoadAllocationStatsAddress(R9, cls.id(), /* inline_isolate = */ false);
+    __ LoadAllocationStatsAddress(R9, cls.id());
 
     // R0: new object start.
     // R1: next object start.
@@ -2057,7 +2055,8 @@ void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
   __ ldr(R1, FieldAddress(R9, MegamorphicCache::mask_offset()));
   // R2: cache buckets array.
   // R1: mask.
-  __ mov(R3, Operand(R0));
+  __ LoadImmediate(IP, MegamorphicCache::kSpreadFactor);
+  __ mul(R3, R0, IP);
   // R3: probe.
 
   Label loop, update, load_target_function;

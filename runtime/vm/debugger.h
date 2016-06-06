@@ -9,6 +9,7 @@
 
 #include "vm/object.h"
 #include "vm/port.h"
+#include "vm/service_event.h"
 
 namespace dart {
 
@@ -227,7 +228,14 @@ class CodeBreakpoint {
   CodeBreakpoint* next_;
 
   RawPcDescriptors::Kind breakpoint_kind_;
+#if !defined(TARGET_ARCH_DBC)
   RawCode* saved_value_;
+#else
+  // When running on the DBC interpreter we patch bytecode in place with
+  // DebugBreak. This is an instruction that was replaced. DebugBreak
+  // will execute it after the breakpoint.
+  Instr saved_value_;
+#endif
 
   friend class Debugger;
   DISALLOW_COPY_AND_ASSIGN(CodeBreakpoint);
@@ -362,105 +370,9 @@ class DebuggerStackTrace : public ZoneAllocated {
 };
 
 
-class DebuggerEvent {
- public:
-  enum EventType {
-    kBreakpointReached = 1,
-    kBreakpointResolved = 2,
-    kExceptionThrown = 3,
-    kIsolateCreated = 4,
-    kIsolateShutdown = 5,
-    kIsolateInterrupted = 6,
-  };
-
-  explicit DebuggerEvent(Isolate* isolate, EventType event_type)
-      : isolate_(isolate),
-        type_(event_type),
-        top_frame_(NULL),
-        breakpoint_(NULL),
-        exception_(NULL),
-        async_continuation_(NULL),
-        at_async_jump_(false),
-        timestamp_(-1) {}
-
-  Isolate* isolate() const { return isolate_; }
-
-  EventType type() const { return type_; }
-
-  bool IsPauseEvent() const {
-    return (type_ == kBreakpointReached ||
-            type_ == kIsolateInterrupted ||
-            type_ == kExceptionThrown);
-  }
-
-  ActivationFrame* top_frame() const {
-    ASSERT(IsPauseEvent());
-    return top_frame_;
-  }
-  void set_top_frame(ActivationFrame* frame) {
-    ASSERT(IsPauseEvent());
-    top_frame_ = frame;
-  }
-
-  Breakpoint* breakpoint() const {
-    ASSERT(type_ == kBreakpointReached || type_ == kBreakpointResolved);
-    return breakpoint_;
-  }
-  void set_breakpoint(Breakpoint* bpt) {
-    ASSERT(type_ == kBreakpointReached || type_ == kBreakpointResolved);
-    breakpoint_ = bpt;
-  }
-
-  const Object* exception() const {
-    ASSERT(type_ == kExceptionThrown);
-    return exception_;
-  }
-  void set_exception(const Object* exception) {
-    ASSERT(type_ == kExceptionThrown);
-    exception_ = exception;
-  }
-
-  const Object* async_continuation() const {
-    ASSERT(type_ == kBreakpointReached);
-    return async_continuation_;
-  }
-  void set_async_continuation(const Object* closure) {
-    ASSERT(type_ == kBreakpointReached);
-    async_continuation_ = closure;
-  }
-
-  bool at_async_jump() const {
-    return at_async_jump_;
-  }
-  void set_at_async_jump(bool value) {
-    at_async_jump_ = value;
-  }
-
-  Dart_Port isolate_id() const {
-    return isolate_->main_port();
-  }
-
-  void UpdateTimestamp();
-
-  int64_t timestamp() const {
-    return timestamp_;
-  }
-
- private:
-  Isolate* isolate_;
-  EventType type_;
-  ActivationFrame* top_frame_;
-  Breakpoint* breakpoint_;
-  const Object* exception_;
-  const Object* async_continuation_;
-  bool at_async_jump_;
-  int64_t timestamp_;
-};
-
-
 class Debugger {
  public:
-  typedef void EventHandler(DebuggerEvent* event);
+  typedef void EventHandler(ServiceEvent* event);
 
   Debugger();
   ~Debugger();
@@ -518,7 +430,7 @@ class Debugger {
   // is not paused, this returns NULL.  Note that the debugger can be
   // paused for breakpoints, isolate interruption, and (sometimes)
   // exceptions.
-  const DebuggerEvent* PauseEvent() const { return pause_event_; }
+  const ServiceEvent* PauseEvent() const { return pause_event_; }
 
   void SetExceptionPauseInfo(Dart_ExceptionPauseInfo pause_info);
   Dart_ExceptionPauseInfo GetExceptionPauseInfo() const;
@@ -573,14 +485,21 @@ class Debugger {
   RawObject* GetStaticField(const Class& cls,
                             const String& field_name);
 
-  RawError* SignalBpReached();
-  RawError* DebuggerStepCallback();
-  RawError* SignalIsolateInterrupted();
+  // Pause execution for a breakpoint.  Called from generated code.
+  RawError* PauseBreakpoint();
 
-  void BreakHere(const String& msg);
+  // Pause execution due to stepping.  Called from generated code.
+  RawError* PauseStepping();
 
-  void SignalExceptionThrown(const Instance& exc);
-  void SignalIsolateEvent(DebuggerEvent::EventType type);
+  // Pause execution due to isolate interrupt.
+  RawError* PauseInterrupted();
+
+  // Pause execution due to an uncaught exception.
+  void PauseException(const Instance& exc);
+
+  // Pause execution due to a call to the debugger() function from
+  // Dart.
+  void PauseDeveloper(const String& msg);
 
   RawCode* GetPatchedStubAddress(uword breakpoint_address);
 
@@ -599,9 +518,12 @@ class Debugger {
     kSingleStep
   };
 
-  static bool HasAnyEventHandler();
-  static bool HasDebugEventHandler();
-  void InvokeEventHandler(DebuggerEvent* event);
+  bool NeedsIsolateEvents();
+  bool NeedsDebugEvents();
+  void InvokeEventHandler(ServiceEvent* event);
+
+  void SendBreakpointEvent(ServiceEvent::EventKind kind, Breakpoint* bpt);
+
   bool IsAtAsyncJump(ActivationFrame* top_frame);
   void FindCompiledFunctions(const Script& script,
                              TokenPosition start_pos,
@@ -648,7 +570,6 @@ class Debugger {
                                      StackFrame* frame,
                                      const Code& code);
   static DebuggerStackTrace* CollectStackTrace();
-  void SignalBpResolved(Breakpoint *bpt);
   void SignalPausedEvent(ActivationFrame* top_frame,
                          Breakpoint* bpt);
 
@@ -664,7 +585,7 @@ class Debugger {
 
   // Handles any events which pause vm execution.  Breakpoints,
   // interrupts, etc.
-  void Pause(DebuggerEvent* event);
+  void Pause(ServiceEvent* event);
 
   void HandleSteppingRequest(DebuggerStackTrace* stack_trace,
                              bool skip_next_step = false);
@@ -672,7 +593,6 @@ class Debugger {
   Isolate* isolate_;
   Dart_Port isolate_id_;  // A unique ID for the isolate in the debugger.
   bool initialized_;
-  bool creation_message_sent_;  // The creation message has been sent.
 
   // ID number generator.
   intptr_t next_id_;
@@ -693,7 +613,7 @@ class Debugger {
   // is not paused, this is NULL.  Note that the debugger can be
   // paused for breakpoints, isolate interruption, and (sometimes)
   // exceptions.
-  DebuggerEvent* pause_event_;
+  ServiceEvent* pause_event_;
 
   // An id -> object map.  Valid only while IsPaused().
   RemoteObjectCache* obj_cache_;

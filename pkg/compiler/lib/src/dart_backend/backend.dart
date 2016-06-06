@@ -20,6 +20,8 @@ class DartBackend extends Backend {
 
   bool get supportsReflection => true;
 
+  bool get supportsAsyncAwait => true;
+
   // TODO(zarah) Maybe change this to a command-line option.
   // Right now, it is set by the tests.
   bool useMirrorHelperLibrary = false;
@@ -236,7 +238,7 @@ class DartBackend extends Backend {
     if (useMirrorHelperLibrary &&
         loadedLibraries.containsLibrary(Uris.dart_mirrors)) {
       return compiler.libraryLoader
-          .loadLibrary(compiler.translateResolvedUri(
+          .loadLibrary(compiler.resolvedUriTranslator.translate(
               loadedLibraries.getLibrary(Uris.dart_mirrors),
               MirrorRenamerImpl.DART_MIRROR_HELPER,
               null))
@@ -317,7 +319,6 @@ class DartBackend extends Backend {
             superclass.forEachLocalMember((MemberElement element) {
               if (element.isConstructor || element.isStatic) return;
 
-              FunctionElement function = element.asFunctionElement();
               element.computeType(resolution);
               Selector selector = new Selector.fromElement(element);
               registerUse(new DynamicUse(selector, null));
@@ -456,12 +457,17 @@ class DartConstantTask extends ConstantCompilerTask
 
   DartConstantTask(Compiler compiler)
       : this.constantCompiler = new DartConstantCompiler(compiler),
-        super(compiler);
+        super(compiler.measurer);
 
   String get name => 'ConstantHandler';
 
   @override
   ConstantSystem get constantSystem => constantCompiler.constantSystem;
+
+  @override
+  bool hasConstantValue(ConstantExpression expression) {
+    return constantCompiler.hasConstantValue(expression);
+  }
 
   @override
   ConstantValue getConstantValue(ConstantExpression expression) {
@@ -471,11 +477,6 @@ class DartConstantTask extends ConstantCompilerTask
   @override
   ConstantValue getConstantValueForVariable(VariableElement element) {
     return constantCompiler.getConstantValueForVariable(element);
-  }
-
-  @override
-  ConstantExpression getConstantForVariable(VariableElement element) {
-    return constantCompiler.getConstantForVariable(element);
   }
 
   @override
@@ -508,9 +509,10 @@ class DartConstantTask extends ConstantCompilerTask
     });
   }
 
-  void compileVariable(VariableElement element) {
-    measure(() {
-      constantCompiler.compileVariable(element);
+  @override
+  ConstantExpression compileVariable(VariableElement element) {
+    return measure(() {
+      return constantCompiler.compileVariable(element);
     });
   }
 

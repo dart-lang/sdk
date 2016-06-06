@@ -66,14 +66,19 @@ DeoptContext::DeoptContext(const StackFrame* frame,
   // optimized function contains FP, PP (ARM and MIPS only), PC-marker and
   // return-address. This section is copied as well, so that its contained
   // values can be updated before returning to the deoptimized function.
+  // Note: on DBC stack grows upwards unlike on all other architectures.
   source_frame_size_ =
       + kDartFrameFixedSize  // For saved values below sp.
+#if !defined(TARGET_ARCH_DBC)
       + ((frame->fp() - frame->sp()) / kWordSize)  // For frame size incl. sp.
+#else
+      + ((frame->sp() - frame->fp()) / kWordSize)  // For frame size incl. sp.
+#endif  // !defined(TARGET_ARCH_DBC)
       + 1  // For fp.
       + kParamEndSlotFromFp  // For saved values above fp.
       + num_args_;  // For arguments.
-  source_frame_ = reinterpret_cast<intptr_t*>(
-      frame->sp() - (kDartFrameFixedSize * kWordSize));
+
+  source_frame_ = FrameBase(frame);
 
   if (dest_options == kDestIsOriginalFrame) {
     // Work from a copy of the source frame.
@@ -141,7 +146,7 @@ DeoptContext::~DeoptContext() {
   if (FLAG_support_timeline && (deopt_start_micros_ != 0)) {
     TimelineStream* compiler_stream = Timeline::GetCompilerStream();
     ASSERT(compiler_stream != NULL);
-    if (compiler_stream->Enabled()) {
+    if (compiler_stream->enabled()) {
       // Allocate all Dart objects needed before calling StartEvent,
       // which blocks safe points until Complete is called.
       const Code& code = Code::Handle(zone(), code_);
@@ -182,29 +187,46 @@ void DeoptContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 
 intptr_t DeoptContext::DestStackAdjustment() const {
-  return (dest_frame_size_
-          - kDartFrameFixedSize
-          - num_args_
-          - kParamEndSlotFromFp
-          - 1);  // For fp.
+  return dest_frame_size_
+         - kDartFrameFixedSize
+         - num_args_
+#if !defined(TARGET_ARCH_DBC)
+         - 1  // For fp.
+#endif
+         - kParamEndSlotFromFp;
 }
 
 
 intptr_t DeoptContext::GetSourceFp() const {
+#if !defined(TARGET_ARCH_DBC)
   return source_frame_[source_frame_size_ - 1 - num_args_ -
                        kParamEndSlotFromFp];
+#else
+  return source_frame_[num_args_ + kDartFrameFixedSize +
+      kSavedCallerFpSlotFromFp];
+#endif
 }
 
 
 intptr_t DeoptContext::GetSourcePp() const {
+#if !defined(TARGET_ARCH_DBC)
   return source_frame_[source_frame_size_ - 1 - num_args_ -
                        kParamEndSlotFromFp +
                        StackFrame::SavedCallerPpSlotFromFp()];
+#else
+  UNREACHABLE();
+  return 0;
+#endif
 }
 
 
 intptr_t DeoptContext::GetSourcePc() const {
+#if !defined(TARGET_ARCH_DBC)
   return source_frame_[source_frame_size_ - num_args_ + kSavedPcSlotFromSp];
+#else
+  return source_frame_[num_args_ + kDartFrameFixedSize +
+      kSavedCallerPcSlotFromFp];
+#endif
 }
 
 
@@ -305,12 +327,12 @@ void DeoptContext::FillDestFrame() {
   }
 
   if (FLAG_trace_deoptimization_verbose) {
-    intptr_t* start = dest_frame_;
     for (intptr_t i = 0; i < frame_size; i++) {
-      OS::PrintErr("*%" Pd ". [0x%" Px "] 0x%" Px " [%s]\n",
+      intptr_t* to_addr = GetDestFrameAddressAt(i);
+      OS::PrintErr("*%" Pd ". [%p] 0x%" Px " [%s]\n",
                    i,
-                   reinterpret_cast<uword>(&start[i]),
-                   start[i],
+                   to_addr,
+                   *to_addr,
                    deopt_instructions[i + (len - frame_size)]->ToCString());
     }
   }
@@ -666,6 +688,7 @@ class DeoptPcMarkerInstr : public DeoptInstr {
       return;
     }
 
+#if !defined(TARGET_ARCH_DBC)
     // We don't always have the Code object for the frame's corresponding
     // unoptimized code as it may have been collected. Use a stub as the pc
     // marker until we can recreate that Code object during deferred
@@ -673,6 +696,7 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     // a pc marker.
     *reinterpret_cast<RawObject**>(dest_addr) =
         StubCode::FrameAwaitingMaterialization_entry()->code();
+#endif
     deopt_context->DeferPcMarkerMaterialization(object_table_index_, dest_addr);
   }
 
@@ -724,7 +748,7 @@ class DeoptCallerFpInstr : public DeoptInstr {
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
     *dest_addr = deopt_context->GetCallerFp();
     deopt_context->SetCallerFp(reinterpret_cast<intptr_t>(
-        dest_addr - (kSavedCallerFpSlotFromFp * kWordSize)));
+        dest_addr - kSavedCallerFpSlotFromFp));
   }
 
  private:

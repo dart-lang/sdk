@@ -15,8 +15,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisEngine, AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/generated/shared_messages.dart'
     as shared_messages;
@@ -1833,7 +1832,7 @@ class IncrementalParser {
     ResolutionCopier.copyResolutionData(oldNode, newNode);
     IncrementalAstCloner cloner =
         new IncrementalAstCloner(oldNode, newNode, _tokenMap);
-    return originalStructure.accept(cloner) as AstNode;
+    return originalStructure.accept(cloner);
   }
 
   /**
@@ -2121,7 +2120,7 @@ class Parser {
   final AnalysisErrorListener _errorListener;
 
   /**
-   * An [errorListener] lock, if more than `0`, then errors are not reported.
+   * An [_errorListener] lock, if more than `0`, then errors are not reported.
    */
   int _errorListenerLock = 0;
 
@@ -2169,12 +2168,6 @@ class Parser {
   bool _inInitializer = false;
 
   /**
-   * A flag indicating whether the parser is to parse conditional directives
-   * syntax.
-   */
-  bool parseConditionalDirectives = false;
-
-  /**
    * A flag indicating whether the parser is to parse generic method syntax.
    */
   bool parseGenericMethods = false;
@@ -2216,6 +2209,12 @@ class Parser {
   void set parseAsync(bool parseAsync) {
     this._parseAsync = parseAsync;
   }
+
+  @deprecated
+  bool get parseConditionalDirectives => true;
+
+  @deprecated
+  void set parseConditionalDirectives(bool value) {}
 
   /**
    * Set whether parser is to parse function bodies.
@@ -2414,7 +2413,7 @@ class Parser {
         return _parseOperator(
             commentAndMetadata, modifiers.externalKeyword, returnType);
       } else if (_matchesIdentifier() &&
-          _peek().matchesAny([
+          _peek().matchesAny(const <TokenType>[
             TokenType.OPEN_PAREN,
             TokenType.OPEN_CURLY_BRACKET,
             TokenType.FUNCTION,
@@ -2428,8 +2427,11 @@ class Parser {
         // We have found an error of some kind. Try to recover.
         //
         if (_matchesIdentifier()) {
-          if (_peek().matchesAny(
-              [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
+          if (_peek().matchesAny(const <TokenType>[
+            TokenType.EQ,
+            TokenType.COMMA,
+            TokenType.SEMICOLON
+          ])) {
             //
             // We appear to have a variable declaration with a type of "void".
             //
@@ -2587,8 +2589,11 @@ class Parser {
           methodName,
           typeParameters,
           parameters);
-    } else if (_peek()
-        .matchesAny([TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
+    } else if (_peek().matchesAny(const <TokenType>[
+      TokenType.EQ,
+      TokenType.COMMA,
+      TokenType.SEMICOLON
+    ])) {
       if (modifiers.constKeyword == null &&
           modifiers.finalKeyword == null &&
           modifiers.varKeyword == null) {
@@ -3038,18 +3043,14 @@ class Parser {
     // better.
     //
     List<FormalParameter> parameters = new List<FormalParameter>();
-    List<FormalParameter> normalParameters = new List<FormalParameter>();
-    List<FormalParameter> positionalParameters = new List<FormalParameter>();
-    List<FormalParameter> namedParameters = new List<FormalParameter>();
-    List<FormalParameter> currentParameters = normalParameters;
     Token leftSquareBracket = null;
     Token rightSquareBracket = null;
     Token leftCurlyBracket = null;
     Token rightCurlyBracket = null;
     ParameterKind kind = ParameterKind.REQUIRED;
     bool firstParameter = true;
-    bool reportedMuliplePositionalGroups = false;
-    bool reportedMulipleNamedGroups = false;
+    bool reportedMultiplePositionalGroups = false;
+    bool reportedMultipleNamedGroups = false;
     bool reportedMixedGroups = false;
     bool wasOptionalParameter = false;
     Token initialToken = null;
@@ -3074,31 +3075,29 @@ class Parser {
       //
       if (_matches(TokenType.OPEN_SQUARE_BRACKET)) {
         wasOptionalParameter = true;
-        if (leftSquareBracket != null && !reportedMuliplePositionalGroups) {
+        if (leftSquareBracket != null && !reportedMultiplePositionalGroups) {
           _reportErrorForCurrentToken(
               ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS);
-          reportedMuliplePositionalGroups = true;
+          reportedMultiplePositionalGroups = true;
         }
         if (leftCurlyBracket != null && !reportedMixedGroups) {
           _reportErrorForCurrentToken(ParserErrorCode.MIXED_PARAMETER_GROUPS);
           reportedMixedGroups = true;
         }
         leftSquareBracket = getAndAdvance();
-        currentParameters = positionalParameters;
         kind = ParameterKind.POSITIONAL;
       } else if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
         wasOptionalParameter = true;
-        if (leftCurlyBracket != null && !reportedMulipleNamedGroups) {
+        if (leftCurlyBracket != null && !reportedMultipleNamedGroups) {
           _reportErrorForCurrentToken(
               ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS);
-          reportedMulipleNamedGroups = true;
+          reportedMultipleNamedGroups = true;
         }
         if (leftSquareBracket != null && !reportedMixedGroups) {
           _reportErrorForCurrentToken(ParserErrorCode.MIXED_PARAMETER_GROUPS);
           reportedMixedGroups = true;
         }
         leftCurlyBracket = getAndAdvance();
-        currentParameters = namedParameters;
         kind = ParameterKind.NAMED;
       }
       //
@@ -3106,7 +3105,6 @@ class Parser {
       //
       FormalParameter parameter = _parseFormalParameter(kind);
       parameters.add(parameter);
-      currentParameters.add(parameter);
       if (kind == ParameterKind.REQUIRED && wasOptionalParameter) {
         _reportErrorForNode(
             ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS, parameter);
@@ -3118,7 +3116,6 @@ class Parser {
       // mismatched delimiters.
       if (_matches(TokenType.CLOSE_SQUARE_BRACKET)) {
         rightSquareBracket = getAndAdvance();
-        currentParameters = normalParameters;
         if (leftSquareBracket == null) {
           if (leftCurlyBracket != null) {
             _reportErrorForCurrentToken(
@@ -3134,7 +3131,6 @@ class Parser {
         kind = ParameterKind.REQUIRED;
       } else if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
         rightCurlyBracket = getAndAdvance();
-        currentParameters = normalParameters;
         if (leftCurlyBracket == null) {
           if (leftSquareBracket != null) {
             _reportErrorForCurrentToken(
@@ -3447,12 +3443,17 @@ class Parser {
    *         label* nonLabeledStatement
    */
   Statement parseStatement2() {
-    List<Label> labels = new List<Label>();
+    List<Label> labels = null;
     while (_matchesIdentifier() && _tokenMatches(_peek(), TokenType.COLON)) {
-      labels.add(parseLabel(isDeclaration: true));
+      Label label = parseLabel(isDeclaration: true);
+      if (labels == null) {
+        labels = <Label>[label];
+      } else {
+        labels.add(label);
+      }
     }
     Statement statement = _parseNonLabeledStatement();
-    if (labels.isEmpty) {
+    if (labels == null) {
       return statement;
     }
     return new LabeledStatement(labels, statement);
@@ -4072,8 +4073,8 @@ class Parser {
     if (afterParameters == null) {
       return false;
     }
-    if (afterParameters
-        .matchesAny([TokenType.OPEN_CURLY_BRACKET, TokenType.FUNCTION])) {
+    if (afterParameters.matchesAny(
+        const <TokenType>[TokenType.OPEN_CURLY_BRACKET, TokenType.FUNCTION])) {
       return true;
     }
     String lexeme = afterParameters.lexeme;
@@ -4121,7 +4122,7 @@ class Parser {
     if (_matchesKeyword(Keyword.CONST)) {
       // Look to see whether we might be at the start of a list or map literal,
       // otherwise this should be the start of a variable declaration.
-      return !_peek().matchesAny([
+      return !_peek().matchesAny(const <TokenType>[
         TokenType.LT,
         TokenType.OPEN_CURLY_BRACKET,
         TokenType.OPEN_SQUARE_BRACKET,
@@ -4258,11 +4259,8 @@ class Parser {
         _tokenMatches(token.next, TokenType.COLON)) {
       token = token.next.next;
     }
-    if (token.type == TokenType.KEYWORD) {
-      Keyword keyword = (token as KeywordToken).keyword;
-      return keyword == Keyword.CASE || keyword == Keyword.DEFAULT;
-    }
-    return false;
+    Keyword keyword = token.keyword;
+    return keyword == Keyword.CASE || keyword == Keyword.DEFAULT;
   }
 
   /**
@@ -4467,21 +4465,24 @@ class Parser {
       while (_isLikelyArgumentList()) {
         TypeArgumentList typeArguments = _parseOptionalTypeArguments();
         ArgumentList argumentList = parseArgumentList();
-        if (expression is SimpleIdentifier) {
-          expression = new MethodInvocation(null, null,
-              expression as SimpleIdentifier, typeArguments, argumentList);
-        } else if (expression is PrefixedIdentifier) {
-          PrefixedIdentifier identifier = expression as PrefixedIdentifier;
+        Expression currentExpression = expression;
+        if (currentExpression is SimpleIdentifier) {
           expression = new MethodInvocation(
-              identifier.prefix,
-              identifier.period,
-              identifier.identifier,
+              null, null, currentExpression, typeArguments, argumentList);
+        } else if (currentExpression is PrefixedIdentifier) {
+          expression = new MethodInvocation(
+              currentExpression.prefix,
+              currentExpression.period,
+              currentExpression.identifier,
               typeArguments,
               argumentList);
-        } else if (expression is PropertyAccess) {
-          PropertyAccess access = expression as PropertyAccess;
-          expression = new MethodInvocation(access.target, access.operator,
-              access.propertyName, typeArguments, argumentList);
+        } else if (currentExpression is PropertyAccess) {
+          expression = new MethodInvocation(
+              currentExpression.target,
+              currentExpression.operator,
+              currentExpression.propertyName,
+              typeArguments,
+              argumentList);
         } else {
           expression = new FunctionExpressionInvocation(
               expression, typeArguments, argumentList);
@@ -4703,12 +4704,12 @@ class Parser {
         progress = true;
         while (_isLikelyArgumentList()) {
           TypeArgumentList typeArguments = _parseOptionalTypeArguments();
-          if (expression is PropertyAccess) {
-            PropertyAccess propertyAccess = expression as PropertyAccess;
+          Expression currentExpression = expression;
+          if (currentExpression is PropertyAccess) {
             expression = new MethodInvocation(
-                propertyAccess.target,
-                propertyAccess.operator,
-                propertyAccess.propertyName,
+                currentExpression.target,
+                currentExpression.operator,
+                currentExpression.propertyName,
                 typeArguments,
                 parseArgumentList());
           } else {
@@ -4986,14 +4987,16 @@ class Parser {
    */
   CommentAndMetadata _parseCommentAndMetadata() {
     Comment comment = _parseDocumentationComment();
-    List<Annotation> metadata = new List<Annotation>();
+    List<Annotation> metadata = null;
     while (_matches(TokenType.AT)) {
+      metadata ??= new List<Annotation>();
       metadata.add(parseAnnotation());
       Comment optionalComment = _parseDocumentationComment();
       if (optionalComment != null) {
         comment = optionalComment;
       }
     }
+    metadata ??= const <Annotation>[];
     return new CommentAndMetadata(comment, metadata);
   }
 
@@ -5180,7 +5183,7 @@ class Parser {
         return _convertToFunctionDeclaration(_parseOperator(
             commentAndMetadata, modifiers.externalKeyword, returnType));
       } else if (_matchesIdentifier() &&
-          _peek().matchesAny([
+          _peek().matchesAny(const <TokenType>[
             TokenType.OPEN_PAREN,
             TokenType.OPEN_CURLY_BRACKET,
             TokenType.FUNCTION,
@@ -5194,8 +5197,11 @@ class Parser {
         // We have found an error of some kind. Try to recover.
         //
         if (_matchesIdentifier()) {
-          if (_peek().matchesAny(
-              [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
+          if (_peek().matchesAny(const <TokenType>[
+            TokenType.EQ,
+            TokenType.COMMA,
+            TokenType.SEMICOLON
+          ])) {
             //
             // We appear to have a variable declaration with a type of "void".
             //
@@ -5253,8 +5259,11 @@ class Parser {
       _validateModifiersForTopLevelFunction(modifiers);
       return _parseFunctionDeclaration(
           commentAndMetadata, modifiers.externalKeyword, returnType);
-    } else if (_peek()
-        .matchesAny([TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
+    } else if (_peek().matchesAny(const <TokenType>[
+      TokenType.EQ,
+      TokenType.COMMA,
+      TokenType.SEMICOLON
+    ])) {
       if (modifiers.constKeyword == null &&
           modifiers.finalKeyword == null &&
           modifiers.varKeyword == null) {
@@ -5304,7 +5313,7 @@ class Parser {
           new VariableDeclarationList(null, null, null, returnType, variables),
           semicolon);
     }
-    if (_peek().matchesAny([
+    if (_peek().matchesAny(const <TokenType>[
       TokenType.OPEN_PAREN,
       TokenType.FUNCTION,
       TokenType.OPEN_CURLY_BRACKET,
@@ -5360,10 +5369,8 @@ class Parser {
    */
   List<Configuration> _parseConfigurations() {
     List<Configuration> configurations = <Configuration>[];
-    if (parseConditionalDirectives) {
-      while (_matchesKeyword(Keyword.IF)) {
-        configurations.add(_parseConfiguration());
-      }
+    while (_matchesKeyword(Keyword.IF)) {
+      configurations.add(_parseConfiguration());
     }
     return configurations;
   }
@@ -6288,7 +6295,7 @@ class Parser {
         _parseFunctionDeclaration(commentAndMetadata, null, returnType);
     Token propertyKeyword = declaration.propertyKeyword;
     if (propertyKeyword != null) {
-      if ((propertyKeyword as KeywordToken).keyword == Keyword.GET) {
+      if (propertyKeyword.keyword == Keyword.GET) {
         _reportErrorForToken(
             ParserErrorCode.GETTER_IN_FUNCTION, propertyKeyword);
       } else {
@@ -7023,8 +7030,8 @@ class Parser {
       }
       return parseBlock();
     } else if (_matches(TokenType.KEYWORD) &&
-        !(_currentToken as KeywordToken).keyword.isPseudoKeyword) {
-      Keyword keyword = (_currentToken as KeywordToken).keyword;
+        !_currentToken.keyword.isPseudoKeyword) {
+      Keyword keyword = _currentToken.keyword;
       // TODO(jwren) compute some metrics to figure out a better order for this
       // if-then sequence to optimize performance
       if (keyword == Keyword.ASSERT) {
@@ -7059,7 +7066,7 @@ class Parser {
       } else if (keyword == Keyword.VOID) {
         TypeName returnType = parseReturnType();
         if (_matchesIdentifier() &&
-            _peek().matchesAny([
+            _peek().matchesAny(const <TokenType>[
               TokenType.OPEN_PAREN,
               TokenType.OPEN_CURLY_BRACKET,
               TokenType.FUNCTION,
@@ -7072,8 +7079,11 @@ class Parser {
           // We have found an error of some kind. Try to recover.
           //
           if (_matchesIdentifier()) {
-            if (_peek().matchesAny(
-                [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
+            if (_peek().matchesAny(const <TokenType>[
+              TokenType.EQ,
+              TokenType.COMMA,
+              TokenType.SEMICOLON
+            ])) {
               //
               // We appear to have a variable declaration with a type of "void".
               //
@@ -7094,7 +7104,7 @@ class Parser {
           return new EmptyStatement(_createSyntheticToken(TokenType.SEMICOLON));
         }
       } else if (keyword == Keyword.CONST) {
-        if (_peek().matchesAny([
+        if (_peek().matchesAny(const <TokenType>[
           TokenType.LT,
           TokenType.OPEN_CURLY_BRACKET,
           TokenType.OPEN_SQUARE_BRACKET,
@@ -7323,10 +7333,14 @@ class Parser {
         if (_isLikelyArgumentList()) {
           TypeArgumentList typeArguments = _parseOptionalTypeArguments();
           ArgumentList argumentList = parseArgumentList();
-          if (operand is PropertyAccess) {
-            PropertyAccess access = operand as PropertyAccess;
-            operand = new MethodInvocation(access.target, access.operator,
-                access.propertyName, typeArguments, argumentList);
+          Expression currentOperand = operand;
+          if (currentOperand is PropertyAccess) {
+            operand = new MethodInvocation(
+                currentOperand.target,
+                currentOperand.operator,
+                currentOperand.propertyName,
+                typeArguments,
+                argumentList);
           } else {
             operand = new FunctionExpressionInvocation(
                 operand, typeArguments, argumentList);
@@ -8185,12 +8199,8 @@ class Parser {
       _advance();
       variables.add(_parseVariableDeclaration());
     }
-    return new VariableDeclarationList(
-        commentAndMetadata != null ? commentAndMetadata.comment : null,
-        commentAndMetadata != null ? commentAndMetadata.metadata : null,
-        keyword,
-        type,
-        variables);
+    return new VariableDeclarationList(commentAndMetadata?.comment,
+        commentAndMetadata?.metadata, keyword, type, variables);
   }
 
   /**
@@ -8483,14 +8493,15 @@ class Parser {
     // Look to see whether the token after the open parenthesis is something
     // that should only occur at the beginning of a parameter list.
     //
-    if (next.matchesAny([
+    if (next.matchesAny(const <TokenType>[
           TokenType.AT,
           TokenType.OPEN_SQUARE_BRACKET,
           TokenType.OPEN_CURLY_BRACKET
         ]) ||
         _tokenMatchesKeyword(next, Keyword.VOID) ||
         (_tokenMatchesIdentifier(next) &&
-            (next.next.matchesAny([TokenType.COMMA, TokenType.CLOSE_PAREN])))) {
+            (next.next.matchesAny(
+                const <TokenType>[TokenType.COMMA, TokenType.CLOSE_PAREN])))) {
       return _skipPastMatchingToken(startToken);
     }
     //
@@ -8501,8 +8512,8 @@ class Parser {
         _tokenMatches(next.next, TokenType.OPEN_PAREN)) {
       Token afterParameters = _skipFormalParameterList(next.next);
       if (afterParameters != null &&
-          (afterParameters
-              .matchesAny([TokenType.COMMA, TokenType.CLOSE_PAREN]))) {
+          afterParameters.matchesAny(
+              const <TokenType>[TokenType.COMMA, TokenType.CLOSE_PAREN])) {
         return _skipPastMatchingToken(startToken);
       }
     }
@@ -8833,15 +8844,13 @@ class Parser {
    * Return `true` if the given [token] matches the given [keyword].
    */
   bool _tokenMatchesKeyword(Token token, Keyword keyword) =>
-      token.type == TokenType.KEYWORD &&
-      (token as KeywordToken).keyword == keyword;
+      token.keyword == keyword;
 
   /**
    * Return `true` if the given [token] matches a pseudo keyword.
    */
   bool _tokenMatchesPseudoKeyword(Token token) =>
-      _tokenMatches(token, TokenType.KEYWORD) &&
-      (token as KeywordToken).keyword.isPseudoKeyword;
+      token.keyword?.isPseudoKeyword ?? false;
 
   /**
    * Return `true` if the given [token] matches the given [identifier].

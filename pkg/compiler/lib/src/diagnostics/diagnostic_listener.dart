@@ -60,6 +60,13 @@ abstract class DiagnosticReporter {
 
   DiagnosticMessage createMessage(Spannable spannable, MessageKind messageKind,
       [Map arguments = const {}]);
+
+  /// Returns `true` if a crash, an error or a fatal warning has been reported.
+  bool get hasReportedError;
+
+  /// Called when an [exception] is thrown from user-provided code, like from
+  /// the input provider or diagnostics handler.
+  void onCrashInUserCode(String message, exception, stackTrace) {}
 }
 
 class DiagnosticMessage {

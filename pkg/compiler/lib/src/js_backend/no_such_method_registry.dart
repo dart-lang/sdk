@@ -206,6 +206,13 @@ class NoSuchMethodRegistry {
         expr = stmt.expression;
       }
     }
+    if (expr is Send && expr.isTypeCast) {
+      Send sendExpr = expr;
+      var typeName = sendExpr.typeAnnotationFromIsCheckOrCast.typeName;
+      if (typeName is Identifier && typeName.source == "dynamic") {
+        expr = sendExpr.receiver;
+      }
+    }
     if (expr is Send &&
         expr.isSuperCall &&
         expr.selector is Identifier &&

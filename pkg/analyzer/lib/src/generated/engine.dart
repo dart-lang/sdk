@@ -729,9 +729,14 @@ class AnalysisEngine {
   static const String SUFFIX_HTML = "html";
 
   /**
-   * The file name used for analysis options files.
+   * The deprecated file name used for analysis options files.
    */
   static const String ANALYSIS_OPTIONS_FILE = '.analysis_options';
+
+  /**
+   * The file name used for analysis options files.
+   */
+  static const String ANALYSIS_OPTIONS_YAML_FILE = 'analysis_options.yaml';
 
   /**
    * The unique instance of this class.
@@ -816,7 +821,7 @@ class AnalysisEngine {
    * analysis engine to the given [logger].
    */
   void set logger(Logger logger) {
-    this._logger = logger == null ? Logger.NULL : logger;
+    this._logger = logger ?? Logger.NULL;
   }
 
   /**
@@ -876,8 +881,9 @@ class AnalysisEngine {
     if (fileName == null) {
       return false;
     }
-    return (context ?? pathos.posix).basename(fileName) ==
-        ANALYSIS_OPTIONS_FILE;
+    String basename = (context ?? pathos.posix).basename(fileName);
+    return basename == ANALYSIS_OPTIONS_FILE ||
+        basename == ANALYSIS_OPTIONS_YAML_FILE;
   }
 
   /**
@@ -1200,14 +1206,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool enableAsync = true;
 
   /**
-   * A flag indicating whether interface libraries are to be supported (DEP 40).
-   */
-  bool get enableConditionalDirectives => true;
-
-  @deprecated
-  void set enableConditionalDirectives(_) {}
-
-  /**
    * A flag indicating whether generic methods are to be supported (DEP 22).
    */
   bool enableGenericMethods = false;
@@ -1348,6 +1346,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     }
     _analyzeFunctionBodiesPredicate = value;
   }
+
+  /**
+   * A flag indicating whether interface libraries are to be supported (DEP 40).
+   */
+  bool get enableConditionalDirectives => true;
+
+  @deprecated
+  void set enableConditionalDirectives(_) {}
 
   @override
   int encodeCrossContextOptions() =>
@@ -1945,6 +1951,12 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * Return a list of the explicit targets being analyzed by this context.
    */
   List<AnalysisTarget> get explicitTargets;
+
+  /**
+   * Return the [StreamController] reporting [InvalidatedResult]s for everything
+   * in this context's cache.
+   */
+  ReentrantSynchronousStream<InvalidatedResult> get onResultInvalidated;
 
   /**
    * Return a list containing all of the sources that have been marked as

@@ -20,6 +20,8 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/lockers.h"
+#include "bin/reference_counting.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
@@ -27,15 +29,144 @@
 namespace dart {
 namespace bin {
 
-// Forward declaration of SSLContext.
-class SSLCertContext;
+// SSLCertContext wraps the certificates needed for a SecureTransport
+// connection. Fields are protected by the mutex_ field, and may only be set
+// once. This is to allow access by both the Dart thread and the IOService
+// thread. Setters return false if the field was already set.
+class SSLCertContext : public ReferenceCounted<SSLCertContext> {
+ public:
+  SSLCertContext() :
+      ReferenceCounted(),
+      mutex_(new Mutex()),
+      private_key_(NULL),
+      keychain_(NULL),
+      cert_chain_(NULL),
+      trusted_certs_(NULL),
+      cert_authorities_(NULL),
+      trust_builtin_(false) {
+  }
+
+  ~SSLCertContext() {
+    {
+      MutexLocker m(mutex_);
+      if (private_key_ != NULL) {
+        CFRelease(private_key_);
+      }
+      if (keychain_ != NULL) {
+        SecKeychainDelete(keychain_);
+        CFRelease(keychain_);
+      }
+      if (cert_chain_ != NULL) {
+        CFRelease(cert_chain_);
+      }
+      if (trusted_certs_ != NULL) {
+        CFRelease(trusted_certs_);
+      }
+      if (cert_authorities_ != NULL) {
+        CFRelease(cert_authorities_);
+      }
+    }
+    delete mutex_;
+  }
+
+  SecKeyRef private_key() {
+    MutexLocker m(mutex_);
+    return private_key_;
+  }
+  bool set_private_key(SecKeyRef private_key) {
+    MutexLocker m(mutex_);
+    if (private_key_ != NULL) {
+      return false;
+    }
+    private_key_ = private_key;
+    return true;
+  }
+
+  SecKeychainRef keychain() {
+    MutexLocker m(mutex_);
+    return keychain_;
+  }
+  bool set_keychain(SecKeychainRef keychain) {
+    MutexLocker m(mutex_);
+    if (keychain_ != NULL) {
+      return false;
+    }
+    keychain_ = keychain;
+    return true;
+  }
+
+  CFArrayRef cert_chain() {
+    MutexLocker m(mutex_);
+    return cert_chain_;
+  }
+  bool set_cert_chain(CFArrayRef cert_chain) {
+    MutexLocker m(mutex_);
+    if (cert_chain_ != NULL) {
+      return false;
+    }
+    cert_chain_ = cert_chain;
+    return true;
+  }
+
+  CFArrayRef trusted_certs() {
+    MutexLocker m(mutex_);
+    return trusted_certs_;
+  }
+  bool set_trusted_certs(CFArrayRef trusted_certs) {
+    MutexLocker m(mutex_);
+    if (trusted_certs_ != NULL) {
+      return false;
+    }
+    trusted_certs_ = trusted_certs;
+    return true;
+  }
+
+  CFArrayRef cert_authorities() {
+    MutexLocker m(mutex_);
+    return cert_authorities_;
+  }
+  bool set_cert_authorities(CFArrayRef cert_authorities) {
+    MutexLocker m(mutex_);
+    if (cert_authorities_ != NULL) {
+      return false;
+    }
+    cert_authorities_ = cert_authorities;
+    return true;
+  }
+
+  bool trust_builtin() {
+    MutexLocker m(mutex_);
+    return trust_builtin_;
+  }
+  void set_trust_builtin(bool trust_builtin) {
+    MutexLocker m(mutex_);
+    trust_builtin_ = trust_builtin;
+  }
+
+ private:
+  // The context is accessed both by Dart code and the IOService. This mutex
+  // protects all fields.
+  Mutex* mutex_;
+
+  SecKeyRef private_key_;
+  SecKeychainRef keychain_;
+
+  // CFArrays of SecCertificateRef.
+  CFArrayRef cert_chain_;
+  CFArrayRef trusted_certs_;
+  CFArrayRef cert_authorities_;
+
+  bool trust_builtin_;
+
+  DISALLOW_COPY_AND_ASSIGN(SSLCertContext);
+};
 
 // SSLFilter encapsulates the SecureTransport code in a filter that communicates
 // with the containing _SecureFilterImpl Dart object through four shared
 // ExternalByteArray buffers, for reading and writing plaintext, and
 // reading and writing encrypted text.  The filter handles handshaking
 // and certificate verification.
-class SSLFilter {
+class SSLFilter : public ReferenceCounted<SSLFilter> {
  public:
   // These enums must agree with those in sdk/lib/io/secure_socket.dart.
   enum BufferIndex {
@@ -48,7 +179,8 @@ class SSLFilter {
   };
 
   SSLFilter()
-      : cert_context_(NULL),
+      : ReferenceCounted(),
+        cert_context_(NULL),
         ssl_context_(NULL),
         peer_certs_(NULL),
         string_start_(NULL),
@@ -117,7 +249,7 @@ class SSLFilter {
   OSStatus Handshake();
   Dart_Handle InvokeBadCertCallback(SecCertificateRef peer_cert);
 
-  SSLCertContext* cert_context_;
+  RetainedPointer<SSLCertContext> cert_context_;
   SSLContextRef ssl_context_;
   CFArrayRef peer_certs_;
 
@@ -141,64 +273,6 @@ class SSLFilter {
   char* hostname_;
 
   DISALLOW_COPY_AND_ASSIGN(SSLFilter);
-};
-
-// Where the argument to the constructor is the handle for an object
-// implementing List<int>, this class creates a scope in which the memory
-// backing the list can be accessed.
-//
-// Do not make Dart_ API calls while in a ScopedMemBuffer.
-// Do not call Dart_PropagateError while in a ScopedMemBuffer.
-class ScopedMemBuffer {
- public:
-  explicit ScopedMemBuffer(Dart_Handle object) {
-    if (!Dart_IsTypedData(object) && !Dart_IsList(object)) {
-      Dart_ThrowException(DartUtils::NewDartArgumentError(
-          "Argument is not a List<int>"));
-    }
-
-    uint8_t* bytes = NULL;
-    intptr_t bytes_len = 0;
-    bool is_typed_data = false;
-    if (Dart_IsTypedData(object)) {
-      is_typed_data = true;
-      Dart_TypedData_Type typ;
-      ThrowIfError(Dart_TypedDataAcquireData(
-          object,
-          &typ,
-          reinterpret_cast<void**>(&bytes),
-          &bytes_len));
-    } else {
-      ASSERT(Dart_IsList(object));
-      ThrowIfError(Dart_ListLength(object, &bytes_len));
-      bytes = Dart_ScopeAllocate(bytes_len);
-      ASSERT(bytes != NULL);
-      ThrowIfError(Dart_ListGetAsBytes(object, 0, bytes, bytes_len));
-    }
-
-    object_ = object;
-    bytes_ = bytes;
-    bytes_len_ = bytes_len;
-    is_typed_data_ = is_typed_data;
-  }
-
-  ~ScopedMemBuffer() {
-    if (is_typed_data_) {
-      ThrowIfError(Dart_TypedDataReleaseData(object_));
-    }
-  }
-
-  uint8_t* get() const { return bytes_; }
-  intptr_t length() const { return bytes_len_; }
-
- private:
-  Dart_Handle object_;
-  uint8_t* bytes_;
-  intptr_t bytes_len_;
-  bool is_typed_data_;
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_COPY_AND_ASSIGN(ScopedMemBuffer);
 };
 
 }  // namespace bin

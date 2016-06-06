@@ -87,6 +87,13 @@
           'OPENSSL_NO_ASM',
         ],
       },
+      # Android 64-bit dbc build is for arm64, disable temporarily as well.
+      'Dart_Android_arm64_Base': {
+        'abstract': 1,
+        'defines': [
+          'OPENSSL_NO_ASM',
+        ],
+      },
       # When being built for Android nss expects __linux__ to be defined.
       'Dart_Android_Base': {
         'target_conditions': [

@@ -61,7 +61,6 @@ bool WeakCodeReferences::IsOptimizedCode(const Array& dependent_code,
 
 
 void WeakCodeReferences::DisableCode() {
-  IncrementInvalidationGen();
   const Array& code_objects = Array::Handle(array_.raw());
   if (code_objects.IsNull()) {
     return;

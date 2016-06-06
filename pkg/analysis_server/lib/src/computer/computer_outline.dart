@@ -41,8 +41,7 @@ class DartUnitOutlineComputer {
             VariableDeclarationList fields = fieldDeclaration.fields;
             if (fields != null) {
               TypeName fieldType = fields.type;
-              String fieldTypeName =
-                  fieldType != null ? fieldType.toSource() : '';
+              String fieldTypeName = _safeToSource(fieldType);
               for (VariableDeclaration field in fields.variables) {
                 classContents.add(_newVariableOutline(fieldTypeName,
                     ElementKind.FIELD, field, fieldDeclaration.isStatic));
@@ -69,7 +68,7 @@ class DartUnitOutlineComputer {
         VariableDeclarationList fields = fieldDeclaration.variables;
         if (fields != null) {
           TypeName fieldType = fields.type;
-          String fieldTypeName = fieldType != null ? fieldType.toSource() : '';
+          String fieldTypeName = _safeToSource(fieldType);
           for (VariableDeclaration field in fields.variables) {
             unitContents.add(_newVariableOutline(
                 fieldTypeName, ElementKind.TOP_LEVEL_VARIABLE, field, false));
@@ -207,7 +206,7 @@ class DartUnitOutlineComputer {
     }
     _SourceRegion sourceRegion = _getSourceRegion(constructor);
     FormalParameterList parameters = constructor.parameters;
-    String parametersStr = parameters != null ? parameters.toSource() : '';
+    String parametersStr = _safeToSource(parameters);
     Element element = new Element(
         ElementKind.CONSTRUCTOR,
         name,
@@ -266,8 +265,8 @@ class DartUnitOutlineComputer {
       kind = ElementKind.FUNCTION;
     }
     _SourceRegion sourceRegion = _getSourceRegion(function);
-    String parametersStr = parameters != null ? parameters.toSource() : '';
-    String returnTypeStr = returnType != null ? returnType.toSource() : '';
+    String parametersStr = _safeToSource(parameters);
+    String returnTypeStr = _safeToSource(returnType);
     Element element = new Element(
         kind,
         name,
@@ -291,8 +290,8 @@ class DartUnitOutlineComputer {
     String name = nameNode.name;
     _SourceRegion sourceRegion = _getSourceRegion(node);
     FormalParameterList parameters = node.parameters;
-    String parametersStr = parameters != null ? parameters.toSource() : '';
-    String returnTypeStr = returnType != null ? returnType.toSource() : '';
+    String parametersStr = _safeToSource(parameters);
+    String returnTypeStr = _safeToSource(returnType);
     Element element = new Element(
         ElementKind.FUNCTION_TYPE_ALIAS,
         name,
@@ -320,8 +319,8 @@ class DartUnitOutlineComputer {
       kind = ElementKind.METHOD;
     }
     _SourceRegion sourceRegion = _getSourceRegion(method);
-    String parametersStr = parameters != null ? parameters.toSource() : null;
-    String returnTypeStr = returnType != null ? returnType.toSource() : '';
+    String parametersStr = parameters?.toSource();
+    String returnTypeStr = _safeToSource(returnType);
     Element element = new Element(
         kind,
         name,
@@ -383,6 +382,9 @@ class DartUnitOutlineComputer {
     engine.Element element = declaration.element;
     return element != null && element.isDeprecated;
   }
+
+  static String _safeToSource(AstNode node) =>
+      node == null ? '' : node.toSource();
 }
 
 /**

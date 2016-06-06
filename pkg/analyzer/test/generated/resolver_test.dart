@@ -42,7 +42,6 @@ main() {
   runReflectiveTests(ErrorResolverTest);
   runReflectiveTests(LibraryImportScopeTest);
   runReflectiveTests(LibraryScopeTest);
-  runReflectiveTests(MemberMapTest);
   runReflectiveTests(ScopeTest);
   runReflectiveTests(StrictModeTest);
   runReflectiveTests(SubtypeManagerTest);
@@ -533,52 +532,6 @@ class LibraryScopeTest extends ResolverTestCase {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     LibraryScope scope = new LibraryScope(definingLibrary, errorListener);
     expect(scope.errorListener, errorListener);
-  }
-}
-
-@reflectiveTest
-class MemberMapTest {
-  /**
-   * The null type.
-   */
-  InterfaceType _nullType;
-
-  void setUp() {
-    _nullType = new TestTypeProvider().nullType;
-  }
-
-  void test_MemberMap_copyConstructor() {
-    MethodElement m1 = ElementFactory.methodElement("m1", _nullType);
-    MethodElement m2 = ElementFactory.methodElement("m2", _nullType);
-    MethodElement m3 = ElementFactory.methodElement("m3", _nullType);
-    MemberMap map = new MemberMap();
-    map.put(m1.name, m1);
-    map.put(m2.name, m2);
-    map.put(m3.name, m3);
-    MemberMap copy = new MemberMap.from(map);
-    expect(copy.size, map.size);
-    expect(copy.get(m1.name), m1);
-    expect(copy.get(m2.name), m2);
-    expect(copy.get(m3.name), m3);
-  }
-
-  void test_MemberMap_override() {
-    MethodElement m1 = ElementFactory.methodElement("m", _nullType);
-    MethodElement m2 = ElementFactory.methodElement("m", _nullType);
-    MemberMap map = new MemberMap();
-    map.put(m1.name, m1);
-    map.put(m2.name, m2);
-    expect(map.size, 1);
-    expect(map.get("m"), m2);
-  }
-
-  void test_MemberMap_put() {
-    MethodElement m1 = ElementFactory.methodElement("m1", _nullType);
-    MemberMap map = new MemberMap();
-    expect(map.size, 0);
-    map.put(m1.name, m1);
-    expect(map.size, 1);
-    expect(map.get("m1"), m1);
   }
 }
 

@@ -341,14 +341,23 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     }
     ExecutableElement staticMethodElement = node.staticElement;
     DartType staticType = _computeStaticReturnType(staticMethodElement);
-    staticType = _refineBinaryExpressionType(node, staticType, _getStaticType);
+    staticType = _typeSystem.refineBinaryExpressionType(
+        _typeProvider,
+        node.leftOperand.staticType,
+        node.operator.type,
+        node.rightOperand.staticType,
+        staticType);
     _recordStaticType(node, staticType);
     MethodElement propagatedMethodElement = node.propagatedElement;
     if (!identical(propagatedMethodElement, staticMethodElement)) {
       DartType propagatedType =
           _computeStaticReturnType(propagatedMethodElement);
-      propagatedType =
-          _refineBinaryExpressionType(node, propagatedType, _getBestType);
+      propagatedType = _typeSystem.refineBinaryExpressionType(
+          _typeProvider,
+          node.leftOperand.bestType,
+          node.operator.type,
+          node.rightOperand.bestType,
+          propagatedType);
       _resolver.recordPropagatedTypeIfBetter(node, propagatedType);
     }
     return null;
@@ -617,9 +626,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   @override
   Object visitListLiteral(ListLiteral node) {
-    DartType staticType = _dynamicType;
     TypeArgumentList typeArguments = node.typeArguments;
+
+    // If we have explicit arguments, use them
     if (typeArguments != null) {
+      DartType staticType = _dynamicType;
       NodeList<TypeName> arguments = typeArguments.arguments;
       if (arguments != null && arguments.length == 1) {
         TypeName argumentTypeName = arguments[0];
@@ -628,25 +639,47 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
           staticType = argumentType;
         }
       }
-    } else if (_strongMode) {
+      _recordStaticType(
+          node, _typeProvider.listType.instantiate(<DartType>[staticType]));
+      return null;
+    }
+
+    // If there are no type arguments and we are in strong mode, try to infer
+    // some arguments.
+    if (_strongMode) {
       DartType contextType = InferenceContext.getType(node);
+
+      // If we have a type from the context, use it.
       if (contextType is InterfaceType &&
           contextType.typeArguments.length == 1 &&
           contextType.element == _typeProvider.listType.element) {
-        staticType = contextType.typeArguments[0];
         _resolver.inferenceContext.recordInference(node, contextType);
-      } else if (node.elements.isNotEmpty) {
+        _recordStaticType(node, contextType);
+        return null;
+      }
+
+      // If we don't have a type from the context, try to infer from the
+      // elements
+      if (node.elements.isNotEmpty) {
         // Infer the list type from the arguments.
-        // TODO(jmesserly): record inference here?
-        staticType =
+        DartType staticType =
             node.elements.map((e) => e.staticType).reduce(_leastUpperBound);
         if (staticType.isBottom) {
           staticType = _dynamicType;
         }
+        DartType listLiteralType =
+            _typeProvider.listType.instantiate(<DartType>[staticType]);
+        if (!staticType.isDynamic) {
+          _resolver.inferenceContext.recordInference(node, listLiteralType);
+        }
+        _recordStaticType(node, listLiteralType);
+        return null;
       }
     }
+
+    // If we have no type arguments and couldn't infer any, use dynamic.
     _recordStaticType(
-        node, _typeProvider.listType.instantiate(<DartType>[staticType]));
+        node, _typeProvider.listType.instantiate(<DartType>[_dynamicType]));
     return null;
   }
 
@@ -664,10 +697,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   @override
   Object visitMapLiteral(MapLiteral node) {
-    DartType staticKeyType = _dynamicType;
-    DartType staticValueType = _dynamicType;
     TypeArgumentList typeArguments = node.typeArguments;
+
+    // If we have type arguments, use them
     if (typeArguments != null) {
+      DartType staticKeyType = _dynamicType;
+      DartType staticValueType = _dynamicType;
       NodeList<TypeName> arguments = typeArguments.arguments;
       if (arguments != null && arguments.length == 2) {
         TypeName entryKeyTypeName = arguments[0];
@@ -681,20 +716,31 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
           staticValueType = entryValueType;
         }
       }
-    } else if (_strongMode) {
+      _recordStaticType(
+          node,
+          _typeProvider.mapType
+              .instantiate(<DartType>[staticKeyType, staticValueType]));
+      return null;
+    }
+
+    // If we have no explicit type arguments, and we are in strong mode
+    // then try to infer type arguments.
+    if (_strongMode) {
       DartType contextType = InferenceContext.getType(node);
+      // If we have a context type, use that for inference.
       if (contextType is InterfaceType &&
           contextType.typeArguments.length == 2 &&
           contextType.element == _typeProvider.mapType.element) {
-        staticKeyType = contextType.typeArguments[0] ?? staticKeyType;
-        staticValueType = contextType.typeArguments[1] ?? staticValueType;
         _resolver.inferenceContext.recordInference(node, contextType);
-      } else if (node.entries.isNotEmpty) {
-        // Infer the list type from the arguments.
-        // TODO(jmesserly): record inference here?
-        staticKeyType =
+        _recordStaticType(node, contextType);
+        return null;
+      }
+
+      // Otherwise, try to infer a type from the keys and values.
+      if (node.entries.isNotEmpty) {
+        DartType staticKeyType =
             node.entries.map((e) => e.key.staticType).reduce(_leastUpperBound);
-        staticValueType = node.entries
+        DartType staticValueType = node.entries
             .map((e) => e.value.staticType)
             .reduce(_leastUpperBound);
         if (staticKeyType.isBottom) {
@@ -703,12 +749,21 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         if (staticValueType.isBottom) {
           staticValueType = _dynamicType;
         }
+        DartType mapLiteralType = _typeProvider.mapType
+            .instantiate(<DartType>[staticKeyType, staticValueType]);
+        if (!(staticValueType.isDynamic && staticKeyType.isDynamic)) {
+          _resolver.inferenceContext.recordInference(node, mapLiteralType);
+        }
+        _recordStaticType(node, mapLiteralType);
+        return null;
       }
     }
+
+    // If no type arguments and no inference, use dynamic
     _recordStaticType(
         node,
         _typeProvider.mapType
-            .instantiate(<DartType>[staticKeyType, staticValueType]));
+            .instantiate(<DartType>[_dynamicType, _dynamicType]));
     return null;
   }
 
@@ -1471,8 +1526,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   DartType _computePropagatedReturnTypeOfFunction(FunctionBody body) {
     if (body is ExpressionFunctionBody) {
-      ExpressionFunctionBody expressionBody = body;
-      return expressionBody.expression.bestType;
+      return body.expression.bestType;
     }
     if (body is BlockFunctionBody) {
       _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction visitor =
@@ -1586,13 +1640,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       _find(type);
     }
     return result;
-  }
-
-  /**
-   * Return the best type of the given [expression].
-   */
-  DartType _getBestType(Expression expression) {
-    return expression.bestType;
   }
 
   /**
@@ -1712,16 +1759,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * Return the propagated type of the given [Element], or `null`.
    */
   DartType _getPropertyPropagatedType(Element element, DartType currentType) {
-    if (element is PropertyAccessorElement) {
-      PropertyAccessorElement accessor = element;
-      if (accessor.isGetter) {
-        PropertyInducingElement variable = accessor.variable;
-        DartType propagatedType = variable.propagatedType;
-        if (currentType == null ||
-            propagatedType != null &&
-                propagatedType.isMoreSpecificThan(currentType)) {
-          return propagatedType;
-        }
+    if (element is PropertyAccessorElement && element.isGetter) {
+      PropertyInducingElement variable = element.variable;
+      DartType propagatedType = variable.propagatedType;
+      if (currentType == null ||
+          propagatedType != null &&
+              propagatedType.isMoreSpecificThan(currentType)) {
+        return propagatedType;
       }
     }
     return currentType;
@@ -1878,12 +1922,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       VariableDeclaration node, Expression initializer) {
     if (initializer != null &&
         (node.parent as VariableDeclarationList).type == null &&
-        (node.element is LocalVariableElementImpl) &&
         (initializer.staticType != null) &&
         (!initializer.staticType.isBottom)) {
-      LocalVariableElementImpl element = node.element;
-      element.type = initializer.staticType;
-      node.name.staticType = initializer.staticType;
+      VariableElement element = node.element;
+      if (element is LocalVariableElementImpl) {
+        element.type = initializer.staticType;
+        node.name.staticType = initializer.staticType;
+      }
     }
   }
 
@@ -2126,50 +2171,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
           operator == TokenType.STAR_EQ ||
           operator == TokenType.TILDE_SLASH_EQ) {
         if (typeAccessor(rightHandSide) == intType) {
-          return intType;
-        }
-      }
-    }
-    // default
-    return currentType;
-  }
-
-  /**
-   * Attempts to make a better guess for the type of the given binary
-   * [expression], given that resolution has so far produced the [currentType].
-   * The [typeAccessor] is used to access the corresponding type of the left
-   * and right operands.
-   */
-  DartType _refineBinaryExpressionType(
-      BinaryExpression expression, DartType currentType,
-      [DartType typeAccessor(Expression node)]) {
-    TokenType operator = expression.operator.type;
-    // bool
-    if (operator == TokenType.AMPERSAND_AMPERSAND ||
-        operator == TokenType.BAR_BAR ||
-        operator == TokenType.EQ_EQ ||
-        operator == TokenType.BANG_EQ) {
-      return _typeProvider.boolType;
-    }
-    DartType intType = _typeProvider.intType;
-    if (typeAccessor(expression.leftOperand) == intType) {
-      // int op double
-      if (operator == TokenType.MINUS ||
-          operator == TokenType.PERCENT ||
-          operator == TokenType.PLUS ||
-          operator == TokenType.STAR) {
-        DartType doubleType = _typeProvider.doubleType;
-        if (typeAccessor(expression.rightOperand) == doubleType) {
-          return doubleType;
-        }
-      }
-      // int op int
-      if (operator == TokenType.MINUS ||
-          operator == TokenType.PERCENT ||
-          operator == TokenType.PLUS ||
-          operator == TokenType.STAR ||
-          operator == TokenType.TILDE_SLASH) {
-        if (typeAccessor(expression.rightOperand) == intType) {
           return intType;
         }
       }

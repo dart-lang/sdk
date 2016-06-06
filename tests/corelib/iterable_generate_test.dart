@@ -42,4 +42,32 @@ main() {
   if (checkedMode) {
     Expect.throws(() => new Iterable<String>.generate(5));
   }
+
+  // Omitted generator function means `(int x) => x`, and the type parameters
+  // must then be compatible with `int`.
+  // Check that we catch invalid type parameters.
+
+  // Valid types:
+  Iterable<int> iter1 = new Iterable<int>.generate(5);
+  Expect.equals(2, iter1.elementAt(2));
+  Iterable<num> iter2 = new Iterable<num>.generate(5);
+  Expect.equals(2, iter2.elementAt(2));
+  Iterable<Object> iter3 = new Iterable<Object>.generate(5);
+  Expect.equals(2, iter3.elementAt(2));
+  Iterable<dynamic> iter4 = new Iterable<dynamic>.generate(5);
+  Expect.equals(2, iter4.elementAt(2));
+
+  // Invalid types:
+  Expect.throws(() => new Iterable<String>.generate(5));
+  Expect.throws(() => new Iterable<Null>.generate(5));
+  Expect.throws(() => new Iterable<bool>.generate(5));
+
+  // Regression: https://github.com/dart-lang/sdk/issues/26358
+  var count = 0;
+  var iter = new Iterable.generate(5, (v) { count++; return v; });
+  Expect.equals(0, count);
+  Expect.equals(2, iter.elementAt(2));  // Doesn't compute the earlier values.
+  Expect.equals(1, count);
+  Expect.equals(2, iter.skip(2).first);  // Doesn't compute the skipped values.
+  Expect.equals(2, count);
 }

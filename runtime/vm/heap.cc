@@ -31,10 +31,10 @@ Heap::Heap(Isolate* isolate,
            intptr_t max_old_gen_words,
            intptr_t max_external_words)
     : isolate_(isolate),
-      barrier_(new Monitor()),
-      barrier_done_(new Monitor()),
       new_space_(this, max_new_gen_semi_words, kNewObjectAlignmentOffset),
       old_space_(this, max_old_gen_words, max_external_words),
+      barrier_(new Monitor()),
+      barrier_done_(new Monitor()),
       read_only_(false),
       gc_new_space_in_progress_(false),
       gc_old_space_in_progress_(false),
@@ -369,6 +369,7 @@ void Heap::UpdateClassHeapStatsBeforeGC(Heap::Space space) {
 void Heap::CollectNewSpaceGarbage(Thread* thread,
                                   ApiCallbacks api_callbacks,
                                   GCReason reason) {
+  ASSERT((reason == kNewSpace) || (reason == kFull));
   if (BeginNewSpaceGC(thread)) {
     bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
     RecordBeforeGC(kNew, reason);
@@ -380,8 +381,9 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
     UpdatePretenurePolicy();
     RecordAfterGC(kNew);
     PrintStats();
+    NOT_IN_PRODUCT(PrintStatsToTimeline(&tds));
     EndNewSpaceGC();
-    if (old_space_.NeedsGarbageCollection()) {
+    if ((reason == kNewSpace) && old_space_.NeedsGarbageCollection()) {
       // Old collections should call the API callbacks.
       CollectOldSpaceGarbage(thread, kInvokeApiCallbacks, kPromotion);
     }
@@ -392,6 +394,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
 void Heap::CollectOldSpaceGarbage(Thread* thread,
                                   ApiCallbacks api_callbacks,
                                   GCReason reason) {
+  ASSERT((reason != kNewSpace));
   if (BeginOldSpaceGC(thread)) {
     bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
     RecordBeforeGC(kOld, reason);
@@ -401,6 +404,7 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
     old_space_.MarkSweep(invoke_api_callbacks);
     RecordAfterGC(kOld);
     PrintStats();
+    NOT_IN_PRODUCT(PrintStatsToTimeline(&tds));
     EndOldSpaceGC();
   }
 }
@@ -829,6 +833,66 @@ void Heap::PrintStats() {
     stats_.data_[1],
     stats_.data_[2],
     stats_.data_[3]);
+}
+
+
+void Heap::PrintStatsToTimeline(TimelineEventScope* event) {
+#if !defined(PRODUCT)
+  if ((event == NULL) || !event->enabled()) {
+    return;
+  }
+  event->SetNumArguments(12);
+  event->FormatArgument(0,
+                        "Before.New.Used (kB)",
+                        "%" Pd "",
+                        RoundWordsToKB(stats_.before_.new_.used_in_words));
+  event->FormatArgument(1,
+                        "After.New.Used (kB)",
+                        "%" Pd "",
+                        RoundWordsToKB(stats_.after_.new_.used_in_words));
+  event->FormatArgument(2,
+                        "Before.Old.Used (kB)",
+                        "%" Pd "",
+                        RoundWordsToKB(stats_.before_.old_.used_in_words));
+  event->FormatArgument(3,
+                        "After.Old.Used (kB)",
+                        "%" Pd "",
+                        RoundWordsToKB(stats_.after_.old_.used_in_words));
+
+  event->FormatArgument(4,
+                        "Before.New.Capacity (kB)",
+                        "%" Pd "",
+                        RoundWordsToKB(stats_.before_.new_.capacity_in_words));
+  event->FormatArgument(5,
+                        "After.New.Capacity (kB)",
+                        "%" Pd "",
+                        RoundWordsToKB(stats_.after_.new_.capacity_in_words));
+  event->FormatArgument(6,
+                        "Before.Old.Capacity (kB)",
+                        "%" Pd "",
+                        RoundWordsToKB(stats_.before_.old_.capacity_in_words));
+  event->FormatArgument(7,
+                        "After.Old.Capacity (kB)",
+                        "%" Pd "",
+                        RoundWordsToKB(stats_.after_.old_.capacity_in_words));
+
+  event->FormatArgument(8,
+                        "Before.New.External (kB)",
+                        "%" Pd "",
+                        RoundWordsToKB(stats_.before_.new_.external_in_words));
+  event->FormatArgument(9,
+                        "After.New.External (kB)",
+                        "%" Pd "",
+                        RoundWordsToKB(stats_.after_.new_.external_in_words));
+  event->FormatArgument(10,
+                        "Before.Old.External (kB)",
+                        "%" Pd "",
+                        RoundWordsToKB(stats_.before_.old_.external_in_words));
+  event->FormatArgument(11,
+                        "After.Old.External (kB)",
+                        "%" Pd "",
+                        RoundWordsToKB(stats_.after_.old_.external_in_words));
+#endif  // !defined(PRODUCT)
 }
 
 

@@ -87,11 +87,7 @@ Future<CompilerImpl> reuseCompiler(
       });
     });
   } else {
-    for (final task in compiler.tasks) {
-      if (task.watch != null) {
-        task.watch.reset();
-      }
-    }
+    compiler.tasks.forEach((t) => t.clearMeasurements());
     compiler
         ..userOutputProvider = outputProvider
         ..provider = inputProvider

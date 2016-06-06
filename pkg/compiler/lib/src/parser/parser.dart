@@ -15,7 +15,6 @@ import '../tokens/precedence_constants.dart'
         CASCADE_PRECEDENCE,
         EQUALITY_PRECEDENCE,
         GT_INFO,
-        GT_GT_INFO,
         IS_INFO,
         MINUS_MINUS_INFO,
         OPEN_PAREN_INFO,
@@ -105,9 +104,9 @@ class Parser {
   final bool enableGenericMethodSyntax;
 
   Parser(this.listener, ParserOptions parserOptions,
-      {this.asyncAwaitKeywordsEnabled: false}) :
-          parserOptions = parserOptions,
-          enableGenericMethodSyntax = parserOptions.enableGenericMethodSyntax;
+      {this.asyncAwaitKeywordsEnabled: false})
+      : parserOptions = parserOptions,
+        enableGenericMethodSyntax = parserOptions.enableGenericMethodSyntax;
 
   Token parseUnit(Token token) {
     listener.beginCompilationUnit(token);
@@ -461,6 +460,11 @@ class Parser {
     }
     token = parseIdentifier(token);
     if (optional('(', token)) {
+      listener.handleNoTypeVariables(token);
+      token = parseFormalParameters(token);
+      listener.handleFunctionTypedFormalParameter(token);
+    } else if (enableGenericMethodSyntax && optional('<', token)) {
+      token = parseTypeVariablesOpt(token);
       token = parseFormalParameters(token);
       listener.handleFunctionTypedFormalParameter(token);
     }
@@ -765,12 +769,15 @@ class Parser {
   Token parseTypeVariable(Token token) {
     listener.beginTypeVariable(token);
     token = parseIdentifier(token);
-    if (optional('extends', token)) {
+    Token extendsOrSuper = null;
+    if (optional('extends', token) ||
+        (enableGenericMethodSyntax && optional('super', token))) {
+      extendsOrSuper = token;
       token = parseType(token.next);
     } else {
       listener.handleNoType(token);
     }
-    listener.endTypeVariable(token);
+    listener.endTypeVariable(token, extendsOrSuper);
     return token;
   }
 
@@ -1843,14 +1850,36 @@ class Parser {
         // We are looking at "type identifier '('".
         BeginGroupToken beginParen = afterId;
         Token endParen = beginParen.endGroup;
+        // TODO(eernst): Check for NPE as described in issue 26252.
         Token afterParens = endParen.next;
         if (optional('{', afterParens) ||
             optional('=>', afterParens) ||
             optional('async', afterParens) ||
             optional('sync', afterParens)) {
           // We are looking at "type identifier '(' ... ')'" followed
-          // by '=>' or '{'.
+          // by '{', '=>', 'async', or 'sync'.
           return parseFunctionDeclaration(token);
+        }
+      } else if (enableGenericMethodSyntax &&
+          identical(afterIdKind, LT_TOKEN)) {
+        // We are looking at "type identifier '<'".
+        BeginGroupToken beginAngle = afterId;
+        Token endAngle = beginAngle.endGroup;
+        if (endAngle != null &&
+            identical(endAngle.next.kind, OPEN_PAREN_TOKEN)) {
+          BeginGroupToken beginParen = endAngle.next;
+          Token endParen = beginParen.endGroup;
+          if (endParen != null) {
+            Token afterParens = endParen.next;
+            if (optional('{', afterParens) ||
+                optional('=>', afterParens) ||
+                optional('async', afterParens) ||
+                optional('sync', afterParens)) {
+              // We are looking at "type identifier '<' ... '>' '(' ... ')'"
+              // followed by '{', '=>', 'async', or 'sync'.
+              return parseFunctionDeclaration(token);
+            }
+          }
         }
       }
       // Fall-through to expression statement.
@@ -1859,6 +1888,7 @@ class Parser {
         return parseLabeledStatement(token);
       } else if (optional('(', token.next)) {
         BeginGroupToken begin = token.next;
+        // TODO(eernst): Check for NPE as described in issue 26252.
         String afterParens = begin.endGroup.next.stringValue;
         if (identical(afterParens, '{') ||
             identical(afterParens, '=>') ||
@@ -1866,6 +1896,24 @@ class Parser {
             identical(afterParens, 'sync')) {
           return parseFunctionDeclaration(token);
         }
+      } else if (enableGenericMethodSyntax && optional('<', token.next)) {
+        BeginGroupToken beginAngle = token.next;
+        Token endAngle = beginAngle.endGroup;
+        if (endAngle != null &&
+            identical(endAngle.next.kind, OPEN_PAREN_TOKEN)) {
+          BeginGroupToken beginParen = endAngle.next;
+          Token endParen = beginParen.endGroup;
+          if (endParen != null) {
+            String afterParens = endParen.next.stringValue;
+            if (identical(afterParens, '{') ||
+                identical(afterParens, '=>') ||
+                identical(afterParens, 'async') ||
+                identical(afterParens, 'sync')) {
+              return parseFunctionDeclaration(token);
+            }
+          }
+        }
+        // Fall through to expression statement.
       }
     }
     return parseExpressionStatement(token);
@@ -2133,11 +2181,14 @@ class Parser {
       }
     } else if (kind == OPEN_PAREN_TOKEN) {
       return parseParenthesizedExpressionOrFunctionLiteral(token);
-    } else if ((kind == LT_TOKEN) ||
-        (kind == OPEN_SQUARE_BRACKET_TOKEN) ||
-        (kind == OPEN_CURLY_BRACKET_TOKEN) ||
-        token.stringValue == '[]') {
-      return parseLiteralListOrMap(token);
+    } else if (kind == OPEN_SQUARE_BRACKET_TOKEN || token.stringValue == '[]') {
+      listener.handleNoTypeArguments(token);
+      return parseLiteralListSuffix(token, null);
+    } else if (kind == OPEN_CURLY_BRACKET_TOKEN) {
+      listener.handleNoTypeArguments(token);
+      return parseLiteralMapSuffix(token, null);
+    } else if (kind == LT_TOKEN) {
+      return parseLiteralListOrMapOrFunction(token, null);
     } else {
       return listener.expectedExpression(token);
     }
@@ -2145,6 +2196,7 @@ class Parser {
 
   Token parseParenthesizedExpressionOrFunctionLiteral(Token token) {
     BeginGroupToken beginGroup = token;
+    // TODO(eernst): Check for NPE as described in issue 26252.
     Token nextToken = beginGroup.endGroup.next;
     int kind = nextToken.kind;
     if (mayParseFunctionExpressions &&
@@ -2152,6 +2204,7 @@ class Parser {
             identical(kind, OPEN_CURLY_BRACKET_TOKEN) ||
             (identical(kind, KEYWORD_TOKEN) &&
                 (nextToken.value == 'async' || nextToken.value == 'sync')))) {
+      listener.handleNoTypeVariables(token);
       return parseUnnamedFunction(token);
     } else {
       bool old = mayParseFunctionExpressions;
@@ -2201,30 +2254,16 @@ class Parser {
     return token;
   }
 
-  Token parseLiteralListOrMap(Token token) {
-    Token constKeyword = null;
-    if (optional('const', token)) {
-      constKeyword = token;
-      token = token.next;
-    }
-    token = parseTypeArgumentsOpt(token);
+  /// '[' (expressionList ','?)? ']'.
+  ///
+  /// Provide [constKeyword] if preceded by 'const', null if not.
+  /// This is a suffix parser because it is assumed that type arguments have
+  /// been parsed, or `listener.handleNoTypeArguments(..)` has been executed.
+  Token parseLiteralListSuffix(Token token, Token constKeyword) {
+    assert(optional('[', token) || optional('[]', token));
     Token beginToken = token;
     int count = 0;
-    if (optional('{', token)) {
-      bool old = mayParseFunctionExpressions;
-      mayParseFunctionExpressions = true;
-      do {
-        if (optional('}', token.next)) {
-          token = token.next;
-          break;
-        }
-        token = parseMapLiteralEntry(token.next);
-        ++count;
-      } while (optional(',', token));
-      mayParseFunctionExpressions = old;
-      listener.handleLiteralMap(count, beginToken, constKeyword, token);
-      return expect('}', token);
-    } else if (optional('[', token)) {
+    if (optional('[', token)) {
       bool old = mayParseFunctionExpressions;
       mayParseFunctionExpressions = true;
       do {
@@ -2238,10 +2277,83 @@ class Parser {
       mayParseFunctionExpressions = old;
       listener.handleLiteralList(count, beginToken, constKeyword, token);
       return expect(']', token);
-    } else if (optional('[]', token)) {
-      listener.handleLiteralList(0, token, constKeyword, token);
-      return token.next;
+    }
+    // Looking at '[]'.
+    listener.handleLiteralList(0, token, constKeyword, token);
+    return token.next;
+  }
+
+  /// '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}'.
+  ///
+  /// Provide token for [constKeyword] if preceded by 'const', null if not.
+  /// This is a suffix parser because it is assumed that type arguments have
+  /// been parsed, or `listener.handleNoTypeArguments(..)` has been executed.
+  Token parseLiteralMapSuffix(Token token, Token constKeyword) {
+    assert(optional('{', token));
+    Token beginToken = token;
+    int count = 0;
+    bool old = mayParseFunctionExpressions;
+    mayParseFunctionExpressions = true;
+    do {
+      if (optional('}', token.next)) {
+        token = token.next;
+        break;
+      }
+      token = parseMapLiteralEntry(token.next);
+      ++count;
+    } while (optional(',', token));
+    mayParseFunctionExpressions = old;
+    listener.handleLiteralMap(count, beginToken, constKeyword, token);
+    return expect('}', token);
+  }
+
+  /// formalParameterList functionBody.
+  ///
+  /// This is a suffix parser because it is assumed that type arguments have
+  /// been parsed, or `listener.handleNoTypeArguments(..)` has been executed.
+  Token parseLiteralFunctionSuffix(Token token) {
+    assert(optional('(', token));
+    BeginGroupToken beginGroup = token;
+    if (beginGroup.endGroup != null) {
+      Token nextToken = beginGroup.endGroup.next;
+      int kind = nextToken.kind;
+      if (identical(kind, FUNCTION_TOKEN) ||
+          identical(kind, OPEN_CURLY_BRACKET_TOKEN) ||
+          (identical(kind, KEYWORD_TOKEN) &&
+              (nextToken.value == 'async' || nextToken.value == 'sync'))) {
+        return parseUnnamedFunction(token);
+      }
+      // Fall through.
+    }
+    listener.unexpected(token);
+    return null;
+  }
+
+  /// genericListLiteral | genericMapLiteral | genericFunctionLiteral.
+  ///
+  /// Where
+  ///   genericListLiteral ::= typeArguments '[' (expressionList ','?)? ']'
+  ///   genericMapLiteral ::=
+  ///       typeArguments '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}'
+  ///   genericFunctionLiteral ::=
+  ///       typeParameters formalParameterList functionBody
+  /// Provide token for [constKeyword] if preceded by 'const', null if not.
+  Token parseLiteralListOrMapOrFunction(Token token, Token constKeyword) {
+    assert(optional('<', token));
+    BeginGroupToken begin = token;
+    if (enableGenericMethodSyntax &&
+        constKeyword == null &&
+        begin.endGroup != null &&
+        identical(begin.endGroup.next.kind, OPEN_PAREN_TOKEN)) {
+      token = parseTypeVariablesOpt(token);
+      return parseLiteralFunctionSuffix(token);
     } else {
+      token = parseTypeArgumentsOpt(token);
+      if (optional('{', token)) {
+        return parseLiteralMapSuffix(token, constKeyword);
+      } else if ((optional('[', token)) || (optional('[]', token))) {
+        return parseLiteralListSuffix(token, constKeyword);
+      }
       listener.unexpected(token);
       return null;
     }
@@ -2273,8 +2385,14 @@ class Parser {
   }
 
   bool isFunctionDeclaration(Token token) {
+    if (enableGenericMethodSyntax && optional('<', token)) {
+      BeginGroupToken begin = token;
+      if (begin.endGroup == null) return false;
+      token = begin.endGroup.next;
+    }
     if (optional('(', token)) {
       BeginGroupToken begin = token;
+      // TODO(eernst): Check for NPE as described in issue 26252.
       String afterParens = begin.endGroup.next.stringValue;
       if (identical(afterParens, '{') ||
           identical(afterParens, '=>') ||
@@ -2309,11 +2427,16 @@ class Parser {
     Token constKeyword = token;
     token = expect('const', token);
     final String value = token.stringValue;
-    if ((identical(value, '<')) ||
-        (identical(value, '[')) ||
-        (identical(value, '[]')) ||
-        (identical(value, '{'))) {
-      return parseLiteralListOrMap(constKeyword);
+    if ((identical(value, '[')) || (identical(value, '[]'))) {
+      listener.handleNoTypeArguments(token);
+      return parseLiteralListSuffix(token, constKeyword);
+    }
+    if (identical(value, '{')) {
+      listener.handleNoTypeArguments(token);
+      return parseLiteralMapSuffix(token, constKeyword);
+    }
+    if (identical(value, '<')) {
+      return parseLiteralListOrMapOrFunction(token, constKeyword);
     }
     token = parseConstructorReference(token);
     token = parseRequiredArguments(token);

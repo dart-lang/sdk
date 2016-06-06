@@ -18,9 +18,9 @@ import '../constants/values.dart';
 import '../core_types.dart' show CoreClasses;
 import '../dart_types.dart';
 import '../diagnostics/messages.dart' show Message, MessageTemplate;
+import '../dump_info.dart' show InfoReporter;
 import '../elements/elements.dart';
-import '../elements/modelx.dart'
-    show ConstructorBodyElementX, ElementX, VariableElementX;
+import '../elements/modelx.dart' show ConstructorBodyElementX;
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
@@ -37,11 +37,9 @@ import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../util/util.dart';
-import '../world.dart' show ClassWorld, World;
-import '../dump_info.dart' show InfoReporter;
-
-import 'nodes.dart';
+import '../world.dart' show ClassWorld;
 import 'codegen.dart';
+import 'nodes.dart';
 import 'optimize.dart';
 import 'types.dart';
 
@@ -93,13 +91,15 @@ class SsaBuilderTask extends CompilerTask {
   final CodeEmitterTask emitter;
   final JavaScriptBackend backend;
   final SourceInformationStrategy sourceInformationFactory;
+  final Compiler compiler;
 
   String get name => 'SSA builder';
 
   SsaBuilderTask(JavaScriptBackend backend, this.sourceInformationFactory)
       : emitter = backend.emitter,
         backend = backend,
-        super(backend.compiler);
+        compiler = backend.compiler,
+        super(backend.compiler.measurer);
 
   DiagnosticReporter get reporter => compiler.reporter;
 
@@ -109,7 +109,7 @@ class SsaBuilderTask extends CompilerTask {
       return reporter.withCurrentElement(element, () {
         SsaBuilder builder = new SsaBuilder(
             work.element.implementation,
-            work.resolutionTree,
+            work.resolvedAst,
             work.compilationContext,
             work.registry,
             backend,
@@ -125,7 +125,7 @@ class SsaBuilderTask extends CompilerTask {
           signature.forEachOptionalParameter((ParameterElement parameter) {
             // This ensures the default value will be computed.
             ConstantValue constant =
-                backend.constants.getConstantValueForVariable(parameter);
+                backend.constants.getConstantValue(parameter.constant);
             work.registry.registerCompileTimeConstant(constant);
           });
         }
@@ -326,11 +326,11 @@ class LocalsHandler {
    *
    * Invariant: [function] must be an implementation element.
    */
-  void startFunction(Element element, ast.Node node) {
+  void startFunction(AstElement element, ast.Node node) {
     assert(invariant(element, element.isImplementation));
     Compiler compiler = builder.compiler;
     closureData = compiler.closureToClassMapper
-        .computeClosureToClassMapping(element, node, builder.elements);
+        .computeClosureToClassMapping(element.resolvedAst);
 
     if (element is FunctionElement) {
       FunctionElement functionElement = element;
@@ -459,7 +459,8 @@ class LocalsHandler {
           builder.reporter.internalError(builder.compiler.currentElement,
               "Runtime type information not available for $local.");
         } else {
-          builder.reporter.internalError(local, "Cannot find value $local.");
+          builder.reporter.internalError(
+              local, "Cannot find value $local in ${directLocals.keys}.");
         }
       }
       HInstruction value = directLocals[local];
@@ -513,7 +514,12 @@ class LocalsHandler {
     // it could then have another name than the real parameter. And
     // the other one would not know it is just a copy of the real
     // parameter.
-    if (local is ParameterElement) return builder.parameters[local];
+    if (local is ParameterElement) {
+      assert(invariant(local, builder.parameters.containsKey(local),
+          message: "No local value for parameter $local in "
+              "${builder.parameters}."));
+      return builder.parameters[local];
+    }
 
     return builder.activationVariables.putIfAbsent(local, () {
       JavaScriptBackend backend = builder.backend;
@@ -1005,8 +1011,7 @@ class SsaBuilder extends ast.Visitor
   /// The element for which this SSA builder is being used.
   final Element target;
 
-  /// Reference to resolved elements in [target]'s AST.
-  TreeElements elements;
+  ResolvedAst resolvedAst;
 
   /// Used to report information about inlining (which occurs while building the
   /// SSA graph), when dump-info is enabled.
@@ -1120,7 +1125,7 @@ class SsaBuilder extends ast.Visitor
   // TODO(sigmund): make most args optional
   SsaBuilder(
       this.target,
-      this.elements,
+      this.resolvedAst,
       this.context,
       this.registry,
       JavaScriptBackend backend,
@@ -1136,7 +1141,7 @@ class SsaBuilder extends ast.Visitor
     localsHandler = new LocalsHandler(this, target, null);
     sourceElementStack.add(target);
     sourceInformationBuilder =
-        sourceInformationFactory.createBuilderForContext(target);
+        sourceInformationFactory.createBuilderForContext(resolvedAst);
     graph.sourceInformation =
         sourceInformationBuilder.buildVariableDeclaration();
   }
@@ -1148,6 +1153,9 @@ class SsaBuilder extends ast.Visitor
   DiagnosticReporter get reporter => compiler.reporter;
 
   CoreClasses get coreClasses => compiler.coreClasses;
+
+  /// Reference to resolved elements in [target]'s AST.
+  TreeElements get elements => resolvedAst.elements;
 
   @override
   SemanticSendVisitor get sendVisitor => this;
@@ -1181,7 +1189,7 @@ class SsaBuilder extends ast.Visitor
     // that it can never be null (see result in buildFactory for instance).
     var result;
     if (target.isGenerativeConstructor) {
-      result = buildFactory(target);
+      result = buildFactory(resolvedAst);
     } else if (target.isGenerativeConstructorBody ||
         target.isFactoryConstructor ||
         target.isFunction ||
@@ -1377,6 +1385,7 @@ class SsaBuilder extends ast.Visitor
     if (compiler.elementHasCompileTimeError(element)) return false;
 
     FunctionElement function = element;
+    ResolvedAst functionResolvedAst = function.resolvedAst;
     bool insideLoop = loopNesting > 0 || graph.calledInLoop;
 
     // Bail out early if the inlining decision is in the cache and we can't
@@ -1436,7 +1445,7 @@ class SsaBuilder extends ast.Visitor
 
     bool doesNotContainCode() {
       // A function with size 1 does not contain any code.
-      return InlineWeeder.canBeInlined(function, 1, true,
+      return InlineWeeder.canBeInlined(functionResolvedAst, 1, true,
           enableUserAssertions: compiler.options.enableUserAssertions);
     }
 
@@ -1444,7 +1453,7 @@ class SsaBuilder extends ast.Visitor
       // The call is on a path which is executed rarely, so inline only if it
       // does not make the program larger.
       if (isCalledOnce(element)) {
-        return InlineWeeder.canBeInlined(function, -1, false,
+        return InlineWeeder.canBeInlined(functionResolvedAst, -1, false,
             enableUserAssertions: compiler.options.enableUserAssertions);
       }
       // TODO(sra): Measure if inlining would 'reduce' the size.  One desirable
@@ -1482,7 +1491,7 @@ class SsaBuilder extends ast.Visitor
       if (cachedCanBeInlined == true) {
         // We may have forced the inlining of some methods. Therefore check
         // if we can inline this method regardless of size.
-        assert(InlineWeeder.canBeInlined(function, -1, false,
+        assert(InlineWeeder.canBeInlined(functionResolvedAst, -1, false,
             allowLoops: true,
             enableUserAssertions: compiler.options.enableUserAssertions));
         return true;
@@ -1507,7 +1516,7 @@ class SsaBuilder extends ast.Visitor
       }
       bool canInline;
       canInline = InlineWeeder.canBeInlined(
-          function, maxInliningNodes, useMaxInliningNodes,
+          functionResolvedAst, maxInliningNodes, useMaxInliningNodes,
           enableUserAssertions: compiler.options.enableUserAssertions);
       if (canInline) {
         backend.inlineCache.markAsInlinable(element, insideLoop: insideLoop);
@@ -1531,13 +1540,13 @@ class SsaBuilder extends ast.Visitor
       }
       List<HInstruction> compiledArguments = completeSendArgumentsList(
           function, selector, providedArguments, currentNode);
-      enterInlinedMethod(function, currentNode, compiledArguments,
+      enterInlinedMethod(function, functionResolvedAst, compiledArguments,
           instanceType: instanceType);
-      inlinedFrom(function, () {
+      inlinedFrom(functionResolvedAst, () {
         if (!isReachable) {
           emitReturn(graph.addConstantNull(compiler), null);
         } else {
-          doInline(function);
+          doInline(functionResolvedAst);
         }
       });
       leaveInlinedMethod();
@@ -1570,14 +1579,15 @@ class SsaBuilder extends ast.Visitor
     return allInlinedFunctionsCalledOnce && isFunctionCalledOnce(element);
   }
 
-  inlinedFrom(Element element, f()) {
+  inlinedFrom(ResolvedAst resolvedAst, f()) {
+    Element element = resolvedAst.element;
     assert(element is FunctionElement || element is VariableElement);
-    return reporter.withCurrentElement(element, () {
+    return reporter.withCurrentElement(element.implementation, () {
       // The [sourceElementStack] contains declaration elements.
       SourceInformationBuilder oldSourceInformationBuilder =
           sourceInformationBuilder;
       sourceInformationBuilder =
-          sourceInformationBuilder.forContext(element.implementation);
+          sourceInformationBuilder.forContext(resolvedAst);
       sourceElementStack.add(element.declaration);
       var result = f();
       sourceInformationBuilder = oldSourceInformationBuilder;
@@ -1593,9 +1603,9 @@ class SsaBuilder extends ast.Visitor
   HInstruction handleConstantForOptionalParameterJsInterop(Element parameter) =>
       null;
 
-  HInstruction handleConstantForOptionalParameter(Element parameter) {
+  HInstruction handleConstantForOptionalParameter(ParameterElement parameter) {
     ConstantValue constantValue =
-        backend.constants.getConstantValueForVariable(parameter);
+        backend.constants.getConstantValue(parameter.constant);
     assert(invariant(parameter, constantValue != null,
         message: 'No constant computed for $parameter'));
     return graph.addConstant(constantValue, compiler);
@@ -1678,7 +1688,7 @@ class SsaBuilder extends ast.Visitor
   HGraph buildMethod(FunctionElement functionElement) {
     assert(invariant(functionElement, functionElement.isImplementation));
     graph.calledInLoop = compiler.world.isCalledInLoop(functionElement);
-    ast.FunctionExpression function = functionElement.node;
+    ast.FunctionExpression function = resolvedAst.node;
     assert(function != null);
     assert(elements.getFunctionDefinition(function) != null);
     openFunction(functionElement, function);
@@ -1751,12 +1761,15 @@ class SsaBuilder extends ast.Visitor
   }
 
   HGraph buildLazyInitializer(VariableElement variable) {
+    assert(invariant(variable, resolvedAst.element == variable,
+        message: "Unexpected variable $variable for $resolvedAst."));
     inLazyInitializerExpression = true;
-    assert(invariant(variable, variable.initializer != null,
+    ast.VariableDefinitions node = resolvedAst.node;
+    ast.Node initializer = resolvedAst.body;
+    assert(invariant(variable, initializer != null,
         message: "Non-constant variable $variable has no initializer."));
-    ast.VariableDefinitions node = variable.node;
     openFunction(variable, node);
-    visit(variable.initializer);
+    visit(initializer);
     HInstruction value = pop();
     value = potentiallyCheckOrTrustType(value, variable.type);
     ast.SendSet sendSet = node.definitions.nodes.head;
@@ -1771,11 +1784,14 @@ class SsaBuilder extends ast.Visitor
    *
    * Returns [:null:] if the constructor does not have a body.
    */
-  ConstructorBodyElement getConstructorBody(FunctionElement constructor) {
+  ConstructorBodyElement getConstructorBody(
+      ResolvedAst constructorResolvedAst) {
+    ConstructorElement constructor =
+        constructorResolvedAst.element.implementation;
     assert(constructor.isGenerativeConstructor);
-    assert(invariant(constructor, constructor.isImplementation));
-    if (constructor.isSynthesized) return null;
-    ast.FunctionExpression node = constructor.node;
+    if (constructorResolvedAst.kind != ResolvedAstKind.PARSED) return null;
+
+    ast.FunctionExpression node = constructorResolvedAst.node;
     // If we know the body doesn't have any code, we don't generate it.
     if (!node.hasBody) return null;
     if (node.hasEmptyBody) return null;
@@ -1792,14 +1808,15 @@ class SsaBuilder extends ast.Visitor
       }
     });
     if (bodyElement == null) {
-      bodyElement = new ConstructorBodyElementX(constructor);
+      bodyElement =
+          new ConstructorBodyElementX(constructorResolvedAst, constructor);
       classElement.addBackendMember(bodyElement);
 
       if (constructor.isPatch) {
         // Create origin body element for patched constructors.
         ConstructorBodyElementX patch = bodyElement;
-        ConstructorBodyElementX origin =
-            new ConstructorBodyElementX(constructor.origin);
+        ConstructorBodyElementX origin = new ConstructorBodyElementX(
+            constructorResolvedAst, constructor.origin);
         origin.applyPatch(patch);
         classElement.origin.addBackendMember(bodyElement.origin);
       }
@@ -1832,9 +1849,11 @@ class SsaBuilder extends ast.Visitor
   void setupStateForInlining(
       FunctionElement function, List<HInstruction> compiledArguments,
       {InterfaceType instanceType}) {
+    ResolvedAst resolvedAst = function.resolvedAst;
+    assert(resolvedAst != null);
     localsHandler = new LocalsHandler(this, function, instanceType);
-    localsHandler.closureData = compiler.closureToClassMapper
-        .computeClosureToClassMapping(function, function.node, elements);
+    localsHandler.closureData =
+        compiler.closureToClassMapper.computeClosureToClassMapping(resolvedAst);
     returnLocal = new SyntheticLocal("result", function);
     localsHandler.updateLocal(returnLocal, graph.addConstantNull(compiler));
 
@@ -1863,8 +1882,6 @@ class SsaBuilder extends ast.Visitor
     }
     assert(argumentIndex == compiledArguments.length);
 
-    elements = function.resolvedAst.elements;
-    assert(elements != null);
     returnType = signature.type.returnType;
     stack = <HInstruction>[];
 
@@ -1876,7 +1893,7 @@ class SsaBuilder extends ast.Visitor
     localsHandler = state.oldLocalsHandler;
     returnLocal = state.oldReturnLocal;
     inTryStatement = state.inTryStatement;
-    elements = state.oldElements;
+    resolvedAst = state.oldResolvedAst;
     returnType = state.oldReturnType;
     assert(stack.isEmpty);
     stack = state.oldStack;
@@ -1885,13 +1902,13 @@ class SsaBuilder extends ast.Visitor
   /**
    * Run this builder on the body of the [function] to be inlined.
    */
-  void visitInlinedFunction(FunctionElement function) {
-    potentiallyCheckInlinedParameterTypes(function);
+  void visitInlinedFunction(ResolvedAst resolvedAst) {
+    potentiallyCheckInlinedParameterTypes(resolvedAst.element.implementation);
 
-    if (function.isGenerativeConstructor) {
-      buildFactory(function);
+    if (resolvedAst.element.isGenerativeConstructor) {
+      buildFactory(resolvedAst);
     } else {
-      ast.FunctionExpression functionNode = function.node;
+      ast.FunctionExpression functionNode = resolvedAst.node;
       functionNode.body.accept(this);
     }
   }
@@ -1938,14 +1955,14 @@ class SsaBuilder extends ast.Visitor
    * Invariant: [constructors] must contain only implementation elements.
    */
   void inlineSuperOrRedirect(
-      ConstructorElement callee,
+      ResolvedAst constructorRecolvedAst,
       List<HInstruction> compiledArguments,
-      List<FunctionElement> constructors,
+      List<ResolvedAst> constructorResolvedAsts,
       Map<Element, HInstruction> fieldValues,
       FunctionElement caller) {
-    callee = callee.implementation;
+    ConstructorElement callee = constructorRecolvedAst.element.implementation;
     reporter.withCurrentElement(callee, () {
-      constructors.add(callee);
+      constructorResolvedAsts.add(constructorRecolvedAst);
       ClassElement enclosingClass = callee.enclosingClass;
       if (backend.classNeedsRti(enclosingClass)) {
         // If [enclosingClass] needs RTI, we have to give a value to its
@@ -1983,7 +2000,7 @@ class SsaBuilder extends ast.Visitor
       // For redirecting constructors, the fields will be initialized later
       // by the effective target.
       if (!callee.isRedirectingGenerative) {
-        inlinedFrom(callee, () {
+        inlinedFrom(constructorRecolvedAst, () {
           buildFieldInitializers(
               callee.enclosingClass.implementation, fieldValues);
         });
@@ -2007,19 +2024,69 @@ class SsaBuilder extends ast.Visitor
       });
 
       // Build the initializers in the context of the new constructor.
-      TreeElements oldElements = elements;
-      ResolvedAst resolvedAst = callee.resolvedAst;
-      elements = resolvedAst.elements;
+      ResolvedAst oldResolvedAst = resolvedAst;
+      resolvedAst = callee.resolvedAst;
       ClosureClassMap oldClosureData = localsHandler.closureData;
-      ast.Node node = resolvedAst.node;
       ClosureClassMap newClosureData = compiler.closureToClassMapper
-          .computeClosureToClassMapping(callee, node, elements);
+          .computeClosureToClassMapping(resolvedAst);
       localsHandler.closureData = newClosureData;
-      localsHandler.enterScope(node, callee);
-      buildInitializers(callee, constructors, fieldValues);
+      if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+        localsHandler.enterScope(resolvedAst.node, callee);
+      }
+      buildInitializers(callee, constructorResolvedAsts, fieldValues);
       localsHandler.closureData = oldClosureData;
-      elements = oldElements;
+      resolvedAst = oldResolvedAst;
     });
+  }
+
+  void buildInitializers(
+      ConstructorElement constructor,
+      List<ResolvedAst> constructorResolvedAsts,
+      Map<Element, HInstruction> fieldValues) {
+    assert(invariant(
+        constructor, resolvedAst.element == constructor.declaration,
+        message: "Expected ResolvedAst for $constructor, found $resolvedAst"));
+    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+      buildParsedInitializers(
+          constructor, constructorResolvedAsts, fieldValues);
+    } else {
+      buildSynthesizedConstructorInitializers(
+          constructor, constructorResolvedAsts, fieldValues);
+    }
+  }
+
+  void buildSynthesizedConstructorInitializers(
+      ConstructorElement constructor,
+      List<ResolvedAst> constructorResolvedAsts,
+      Map<Element, HInstruction> fieldValues) {
+    assert(invariant(constructor, constructor.isSynthesized,
+        message: "Unexpected unsynthesized constructor: $constructor"));
+    List<HInstruction> arguments = <HInstruction>[];
+    HInstruction compileArgument(ParameterElement parameter) {
+      return localsHandler.readLocal(parameter);
+    }
+
+    ConstructorElement target = constructor.definingConstructor.implementation;
+    bool match = !target.isMalformed &&
+        CallStructure.addForwardingElementArgumentsToList(
+            constructor,
+            arguments,
+            target,
+            compileArgument,
+            handleConstantForOptionalParameter);
+    if (!match) {
+      if (compiler.elementHasCompileTimeError(constructor)) {
+        return;
+      }
+      // If this fails, the selector we constructed for the call to a
+      // forwarding constructor in a mixin application did not match the
+      // constructor (which, for example, may happen when the libraries are
+      // not compatible for private names, see issue 20394).
+      reporter.internalError(
+          constructor, 'forwarding constructor call does not match');
+    }
+    inlineSuperOrRedirect(target.resolvedAst, arguments,
+        constructorResolvedAsts, fieldValues, constructor);
   }
 
   /**
@@ -2032,41 +2099,16 @@ class SsaBuilder extends ast.Visitor
    * Invariant: The [constructor] and elements in [constructors] must all be
    * implementation elements.
    */
-  void buildInitializers(
+  void buildParsedInitializers(
       ConstructorElement constructor,
-      List<FunctionElement> constructors,
+      List<ResolvedAst> constructorResolvedAsts,
       Map<Element, HInstruction> fieldValues) {
+    assert(
+        invariant(constructor, resolvedAst.element == constructor.declaration));
     assert(invariant(constructor, constructor.isImplementation));
-    if (constructor.isSynthesized) {
-      List<HInstruction> arguments = <HInstruction>[];
-      HInstruction compileArgument(ParameterElement parameter) {
-        return localsHandler.readLocal(parameter);
-      }
-
-      Element target = constructor.definingConstructor.implementation;
-      bool match = !target.isMalformed &&
-          CallStructure.addForwardingElementArgumentsToList(
-              constructor,
-              arguments,
-              target,
-              compileArgument,
-              handleConstantForOptionalParameter);
-      if (!match) {
-        if (compiler.elementHasCompileTimeError(constructor)) {
-          return;
-        }
-        // If this fails, the selector we constructed for the call to a
-        // forwarding constructor in a mixin application did not match the
-        // constructor (which, for example, may happen when the libraries are
-        // not compatible for private names, see issue 20394).
-        reporter.internalError(
-            constructor, 'forwarding constructor call does not match');
-      }
-      inlineSuperOrRedirect(
-          target, arguments, constructors, fieldValues, constructor);
-      return;
-    }
-    ast.FunctionExpression functionNode = constructor.node;
+    assert(invariant(constructor, !constructor.isSynthesized,
+        message: "Unexpected synthesized constructor: $constructor"));
+    ast.FunctionExpression functionNode = resolvedAst.node;
 
     bool foundSuperOrRedirect = false;
     if (functionNode.initializers != null) {
@@ -2086,18 +2128,18 @@ class SsaBuilder extends ast.Visitor
               elements.getSelector(call).callStructure;
           Link<ast.Node> arguments = call.arguments;
           List<HInstruction> compiledArguments;
-          inlinedFrom(constructor, () {
+          inlinedFrom(resolvedAst, () {
             compiledArguments =
                 makeStaticArgumentList(callStructure, arguments, target);
           });
-          inlineSuperOrRedirect(target, compiledArguments, constructors,
-              fieldValues, constructor);
+          inlineSuperOrRedirect(target.resolvedAst, compiledArguments,
+              constructorResolvedAsts, fieldValues, constructor);
         } else {
           // A field initializer.
           ast.SendSet init = link.head;
           Link<ast.Node> arguments = init.arguments;
           assert(!arguments.isEmpty && arguments.tail.isEmpty);
-          inlinedFrom(constructor, () {
+          inlinedFrom(resolvedAst, () {
             visit(arguments.head);
           });
           fieldValues[elements[init]] = pop();
@@ -2124,8 +2166,8 @@ class SsaBuilder extends ast.Visitor
             target.implementation,
             null,
             handleConstantForOptionalParameter);
-        inlineSuperOrRedirect(
-            target, arguments, constructors, fieldValues, constructor);
+        inlineSuperOrRedirect(target.resolvedAst, arguments,
+            constructorResolvedAsts, fieldValues, constructor);
       }
     }
   }
@@ -2140,12 +2182,12 @@ class SsaBuilder extends ast.Visitor
       ClassElement classElement, Map<Element, HInstruction> fieldValues) {
     assert(invariant(classElement, classElement.isImplementation));
     classElement.forEachInstanceField(
-        (ClassElement enclosingClass, VariableElement member) {
+        (ClassElement enclosingClass, FieldElement member) {
       if (compiler.elementHasCompileTimeError(member)) return;
       reporter.withCurrentElement(member, () {
-        TreeElements definitions = member.treeElements;
-        ast.Node node = member.node;
-        ast.Expression initializer = member.initializer;
+        ResolvedAst fieldResolvedAst = member.resolvedAst;
+        ast.Node node = fieldResolvedAst.node;
+        ast.Expression initializer = fieldResolvedAst.body;
         if (initializer == null) {
           // Unassigned fields of native classes are not initialized to
           // prevent overwriting pre-initialized native properties.
@@ -2154,14 +2196,14 @@ class SsaBuilder extends ast.Visitor
           }
         } else {
           ast.Node right = initializer;
-          TreeElements savedElements = elements;
-          elements = definitions;
+          ResolvedAst savedResolvedAst = resolvedAst;
+          resolvedAst = fieldResolvedAst;
           // In case the field initializer uses closures, run the
           // closure to class mapper.
           compiler.closureToClassMapper
-              .computeClosureToClassMapping(member, node, elements);
-          inlinedFrom(member, () => right.accept(this));
-          elements = savedElements;
+              .computeClosureToClassMapping(resolvedAst);
+          inlinedFrom(fieldResolvedAst, () => right.accept(this));
+          resolvedAst = savedResolvedAst;
           fieldValues[member] = pop();
         }
       });
@@ -2177,13 +2219,18 @@ class SsaBuilder extends ast.Visitor
    *  - Call the constructor bodies, starting from the constructor(s) in the
    *    super class(es).
    */
-  HGraph buildFactory(ConstructorElement functionElement) {
+  HGraph buildFactory(ResolvedAst resolvedAst) {
+    ConstructorElement functionElement = resolvedAst.element;
     functionElement = functionElement.implementation;
     ClassElement classElement = functionElement.enclosingClass.implementation;
     bool isNativeUpgradeFactory =
         backend.isNativeOrExtendsNative(classElement) &&
             !backend.isJsInterop(classElement);
-    ast.FunctionExpression function = functionElement.node;
+    ast.FunctionExpression function;
+    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+      function = resolvedAst.node;
+    }
+
     // Note that constructors (like any other static function) do not need
     // to deal with optional arguments. It is the callers job to provide all
     // arguments as if they were positional.
@@ -2216,8 +2263,8 @@ class SsaBuilder extends ast.Visitor
 
     // Analyze the constructor and all referenced constructors and collect
     // initializers and constructor bodies.
-    List<FunctionElement> constructors = <FunctionElement>[functionElement];
-    buildInitializers(functionElement, constructors, fieldValues);
+    List<ResolvedAst> constructorResolvedAsts = <ResolvedAst>[resolvedAst];
+    buildInitializers(functionElement, constructorResolvedAsts, fieldValues);
 
     // Call the JavaScript constructor with the fields as argument.
     List<HInstruction> constructorArguments = <HInstruction>[];
@@ -2346,10 +2393,9 @@ class SsaBuilder extends ast.Visitor
 
     // Generate calls to the constructor bodies.
     HInstruction interceptor = null;
-    for (int index = constructors.length - 1; index >= 0; index--) {
-      FunctionElement constructor = constructors[index];
-      assert(invariant(functionElement, constructor.isImplementation));
-      ConstructorBodyElement body = getConstructorBody(constructor);
+    for (int index = constructorResolvedAsts.length - 1; index >= 0; index--) {
+      ResolvedAst constructorResolvedAst = constructorResolvedAsts[index];
+      ConstructorBodyElement body = getConstructorBody(constructorResolvedAst);
       if (body == null) continue;
 
       List bodyCallInputs = <HInstruction>[];
@@ -2362,8 +2408,7 @@ class SsaBuilder extends ast.Visitor
         bodyCallInputs.add(interceptor);
       }
       bodyCallInputs.add(newObject);
-      ResolvedAst resolvedAst = constructor.resolvedAst;
-      ast.Node node = resolvedAst.node;
+      ast.Node node = constructorResolvedAst.node;
       ClosureClassMap parameterClosureData =
           compiler.closureToClassMapper.getMappingForNestedFunction(node);
 
@@ -2386,6 +2431,8 @@ class SsaBuilder extends ast.Visitor
       }
 
       // Type variables arguments must come after the box (if there is one).
+      ConstructorElement constructor =
+          constructorResolvedAst.element.implementation;
       ClassElement currentClass = constructor.enclosingClass;
       if (backend.classNeedsRti(currentClass)) {
         // If [currentClass] needs RTI, we add the type variables as
@@ -2533,13 +2580,17 @@ class SsaBuilder extends ast.Visitor
             "${localsHandler.contextClass}.");
   }
 
-  /// Build a [HTypeConversion] for convertion [original] to type [type].
+  /// Build a [HTypeConversion] for converting [original] to type [type].
   ///
   /// Invariant: [type] must be valid in the context.
   /// See [LocalsHandler.substInContext].
   HInstruction buildTypeConversion(
       HInstruction original, DartType type, int kind) {
     if (type == null) return original;
+    // GENERIC_METHODS: The following statement was added for parsing and
+    // ignoring method type variables; must be generalized for full support of
+    // generic methods.
+    type = type.dynamifyMethodTypeVariableType;
     type = type.unaliased;
     assert(assertTypeInContext(type, original));
     if (type.isInterfaceType && !type.treatAsRaw) {
@@ -3436,8 +3487,6 @@ class SsaBuilder extends ast.Visitor
   /// Generate read access of an unresolved static or top level entity.
   void generateStaticUnresolvedGet(ast.Send node, Element element) {
     if (element is ErroneousElement) {
-      SourceInformation sourceInformation =
-          sourceInformationBuilder.buildGet(node);
       // An erroneous element indicates an unresolved static getter.
       handleInvalidStaticGet(node, element);
     } else {
@@ -3484,8 +3533,7 @@ class SsaBuilder extends ast.Visitor
 
   /// Read a static or top level [field].
   void generateStaticFieldGet(ast.Send node, FieldElement field) {
-    ConstantExpression constant =
-        backend.constants.getConstantForVariable(field);
+    ConstantExpression constant = field.constant;
     SourceInformation sourceInformation =
         sourceInformationBuilder.buildGet(node);
     if (constant != null) {
@@ -3763,8 +3811,15 @@ class SsaBuilder extends ast.Visitor
   void visitAs(ast.Send node, ast.Node expression, DartType type, _) {
     HInstruction expressionInstruction = visitAndPop(expression);
     if (type.isMalformed) {
-      ErroneousElement element = type.element;
-      generateTypeError(node, element.message);
+      String message;
+      if (type is MalformedType) {
+        ErroneousElement element = type.element;
+        message = element.message;
+      } else {
+        assert(type is MethodTypeVariableType);
+        message = "Method type variables are not reified.";
+      }
+      generateTypeError(node, message);
     } else {
       HInstruction converted = buildTypeConversion(expressionInstruction,
           localsHandler.substInContext(type), HTypeConversion.CAST_TYPE_CHECK);
@@ -3790,7 +3845,20 @@ class SsaBuilder extends ast.Visitor
   HInstruction buildIsNode(
       ast.Node node, DartType type, HInstruction expression) {
     type = localsHandler.substInContext(type).unaliased;
-    if (type.isFunctionType) {
+    if (type.isMalformed) {
+      String message;
+      if (type is MethodTypeVariableType) {
+        message = "Method type variables are not reified, "
+            "so they cannot be tested with an `is` expression.";
+      } else {
+        assert(type is MalformedType);
+        ErroneousElement element = type.element;
+        message = element.message;
+      }
+      generateTypeError(node, message);
+      HInstruction call = pop();
+      return new HIs.compound(type, expression, call, backend.boolType);
+    } else if (type.isFunctionType) {
       List arguments = [buildFunctionType(type), expression];
       pushInvokeDynamic(
           node,
@@ -3823,11 +3891,6 @@ class SsaBuilder extends ast.Visitor
         asFieldName
       ];
       pushInvokeStatic(node, helper, inputs, typeMask: backend.boolType);
-      HInstruction call = pop();
-      return new HIs.compound(type, expression, call, backend.boolType);
-    } else if (type.isMalformed) {
-      ErroneousElement element = type.element;
-      generateTypeError(node, element.message);
       HInstruction call = pop();
       return new HIs.compound(type, expression, call, backend.boolType);
     } else {
@@ -4015,8 +4078,9 @@ class SsaBuilder extends ast.Visitor
       reporter.internalError(
           node.argumentsNode, 'At least two arguments expected.');
     }
-    native.NativeBehavior nativeBehavior =
-        compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
+    native.NativeBehavior nativeBehavior = elements.getNativeData(node);
+    assert(invariant(node, nativeBehavior != null,
+        message: "No NativeBehavior for $node"));
 
     List<HInstruction> inputs = <HInstruction>[];
     addGenericSendArgumentsToList(link.tail.tail, inputs);
@@ -4183,8 +4247,9 @@ class SsaBuilder extends ast.Visitor
       compiledArguments.add(pop());
     }
 
-    native.NativeBehavior nativeBehavior =
-        compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
+    native.NativeBehavior nativeBehavior = elements.getNativeData(node);
+    assert(invariant(node, nativeBehavior != null,
+        message: "No NativeBehavior for $node"));
 
     TypeMask ssaType =
         TypeMaskFactory.fromNativeBehavior(nativeBehavior, compiler);
@@ -4228,8 +4293,9 @@ class SsaBuilder extends ast.Visitor
     String globalName = constant.primitiveValue.slowToString();
     js.Template expr = js.js.expressionTemplateYielding(
         backend.emitter.generateEmbeddedGlobalAccess(globalName));
-    native.NativeBehavior nativeBehavior =
-        compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
+    native.NativeBehavior nativeBehavior = elements.getNativeData(node);
+    assert(invariant(node, nativeBehavior != null,
+        message: "No NativeBehavior for $node"));
     TypeMask ssaType =
         TypeMaskFactory.fromNativeBehavior(nativeBehavior, compiler);
     push(new HForeignCode(expr, ssaType, const [],
@@ -4866,10 +4932,10 @@ class SsaBuilder extends ast.Visitor
         constructorDeclaration == helpers.jsArrayTypedConstructor;
 
     if (isSymbolConstructor) {
-      constructor = compiler.symbolValidatedConstructor;
+      constructor = helpers.symbolValidatedConstructor;
       assert(invariant(send, constructor != null,
           message: 'Constructor Symbol.validated is missing'));
-      callStructure = compiler.symbolValidatedConstructorSelector.callStructure;
+      callStructure = helpers.symbolValidatedConstructorSelector.callStructure;
       assert(invariant(send, callStructure != null,
           message: 'Constructor Symbol.validated is missing'));
     }
@@ -5292,12 +5358,19 @@ class SsaBuilder extends ast.Visitor
   /// Generate the literal for [typeVariable] in the current context.
   void generateTypeVariableLiteral(
       ast.Send node, TypeVariableType typeVariable) {
-    DartType type = localsHandler.substInContext(typeVariable);
-    HInstruction value = analyzeTypeArgument(type,
-        sourceInformation: sourceInformationBuilder.buildGet(node));
-    pushInvokeStatic(node, helpers.runtimeTypeToString, [value],
-        typeMask: backend.stringType);
-    pushInvokeStatic(node, helpers.createRuntimeType, [pop()]);
+    // GENERIC_METHODS: This provides thin support for method type variables
+    // by treating them as malformed when evaluated as a literal. For full
+    // support of generic methods this must be revised.
+    if (typeVariable is MethodTypeVariableType) {
+      generateTypeError(node, "Method type variables are not reified");
+    } else {
+      DartType type = localsHandler.substInContext(typeVariable);
+      HInstruction value = analyzeTypeArgument(type,
+          sourceInformation: sourceInformationBuilder.buildGet(node));
+      pushInvokeStatic(node, helpers.runtimeTypeToString, [value],
+          typeMask: backend.stringType);
+      pushInvokeStatic(node, helpers.createRuntimeType, [pop()]);
+    }
   }
 
   /// Generate a call to a type literal.
@@ -5524,17 +5597,10 @@ class SsaBuilder extends ast.Visitor
     }
   }
 
-  bool _hasNamedParameters(FunctionElement function) {
-    FunctionSignature params = function.functionSignature;
-    return params.optionalParameterCount > 0 &&
-        params.optionalParametersAreNamed;
-  }
-
   HForeignCode invokeJsInteropFunction(FunctionElement element,
       List<HInstruction> arguments, SourceInformation sourceInformation) {
     assert(backend.isJsInterop(element));
     nativeEmitter.nativeMethods.add(element);
-    String templateString;
 
     if (element.isFactoryConstructor &&
         backend.jsInteropAnalysis
@@ -6583,7 +6649,7 @@ class SsaBuilder extends ast.Visitor
 
     int position = 0;
 
-    for (ParameterElement targetParameter in targetRequireds) {
+    for (ParameterElement _ in targetRequireds) {
       loadPosition(position++, null);
     }
 
@@ -6905,7 +6971,6 @@ class SsaBuilder extends ast.Visitor
     // method is inlined.  We would require full scalar replacement in that
     // case.
 
-    Selector selector = Selectors.iterator;
     TypeMask mask = elements.getIteratorTypeMask(node);
 
     ClassWorld classWorld = compiler.world;
@@ -7869,18 +7934,19 @@ class SsaBuilder extends ast.Visitor
    * This method is invoked before inlining the body of [function] into this
    * [SsaBuilder].
    */
-  void enterInlinedMethod(FunctionElement function, ast.Node _,
-      List<HInstruction> compiledArguments,
+  void enterInlinedMethod(FunctionElement function,
+      ResolvedAst functionResolvedAst, List<HInstruction> compiledArguments,
       {InterfaceType instanceType}) {
     AstInliningState state = new AstInliningState(
         function,
         returnLocal,
         returnType,
-        elements,
+        resolvedAst,
         stack,
         localsHandler,
         inTryStatement,
         allInlinedFunctionsCalledOnce && isFunctionCalledOnce(function));
+    resolvedAst = functionResolvedAst;
     inliningStack.add(state);
 
     // Setting up the state of the (AST) builder is performed even when the
@@ -7897,8 +7963,8 @@ class SsaBuilder extends ast.Visitor
     stack.add(result);
   }
 
-  void doInline(FunctionElement function) {
-    visitInlinedFunction(function);
+  void doInline(ResolvedAst resolvedAst) {
+    visitInlinedFunction(resolvedAst);
   }
 
   void emitReturn(HInstruction value, ast.Node node) {
@@ -8077,14 +8143,14 @@ class InlineWeeder extends ast.Visitor {
       this.enableUserAssertions);
 
   static bool canBeInlined(
-      FunctionElement function, int maxInliningNodes, bool useMaxInliningNodes,
+      ResolvedAst resolvedAst, int maxInliningNodes, bool useMaxInliningNodes,
       {bool allowLoops: false, bool enableUserAssertions: null}) {
     assert(enableUserAssertions is bool); // Ensure we passed it.
-    if (function.resolvedAst.elements.containsTryStatement) return false;
+    if (resolvedAst.elements.containsTryStatement) return false;
 
     InlineWeeder weeder = new InlineWeeder(maxInliningNodes,
         useMaxInliningNodes, allowLoops, enableUserAssertions);
-    ast.FunctionExpression functionExpression = function.node;
+    ast.FunctionExpression functionExpression = resolvedAst.node;
     weeder.visit(functionExpression.initializers);
     weeder.visit(functionExpression.body);
     weeder.visit(functionExpression.asyncModifier);
@@ -8196,7 +8262,7 @@ abstract class InliningState {
 class AstInliningState extends InliningState {
   final Local oldReturnLocal;
   final DartType oldReturnType;
-  final TreeElements oldElements;
+  final ResolvedAst oldResolvedAst;
   final List<HInstruction> oldStack;
   final LocalsHandler oldLocalsHandler;
   final bool inTryStatement;
@@ -8206,7 +8272,7 @@ class AstInliningState extends InliningState {
       FunctionElement function,
       this.oldReturnLocal,
       this.oldReturnType,
-      this.oldElements,
+      this.oldResolvedAst,
       this.oldStack,
       this.oldLocalsHandler,
       this.inTryStatement,

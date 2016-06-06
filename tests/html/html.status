@@ -61,9 +61,6 @@ fileapi_test/getFile: Pass, Fail # Issue 20488
 async_test: RuntimeError, OK  # Uses Isolate.spawn.
 isolates_test: RuntimeError, OK  # Uses Isolate.spawn.
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium ) && $checked]
-cross_domain_iframe_test: RuntimeError # Issue 26134
-
 [ $compiler == none && ($runtime == drt || $runtime == dartium ) && $mode == debug ]
 websocket_test/websocket: Skip # Issue 17666
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Issue 17666
@@ -367,7 +364,7 @@ websql_test/supported: Fail
 
 # 'html' tests import the HTML library, so they only make sense in
 # a browser environment.
-[ $runtime == vm || $runtime == dart_precompiled || $runtime == dart_product ]
+[ $runtime == vm || $runtime == dart_precompiled || $runtime == dart_app ]
 *: Skip
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]

@@ -110,13 +110,13 @@ static Dart_ExceptionThrownHandler* exc_thrown_handler = NULL;
 static Dart_IsolateEventHandler* isolate_event_handler = NULL;
 
 
-static void DebuggerEventHandler(DebuggerEvent* event) {
+static void DebuggerEventHandler(ServiceEvent* event) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   Dart_EnterScope();
   Dart_IsolateId isolate_id = isolate->debugger()->GetIsolateId();
-  if (event->type() == DebuggerEvent::kBreakpointReached) {
+  if (event->kind() == ServiceEvent::kPauseBreakpoint) {
     if (paused_event_handler != NULL) {
       Dart_CodeLocation location;
       ActivationFrame* top_frame = event->top_frame();
@@ -131,10 +131,13 @@ static void DebuggerEventHandler(DebuggerEvent* event) {
       }
       (*paused_event_handler)(isolate_id, bp_id, location);
     }
-  } else if (event->type() == DebuggerEvent::kBreakpointResolved) {
-    if (bp_resolved_handler != NULL) {
-      Breakpoint* bpt = event->breakpoint();
-      ASSERT(bpt != NULL);
+  } else if (event->kind() == ServiceEvent::kBreakpointAdded ||
+             event->kind() == ServiceEvent::kBreakpointResolved) {
+    Breakpoint* bpt = event->breakpoint();
+    ASSERT(bpt != NULL);
+    if (bp_resolved_handler != NULL &&
+        bpt->bpt_location()->IsResolved() &&
+        !bpt->IsSingleShot()) {
       Dart_CodeLocation location;
       Zone* zone = thread->zone();
       Library& library = Library::Handle(zone);
@@ -146,7 +149,9 @@ static void DebuggerEventHandler(DebuggerEvent* event) {
       location.token_pos = token_pos.Pos();
       (*bp_resolved_handler)(isolate_id, bpt->id(), location);
     }
-  } else if (event->type() == DebuggerEvent::kExceptionThrown) {
+  } else if (event->kind() == ServiceEvent::kBreakpointRemoved) {
+    // Ignore.
+  } else if (event->kind() == ServiceEvent::kPauseException) {
     if (exc_thrown_handler != NULL) {
       Dart_Handle exception =
           Api::NewHandle(thread, event->exception()->raw());
@@ -154,15 +159,15 @@ static void DebuggerEventHandler(DebuggerEvent* event) {
       reinterpret_cast<Dart_StackTrace>(isolate->debugger()->StackTrace());
       (*exc_thrown_handler)(isolate_id, exception, trace);
     }
-  } else if (event->type() == DebuggerEvent::kIsolateCreated) {
+  } else if (event->kind() == ServiceEvent::kIsolateStart) {
     if (isolate_event_handler != NULL) {
       (*isolate_event_handler)(event->isolate_id(), kCreated);
     }
-  } else if (event->type() == DebuggerEvent::kIsolateInterrupted) {
+  } else if (event->kind() == ServiceEvent::kPauseInterrupted) {
     if (isolate_event_handler != NULL) {
       (*isolate_event_handler)(event->isolate_id(), kInterrupted);
     }
-  } else if (event->type() == DebuggerEvent::kIsolateShutdown) {
+  } else if (event->kind() == ServiceEvent::kIsolateExit) {
     if (isolate_event_handler != NULL) {
       (*isolate_event_handler)(event->isolate_id(), kShutdown);
     }
@@ -789,13 +794,14 @@ DART_EXPORT Dart_Handle Dart_GenerateScriptSource(Dart_Handle library_url_in,
   UNWRAP_AND_CHECK_PARAM(String, library_url, library_url_in);
   UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
 
-  const Library& library = Library::Handle(Library::LookupLibrary(library_url));
+  const Library& library = Library::Handle(Z,
+      Library::LookupLibrary(T, library_url));
   if (library.IsNull()) {
     return Api::NewError("%s: library '%s' not found",
                          CURRENT_FUNC, library_url.ToCString());
   }
 
-  const Script& script = Script::Handle(library.LookupScript(script_url));
+  const Script& script = Script::Handle(Z, library.LookupScript(script_url));
   if (script.IsNull()) {
     return Api::NewError("%s: script '%s' not found in library '%s'",
                          CURRENT_FUNC, script_url.ToCString(),
@@ -810,17 +816,18 @@ DART_EXPORT Dart_Handle Dart_GetScriptURLs(Dart_Handle library_url_in) {
   DARTSCOPE(Thread::Current());
   UNWRAP_AND_CHECK_PARAM(String, library_url, library_url_in);
 
-  const Library& library = Library::Handle(Library::LookupLibrary(library_url));
+  const Library& library = Library::Handle(Z,
+      Library::LookupLibrary(T, library_url));
   if (library.IsNull()) {
     return Api::NewError("%s: library '%s' not found",
                          CURRENT_FUNC, library_url.ToCString());
   }
-  const Array& loaded_scripts = Array::Handle(library.LoadedScripts());
+  const Array& loaded_scripts = Array::Handle(Z, library.LoadedScripts());
   ASSERT(!loaded_scripts.IsNull());
   intptr_t num_scripts = loaded_scripts.Length();
-  const Array& script_list = Array::Handle(Array::New(num_scripts));
-  Script& script = Script::Handle();
-  String& url = String::Handle();
+  const Array& script_list = Array::Handle(Z, Array::New(num_scripts));
+  Script& script = Script::Handle(Z);
+  String& url = String::Handle(Z);
   for (int i = 0; i < num_scripts; i++) {
     script ^= loaded_scripts.At(i);
     url = script.url();

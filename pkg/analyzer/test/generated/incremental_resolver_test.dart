@@ -4892,6 +4892,7 @@ class B extends A {}
     _assertCacheSourceResult(LIBRARY_ELEMENT6);
     _assertCacheSourceResult(LIBRARY_ELEMENT7);
     _assertCacheSourceResult(LIBRARY_ELEMENT8);
+    _assertCacheSourceResult(LIBRARY_ELEMENT9);
     if (expectCachePostConstantsValid) {
       _assertCacheSourceResult(LIBRARY_ELEMENT);
     }
@@ -4906,8 +4907,9 @@ class B extends A {}
     _assertCacheUnitResult(RESOLVED_UNIT9);
     _assertCacheUnitResult(RESOLVED_UNIT10);
     _assertCacheUnitResult(RESOLVED_UNIT11);
+    _assertCacheUnitResult(RESOLVED_UNIT12);
     if (expectCachePostConstantsValid) {
-      _assertCacheUnitResult(RESOLVED_UNIT12);
+      _assertCacheUnitResult(RESOLVED_UNIT13);
       _assertCacheUnitResult(RESOLVED_UNIT);
     }
   }

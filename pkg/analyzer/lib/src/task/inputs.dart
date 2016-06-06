@@ -432,7 +432,7 @@ class ObjectToListTaskInput<E> extends TaskInputImpl<List<E>>
 
   /**
    * Initialize a newly created task input that computes the input by accessing
-   * the given [result] associated with the given [target].
+   * the given [baseInput] associated with the given [mapper].
    */
   ObjectToListTaskInput(this.baseInput, this.mapper);
 

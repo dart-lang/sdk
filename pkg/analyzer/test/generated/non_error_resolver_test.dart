@@ -2827,7 +2827,7 @@ f() {
   void test_invalidFactoryNameNotAClass() {
     Source source = addSource(r'''
 class A {
-  factory A() {}
+  factory A() => null;
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
@@ -3491,7 +3491,7 @@ class B extends Object with A {}''');
   void test_mixinDeclaresConstructor_factory() {
     Source source = addSource(r'''
 class A {
-  factory A() {}
+  factory A() => null;
 }
 class B extends Object with A {}''');
     computeLibrarySourceErrors(source);
@@ -4275,7 +4275,7 @@ class A {
     Source source = addSource(r'''
 class A {
   A.named() {}
-  factory A() {}
+  factory A() => null;
 }
 class B extends A {
   B() : super.named();
@@ -4693,7 +4693,7 @@ class B implements A {
   factory B() = C;
 }
 class C implements B {
-  factory C() {}
+  factory C() => null;
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
@@ -5107,6 +5107,30 @@ class A {}
 class B extends A {}
 class G<E extends A> {}
 f() { return new G<B>(); }''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias_hasBound() {
+    Source source = addSource(r'''
+class A {}
+class B extends A {}
+typedef F<T extends A>();
+F<A> fa;
+F<B> fb;
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias_noBound() {
+    Source source = addSource(r'''
+typedef F<T>();
+F<int> f1;
+F<String> f2;
+''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
@@ -5576,26 +5600,6 @@ class B extends A<List> {
     element.last;
   }
 }''');
-    computeLibrarySourceErrors(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  void test_undefinedIdentifier_hide() {
-    Source source = addSource(r'''
-library L;
-export 'lib1.dart' hide a;''');
-    addNamedSource("/lib1.dart", "library lib1;");
-    computeLibrarySourceErrors(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  void test_undefinedIdentifier_show() {
-    Source source = addSource(r'''
-library L;
-export 'lib1.dart' show a;''');
-    addNamedSource("/lib1.dart", "library lib1;");
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);

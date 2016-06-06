@@ -436,8 +436,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   // Helpers for allocating and deallocating temporary locals on top of the
   // expression stack.
-  LocalVariable* EnterTempLocalScope(Value* value, TokenPosition token_pos);
-  Definition* ExitTempLocalScope(LocalVariable* var, TokenPosition token_pos);
+  LocalVariable* EnterTempLocalScope(Value* value);
+  Definition* ExitTempLocalScope(Value* value);
 
   void BuildLetTempExpressions(LetNode* node);
 

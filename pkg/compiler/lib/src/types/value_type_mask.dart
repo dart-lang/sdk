@@ -40,6 +40,6 @@ class ValueTypeMask extends ForwardingTypeMask {
   }
 
   String toString() {
-    return 'Value mask: [${value.unparse()}] type: $forwardTo';
+    return 'Value mask: [${value.toDartText()}] type: $forwardTo';
   }
 }

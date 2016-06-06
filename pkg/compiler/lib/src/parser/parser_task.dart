@@ -19,19 +19,22 @@ import 'parser.dart' show Parser;
 
 class ParserTask extends CompilerTask {
   final ParserOptions parserOptions;
+  final Compiler compiler;
 
-  ParserTask(Compiler compiler, this.parserOptions) : super(compiler);
+  ParserTask(Compiler compiler, this.parserOptions)
+      : compiler = compiler,
+        super(compiler.measurer);
 
   String get name => 'Parser';
 
   Node parse(ElementX element) {
-    return measure(() => element.parseNode(compiler.parsing));
+    return measure(() => element.parseNode(compiler.parsingContext));
   }
 
   Node parseCompilationUnit(Token token) {
     return measure(() {
       NodeListener listener =
-          new NodeListener(const ScannerOptions(), reporter, null);
+          new NodeListener(const ScannerOptions(), compiler.reporter, null);
       Parser parser = new Parser(listener, parserOptions);
       try {
         parser.parseUnit(token);

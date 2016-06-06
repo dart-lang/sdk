@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -422,8 +423,9 @@ class DeclarationMatcher extends RecursiveAstVisitor {
         (node.parent as VariableDeclarationList).type, element.type);
     // matches, restore the existing element
     node.name.staticElement = element;
-    if (element is VariableElementImpl) {
-      (element as VariableElementImpl).initializer = newElement.initializer;
+    Element variable = element;
+    if (variable is VariableElementImpl) {
+      variable.initializer = newElement.initializer;
     }
   }
 
@@ -933,6 +935,8 @@ class IncrementalBodyDelta extends Delta {
         isByTask(ResolveLibraryReferencesTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryTypeNamesTask.DESCRIPTOR) ||
+        isByTask(ResolveTopLevelLibraryTypeBoundsTask.DESCRIPTOR) ||
+        isByTask(ResolveTopLevelUnitTypeBoundsTask.DESCRIPTOR) ||
         isByTask(ResolveUnitTask.DESCRIPTOR) ||
         isByTask(ResolveUnitTypeNamesTask.DESCRIPTOR) ||
         isByTask(ResolveVariableReferencesTask.DESCRIPTOR) ||
@@ -1252,6 +1256,7 @@ class IncrementalResolver {
     _shiftErrors_NEW(LINTS);
     _shiftErrors_NEW(LIBRARY_UNIT_ERRORS);
     _shiftErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS);
+    _shiftErrors_NEW(RESOLVE_TYPE_BOUNDS_ERRORS);
     _shiftErrors_NEW(RESOLVE_UNIT_ERRORS);
     _shiftErrors_NEW(STRONG_MODE_ERRORS);
     _shiftErrors_NEW(VARIABLE_REFERENCE_ERRORS);
@@ -1300,6 +1305,7 @@ class IncrementalResolver {
 
   void _updateEntry() {
     _updateErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS, []);
+    _updateErrors_NEW(RESOLVE_TYPE_BOUNDS_ERRORS, []);
     _updateErrors_NEW(RESOLVE_UNIT_ERRORS, _resolveErrors);
     _updateErrors_NEW(VARIABLE_REFERENCE_ERRORS, []);
     _updateErrors_NEW(VERIFY_ERRORS, _verifyErrors);
@@ -1622,7 +1628,6 @@ class PoorMansIncrementalResolver {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       Parser parser = new Parser(_unitSource, errorListener);
       AnalysisOptions options = _unitElement.context.analysisOptions;
-      parser.parseConditionalDirectives = options.enableConditionalDirectives;
       parser.parseGenericMethods = options.enableGenericMethods;
       CompilationUnit unit = parser.parseCompilationUnit(token);
       _newParseErrors = errorListener.errors;
@@ -1686,9 +1691,9 @@ class PoorMansIncrementalResolver {
           setElementDocumentationComment(parentElement, parent);
         } else if (parentElement == null && parent is FieldDeclaration) {
           for (VariableDeclaration field in parent.fields.variables) {
-            if (field.element is ElementImpl) {
-              setElementDocumentationComment(
-                  field.element as ElementImpl, parent);
+            Element fieldElement = field.element;
+            if (fieldElement is ElementImpl) {
+              setElementDocumentationComment(fieldElement, parent);
             }
           }
         }
@@ -1721,7 +1726,7 @@ class PoorMansIncrementalResolver {
     } else if (token is TokenWithComment) {
       token.precedingComments = comment;
     } else {
-      Type parentType = token != null ? token.runtimeType : null;
+      Type parentType = token?.runtimeType;
       throw new AnalysisException('Uknown parent token type: $parentType');
     }
   }
@@ -1866,7 +1871,7 @@ class PoorMansIncrementalResolver {
   static Token _getBeginTokenNotComment(AstNode node) {
     Token oldBeginToken = node.beginToken;
     if (oldBeginToken is CommentToken) {
-      oldBeginToken = (oldBeginToken as CommentToken).parent;
+      return oldBeginToken.parent;
     }
     return oldBeginToken;
   }

@@ -4,6 +4,7 @@
 
 library instance_ref_element;
 
+import 'dart:async';
 import 'package:polymer/polymer.dart';
 import 'package:observatory/service.dart';
 import 'service_ref.dart';
@@ -57,5 +58,16 @@ class InstanceRefElement extends ServiceRefElement {
 
   String makeExpandKey(String key) {
     return '${expandKey}/${key}';
+  }
+
+  Future showMore() async {
+    Instance instance = ref;
+    if (instance.isList) {
+      await instance.reload(count: instance.elements.length * 2);
+    } else if (instance.isMap) {
+      await instance.reload(count: instance.associations.length * 2);
+    } else if (instance.isTypedData) {
+      await instance.reload(count: instance.typedElements.length * 2);
+    }
   }
 }

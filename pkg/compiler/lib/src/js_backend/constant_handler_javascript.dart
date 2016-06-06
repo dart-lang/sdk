@@ -18,12 +18,17 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
   JavaScriptConstantTask(Compiler compiler)
       : this.dartConstantCompiler = new DartConstantCompiler(compiler),
         this.jsConstantCompiler = new JavaScriptConstantCompiler(compiler),
-        super(compiler);
+        super(compiler.measurer);
 
   String get name => 'ConstantHandler';
 
   @override
   ConstantSystem get constantSystem => dartConstantCompiler.constantSystem;
+
+  @override
+  bool hasConstantValue(ConstantExpression expression) {
+    return dartConstantCompiler.hasConstantValue(expression);
+  }
 
   @override
   ConstantValue getConstantValue(ConstantExpression expression) {
@@ -33,11 +38,6 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
   @override
   ConstantValue getConstantValueForVariable(VariableElement element) {
     return dartConstantCompiler.getConstantValueForVariable(element);
-  }
-
-  @override
-  ConstantExpression getConstantForVariable(VariableElement element) {
-    return dartConstantCompiler.getConstantForVariable(element);
   }
 
   @override
@@ -58,9 +58,10 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
     });
   }
 
-  void compileVariable(VariableElement element) {
-    measure(() {
-      jsConstantCompiler.compileVariable(element);
+  @override
+  ConstantExpression compileVariable(VariableElement element) {
+    return measure(() {
+      return jsConstantCompiler.compileVariable(element);
     });
   }
 
@@ -247,6 +248,29 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     if (element is AstElement && element.hasNode) {
       element.node.accept(new ForgetConstantNodeVisitor(this));
     }
+  }
+
+  @override
+  ConstantValue getConstantValue(ConstantExpression expression) {
+    assert(invariant(CURRENT_ELEMENT_SPANNABLE, expression != null,
+        message: "ConstantExpression is null in getConstantValue."));
+    // TODO(johhniwinther): ensure expressions have been evaluated at this
+    // point. This can't be enabled today due to dartbug.com/26406.
+    if (compiler.serialization.supportsDeserialization) {
+      evaluate(expression);
+    }
+    ConstantValue value = super.getConstantValue(expression);
+    if (value == null &&
+        expression != null &&
+        expression.kind == ConstantExpressionKind.ERRONEOUS) {
+      // TODO(johnniwinther): When the Dart constant system sees a constant
+      // expression as erroneous but the JavaScript constant system finds it ok
+      // we have store a constant value for the erroneous constant expression.
+      // Ensure the computed constant expressions are always the same; that only
+      // the constant values may be different.
+      value = new NullConstantValue();
+    }
+    return value;
   }
 }
 

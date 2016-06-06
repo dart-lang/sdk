@@ -25,7 +25,10 @@ class Thread;
 
 #if defined(TESTING) || defined(DEBUG)
 
-#if defined(USING_SIMULATOR)
+#if defined(TARGET_ARCH_DBC)
+// C-stack is always aligned on DBC because we don't have any native code.
+#define CHECK_STACK_ALIGNMENT
+#elif defined(USING_SIMULATOR)
 #define CHECK_STACK_ALIGNMENT {                                                \
   uword current_sp = Simulator::Current()->get_register(SPREG);                \
   ASSERT(Utils::IsAligned(current_sp, OS::ActivationFrameAlignment()));        \
@@ -92,7 +95,13 @@ class NativeArguments {
 
   RawObject* ArgAt(int index) const {
     ASSERT((index >= 0) && (index < ArgCount()));
-    RawObject** arg_ptr = &((*argv_)[-index]);
+#if defined(TARGET_ARCH_DBC)
+    // On DBC stack is growing upwards, in reverse direction from all other
+    // architectures.
+    RawObject** arg_ptr = &(argv_[index]);
+#else
+    RawObject** arg_ptr = &(argv_[-index]);
+#endif
     // Tell MemorySanitizer the RawObject* was initialized (by generated code).
     MSAN_UNPOISON(arg_ptr, kWordSize);
     return *arg_ptr;
@@ -204,6 +213,16 @@ class NativeArguments {
   friend class BootstrapNatives;
   friend class Simulator;
 
+#if defined(TARGET_ARCH_DBC)
+  // Allow simulator to create NativeArguments on the stack.
+  NativeArguments(Thread* thread,
+                  int argc_tag,
+                  RawObject** argv,
+                  RawObject** retval)
+      : thread_(thread), argc_tag_(argc_tag), argv_(argv), retval_(retval) {
+  }
+#endif
+
   // Since this function is passed a RawObject directly, we need to be
   // exceedingly careful when we use it.  If there are any other side
   // effects in the statement that may cause GC, it could lead to
@@ -235,7 +254,7 @@ class NativeArguments {
 
   Thread* thread_;  // Current thread pointer.
   intptr_t argc_tag_;  // Encodes argument count and invoked native call type.
-  RawObject*(*argv_)[];  // Pointer to an array of arguments to runtime call.
+  RawObject** argv_;  // Pointer to an array of arguments to runtime call.
   RawObject** retval_;  // Pointer to the return value area.
 };
 

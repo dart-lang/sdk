@@ -18,8 +18,11 @@ import '../elements/elements.dart'
         EnumClassElement,
         FunctionElement,
         LibraryElement,
-        MethodElement;
+        MethodElement,
+        PublicName;
 import '../library_loader.dart' show LoadedLibraries;
+import '../universe/call_structure.dart' show CallStructure;
+import '../universe/selector.dart' show Selector;
 
 import 'js_backend.dart';
 
@@ -174,6 +177,28 @@ class BackendHelpers {
   /// Holds the class for the [JsBuiltins] enum.
   EnumClassElement jsBuiltinEnum;
 
+  ClassElement _symbolImplementationClass;
+  ClassElement get symbolImplementationClass {
+    return _symbolImplementationClass ??= find(internalLibrary, 'Symbol');
+  }
+
+  final Selector symbolValidatedConstructorSelector =
+      new Selector.call(const PublicName('validated'), CallStructure.ONE_ARG);
+
+  ConstructorElement _symbolValidatedConstructor;
+
+  bool isSymbolValidatedConstructor(Element element) {
+    if (_symbolValidatedConstructor != null) {
+      return element == _symbolValidatedConstructor;
+    }
+    return false;
+  }
+
+  ConstructorElement get symbolValidatedConstructor {
+    return _symbolValidatedConstructor ??= _findConstructor(
+        symbolImplementationClass, symbolValidatedConstructorSelector.name);
+  }
+
   // TODO(johnniwinther): Make these private.
   // TODO(johnniwinther): Split into findHelperFunction and findHelperClass and
   // add a check that the element has the expected kind.
@@ -185,6 +210,14 @@ class BackendHelpers {
     assert(invariant(library, element != null,
         message: "Element '$name' not found in '${library.canonicalUri}'."));
     return element;
+  }
+
+  ConstructorElement _findConstructor(ClassElement cls, String name) {
+    cls.ensureResolved(resolution);
+    ConstructorElement constructor = cls.lookupConstructor(name);
+    assert(invariant(cls, constructor != null,
+        message: "Constructor '$name' not found in '${cls}'."));
+    return constructor;
   }
 
   void onLibraryCreated(LibraryElement library) {
@@ -520,7 +553,7 @@ class BackendHelpers {
   }
 
   Element get createInvocationMirror {
-    return findHelper(Compiler.CREATE_INVOCATION_MIRROR);
+    return findHelper('createInvocationMirror');
   }
 
   Element get cyclicThrowHelper {

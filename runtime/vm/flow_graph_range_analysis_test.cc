@@ -80,7 +80,7 @@ TEST_CASE(RangeTests) {
                   RangeBoundary(kSmiMin),
                   RangeBoundary(kSmiMax));
     TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 30, 30,
-                  RangeBoundary(-1 << 30),
+                  RangeBoundary(-(1 << 30)),
                   RangeBoundary(1 << 30));
   } else {
     TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 30, 30,

@@ -5,6 +5,8 @@
 /// Analysis to determine how to generate code for `LookupMap`s.
 library compiler.src.js_backend.lookup_map_analysis;
 
+import 'package:pub_semver/pub_semver.dart';
+
 import '../common.dart';
 import '../common/registry.dart' show Registry;
 import '../compiler.dart' show Compiler;
@@ -17,19 +19,10 @@ import '../constants/values.dart'
         StringConstantValue,
         TypeConstantValue;
 import '../dart_types.dart' show DartType;
+import '../dart_types.dart' show InterfaceType;
 import '../elements/elements.dart'
-    show
-        ClassElement,
-        Element,
-        Elements,
-        FieldElement,
-        FunctionElement,
-        FunctionSignature,
-        LibraryElement,
-        VariableElement;
+    show ClassElement, FieldElement, LibraryElement, VariableElement;
 import 'js_backend.dart' show JavaScriptBackend;
-import '../dart_types.dart' show DynamicType, InterfaceType;
-import 'package:pub_semver/pub_semver.dart';
 
 /// An analysis and optimization to remove unused entries from a `LookupMap`.
 ///
@@ -162,7 +155,7 @@ class LookupMapAnalysis {
     // At this point, the lookupMapVersionVariable should be resolved and it's
     // constant value should be available.
     StringConstantValue value =
-        backend.constants.getConstantValueForVariable(lookupMapVersionVariable);
+        backend.constants.getConstantValue(lookupMapVersionVariable.constant);
     if (value == null) {
       reporter.reportInfo(lookupMapVersionVariable,
           MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
@@ -315,7 +308,7 @@ class LookupMapAnalysis {
       for (var info in _lookupMaps.values) {
         for (var key in info.unusedEntries.keys) {
           if (count != 0) sb.write(',');
-          sb.write(key.unparse());
+          sb.write(key.toDartText());
           count++;
         }
       }

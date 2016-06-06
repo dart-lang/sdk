@@ -14,8 +14,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
-import '../../../protocol_server.dart'
-    show CompletionSuggestion, CompletionSuggestionKind;
+import '../../../protocol_server.dart' show CompletionSuggestion;
 
 List<String> hiddenNamesIn(ImportElement importElem) {
   for (NamespaceCombinator combinator in importElem.combinators) {
@@ -58,10 +57,7 @@ class ImportedReferenceContributor extends DartCompletionContributor {
     // then resolve the outermost/entire expression
     AstNode node = request.target.containingNode;
     if (node is Expression) {
-      while (node.parent is Expression) {
-        node = node.parent;
-      }
-      await request.resolveExpression(node);
+      await request.resolveContainingExpression(node);
 
       // Discard any cached target information
       // because it may have changed as a result of the resolution

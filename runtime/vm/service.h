@@ -66,10 +66,10 @@ class StreamInfo {
  public:
   explicit StreamInfo(const char* id) : id_(id), enabled_(false) {}
 
-  const char* id() { return id_; }
+  const char* id() const { return id_; }
 
   void set_enabled(bool value) { enabled_ = value; }
-  bool enabled() { return enabled_; }
+  bool enabled() const { return enabled_; }
 
  private:
   const char* id_;

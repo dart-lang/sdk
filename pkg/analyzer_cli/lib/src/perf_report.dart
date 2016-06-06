@@ -5,7 +5,7 @@
 library analyzer_cli.src.perf_report;
 
 import 'dart:convert' show JsonEncoder;
-import 'dart:io' show File, Platform;
+import 'dart:io' show Platform;
 
 import 'package:analyzer/src/generated/utilities_general.dart'
     show PerformanceTag;

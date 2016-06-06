@@ -17,37 +17,34 @@ import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
     show
+        BaseFunctionElementX,
         ConstructorElementX,
         ErroneousElementX,
         FunctionElementX,
         JumpTargetX,
         LocalFunctionElementX,
         LocalParameterElementX,
-        LocalVariableElementX,
-        MethodElementX,
         ParameterElementX,
         VariableElementX,
         VariableList;
 import '../tokens/token.dart' show isUserDefinableOperator;
 import '../tree/tree.dart';
-import '../util/util.dart' show Link;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
-
+import '../util/util.dart' show Link;
 import 'access_semantics.dart';
 import 'class_members.dart' show MembersCreator;
-import 'operators.dart';
-import 'send_structure.dart';
-
 import 'constructors.dart'
     show ConstructorResolver, ConstructorResult, ConstructorResultKind;
 import 'label_scope.dart' show StatementScope;
+import 'operators.dart';
 import 'registry.dart' show ResolutionRegistry;
 import 'resolution.dart' show ResolverTask;
 import 'resolution_common.dart' show MappingVisitor;
 import 'resolution_result.dart';
 import 'scope.dart' show BlockScope, MethodScope, Scope;
+import 'send_structure.dart';
 import 'signatures.dart' show SignatureResolver;
 import 'variables.dart' show VariableDefinitionsVisitor;
 
@@ -146,7 +143,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   ResolverVisitor(
       Compiler compiler, Element element, ResolutionRegistry registry,
-      {bool useEnclosingScope: false})
+      {Scope scope, bool useEnclosingScope: false})
       : this.enclosingElement = element,
         // When the element is a field, we are actually resolving its
         // initial value, which should not have access to instance
@@ -156,9 +153,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         this.currentClass =
             element.isClassMember ? element.enclosingClass : null,
         this.statementScope = new StatementScope(),
-        scope = useEnclosingScope
-            ? Scope.buildEnclosingScope(element)
-            : element.buildScope(),
+        this.scope = scope ??
+            (useEnclosingScope
+                ? Scope.buildEnclosingScope(element)
+                : element.buildScope()),
         // The type annotations on a typedef do not imply type checks.
         // TODO(karlklose): clean this up (dartbug.com/8870).
         inCheckContext = compiler.options.enableTypeAssertions &&
@@ -391,7 +389,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   FunctionElement resolveConstructorRedirection(FunctionElementX constructor) {
-    FunctionExpression node = constructor.parseNode(resolution.parsing);
+    FunctionExpression node = constructor.parseNode(resolution.parsingContext);
 
     // A synthetic constructor does not have a node.
     if (node == null) return null;
@@ -411,16 +409,21 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (node.modifiers.isStatic && enclosingElement.kind != ElementKind.CLASS) {
       reporter.reportErrorMessage(node, MessageKind.ILLEGAL_STATIC);
     }
+    FunctionSignature functionSignature = function.functionSignature;
 
+    // Create the scope where the type variables are introduced, if any.
     scope = new MethodScope(scope, function);
-    // Put the parameters in scope.
-    FunctionSignature functionParameters = function.functionSignature;
+    functionSignature.typeVariables
+        .forEach((DartType type) => addToScope(type.element));
+
+    // Create the scope for the function body, and put the parameters in scope.
+    scope = new BlockScope(scope);
     Link<Node> parameterNodes =
         (node.parameters == null) ? const Link<Node>() : node.parameters.nodes;
-    functionParameters.forEachParameter((ParameterElementX element) {
+    functionSignature.forEachParameter((ParameterElementX element) {
       // TODO(karlklose): should be a list of [FormalElement]s, but the actual
       // implementation uses [Element].
-      List<Element> optionals = functionParameters.optionalParameters;
+      List<Element> optionals = functionSignature.optionalParameters;
       if (!optionals.isEmpty && element == optionals.first) {
         NodeList nodes = parameterNodes.head;
         parameterNodes = nodes.nodes;
@@ -449,14 +452,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       parameterNodes = parameterNodes.tail;
     });
     addDeferredAction(enclosingElement, () {
-      functionParameters
-          .forEachOptionalParameter((ParameterElementX parameter) {
+      functionSignature.forEachOptionalParameter((ParameterElementX parameter) {
         parameter.constant =
             compiler.resolver.constantCompiler.compileConstant(parameter);
       });
     });
     if (inCheckContext) {
-      functionParameters.forEachParameter((ParameterElement element) {
+      functionSignature.forEachParameter((ParameterElement element) {
         registry.registerTypeUse(new TypeUse.checkedModeCheck(element.type));
       });
     }
@@ -573,7 +575,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         name, node, ElementKind.FUNCTION, Modifiers.EMPTY, enclosingElement);
     ResolverTask.processAsyncMarker(compiler, function, registry);
     function.functionSignature = SignatureResolver.analyze(
-        compiler, node.parameters, node.returnType, function, registry,
+        compiler,
+        scope,
+        node.typeVariables,
+        node.parameters,
+        node.returnType,
+        function,
+        registry,
         createRealParameters: true,
         isFunctionExpression: !inFunctionDeclaration);
     checkLocalDefinitionName(node, function);
@@ -1113,6 +1121,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       type = resolveTypeAnnotation(typeNode);
       sendStructure = new IsStructure(type);
     }
+
+    // GENERIC_METHODS: Method type variables are not reified so we must warn
+    // about the error which will occur at runtime.
+    if (type is MethodTypeVariableType) {
+      reporter.reportWarningMessage(
+          node, MessageKind.TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED);
+    }
+
     registry.registerTypeUse(new TypeUse.isCheck(type));
     registry.registerSendStructure(node, sendStructure);
     return const NoneResult();
@@ -1125,6 +1141,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
     Node typeNode = node.arguments.head;
     DartType type = resolveTypeAnnotation(typeNode);
+
+    // GENERIC_METHODS: Method type variables are not reified so we must warn
+    // about the error which will occur at runtime.
+    if (type is MethodTypeVariableType) {
+      reporter.reportWarningMessage(
+          node, MessageKind.TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED);
+    }
+
     registry.registerTypeUse(new TypeUse.asCast(type));
     registry.registerSendStructure(node, new AsStructure(type));
     return const NoneResult();
@@ -1537,7 +1561,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       bool isIncompatibleInvoke = false;
       switch (semantics.kind) {
         case AccessKind.SUPER_METHOD:
-          MethodElementX superMethod = semantics.element;
+          MethodElement superMethod = semantics.element;
           superMethod.computeType(resolution);
           if (!callStructure.signatureApplies(superMethod.functionSignature)) {
             registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
@@ -1815,7 +1839,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       return const NoneResult();
     }
     MembersCreator.computeClassMembersByName(
-        compiler, receiverClass.declaration, name);
+        resolution, receiverClass.declaration, name);
     Element member = receiverClass.lookupLocalMember(name);
     if (member == null) {
       return handleUnresolvedStaticMemberAccess(
@@ -1840,7 +1864,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     String name = memberName.text;
     receiverClass.ensureResolved(resolution);
     MembersCreator.computeClassMembersByName(
-        compiler, receiverClass.declaration, name);
+        resolution, receiverClass.declaration, name);
     Element member = receiverClass.lookupLocalMember(name);
     if (member == null) {
       return handleUnresolvedStaticMemberUpdate(
@@ -1867,7 +1891,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult handleTypeVariableTypeLiteralAccess(
       Send node, Name name, TypeVariableElement element) {
     AccessSemantics semantics;
-    if (!Elements.hasAccessToTypeVariables(enclosingElement)) {
+    if (!Elements.hasAccessToTypeVariable(enclosingElement, element)) {
       // TODO(johnniwinther): Add another access semantics for this.
       ErroneousElement error = reportAndCreateErroneousElement(
           node,
@@ -1880,6 +1904,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // TODO(johnniwinther): Clean up registration of elements and selectors
       // for this case.
     } else {
+      // GENERIC_METHODS: Method type variables are not reified so we must warn
+      // about the error which will occur at runtime.
+      if (element.type is MethodTypeVariableType) {
+        reporter.reportWarningMessage(
+            node, MessageKind.TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED);
+      }
       semantics = new StaticAccess.typeParameterTypeLiteral(element);
     }
 
@@ -1908,7 +1938,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult handleTypeVariableTypeLiteralUpdate(
       SendSet node, Name name, TypeVariableElement element) {
     AccessSemantics semantics;
-    if (!Elements.hasAccessToTypeVariables(enclosingElement)) {
+    if (!Elements.hasAccessToTypeVariable(enclosingElement, element)) {
       // TODO(johnniwinther): Add another access semantics for this.
       ErroneousElement error = reportAndCreateErroneousElement(
           node,
@@ -3003,7 +3033,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (element is! ClassElement) return null;
     ClassElement cls = element;
     cls.ensureResolved(resolution);
-    return cls.computeType(resolution);
+    cls.computeType(resolution);
+    return cls.rawType;
   }
 
   /// Handle index operations like `a[b] = c`, `a[b] += c`, and `a[b]++`.
@@ -3343,7 +3374,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   /// `a++` or `a += b` where [semantics] describe `a`.
   ResolutionResult handleUpdate(
       SendSet node, Name name, AccessSemantics semantics) {
-    SendStructure sendStructure;
     String operatorText = node.assignmentOperator.source;
     Selector getterSelector = new Selector.getter(name);
     Selector setterSelector = new Selector.setter(name);
@@ -3540,13 +3570,18 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitYield(Yield node) {
-    if (!currentAsyncMarker.isYielding) {
-      reporter.reportErrorMessage(node, MessageKind.INVALID_YIELD);
-    }
-    if (currentAsyncMarker.isAsync) {
-      coreClasses.streamClass.ensureResolved(resolution);
+    if (!compiler.backend.supportsAsyncAwait) {
+      reporter.reportErrorMessage(
+          node.yieldToken, MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
     } else {
-      coreClasses.iterableClass.ensureResolved(resolution);
+      if (!currentAsyncMarker.isYielding) {
+        reporter.reportErrorMessage(node, MessageKind.INVALID_YIELD);
+      }
+      if (currentAsyncMarker.isAsync) {
+        coreClasses.streamClass.ensureResolved(resolution);
+      } else {
+        coreClasses.iterableClass.ensureResolved(resolution);
+      }
     }
     visit(node.expression);
     return const NoneResult();
@@ -3568,7 +3603,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     ConstructorElement redirectionTarget = result.element;
     constructor.immediateRedirectionTarget = redirectionTarget;
 
-    Node constructorReference = node.constructorReference;
     if (result.isDeferred) {
       constructor.redirectionDeferredPrefix = result.prefix;
     }
@@ -3677,10 +3711,15 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitAwait(Await node) {
-    if (!currentAsyncMarker.isAsync) {
-      reporter.reportErrorMessage(node, MessageKind.INVALID_AWAIT);
+    if (!compiler.backend.supportsAsyncAwait) {
+      reporter.reportErrorMessage(
+          node.awaitToken, MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
+    } else {
+      if (!currentAsyncMarker.isAsync) {
+        reporter.reportErrorMessage(node, MessageKind.INVALID_AWAIT);
+      }
+      coreClasses.futureClass.ensureResolved(resolution);
     }
-    coreClasses.futureClass.ensureResolved(resolution);
     visit(node.expression);
     return const NoneResult();
   }
@@ -3772,7 +3811,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
     DartType type = result.type;
     ConstructorAccessKind kind;
-    NewStructure newStructure;
     bool isInvalid = false;
     switch (result.kind) {
       case ConstructorResultKind.GENERATIVE:
@@ -4200,14 +4238,18 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitAsyncForIn(AsyncForIn node) {
-    if (!currentAsyncMarker.isAsync) {
+    if (!compiler.backend.supportsAsyncAwait) {
       reporter.reportErrorMessage(
-          node.awaitToken, MessageKind.INVALID_AWAIT_FOR_IN);
+          node.awaitToken, MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
+    } else {
+      if (!currentAsyncMarker.isAsync) {
+        reporter.reportErrorMessage(
+            node.awaitToken, MessageKind.INVALID_AWAIT_FOR_IN);
+      }
+      registry.registerFeature(Feature.ASYNC_FOR_IN);
+      registry.registerDynamicUse(new DynamicUse(Selectors.current, null));
+      registry.registerDynamicUse(new DynamicUse(Selectors.moveNext, null));
     }
-    registry.registerFeature(Feature.ASYNC_FOR_IN);
-    registry.registerDynamicUse(new DynamicUse(Selectors.current, null));
-    registry.registerDynamicUse(new DynamicUse(Selectors.moveNext, null));
-
     visit(node.expression);
 
     Scope blockScope = new BlockScope(scope);

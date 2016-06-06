@@ -115,7 +115,7 @@ class ApiMessageReader : public BaseReader {
   Dart_CObject* ReadInlinedObject(intptr_t object_id);
   Dart_CObject* ReadObjectImpl();
   Dart_CObject* ReadIndexedObject(intptr_t object_id);
-  Dart_CObject* ReadVMSymbol(intptr_t object_id);
+  Dart_CObject* ReadPredefinedSymbol(intptr_t object_id);
   Dart_CObject* ReadObjectRef();
   Dart_CObject* ReadObject();
 

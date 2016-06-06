@@ -480,8 +480,8 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get stringType {
     if (_stringType == null) {
-      _stringType = ElementFactory.classElement2("String").type;
-      ClassElementImpl stringElement = _stringType.element as ClassElementImpl;
+      ClassElementImpl stringElement = ElementFactory.classElement2("String");
+      _stringType = stringElement.type;
       _setAccessors(stringElement, <PropertyAccessorElement>[
         ElementFactory.getterElement("isEmpty", false, boolType),
         ElementFactory.getterElement("length", false, intType),

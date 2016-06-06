@@ -7,34 +7,32 @@ library type_graph_inferrer;
 import 'dart:collection' show Queue;
 
 import '../common.dart';
-import '../common/names.dart' show Identifiers, Names;
+import '../common/names.dart' show Identifiers;
 import '../compiler.dart' show Compiler;
+import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart';
-import '../dart_types.dart'
-    show DartType, FunctionType, InterfaceType, TypeKind;
+import '../dart_types.dart' show DartType;
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart' show Annotations, JavaScriptBackend;
 import '../resolution/tree_elements.dart' show TreeElementMapping;
 import '../tree/tree.dart' as ast
-    show DartString, Node, LiteralBool, Send, SendSet, TryStatement;
+    show DartString, Node, LiteralBool, TryStatement;
+import '../types/constants.dart' show computeTypeMask;
 import '../types/types.dart'
     show ContainerTypeMask, MapTypeMask, TypeMask, TypesInferrer;
-import '../types/constants.dart' show computeTypeMask;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
-import '../util/util.dart' show ImmutableEmptySet, Setlet;
+import '../util/util.dart' show Setlet;
 import '../world.dart' show ClassWorld;
-
-import 'inferrer_visitor.dart' show ArgumentsTypes, TypeSystem;
-import 'simple_types_inferrer.dart';
-
 import 'closure_tracer.dart';
+import 'debug.dart' as debug;
+import 'inferrer_visitor.dart' show ArgumentsTypes, TypeSystem;
 import 'list_tracer.dart';
 import 'map_tracer.dart';
-import 'type_graph_nodes.dart';
+import 'simple_types_inferrer.dart';
 import 'type_graph_dump.dart';
-import 'debug.dart' as debug;
+import 'type_graph_nodes.dart';
 
 class TypeInformationSystem extends TypeSystem<TypeInformation> {
   final Compiler compiler;
@@ -666,15 +664,15 @@ class TypeGraphInferrerEngine
     if (compiler.options.verbose) {
       compiler.progress.reset();
     }
-    sortResolvedElements().forEach((Element element) {
-      assert(compiler.enqueuer.resolution.hasBeenProcessed(element));
+    sortResolvedAsts().forEach((ResolvedAst resolvedAst) {
       if (compiler.shouldPrintProgress) {
         reporter.log('Added $addedInGraph elements in inferencing graph.');
         compiler.progress.reset();
       }
       // This also forces the creation of the [ElementTypeInformation] to ensure
       // it is in the graph.
-      types.withMember(element, () => analyze(element, null));
+      types.withMember(
+          resolvedAst.element.implementation, () => analyze(resolvedAst, null));
     });
     reporter.log('Added $addedInGraph elements in inferencing graph.');
 
@@ -830,13 +828,13 @@ class TypeGraphInferrerEngine
     processLoopInformation();
   }
 
-  void analyze(Element element, ArgumentsTypes arguments) {
-    element = element.implementation;
+  void analyze(ResolvedAst resolvedAst, ArgumentsTypes arguments) {
+    AstElement element = resolvedAst.element.implementation;
     if (analyzedElements.contains(element)) return;
     analyzedElements.add(element);
 
     SimpleTypeInferrerVisitor visitor =
-        new SimpleTypeInferrerVisitor(element, compiler, this);
+        new SimpleTypeInferrerVisitor(element, resolvedAst, compiler, this);
     TypeInformation type;
     reporter.withCurrentElement(element, () {
       type = visitor.run();
@@ -845,17 +843,22 @@ class TypeGraphInferrerEngine
 
     if (element.isField) {
       VariableElement fieldElement = element;
-      ast.Node node = fieldElement.node;
+      ast.Node node = resolvedAst.node;
+      ast.Node initializer = resolvedAst.body;
       if (element.isFinal || element.isConst) {
         // If [element] is final and has an initializer, we record
         // the inferred type.
-        if (fieldElement.initializer != null) {
+        if (resolvedAst.body != null) {
           if (type is! ListTypeInformation && type is! MapTypeInformation) {
             // For non-container types, the constant handler does
             // constant folding that could give more precise results.
-            ConstantValue value =
-                compiler.backend.constants.getConstantValueForVariable(element);
-            if (value != null) {
+            ConstantExpression constant = fieldElement.constant;
+            if (constant != null) {
+              ConstantValue value =
+                  compiler.backend.constants.getConstantValue(constant);
+              assert(invariant(fieldElement, value != null,
+                  message: "Constant expression without value: "
+                      "${constant.toStructuredText()}."));
               if (value.isFunction) {
                 FunctionConstantValue functionConstant = value;
                 type = types.allocateClosure(node, functionConstant.element);
@@ -874,7 +877,7 @@ class TypeGraphInferrerEngine
         } else if (!element.isInstanceMember) {
           recordType(element, types.nullType);
         }
-      } else if (fieldElement.initializer == null) {
+      } else if (initializer == null) {
         // Only update types of static fields if there is no
         // assignment. Instance fields are dealt with in the constructor.
         if (Elements.isStaticOrTopLevelField(element)) {
@@ -884,9 +887,9 @@ class TypeGraphInferrerEngine
         recordTypeOfNonFinalField(node, element, type);
       }
       if (Elements.isStaticOrTopLevelField(element) &&
-          fieldElement.initializer != null &&
+          resolvedAst.body != null &&
           !element.isConst) {
-        var argument = fieldElement.initializer;
+        var argument = resolvedAst.body;
         // TODO(13429): We could do better here by using the
         // constant handler to figure out if it's a lazy field or not.
         if (argument.asSend() != null ||
@@ -1003,7 +1006,7 @@ class TypeGraphInferrerEngine
       bool visitingRequiredParameter = true;
       signature.forEachParameter((Element parameter) {
         if (signature.hasOptionalParameters &&
-            parameter == signature.firstOptionalParameter) {
+            parameter == signature.optionalParameters.first) {
           visitingRequiredParameter = false;
         }
         TypeInformation type = visitingRequiredParameter
@@ -1231,15 +1234,15 @@ class TypeGraphInferrerEngine
   // Sorts the resolved elements by size. We do this for this inferrer
   // to get the same results for [ListTracer] compared to the
   // [SimpleTypesInferrer].
-  Iterable<Element> sortResolvedElements() {
+  Iterable<ResolvedAst> sortResolvedAsts() {
     int max = 0;
-    Map<int, Setlet<Element>> methodSizes = new Map<int, Setlet<Element>>();
+    Map<int, Setlet<ResolvedAst>> methodSizes = <int, Setlet<ResolvedAst>>{};
     compiler.enqueuer.resolution.processedElements
         .forEach((AstElement element) {
       // TODO(ngeoffray): Not sure why the resolver would put a null
       // mapping.
       if (!compiler.enqueuer.resolution.hasBeenProcessed(element)) return;
-      TreeElementMapping mapping = element.resolvedAst.elements;
+      ResolvedAst resolvedAst = element.resolvedAst;
       element = element.implementation;
       if (element.impliesType) return;
       assert(invariant(
@@ -1253,16 +1256,20 @@ class TypeGraphInferrerEngine
       if (element.isAbstract) return;
       // Put the other operators in buckets by length, later to be added in
       // length order.
-      int length = mapping.getSelectorCount();
+      int length = 0;
+      if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+        TreeElementMapping mapping = resolvedAst.elements;
+        length = mapping.getSelectorCount();
+      }
       max = length > max ? length : max;
-      Setlet<Element> set =
-          methodSizes.putIfAbsent(length, () => new Setlet<Element>());
-      set.add(element);
+      Setlet<ResolvedAst> set =
+          methodSizes.putIfAbsent(length, () => new Setlet<ResolvedAst>());
+      set.add(resolvedAst);
     });
 
-    List<Element> result = <Element>[];
+    List<ResolvedAst> result = <ResolvedAst>[];
     for (int i = 0; i <= max; i++) {
-      Setlet<Element> set = methodSizes[i];
+      Setlet<ResolvedAst> set = methodSizes[i];
       if (set != null) result.addAll(set);
     }
     return result;

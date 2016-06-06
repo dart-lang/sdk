@@ -284,8 +284,9 @@ class DirectoryBasedDartSdk implements DartSdk {
       if (_useSummary) {
         PackageBundle sdkBundle = getSummarySdkBundle();
         if (sdkBundle != null) {
-          _analysisContext.resultProvider =
-              new SdkSummaryResultProvider(_analysisContext, sdkBundle);
+          bool strongMode = _analysisOptions?.strongMode ?? false;
+          _analysisContext.resultProvider = new SdkSummaryResultProvider(
+              _analysisContext, sdkBundle, strongMode);
         }
       }
     }
@@ -412,6 +413,11 @@ class DirectoryBasedDartSdk implements DartSdk {
 
   @override
   List<String> get uris => _libraryMap.uris;
+
+  /**
+   * Whether an SDK summary should be used.
+   */
+  bool get useSummary => _useSummary;
 
   /**
    * Specify whether SDK summary should be used.

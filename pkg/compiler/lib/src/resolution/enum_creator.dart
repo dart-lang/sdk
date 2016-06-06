@@ -82,11 +82,12 @@ class AstBuilder {
         symbolToken(Precedence.SEMICOLON_INFO), expression);
   }
 
-  FunctionExpression functionExpression(
-      Modifiers modifiers, String name, NodeList argumentList, Statement body,
+  FunctionExpression functionExpression(Modifiers modifiers, String name,
+      NodeList typeVariables, NodeList argumentList, Statement body,
       [TypeAnnotation returnType]) {
     return new FunctionExpression(
         identifier(name),
+        typeVariables,
         argumentList,
         body,
         returnType,
@@ -171,6 +172,29 @@ class AstBuilder {
   }
 }
 
+/// This class generates the model for an enum class.
+///
+/// For instance
+///
+///     enum A { b, c, }
+///
+/// is modelled as
+///
+///     class A {
+///       final int index;
+///
+///       const A(this.index);
+///
+///       String toString() {
+///         return const <int, A>{0: 'A.b', 1: 'A.c'}[index];
+///       }
+///
+///       static const A b = const A(0);
+///       static const A c = const A(1);
+///
+///       static const List<A> values = const <A>[b, c];
+///     }
+///
 // TODO(johnniwinther): Avoid creating synthesized ASTs for enums when SSA is
 // removed.
 class EnumCreator {
@@ -206,6 +230,7 @@ class EnumCreator {
     FunctionExpression constructorNode = builder.functionExpression(
         builder.modifiers(isConst: true),
         enumClass.name,
+        null, // typeVariables
         builder.argumentList([indexDefinition]),
         builder.emptyStatement());
 
@@ -224,15 +249,15 @@ class EnumCreator {
     enumClass.addMember(constructor, reporter);
 
     List<EnumConstantElement> enumValues = <EnumConstantElement>[];
-    VariableList variableList =
-        new VariableList(builder.modifiers(isStatic: true, isConst: true));
-    variableList.type = enumType;
     int index = 0;
     List<Node> valueReferences = <Node>[];
     List<LiteralMapEntry> mapEntries = <LiteralMapEntry>[];
     for (Link<Node> link = node.names.nodes; !link.isEmpty; link = link.tail) {
       Identifier name = link.head;
       AstBuilder valueBuilder = new AstBuilder(name.token.charOffset);
+      VariableList variableList = new VariableList(
+          valueBuilder.modifiers(isStatic: true, isConst: true));
+      variableList.type = enumType;
 
       // Add reference for the `values` field.
       valueReferences.add(valueBuilder.reference(name));
@@ -275,6 +300,7 @@ class EnumCreator {
     FunctionExpression toStringNode = builder.functionExpression(
         Modifiers.EMPTY,
         'toString',
+        null, // typeVariables
         builder.argumentList([]),
         builder.returnStatement(builder.indexGet(
             builder.mapLiteral(mapEntries, isConst: true),

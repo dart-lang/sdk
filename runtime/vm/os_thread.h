@@ -168,7 +168,10 @@ class OSThread : public BaseThread {
   static intptr_t ThreadIdToIntPtr(ThreadId id);
   static ThreadId ThreadIdFromIntPtr(intptr_t id);
   static bool Compare(ThreadId a, ThreadId b);
-  static void GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage);
+
+  // This function can be called only once per OSThread, and should only be
+  // called when the retunred id will eventually be passed to OSThread::Join().
+  static ThreadJoinId GetCurrentThreadJoinId(OSThread* thread);
 
   // This function can be called only once per OSThread, and should only be
   // called when the retunred id will eventually be passed to OSThread::Join().

@@ -248,11 +248,8 @@ static const char* CaptureVarsAtLine(Dart_Handle lib,
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   bool saved_flag = FLAG_show_invisible_frames;
   FLAG_show_invisible_frames = true;
-  Isolate* isolate = Isolate::Current();
-  Debugger* debugger = isolate->debugger();
-  const String& url = String::Handle(String::New(TestCase::url()));
   Dart_SetPausedEventHandler(SaveVars);
-  debugger->SetBreakpointAtLine(url, line);
+  EXPECT_VALID(Dart_SetBreakpoint(NewString(TestCase::url()), line));
   saved_vars = NULL;
   EXPECT_VALID(Dart_Invoke(lib, NewString(entry), 0, NULL));
   const char* tmp = saved_vars;

@@ -4,22 +4,21 @@
 
 library code_generator_dependencies;
 
-import '../backend_helpers.dart' show BackendHelpers;
-import '../js_backend.dart';
-
 import '../../common.dart';
 import '../../common/codegen.dart' show CodegenRegistry;
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart';
-import '../../dart_types.dart' show DartType, TypeVariableType, InterfaceType;
-import '../../enqueue.dart' show CodegenEnqueuer;
+import '../../dart_types.dart' show DartType, TypeVariableType;
 import '../../elements/elements.dart';
-import '../../js_emitter/js_emitter.dart';
+import '../../enqueue.dart' show CodegenEnqueuer;
 import '../../js/js.dart' as js;
+import '../../js_emitter/js_emitter.dart';
 import '../../native/native.dart' show NativeBehavior;
+import '../../types/types.dart';
 import '../../universe/selector.dart' show Selector;
 import '../../world.dart' show ClassWorld;
-import '../../types/types.dart';
+import '../backend_helpers.dart' show BackendHelpers;
+import '../js_backend.dart';
 
 /// Encapsulates the dependencies of the function-compiler to the compiler,
 /// backend and emitter.
@@ -270,7 +269,7 @@ class Glue {
   }
 
   ConstantValue getDefaultParameterValue(ParameterElement elem) {
-    return _backend.constants.getConstantValueForVariable(elem);
+    return _backend.constants.getConstantValue(elem.constant);
   }
 
   TypeMask extendMaskIfReachesAll(Selector selector, TypeMask mask) {

@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, InheritanceManager;
 import 'package:analyzer/src/generated/type_system.dart';
@@ -53,7 +54,7 @@ ParameterElement _getParameter(ExecutableElement setter) {
 }
 
 /**
- * A function that returns `true` if the given [variable] passes the filter.
+ * A function that returns `true` if the given [element] passes the filter.
  */
 typedef bool VariableFilter(VariableElement element);
 
@@ -164,7 +165,7 @@ class InstanceMemberInferrer {
   }
 
   /**
-   * Given a [method], return the type of the parameter in the method that
+   * Given a method, return the type of the parameter in the method that
    * corresponds to the given [parameter]. If the parameter is positional, then
    * it appears at the given [index] in its enclosing element's list of
    * parameters.
@@ -468,10 +469,13 @@ class VariableGatherer extends RecursiveAstVisitor {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (!node.inDeclarationContext()) {
-      Element element = node.staticElement;
-      if (element is PropertyAccessorElement && element.isSynthetic) {
-        element = (element as PropertyAccessorElement).variable;
+      Element nonAccessor(Element element) {
+        if (element is PropertyAccessorElement && element.isSynthetic) {
+          return element.variable;
+        }
+        return element;
       }
+      Element element = nonAccessor(node.staticElement);
       if (element is VariableElement && (filter == null || filter(element))) {
         results.add(element);
       }

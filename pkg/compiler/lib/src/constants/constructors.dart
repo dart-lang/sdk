@@ -5,7 +5,7 @@
 library dart2js.constants.constructors;
 
 import '../dart_types.dart';
-import '../elements/elements.dart' show ConstructorElement, FieldElement;
+import '../elements/elements.dart' show FieldElement;
 import '../universe/call_structure.dart' show CallStructure;
 import '../util/util.dart';
 import 'evaluation.dart';
@@ -99,13 +99,13 @@ class GenerativeConstantConstructor implements ConstantConstructor {
     StringBuffer sb = new StringBuffer();
     sb.write("{'type': $type");
     defaultValues.forEach((key, ConstantExpression expression) {
-      sb.write(",\n 'default:${key}': ${expression.getText()}");
+      sb.write(",\n 'default:${key}': ${expression.toDartText()}");
     });
     fieldMap.forEach((FieldElement field, ConstantExpression expression) {
-      sb.write(",\n 'field:${field}': ${expression.getText()}");
+      sb.write(",\n 'field:${field}': ${expression.toDartText()}");
     });
     if (superConstructorInvocation != null) {
-      sb.write(",\n 'constructor: ${superConstructorInvocation.getText()}");
+      sb.write(",\n 'constructor: ${superConstructorInvocation.toDartText()}");
     }
     sb.write("}");
     return sb.toString();
@@ -189,9 +189,9 @@ class RedirectingGenerativeConstantConstructor implements ConstantConstructor {
     StringBuffer sb = new StringBuffer();
     sb.write("{'type': ${thisConstructorInvocation.type}");
     defaultValues.forEach((key, ConstantExpression expression) {
-      sb.write(",\n 'default:${key}': ${expression.getText()}");
+      sb.write(",\n 'default:${key}': ${expression.toDartText()}");
     });
-    sb.write(",\n 'constructor': ${thisConstructorInvocation.getText()}");
+    sb.write(",\n 'constructor': ${thisConstructorInvocation.toDartText()}");
     sb.write("}");
     return sb.toString();
   }
@@ -237,7 +237,7 @@ class RedirectingFactoryConstantConstructor implements ConstantConstructor {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write("{");
-    sb.write("'constructor': ${targetConstructorInvocation.getText()}");
+    sb.write("'constructor': ${targetConstructorInvocation.toDartText()}");
     sb.write("}");
     return sb.toString();
   }

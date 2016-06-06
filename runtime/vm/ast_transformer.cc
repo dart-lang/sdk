@@ -298,19 +298,6 @@ void AwaitTransformer::VisitBinaryOpNode(BinaryOpNode* node) {
 }
 
 
-void AwaitTransformer::VisitBinaryOpWithMask32Node(
-    BinaryOpWithMask32Node* node) {
-  ASSERT((node->kind() != Token::kAND) && (node->kind() != Token::kOR));
-  AstNode* new_left = Transform(node->left());
-  AstNode* new_right = Transform(node->right());
-  result_ = MakeName(new(Z) BinaryOpWithMask32Node(node->token_pos(),
-      node->kind(),
-      new_left,
-      new_right,
-      node->mask32()));
-}
-
-
 void AwaitTransformer::VisitComparisonNode(ComparisonNode* node) {
   AstNode* new_left = Transform(node->left());
   AstNode* new_right = Transform(node->right());

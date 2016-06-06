@@ -9,10 +9,10 @@ import 'dart:collection' show Queue;
 import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart'
-    show Feature, Parsing, Resolution, ResolutionImpact;
-import '../common/tasks.dart' show CompilerTask, DeferredAction;
-import '../compiler.dart' show Compiler;
+    show Feature, ParsingContext, Resolution, ResolutionImpact;
+import '../common/tasks.dart' show CompilerTask;
 import '../compile_time_constants.dart' show ConstantCompiler;
+import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart'
     show
         ConstantExpression,
@@ -47,8 +47,7 @@ import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show StaticUse, TypeUse;
 import '../universe/world_impact.dart' show WorldImpact;
-import '../util/util.dart' show Link, LinkBuilder, Setlet;
-
+import '../util/util.dart' show Link, Setlet;
 import 'class_hierarchy.dart';
 import 'class_members.dart' show MembersCreator;
 import 'constructors.dart';
@@ -60,14 +59,19 @@ import 'typedefs.dart';
 
 class ResolverTask extends CompilerTask {
   final ConstantCompiler constantCompiler;
+  final Compiler compiler;
 
-  ResolverTask(Compiler compiler, this.constantCompiler) : super(compiler);
+  ResolverTask(Compiler compiler, this.constantCompiler)
+      : compiler = compiler,
+        super(compiler.measurer);
 
   String get name => 'Resolver';
 
+  DiagnosticReporter get reporter => compiler.reporter;
+
   Resolution get resolution => compiler.resolution;
 
-  Parsing get parsing => compiler.parsing;
+  ParsingContext get parsingContext => compiler.parsingContext;
 
   CoreClasses get coreClasses => compiler.coreClasses;
 
@@ -144,51 +148,56 @@ class ResolverTask extends CompilerTask {
     FunctionExpression functionExpression = element.node;
     AsyncModifier asyncModifier = functionExpression.asyncModifier;
     if (asyncModifier != null) {
-      if (asyncModifier.isAsynchronous) {
-        element.asyncMarker = asyncModifier.isYielding
-            ? AsyncMarker.ASYNC_STAR
-            : AsyncMarker.ASYNC;
+      if (!compiler.backend.supportsAsyncAwait) {
+        reporter.reportErrorMessage(functionExpression.asyncModifier,
+            MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
       } else {
-        element.asyncMarker = AsyncMarker.SYNC_STAR;
-      }
-      if (element.isAbstract) {
-        reporter.reportErrorMessage(
-            asyncModifier,
-            MessageKind.ASYNC_MODIFIER_ON_ABSTRACT_METHOD,
-            {'modifier': element.asyncMarker});
-      } else if (element.isConstructor) {
-        reporter.reportErrorMessage(
-            asyncModifier,
-            MessageKind.ASYNC_MODIFIER_ON_CONSTRUCTOR,
-            {'modifier': element.asyncMarker});
-      } else {
-        if (element.isSetter) {
+        if (asyncModifier.isAsynchronous) {
+          element.asyncMarker = asyncModifier.isYielding
+              ? AsyncMarker.ASYNC_STAR
+              : AsyncMarker.ASYNC;
+        } else {
+          element.asyncMarker = AsyncMarker.SYNC_STAR;
+        }
+        if (element.isAbstract) {
           reporter.reportErrorMessage(
               asyncModifier,
-              MessageKind.ASYNC_MODIFIER_ON_SETTER,
+              MessageKind.ASYNC_MODIFIER_ON_ABSTRACT_METHOD,
               {'modifier': element.asyncMarker});
-        }
-        if (functionExpression.body.asReturn() != null &&
-            element.asyncMarker.isYielding) {
+        } else if (element.isConstructor) {
           reporter.reportErrorMessage(
               asyncModifier,
-              MessageKind.YIELDING_MODIFIER_ON_ARROW_BODY,
+              MessageKind.ASYNC_MODIFIER_ON_CONSTRUCTOR,
               {'modifier': element.asyncMarker});
+        } else {
+          if (element.isSetter) {
+            reporter.reportErrorMessage(
+                asyncModifier,
+                MessageKind.ASYNC_MODIFIER_ON_SETTER,
+                {'modifier': element.asyncMarker});
+          }
+          if (functionExpression.body.asReturn() != null &&
+              element.asyncMarker.isYielding) {
+            reporter.reportErrorMessage(
+                asyncModifier,
+                MessageKind.YIELDING_MODIFIER_ON_ARROW_BODY,
+                {'modifier': element.asyncMarker});
+          }
         }
-      }
-      switch (element.asyncMarker) {
-        case AsyncMarker.ASYNC:
-          registry.registerFeature(Feature.ASYNC);
-          coreClasses.futureClass.ensureResolved(resolution);
-          break;
-        case AsyncMarker.ASYNC_STAR:
-          registry.registerFeature(Feature.ASYNC_STAR);
-          coreClasses.streamClass.ensureResolved(resolution);
-          break;
-        case AsyncMarker.SYNC_STAR:
-          registry.registerFeature(Feature.SYNC_STAR);
-          coreClasses.iterableClass.ensureResolved(resolution);
-          break;
+        switch (element.asyncMarker) {
+          case AsyncMarker.ASYNC:
+            registry.registerFeature(Feature.ASYNC);
+            coreClasses.futureClass.ensureResolved(resolution);
+            break;
+          case AsyncMarker.ASYNC_STAR:
+            registry.registerFeature(Feature.ASYNC_STAR);
+            coreClasses.streamClass.ensureResolved(resolution);
+            break;
+          case AsyncMarker.SYNC_STAR:
+            registry.registerFeature(Feature.SYNC_STAR);
+            coreClasses.iterableClass.ensureResolved(resolution);
+            break;
+        }
       }
     }
   }
@@ -312,7 +321,7 @@ class ResolverTask extends CompilerTask {
           return const ResolutionImpact();
         }
       } else {
-        element.parseNode(resolution.parsing);
+        element.parseNode(resolution.parsingContext);
         element.computeType(resolution);
         FunctionElementX implementation = element;
         if (element.isExternal) {
@@ -337,7 +346,7 @@ class ResolverTask extends CompilerTask {
   }
 
   WorldImpact resolveField(FieldElementX element) {
-    VariableDefinitions tree = element.parseNode(parsing);
+    VariableDefinitions tree = element.parseNode(parsingContext);
     if (element.modifiers.isStatic && element.isTopLevel) {
       reporter.reportErrorMessage(element.modifiers.getStatic(),
           MessageKind.TOP_LEVEL_VARIABLE_DECLARED_STATIC);
@@ -377,7 +386,7 @@ class ResolverTask extends CompilerTask {
         if (element.modifiers.isConst) {
           element.constant = constantCompiler.compileConstant(element);
         } else {
-          constantCompiler.compileVariable(element);
+          element.constant = constantCompiler.compileVariable(element);
         }
       });
       if (initializer != null) {
@@ -413,21 +422,23 @@ class ResolverTask extends CompilerTask {
     return result;
   }
 
-  void resolveRedirectionChain(
-      ConstructorElementX constructor, Spannable node) {
-    ConstructorElementX target = constructor;
+  void resolveRedirectionChain(ConstructorElement constructor, Spannable node) {
+    ConstructorElement target = constructor;
     InterfaceType targetType;
     List<Element> seen = new List<Element>();
     bool isMalformed = false;
     // Follow the chain of redirections and check for cycles.
     while (target.isRedirectingFactory || target.isPatched) {
-      if (target.effectiveTargetInternal != null) {
+      if (target.hasEffectiveTarget) {
         // We found a constructor that already has been processed.
-        targetType = target.effectiveTargetType;
+        // TODO(johnniwinther): Should `effectiveTargetType` be part of the
+        // interface?
+        targetType =
+            target.computeEffectiveTargetType(target.enclosingClass.thisType);
         assert(invariant(target, targetType != null,
             message: 'Redirection target type has not been computed for '
                 '$target'));
-        target = target.effectiveTargetInternal;
+        target = target.effectiveTarget;
         break;
       }
 
@@ -509,7 +520,7 @@ class ResolverTask extends CompilerTask {
       reporter.withCurrentElement(cls, () {
         // TODO(ahe): Cache the node in cls.
         cls
-            .parseNode(parsing)
+            .parseNode(parsingContext)
             .accept(new ClassSupertypeResolver(compiler, cls));
         if (cls.supertypeLoadState != STATE_DONE) {
           cls.supertypeLoadState = STATE_DONE;
@@ -598,7 +609,7 @@ class ResolverTask extends CompilerTask {
           () => measure(() {
                 assert(element.resolutionState == STATE_NOT_STARTED);
                 element.resolutionState = STATE_STARTED;
-                Node tree = element.parseNode(parsing);
+                Node tree = element.parseNode(parsingContext);
                 loadSupertypes(element, tree);
 
                 ClassResolverVisitor visitor =
@@ -661,11 +672,11 @@ class ResolverTask extends CompilerTask {
   }
 
   void computeClassMembers(ClassElement element) {
-    MembersCreator.computeAllClassMembers(compiler, element);
+    MembersCreator.computeAllClassMembers(resolution, element);
   }
 
   void computeClassMember(ClassElement element, String name) {
-    MembersCreator.computeClassMembersByName(compiler, element, name);
+    MembersCreator.computeClassMembersByName(resolution, element, name);
   }
 
   void checkClass(ClassElement element) {
@@ -726,18 +737,19 @@ class ResolverTask extends CompilerTask {
         // TODO(johnniwinther): Obtain the [TreeElements] for [member]
         // differently.
         if (compiler.enqueuer.resolution.hasBeenProcessed(member)) {
-          checkMixinSuperUses(
-              member.resolvedAst.elements, mixinApplication, mixin);
+          if (member.resolvedAst.kind == ResolvedAstKind.PARSED) {
+            checkMixinSuperUses(
+                member.resolvedAst.elements, mixinApplication, mixin);
+          }
         }
       }
     });
   }
 
-  void checkMixinSuperUses(TreeElements resolutionTree,
+  void checkMixinSuperUses(TreeElements elements,
       MixinApplicationElement mixinApplication, ClassElement mixin) {
     // TODO(johnniwinther): Avoid the use of [TreeElements] here.
-    if (resolutionTree == null) return;
-    Iterable<SourceSpan> superUses = resolutionTree.superUses;
+    Iterable<SourceSpan> superUses = elements.superUses;
     if (superUses.isEmpty) return;
     DiagnosticMessage error = reporter.createMessage(mixinApplication,
         MessageKind.ILLEGAL_MIXIN_WITH_SUPER, {'className': mixin.name});
@@ -965,15 +977,17 @@ class ResolverTask extends CompilerTask {
   FunctionSignature resolveSignature(FunctionElementX element) {
     MessageKind defaultValuesError = null;
     if (element.isFactoryConstructor) {
-      FunctionExpression body = element.parseNode(parsing);
+      FunctionExpression body = element.parseNode(parsingContext);
       if (body.isRedirectingFactory) {
         defaultValuesError = MessageKind.REDIRECTING_FACTORY_WITH_DEFAULT;
       }
     }
     return reporter.withCurrentElement(element, () {
-      FunctionExpression node = element.parseNode(parsing);
+      FunctionExpression node = element.parseNode(parsingContext);
       return measure(() => SignatureResolver.analyze(
           compiler,
+          element.enclosingElement.buildScope(),
+          node.typeVariables,
           node.parameters,
           node.returnType,
           element,
@@ -993,7 +1007,7 @@ class ResolverTask extends CompilerTask {
         return measure(() {
           assert(element.resolutionState == STATE_NOT_STARTED);
           element.resolutionState = STATE_STARTED;
-          Typedef node = element.parseNode(parsing);
+          Typedef node = element.parseNode(parsingContext);
           TypedefResolverVisitor visitor =
               new TypedefResolverVisitor(compiler, element, registry);
           visitor.visit(node);
@@ -1011,7 +1025,7 @@ class ResolverTask extends CompilerTask {
               assert(annotation.resolutionState == STATE_NOT_STARTED);
               annotation.resolutionState = STATE_STARTED;
 
-              Node node = annotation.parseNode(parsing);
+              Node node = annotation.parseNode(parsingContext);
               Element annotatedElement = annotation.annotatedElement;
               AnalyzableElement context = annotatedElement.analyzableElement;
               ClassElement classElement = annotatedElement.enclosingClass;

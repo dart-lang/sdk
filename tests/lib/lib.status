@@ -102,6 +102,7 @@ mirrors/type_variable_owner_test/01: RuntimeError # Issue 12785
 mirrors/variable_is_const_test/none: RuntimeError # Issue 14671
 mirrors/raw_type_test/01: RuntimeError # Issue 6490
 mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589
+mirrors/regress_26187_test: RuntimeError # Issue 6490
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 typed_data/int32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
@@ -185,12 +186,12 @@ async/timer_not_available_test: Fail, OK # only meant to test when there is no w
 
 # 'js' tests import the dart:js library, so they only make sense in
 # a browser environment.
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
 js/*: Skip
 
 # 'js' tests import the dart:js library, so they only make sense in
 # a browser environment.
-[ $runtime == dart_product ]
+[ $runtime == dart_app ]
 js/*: SkipByDesign
 mirrors/*: SkipByDesign
 
@@ -228,12 +229,12 @@ async/multiple_timer_test: Pass, Fail # Probably issue 14734
 # TODO(efortuna): Investigate.
 async/timer_test: Fail, Pass
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
 async/timer_not_available_test: Fail, OK
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 mirrors/deferred_type_test: CompileTimeError, OK # Don't have a multitest marker for dynamic compile time errors.
 
-[ $compiler == none || $compiler == precompiler || $compiler == dart2app ]
+[ $compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit ]
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
 
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
@@ -293,13 +294,13 @@ profiler/metrics_num_test: Fail # Issue 20309
 mirrors/regress_16321_test/01: MissingCompileTimeError # Issue 16391
 
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
-async/*deferred*: Skip # Issue 17458
-mirrors/*deferred*: Skip # Issue 17458
+async/*deferred*: Pass,RuntimeError # Issue 17458
+mirrors/*deferred*: Pass,RuntimeError # Issue 17458
 
 [ $compiler == dart2js && $mode == debug ]
 mirrors/native_class_test: Pass, Slow
 
-[ ($compiler == none || $compiler == precompiler || $compiler == dart2app) && $arch == mips ]
+[ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && $arch == mips ]
 async/timer_regress22626_test: Pass, RuntimeError # Issue 22626
 
 [ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te ]
@@ -313,19 +314,22 @@ mirrors/mirrors_reader_test: Pass, Slow
 developer/metrics_num_test: Skip # Because of a int / double type test.
 developer/timeline_test: Skip # Not supported
 
+[ $mode == product ]
+developer/timeline_test: Skip # Not supported
+
 [ $arch == simarm64 ]
 convert/utf85_test: Skip # Pass, Slow Issue 20111.
 
 [ $mode == debug && $arch == ia32 && $system == windows ]
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification OOM.
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $mode == debug && $arch == x64 && $system == windows ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $mode == debug && $arch == x64 && $system == windows ]
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow
 
 [ $mode == debug && $arch != ia32 && $arch != x64 && $arch != simarm && $arch != simarmv6 && $arch != simarmv5te ]
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification not yet implemented.
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $mode == debug && $builder_tag == asan ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $mode == debug && $builder_tag == asan ]
 mirrors/immutable_collections_test: SkipSlow  # Timeout.
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Timeout.
 
@@ -361,3 +365,8 @@ mirrors/*: SkipByDesign
 [ $noopt || $compiler == precompiler ]
 convert/chunked_conversion_utf88_test: Pass, Timeout
 convert/utf85_test: Pass, Timeout
+
+[ $arch == simdbc || $arch == simdbc64 ]
+# TODO(vegorov) LoadField bytecode supports only up to 256 fields. Need a long
+# version.
+mirrors/accessor_cache_overflow_test: Skip

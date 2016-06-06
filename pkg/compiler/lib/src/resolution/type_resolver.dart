@@ -18,6 +18,7 @@ import '../elements/elements.dart'
         ErroneousElement,
         PrefixElement,
         TypedefElement,
+        TypeDeclarationElement,
         TypeVariableElement;
 import '../elements/modelx.dart' show ErroneousElementX;
 import '../tree/tree.dart';
@@ -210,7 +211,8 @@ class TypeResolver {
             visitor.enclosingElement.outermostEnclosingMemberOrTopLevel;
         if (!outer.isClass &&
             !outer.isTypedef &&
-            !Elements.hasAccessToTypeVariables(visitor.enclosingElement)) {
+            !Elements.hasAccessToTypeVariable(
+                visitor.enclosingElement, typeVariable)) {
           registry.registerFeature(Feature.THROW_RUNTIME_ERROR);
           type = reportFailureAndCreateType(
               MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,

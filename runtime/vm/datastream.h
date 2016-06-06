@@ -387,6 +387,16 @@ class WriteStream : public ValueObject {
     current_ += len;
   }
 
+  void WriteWord(uword value) {
+    const intptr_t len = sizeof(uword);
+    if ((end_ - current_) < len) {
+      Resize(len);
+    }
+    ASSERT((end_ - current_) >= len);
+    *reinterpret_cast<uword*>(current_) = value;
+    current_ += len;
+  }
+
   void Print(const char* format, ...) {
     va_list args;
     va_start(args, format);

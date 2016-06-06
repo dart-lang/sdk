@@ -442,8 +442,8 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
   // R10: instance class.
   // Check immediate superclass equality.
   __ movq(R13, FieldAddress(R10, Class::super_type_offset()));
-  __ movq(R13, FieldAddress(R13, Type::type_class_offset()));
-  __ CompareObject(R13, type_class);
+  __ movq(R13, FieldAddress(R13, Type::type_class_id_offset()));
+  __ CompareImmediate(R13, Immediate(Smi::RawValue(type_class.id())));
   __ j(EQUAL, is_instance_lbl);
 
   const Register kTypeArgumentsReg = kNoRegister;
@@ -1328,9 +1328,26 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(zone(),
       MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
-
   __ Comment("MegamorphicCall");
+  // Load receiver into RDI.
   __ movq(RDI, Address(RSP, (argument_count - 1) * kWordSize));
+  Label done;
+  if (ShouldInlineSmiStringHashCode(ic_data)) {
+    Label megamorphic_call;
+    __ Comment("Inlined get:hashCode for Smi and OneByteString");
+    __ movq(RAX, RDI);  // Move Smi hashcode to RAX.
+    __ testq(RDI, Immediate(kSmiTagMask));
+    __ j(ZERO, &done, Assembler::kNearJump);  // It is Smi, we are done.
+
+    __ CompareClassId(RDI, kOneByteStringCid);
+    __ j(NOT_EQUAL, &megamorphic_call, Assembler::kNearJump);
+    __ movq(RAX, FieldAddress(RDI, String::hash_offset()));
+    __ cmpq(RAX, Immediate(0));
+    __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+
+    __ Bind(&megamorphic_call);
+    __ Comment("Slow case: megamorphic call");
+  }
   __ LoadObject(RBX, cache);
   if (FLAG_use_megamorphic_stub) {
     __ Call(*StubCode::MegamorphicLookup_entry());
@@ -1339,6 +1356,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   }
   __ call(RCX);
 
+  __ Bind(&done);
   RecordSafepoint(locs, slow_path_argument_count);
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (FLAG_precompiled_mode) {
@@ -1375,21 +1393,9 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(
     LocationSummary* locs) {
   __ Comment("SwitchableCall");
   __ movq(RDI, Address(RSP, (argument_count - 1) * kWordSize));
-  if (ic_data.NumArgsTested() == 1) {
-    __ LoadUniqueObject(RBX, ic_data);
-    __ CallPatchable(*StubCode::ICLookupThroughFunction_entry());
-  } else {
-    const String& name = String::Handle(zone(), ic_data.target_name());
-    const Array& arguments_descriptor =
-        Array::ZoneHandle(zone(), ic_data.arguments_descriptor());
-    ASSERT(!arguments_descriptor.IsNull() &&
-           (arguments_descriptor.Length() > 0));
-    const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(zone(),
-        MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
-
-    __ LoadUniqueObject(RBX, cache);
-    __ CallPatchable(*StubCode::MegamorphicLookup_entry());
-  }
+  ASSERT(ic_data.NumArgsTested() == 1);
+  __ LoadUniqueObject(RBX, ic_data);
+  __ CallPatchable(*StubCode::ICLookupThroughFunction_entry());
   __ call(RCX);
 
   AddCurrentDescriptor(RawPcDescriptors::kOther,

@@ -99,7 +99,7 @@ uintptr_t SignalHandler::GetLinkRegister(const mcontext_t& mcontext) {
 }
 
 
-void SignalHandler::Install(SignalAction action) {
+void SignalHandler::InstallImpl(SignalAction action) {
   struct sigaction act;
   act.sa_handler = NULL;
   act.sa_sigaction = action;

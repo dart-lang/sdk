@@ -64,12 +64,10 @@ class ElementReferencesComputer {
   /**
    * Returns a [Future] completing with a [List] of references to [element].
    */
-  Future<List<SearchResult>> _findSingleElementReferences(Element element) {
-    Future<List<SearchMatch>> matchesFuture =
-        searchEngine.searchReferences(element);
-    return matchesFuture.then((List<SearchMatch> matches) {
-      return matches.map(toResult).toList();
-    });
+  Future<List<SearchResult>> _findSingleElementReferences(
+      Element element) async {
+    List<SearchMatch> matches = await searchEngine.searchReferences(element);
+    return matches.map(toResult).toList();
   }
 
   /**

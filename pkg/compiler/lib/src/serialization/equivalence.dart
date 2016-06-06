@@ -6,11 +6,16 @@
 
 library dart2js.serialization.equivalence;
 
+import '../closure.dart';
+import '../common.dart';
 import '../common/resolution.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/visitor.dart';
+import '../js_backend/backend_serialization.dart'
+    show JavaScriptBackendSerializer;
+import '../native/native.dart' show NativeBehavior;
 import '../resolution/access_semantics.dart';
 import '../resolution/send_structure.dart';
 import '../resolution/tree_elements.dart';
@@ -272,6 +277,13 @@ bool areNewStructuresEquivalent(NewStructure a, NewStructure b) {
   }
 }
 
+/// Returns `true` if nodes [a] and [b] are equivalent.
+bool areNodesEquivalent(Node node1, Node node2) {
+  if (identical(node1, node2)) return true;
+  if (node1 == null || node2 == null) return false;
+  return node1.accept1(const NodeEquivalenceVisitor(), node2);
+}
+
 /// Strategy for testing equivalence.
 ///
 /// Use this strategy to determine equivalence without failing on inequivalence.
@@ -319,6 +331,11 @@ class TestStrategy {
       List<ConstantExpression> list1, List<ConstantExpression> list2) {
     return areConstantListsEquivalent(list1, list2);
   }
+
+  bool testNodes(
+      Object object1, Object object2, String property, Node node1, Node node2) {
+    return areNodesEquivalent(node1, node2);
+  }
 }
 
 /// Visitor that checks for equivalence of [Element]s.
@@ -359,6 +376,8 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
       CompilationUnitElement element1, CompilationUnitElement element2) {
     return strategy.test(
             element1, element2, 'name', element1.name, element2.name) &&
+        strategy.test(element1, element2, 'script.resourceUri',
+            element1.script.resourceUri, element2.script.resourceUri) &&
         visit(element1.library, element2.library);
   }
 
@@ -384,6 +403,14 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
   @override
   bool visitFieldElement(FieldElement element1, FieldElement element2) {
     return checkMembers(element1, element2);
+  }
+
+  @override
+  bool visitBoxFieldElement(
+      BoxFieldElement element1, BoxFieldElement element2) {
+    return element1.box.name == element2.box.name &&
+        visit(element1.box.executableContext, element2.box.executableContext) &&
+        visit(element1.variableElement, element2.variableElement);
   }
 
   @override
@@ -751,11 +778,41 @@ bool testResolutionImpactEquivalence(
 bool testResolvedAstEquivalence(
     ResolvedAst resolvedAst1, ResolvedAst resolvedAst2,
     [TestStrategy strategy = const TestStrategy()]) {
-  return strategy.testElements(resolvedAst1, resolvedAst2, 'element',
+  if (!strategy.test(resolvedAst1, resolvedAst1, 'kind', resolvedAst1.kind,
+      resolvedAst2.kind)) {
+    return false;
+  }
+  if (resolvedAst1.kind != ResolvedAstKind.PARSED) {
+    // Nothing more to check.
+    return true;
+  }
+  bool result = strategy.testElements(resolvedAst1, resolvedAst2, 'element',
           resolvedAst1.element, resolvedAst2.element) &&
-      new NodeEquivalenceVisitor(strategy).testNodes(resolvedAst1, resolvedAst2,
-          'node', resolvedAst1.node, resolvedAst2.node) &&
-      testTreeElementsEquivalence(resolvedAst1, resolvedAst2, strategy);
+      strategy.testNodes(resolvedAst1, resolvedAst2, 'node', resolvedAst1.node,
+          resolvedAst2.node) &&
+      strategy.testNodes(resolvedAst1, resolvedAst2, 'body', resolvedAst1.body,
+          resolvedAst2.body) &&
+      testTreeElementsEquivalence(resolvedAst1, resolvedAst2, strategy) &&
+      strategy.test(resolvedAst1, resolvedAst2, 'sourceUri',
+          resolvedAst1.sourceUri, resolvedAst2.sourceUri);
+  if (resolvedAst1.element is FunctionElement) {
+    FunctionElement element1 = resolvedAst1.element;
+    FunctionElement element2 = resolvedAst2.element;
+    for (int index = 0; index < element1.parameters.length; index++) {
+      var parameter1 = element1.parameters[index];
+      var parameter2 = element2.parameters[index];
+      result = result &&
+          strategy.testNodes(parameter1, parameter2, 'node',
+              parameter1.implementation.node, parameter2.implementation.node) &&
+          strategy.testNodes(
+              parameter1,
+              parameter2,
+              'initializer',
+              parameter1.implementation.initializer,
+              parameter2.implementation.initializer);
+    }
+  }
+  return result;
 }
 
 /// Tests the equivalence of the data stored in the [TreeElements] of
@@ -774,7 +831,11 @@ bool testTreeElementsEquivalence(
   TreeElementsEquivalenceVisitor visitor = new TreeElementsEquivalenceVisitor(
       indices1, indices2, elements1, elements2, strategy);
   resolvedAst1.node.accept(visitor);
-  return visitor.success;
+  if (visitor.success) {
+    return strategy.test(elements1, elements2, 'containsTryStatement',
+        elements1.containsTryStatement, elements2.containsTryStatement);
+  }
+  return false;
 }
 
 /// Visitor that checks the equivalence of [TreeElements] data.
@@ -789,6 +850,83 @@ class TreeElementsEquivalenceVisitor extends Visitor {
   TreeElementsEquivalenceVisitor(
       this.indices1, this.indices2, this.elements1, this.elements2,
       [this.strategy = const TestStrategy()]);
+
+  bool testJumpTargets(
+      Node node1, Node node2, String property, JumpTarget a, JumpTarget b) {
+    if (identical(a, b)) return true;
+    if (a == null || b == null) return false;
+    return strategy.testElements(a, b, 'executableContext', a.executableContext,
+            b.executableContext) &&
+        strategy.test(a, b, 'nestingLevel', a.nestingLevel, b.nestingLevel) &&
+        strategy.test(a, b, 'statement', indices1.nodeIndices[a.statement],
+            indices2.nodeIndices[b.statement]) &&
+        strategy.test(
+            a, b, 'isBreakTarget', a.isBreakTarget, b.isBreakTarget) &&
+        strategy.test(
+            a, b, 'isContinueTarget', a.isContinueTarget, b.isContinueTarget) &&
+        strategy.testLists(a, b, 'labels', a.labels.toList(), b.labels.toList(),
+            (a, b) {
+          return indices1.nodeIndices[a.label] == indices2.nodeIndices[b.label];
+        });
+  }
+
+  bool testLabelDefinitions(Node node1, Node node2, String property,
+      LabelDefinition a, LabelDefinition b) {
+    if (identical(a, b)) return true;
+    if (a == null || b == null) return false;
+    return strategy.test(a, b, 'label', indices1.nodeIndices[a.label],
+            indices2.nodeIndices[b.label]) &&
+        strategy.test(a, b, 'labelName', a.labelName, b.labelName) &&
+        strategy.test(a, b, 'target', indices1.nodeIndices[a.target.statement],
+            indices2.nodeIndices[b.target.statement]) &&
+        strategy.test(
+            a, b, 'isBreakTarget', a.isBreakTarget, b.isBreakTarget) &&
+        strategy.test(
+            a, b, 'isContinueTarget', a.isContinueTarget, b.isContinueTarget);
+  }
+
+  bool testNativeData(Node node1, Node node2, String property, a, b) {
+    if (identical(a, b)) return true;
+    if (a == null || b == null) return false;
+    if (a is NativeBehavior && b is NativeBehavior) {
+      return strategy.test(a, b, 'codeTemplateText', a.codeTemplateText,
+              b.codeTemplateText) &&
+          strategy.test(a, b, 'isAllocation', a.isAllocation, b.isAllocation) &&
+          strategy.test(a, b, 'sideEffects', a.sideEffects, b.sideEffects) &&
+          strategy.test(
+              a, b, 'throwBehavior', a.throwBehavior, b.throwBehavior) &&
+          strategy.testTypeLists(
+              a,
+              b,
+              'dartTypesReturned',
+              JavaScriptBackendSerializer.filterDartTypes(a.typesReturned),
+              JavaScriptBackendSerializer.filterDartTypes(b.typesReturned)) &&
+          strategy.testLists(
+              a,
+              b,
+              'specialTypesReturned',
+              JavaScriptBackendSerializer.filterSpecialTypes(a.typesReturned),
+              JavaScriptBackendSerializer
+                  .filterSpecialTypes(b.typesReturned)) &&
+          strategy.testTypeLists(
+              a,
+              b,
+              'dartTypesInstantiated',
+              JavaScriptBackendSerializer.filterDartTypes(a.typesInstantiated),
+              JavaScriptBackendSerializer
+                  .filterDartTypes(b.typesInstantiated)) &&
+          strategy.testLists(
+              a,
+              b,
+              'specialTypesInstantiated',
+              JavaScriptBackendSerializer
+                  .filterSpecialTypes(a.typesInstantiated),
+              JavaScriptBackendSerializer
+                  .filterSpecialTypes(b.typesInstantiated)) &&
+          strategy.test(a, b, 'useGvn', a.useGvn, b.useGvn);
+    }
+    return true;
+  }
 
   visitNode(Node node1) {
     if (!success) return;
@@ -808,7 +946,15 @@ class TreeElementsEquivalenceVisitor extends Visitor {
         strategy.testConstants(node1, node2, 'getConstant($index)',
             elements1.getConstant(node1), elements2.getConstant(node2)) &&
         strategy.testTypes(node1, node2, 'typesCache[$index]',
-            elements1.typesCache[node1], elements2.typesCache[node2]);
+            elements1.typesCache[node1], elements2.typesCache[node2]) &&
+        testJumpTargets(
+            node1,
+            node2,
+            'getTargetDefinition($index)',
+            elements1.getTargetDefinition(node1),
+            elements2.getTargetDefinition(node2)) &&
+        testNativeData(node1, node2, 'getNativeData($index)',
+            elements1.getNativeData(node1), elements2.getNativeData(node2));
 
     node1.visitChildren(this);
   }
@@ -915,6 +1061,36 @@ class TreeElementsEquivalenceVisitor extends Visitor {
         elements1.getRedirectingTargetConstructor(node1),
         elements2.getRedirectingTargetConstructor(node2));
   }
+
+  @override
+  visitGotoStatement(GotoStatement node1) {
+    visitStatement(node1);
+    if (!success) return;
+    int index = indices1.nodeIndices[node1];
+    GotoStatement node2 = indices2.nodeList[index];
+    success = testJumpTargets(node1, node2, 'getTargetOf($index)',
+        elements1.getTargetOf(node1), elements2.getTargetOf(node2));
+    if (!success) return;
+    if (node1.target == null && node2.target == null) {
+      return;
+    }
+    success = testLabelDefinitions(node1, node2, 'getTarget($index)',
+        elements1.getTargetLabel(node1), elements2.getTargetLabel(node2));
+  }
+
+  @override
+  visitLabel(Label node1) {
+    visitNode(node1);
+    if (!success) return;
+    int index = indices1.nodeIndices[node1];
+    Label node2 = indices2.nodeList[index];
+    success = testLabelDefinitions(
+        node1,
+        node2,
+        'getLabelDefinition($index)',
+        elements1.getLabelDefinition(node1),
+        elements2.getLabelDefinition(node2));
+  }
 }
 
 class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
@@ -924,30 +1100,39 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
 
   bool testNodes(
       var object1, var object2, String property, Node node1, Node node2) {
-    if (node1 == node2) return true;
-    if (node1 == null || node2 == null) return false;
-    return node1.accept1(this, node2);
+    return strategy.test(object1, object2, property, node1, node2,
+        (Node n1, Node n2) {
+      if (n1 == n2) return true;
+      if (n1 == null || n2 == null) return false;
+      return n1.accept1(this, n2);
+    });
   }
 
   bool testNodeLists(var object1, var object2, String property,
       Link<Node> list1, Link<Node> list2) {
-    if (list1 == list2) return true;
-    if (list1 == null || list2 == null) return false;
-    while (list1.isNotEmpty && list2.isNotEmpty) {
-      if (!list1.head.accept1(this, list2.head)) {
-        return false;
+    return strategy.test(object1, object2, property, list1, list2,
+        (Link<Node> l1, Link<Node> l2) {
+      if (l1 == l2) return true;
+      if (l1 == null || l2 == null) return false;
+      while (l1.isNotEmpty && l2.isNotEmpty) {
+        if (!l1.head.accept1(this, l2.head)) {
+          return false;
+        }
+        l1 = l1.tail;
+        l2 = l2.tail;
       }
-      list1 = list1.tail;
-      list2 = list2.tail;
-    }
-    return list1.isEmpty && list2.isEmpty;
+      return l1.isEmpty && l2.isEmpty;
+    });
   }
 
   bool testTokens(
       var object1, var object2, String property, Token token1, Token token2) {
-    if (token1 == token2) return true;
-    if (token1 == null || token2 == null) return false;
-    return token1.hashCode == token2.hashCode;
+    return strategy.test(object1, object2, property, token1, token2,
+        (Token t1, Token t2) {
+      if (t1 == t2) return true;
+      if (t1 == null || t2 == null) return false;
+      return strategy.test(t1, t2, 'hashCode', t1.hashCode, t2.hashCode);
+    });
   }
 
   @override
@@ -1151,7 +1336,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
             node1, node2, 'condition', node1.condition, node2.condition) &&
         testNodes(
             node1, node2, 'expression', node1.expression, node2.expression) &&
-        testNodes(node1, node2, 'body', node1.expression, node2.body) &&
+        testNodes(node1, node2, 'body', node1.body, node2.body) &&
         testNodes(node1, node2, 'declaredIdentifier', node1.declaredIdentifier,
             node2.declaredIdentifier);
   }

@@ -160,6 +160,12 @@ int64_t OS::GetCurrentMonotonicMicros() {
 }
 
 
+int64_t OS::GetCurrentThreadCPUMicros() {
+  // TODO(johnmccutchan): Implement. See base/time_win.cc for details.
+  return -1;
+}
+
+
 void* OS::AlignedAllocate(intptr_t size, intptr_t alignment) {
   const int kMinimumAlignment = 16;
   ASSERT(Utils::IsPowerOfTwo(alignment));
@@ -250,6 +256,11 @@ char* OS::StrNDup(const char* s, intptr_t n) {
   }
   result[len] = '\0';
   return reinterpret_cast<char*>(memmove(result, s, len));
+}
+
+
+intptr_t OS::StrNLen(const char* s, intptr_t n) {
+  return strnlen(s, n);
 }
 
 

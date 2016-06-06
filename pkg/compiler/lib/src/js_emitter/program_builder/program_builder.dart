@@ -4,6 +4,35 @@
 
 library dart2js.js_emitter.program_builder;
 
+import '../../closure.dart' show ClosureFieldElement;
+import '../../common.dart';
+import '../../common/names.dart' show Names, Selectors;
+import '../../compiler.dart' show Compiler;
+import '../../constants/values.dart'
+    show ConstantValue, InterceptorConstantValue;
+import '../../core_types.dart' show CoreClasses;
+import '../../dart_types.dart' show DartType, FunctionType, TypedefType;
+import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;
+import '../../elements/elements.dart'
+    show
+        ClassElement,
+        Element,
+        Elements,
+        FieldElement,
+        FunctionElement,
+        FunctionSignature,
+        GetterElement,
+        LibraryElement,
+        MethodElement,
+        ParameterElement,
+        TypedefElement,
+        VariableElement;
+import '../../js/js.dart' as js;
+import '../../js_backend/backend_helpers.dart' show BackendHelpers;
+import '../../js_backend/js_backend.dart'
+    show Namer, JavaScriptBackend, JavaScriptConstantCompiler, StringBackedName;
+import '../../universe/selector.dart' show Selector;
+import '../../universe/universe.dart' show Universe, SelectorConstraints;
 import '../js_emitter.dart'
     show
         ClassStubGenerator,
@@ -17,40 +46,9 @@ import '../js_emitter.dart'
         TypeTestProperties;
 import '../model.dart';
 
-import '../../closure.dart' show ClosureFieldElement;
-import '../../common.dart';
-import '../../common/names.dart' show Names, Selectors;
-import '../../compiler.dart' show Compiler;
-import '../../constants/values.dart'
-    show ConstantValue, InterceptorConstantValue;
-import '../../core_types.dart' show CoreClasses;
-import '../../dart_types.dart' show DartType, FunctionType, TypedefType;
-import '../../elements/elements.dart'
-    show
-        ClassElement,
-        Element,
-        Elements,
-        FieldElement,
-        FunctionElement,
-        FunctionSignature,
-        GetterElement,
-        LibraryElement,
-        MethodElement,
-        Name,
-        ParameterElement,
-        TypedefElement,
-        VariableElement;
-import '../../js/js.dart' as js;
-import '../../js_backend/backend_helpers.dart' show BackendHelpers;
-import '../../js_backend/js_backend.dart'
-    show Namer, JavaScriptBackend, JavaScriptConstantCompiler, StringBackedName;
-import '../../universe/selector.dart' show Selector;
-import '../../universe/universe.dart' show Universe, SelectorConstraints;
-import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;
-
 part 'collector.dart';
-part 'registry.dart';
 part 'field_visitor.dart';
+part 'registry.dart';
 
 /// Builds a self-contained representation of the program that can then be
 /// emitted more easily by the individual emitters.
@@ -430,11 +428,11 @@ class ProgramBuilder {
                   // Check whether the arity matches this member.
                   var argumentCount = selector.argumentCount;
                   // JS interop does not support named arguments.
-                  if (selector.namedArgumentCount > 0) break;
-                  if (argumentCount < minArgs) break;
-                  if (argumentCount > maxArgs) break;
+                  if (selector.namedArgumentCount > 0) continue;
+                  if (argumentCount < minArgs) continue;
+                  if (argumentCount > maxArgs) continue;
                   var stubName = namer.invocationName(selector);
-                  if (!stubNames.add(stubName.key)) break;
+                  if (!stubNames.add(stubName.key)) continue;
                   var parameters =
                       new List<String>.generate(argumentCount, (i) => 'p$i');
 
@@ -692,14 +690,14 @@ class ProgramBuilder {
       optionalParameterDefaultValues = new Map<String, ConstantValue>();
       signature.forEachOptionalParameter((ParameterElement parameter) {
         ConstantValue def =
-            backend.constants.getConstantValueForVariable(parameter);
+            backend.constants.getConstantValue(parameter.constant);
         optionalParameterDefaultValues[parameter.name] = def;
       });
     } else {
       optionalParameterDefaultValues = <ConstantValue>[];
       signature.forEachOptionalParameter((ParameterElement parameter) {
         ConstantValue def =
-            backend.constants.getConstantValueForVariable(parameter);
+            backend.constants.getConstantValue(parameter.constant);
         optionalParameterDefaultValues.add(def);
       });
     }

@@ -200,8 +200,8 @@ class RecordingSourceInformationStrategy
   RecordingSourceInformationStrategy(this.strategy);
 
   @override
-  SourceInformationBuilder createBuilderForContext(AstElement element) {
-    return strategy.createBuilderForContext(element);
+  SourceInformationBuilder createBuilderForContext(ResolvedAst resolvedAst) {
+    return strategy.createBuilderForContext(resolvedAst);
   }
 
   @override

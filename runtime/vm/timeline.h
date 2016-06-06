@@ -38,6 +38,45 @@ class Zone;
   V(Isolate, false)                                                            \
   V(VM, false)
 
+// A stream of timeline events. A stream has a name and can be enabled or
+// disabled (globally and per isolate).
+class TimelineStream {
+ public:
+  TimelineStream();
+
+  void Init(const char* name,
+            bool enabled);
+
+  const char* name() const {
+    return name_;
+  }
+
+  bool enabled() const {
+    return enabled_ != 0;
+  }
+
+  void set_enabled(bool enabled) {
+    enabled_ = enabled ? 1 : 0;
+  }
+
+  // Records an event. Will return |NULL| if not enabled. The returned
+  // |TimelineEvent| is in an undefined state and must be initialized.
+  // NOTE: It is not allowed to call StartEvent again without completing
+  // the first event.
+  TimelineEvent* StartEvent();
+
+  static intptr_t enabled_offset() {
+    return OFFSET_OF(TimelineStream, enabled_);
+  }
+
+ private:
+  const char* name_;
+
+  // This field is accessed by generated code (intrinsic) and expects to see
+  // 0 or 1. If this becomes a BitField, the generated code must be updated.
+  uintptr_t enabled_;
+};
+
 class Timeline : public AllStatic {
  public:
   // Initialize timeline system. Not thread safe.
@@ -57,18 +96,15 @@ class Timeline : public AllStatic {
   // Print information about streams to JSON.
   static void PrintFlagsToJSON(JSONStream* json);
 
-#define TIMELINE_STREAM_ACCESSOR(name, not_used)                       \
+#define TIMELINE_STREAM_ACCESSOR(name, not_used)                               \
   static TimelineStream* Get##name##Stream() { return &stream_##name##_; }
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_ACCESSOR)
 #undef TIMELINE_STREAM_ACCESSOR
 
 #define TIMELINE_STREAM_FLAGS(name, not_used)                                  \
-  static const bool* Stream##name##EnabledFlag() {                             \
-    return &stream_##name##_enabled_;                                          \
-  }                                                                            \
   static void SetStream##name##Enabled(bool enabled) {                         \
-    StreamStateChange(#name, stream_##name##_enabled_, enabled);               \
-    stream_##name##_enabled_ = enabled;                                        \
+    StreamStateChange(#name, stream_##name##_.enabled(), enabled);             \
+    stream_##name##_.set_enabled(enabled);                                     \
   }
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_FLAGS)
 #undef TIMELINE_STREAM_FLAGS
@@ -156,20 +192,27 @@ class TimelineEvent {
                 int64_t micros = OS::GetCurrentMonotonicMicros());
 
   void DurationBegin(const char* label,
-                     int64_t micros = OS::GetCurrentMonotonicMicros());
-  void DurationEnd(int64_t micros = OS::GetCurrentMonotonicMicros());
+                     int64_t micros = OS::GetCurrentMonotonicMicros(),
+                     int64_t thread_micros = OS::GetCurrentThreadCPUMicros());
+  void DurationEnd(int64_t micros = OS::GetCurrentMonotonicMicros(),
+                   int64_t thread_micros = OS::GetCurrentThreadCPUMicros());
+
   void Instant(const char* label,
                int64_t micros = OS::GetCurrentMonotonicMicros());
 
   void Duration(const char* label,
                 int64_t start_micros,
-                int64_t end_micros);
+                int64_t end_micros,
+                int64_t thread_start_micros = -1,
+                int64_t thread_end_micros = -1);
 
   void Begin(const char* label,
-             int64_t micros = OS::GetCurrentMonotonicMicros());
+             int64_t micros = OS::GetCurrentMonotonicMicros(),
+             int64_t thread_micros = OS::GetCurrentThreadCPUMicros());
 
   void End(const char* label,
-           int64_t micros = OS::GetCurrentMonotonicMicros());
+           int64_t micros = OS::GetCurrentMonotonicMicros(),
+           int64_t thread_micros = OS::GetCurrentThreadCPUMicros());
 
   void Counter(const char* label,
                int64_t micros = OS::GetCurrentMonotonicMicros());
@@ -204,6 +247,10 @@ class TimelineEvent {
     return (event_type() == kDuration) && (timestamp1_ > timestamp0_);
   }
 
+  bool HasThreadCPUTime() const;
+  int64_t ThreadCPUTimeDuration() const;
+  int64_t ThreadCPUTimeOrigin() const;
+
   int64_t TimeOrigin() const;
   int64_t AsyncId() const;
   int64_t TimeDuration() const;
@@ -211,6 +258,11 @@ class TimelineEvent {
     ASSERT(IsFinishedDuration());
     return timestamp1_;
   }
+
+  // The lowest time value stored in this event.
+  int64_t LowTime() const;
+  // The highest time value stored in this event.
+  int64_t HighTime() const;
 
   void PrintJSON(JSONStream* stream) const;
 
@@ -286,6 +338,10 @@ class TimelineEvent {
 
   const char* GetSerializedJSON() const;
 
+  void set_owns_label(bool owns_label) {
+    state_ = OwnsLabelBit::update(owns_label, state_);
+  }
+
  private:
   void FreeArguments();
 
@@ -307,6 +363,16 @@ class TimelineEvent {
     timestamp1_ = value;
   }
 
+  void set_thread_timestamp0(int64_t value) {
+    ASSERT(thread_timestamp0_ == -1);
+    thread_timestamp0_ = value;
+  }
+
+  void set_thread_timestamp1(int64_t value) {
+    ASSERT(thread_timestamp1_ == -1);
+    thread_timestamp1_ = value;
+  }
+
   bool pre_serialized_json() const {
     return PreSerializedJSON::decode(state_);
   }
@@ -315,18 +381,26 @@ class TimelineEvent {
     state_ = PreSerializedJSON::update(pre_serialized_json, state_);
   }
 
+  bool owns_label() const {
+    return OwnsLabelBit::decode(state_);
+  }
+
   enum StateBits {
     kEventTypeBit = 0,  // reserve 4 bits for type.
     kPreSerializedJSON = 4,
-    kNextBit = 5,
+    kOwnsLabelBit = 5,
+    kNextBit = 6,
   };
 
   class EventTypeField : public BitField<uword, EventType, kEventTypeBit, 4> {};
   class PreSerializedJSON :
       public BitField<uword, bool, kPreSerializedJSON, 1> {};
+  class OwnsLabelBit : public BitField<uword, bool, kOwnsLabelBit, 1> {};
 
   int64_t timestamp0_;
   int64_t timestamp1_;
+  int64_t thread_timestamp0_;
+  int64_t thread_timestamp1_;
   TimelineEventArgument* arguments_;
   intptr_t arguments_length_;
   uword state_;
@@ -344,45 +418,6 @@ class TimelineEvent {
   DISALLOW_COPY_AND_ASSIGN(TimelineEvent);
 };
 
-
-// A stream of timeline events. A stream has a name and can be enabled or
-// disabled (globally and per isolate).
-class TimelineStream {
- public:
-  TimelineStream();
-
-  void Init(const char* name,
-            bool enabled,
-            const bool* globally_enabled = NULL);
-
-  const char* name() const {
-    return name_;
-  }
-
-  bool Enabled() const {
-    return ((globally_enabled_ != NULL) && *globally_enabled_) ||
-           enabled();
-  }
-
-  bool enabled() const {
-    return enabled_;
-  }
-
-  void set_enabled(bool enabled) {
-    enabled_ = enabled;
-  }
-
-  // Records an event. Will return |NULL| if not enabled. The returned
-  // |TimelineEvent| is in an undefined state and must be initialized.
-  // NOTE: It is not allowed to call StartEvent again without completing
-  // the first event.
-  TimelineEvent* StartEvent();
-
- private:
-  const char* name_;
-  bool enabled_;
-  const bool* globally_enabled_;
-};
 
 #ifndef PRODUCT
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)         \
@@ -476,6 +511,7 @@ class TimelineDurationScope : public TimelineEventScope {
 
  private:
   int64_t timestamp_;
+  int64_t thread_timestamp_;
 
   DISALLOW_COPY_AND_ASSIGN(TimelineDurationScope);
 };
@@ -685,8 +721,15 @@ class TimelineEventRecorder {
   TimelineEvent* ThreadBlockStartEvent();
   void ThreadBlockCompleteEvent(TimelineEvent* event);
 
+  void ResetTimeTracking();
+  void ReportTime(int64_t micros);
+  int64_t TimeOriginMicros() const;
+  int64_t TimeExtentMicros() const;
+
   Mutex lock_;
   uintptr_t async_id_;
+  int64_t time_low_micros_;
+  int64_t time_high_micros_;
 
   friend class TimelineEvent;
   friend class TimelineEventBlockIterator;
@@ -735,7 +778,7 @@ class TimelineEventRingRecorder : public TimelineEventFixedBufferRecorder {
   ~TimelineEventRingRecorder() {}
 
   const char* name() const {
-    return "ring";
+    return "Ring";
   }
 
  protected:
@@ -752,7 +795,7 @@ class TimelineEventStartupRecorder : public TimelineEventFixedBufferRecorder {
   ~TimelineEventStartupRecorder() {}
 
   const char* name() const {
-    return "startup";
+    return "Startup";
   }
 
  protected:
@@ -775,7 +818,7 @@ class TimelineEventCallbackRecorder : public TimelineEventRecorder {
   virtual void OnEvent(TimelineEvent* event) = 0;
 
   const char* name() const {
-    return "callback";
+    return "Callback";
   }
 
  protected:
@@ -803,7 +846,7 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
 
   const char* name() const {
-    return "endless";
+    return "Endless";
   }
 
  protected:

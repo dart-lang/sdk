@@ -10,7 +10,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   factory $CLASSNAME(String type,
       {bool canBubble: false, bool cancelable: false, Object data,
       String origin, String lastEventId,
-      Window source, List messagePorts}) {
+      Window source, List<MessagePort> messagePorts}) {
     if (source == null) {
       source = window;
     }
@@ -22,7 +22,7 @@ $if DART2JS
           messagePorts);
     }
 $endif
-    var event = document._createEvent("MessageEvent");
+    MessageEvent event = document._createEvent("MessageEvent");
     event._initMessageEvent(type, canBubble, cancelable, data, origin,
         lastEventId, source, messagePorts);
     return event;

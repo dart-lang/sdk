@@ -118,6 +118,8 @@ Location Location::AnyOrConstant(Value* value) {
 }
 
 
+// DBC does not have an notion of 'address' in its instruction set.
+#if !defined(TARGET_ARCH_DBC)
 Address Location::ToStackSlotAddress() const {
   const intptr_t index = stack_index();
   const Register base = base_reg();
@@ -134,7 +136,7 @@ Address Location::ToStackSlotAddress() const {
     return Address(base, index * kWordSize);
   }
 }
-
+#endif
 
 intptr_t Location::ToStackSlotOffset() const {
   const intptr_t index = stack_index();

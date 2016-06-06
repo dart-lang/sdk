@@ -4,6 +4,10 @@
 
 /// Lists that efficiently handle fixed sized data
 /// (for example, unsigned 8 byte integers) and SIMD numeric types.
+/// 
+/// To use this library in your code:
+/// 
+///     import 'dart:typed_data';
 library dart.typed_data;
 
 import 'dart:collection';

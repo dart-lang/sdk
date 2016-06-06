@@ -52,11 +52,13 @@ abstract class TypesInferrer {
 class TypesTask extends CompilerTask {
   final String name = 'Type inference';
   final ClassWorld classWorld;
+  final Compiler compiler;
   TypesInferrer typesInferrer;
 
   TypesTask(Compiler compiler)
       : this.classWorld = compiler.world,
-        super(compiler) {
+        compiler = compiler,
+        super(compiler.measurer) {
     typesInferrer = new TypeGraphInferrer(compiler);
   }
 
@@ -102,7 +104,7 @@ class TypesTask extends CompilerTask {
   TypeMask get intType {
     if (intTypeCache == null) {
       intTypeCache = new TypeMask.nonNullSubclass(
-          compiler.backend.intImplementation, compiler.world);
+          compiler.backend.intImplementation, classWorld);
     }
     return intTypeCache;
   }
@@ -110,7 +112,7 @@ class TypesTask extends CompilerTask {
   TypeMask get uint32Type {
     if (uint32TypeCache == null) {
       uint32TypeCache = new TypeMask.nonNullSubclass(
-          compiler.backend.uint32Implementation, compiler.world);
+          compiler.backend.uint32Implementation, classWorld);
     }
     return uint32TypeCache;
   }
@@ -118,7 +120,7 @@ class TypesTask extends CompilerTask {
   TypeMask get uint31Type {
     if (uint31TypeCache == null) {
       uint31TypeCache = new TypeMask.nonNullExact(
-          compiler.backend.uint31Implementation, compiler.world);
+          compiler.backend.uint31Implementation, classWorld);
     }
     return uint31TypeCache;
   }
@@ -126,7 +128,7 @@ class TypesTask extends CompilerTask {
   TypeMask get positiveIntType {
     if (positiveIntTypeCache == null) {
       positiveIntTypeCache = new TypeMask.nonNullSubclass(
-          compiler.backend.positiveIntImplementation, compiler.world);
+          compiler.backend.positiveIntImplementation, classWorld);
     }
     return positiveIntTypeCache;
   }
@@ -134,7 +136,7 @@ class TypesTask extends CompilerTask {
   TypeMask get doubleType {
     if (doubleTypeCache == null) {
       doubleTypeCache = new TypeMask.nonNullExact(
-          compiler.backend.doubleImplementation, compiler.world);
+          compiler.backend.doubleImplementation, classWorld);
     }
     return doubleTypeCache;
   }
@@ -142,7 +144,7 @@ class TypesTask extends CompilerTask {
   TypeMask get numType {
     if (numTypeCache == null) {
       numTypeCache = new TypeMask.nonNullSubclass(
-          compiler.backend.numImplementation, compiler.world);
+          compiler.backend.numImplementation, classWorld);
     }
     return numTypeCache;
   }
@@ -150,7 +152,7 @@ class TypesTask extends CompilerTask {
   TypeMask get boolType {
     if (boolTypeCache == null) {
       boolTypeCache = new TypeMask.nonNullExact(
-          compiler.backend.boolImplementation, compiler.world);
+          compiler.backend.boolImplementation, classWorld);
     }
     return boolTypeCache;
   }
@@ -166,7 +168,7 @@ class TypesTask extends CompilerTask {
   TypeMask get listType {
     if (listTypeCache == null) {
       listTypeCache = new TypeMask.nonNullExact(
-          compiler.backend.listImplementation, compiler.world);
+          compiler.backend.listImplementation, classWorld);
     }
     return listTypeCache;
   }
@@ -174,7 +176,7 @@ class TypesTask extends CompilerTask {
   TypeMask get constListType {
     if (constListTypeCache == null) {
       constListTypeCache = new TypeMask.nonNullExact(
-          compiler.backend.constListImplementation, compiler.world);
+          compiler.backend.constListImplementation, classWorld);
     }
     return constListTypeCache;
   }
@@ -182,7 +184,7 @@ class TypesTask extends CompilerTask {
   TypeMask get fixedListType {
     if (fixedListTypeCache == null) {
       fixedListTypeCache = new TypeMask.nonNullExact(
-          compiler.backend.fixedListImplementation, compiler.world);
+          compiler.backend.fixedListImplementation, classWorld);
     }
     return fixedListTypeCache;
   }
@@ -190,7 +192,7 @@ class TypesTask extends CompilerTask {
   TypeMask get growableListType {
     if (growableListTypeCache == null) {
       growableListTypeCache = new TypeMask.nonNullExact(
-          compiler.backend.growableListImplementation, compiler.world);
+          compiler.backend.growableListImplementation, classWorld);
     }
     return growableListTypeCache;
   }
@@ -214,7 +216,7 @@ class TypesTask extends CompilerTask {
   TypeMask get stringType {
     if (stringTypeCache == null) {
       stringTypeCache = new TypeMask.nonNullExact(
-          compiler.backend.stringImplementation, compiler.world);
+          compiler.backend.stringImplementation, classWorld);
     }
     return stringTypeCache;
   }
@@ -222,7 +224,7 @@ class TypesTask extends CompilerTask {
   TypeMask get typeType {
     if (typeTypeCache == null) {
       typeTypeCache = new TypeMask.nonNullExact(
-          compiler.backend.typeImplementation, compiler.world);
+          compiler.backend.typeImplementation, classWorld);
     }
     return typeTypeCache;
   }
@@ -230,7 +232,7 @@ class TypesTask extends CompilerTask {
   TypeMask get syncStarIterableType {
     if (syncStarIterableTypeCache == null) {
       syncStarIterableTypeCache = new TypeMask.nonNullExact(
-          compiler.backend.syncStarIterableImplementation, compiler.world);
+          compiler.backend.syncStarIterableImplementation, classWorld);
     }
     return syncStarIterableTypeCache;
   }
@@ -238,7 +240,7 @@ class TypesTask extends CompilerTask {
   TypeMask get asyncFutureType {
     if (asyncFutureTypeCache == null) {
       asyncFutureTypeCache = new TypeMask.nonNullExact(
-          compiler.backend.asyncFutureImplementation, compiler.world);
+          compiler.backend.asyncFutureImplementation, classWorld);
     }
     return asyncFutureTypeCache;
   }
@@ -246,7 +248,7 @@ class TypesTask extends CompilerTask {
   TypeMask get asyncStarStreamType {
     if (asyncStarStreamTypeCache == null) {
       asyncStarStreamTypeCache = new TypeMask.nonNullExact(
-          compiler.backend.asyncStarStreamImplementation, compiler.world);
+          compiler.backend.asyncStarStreamImplementation, classWorld);
     }
     return asyncStarStreamTypeCache;
   }

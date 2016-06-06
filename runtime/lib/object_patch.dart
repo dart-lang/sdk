@@ -73,8 +73,4 @@ patch class Object {
     });
     return result;
   }
-
-  _leftShiftWithMask32(count, mask)  {
-    return (this << count) & mask;
-  }
 }

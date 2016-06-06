@@ -20,6 +20,7 @@
 #include "vm/parser.h"
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
+#include "vm/service_isolate.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/thread_registry.h"
@@ -31,16 +32,11 @@ DEFINE_FLAG(int, max_subtype_cache_entries, 100,
     "Maximum number of subtype cache entries (number of checks cached).");
 DEFINE_FLAG(int, regexp_optimization_counter_threshold, 1000,
     "RegExp's usage-counter value before it is optimized, -1 means never");
-DEFINE_FLAG(charp, optimization_filter, NULL, "Optimize only named function");
 DEFINE_FLAG(int, reoptimization_counter_threshold, 4000,
     "Counter threshold before a function gets reoptimized.");
-DEFINE_FLAG(bool, stop_on_excessive_deoptimization, false,
-    "Debugging: stops program if deoptimizing same function too often");
 DEFINE_FLAG(bool, trace_deoptimization, false, "Trace deoptimization");
 DEFINE_FLAG(bool, trace_deoptimization_verbose, false,
     "Trace deoptimization verbose");
-DEFINE_FLAG(bool, trace_failed_optimization_attempts, false,
-    "Traces all failed optimization attempts");
 DEFINE_FLAG(bool, trace_ic, false, "Trace IC handling");
 DEFINE_FLAG(bool, trace_ic_miss_in_optimized, false,
     "Trace IC miss in optimized code");
@@ -64,6 +60,9 @@ DEFINE_FLAG(charp, stacktrace_filter, NULL,
             "Compute stacktrace in named function on stack overflow checks");
 DEFINE_FLAG(charp, deoptimize_filter, NULL,
             "Deoptimize in named function on stack overflow checks");
+
+DECLARE_FLAG(int, reload_every);
+DECLARE_FLAG(bool, reload_every_optimized);
 
 #ifdef DEBUG
 DEFINE_FLAG(charp, gc_at_instance_allocation, NULL,
@@ -454,9 +453,9 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 4) {
   const SubtypeTestCache& cache =
       SubtypeTestCache::CheckedHandle(zone, arguments.ArgAt(3));
   ASSERT(type.IsFinalized());
-  ASSERT(!type.IsDynamicType());  // No need to check assignment.
   ASSERT(!type.IsMalformed());  // Already checked in code generator.
   ASSERT(!type.IsMalbounded());  // Already checked in code generator.
+  ASSERT(!type.IsDynamicType());  // No need to check assignment.
   Error& bound_error = Error::Handle(zone);
   const Bool& result =
       Bool::Get(instance.IsInstanceOf(type,
@@ -500,9 +499,9 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
   const String& dst_name = String::CheckedHandle(zone, arguments.ArgAt(3));
   const SubtypeTestCache& cache =
       SubtypeTestCache::CheckedHandle(zone, arguments.ArgAt(4));
-  ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
   ASSERT(!dst_type.IsMalformed());  // Already checked in code generator.
   ASSERT(!dst_type.IsMalbounded());  // Already checked in code generator.
+  ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
   ASSERT(!src_instance.IsNull());  // Already checked in inlined code.
 
   Error& bound_error = Error::Handle(zone);
@@ -659,6 +658,7 @@ static void CheckResultError(const Object& result) {
 }
 
 
+#if !defined(TARGET_ARCH_DBC)
 // Gets called from debug stub when code reaches a breakpoint
 // set on a runtime stub call.
 DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
@@ -672,13 +672,27 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   const Code& orig_stub = Code::Handle(
       zone, isolate->debugger()->GetPatchedStubAddress(caller_frame->pc()));
   const Error& error =
-      Error::Handle(zone, isolate->debugger()->SignalBpReached());
+      Error::Handle(zone, isolate->debugger()->PauseBreakpoint());
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
     UNREACHABLE();
   }
   arguments.SetReturn(orig_stub);
 }
+#else
+// Gets called from the simulator when the breakpoint is reached.
+DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
+  if (!FLAG_support_debugger) {
+    UNREACHABLE();
+    return;
+  }
+  const Error& error = Error::Handle(isolate->debugger()->PauseBreakpoint());
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+    UNREACHABLE();
+  }
+}
+#endif  // !defined(TARGET_ARCH_DBC)
 
 
 DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
@@ -687,7 +701,7 @@ DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
     return;
   }
   const Error& error =
-      Error::Handle(zone, isolate->debugger()->DebuggerStepCallback());
+      Error::Handle(zone, isolate->debugger()->PauseStepping());
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
     UNREACHABLE();
@@ -961,6 +975,8 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
 //   Arg2: Arguments descriptor array.
 //   Returns: target function to call.
 DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
+// DBC does not use megamorphic calls right now.
+#if !defined(TARGET_ARCH_DBC)
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const Object& ic_data_or_cache = Object::Handle(zone, arguments.ArgAt(1));
   const Array& descriptor = Array::CheckedHandle(zone, arguments.ArgAt(2));
@@ -1018,6 +1034,9 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
     cache.Insert(class_id, target_function);
   }
   arguments.SetReturn(target_function);
+#else
+  UNREACHABLE();
+#endif  // !defined(TARGET_ARCH_DBC)
 }
 
 
@@ -1195,72 +1214,9 @@ DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
 }
 
 
-static bool CanOptimizeFunction(const Function& function, Thread* thread) {
-  if (FLAG_support_debugger) {
-    Isolate* isolate = thread->isolate();
-    if (isolate->debugger()->IsStepping() ||
-        isolate->debugger()->HasBreakpoint(function, thread->zone())) {
-      // We cannot set breakpoints and single step in optimized code,
-      // so do not optimize the function.
-      function.set_usage_counter(0);
-      return false;
-    }
-  }
-  if (function.deoptimization_counter() >=
-      FLAG_max_deoptimization_counter_threshold) {
-    if (FLAG_trace_failed_optimization_attempts ||
-        FLAG_stop_on_excessive_deoptimization) {
-      THR_Print("Too many deoptimizations: %s\n",
-          function.ToFullyQualifiedCString());
-      if (FLAG_stop_on_excessive_deoptimization) {
-        FATAL("Stop on excessive deoptimization");
-      }
-    }
-    // The function will not be optimized any longer. This situation can occur
-    // mostly with small optimization counter thresholds.
-    function.SetIsOptimizable(false);
-    function.set_usage_counter(INT_MIN);
-    return false;
-  }
-  if (FLAG_optimization_filter != NULL) {
-    // FLAG_optimization_filter is a comma-separated list of strings that are
-    // matched against the fully-qualified function name.
-    char* save_ptr;  // Needed for strtok_r.
-    const char* function_name = function.ToFullyQualifiedCString();
-    intptr_t len = strlen(FLAG_optimization_filter) + 1;  // Length with \0.
-    char* filter = new char[len];
-    strncpy(filter, FLAG_optimization_filter, len);  // strtok modifies arg 1.
-    char* token = strtok_r(filter, ",", &save_ptr);
-    bool found = false;
-    while (token != NULL) {
-      if (strstr(function_name, token) != NULL) {
-        found = true;
-        break;
-      }
-      token = strtok_r(NULL, ",", &save_ptr);
-    }
-    delete[] filter;
-    if (!found) {
-      function.set_usage_counter(INT_MIN);
-      return false;
-    }
-  }
-  if (!function.IsOptimizable()) {
-    // Huge methods (code size above --huge_method_cutoff_in_code_size) become
-    // non-optimizable only after the code has been generated.
-    if (FLAG_trace_failed_optimization_attempts) {
-      THR_Print("Not optimizable: %s\n", function.ToFullyQualifiedCString());
-    }
-    function.set_usage_counter(INT_MIN);
-    return false;
-  }
-  return true;
-}
-
-
 DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 #if defined(USING_SIMULATOR)
-  uword stack_pos = Simulator::Current()->get_register(SPREG);
+  uword stack_pos = Simulator::Current()->get_sp();
 #else
   uword stack_pos = Thread::GetCurrentStackPointer();
 #endif
@@ -1272,7 +1228,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   // If an interrupt happens at the same time as a stack overflow, we
   // process the stack overflow now and leave the interrupt for next
   // time.
-  if (stack_pos < thread->saved_stack_limit()) {
+  if (IsCalleeFrameOf(thread->saved_stack_limit(), stack_pos)) {
     // Use the preallocated stack overflow exception to avoid calling
     // into dart code.
     const Instance& exception =
@@ -1285,7 +1241,10 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   // debugger stack tracing.
   bool do_deopt = false;
   bool do_stacktrace = false;
-  if ((FLAG_deoptimize_every > 0) || (FLAG_stacktrace_every > 0)) {
+  bool do_reload = false;
+  if ((FLAG_deoptimize_every > 0) ||
+      (FLAG_stacktrace_every > 0) ||
+      (FLAG_reload_every > 0)) {
     // TODO(turnidge): To make --deoptimize_every and
     // --stacktrace-every faster we could move this increment/test to
     // the generated code.
@@ -1298,8 +1257,14 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
         (count % FLAG_stacktrace_every) == 0) {
       do_stacktrace = true;
     }
+    if ((FLAG_reload_every > 0) &&
+        (count % FLAG_reload_every) == 0) {
+      do_reload = isolate->CanReload();
+    }
   }
-  if ((FLAG_deoptimize_filter != NULL) || (FLAG_stacktrace_filter != NULL)) {
+  if ((FLAG_deoptimize_filter != NULL) ||
+      (FLAG_stacktrace_filter != NULL) ||
+      FLAG_reload_every_optimized) {
     DartFrameIterator iterator;
     StackFrame* frame = iterator.NextFrame();
     ASSERT(frame != NULL);
@@ -1309,6 +1274,10 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     ASSERT(!function.IsNull());
     const char* function_name = function.ToFullyQualifiedCString();
     ASSERT(function_name != NULL);
+    if (!code.is_optimized() && FLAG_reload_every_optimized) {
+      // Don't do the reload if we aren't inside optimized code.
+      do_reload = false;
+    }
     if (code.is_optimized() &&
         FLAG_deoptimize_filter != NULL &&
         strstr(function_name, FLAG_deoptimize_filter) != NULL) {
@@ -1327,9 +1296,20 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     // TODO(turnidge): Consider using DeoptimizeAt instead.
     DeoptimizeFunctionsOnStack();
   }
+  if (do_reload) {
+    NOT_IN_PRODUCT(isolate->OnStackReload();)
+  }
   if (FLAG_support_debugger && do_stacktrace) {
     String& var_name = String::Handle();
     Instance& var_value = Instance::Handle();
+    // Collecting the stack trace and accessing local variables
+    // of frames may trigger parsing of functions to compute
+    // variable descriptors of functions. Parsing may trigger
+    // code execution, e.g. to compute compile-time constants. Thus,
+    // disable FLAG_stacktrace_every during trace collection to prevent
+    // recursive stack trace collection.
+    intptr_t saved_stacktrace_every = FLAG_stacktrace_every;
+    FLAG_stacktrace_every = 0;
     DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
     intptr_t num_frames = stack->Length();
     for (intptr_t i = 0; i < num_frames; i++) {
@@ -1342,6 +1322,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
         frame->VariableAt(v, &var_name, &unused, &unused, &var_value);
       }
     }
+    FLAG_stacktrace_every = saved_stacktrace_every;
   }
 
   const Error& error = Error::Handle(thread->HandleInterrupts());
@@ -1364,7 +1345,8 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     ASSERT(function.HasCode());
     // Don't do OSR on intrinsified functions: The intrinsic code expects to be
     // called like a regular function and can't be entered via OSR.
-    if (!CanOptimizeFunction(function, thread) || function.is_intrinsic()) {
+    if (!Compiler::CanOptimizeFunction(thread, function) ||
+        function.is_intrinsic()) {
       return;
     }
 
@@ -1434,7 +1416,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   ASSERT(!function.IsNull());
   ASSERT(function.HasCode());
 
-  if (CanOptimizeFunction(function, thread)) {
+  if (Compiler::CanOptimizeFunction(thread, function)) {
     if (FLAG_background_compilation) {
       Field& field = Field::Handle(zone, isolate->GetDeoptimizingBoxedField());
       while (!field.IsNull()) {
@@ -1452,17 +1434,22 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
       if (FLAG_enable_inlining_annotations) {
         FATAL("Cannot enable inlining annotations and background compilation");
       }
-      // Reduce the chance of triggering optimization while the function is
-      // being optimized in the background. INT_MIN should ensure that it takes
-      // long time to trigger optimization.
-      // Note that the background compilation queue rejects duplicate entries.
-      function.set_usage_counter(INT_MIN);
-      BackgroundCompiler::EnsureInit(thread);
-      ASSERT(isolate->background_compiler() != NULL);
-      isolate->background_compiler()->CompileOptimized(function);
-      // Continue in the same code.
-      arguments.SetReturn(Code::Handle(zone, function.CurrentCode()));
-      return;
+      if (!BackgroundCompiler::IsDisabled()) {
+        if (FLAG_background_compilation_stop_alot) {
+          BackgroundCompiler::Stop(isolate);
+        }
+        // Reduce the chance of triggering optimization while the function is
+        // being optimized in the background. INT_MIN should ensure that it
+        // takes long time to trigger optimization.
+        // Note that the background compilation queue rejects duplicate entries.
+        function.set_usage_counter(INT_MIN);
+        BackgroundCompiler::EnsureInit(thread);
+        ASSERT(isolate->background_compiler() != NULL);
+        isolate->background_compiler()->CompileOptimized(function);
+        // Continue in the same code.
+        arguments.SetReturn(Code::Handle(zone, function.CurrentCode()));
+        return;
+      }
     }
 
     // Reset usage counter for reoptimization before calling optimizer to
@@ -1617,7 +1604,9 @@ void DeoptimizeAt(const Code& optimized_code, uword pc) {
   // Patch call site (lazy deoptimization is quite rare, patching it twice
   // is not a performance issue).
   uword lazy_deopt_jump = optimized_code.GetLazyDeoptPc();
+#if !defined(TARGET_ARCH_DBC)
   ASSERT(lazy_deopt_jump != 0);
+#endif
   const Instructions& instrs =
       Instructions::Handle(zone, optimized_code.instructions());
   {
@@ -1650,14 +1639,22 @@ void DeoptimizeFunctionsOnStack() {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(TARGET_ARCH_DBC)
+static const intptr_t kNumberOfSavedCpuRegisters = kNumberOfCpuRegisters;
+static const intptr_t kNumberOfSavedFpuRegisters = kNumberOfFpuRegisters;
+#else
+static const intptr_t kNumberOfSavedCpuRegisters = 0;
+static const intptr_t kNumberOfSavedFpuRegisters = 0;
+#endif
+
 static void CopySavedRegisters(uword saved_registers_address,
                                fpu_register_t** fpu_registers,
                                intptr_t** cpu_registers) {
   ASSERT(sizeof(fpu_register_t) == kFpuRegisterSize);
   fpu_register_t* fpu_registers_copy =
-      new fpu_register_t[kNumberOfFpuRegisters];
+      new fpu_register_t[kNumberOfSavedFpuRegisters];
   ASSERT(fpu_registers_copy != NULL);
-  for (intptr_t i = 0; i < kNumberOfFpuRegisters; i++) {
+  for (intptr_t i = 0; i < kNumberOfSavedFpuRegisters; i++) {
     fpu_registers_copy[i] =
         *reinterpret_cast<fpu_register_t*>(saved_registers_address);
     saved_registers_address += kFpuRegisterSize;
@@ -1665,9 +1662,9 @@ static void CopySavedRegisters(uword saved_registers_address,
   *fpu_registers = fpu_registers_copy;
 
   ASSERT(sizeof(intptr_t) == kWordSize);
-  intptr_t* cpu_registers_copy = new intptr_t[kNumberOfCpuRegisters];
+  intptr_t* cpu_registers_copy = new intptr_t[kNumberOfSavedCpuRegisters];
   ASSERT(cpu_registers_copy != NULL);
-  for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
+  for (intptr_t i = 0; i < kNumberOfSavedCpuRegisters; i++) {
     cpu_registers_copy[i] =
         *reinterpret_cast<intptr_t*>(saved_registers_address);
     saved_registers_address += kWordSize;
@@ -1694,12 +1691,13 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
 
   // All registers have been saved below last-fp as if they were locals.
   const uword last_fp = saved_registers_address
-                        + (kNumberOfCpuRegisters * kWordSize)
-                        + (kNumberOfFpuRegisters * kFpuRegisterSize)
+                        + (kNumberOfSavedCpuRegisters * kWordSize)
+                        + (kNumberOfSavedFpuRegisters * kFpuRegisterSize)
                         - ((kFirstLocalSlotFromFp + 1) * kWordSize);
 
   // Get optimized code and frame that need to be deoptimized.
   DartFrameIterator iterator(last_fp);
+
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
   const Code& optimized_code = Code::Handle(caller_frame->LookupDartCode());
@@ -1773,11 +1771,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, 1, uword last_fp) {
   }
 #endif
 
-  // TODO(turnidge): Compute the start of the dest frame in the
-  // DeoptContext instead of passing it in here.
-  intptr_t* start = reinterpret_cast<intptr_t*>(
-      caller_frame->sp() - (kDartFrameFixedSize * kWordSize));
-  deopt_context->set_dest_frame(start);
+  deopt_context->set_dest_frame(caller_frame);
   deopt_context->FillDestFrame();
 #else
   UNREACHABLE();

@@ -30,7 +30,6 @@ namespace bin {
   V(Builtin_LoadSource, 4)                                                     \
   V(Builtin_AsyncLoadError, 3)                                                 \
   V(Builtin_DoneLoading, 0)                                                    \
-  V(Builtin_NativeLibraryExtension, 0)                                         \
   V(Builtin_GetCurrentDirectory, 0)                                            \
 
 
@@ -45,6 +44,12 @@ static struct NativeEntries {
 };
 
 
+void Builtin_DummyNative(Dart_NativeArguments args) {
+  UNREACHABLE();
+}
+
+
+
 /**
  * Looks up native functions in both libdart_builtin and libdart_io.
  */
@@ -52,8 +57,8 @@ Dart_NativeFunction Builtin::NativeLookup(Dart_Handle name,
                                           int argument_count,
                                           bool* auto_setup_scope) {
   const char* function_name = NULL;
-  Dart_Handle result = Dart_StringToCString(name, &function_name);
-  DART_CHECK_VALID(result);
+  Dart_Handle err = Dart_StringToCString(name, &function_name);
+  DART_CHECK_VALID(err);
   ASSERT(function_name != NULL);
   ASSERT(auto_setup_scope != NULL);
   *auto_setup_scope = true;
@@ -65,7 +70,12 @@ Dart_NativeFunction Builtin::NativeLookup(Dart_Handle name,
       return reinterpret_cast<Dart_NativeFunction>(entry->function_);
     }
   }
-  return IONativeLookup(name, argument_count, auto_setup_scope);
+  Dart_NativeFunction result =
+      IONativeLookup(name, argument_count, auto_setup_scope);
+  if (result == NULL) {
+    result = Builtin_DummyNative;
+  }
+  return result;
 }
 
 

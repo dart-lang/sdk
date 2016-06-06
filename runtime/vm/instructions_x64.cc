@@ -25,35 +25,44 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc,
   ASSERT(code.ContainsInstructionAt(pc));
 
   uint8_t* bytes = reinterpret_cast<uint8_t*>(pc);
+
   COMPILE_ASSERT(PP == R15);
-  if (((bytes[0] == 0x49) && (bytes[1] == 0x8b) && (bytes[2] == 0x9f)) ||
-      ((bytes[0] == 0x49) && (bytes[1] == 0x8b) && (bytes[2] == 0x87)) ||
-      ((bytes[0] == 0x4d) && (bytes[1] == 0x8b) && (bytes[2] == 0xa7)) ||
-      ((bytes[0] == 0x4d) && (bytes[1] == 0x8b) && (bytes[2] == 0x9f)) ||
-      ((bytes[0] == 0x4d) && (bytes[1] == 0x8b) && (bytes[2] == 0x97))) {
-    intptr_t index = IndexFromPPLoad(pc + 3);
-    const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
-    if (pool.InfoAt(index) == ObjectPool::kTaggedObject) {
-      *obj = pool.ObjectAt(index);
-      return true;
+  if ((bytes[0] == 0x49) || (bytes[0] == 0x4d)) {
+    if ((bytes[1] == 0x8b) || (bytes[1] == 0x3b)) {  // movq, cmpq
+      if ((bytes[2] & 0xc7) == (0x80 | (PP & 7))) {  // [r15+disp32]
+        intptr_t index = IndexFromPPLoad(pc + 3);
+        const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
+        if (pool.InfoAt(index) == ObjectPool::kTaggedObject) {
+          *obj = pool.ObjectAt(index);
+          return true;
+        }
+      }
+      if ((bytes[2] & 0xc7) == (0x40 | (PP & 7))) {  // [r15+disp8]
+        intptr_t index = IndexFromPPLoadDisp8(pc + 3);
+        const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
+        if (pool.InfoAt(index) == ObjectPool::kTaggedObject) {
+          *obj = pool.ObjectAt(index);
+          return true;
+        }
+      }
     }
   }
+
   COMPILE_ASSERT(THR == R14);
-  if (((bytes[0] == 0x49) && (bytes[1] == 0x8b) && (bytes[2] == 0x86)) ||
-      ((bytes[0] == 0x49) && (bytes[1] == 0x8b) && (bytes[2] == 0xb6)) ||
-      ((bytes[0] == 0x49) && (bytes[1] == 0x8b) && (bytes[2] == 0x96)) ||
-      ((bytes[0] == 0x49) && (bytes[1] == 0x8b) && (bytes[2] == 0x9e)) ||
-      ((bytes[0] == 0x4d) && (bytes[1] == 0x8b) && (bytes[2] == 0x9e)) ||
-      ((bytes[0] == 0x4d) && (bytes[1] == 0x8b) && (bytes[2] == 0xa6))) {
-    int32_t offset = *reinterpret_cast<int32_t*>(pc + 3);
-    return Thread::ObjectAtOffset(offset, obj);
+  if ((bytes[0] == 0x49) || (bytes[0] == 0x4d)) {
+    if ((bytes[1] == 0x8b) || (bytes[1] == 0x3b)) {   // movq, cmpq
+      if ((bytes[2] & 0xc7) == (0x80 | (THR & 7))) {  // [r14+disp32]
+        int32_t offset = *reinterpret_cast<int32_t*>(pc + 3);
+        return Thread::ObjectAtOffset(offset, obj);
+      }
+      if ((bytes[2] & 0xc7) == (0x40 | (THR & 7))) {  // [r14+disp8]
+        uint8_t offset = *reinterpret_cast<uint8_t*>(pc + 3);
+        return Thread::ObjectAtOffset(offset, obj);
+      }
+    }
   }
-  if (((bytes[0] == 0x41) && (bytes[1] == 0xff) && (bytes[2] == 0x76)) ||
-      ((bytes[0] == 0x49) && (bytes[1] == 0x3b) && (bytes[2] == 0x66)) ||
-      ((bytes[0] == 0x49) && (bytes[1] == 0x8b) && (bytes[2] == 0x46)) ||
-      ((bytes[0] == 0x4d) && (bytes[1] == 0x8b) && (bytes[2] == 0x5e)) ||
-      ((bytes[0] == 0x4d) && (bytes[1] == 0x8b) && (bytes[2] == 0x66)) ||
-      ((bytes[0] == 0x4d) && (bytes[1] == 0x8b) && (bytes[2] == 0x6e))) {
+  if (((bytes[0] == 0x41) && (bytes[1] == 0xff) && (bytes[2] == 0x76))) {
+    // push [r14+disp8]
     uint8_t offset = *reinterpret_cast<uint8_t*>(pc + 3);
     return Thread::ObjectAtOffset(offset, obj);
   }

@@ -52,7 +52,7 @@ class StringValidator {
 
       // Check if a multiline string starts with optional whitespace followed by
       // a newline (CR, LF or CR+LF).
-      // We also accept if the these characters are escaped by a backslash.
+      // We also accept if these characters are escaped by a backslash.
       int newLineLength = 1;
       while (true) {
         // Due to string-interpolations we are not guaranteed to see the

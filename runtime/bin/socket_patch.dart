@@ -46,9 +46,18 @@ patch class InternetAddress {
       String host, {InternetAddressType type: InternetAddressType.ANY}) {
     return _NativeSocket.lookup(host, type: type);
   }
+
+  /* patch */ static InternetAddress _cloneWithNewHost(
+      InternetAddress address, String host) {
+    return (address as _InternetAddress)._cloneWithNewHost(host);
+  }
 }
 
 patch class NetworkInterface {
+  /* patch */ static bool get listSupported {
+    return _listSupported();
+  }
+
   /* patch */ static Future<List<NetworkInterface>> list({
       bool includeLoopback: false,
       bool includeLinkLocal: false,
@@ -57,6 +66,8 @@ patch class NetworkInterface {
                                         includeLinkLocal: includeLinkLocal,
                                         type: type);
   }
+
+  static bool _listSupported() native "NetworkInterface_ListSupported";
 }
 
 class _InternetAddress implements InternetAddress {
@@ -1244,7 +1255,7 @@ class _RawSocket extends Stream<RawSocketEvent>
     if (fd != null) _getStdioHandle(native, fd);
     var result = new _RawSocket(native);
     if (fd != null) {
-      var socketType = _StdIOUtils._socketType(result._socket);
+      var socketType = _StdIOUtils._nativeSocketType(result._socket);
       result._isMacOSTerminalInput =
           Platform.isMacOS && socketType == _STDIO_HANDLE_TYPE_TERMINAL;
     }

@@ -290,6 +290,11 @@ bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
   ASSERT(return_address != NULL);
   return false;
 }
+#elif defined(TARGET_ARCH_DBC)
+bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
+  ASSERT(return_address != NULL);
+  return false;
+}
 #else
 #error ReturnAddressLocator implementation missing for this architecture.
 #endif
@@ -323,6 +328,33 @@ void ClearProfileVisitor::VisitSample(Sample* sample) {
 }
 
 
+static void DumpStackFrame(intptr_t frame_index, uword pc) {
+  uintptr_t start = 0;
+  char* native_symbol_name =
+      NativeSymbolResolver::LookupSymbolName(pc, &start);
+  if (native_symbol_name == NULL) {
+    OS::Print("Frame[%" Pd "] = `unknown symbol` [0x%" Px "]\n",
+              frame_index, pc);
+  } else {
+    OS::Print("Frame[%" Pd "] = `%s` [0x%" Px "]\n",
+              frame_index, native_symbol_name, pc);
+    free(native_symbol_name);
+  }
+}
+
+
+static void DumpStackFrame(intptr_t frame_index,
+                           uword pc,
+                           const Code& code) {
+  if (code.IsNull()) {
+    DumpStackFrame(frame_index, pc);
+  } else {
+    OS::Print("Frame[%" Pd "] = Dart:`%s` [0x%" Px "]\n",
+              frame_index, code.ToCString(), pc);
+  }
+}
+
+
 class ProfilerStackWalker : public ValueObject {
  public:
   ProfilerStackWalker(Isolate* isolate,
@@ -334,12 +366,31 @@ class ProfilerStackWalker : public ValueObject {
       frame_index_(0),
       total_frames_(0) {
     ASSERT(isolate_ != NULL);
-    ASSERT(sample_ != NULL);
-    ASSERT(sample_buffer_ != NULL);
-    ASSERT(sample_->head_sample());
+    if (sample_ == NULL) {
+      ASSERT(sample_buffer_ == NULL);
+    } else {
+      ASSERT(sample_buffer_ != NULL);
+      ASSERT(sample_->head_sample());
+    }
+  }
+
+  bool Append(uword pc, const Code& code) {
+    if (sample_ == NULL) {
+      DumpStackFrame(frame_index_, pc, code);
+      frame_index_++;
+      total_frames_++;
+      return true;
+    }
+    return Append(pc);
   }
 
   bool Append(uword pc) {
+    if (sample_ == NULL) {
+      DumpStackFrame(frame_index_, pc);
+      frame_index_++;
+      total_frames_++;
+      return true;
+    }
     if (total_frames_ >= FLAG_max_profile_depth) {
       sample_->set_truncated_trace(true);
       return false;
@@ -387,11 +438,23 @@ class ProfilerDartExitStackWalker : public ProfilerStackWalker {
     sample_->set_exit_frame_sample(true);
 
     StackFrame* frame = frame_iterator_.NextFrame();
-    while (frame != NULL) {
-      if (!Append(frame->pc())) {
-        return;
+    if (sample_ == NULL) {
+      // Only when we are dumping the stack trace for debug purposes.
+      Code& code = Code::Handle();
+      while (frame != NULL) {
+        code ^= frame->LookupDartCode();
+        if (!Append(frame->pc(), code)) {
+          return;
+        }
+        frame = frame_iterator_.NextFrame();
       }
-      frame = frame_iterator_.NextFrame();
+    } else {
+      while (frame != NULL) {
+        if (!Append(frame->pc())) {
+          return;
+        }
+        frame = frame_iterator_.NextFrame();
+      }
     }
   }
 
@@ -576,7 +639,6 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
 
   void walk() {
     const uword kMaxStep = VirtualMemory::PageSize();
-
     Append(original_pc_);
 
     uword* pc = reinterpret_cast<uword*>(original_pc_);
@@ -839,7 +901,7 @@ static Sample* SetupSample(Thread* thread,
   Sample* sample = sample_buffer->ReserveSample();
   sample->Init(isolate, OS::GetCurrentMonotonicMicros(), tid);
   uword vm_tag = thread->vm_tag();
-#if defined(USING_SIMULATOR)
+#if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
   // When running in the simulator, the runtime entry function address
   // (stored as the vm tag) is the address of a redirect function.
   // Attempt to find the real runtime entry function address and use that.
@@ -875,6 +937,78 @@ static uintptr_t __attribute__((noinline)) GetProgramCounter() {
       __builtin_extract_return_addr(__builtin_return_address(0)));
 }
 #endif
+
+
+void Profiler::DumpStackTrace(bool native_stack_trace) {
+  Thread* thread = Thread::Current();
+  ASSERT(thread != NULL);
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
+  Isolate* isolate = thread->isolate();
+  if (!CheckIsolate(isolate)) {
+    return;
+  }
+
+  const bool exited_dart_code = thread->HasExitedDartCode();
+
+  OS::Print("Dumping %s stack trace for thread %" Px "\n",
+            native_stack_trace ? "native" : "dart-only",
+            OSThread::ThreadIdToIntPtr(os_thread->trace_id()));
+
+  uintptr_t sp = Thread::GetCurrentStackPointer();
+  uintptr_t fp = 0;
+  uintptr_t pc = GetProgramCounter();
+
+  COPY_FP_REGISTER(fp);
+
+  uword stack_lower = 0;
+  uword stack_upper = 0;
+
+  if (!InitialRegisterCheck(pc, fp, sp)) {
+    OS::Print(
+        "Stack dump aborted because InitialRegisterCheck.\n");
+    return;
+  }
+
+  if (!GetAndValidateIsolateStackBounds(thread,
+                                        fp,
+                                        sp,
+                                        &stack_lower,
+                                        &stack_upper)) {
+    OS::Print(
+        "Stack dump aborted because GetAndValidateIsolateStackBounds.\n");
+    return;
+  }
+
+  if (native_stack_trace) {
+    ProfilerNativeStackWalker native_stack_walker(isolate,
+                                                  NULL,
+                                                  NULL,
+                                                  stack_lower,
+                                                  stack_upper,
+                                                  pc,
+                                                  fp,
+                                                  sp);
+    native_stack_walker.walk();
+  } else if (exited_dart_code) {
+    ProfilerDartExitStackWalker dart_exit_stack_walker(thread,
+                                                       isolate,
+                                                       NULL,
+                                                       NULL);
+    dart_exit_stack_walker.walk();
+  } else {
+    ProfilerDartStackWalker dart_stack_walker(isolate,
+                                              NULL,
+                                              NULL,
+                                              stack_lower,
+                                              stack_upper,
+                                              pc,
+                                              fp,
+                                              sp);
+  }
+  OS::Print("-- End of DumpStackTrace");
+}
+
 
 void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
   ASSERT(thread != NULL);
@@ -973,6 +1107,11 @@ void Profiler::SampleThreadSingleFrame(Thread* thread, uintptr_t pc) {
 
 void Profiler::SampleThread(Thread* thread,
                             const InterruptedThreadState& state) {
+#if defined(TARGET_ARCH_DBC)
+  // TODO(vegorov) implement simulator stack sampling.
+  return;
+#endif
+
   ASSERT(thread != NULL);
   OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != NULL);
@@ -996,13 +1135,15 @@ void Profiler::SampleThread(Thread* thread,
   uintptr_t sp = 0;
   uintptr_t fp = state.fp;
   uintptr_t pc = state.pc;
-#if defined(USING_SIMULATOR)
+#if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
   Simulator* simulator = NULL;
 #endif
 
   if (in_dart_code) {
     // If we're in Dart code, use the Dart stack pointer.
-#if defined(USING_SIMULATOR)
+#if defined(TARGET_ARCH_DBC)
+    UNIMPLEMENTED();
+#elif defined(USING_SIMULATOR)
     simulator = isolate->simulator();
     sp = simulator->get_register(SPREG);
     fp = simulator->get_register(FPREG);

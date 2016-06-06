@@ -11,7 +11,7 @@
 
 namespace dart {
 
-#if defined(USING_SIMULATOR)
+#if defined(USING_SIMULATOR_ATOMICS)
 // Forward atomic operations to the simulator if the simulator is active.
 inline uword AtomicOperations::CompareAndSwapWord(uword* ptr,
                                                   uword old_value,
@@ -25,7 +25,7 @@ inline uint32_t AtomicOperations::CompareAndSwapUint32(uint32_t* ptr,
                                                        uint32_t new_value) {
   return Simulator::CompareExchangeUint32(ptr, old_value, new_value);
 }
-#endif  // defined(USING_SIMULATOR)
+#endif  // defined(USING_SIMULATOR_ATOMICS)
 
 }  // namespace dart
 

@@ -48,6 +48,13 @@ class ConstantAstCloner extends AstCloner {
   }
 
   @override
+  FunctionExpression visitFunctionExpression(FunctionExpression node) {
+    FunctionExpression expression = super.visitFunctionExpression(node);
+    expression.element = node.element;
+    return expression;
+  }
+
+  @override
   InstanceCreationExpression visitInstanceCreationExpression(
       InstanceCreationExpression node) {
     InstanceCreationExpression expression =
@@ -172,8 +179,10 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
     super.visitAnnotation(node);
     ElementAnnotation elementAnnotation = node.elementAnnotation;
     if (elementAnnotation == null) {
-      // Analyzer ignores annotations on "part of" directives.
-      assert(node.parent is PartOfDirective);
+      // Analyzer ignores annotations on "part of" directives and on enum
+      // constant declarations.
+      assert(node.parent is PartOfDirective ||
+          node.parent is EnumConstantDeclaration);
     } else {
       constantsToCompute.add(elementAnnotation);
     }
@@ -290,10 +299,10 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.staticElement;
-    if (element is PropertyAccessorElement) {
-      element = (element as PropertyAccessorElement).variable;
-    }
+    Element staticElement = node.staticElement;
+    Element element = staticElement is PropertyAccessorElement
+        ? staticElement.variable
+        : staticElement;
     if (element is VariableElement && element.isConst) {
       _callback(element);
     }

@@ -92,8 +92,8 @@ abstract class HashMap<K, V> implements Map<K, V> {
    *
    * Effectively a shorthand for:
    *
-   *     new HashMap(equals: identical,
-   *                 hashCode: identityHashCodeOf)
+   *     new HashMap<K, V>(equals: identical,
+   *                       hashCode: identityHashCode)
    */
   external factory HashMap.identity();
 
@@ -102,7 +102,7 @@ abstract class HashMap<K, V> implements Map<K, V> {
    */
   factory HashMap.from(Map other) {
     HashMap<K, V> result = new HashMap<K, V>();
-    other.forEach((k, v) { result[k] = v; });
+    other.forEach((k, v) { result[k as Object/*=K*/] = v as Object/*=V*/; });
     return result;
   }
 

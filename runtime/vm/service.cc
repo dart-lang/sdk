@@ -35,6 +35,7 @@
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/timeline.h"
+#include "vm/type_table.h"
 #include "vm/unicode.h"
 #include "vm/version.h"
 
@@ -45,6 +46,7 @@ namespace dart {
 
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, trace_service_pause_events);
+DECLARE_FLAG(bool, profile_vm);
 DEFINE_FLAG(charp, vm_name, "vm",
             "The default name of this vm as reported by the VM service "
             "protocol");
@@ -1008,15 +1010,16 @@ static void ReportPauseOnConsole(ServiceEvent* event) {
 
 
 void Service::HandleEvent(ServiceEvent* event) {
-  if (event->isolate() != NULL &&
-      ServiceIsolate::IsServiceIsolateDescendant(event->isolate())) {
+  if (event->stream_info() != NULL &&
+      !event->stream_info()->enabled()) {
+    if (FLAG_warn_on_pause_with_no_debugger &&
+        event->IsPause()) {
+      // If we are about to pause a running program which has no
+      // debugger connected, tell the user about it.
+      ReportPauseOnConsole(event);
+    }
+    // Ignore events when no one is listening to the event stream.
     return;
-  }
-  if (FLAG_warn_on_pause_with_no_debugger &&
-      event->IsPause() && !Service::debug_stream.enabled()) {
-    // If we are about to pause a running program which has no
-    // debugger connected, tell the user about it.
-    ReportPauseOnConsole(event);
   }
   if (!ServiceIsolate::IsRunning()) {
     return;
@@ -1451,14 +1454,21 @@ static RawObject* LookupHeapObjectLibraries(Isolate* isolate,
     return lib.raw();
   }
   if (strcmp(parts[2], "scripts") == 0) {
-    // Script ids look like "libraries/35/scripts/library%2Furl.dart"
-    if (num_parts != 4) {
+    // Script ids look like "libraries/35/scripts/library%2Furl.dart/12345"
+    if (num_parts != 5) {
       return Object::sentinel().raw();
     }
     const String& id = String::Handle(String::New(parts[3]));
     ASSERT(!id.IsNull());
     // The id is the url of the script % encoded, decode it.
     const String& requested_url = String::Handle(String::DecodeIRI(id));
+
+    // Each script id is tagged with a load time.
+    int64_t timestamp;
+    if (!GetInteger64Id(parts[4], &timestamp, 16) || (timestamp < 0)) {
+      return Object::sentinel().raw();
+    }
+
     Script& script = Script::Handle();
     String& script_url = String::Handle();
     const Array& loaded_scripts = Array::Handle(lib.LoadedScripts());
@@ -1468,7 +1478,8 @@ static RawObject* LookupHeapObjectLibraries(Isolate* isolate,
       script ^= loaded_scripts.At(i);
       ASSERT(!script.IsNull());
       script_url ^= script.url();
-      if (script_url.Equals(requested_url)) {
+      if (script_url.Equals(requested_url) &&
+          (timestamp == script.load_timestamp())) {
         return script.raw();
       }
     }
@@ -1587,12 +1598,13 @@ static RawObject* LookupHeapObjectClasses(Thread* thread,
     if (!GetIntegerId(parts[3], &id)) {
       return Object::sentinel().raw();
     }
-    Type& type = Type::Handle(zone);
-    type ^= cls.CanonicalTypeFromIndex(id);
-    if (type.IsNull()) {
+    if (id != 0) {
       return Object::sentinel().raw();
     }
-    return type.raw();
+    const Type& type = Type::Handle(zone, cls.CanonicalType());
+    if (!type.IsNull()) {
+      return type.raw();
+    }
   }
 
   // Not found.
@@ -2374,6 +2386,52 @@ static bool GetSourceReport(Thread* thread, JSONStream* js) {
 }
 
 
+static const MethodParameter* reload_sources_params[] = {
+  RUNNABLE_ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool ReloadSources(Thread* thread, JSONStream* js) {
+  Isolate* isolate = thread->isolate();
+  if (!isolate->compilation_allowed()) {
+    js->PrintError(kFeatureDisabled,
+        "Cannot reload source when running a precompiled program.");
+    return true;
+  }
+  if (Dart::snapshot_kind() == Snapshot::kAppWithJIT) {
+    js->PrintError(kFeatureDisabled,
+        "Cannot reload source when running an app snapshot.");
+    return true;
+  }
+  Dart_LibraryTagHandler handler = isolate->library_tag_handler();
+  if (handler == NULL) {
+    js->PrintError(kFeatureDisabled,
+                   "A library tag handler must be installed.");
+    return true;
+  }
+  if (isolate->IsReloading()) {
+    js->PrintError(kIsolateIsReloading,
+                   "This isolate is being reloaded.");
+    return true;
+  }
+  DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
+  ASSERT(isolate->CanReload());
+
+  if (stack->Length() > 0) {
+    // TODO(turnidge): We need to support this case.
+    js->PrintError(kFeatureDisabled,
+                   "Source can only be reloaded when stack is empty.");
+    return true;
+  } else {
+    isolate->ReloadSources();
+  }
+
+  PrintSuccess(js);
+  return true;
+}
+
+
 static bool AddBreakpointCommon(Thread* thread,
                                 JSONStream* js,
                                 const String& script_uri) {
@@ -2927,7 +2985,7 @@ static bool Resume(Thread* thread, JSONStream* js) {
     return true;
   }
 
-  js->PrintError(kVMMustBePaused, NULL);
+  js->PrintError(kIsolateMustBePaused, NULL);
   return true;
 }
 
@@ -3564,25 +3622,30 @@ static bool GetTypeArgumentsList(Thread* thread, JSONStream* js) {
   if (js->ParamIs("onlyWithInstantiations", "true")) {
     only_with_instantiations = true;
   }
+  Zone* zone = thread->zone();
   ObjectStore* object_store = thread->isolate()->object_store();
-  const Array& table = Array::Handle(object_store->canonical_type_arguments());
-  ASSERT(table.Length() > 0);
-  TypeArguments& type_args = TypeArguments::Handle();
-  const intptr_t table_size = table.Length() - 1;
-  const intptr_t table_used = Smi::Value(Smi::RawCast(table.At(table_size)));
+  CanonicalTypeArgumentsSet typeargs_table(
+      zone, object_store->canonical_type_arguments());
+  const intptr_t table_size = typeargs_table.NumEntries();
+  const intptr_t table_used = typeargs_table.NumOccupied();
+  const Array& typeargs_array = Array::Handle(
+      zone, HashTables::ToArray(typeargs_table, false));
+  ASSERT(typeargs_array.Length() == table_used);
+  TypeArguments& typeargs = TypeArguments::Handle(zone);
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "TypeArgumentsList");
   jsobj.AddProperty("canonicalTypeArgumentsTableSize", table_size);
   jsobj.AddProperty("canonicalTypeArgumentsTableUsed", table_used);
   JSONArray members(&jsobj, "typeArguments");
-  for (intptr_t i = 0; i < table_size; i++) {
-    type_args ^= table.At(i);
-    if (!type_args.IsNull()) {
-      if (!only_with_instantiations || type_args.HasInstantiations()) {
-        members.AddValue(type_args);
+  for (intptr_t i = 0; i < table_used; i++) {
+    typeargs ^= typeargs_array.At(i);
+    if (!typeargs.IsNull()) {
+      if (!only_with_instantiations || typeargs.HasInstantiations()) {
+        members.AddValue(typeargs);
       }
     }
   }
+  typeargs_table.Release();
   return true;
 }
 
@@ -3597,7 +3660,7 @@ static bool GetVersion(Thread* thread, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Version");
   jsobj.AddProperty("major", static_cast<intptr_t>(3));
-  jsobj.AddProperty("minor", static_cast<intptr_t>(4));
+  jsobj.AddProperty("minor", static_cast<intptr_t>(5));
   jsobj.AddProperty("_privateMajor", static_cast<intptr_t>(0));
   jsobj.AddProperty("_privateMinor", static_cast<intptr_t>(0));
   return true;
@@ -3642,6 +3705,7 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   jsobj.AddProperty("targetCPU", CPU::Id());
   jsobj.AddProperty("hostCPU", HostCPUFeatures::hardware());
   jsobj.AddProperty("version", Version::String());
+  jsobj.AddProperty("_profilerMode", FLAG_profile_vm ? "VM" : "Dart");
   jsobj.AddProperty64("pid", OS::ProcessId());
   int64_t start_time_millis = (vm_isolate->start_time() /
                                kMicrosecondsPerMillisecond);
@@ -3947,6 +4011,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     remove_breakpoint_params },
   { "_restartVM", RestartVM,
     restart_vm_params },
+  { "_reloadSources", ReloadSources,
+    reload_sources_params },
   { "resume", Resume,
     resume_params },
   { "_requestHeapSnapshot", RequestHeapSnapshot,

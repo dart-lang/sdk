@@ -226,6 +226,7 @@ class _LocalMirrorSystem extends MirrorSystem {
     if ((_libraries == null) || dirty) {
       _libraries = new Map<Uri, LibraryMirror>.fromIterable(
           _computeLibraries(), key: (e) => e.uri);
+      dirty = false;
     }
     return _libraries;
   }
