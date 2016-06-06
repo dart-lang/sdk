@@ -391,7 +391,7 @@ class BinaryBuilder {
     int variableStackHeight = variableStack.length;
     var positional = readAndPushVariableDeclarationList();
     var named = readAndPushVariableDeclarationList();
-    var returnType = readDartTypeOption();
+    var returnType = readDartType();
     var body = readStatementOption();
     variableStack.length = variableStackHeight;
     typeParameterStack.length = typeParameterStackHeight;
@@ -688,7 +688,7 @@ class BinaryBuilder {
 
   Catch readCatch() {
     int variableStackHeight = variableStack.length;
-    var guard = readDartTypeOption();
+    var guard = readDartType();
     var exception = readAndPushVariableDeclarationOption();
     var stackTrace = readAndPushVariableDeclarationOption();
     var body = readStatement();
@@ -806,7 +806,7 @@ class BinaryBuilder {
   VariableDeclaration readVariableDeclaration() {
     int flags = readByte();
     return new VariableDeclaration(readStringOrNullIfEmpty(),
-        type: readDartTypeOption(),
+        type: readDartType(),
         initializer: readExpressionOption(),
         isFinal: flags & 0x1 != 0,
         isConst: flags & 0x2 != 0);

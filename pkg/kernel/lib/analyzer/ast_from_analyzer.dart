@@ -279,7 +279,8 @@ class TypeScope extends ReferenceScope {
 
   ast.TypeParameter buildTypeParameter(TypeParameter node) {
     return makeTypeParameter(node.element,
-        bound: buildOptionalTypeAnnotation(node.bound));
+        bound:
+            buildOptionalTypeAnnotation(node.bound) ?? const ast.DynamicType());
   }
 
   ConstructorElement findDefaultConstructor(ClassElement class_) {
@@ -404,8 +405,9 @@ class MemberScope extends TypeScope {
         positionalParameters: positional,
         namedParameters: named,
         requiredParameterCount: requiredParameterCount,
-        returnType:
-            buildOptionalTypeAnnotation(returnType) ?? inferredReturnType,
+        returnType: buildOptionalTypeAnnotation(returnType) ??
+            inferredReturnType ??
+            const ast.DynamicType(),
         asyncMarker: getAsyncMarker(
             isAsync: body.isAsynchronous, isStar: body.isGenerator));
   }
@@ -455,14 +457,14 @@ class MemberScope extends TypeScope {
   }
 
   ast.DartType getInferredVariableType(Element element) {
-    if (!strongMode) return null;
+    if (!strongMode) return const ast.DynamicType();
     if (element is FunctionTypedElement) {
       return buildType(element.type);
     } else if (element is VariableElement) {
       return buildType(element.type);
     } else {
       log.severe('Unexpected variable element: $element');
-      return null;
+      return const ast.DynamicType();
     }
   }
 
@@ -776,7 +778,8 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
         : scope.makeVariableDeclaration(node.stackTraceParameter.staticElement);
     return new ast.Catch(exceptionVariable, build(node.body),
         stackTrace: stackTraceVariable,
-        guard: scope.buildOptionalTypeAnnotation(node.exceptionType));
+        guard: scope.buildOptionalTypeAnnotation(node.exceptionType) ??
+            const ast.DynamicType());
   }
 
   ast.Statement visitTryStatement(TryStatement node) {
@@ -1748,7 +1751,7 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
     if (!isRootClass) {
       ast.DartType superclass =
           scope.buildOptionalTypeAnnotation(node.extendsClause?.superclass) ??
-              new ast.InterfaceType(scope.getRootClassReference());
+              scope.getRootClassReference().rawType;
       if (superclass is! ast.InterfaceType) {
         // TODO: Handle the error case where the super class is InvalidType.
         log.warning('Unresolved type super type '
@@ -1788,7 +1791,6 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
 
   /// True for the `values` field of an `enum` class.
   static bool _isValuesField(FieldElement field) => field.name == 'values';
-
 
   visitEnumDeclaration(EnumDeclaration node) {
     ast.NormalClass classNode = currentClass;
@@ -1900,7 +1902,8 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
 
   void buildDefaultConstructor(ConstructorElement element) {
     ast.Constructor constructor = currentMember;
-    constructor.function = new ast.FunctionNode(new ast.EmptyStatement())
+    constructor.function = new ast.FunctionNode(new ast.EmptyStatement(),
+        returnType: const ast.VoidType())
       ..parent = constructor;
     var class_ = element.enclosingElement;
     if (class_.supertype != null) {
@@ -1958,7 +1961,8 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
     constructor.function = new ast.FunctionNode(new ast.EmptyStatement(),
         positionalParameters: positionalParameters,
         namedParameters: namedParameters,
-        requiredParameterCount: requiredParameterCount)..parent = constructor;
+        requiredParameterCount: requiredParameterCount,
+        returnType: const ast.VoidType())..parent = constructor;
     constructor.initializers.add(new ast.SuperInitializer(
         scope.getMemberReference(targetConstructor),
         new ast.Arguments(positionalArguments,
@@ -1976,7 +1980,8 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
 
   void buildGenerativeConstructor(ConstructorDeclaration node) {
     ast.Constructor constructor = currentMember;
-    constructor.function = scope.buildFunctionNode(node.parameters, node.body)
+    constructor.function = scope.buildFunctionNode(node.parameters, node.body,
+        inferredReturnType: const ast.VoidType())
       ..parent = constructor;
     for (var parameter in node.parameters.parameterElements) {
       if (parameter is FieldFormalParameterElement) {

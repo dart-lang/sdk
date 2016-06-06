@@ -269,7 +269,7 @@ type FunctionNode {
   UInt requiredParameterCount;
   List<VariableDeclaration> positionalParameters;
   List<VariableDeclaration> namedParameters;
-  Option<DartType> returnType;
+  DartType returnType;
   Option<Statement> body;
 }
 
@@ -685,7 +685,7 @@ type TryCatch extends Statement {
 }
 
 type Catch {
-  Option<DartType> guard;
+  DartType guard;
   Option<VariableDeclaration> exception;
   Option<VariableDeclaration> stackTrace;
   Statement body;
@@ -714,7 +714,7 @@ type VariableDeclaration {
   // For other variables, the name is cosmetic, may be empty,
   // and is not necessarily unique.
   StringReference name;
-  Option<DartType> type;
+  DartType type;
 
   // For statements and for-loops, this is the initial value.
   // For optional parameters, this is the default value (if given).

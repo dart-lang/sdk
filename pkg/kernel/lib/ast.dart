@@ -487,13 +487,13 @@ class Field extends Member {
   Expression initializer; // May be null.
 
   Field(Name name,
-      {DartType type,
+      {this.type: const DynamicType(),
       this.initializer,
       bool isFinal: false,
       bool isConst: false,
       bool isStatic: false})
-      : this.type = type ?? const DynamicType(),
-        super(name) {
+      : super(name) {
+    assert(type != null);
     initializer?.parent = this;
     this.isFinal = isFinal;
     this.isConst = isConst;
@@ -692,13 +692,7 @@ class Procedure extends Member {
   }
 }
 
-enum ProcedureKind {
-  Method,
-  Getter,
-  Setter,
-  Operator,
-  Factory,
-}
+enum ProcedureKind { Method, Getter, Setter, Operator, Factory, }
 
 // ------------------------------------------------------------------------
 //                     CONSTRUCTOR INITIALIZERS
@@ -829,7 +823,7 @@ class FunctionNode extends TreeNode {
   int requiredParameterCount;
   List<VariableDeclaration> positionalParameters;
   List<VariableDeclaration> namedParameters;
-  DartType returnType; // May be null. Always null for constructors.
+  DartType returnType; // Not null.
   Statement body;
 
   FunctionNode(this.body,
@@ -837,7 +831,7 @@ class FunctionNode extends TreeNode {
       List<VariableDeclaration> positionalParameters,
       List<VariableDeclaration> namedParameters,
       int requiredParameterCount,
-      this.returnType,
+      this.returnType: const DynamicType(),
       this.asyncMarker: AsyncMarker.Sync})
       : this.positionalParameters =
             positionalParameters ?? <VariableDeclaration>[],
@@ -845,6 +839,7 @@ class FunctionNode extends TreeNode {
             requiredParameterCount ?? positionalParameters?.length ?? 0,
         this.namedParameters = namedParameters ?? <VariableDeclaration>[],
         this.typeParameters = typeParameters ?? <TypeParameter>[] {
+    assert(returnType != null);
     setParents(this.typeParameters, this);
     setParents(this.positionalParameters, this);
     setParents(this.namedParameters, this);
@@ -1560,6 +1555,7 @@ class ListLiteral extends Expression {
 
   ListLiteral(this.expressions,
       {this.typeArgument: const DynamicType(), this.isConst: false}) {
+    assert(typeArgument != null);
     setParents(expressions, this);
   }
 
@@ -1585,6 +1581,8 @@ class MapLiteral extends Expression {
       {this.keyType: const DynamicType(),
       this.valueType: const DynamicType(),
       this.isConst: false}) {
+    assert(keyType != null);
+    assert(valueType != null);
     setParents(entries, this);
   }
 
@@ -2145,12 +2143,14 @@ class TryCatch extends Statement {
 }
 
 class Catch extends TreeNode {
-  DartType guard; // May be null.
-  VariableDeclaration exception; // May be null. The declared type is null.
+  DartType guard; // Not null, defaults to dynamic.
+  VariableDeclaration exception; // May be null.
   VariableDeclaration stackTrace; // May be null.
   Statement body;
 
-  Catch(this.exception, this.body, {this.guard, this.stackTrace}) {
+  Catch(this.exception, this.body,
+      {this.guard: const DynamicType(), this.stackTrace}) {
+    assert(guard != null);
     exception?.parent = this;
     stackTrace?.parent = this;
     body?.parent = this;
@@ -2248,7 +2248,7 @@ class VariableDeclaration extends Statement {
   /// and is not necessarily unique.
   String name;
   int flags = 0;
-  DartType type; // May be null.
+  DartType type; // Not null, defaults to dynamic.
 
   /// For locals, this is the initial value.
   /// For parameters, this is the default value.
@@ -2257,7 +2257,11 @@ class VariableDeclaration extends Statement {
   Expression initializer; // May be null.
 
   VariableDeclaration(this.name,
-      {this.initializer, this.type, bool isFinal: false, bool isConst: false}) {
+      {this.initializer,
+      this.type: const DynamicType(),
+      bool isFinal: false,
+      bool isConst: false}) {
+    assert(type != null);
     initializer?.parent = this;
     this.isFinal = isFinal;
     this.isConst = isConst;
@@ -2265,7 +2269,10 @@ class VariableDeclaration extends Statement {
 
   /// Creates a synthetic variable with the given expression as initializer.
   VariableDeclaration.forValue(this.initializer,
-      {bool isFinal: true, bool isConst: false, this.type}) {
+      {bool isFinal: true,
+      bool isConst: false,
+      this.type: const DynamicType()}) {
+    assert(type != null);
     initializer?.parent = this;
     this.isFinal = isFinal;
     this.isConst = isConst;

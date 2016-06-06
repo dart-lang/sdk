@@ -322,7 +322,7 @@ class BinaryPrinter extends Visitor {
     writeUInt30(node.requiredParameterCount);
     writeVariableDeclarationList(node.positionalParameters);
     writeVariableDeclarationList(node.namedParameters);
-    writeOptionalNode(node.returnType);
+    writeNode(node.returnType);
     writeOptionalNode(node.body);
     _labelIndexer = oldLabels;
     _switchCaseIndexer = oldCases;
@@ -683,7 +683,7 @@ class BinaryPrinter extends Visitor {
 
   visitCatch(Catch node) {
     // Note: there is no tag on Catch.
-    writeOptionalNode(node.guard);
+    writeNode(node.guard);
     writeOptionalVariableDeclaration(node.exception);
     writeOptionalVariableDeclaration(node.stackTrace);
     writeNode(node.body);
@@ -709,7 +709,7 @@ class BinaryPrinter extends Visitor {
   void writeVariableDeclaration(VariableDeclaration node) {
     writeByte(node.flags);
     writeStringReference(node.name ?? '');
-    writeOptionalNode(node.type);
+    writeNode(node.type);
     writeOptionalNode(node.initializer);
   }
 
