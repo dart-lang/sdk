@@ -986,12 +986,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     if (element == null) {
       return false;
     }
-    if (element.type == type) {
-      return true;
-    }
     ClassElement typeElement = type.element;
-    return element.allSupertypes
-        .any((InterfaceType t) => t.element == typeElement);
+    return element == typeElement ||
+        element.allSupertypes
+            .any((InterfaceType t) => t.element == typeElement);
   }
 
   /**
