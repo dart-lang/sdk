@@ -9,10 +9,11 @@ const desc =
     'Await for future expression statements inside async function bodies.';
 
 const details = r'''
-**DO** Await for Future return value of expression statements, or explicitly ignore those cases.
+**DO** await for Future return value of expression statements, or explicitly
+ignore those cases.
 
 It's easy to forget await in async methods as naming conventions usually don't
-tell us if a method is sync or async (except for some in dart:io).
+tell us if a method is sync or async (except for some in `dart:io`).
 
 **GOOD:**
 ```dart
@@ -82,12 +83,12 @@ class Visitor extends SimpleAstVisitor {
       expr.constructorName?.name?.name == 'delayed' &&
       expr.argumentList.arguments.length == 2;
 
+  bool _isMapClass(Element e) =>
+      e is ClassElement && e.name == 'Map' && e.library?.name == 'dart.core';
+
   /// Detects Map.putIfAbsent invocations.
   bool _isMapPutIfAbsentInvocation(Expression expr) =>
       expr is MethodInvocation &&
       expr.methodName.name == 'putIfAbsent' &&
       _isMapClass(expr.methodName.staticElement?.enclosingElement);
-
-  bool _isMapClass(Element e) =>
-      e is ClassElement && e.name == 'Map' && e.library?.name == 'dart.core';
 }
