@@ -116,6 +116,7 @@ class Loader {
   static void RemoveLoader(Dart_Port port);
   static intptr_t LoaderIndexFor(Dart_Port port);
   static Loader* LoaderFor(Dart_Port port);
+  static Loader* LoaderForLocked(Dart_Port port);
 
   // This is the global callback for the native message handlers.
   static void NativeMessageHandler(Dart_Port dest_port_id,

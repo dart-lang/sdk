@@ -468,7 +468,8 @@ intptr_t Loader::loader_infos_capacity_ = 0;
 // correct loader.
 // This happens whenever an isolate begins loading.
 void Loader::AddLoader(Dart_Port port, IsolateData* isolate_data) {
-  ASSERT(LoaderFor(port) == NULL);
+  MutexLocker ml(&loader_infos_lock_);
+  ASSERT(LoaderForLocked(port) == NULL);
   if (loader_infos_length_ == loader_infos_capacity_) {
     // Grow to an initial capacity or double in size.
     loader_infos_capacity_ =
@@ -488,13 +489,14 @@ void Loader::AddLoader(Dart_Port port, IsolateData* isolate_data) {
   loader_infos_[loader_infos_length_].port = port;
   loader_infos_[loader_infos_length_].isolate_data = isolate_data;
   loader_infos_length_++;
-  ASSERT(LoaderFor(port) != NULL);
+  ASSERT(LoaderForLocked(port) != NULL);
 }
 
 
 // Remove |port| from the map.
 // This happens once an isolate has finished loading.
 void Loader::RemoveLoader(Dart_Port port) {
+  MutexLocker ml(&loader_infos_lock_);
   const intptr_t index = LoaderIndexFor(port);
   ASSERT(index >= 0);
   const intptr_t last = loader_infos_length_ - 1;
@@ -517,7 +519,7 @@ intptr_t Loader::LoaderIndexFor(Dart_Port port) {
 }
 
 
-Loader* Loader::LoaderFor(Dart_Port port) {
+Loader* Loader::LoaderForLocked(Dart_Port port) {
   intptr_t index = LoaderIndexFor(port);
   if (index < 0) {
     return NULL;
@@ -526,9 +528,16 @@ Loader* Loader::LoaderFor(Dart_Port port) {
 }
 
 
+Loader* Loader::LoaderFor(Dart_Port port) {
+  MutexLocker ml(&loader_infos_lock_);
+  return LoaderForLocked(port);
+}
+
+
 void Loader::NativeMessageHandler(Dart_Port dest_port_id,
                                   Dart_CObject* message) {
-  Loader* loader = LoaderFor(dest_port_id);
+  MutexLocker ml(&loader_infos_lock_);
+  Loader* loader = LoaderForLocked(dest_port_id);
   if (loader == NULL) {
     return;
   }
