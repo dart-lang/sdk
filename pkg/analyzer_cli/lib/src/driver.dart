@@ -37,6 +37,7 @@ import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/build_mode.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
+import 'package:analyzer_cli/src/incremental_analyzer.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart';
@@ -85,6 +86,8 @@ class Driver implements CommandLineStarter {
   /// If [_context] is not `null`, the [CommandLineOptions] that guided its
   /// creation.
   CommandLineOptions _previousOptions;
+
+  IncrementalAnalysisSession incrementalSession;
 
   @override
   EmbeddedResolverProvider embeddedUriResolverProvider;
@@ -217,6 +220,8 @@ class Driver implements CommandLineStarter {
       libUris.add(source.uri);
     }
 
+    incrementalSession?.finish();
+
     // Check that each part has a corresponding source in the input list.
     for (Source part in parts) {
       bool found = false;
@@ -295,6 +300,9 @@ class Driver implements CommandLineStarter {
       return false;
     }
     if (options.enableSuperMixins != _previousOptions.enableSuperMixins) {
+      return false;
+    }
+    if (options.incrementalCachePath != _previousOptions.incrementalCachePath) {
       return false;
     }
     return true;
@@ -510,6 +518,8 @@ class Driver implements CommandLineStarter {
         _chooseUriResolutionPolicy(options, embedderMap, packageInfo);
 
     _context.sourceFactory = sourceFactory;
+
+    incrementalSession = configureIncrementalAnalysis(options, context);
   }
 
   /// Return discovered packagespec, or `null` if none is found.
