@@ -333,7 +333,7 @@ void PortMap::DebugDumpForMessageHandler(MessageHandler* handler) {
   for (intptr_t i = 0; i < capacity_; i++) {
     if (map_[i].handler == handler) {
       if (map_[i].state == kLivePort) {
-        OS::Print("Live Port = %" Pd "\n", map_[i].port);
+        OS::Print("Live Port = %" Pd64 "\n", map_[i].port);
         msg_handler = DartLibraryCalls::LookupHandler(map_[i].port);
         OS::Print("Handler = %s\n", msg_handler.ToCString());
       }
