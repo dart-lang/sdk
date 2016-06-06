@@ -21,33 +21,6 @@ main() {
 
 @reflectiveTest
 class HintCodeTest extends ResolverTestCase {
-  void test_deadCode_statementAfterRethrow() {
-    Source source = addSource(r'''
-f() {
-  try {
-    var one = 1;
-  } catch (e) {
-    rethrow;
-    var two = 2;
-  }
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.DEAD_CODE]);
-    verify([source]);
-  }
-
-  void test_deadCode_statementAfterThrow() {
-    Source source = addSource(r'''
-f() {
-  var one = 1;
-  throw 'Stop here';
-  var two = 2;
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.DEAD_CODE]);
-    verify([source]);
-  }
-
   void fail_isInt() {
     Source source = addSource("var v = 1 is int;");
     computeLibrarySourceErrors(source);
@@ -553,6 +526,36 @@ f(v) {
     verify([source]);
   }
 
+  void test_deadCode_statementAfterExitingIf_returns() {
+    Source source = addSource(r'''
+f() {
+  if (1 > 2) {
+    return;
+  } else {
+    return;
+  }
+  var one = 1;
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
+  void test_deadCode_statementAfterRethrow() {
+    Source source = addSource(r'''
+f() {
+  try {
+    var one = 1;
+  } catch (e) {
+    rethrow;
+    var two = 2;
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
   void test_deadCode_statementAfterReturn_function() {
     Source source = addSource(r'''
 f() {
@@ -619,15 +622,12 @@ f() {
     verify([source]);
   }
 
-  void test_deadCode_statementAfterExitingIf_returns() {
+  void test_deadCode_statementAfterThrow() {
     Source source = addSource(r'''
 f() {
-  if (1 > 2) {
-    return;
-  } else {
-    return;
-  }
   var one = 1;
+  throw 'Stop here';
+  var two = 2;
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
@@ -1044,6 +1044,23 @@ main() {
     verify([source]);
   }
 
+  void test_invalidUseOfProtectedMember_closure() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @protected
+  int a() => 42;
+}
+void main() {
+  var leak = new A().a;
+  print(leak);
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    verify([source]);
+  }
+
   void test_invalidUseOfProtectedMember_field() {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
@@ -1102,23 +1119,6 @@ abstract class B implements A {
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
-    verify([source]);
-  }
-
-  void test_invalidUseOfProtectedMember_closure() {
-    Source source = addSource(r'''
-import 'package:meta/meta.dart';
-
-class A {
-  @protected
-  int a() => 42;
-}
-void main() {
-  var leak = new A().a;
-  print(leak);
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
     verify([source]);
   }
 
@@ -1181,6 +1181,29 @@ class B {
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_method_OK() {
+    // https://github.com/dart-lang/linter/issues/257
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+typedef void VoidCallback();
+
+class State<E> {
+  @protected
+  void setState(VoidCallback fn) {}
+}
+
+class Button extends State<Object> {
+  void handleSomething() {
+    setState(() {});
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
