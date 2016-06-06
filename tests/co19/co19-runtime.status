@@ -190,3 +190,6 @@ Language/Expressions/Spawning_an_Isolate/new_isolate_t01: Skip # Issue #26373
 
 LibTest/math/log_A01_t01: RuntimeError # Precision of Math.log (Issue #18998)
 Language/Expressions/Object_Identity/double_t02: RuntimeError # Issue #26374
+
+[ $compiler == precompiler && $runtime == dart_precompiled && ($arch == simarm || $arch == simarm64) ]
+LibTest/core/int/toDouble_A01_t01: Crash, Timeout #  Issue 26607
