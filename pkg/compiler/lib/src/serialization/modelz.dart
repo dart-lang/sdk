@@ -835,7 +835,8 @@ abstract class ClassElementMixin
   @override
   ConstructorElement lookupDefaultConstructor() {
     ConstructorElement constructor = lookupConstructor("");
-    if (constructor != null && constructor.parameters.isEmpty) {
+    if (constructor != null &&
+        constructor.functionSignature.requiredParameterCount == 0) {
       return constructor;
     }
     return null;

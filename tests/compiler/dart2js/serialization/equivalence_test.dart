@@ -480,6 +480,10 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         getConstructors(element1),
         getConstructors(element2));
 
+    checkElementIdentities(element1, element2, 'defaultConstructor',
+        element1.lookupDefaultConstructor(),
+        element2.lookupDefaultConstructor());
+
     visitMembers(element1, element2);
 
     ClassElement superclass1 = element1.superclass;

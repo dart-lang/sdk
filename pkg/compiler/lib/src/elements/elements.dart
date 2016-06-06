@@ -1499,6 +1499,8 @@ abstract class ClassElement extends TypeDeclarationElement
 
   Element lookupSuperMemberInLibrary(String memberName, LibraryElement library);
 
+  // TODO(johnniwinther): Clean up semantics. Can the default constructor take
+  // optional arguments? Must it be resolved?
   ConstructorElement lookupDefaultConstructor();
   ConstructorElement lookupConstructor(String name);
 
