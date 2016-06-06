@@ -231,9 +231,24 @@ bool Loader::ProcessResultLocked(Loader::IOResult* result) {
     library_uri =
         Dart_NewStringFromCString(reinterpret_cast<char*>(result->library_uri));
   }
-  Dart_Handle source =
-      Dart_NewStringFromUTF8(result->payload,
-                             result->payload_length);
+  // Check for payload and load accordingly.
+  bool is_snapshot = false;
+  const uint8_t* payload = result->payload;
+  intptr_t payload_length = result->payload_length;
+  payload =
+      DartUtils::SniffForMagicNumber(payload,
+                                     &payload_length,
+                                     &is_snapshot);
+  Dart_Handle source = Dart_Null();
+  if (!is_snapshot) {
+    source = Dart_NewStringFromUTF8(result->payload,
+                                    result->payload_length);
+    if (Dart_IsError(source)) {
+      error_  = DartUtils::NewError("%s is not a valid UTF-8 script",
+                                    reinterpret_cast<char*>(result->uri));
+      return false;
+    }
+  }
   intptr_t tag = result->tag;
 
   // No touching.
@@ -244,7 +259,6 @@ bool Loader::ProcessResultLocked(Loader::IOResult* result) {
   monitor_->Exit();
 
   Dart_Handle dart_result = Dart_Null();
-
 
   switch (tag) {
     case Dart_kImportTag:
@@ -258,7 +272,11 @@ bool Loader::ProcessResultLocked(Loader::IOResult* result) {
     }
     break;
     case Dart_kScriptTag:
-      dart_result = Dart_LoadScript(uri, source, 0, 0);
+      if (is_snapshot) {
+        dart_result = Dart_LoadScriptFromSnapshot(payload, payload_length);
+      } else {
+        dart_result = Dart_LoadScript(uri, source, 0, 0);
+      }
     break;
     default:
       UNREACHABLE();
