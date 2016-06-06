@@ -5,12 +5,23 @@
 import 'dart:_js_primitives' show printString;
 import 'dart:_js_helper' show patch;
 import 'dart:_interceptors' show JSArray;
+import 'dart:_foreign_helper' show JS;
 
 @patch
 class Symbol implements core.Symbol {
   @patch
   const Symbol(String name)
       : this._name = name;
+
+  @patch
+  int get hashCode {
+    int hash = JS('int|Null', '#._hashCode', this);
+    if (hash != null) return hash;
+    const arbitraryPrime = 664597;
+    hash = 0x1fffffff & (arbitraryPrime * _name.hashCode);
+    JS('', '#._hashCode = #', this, hash);
+    return hash;
+  }
 }
 
 @patch

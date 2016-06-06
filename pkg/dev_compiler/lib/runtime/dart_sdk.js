@@ -7687,8 +7687,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return _internal.Symbol.is(other) && this[_name] == other[_name];
     }
     get hashCode() {
+      let hash = this._hashCode;
+      if (hash != null) return hash;
       let arbitraryPrime = 664597;
-      return 536870911 & arbitraryPrime * dart.notNull(dart.hashCode(this[_name]));
+      hash = 536870911 & arbitraryPrime * dart.notNull(dart.hashCode(this[_name]));
+      this._hashCode = hash;
+      return hash;
     }
     toString() {
       return dart.str`Symbol("${this[_name]}")`;
