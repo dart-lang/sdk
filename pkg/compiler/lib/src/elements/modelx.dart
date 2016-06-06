@@ -206,7 +206,9 @@ abstract class ElementX extends Element with ElementCommon {
   }
 }
 
-class ErroneousElementX extends ElementX implements ErroneousElement {
+class ErroneousElementX extends ElementX
+    with ConstructorElementCommon
+    implements ErroneousElement {
   final MessageKind messageKind;
   final Map messageArguments;
 
@@ -282,9 +284,6 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   get isEffectiveTargetMalformed {
     throw new UnsupportedError("isEffectiveTargetMalformed");
   }
-
-  @override
-  bool get isFromEnvironmentConstructor => false;
 
   @override
   List<DartType> get typeVariables => unsupported();
@@ -2167,21 +2166,13 @@ abstract class ConstantConstructorMixin implements ConstructorElement {
     }
   }
 
-  bool get isFromEnvironmentConstructor {
-    return name == 'fromEnvironment' &&
-        library.isDartCore &&
-        (enclosingClass.name == 'bool' ||
-            enclosingClass.name == 'int' ||
-            enclosingClass.name == 'String');
-  }
-
   /// Returns the empty list of type variables by default.
   @override
   List<DartType> get typeVariables => functionSignature.typeVariables;
 }
 
 abstract class ConstructorElementX extends FunctionElementX
-    with ConstantConstructorMixin
+    with ConstantConstructorMixin, ConstructorElementCommon
     implements ConstructorElement {
   bool isRedirectingGenerative = false;
 

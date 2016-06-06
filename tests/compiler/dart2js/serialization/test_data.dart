@@ -369,6 +369,12 @@ main() {
 void foo() {}
 ''',
   }),
+
+  const Test('fromEnvironment constants', const {
+    'main.dart': '''
+main() => const String.fromEnvironment("foo");
+''',
+  }),
 ];
 
 class Test {

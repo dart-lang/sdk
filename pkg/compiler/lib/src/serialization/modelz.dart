@@ -1157,7 +1157,8 @@ abstract class ConstructorElementZ extends DeserializedElementZ
         FunctionTypedElementMixin,
         ParametersMixin,
         TypedElementMixin,
-        MemberElementMixin
+        MemberElementMixin,
+        ConstructorElementCommon
     implements
         ConstructorElement,
         // TODO(johnniwinther): Sort out whether a constructor is a method.
@@ -1176,14 +1177,6 @@ abstract class ConstructorElementZ extends DeserializedElementZ
 
   @override
   bool get isExternal => _decoder.getBool(Key.IS_EXTERNAL);
-
-  bool get isFromEnvironmentConstructor {
-    return name == 'fromEnvironment' &&
-        library.isDartCore &&
-        (enclosingClass.name == 'bool' ||
-            enclosingClass.name == 'int' ||
-            enclosingClass.name == 'String');
-  }
 
   ConstantConstructor get constantConstructor {
     if (isConst && _constantConstructor == null) {
@@ -1411,6 +1404,15 @@ class ForwardingConstructorElementZ extends ElementZ
 
   @override
   bool get isFromEnvironmentConstructor => false;
+
+  @override
+  bool get isIntFromEnvironmentConstructor => false;
+
+  @override
+  bool get isBoolFromEnvironmentConstructor => false;
+
+  @override
+  bool get isStringFromEnvironmentConstructor => false;
 
   @override
   bool get isRedirectingFactory => false;

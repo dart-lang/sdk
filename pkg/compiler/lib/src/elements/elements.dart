@@ -1324,6 +1324,15 @@ abstract class ConstructorElement extends FunctionElement
   /// `int.fromEnvironment`, or `String.fromEnvironment`.
   bool get isFromEnvironmentConstructor;
 
+  /// `true` if this constructor is `int.fromEnvironment`.
+  bool get isIntFromEnvironmentConstructor;
+
+  /// `true` if this constructor is `bool.fromEnvironment`.
+  bool get isBoolFromEnvironmentConstructor;
+
+  /// `true` if this constructor is `String.fromEnvironment`.
+  bool get isStringFromEnvironmentConstructor;
+
   /// Use [enclosingClass] instead.
   @deprecated
   get enclosingElement;

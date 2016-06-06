@@ -6,7 +6,7 @@
 
 library elements.common;
 
-import '../common/names.dart' show Names, Uris;
+import '../common/names.dart' show Identifiers, Names, Uris;
 import '../core_types.dart' show CoreClasses;
 import '../dart_types.dart' show DartType, InterfaceType, FunctionType;
 import '../util/util.dart' show Link;
@@ -605,5 +605,37 @@ abstract class AbstractFieldElementCommon implements AbstractFieldElement {
   bool get isAbstract {
     return getter != null && getter.isAbstract ||
         setter != null && setter.isAbstract;
+  }
+}
+
+abstract class ConstructorElementCommon implements ConstructorElement {
+  @override
+  bool get isFromEnvironmentConstructor {
+    return name == Identifiers.fromEnvironment &&
+        library.isDartCore &&
+        (enclosingClass.name == 'bool' ||
+            enclosingClass.name == 'int' ||
+            enclosingClass.name == 'String');
+  }
+
+  @override
+  bool get isIntFromEnvironmentConstructor {
+    return name == Identifiers.fromEnvironment &&
+        library.isDartCore &&
+        enclosingClass.name == 'int';
+  }
+
+  @override
+  bool get isBoolFromEnvironmentConstructor {
+    return name == Identifiers.fromEnvironment &&
+        library.isDartCore &&
+        enclosingClass.name == 'bool';
+  }
+
+  @override
+  bool get isStringFromEnvironmentConstructor {
+    return name == Identifiers.fromEnvironment &&
+        library.isDartCore &&
+        enclosingClass.name == 'String';
   }
 }
