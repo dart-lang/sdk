@@ -1323,7 +1323,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /**
    * A list containing all of the enums contained in this compilation unit.
    */
-  List<ClassElement> _enums = ClassElement.EMPTY_LIST;
+  List<ClassElement> _enums;
 
   /**
    * A list containing all of the top-level functions contained in this
@@ -1450,12 +1450,20 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  List<ClassElement> get enums => _enums;
+  List<ClassElement> get enums {
+    if (_unlinkedUnit != null) {
+      _enums ??= _unlinkedUnit.enums
+          .map((e) => new EnumElementImpl.forSerialized(e, this))
+          .toList(growable: false);
+    }
+    return _enums ?? const <ClassElement>[];
+  }
 
   /**
    * Set the enums contained in this compilation unit to the given [enums].
    */
   void set enums(List<ClassElement> enums) {
+    assert(_unlinkedUnit == null);
     for (ClassElement enumDeclaration in enums) {
       (enumDeclaration as EnumElementImpl).enclosingElement = this;
     }

@@ -1006,9 +1006,9 @@ class _LibraryResynthesizer {
     }
     library.parts = partResynthesizers.map((r) => r.unit).toList();
     // Populate units.
-    populateUnit(definingUnitResynthesizer);
+    rememberUriToUnit(definingUnitResynthesizer);
     for (_UnitResynthesizer partResynthesizer in partResynthesizers) {
-      populateUnit(partResynthesizer);
+      rememberUriToUnit(partResynthesizer);
     }
     // Create the synthetic element for `loadLibrary`.
     // Until the client received dart:core and dart:async, we cannot do this,
@@ -1089,13 +1089,12 @@ class _LibraryResynthesizer {
   }
 
   /**
-   * Populate a [CompilationUnitElement] by deserializing all the elements
-   * contained in it.
+   * Remember the absolute URI to the corresponding unit mapping.
    */
-  void populateUnit(_UnitResynthesizer unitResynthesized) {
-    unitResynthesized.populateUnit();
-    String absoluteUri = unitResynthesized.unit.source.uri.toString();
-    resynthesizedUnits[absoluteUri] = unitResynthesized.unit;
+  void rememberUriToUnit(_UnitResynthesizer unitResynthesized) {
+    CompilationUnitElementImpl unit = unitResynthesized.unit;
+    String absoluteUri = unit.source.uri.toString();
+    resynthesizedUnits[absoluteUri] = unit;
   }
 }
 
@@ -1423,13 +1422,6 @@ class _UnitResynthesizer {
   CompilationUnitElementImpl unit;
 
   /**
-   * [ElementHolder] into which resynthesized elements should be placed.  This
-   * object is recreated afresh for each unit in the library, and is used to
-   * populate the [CompilationUnitElement].
-   */
-  final ElementHolder unitHolder = new ElementHolder();
-
-  /**
    * Map from slot id to the corresponding [EntityRef] object for linked types
    * (i.e. propagated and inferred types).
    */
@@ -1505,44 +1497,6 @@ class _UnitResynthesizer {
           'Unexpected annotation type: ${constExpr.runtimeType}');
     }
     return elementAnnotation;
-  }
-
-  /**
-   * Build the documentation for the given [element].  Does nothing if
-   * [serializedDocumentationComment] is `null`.
-   */
-  void buildDocumentation(ElementImpl element,
-      UnlinkedDocumentationComment serializedDocumentationComment) {
-    if (serializedDocumentationComment != null) {
-      element.documentationComment = serializedDocumentationComment.text;
-      element.setDocRange(serializedDocumentationComment.offset,
-          serializedDocumentationComment.length);
-    }
-  }
-
-  /**
-   * Resynthesize the [ClassElement] corresponding to an enum, along with the
-   * associated fields and implicit accessors.
-   */
-  void buildEnum(UnlinkedEnum serializedEnum) {
-    assert(!libraryResynthesizer.isCoreLibrary);
-    EnumElementImpl classElement =
-        new EnumElementImpl.forSerialized(serializedEnum, unit);
-    unitHolder.addEnum(classElement);
-  }
-
-  /**
-   * Build the implicit getter and setter associated with [element], and place
-   * them in [holder].
-   */
-  void buildImplicitAccessors(
-      PropertyInducingElementImpl element, ElementHolder holder) {
-    PropertyAccessorElementImpl getter = buildImplicitGetter(element);
-    holder?.addAccessor(getter);
-    if (!(element.isConst || element.isFinal)) {
-      PropertyAccessorElementImpl setter = buildImplicitSetter(element);
-      holder?.addAccessor(setter);
-    }
   }
 
   /**
@@ -1811,15 +1765,6 @@ class _UnitResynthesizer {
       referenceInfos[index] = result;
     }
     return result;
-  }
-
-  /**
-   * Populate a [CompilationUnitElement] by deserializing all the elements
-   * contained in it.
-   */
-  void populateUnit() {
-    unlinkedUnit.enums.forEach(buildEnum);
-    unit.enums = unitHolder.enums;
   }
 
   Expression _buildConstExpression(ElementImpl context, UnlinkedConst uc) {
