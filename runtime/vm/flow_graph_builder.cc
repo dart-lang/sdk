@@ -2806,6 +2806,9 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
       // (0) type-arguments, (1) length.
       ASSERT(!LoadFieldInstr::IsFixedLengthArrayCid(result_cid) ||
              arguments->length() == 2);
+    } else if (node->constructor().recognized_kind() !=
+               MethodRecognizer::kUnknown) {
+      call->set_result_cid(MethodRecognizer::ResultCid(node->constructor()));
     }
     ReturnDefinition(call);
     return;
