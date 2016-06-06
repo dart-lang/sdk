@@ -363,6 +363,9 @@ class RunServiceTask : public ThreadPool::Task {
 
  protected:
   static void ShutdownIsolate(uword parameter) {
+    if (FLAG_trace_service) {
+      OS::Print("vm-service: ShutdownIsolate\n");
+    }
     Isolate* I = reinterpret_cast<Isolate*>(parameter);
     ASSERT(ServiceIsolate::IsServiceIsolate(I));
     ServiceIsolate::SetServiceIsolate(NULL);
@@ -379,6 +382,10 @@ class RunServiceTask : public ThreadPool::Task {
       HandleScope handle_scope(T);
       Error& error = Error::Handle(Z);
       error = T->sticky_error();
+      if (!error.IsNull() && !error.IsUnwindError()) {
+        OS::PrintErr("vm-service: Error: %s\n", error.ToErrorCString());
+      }
+      error = I->sticky_error();
       if (!error.IsNull() && !error.IsUnwindError()) {
         OS::PrintErr("vm-service: Error: %s\n", error.ToErrorCString());
       }

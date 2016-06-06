@@ -21,6 +21,16 @@ part 'message_router.dart';
 final RawReceivePort isolateLifecyclePort = new RawReceivePort();
 final RawReceivePort scriptLoadPort = new RawReceivePort();
 
+abstract class IsolateEmbedderData {
+  void cleanup();
+}
+
+// This is for use by the embedder. It is a map from the isolateId to
+// anything implementing IsolateEmbedderData. When an isolate goes away,
+// the cleanup method will be invoked after being removed from the map.
+final Map<int, IsolateEmbedderData> isolateEmbedderData =
+    new Map<int, IsolateEmbedderData>();
+
 // These must be kept in sync with the declarations in vm/json_stream.h.
 const kInvalidParams = -32602;
 const kInternalError = -32603;
@@ -124,6 +134,10 @@ class VMService extends MessageRouter {
       break;
       case Constants.ISOLATE_SHUTDOWN_MESSAGE_ID:
         runningIsolates.isolateShutdown(portId, sp);
+        IsolateEmbedderData ied = isolateEmbedderData.remove(portId);
+        if (ied != null) {
+          ied.cleanup();
+        }
       break;
     }
   }

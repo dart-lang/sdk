@@ -14,6 +14,7 @@ namespace bin {
 
 // Forward declaration.
 class EventHandler;
+class Loader;
 
 // Data associated with every isolate in the standalone VM
 // embedding. This is used to free external resources for each isolate
@@ -27,7 +28,8 @@ class IsolateData {
         package_root(NULL),
         packages_file(NULL),
         udp_receive_buffer(NULL),
-        builtin_lib_(NULL) {
+        builtin_lib_(NULL),
+        loader_(NULL) {
     if (package_root != NULL) {
       ASSERT(packages_file == NULL);
       this->package_root = strdup(package_root);
@@ -67,8 +69,20 @@ class IsolateData {
   char* packages_file;
   uint8_t* udp_receive_buffer;
 
+  // While loading a loader is associated with the isolate.
+  bool HasLoader() const { return loader_ != NULL; }
+  Loader* loader() const {
+    ASSERT(loader_ != NULL);
+    return loader_;
+  }
+  void set_loader(Loader* loader) {
+    ASSERT((loader_ == NULL) || (loader == NULL));
+    loader_ = loader;
+  }
+
  private:
   Dart_Handle builtin_lib_;
+  Loader* loader_;
 
   DISALLOW_COPY_AND_ASSIGN(IsolateData);
 };

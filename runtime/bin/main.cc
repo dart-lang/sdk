@@ -17,6 +17,7 @@
 #include "bin/extensions.h"
 #include "bin/file.h"
 #include "bin/isolate_data.h"
+#include "bin/loader.h"
 #include "bin/log.h"
 #include "bin/platform.h"
 #include "bin/process.h"
@@ -726,7 +727,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   }
 
   // Set up the library tag handler for this isolate.
-  Dart_Handle result = Dart_SetLibraryTagHandler(DartUtils::LibraryTagHandler);
+  Dart_Handle result = Dart_SetLibraryTagHandler(Loader::LibraryTagHandler);
   CHECK_RESULT(result);
 
   if (Dart_IsServiceIsolate(isolate)) {
@@ -772,11 +773,12 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
     CHECK_RESULT(result);
   } else {
     // Load the specified application script into the newly created isolate.
-    result = DartUtils::LoadScript(script_uri);
-    CHECK_RESULT(result);
-
-    // Run event-loop and wait for script loading to complete.
-    result = Dart_RunLoop();
+    Dart_Handle uri =
+        DartUtils::ResolveScript(Dart_NewStringFromCString(script_uri));
+    CHECK_RESULT(uri);
+    result = Loader::LibraryTagHandler(Dart_kScriptTag,
+                                       Dart_Null(),
+                                       uri);
     CHECK_RESULT(result);
 
     Dart_TimelineEvent("LoadScript",

@@ -2656,10 +2656,10 @@ DART_EXPORT Dart_Handle Dart_SetNativeResolver(
 /* TODO(turnidge): Finish documenting this section. */
 
 typedef enum {
-  Dart_kImportTag = 0,
-  Dart_kSourceTag,
-  Dart_kCanonicalizeUrl,
+  Dart_kCanonicalizeUrl = 0,
   Dart_kScriptTag,
+  Dart_kSourceTag,
+  Dart_kImportTag,
 } Dart_LibraryTag;
 
 /* TODO(turnidge): Document. */

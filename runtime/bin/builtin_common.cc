@@ -23,13 +23,18 @@ namespace dart {
 namespace bin {
 
 Dart_Handle Builtin::SetLoadPort(Dart_Port port) {
+  Dart_Handle builtin_lib =
+      Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
+  RETURN_IF_ERROR(builtin_lib);
+  // Set the _isolateId field.
+  Dart_Handle result = Dart_SetField(builtin_lib,
+                                     DartUtils::NewString("_isolateId"),
+                                     Dart_NewInteger(Dart_GetMainPortId()));
+  RETURN_IF_ERROR(result);
   load_port_ = port;
   ASSERT(load_port_ != ILLEGAL_PORT);
   Dart_Handle field_name = DartUtils::NewString("_loadPort");
   RETURN_IF_ERROR(field_name);
-  Dart_Handle builtin_lib =
-      Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-  RETURN_IF_ERROR(builtin_lib);
   Dart_Handle send_port = Dart_GetField(builtin_lib, field_name);
   RETURN_IF_ERROR(send_port);
   if (!Dart_IsNull(send_port)) {
@@ -38,7 +43,7 @@ Dart_Handle Builtin::SetLoadPort(Dart_Port port) {
   }
   send_port = Dart_NewSendPort(load_port_);
   RETURN_IF_ERROR(send_port);
-  Dart_Handle result = Dart_SetField(builtin_lib, field_name, send_port);
+  result = Dart_SetField(builtin_lib, field_name, send_port);
   RETURN_IF_ERROR(result);
   return Dart_True();
 }

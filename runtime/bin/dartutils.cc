@@ -334,18 +334,6 @@ Dart_Handle DartUtils::SetWorkingDirectory() {
 }
 
 
-Dart_Handle DartUtils::ResolveUri(Dart_Handle library_url, Dart_Handle url) {
-  const int kNumArgs = 2;
-  Dart_Handle dart_args[kNumArgs];
-  dart_args[0] = library_url;
-  dart_args[1] = url;
-  return Dart_Invoke(DartUtils::BuiltinLib(),
-                     NewString("_resolveUri"),
-                     kNumArgs,
-                     dart_args);
-}
-
-
 Dart_Handle DartUtils::ResolveUriInWorkingDirectory(Dart_Handle script_uri) {
   const int kNumArgs = 1;
   Dart_Handle dart_args[kNumArgs];
@@ -374,6 +362,29 @@ Dart_Handle DartUtils::LibraryFilePath(Dart_Handle library_uri) {
   dart_args[0] = library_uri;
   return Dart_Invoke(DartUtils::BuiltinLib(),
                      NewString("_libraryFilePath"),
+                     kNumArgs,
+                     dart_args);
+}
+
+
+Dart_Handle DartUtils::ResolveUri(Dart_Handle library_url, Dart_Handle url) {
+  const int kNumArgs = 2;
+  Dart_Handle dart_args[kNumArgs];
+  dart_args[0] = library_url;
+  dart_args[1] = url;
+  return Dart_Invoke(DartUtils::BuiltinLib(),
+                     NewString("_resolveUri"),
+                     kNumArgs,
+                     dart_args);
+}
+
+
+Dart_Handle DartUtils::ResolveScript(Dart_Handle url) {
+  const int kNumArgs = 1;
+  Dart_Handle dart_args[kNumArgs];
+  dart_args[0] = url;
+  return Dart_Invoke(DartUtils::BuiltinLib(),
+                     NewString("_resolveScriptUri"),
                      kNumArgs,
                      dart_args);
 }
@@ -742,7 +753,7 @@ Dart_Handle DartUtils::SetupPackageRoot(const char* package_root,
     Dart_Handle dart_args[kNumArgs];
     dart_args[0] = result;
     result = Dart_Invoke(DartUtils::BuiltinLib(),
-                         NewString("_loadPackagesMap"),
+                         NewString("_setPackagesMap"),
                          kNumArgs,
                          dart_args);
     RETURN_IF_ERROR(result);
