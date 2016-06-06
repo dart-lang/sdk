@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -1529,52 +1528,6 @@ class _UnitResynthesizer {
     assert(!libraryResynthesizer.isCoreLibrary);
     EnumElementImpl classElement =
         new EnumElementImpl.forSerialized(serializedEnum, unit);
-    InterfaceType enumType = classElement.type;
-    ElementHolder memberHolder = new ElementHolder();
-    // Build the 'index' field.
-    FieldElementImpl indexField = new FieldElementImpl('index', -1);
-    indexField.final2 = true;
-    indexField.synthetic = true;
-    indexField.type = typeProvider.intType;
-    memberHolder.addField(indexField);
-    buildImplicitAccessors(indexField, memberHolder);
-    // Build the 'values' field.
-    FieldElementImpl valuesField = new ConstFieldElementImpl('values', -1);
-    valuesField.synthetic = true;
-    valuesField.const3 = true;
-    valuesField.static = true;
-    valuesField.type = typeProvider.listType.instantiate(<DartType>[enumType]);
-    memberHolder.addField(valuesField);
-    buildImplicitAccessors(valuesField, memberHolder);
-    // Build fields for all enum constants.
-    List<DartObjectImpl> constantValues = <DartObjectImpl>[];
-    for (int i = 0; i < serializedEnum.values.length; i++) {
-      UnlinkedEnumValue serializedEnumValue = serializedEnum.values[i];
-      String fieldName = serializedEnumValue.name;
-      ConstFieldElementImpl field =
-          new ConstFieldElementImpl(fieldName, serializedEnumValue.nameOffset);
-      buildDocumentation(field, serializedEnumValue.documentationComment);
-      field.const3 = true;
-      field.static = true;
-      field.type = enumType;
-      // Create a value for the constant.
-      Map<String, DartObjectImpl> fieldMap = <String, DartObjectImpl>{
-        fieldName: new DartObjectImpl(typeProvider.intType, new IntState(i))
-      };
-      DartObjectImpl value =
-          new DartObjectImpl(enumType, new GenericState(fieldMap));
-      constantValues.add(value);
-      field.evaluationResult = new EvaluationResultImpl(value);
-      // Add the field.
-      memberHolder.addField(field);
-      buildImplicitAccessors(field, memberHolder);
-    }
-    // Build the value of the 'values' field.
-    valuesField.evaluationResult = new EvaluationResultImpl(
-        new DartObjectImpl(valuesField.type, new ListState(constantValues)));
-    // done
-    classElement.fields = memberHolder.fields;
-    classElement.accessors = memberHolder.accessors;
     unitHolder.addEnum(classElement);
   }
 

@@ -671,7 +671,9 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       expect(rImpl.evaluationResult, isNull);
     } else {
       Type rRuntimeType;
-      if (rImpl is FunctionElementImpl) {
+      if (rImpl is ConstFieldElementImpl) {
+        rRuntimeType = ConstFieldElementImpl;
+      } else if (rImpl is FunctionElementImpl) {
         rRuntimeType = FunctionElementImpl;
       } else {
         rRuntimeType = rImpl.runtimeType;

@@ -14,6 +14,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
@@ -1787,6 +1788,149 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
 }
 
 /**
+ * A field element representing an enum constant.
+ */
+class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
+  final UnlinkedEnumValue _unlinkedEnumValue;
+  final int _index;
+
+  ConstFieldElementImpl_EnumValue(
+      EnumElementImpl enumElement, this._unlinkedEnumValue, this._index)
+      : super(enumElement);
+
+  @override
+  SourceRange get docRange {
+    if (_unlinkedEnumValue != null) {
+      UnlinkedDocumentationComment comment =
+          _unlinkedEnumValue.documentationComment;
+      return comment != null
+          ? new SourceRange(comment.offset, comment.length)
+          : null;
+    }
+    return super.docRange;
+  }
+
+  @override
+  String get documentationComment {
+    if (_unlinkedEnumValue != null) {
+      return _unlinkedEnumValue?.documentationComment?.text;
+    }
+    return super.documentationComment;
+  }
+
+  @override
+  EvaluationResultImpl get evaluationResult {
+    if (_evaluationResult == null) {
+      Map<String, DartObjectImpl> fieldMap = <String, DartObjectImpl>{
+        name: new DartObjectImpl(
+            context.typeProvider.intType, new IntState(_index))
+      };
+      DartObjectImpl value =
+          new DartObjectImpl(type, new GenericState(fieldMap));
+      _evaluationResult = new EvaluationResultImpl(value);
+    }
+    return _evaluationResult;
+  }
+
+  @override
+  String get name {
+    if (_unlinkedEnumValue != null) {
+      return _unlinkedEnumValue.name;
+    }
+    return super.name;
+  }
+
+  @override
+  int get nameOffset {
+    if (_unlinkedEnumValue != null) {
+      return _unlinkedEnumValue.nameOffset;
+    }
+    return super.nameOffset;
+  }
+
+  @override
+  InterfaceType get type => _enum.type;
+}
+
+/**
+ * The synthetic `values` field of an enum.
+ */
+class ConstFieldElementImpl_EnumValues extends ConstFieldElementImpl_ofEnum {
+  ConstFieldElementImpl_EnumValues(EnumElementImpl enumElement)
+      : super(enumElement) {
+    synthetic = true;
+  }
+
+  @override
+  EvaluationResultImpl get evaluationResult {
+    if (_evaluationResult == null) {
+      List<DartObjectImpl> constantValues = <DartObjectImpl>[];
+      for (FieldElement field in _enum.fields) {
+        if (field is ConstFieldElementImpl_EnumValue) {
+          constantValues.add(field.evaluationResult.value);
+        }
+      }
+      _evaluationResult = new EvaluationResultImpl(
+          new DartObjectImpl(type, new ListState(constantValues)));
+    }
+    return _evaluationResult;
+  }
+
+  @override
+  String get name => 'values';
+
+  @override
+  InterfaceType get type {
+    if (_type == null) {
+      InterfaceType listType = context.typeProvider.listType;
+      return _type = listType.instantiate(<DartType>[_enum.type]);
+    }
+    return _type;
+  }
+}
+
+/**
+ * An abstract constant field of an enum.
+ */
+abstract class ConstFieldElementImpl_ofEnum extends ConstFieldElementImpl {
+  final EnumElementImpl _enum;
+
+  ConstFieldElementImpl_ofEnum(this._enum) : super(null, -1) {
+    enclosingElement = _enum;
+  }
+
+  @override
+  void set const3(bool isConst) {
+    assert(false);
+  }
+
+  @override
+  void set evaluationResult(_) {
+    assert(false);
+  }
+
+  @override
+  void set final2(bool isFinal) {
+    assert(false);
+  }
+
+  @override
+  bool get isConst => true;
+
+  @override
+  bool get isStatic => true;
+
+  @override
+  void set static(bool isStatic) {
+    assert(false);
+  }
+
+  void set type(DartType type) {
+    assert(false);
+  }
+}
+
+/**
  * A [LocalVariableElement] for a local 'const' variable that has an
  * initializer.
  */
@@ -2166,8 +2310,7 @@ abstract class ConstVariableElement
    */
   Expression _constantInitializer;
 
-  @override
-  EvaluationResultImpl evaluationResult;
+  EvaluationResultImpl _evaluationResult;
 
   Expression get constantInitializer {
     if (_constantInitializer == null && _unlinkedConst != null) {
@@ -2180,6 +2323,12 @@ abstract class ConstVariableElement
   void set constantInitializer(Expression constantInitializer) {
     assert(_unlinkedConst == null);
     _constantInitializer = constantInitializer;
+  }
+
+  EvaluationResultImpl get evaluationResult => _evaluationResult;
+
+  void set evaluationResult(EvaluationResultImpl evaluationResult) {
+    _evaluationResult = evaluationResult;
   }
 
   /**
@@ -3191,6 +3340,20 @@ class EnumElementImpl extends AbstractClassElementImpl {
   }
 
   @override
+  List<PropertyAccessorElement> get accessors {
+    if (_unlinkedEnum != null && _accessors == null) {
+      _resynthesizeFieldsAndPropertyAccessors();
+    }
+    return _accessors ?? const <PropertyAccessorElement>[];
+  }
+
+  @override
+  void set accessors(List<PropertyAccessorElement> accessors) {
+    assert(_unlinkedEnum == null);
+    super.accessors = accessors;
+  }
+
+  @override
   List<InterfaceType> get allSupertypes => <InterfaceType>[supertype];
 
   @override
@@ -3235,6 +3398,20 @@ class EnumElementImpl extends AbstractClassElementImpl {
       return _unlinkedEnum?.documentationComment?.text;
     }
     return super.documentationComment;
+  }
+
+  @override
+  List<FieldElement> get fields {
+    if (_unlinkedEnum != null && _fields == null) {
+      _resynthesizeFieldsAndPropertyAccessors();
+    }
+    return _fields ?? const <FieldElement>[];
+  }
+
+  @override
+  void set fields(List<FieldElement> fields) {
+    assert(_unlinkedEnum == null);
+    super.fields = fields;
   }
 
   @override
@@ -3337,6 +3514,32 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   bool isSuperConstructorAccessible(ConstructorElement constructor) => false;
+
+  void _resynthesizeFieldsAndPropertyAccessors() {
+    List<FieldElementImpl> fields = <FieldElementImpl>[];
+    // Build the 'index' field.
+    fields.add(new FieldElementImpl('index', -1)
+      ..enclosingElement = this
+      ..synthetic = true
+      ..final2 = true
+      ..type = context.typeProvider.intType);
+    // Build the 'values' field.
+    fields.add(new ConstFieldElementImpl_EnumValues(this));
+    // Build fields for all enum constants.
+    for (int i = 0; i < _unlinkedEnum.values.length; i++) {
+      UnlinkedEnumValue unlinkedValue = _unlinkedEnum.values[i];
+      ConstFieldElementImpl_EnumValue field =
+          new ConstFieldElementImpl_EnumValue(this, unlinkedValue, i);
+      fields.add(field);
+    }
+    // done
+    _fields = fields;
+    _accessors = fields
+        .map((FieldElementImpl field) =>
+            new PropertyAccessorElementImpl_ImplicitGetter(field)
+              ..enclosingElement = this)
+        .toList(growable: false);
+  }
 }
 
 /**
@@ -7427,6 +7630,7 @@ class PropertyAccessorElementImpl_ImplicitGetter
       PropertyInducingElementImpl property)
       : super.forVariable(property) {
     property.getter = this;
+    enclosingElement = property.enclosingElement;
   }
 
   @override
