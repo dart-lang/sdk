@@ -1053,6 +1053,10 @@ class CodeGenerator extends GeneralizingAstVisitor
     // Create static values list
     var values = new JS.ArrayInitializer(new List<JS.Expression>.from(
         fields.map((f) => js.call('#.#', [id, f.name]))));
+
+    // dart.constList helper internally depends on _interceptors.JSArray.
+    _declareBeforeUse(_jsArray);
+
     result.add(js.statement(
         '#.values = dart.constList(#, #);', [id, values, _emitType(type)]));
 
