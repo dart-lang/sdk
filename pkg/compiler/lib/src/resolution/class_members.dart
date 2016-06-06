@@ -876,6 +876,9 @@ abstract class ClassMemberMixin implements ClassElement {
   /// and private names.
   void computeClassMember(
       Resolution resolution, String name, Setlet<Name> names) {
+    // TODO(johnniwinther): Should we assert that the class has been resolved
+    // instead?
+    ensureResolved(resolution);
     if (isMemberComputed(name)) return;
     if (Name.isPrivateName(name)) {
       names
@@ -899,6 +902,9 @@ abstract class ClassMemberMixin implements ClassElement {
   }
 
   void computeAllClassMembers(Resolution resolution) {
+    // TODO(johnniwinther): Should we assert that the class has been resolved
+    // instead?
+    ensureResolved(resolution);
     if (areAllMembersComputed()) return;
     MembersCreator creator = _prepareCreator(resolution);
     creator.computeAllMembers();

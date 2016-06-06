@@ -375,6 +375,16 @@ void foo() {}
 main() => const String.fromEnvironment("foo");
 ''',
   }),
+
+  const Test('Disable tree shaking through reflection', const {
+    'main.dart': '''
+import 'dart:mirrors';
+
+main() {
+  reflect(null).invoke(#toString, []).reflectee;
+}
+''',
+  }, expectedWarningCount: 1),
 ];
 
 class Test {
