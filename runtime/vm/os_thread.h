@@ -173,10 +173,6 @@ class OSThread : public BaseThread {
   // called when the retunred id will eventually be passed to OSThread::Join().
   static ThreadJoinId GetCurrentThreadJoinId(OSThread* thread);
 
-  // This function can be called only once per OSThread, and should only be
-  // called when the retunred id will eventually be passed to OSThread::Join().
-  static ThreadJoinId GetCurrentThreadJoinId(OSThread* thread);
-
   // Called at VM startup and shutdown.
   static void InitOnce();
 
