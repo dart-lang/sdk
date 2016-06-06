@@ -77,6 +77,16 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitAsExpression(AsExpression node) {
+    if (identical(entity, node.asOperator) &&
+        node.expression is ParenthesizedExpression) {
+      _addSuggestion2(ASYNC, relevance: DART_RELEVANCE_HIGH);
+      _addSuggestion2(ASYNC_STAR, relevance: DART_RELEVANCE_HIGH);
+      _addSuggestion2(SYNC_STAR, relevance: DART_RELEVANCE_HIGH);
+    }
+  }
+
+  @override
   visitBlock(Block node) {
     if (entity is ExpressionStatement) {
       Expression expression = (entity as ExpressionStatement).expression;
