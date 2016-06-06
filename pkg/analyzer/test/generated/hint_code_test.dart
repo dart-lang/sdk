@@ -1105,6 +1105,23 @@ abstract class B implements A {
     verify([source]);
   }
 
+  void test_invalidUseOfProtectedMember_closure() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @protected
+  int a() => 42;
+}
+void main() {
+  var leak = new A().a;
+  print(leak);
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    verify([source]);
+  }
+
   void test_invalidUseOfProtectedMember_getter() {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';

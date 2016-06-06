@@ -262,7 +262,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitMethodInvocation(MethodInvocation node) {
     _checkForCanBeNullAfterNullAware(node.realTarget, node.operator);
-    _checkForInvalidProtectedMethodCalls(node);
     DartType staticInvokeType = node.staticInvokeType;
     if (staticInvokeType is InterfaceType) {
       MethodElement methodElement = staticInvokeType.lookUpMethod(
@@ -300,7 +299,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     _checkForDeprecatedMemberUseAtIdentifier(node);
-    _checkForInvalidProtectedPropertyAccess(node);
+    _checkForInvalidProtectedMemberAccess(node);
     return super.visitSimpleIdentifier(node);
   }
 
@@ -678,59 +677,35 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Produces a hint if the given invocation is of a protected method outside
-   * a subclass instance method.
+   * Produces a hint if the given identifier is a protected closure, field or
+   * getter/setter, method closure or invocation accessed outside a subclass.
    */
-  void _checkForInvalidProtectedMethodCalls(MethodInvocation node) {
-    Element element = node.methodName.bestElement;
-    if (element == null || !element.isProtected) {
-      return;
-    }
-
-    ClassElement definingClass = element.enclosingElement;
-
-    MethodDeclaration decl =
-        node.getAncestor((AstNode node) => node is MethodDeclaration);
-    if (decl == null) {
-      _errorReporter.reportErrorForNode(
-          HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
-          node,
-          [node.methodName.toString(), definingClass.name]);
-      return;
-    }
-
-    ClassElement invokingClass = decl.element?.enclosingElement;
-    if (!_hasTypeOrSuperType(invokingClass, definingClass.type)) {
-      _errorReporter.reportErrorForNode(
-          HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
-          node,
-          [node.methodName.toString(), definingClass.name]);
-    }
-  }
-
-  /**
-   * Produces a hint if the given identifier is a protected field or getter
-   * accessed outside a subclass.
-   */
-  void _checkForInvalidProtectedPropertyAccess(SimpleIdentifier identifier) {
+  void _checkForInvalidProtectedMemberAccess(SimpleIdentifier identifier) {
     if (identifier.inDeclarationContext()) {
       return;
     }
+
+    bool isProtected(Element element) {
+      if (element is PropertyAccessorElement &&
+          element.enclosingElement is ClassElement &&
+          (element.isProtected || element.variable.isProtected)) {
+        return true;
+      }
+      if (element is MethodElement &&
+          element.enclosingElement is ClassElement &&
+          element.isProtected) {
+        return true;
+      }
+      return false;
+    }
+
     Element element = identifier.bestElement;
-    if (element is PropertyAccessorElement &&
-        element.enclosingElement is ClassElement &&
-        (element.isProtected || element.variable.isProtected)) {
+    if (isProtected(element)) {
       ClassElement definingClass = element.enclosingElement;
       ClassDeclaration accessingClass =
           identifier.getAncestor((AstNode node) => node is ClassDeclaration);
-
-      if (accessingClass == null) {
-        _errorReporter.reportErrorForNode(
-            HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
-            identifier,
-            [identifier.name.toString(), definingClass.name]);
-      } else if (!_hasTypeOrSuperType(
-          accessingClass.element, definingClass.type)) {
+      if (accessingClass == null ||
+          !_hasTypeOrSuperType(accessingClass.element, definingClass.type)) {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
             identifier,
