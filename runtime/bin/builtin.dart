@@ -1,5 +1,5 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
+// for details. All rights solveserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 library builtin;
@@ -246,15 +246,15 @@ _setPackageRoot(String packageRoot) {
   if (_traceLoading) {
     _log('Setting package root: $packageRoot');
   }
-  packageRoot = _enforceTrailingSlash(packageRoot);
   if (packageRoot.startsWith('file:') ||
       packageRoot.startsWith('http:') ||
       packageRoot.startsWith('https:')) {
+    packageRoot = _enforceTrailingSlash(packageRoot);
     _packageRoot = _workingDirectory.resolve(packageRoot);
   } else {
     packageRoot = _sanitizeWindowsPath(packageRoot);
     packageRoot = _trimWindowsPath(packageRoot);
-    _packageRoot = _workingDirectory.resolveUri(new Uri.file(packageRoot));
+    _packageRoot = _workingDirectory.resolveUri(new Uri.directory(packageRoot));
   }
   // Now that we have determined the packageRoot value being used, set it
   // up for use in Platform.packageRoot. This is only set when the embedder
