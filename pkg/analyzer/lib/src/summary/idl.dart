@@ -58,6 +58,44 @@ import 'format.dart' as generated;
 const informative = null;
 
 /**
+ * Information about an analysis error in a source.
+ */
+abstract class CacheAnalysisError extends base.SummaryClass {
+  /**
+   * The correction to be displayed for this error, or `null` if there is no
+   * correction information for this error. The correction should indicate how
+   * the user can fix the error.
+   */
+  @Id(4)
+  String get correction;
+
+  /**
+   * The unique name of the error code.
+   */
+  @Id(0)
+  String get errorCodeUniqueName;
+
+  /**
+   * Length of the error range.
+   */
+  @Id(2)
+  int get length;
+
+  /**
+   * The message to be displayed for this error. The message should indicate
+   * what is wrong and why it is wrong.
+   */
+  @Id(3)
+  String get message;
+
+  /**
+   * Offset of the error range relative to the beginning of the file.
+   */
+  @Id(1)
+  int get offset;
+}
+
+/**
  * Information about a source that depends only on its content.
  */
 @TopLevel('CaSS')
@@ -91,6 +129,21 @@ abstract class CacheSourceContent extends base.SummaryClass {
    */
   @Id(3)
   List<String> get partUris;
+}
+
+/**
+ * Errors of a source in a library, which depends on the import/export closure
+ * of the containing library and the source.
+ */
+@TopLevel('CSEL')
+abstract class CacheSourceErrorsInLibrary extends base.SummaryClass {
+  factory CacheSourceErrorsInLibrary.fromBuffer(List<int> buffer) =>
+      generated.readCacheSourceErrorsInLibrary(buffer);
+  /**
+   * The list of errors in the source in the library.
+   */
+  @Id(0)
+  List<CacheAnalysisError> get errors;
 }
 
 /**

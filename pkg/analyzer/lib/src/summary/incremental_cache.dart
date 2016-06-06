@@ -8,6 +8,7 @@ import 'dart:core' hide Resource;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -159,6 +160,28 @@ class IncrementalCache {
   }
 
   /**
+   * Return cached errors in the given [source] in the context of the given
+   * [librarySource], or `null` if the cache does not have this information.
+   */
+  List<AnalysisError> getSourceErrorsInLibrary(
+      Source librarySource, Source source) {
+    try {
+      String key = _getSourceErrorsKey(librarySource, source);
+      List<int> bytes = storage.get(key);
+      if (bytes == null) {
+        return null;
+      }
+      CacheSourceErrorsInLibrary errorsObject =
+          new CacheSourceErrorsInLibrary.fromBuffer(bytes);
+      return errorsObject.errors
+          .map((e) => _convertErrorFromCached(source, e))
+          .toList();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /**
    * Return the kind of the given [source], or `null` if unknown.
    */
   SourceKind getSourceKind(Source source) {
@@ -185,6 +208,19 @@ class IncrementalCache {
     PackageBundleAssembler assembler = new PackageBundleAssembler();
     assembler.serializeLibraryElement(libraryElement);
     List<int> bytes = assembler.assemble().toBuffer();
+    storage.put(key, bytes);
+  }
+
+  /**
+   * Associate the given [errors] with the [source] in the [librarySource].
+   */
+  void putSourceErrorsInLibrary(
+      Source librarySource, Source source, List<AnalysisError> errors) {
+    CacheSourceErrorsInLibraryBuilder builder =
+        new CacheSourceErrorsInLibraryBuilder(
+            errors: errors.map(_convertErrorToCached).toList());
+    String key = _getSourceErrorsKey(librarySource, source);
+    List<int> bytes = builder.toBuffer();
     storage.put(key, bytes);
   }
 
@@ -236,6 +272,33 @@ class IncrementalCache {
   }
 
   /**
+   * Return the [AnalysisError] for the given [cachedError].
+   */
+  AnalysisError _convertErrorFromCached(
+      Source source, CacheAnalysisError cachedError) {
+    ErrorCode errorCode = _getErrorCode(cachedError);
+    return new AnalysisError.forValues(
+        source,
+        cachedError.offset,
+        cachedError.length,
+        errorCode,
+        cachedError.message,
+        cachedError.correction);
+  }
+
+  /**
+   * Return the [CacheAnalysisError] for the given [error].
+   */
+  CacheAnalysisError _convertErrorToCached(AnalysisError error) {
+    return new CacheAnalysisErrorBuilder(
+        errorCodeUniqueName: error.errorCode.uniqueName,
+        offset: error.offset,
+        length: error.length,
+        message: error.message,
+        correction: error.correction);
+  }
+
+  /**
    * Get the content based information about the given [source], maybe `null`
    * if the information is not in the cache.
    */
@@ -260,6 +323,18 @@ class IncrementalCache {
     List<int> hash = _getSourceContentHash(source);
     String hashStr = hex.encode(hash);
     return '$hashStr.content';
+  }
+
+  /**
+   * Return the [ErrorCode] of the given [error], throws if not found.
+   */
+  ErrorCode _getErrorCode(CacheAnalysisError error) {
+    String uniqueName = error.errorCodeUniqueName;
+    ErrorCode errorCode = ErrorCode.byUniqueName(uniqueName);
+    if (errorCode != null) {
+      return errorCode;
+    }
+    throw new StateError('Unable to find ErrorCode: $uniqueName');
   }
 
   /**
@@ -325,6 +400,18 @@ class IncrementalCache {
       List<int> sourceBytes = UTF8.encode(sourceText);
       return md5.convert(sourceBytes).bytes;
     });
+  }
+
+  /**
+   * Return the key for errors in the [source] in the [librarySource].
+   */
+  String _getSourceErrorsKey(Source librarySource, Source source) {
+    List<int> hash = _computeSaltedMD5OfBytes((ByteConversionSink byteSink) {
+      byteSink.add(_getLibraryClosureHash(librarySource));
+      byteSink.add(_getSourceContentHash(source));
+    });
+    String hashStr = hex.encode(hash);
+    return '$hashStr.errorsInLibrary';
   }
 
   /**

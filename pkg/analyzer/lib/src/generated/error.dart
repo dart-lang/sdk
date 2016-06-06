@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' show ScannerErrorCode;
 import 'package:analyzer/src/generated/generated/shared_messages.dart'
@@ -21,7 +22,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:source_span/source_span.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 
 /**
  * The descriptor used to associate error processors with analysis contexts in
@@ -121,6 +121,12 @@ class AnalysisError {
       this._correction = formatList(correctionTemplate, arguments);
     }
   }
+
+  /**
+   * Initialize a newly created analysis error with given values.
+   */
+  AnalysisError.forValues(this.source, this.offset, this.length, this.errorCode,
+      this._message, this._correction);
 
   /**
    * Return the template used to create the correction to be displayed for this
@@ -3023,6 +3029,11 @@ abstract class ErrorCode {
   ];
 
   /**
+   * The lazy initialized map from [uniqueName] to the [ErrorCode] instance.
+   */
+  static HashMap<String, ErrorCode> _uniqueNameToCodeMap;
+
+  /**
    * An empty list of error codes.
    */
   static const List<ErrorCode> EMPTY_LIST = const <ErrorCode>[];
@@ -3070,6 +3081,20 @@ abstract class ErrorCode {
 
   @override
   String toString() => uniqueName;
+
+  /**
+   * Return the [ErrorCode] with the given [uniqueName], or `null` if not
+   * found.
+   */
+  static ErrorCode byUniqueName(String uniqueName) {
+    if (_uniqueNameToCodeMap == null) {
+      _uniqueNameToCodeMap = new HashMap<String, ErrorCode>();
+      for (ErrorCode errorCode in values) {
+        _uniqueNameToCodeMap[errorCode.uniqueName] = errorCode;
+      }
+    }
+    return _uniqueNameToCodeMap[uniqueName];
+  }
 }
 
 /**
