@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show ChunkedConversionSink, UTF8;
+import 'dart:convert';
 import 'dart:core' hide Resource;
 
 import 'package:analyzer/dart/element/element.dart';
@@ -220,6 +220,21 @@ class IncrementalCache {
     }
   }
 
+  List<int> _computeSaltedMD5OfBytes(addData(ByteConversionSink byteSink)) {
+    Digest digest;
+    ChunkedConversionSink<Digest> digestSink =
+        new ChunkedConversionSink<Digest>.withCallback((List<Digest> digests) {
+      digest = digests.single;
+    });
+    ByteConversionSink byteSink = md5.startChunkedConversion(digestSink);
+    // Add data.
+    addData(byteSink);
+    byteSink.add(configSalt);
+    // Done.
+    byteSink.close();
+    return digest.bytes;
+  }
+
   /**
    * Get the content based information about the given [source], maybe `null`
    * if the information is not in the cache.
@@ -292,31 +307,12 @@ class IncrementalCache {
   List<int> _getLibraryClosureHash(Source librarySource) {
     return _libraryClosureHashMap.putIfAbsent(librarySource, () {
       List<Source> closure = _getLibraryClosure(librarySource);
-
-      Digest digest;
-
-      var digestSink = new ChunkedConversionSink<Digest>.withCallback(
-          (List<Digest> digests) {
-        digest = digests.single;
+      return _computeSaltedMD5OfBytes((ByteConversionSink byteSink) {
+        for (Source source in closure) {
+          List<int> sourceHash = _getSourceContentHash(source);
+          byteSink.add(sourceHash);
+        }
       });
-
-      var byteSink = md5.startChunkedConversion(digestSink);
-
-      for (Source source in closure) {
-        List<int> sourceHash = _getSourceContentHash(source);
-        byteSink.add(sourceHash);
-      }
-      byteSink.add(configSalt);
-
-      byteSink.close();
-      // TODO(paulberry): this call to `close` should not be needed.
-      // Can be removed once
-      //   https://github.com/dart-lang/crypto/issues/33
-      // is fixed – ensure the min version constraint on crypto is updated, tho.
-      // Does not cause any problems in the mean time.
-      digestSink.close();
-
-      return digest.bytes;
     });
   }
 
