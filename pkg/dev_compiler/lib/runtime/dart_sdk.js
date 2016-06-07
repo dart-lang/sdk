@@ -2555,7 +2555,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   _debugger.ObjectFormatter = class ObjectFormatter extends _debugger.Formatter {
     accept(object) {
-      return !dart.notNull(_debugger.isNativeJavaScriptObject(object));
+      return !dart.test(_debugger.isNativeJavaScriptObject(object));
     }
     preview(object) {
       return _debugger.getObjectTypeName(object);
@@ -3212,7 +3212,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let end = this[dartx.length];
         for (let i = 0; i < dart.notNull(end); i++) {
           let element = this[i];
-          if (!dart.notNull(test(E._check(element))) == removeMatching) {
+          if (!dart.test(test(E._check(element))) == removeMatching) {
             retained[dartx.add](element);
           }
           if (this[dartx.length] != end) dart.throw(new core.ConcurrentModificationError(this));
@@ -3236,7 +3236,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let i = this[dartx.length];
         this[dartx.checkGrowable]('addAll');
         for (let e of collection) {
-          dart.assert(i == this[dartx.length] || dart.notNull(dart.throw(new core.ConcurrentModificationError(this))));
+          dart.assert(i == this[dartx.length] || dart.test(dart.throw(new core.ConcurrentModificationError(this))));
           i = dart.notNull(i) + 1;
           this.push(e);
         }
@@ -3542,7 +3542,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[dartx.length] == 0;
       }
       get [dartx.isNotEmpty]() {
-        return !dart.notNull(this[dartx.isEmpty]);
+        return !dart.test(this[dartx.isEmpty]);
       }
       [dartx.toString]() {
         return collection.ListBase.listToString(this);
@@ -4682,7 +4682,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[dartx.length] == 0;
     }
     get [dartx.isNotEmpty]() {
-      return !dart.notNull(this[dartx.isEmpty]);
+      return !dart.test(this[dartx.isEmpty]);
     }
     [dartx.compareTo](other) {
       if (!(typeof other == 'string')) dart.throw(_js_helper.argumentErrorValue(other));
@@ -4902,7 +4902,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[dartx.length] == 0;
       }
       get isNotEmpty() {
-        return !dart.notNull(this[dartx.isEmpty]);
+        return !dart.test(this[dartx.isEmpty]);
       }
       get first() {
         if (this[dartx.length] == 0) dart.throw(_internal.IterableElementError.noElement());
@@ -5086,7 +5086,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         IterableOfE()._check(iterable);
         let i = this[dartx.length];
         for (let element of iterable) {
-          dart.assert(this[dartx.length] == i || dart.notNull(dart.throw(new core.ConcurrentModificationError(this))));
+          dart.assert(this[dartx.length] == i || dart.test(dart.throw(new core.ConcurrentModificationError(this))));
           this[dartx.length] = dart.notNull(i) + 1;
           this[dartx.set](i, element);
           i = dart.notNull(i) + 1;
@@ -5783,10 +5783,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return count;
       }
       get isEmpty() {
-        return !dart.notNull(this[dartx.iterator].moveNext());
+        return !dart.test(this[dartx.iterator].moveNext());
       }
       get isNotEmpty() {
-        return !dart.notNull(this[dartx.isEmpty]);
+        return !dart.test(this[dartx.isEmpty]);
       }
       take(count) {
         return TakeIterableOfE().new(this, count);
@@ -7708,7 +7708,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.ArgumentError(dart.str`"${name}" is not a valid (qualified) symbol name`));
     }
     static isValidSymbol(name) {
-      return dart.notNull(name[dartx.isEmpty]) || dart.notNull(_internal.Symbol.symbolPattern.hasMatch(name));
+      return dart.test(name[dartx.isEmpty]) || dart.test(_internal.Symbol.symbolPattern.hasMatch(name));
     }
   };
   dart.defineNamedConstructor(_internal.Symbol, 'unvalidated');
@@ -7835,9 +7835,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [_nativeDetectEnvironment]() {
       let isWindowDefined = _isolate_helper.globalWindow != null;
       let isWorkerDefined = _isolate_helper.globalWorker != null;
-      this.isWorker = !isWindowDefined && dart.notNull(_isolate_helper.globalPostMessageDefined);
-      this.supportsWorkers = dart.notNull(this.isWorker) || isWorkerDefined && _isolate_helper.IsolateNatives.thisScript != null;
-      this.fromCommandLine = !isWindowDefined && !dart.notNull(this.isWorker);
+      this.isWorker = !isWindowDefined && dart.test(_isolate_helper.globalPostMessageDefined);
+      this.supportsWorkers = dart.test(this.isWorker) || isWorkerDefined && _isolate_helper.IsolateNatives.thisScript != null;
+      this.fromCommandLine = !isWindowDefined && !dart.test(this.isWorker);
     }
     [_nativeInitWorkerMessageHandler]() {
       let func = (function(f, a) {
@@ -10914,7 +10914,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_length$0] == 0;
       }
       get isNotEmpty() {
-        return !dart.notNull(this.isEmpty);
+        return !dart.test(this.isEmpty);
       }
       get keys() {
         return new (LinkedHashMapKeyIterableOfK())(this);
@@ -12036,7 +12036,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     newInstance(constructorName, args, namedArgs) {
       if (namedArgs === void 0) namedArgs = null;
       dart.assert(_js_mirrors.getName(constructorName) == "");
-      dart.assert(namedArgs == null || dart.notNull(namedArgs[dartx.isEmpty]));
+      dart.assert(namedArgs == null || dart.test(namedArgs[dartx.isEmpty]));
       let instance = new (_js_mirrors._unwrap(this[_cls]))(...args);
       return new _js_mirrors.JsInstanceMirror._(instance);
     }
@@ -14940,7 +14940,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.lazyFn(_native_typed_data._checkValidIndex, () => intAndListAndintTovoid());
   _native_typed_data._checkValidRange = function(start, end, length) {
-    if (dart.test(_native_typed_data._isInvalidArrayIndex(start)) || (end == null ? dart.notNull(start) > dart.notNull(length) : dart.notNull(_native_typed_data._isInvalidArrayIndex(end)) || dart.notNull(start) > dart.notNull(end) || dart.notNull(end) > dart.notNull(length))) {
+    if (dart.test(_native_typed_data._isInvalidArrayIndex(start)) || (end == null ? dart.notNull(start) > dart.notNull(length) : dart.test(_native_typed_data._isInvalidArrayIndex(end)) || dart.notNull(start) > dart.notNull(end) || dart.notNull(end) > dart.notNull(length))) {
       dart.throw(_js_helper.diagnoseRangeError(start, end, length));
     }
     if (end == null) return length;
@@ -15235,7 +15235,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return dart.notNull(this[_state]) < async._BufferingStreamSubscription._STATE_IN_CALLBACK;
       }
       get [_mayResumeInput]() {
-        return !dart.notNull(this[_isPaused]) && (this[_pending] == null || dart.notNull(this[_pending].isEmpty));
+        return !dart.test(this[_isPaused]) && (this[_pending] == null || dart.test(this[_pending].isEmpty));
       }
       get [_cancelOnError]() {
         return (dart.notNull(this[_state]) & async._BufferingStreamSubscription._STATE_CANCEL_ON_ERROR) != 0;
@@ -15260,7 +15260,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [_add$](data) {
         T._check(data);
-        dart.assert(!dart.notNull(this[_isClosed$]));
+        dart.assert(!dart.test(this[_isClosed$]));
         if (dart.test(this[_isCanceled])) return;
         if (dart.test(this[_canFire])) {
           this[_sendData](data);
@@ -15277,7 +15277,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
       }
       [_close$]() {
-        dart.assert(!dart.notNull(this[_isClosed$]));
+        dart.assert(!dart.test(this[_isClosed$]));
         if (dart.test(this[_isCanceled])) return;
         this[_state] = (dart.notNull(this[_state]) | async._BufferingStreamSubscription._STATE_CLOSED) >>> 0;
         if (dart.test(this[_canFire])) {
@@ -15290,7 +15290,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.assert(this[_isInputPaused]);
       }
       [_onResume]() {
-        dart.assert(!dart.notNull(this[_isInputPaused]));
+        dart.assert(!dart.test(this[_isInputPaused]));
       }
       [_onCancel]() {
         dart.assert(this[_isCanceled]);
@@ -15311,9 +15311,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [_sendData](data) {
         T._check(data);
-        dart.assert(!dart.notNull(this[_isCanceled]));
-        dart.assert(!dart.notNull(this[_isPaused]));
-        dart.assert(!dart.notNull(this[_inCallback]));
+        dart.assert(!dart.test(this[_isCanceled]));
+        dart.assert(!dart.test(this[_isPaused]));
+        dart.assert(!dart.test(this[_inCallback]));
         let wasInputPaused = this[_isInputPaused];
         this[_state] = (dart.notNull(this[_state]) | async._BufferingStreamSubscription._STATE_IN_CALLBACK) >>> 0;
         this[_zone].runUnaryGuarded(dart.dynamic, T)(this[_onData], data);
@@ -15321,9 +15321,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_checkState](wasInputPaused);
       }
       [_sendError](error, stackTrace) {
-        dart.assert(!dart.notNull(this[_isCanceled]));
-        dart.assert(!dart.notNull(this[_isPaused]));
-        dart.assert(!dart.notNull(this[_inCallback]));
+        dart.assert(!dart.test(this[_isCanceled]));
+        dart.assert(!dart.test(this[_isPaused]));
+        dart.assert(!dart.test(this[_inCallback]));
         let wasInputPaused = this[_isInputPaused];
         const sendError = (function() {
           if (dart.test(this[_isCanceled]) && !dart.test(this[_waitsForCancel])) return;
@@ -15351,9 +15351,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
       }
       [_sendDone]() {
-        dart.assert(!dart.notNull(this[_isCanceled]));
-        dart.assert(!dart.notNull(this[_isPaused]));
-        dart.assert(!dart.notNull(this[_inCallback]));
+        dart.assert(!dart.test(this[_isCanceled]));
+        dart.assert(!dart.test(this[_isPaused]));
+        dart.assert(!dart.test(this[_inCallback]));
         const sendDone = (function() {
           if (!dart.test(this[_waitsForCancel])) return;
           this[_state] = (dart.notNull(this[_state]) | async._BufferingStreamSubscription._STATE_CANCELED | async._BufferingStreamSubscription._STATE_CLOSED | async._BufferingStreamSubscription._STATE_IN_CALLBACK) >>> 0;
@@ -15370,7 +15370,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
       }
       [_guardCallback](callback) {
-        dart.assert(!dart.notNull(this[_inCallback]));
+        dart.assert(!dart.test(this[_inCallback]));
         let wasInputPaused = this[_isInputPaused];
         this[_state] = (dart.notNull(this[_state]) | async._BufferingStreamSubscription._STATE_IN_CALLBACK) >>> 0;
         dart.dcall(callback);
@@ -15378,7 +15378,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_checkState](wasInputPaused);
       }
       [_checkState](wasInputPaused) {
-        dart.assert(!dart.notNull(this[_inCallback]));
+        dart.assert(!dart.test(this[_inCallback]));
         if (dart.test(this[_hasPending]) && dart.test(this[_pending].isEmpty)) {
           this[_state] = (dart.notNull(this[_state]) & ~async._BufferingStreamSubscription._STATE_HAS_PENDING) >>> 0;
           if (dart.test(this[_isInputPaused]) && dart.test(this[_mayResumeInput])) {
@@ -15575,10 +15575,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return false;
       }
       get hasListener() {
-        return !dart.notNull(this[_isEmpty]);
+        return !dart.test(this[_isEmpty]);
       }
       get [_hasOneListener]() {
-        dart.assert(!dart.notNull(this[_isEmpty]));
+        dart.assert(!dart.test(this[_isEmpty]));
         return core.identical(this[_firstSubscription], this[_lastSubscription]);
       }
       get [_isFiring]() {
@@ -15797,7 +15797,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         super.new(onListen, onCancel);
       }
       get [_mayAddEvent]() {
-        return dart.notNull(super[_mayAddEvent]) && !dart.notNull(this[_isFiring]);
+        return dart.test(super[_mayAddEvent]) && !dart.test(this[_isFiring]);
       }
       [_addEventError]() {
         if (dart.test(this[_isFiring])) {
@@ -15905,7 +15905,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         super.new(onListen, onCancel);
       }
       get [_hasPending]() {
-        return this[_pending] != null && !dart.notNull(this[_pending].isEmpty);
+        return this[_pending] != null && !dart.test(this[_pending].isEmpty);
       }
       [_addPendingEvent](event) {
         if (this[_pending] == null) {
@@ -15943,7 +15943,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           return super.done;
         }
         let result = super.close();
-        dart.assert(!dart.notNull(this[_hasPending]));
+        dart.assert(!dart.test(this[_hasPending]));
         return result;
       }
       [_callOnCancel]() {
@@ -16318,7 +16318,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_completeError](error, stackTrace);
       }
       get isCompleted() {
-        return !dart.notNull(this.future[_mayComplete]);
+        return !dart.test(this.future[_mayComplete]);
       }
     }
     dart.addTypeTests(_Completer);
@@ -16448,7 +16448,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_zone].runUnary(core.bool, dart.dynamic)(this[_errorTest], asyncError.error);
       }
       handleError(asyncError) {
-        dart.assert(dart.notNull(this.handlesError) && dart.notNull(this.hasErrorCallback));
+        dart.assert(dart.test(this.handlesError) && dart.test(this.hasErrorCallback));
         if (async.ZoneBinaryCallback.is(this.errorCallback)) {
           let typedErrorCallback = ZoneBinaryCallbackOfObject$Object$StackTrace().as(this.errorCallback);
           return this[_zone].runBinary(core.Object, core.Object, core.StackTrace)(typedErrorCallback, asyncError.error, asyncError.stackTrace);
@@ -16457,7 +16457,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
       }
       handleWhenComplete() {
-        dart.assert(!dart.notNull(this.handlesError));
+        dart.assert(!dart.test(this.handlesError));
         return this[_zone].run(dart.dynamic)(this[_whenCompleteAction]);
       }
     }
@@ -16621,12 +16621,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [_setValue](value) {
         T._check(value);
-        dart.assert(!dart.notNull(this[_isComplete]));
+        dart.assert(!dart.test(this[_isComplete]));
         this[_state] = async._Future._VALUE;
         this[_resultOrListeners] = value;
       }
       [_setErrorObject](error) {
-        dart.assert(!dart.notNull(this[_isComplete]));
+        dart.assert(!dart.test(this[_isComplete]));
         this[_state] = async._Future._ERROR;
         this[_resultOrListeners] = error;
       }
@@ -16634,7 +16634,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_setErrorObject](new async.AsyncError(error, stackTrace));
       }
       [_cloneResult](source) {
-        dart.assert(!dart.notNull(this[_isComplete]));
+        dart.assert(!dart.test(this[_isComplete]));
         dart.assert(source[_isComplete]);
         this[_state] = source[_state];
         this[_resultOrListeners] = source[_resultOrListeners];
@@ -16688,7 +16688,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
       }
       [_removeListeners]() {
-        dart.assert(!dart.notNull(this[_isComplete]));
+        dart.assert(!dart.test(this[_isComplete]));
         let current = async._FutureListener._check(this[_resultOrListeners]);
         this[_resultOrListeners] = null;
         return this[_reverseListeners](current);
@@ -16705,7 +16705,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return prev;
       }
       static _chainForeignFuture(source, target) {
-        dart.assert(!dart.notNull(target[_isComplete]));
+        dart.assert(!dart.test(target[_isComplete]));
         dart.assert(!async._Future.is(source));
         target[_setPendingComplete]();
         try {
@@ -16741,7 +16741,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
       }
       [_complete](value) {
-        dart.assert(!dart.notNull(this[_isComplete]));
+        dart.assert(!dart.test(this[_isComplete]));
         if (async.Future.is(value)) {
           if (async._Future.is(value)) {
             async._Future._chainCoreFuture(value, this);
@@ -16756,7 +16756,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [_completeWithValue](value) {
         T._check(value);
-        dart.assert(!dart.notNull(this[_isComplete]));
+        dart.assert(!dart.test(this[_isComplete]));
         dart.assert(!async.Future.is(value));
         let listeners = this[_removeListeners]();
         this[_setValue](value);
@@ -16764,13 +16764,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [_completeError](error, stackTrace) {
         if (stackTrace === void 0) stackTrace = null;
-        dart.assert(!dart.notNull(this[_isComplete]));
+        dart.assert(!dart.test(this[_isComplete]));
         let listeners = this[_removeListeners]();
         this[_setError](error, stackTrace);
         async._Future._propagateToListeners(this, listeners);
       }
       [_asyncComplete](value) {
-        dart.assert(!dart.notNull(this[_isComplete]));
+        dart.assert(!dart.test(this[_isComplete]));
         if (async.Future.is(value)) {
           let typedFuture = FutureOfT().as(value);
           if (async._Future.is(typedFuture)) {
@@ -16795,7 +16795,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }, VoidTovoid$()));
       }
       [_asyncCompleteError](error, stackTrace) {
-        dart.assert(!dart.notNull(this[_isComplete]));
+        dart.assert(!dart.test(this[_isComplete]));
         this[_setPendingComplete]();
         this[_zone].scheduleMicrotask(dart.fn(() => {
           this[_completeError](error, stackTrace);
@@ -16834,8 +16834,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
               oldZone = async.Zone._enter(zone);
             }
             function handleWhenCompleteCallback() {
-              dart.assert(!dart.notNull(listener.handlesValue));
-              dart.assert(!dart.notNull(listener.handlesError));
+              dart.assert(!dart.test(listener.handlesValue));
+              dart.assert(!dart.test(listener.handlesError));
               let completeResult = null;
               try {
                 completeResult = listener.handleWhenComplete();
@@ -17428,7 +17428,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return (dart.notNull(this[_state]) & async._StreamController._STATE_CLOSED) != 0;
       }
       get isPaused() {
-        return dart.test(this.hasListener) ? this[_subscription][_isInputPaused] : !dart.notNull(this[_isCanceled]);
+        return dart.test(this.hasListener) ? this[_subscription][_isInputPaused] : !dart.test(this[_isCanceled]);
       }
       get [_isAddingStream]() {
         return (dart.notNull(this[_state]) & async._StreamController._STATE_ADDSTREAM) != 0;
@@ -17895,7 +17895,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       schedule(dispatch) {
         _EventDispatchOfT()._check(dispatch);
         if (dart.test(this.isScheduled)) return;
-        dart.assert(!dart.notNull(this.isEmpty));
+        dart.assert(!dart.test(this.isEmpty));
         if (dart.test(this[_eventScheduled])) {
           dart.assert(this[_state] == async._PendingEvents._STATE_CANCELED);
           this[_state] = async._PendingEvents._STATE_SCHEDULED;
@@ -17943,7 +17943,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
         let isDone = null;
         try {
-          isDone = !dart.notNull(this[_iterator$].moveNext());
+          isDone = !dart.test(this[_iterator$].moveNext());
         } catch (e) {
           let s = dart.stackTrace(e);
           this[_iterator$] = null;
@@ -18072,7 +18072,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       handleNext(dispatch) {
         _EventDispatchOfT()._check(dispatch);
-        dart.assert(!dart.notNull(this.isScheduled));
+        dart.assert(!dart.test(this.isScheduled));
         let event = this.firstPendingEvent;
         this.firstPendingEvent = event.next;
         if (this.firstPendingEvent == null) {
@@ -18252,7 +18252,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_controller$][_subscribe](onData, onError, onDone, cancelOnError);
       }
       [_onCancel]() {
-        let shutdown = this[_controller$] == null || dart.notNull(this[_controller$].isClosed);
+        let shutdown = this[_controller$] == null || dart.test(this[_controller$].isClosed);
         if (this[_onCancelHandler] != null) {
           this[_zone].runUnary(dart.dynamic, _BroadcastSubscriptionWrapperOfT())(this[_onCancelHandler], new (_BroadcastSubscriptionWrapperOfT())(this));
         }
@@ -20081,7 +20081,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.lazyFn(async._rootErrorCallback, () => ZoneAndZoneDelegateAndZone__ToAsyncError());
   async._rootScheduleMicrotask = function(self, parent, zone, f) {
     if (!core.identical(async._ROOT_ZONE, zone)) {
-      let hasErrorHandler = !dart.notNull(async._ROOT_ZONE.inSameErrorZone(zone));
+      let hasErrorHandler = !dart.test(async._ROOT_ZONE.inSameErrorZone(zone));
       f = zone.bindCallback(dart.dynamic)(f, {runGuarded: hasErrorHandler});
       zone = async._ROOT_ZONE;
     }
@@ -20446,7 +20446,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_length$1] == 0;
       }
       get isNotEmpty() {
-        return !dart.notNull(this.isEmpty);
+        return !dart.test(this.isEmpty);
       }
       get keys() {
         return new (_HashMapKeyIterableOfK())(this);
@@ -20959,7 +20959,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this.length == 0;
       }
       get isNotEmpty() {
-        return !dart.notNull(this.isEmpty);
+        return !dart.test(this.isEmpty);
       }
       get keys() {
         return new (_Es6MapIterableOfK())(this, true);
@@ -21612,7 +21612,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_length$1] == 0;
       }
       get isNotEmpty() {
-        return !dart.notNull(this.isEmpty);
+        return !dart.test(this.isEmpty);
       }
       contains(object) {
         if (dart.test(collection._HashSet._isStringElement(object))) {
@@ -22005,7 +22005,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_length$1] == 0;
       }
       get isNotEmpty() {
-        return !dart.notNull(this.isEmpty);
+        return !dart.test(this.isEmpty);
       }
       contains(object) {
         if (dart.test(collection._LinkedHashSet._isStringElement(object))) {
@@ -22709,10 +22709,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return count;
       }
       get isEmpty() {
-        return !dart.notNull(this[dartx.iterator].moveNext());
+        return !dart.test(this[dartx.iterator].moveNext());
       }
       get isNotEmpty() {
-        return !dart.notNull(this.isEmpty);
+        return !dart.test(this.isEmpty);
       }
       take(count) {
         return TakeIterableOfE().new(this, count);
@@ -24931,7 +24931,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_root] == null;
       }
       get isNotEmpty() {
-        return !dart.notNull(this.isEmpty);
+        return !dart.test(this.isEmpty);
       }
       forEach(f) {
         let nodes = new (_SplayTreeNodeIteratorOfK())(this);
@@ -24947,7 +24947,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_clear$]();
       }
       containsKey(key) {
-        return dart.notNull(dart.dcall(this[_validKey], key)) && this[_splay](K.as(key)) == 0;
+        return dart.test(dart.dcall(this[_validKey], key)) && this[_splay](K.as(key)) == 0;
       }
       containsValue(value) {
         let found = false;
@@ -25103,14 +25103,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [_rebuildWorkList](currentNode) {
         _SplayTreeNodeOfK()._check(currentNode);
-        dart.assert(!dart.notNull(this[_workList][dartx.isEmpty]));
+        dart.assert(!dart.test(this[_workList][dartx.isEmpty]));
         this[_workList][dartx.clear]();
         if (currentNode == null) {
           this[_findLeftMostDescendent](this[_tree][_root]);
         } else {
           this[_tree][_splay](currentNode.key);
           this[_findLeftMostDescendent](this[_tree][_root].right);
-          dart.assert(!dart.notNull(this[_workList][dartx.isEmpty]));
+          dart.assert(!dart.test(this[_workList][dartx.isEmpty]));
         }
       }
       moveNext() {
@@ -25333,7 +25333,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_root].key;
       }
       contains(object) {
-        return dart.notNull(dart.dcall(this[_validKey], object)) && this[_splay](E.as(object)) == 0;
+        return dart.test(dart.dcall(this[_validKey], object)) && this[_splay](E.as(object)) == 0;
       }
       add(element) {
         E._check(element);
@@ -25629,7 +25629,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_data];
     }
     [_computeKeys$]() {
-      dart.assert(!dart.notNull(this[_isUpgraded]));
+      dart.assert(!dart.test(this[_isUpgraded]));
       let keys = core.List._check(this[_data]);
       if (keys == null) {
         keys = this[_data] = convert._JsonMap._getPropertyNames(this[_original]);
@@ -26750,7 +26750,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_state$0] = convert._Base64Decoder._encodePaddingState(0);
     }
     static decodeChunk(input, start, end, output, outIndex, state) {
-      dart.assert(!dart.notNull(convert._Base64Decoder._hasSeenPadding(state)));
+      dart.assert(!dart.test(convert._Base64Decoder._hasSeenPadding(state)));
       let asciiMask = 127;
       let asciiMax = 127;
       let eightBitMask = 255;
@@ -27764,7 +27764,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_seen][dartx.add](object);
     }
     [_removeSeen](object) {
-      dart.assert(!dart.notNull(this[_seen][dartx.isEmpty]));
+      dart.assert(!dart.test(this[_seen][dartx.isEmpty]));
       dart.assert(core.identical(this[_seen][dartx.last], object));
       this[_seen][dartx.removeLast]();
     }
@@ -28396,7 +28396,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return;
       }
       if (this[_carry] != null) {
-        dart.assert(!dart.notNull(this[_skipLeadingLF]));
+        dart.assert(!dart.test(this[_skipLeadingLF]));
         chunk = dart.notNull(this[_carry]) + dart.notNull(chunk[dartx.substring](start, end));
         start = 0;
         end = chunk[dartx.length];
@@ -28756,7 +28756,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let lastCodeUnit = string[dartx.codeUnitAt](dart.notNull(end) - 1);
         dart.assert(convert._isLeadSurrogate(lastCodeUnit));
         let wasCombined = encoder[_writeSurrogate](lastCodeUnit, 0);
-        dart.assert(!dart.notNull(wasCombined));
+        dart.assert(!dart.test(wasCombined));
       }
       return encoder[_buffer][dartx.sublist](0, encoder[_bufferIndex]);
     }
@@ -28934,7 +28934,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           dart.assert(isLast);
         }
         let wasCombined = this[_writeSurrogate](this[_carry], nextCodeUnit);
-        dart.assert(!dart.notNull(wasCombined) || start != end);
+        dart.assert(!dart.test(wasCombined) || start != end);
         if (dart.test(wasCombined)) {
           start = dart.notNull(start) + 1;
         }
@@ -28942,11 +28942,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       do {
         start = this[_fillBuffer](str, start, end);
-        let isLastSlice = dart.notNull(isLast) && start == end;
+        let isLastSlice = dart.test(isLast) && start == end;
         if (start == dart.notNull(end) - 1 && dart.test(convert._isLeadSurrogate(str[dartx.codeUnitAt](start)))) {
           if (dart.test(isLast) && dart.notNull(this[_bufferIndex]) < dart.notNull(this[_buffer][dartx.length]) - 3) {
             let hasBeenCombined = this[_writeSurrogate](str[dartx.codeUnitAt](start), 0);
-            dart.assert(!dart.notNull(hasBeenCombined));
+            dart.assert(!dart.test(hasBeenCombined));
           } else {
             this[_carry] = str[dartx.codeUnitAt](start);
           }
@@ -30329,7 +30329,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.fn(core.identityHashCode, ObjectToint());
   core.Invocation = class Invocation extends core.Object {
     get isAccessor() {
-      return dart.notNull(this.isGetter) || dart.notNull(this.isSetter);
+      return dart.test(this.isGetter) || dart.test(this.isSetter);
     }
   };
   core._Generator$ = dart.generic(E => {
@@ -30825,7 +30825,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.length == 0;
     }
     get isNotEmpty() {
-      return !dart.notNull(this.isEmpty);
+      return !dart.test(this.isEmpty);
     }
     write(obj) {
       this[_writeString](dart.str`${obj}`);
@@ -31553,7 +31553,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static _makePath(path, start, end, pathSegments, scheme, hasAuthority) {
       let isFile = scheme == "file";
-      let ensureLeadingSlash = isFile || dart.notNull(hasAuthority);
+      let ensureLeadingSlash = isFile || dart.test(hasAuthority);
       if (path == null && pathSegments == null) return isFile ? "/" : "";
       if (path != null && pathSegments != null) {
         dart.throw(new core.ArgumentError('Both path and pathSegments specified'));
@@ -31795,7 +31795,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return output[dartx.join]("/");
     }
     static _normalizeRelativePath(path) {
-      dart.assert(!dart.notNull(path[dartx.startsWith]('/')));
+      dart.assert(!dart.test(path[dartx.startsWith]('/')));
       if (!dart.test(core.Uri._mayContainDotSegments(path))) return path;
       dart.assert(path[dartx.isNotEmpty]);
       let output = JSArrayOfString().of([]);
@@ -34918,7 +34918,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
 
     }
     get [dartx.supportsDatabaseNames]() {
-      return dart.notNull(indexed_db.IdbFactory.supported) && !!(this.getDatabaseNames || this.webkitGetDatabaseNames);
+      return dart.test(indexed_db.IdbFactory.supported) && !!(this.getDatabaseNames || this.webkitGetDatabaseNames);
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -36689,7 +36689,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.DocumentFragment._check(fragment);
     }
     get [_canBeUsedToCreateContextualFragment]() {
-      return !dart.notNull(this[_cannotBeUsedToCreateContextualFragment]);
+      return !dart.test(this[_cannotBeUsedToCreateContextualFragment]);
     }
     get [_cannotBeUsedToCreateContextualFragment]() {
       return html$.Element._tagsForWhichCreateContextualFragmentIsNotSupported[dartx.contains](this[dartx.tagName]);
@@ -45564,7 +45564,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     [dartx.supportsProperty](propertyName) {
-      return dart.notNull(this[_supportsProperty](propertyName)) || dart.notNull(this[_supportsProperty](html$.CssStyleDeclaration._camelCase(dart.notNull(html_common.Device.cssPrefix) + dart.notNull(propertyName))));
+      return dart.test(this[_supportsProperty](propertyName)) || dart.test(this[_supportsProperty](html$.CssStyleDeclaration._camelCase(dart.notNull(html_common.Device.cssPrefix) + dart.notNull(propertyName))));
     }
     [_supportsProperty](propertyName) {
       return propertyName in this;
@@ -50529,7 +50529,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [_filter$](test, retainMatching) {
       let removed = null;
       if (dart.test(retainMatching)) {
-        removed = this[_element$][dartx.children][dartx.where](dart.fn(e => !dart.notNull(test(e)), ElementTobool()));
+        removed = this[_element$][dartx.children][dartx.where](dart.fn(e => !dart.test(test(e)), ElementTobool()));
       } else {
         removed = this[_element$][dartx.children][dartx.where](test);
       }
@@ -55493,7 +55493,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(html$.Element.isTagSupported('keygen')) && html$.KeygenElement.is(html$.Element.tag('keygen'));
+      return dart.test(html$.Element.isTagSupported('keygen')) && html$.KeygenElement.is(html$.Element.tag('keygen'));
     }
     get [dartx.autofocus]() {
       return this.autofocus;
@@ -64167,7 +64167,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_key](0) == null;
     }
     get [dartx.isNotEmpty]() {
-      return !dart.notNull(this[dartx.isEmpty]);
+      return !dart.test(this[dartx.isEmpty]);
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -70064,7 +70064,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[dartx.length] == 0;
     }
     get isNotEmpty() {
-      return !dart.notNull(this.isEmpty);
+      return !dart.test(this.isEmpty);
     }
   };
   html$._AttributeMap[dart.implements] = () => [MapOfString$String()];
@@ -70246,7 +70246,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.length == 0;
     }
     get isNotEmpty() {
-      return !dart.notNull(this.isEmpty);
+      return !dart.test(this.isEmpty);
     }
     [_attr](key) {
       return dart.str`data-${this[_toHyphenedName](key)}`;
@@ -70609,7 +70609,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_validateToken](value);
       let s = this.readClasses();
       let result = false;
-      if (shouldAdd == null) shouldAdd = !dart.notNull(s.contains(value));
+      if (shouldAdd == null) shouldAdd = !dart.test(s.contains(value));
       if (dart.test(shouldAdd)) {
         s.add(value);
         result = true;
@@ -70875,10 +70875,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     toggle(value, shouldAdd) {
       if (shouldAdd === void 0) shouldAdd = null;
-      return this[_sets][dartx.fold](core.bool)(false, dart.fn((changed, e) => dart.notNull(e.toggle(value, shouldAdd)) || dart.notNull(changed), boolAndCssClassSetImplTobool()));
+      return this[_sets][dartx.fold](core.bool)(false, dart.fn((changed, e) => dart.test(e.toggle(value, shouldAdd)) || dart.test(changed), boolAndCssClassSetImplTobool()));
     }
     remove(value) {
-      return this[_sets][dartx.fold](core.bool)(false, dart.fn((changed, e) => dart.notNull(e.remove(value)) || dart.notNull(changed), boolAndCssClassSetImplTobool()));
+      return this[_sets][dartx.fold](core.bool)(false, dart.fn((changed, e) => dart.test(e.remove(value)) || dart.test(changed), boolAndCssClassSetImplTobool()));
     }
   };
   dart.defineNamedConstructor(html$._MultiElementCssClassSet, '_');
@@ -70929,7 +70929,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$._ElementCssClassSet._add(this[_element$], value);
     }
     remove(value) {
-      return typeof value == 'string' && dart.notNull(html$._ElementCssClassSet._remove(this[_element$], value));
+      return typeof value == 'string' && dart.test(html$._ElementCssClassSet._remove(this[_element$], value));
     }
     toggle(value, shouldAdd) {
       if (shouldAdd === void 0) shouldAdd = null;
@@ -70951,11 +70951,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       html$._ElementCssClassSet._removeWhere(this[_element$], test, false);
     }
     static _contains(_element, value) {
-      return typeof value == 'string' && dart.notNull(html$._ElementCssClassSet._classListContains(html$._ElementCssClassSet._classListOf(_element), value));
+      return typeof value == 'string' && dart.test(html$._ElementCssClassSet._classListContains(html$._ElementCssClassSet._classListOf(_element), value));
     }
     static _add(_element, value) {
       let list = html$._ElementCssClassSet._classListOf(_element);
-      let added = !dart.notNull(html$._ElementCssClassSet._classListContainsBeforeAddOrRemove(list, value));
+      let added = !dart.test(html$._ElementCssClassSet._classListContainsBeforeAddOrRemove(list, value));
       html$._ElementCssClassSet._classListAdd(list, value);
       return added;
     }
@@ -72485,11 +72485,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       switch (event.keyCode) {
         case html$.KeyCode.ENTER:
         {
-          return !dart.notNull(html_common.Device.isIE);
+          return !dart.test(html_common.Device.isIE);
         }
         case html$.KeyCode.ESC:
         {
-          return !dart.notNull(html_common.Device.isWebKit);
+          return !dart.test(html_common.Device.isWebKit);
         }
       }
       return html$.KeyCode.isCharacterKey(event.keyCode);
@@ -72749,7 +72749,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this.allowedElements.addAll((allowedElements != null ? allowedElements : const$56 || (const$56 = dart.constList([], core.String))));
       allowedAttributes = allowedAttributes != null ? allowedAttributes : const$57 || (const$57 = dart.constList([], core.String));
       allowedUriAttributes = allowedUriAttributes != null ? allowedUriAttributes : const$58 || (const$58 = dart.constList([], core.String));
-      let legalAttributes = allowedAttributes[dartx.where](dart.fn(x => !dart.notNull(html$._Html5NodeValidator._uriAttributes[dartx.contains](x)), StringTobool()));
+      let legalAttributes = allowedAttributes[dartx.where](dart.fn(x => !dart.test(html$._Html5NodeValidator._uriAttributes[dartx.contains](x)), StringTobool()));
       let extraUriAttributes = allowedAttributes[dartx.where](dart.fn(x => html$._Html5NodeValidator._uriAttributes[dartx.contains](x), StringTobool()));
       this.allowedAttributes.addAll(legalAttributes);
       this.allowedUriAttributes.addAll(allowedUriAttributes);
@@ -72799,10 +72799,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (dart.test(this.allowTypeExtension)) {
         let isAttr = element[dartx.attributes][dartx.get]('is');
         if (isAttr != null) {
-          return dart.notNull(this.allowedElements.contains(isAttr[dartx.toUpperCase]())) && dart.notNull(this.allowedElements.contains(html$.Element._safeTagName(element)));
+          return dart.test(this.allowedElements.contains(isAttr[dartx.toUpperCase]())) && dart.test(this.allowedElements.contains(html$.Element._safeTagName(element)));
         }
       }
-      return dart.notNull(this.allowCustomTag) && dart.notNull(this.allowedElements.contains(html$.Element._safeTagName(element)));
+      return dart.test(this.allowCustomTag) && dart.test(this.allowedElements.contains(html$.Element._safeTagName(element)));
     }
     allowsAttribute(element, attributeName, value) {
       if (dart.test(this.allowsElement(element))) {
@@ -74038,7 +74038,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static get isIE() {
       if (html_common.Device._isIE == null) {
-        html_common.Device._isIE = !dart.notNull(html_common.Device.isOpera) && dart.notNull(html_common.Device.userAgent[dartx.contains]("Trident/", 0));
+        html_common.Device._isIE = !dart.test(html_common.Device.isOpera) && dart.test(html_common.Device.userAgent[dartx.contains]("Trident/", 0));
       }
       return html_common.Device._isIE;
     }
@@ -74050,7 +74050,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static get isWebKit() {
       if (html_common.Device._isWebKit == null) {
-        html_common.Device._isWebKit = !dart.notNull(html_common.Device.isOpera) && dart.notNull(html_common.Device.userAgent[dartx.contains]("WebKit", 0));
+        html_common.Device._isWebKit = !dart.test(html_common.Device.isOpera) && dart.test(html_common.Device.userAgent[dartx.contains]("WebKit", 0));
       }
       return html_common.Device._isWebKit;
     }
@@ -75096,7 +75096,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('animate')) && svg$.AnimateElement.is(svg$.SvgElement.tag('animate'));
+      return dart.test(svg$.SvgElement.isTagSupported('animate')) && svg$.AnimateElement.is(svg$.SvgElement.tag('animate'));
     }
   };
   dart.defineNamedConstructor(svg$.AnimateElement, 'created');
@@ -75119,7 +75119,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('animateMotion')) && svg$.AnimateMotionElement.is(svg$.SvgElement.tag('animateMotion'));
+      return dart.test(svg$.SvgElement.isTagSupported('animateMotion')) && svg$.AnimateMotionElement.is(svg$.SvgElement.tag('animateMotion'));
     }
   };
   dart.defineNamedConstructor(svg$.AnimateMotionElement, 'created');
@@ -75142,7 +75142,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('animateTransform')) && svg$.AnimateTransformElement.is(svg$.SvgElement.tag('animateTransform'));
+      return dart.test(svg$.SvgElement.isTagSupported('animateTransform')) && svg$.AnimateTransformElement.is(svg$.SvgElement.tag('animateTransform'));
     }
   };
   dart.defineNamedConstructor(svg$.AnimateTransformElement, 'created');
@@ -75618,7 +75618,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('feBlend')) && svg$.FEBlendElement.is(svg$.SvgElement.tag('feBlend'));
+      return dart.test(svg$.SvgElement.isTagSupported('feBlend')) && svg$.FEBlendElement.is(svg$.SvgElement.tag('feBlend'));
     }
     get [dartx.in1]() {
       return this.in1;
@@ -75690,7 +75690,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('feColorMatrix')) && svg$.FEColorMatrixElement.is(svg$.SvgElement.tag('feColorMatrix'));
+      return dart.test(svg$.SvgElement.isTagSupported('feColorMatrix')) && svg$.FEColorMatrixElement.is(svg$.SvgElement.tag('feColorMatrix'));
     }
     get [dartx.in1]() {
       return this.in1;
@@ -75757,7 +75757,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('feComponentTransfer')) && svg$.FEComponentTransferElement.is(svg$.SvgElement.tag('feComponentTransfer'));
+      return dart.test(svg$.SvgElement.isTagSupported('feComponentTransfer')) && svg$.FEComponentTransferElement.is(svg$.SvgElement.tag('feComponentTransfer'));
     }
     get [dartx.in1]() {
       return this.in1;
@@ -75921,7 +75921,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('feConvolveMatrix')) && svg$.FEConvolveMatrixElement.is(svg$.SvgElement.tag('feConvolveMatrix'));
+      return dart.test(svg$.SvgElement.isTagSupported('feConvolveMatrix')) && svg$.FEConvolveMatrixElement.is(svg$.SvgElement.tag('feConvolveMatrix'));
     }
     get [dartx.bias]() {
       return this.bias;
@@ -76022,7 +76022,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('feDiffuseLighting')) && svg$.FEDiffuseLightingElement.is(svg$.SvgElement.tag('feDiffuseLighting'));
+      return dart.test(svg$.SvgElement.isTagSupported('feDiffuseLighting')) && svg$.FEDiffuseLightingElement.is(svg$.SvgElement.tag('feDiffuseLighting'));
     }
     get [dartx.diffuseConstant]() {
       return this.diffuseConstant;
@@ -76098,7 +76098,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('feDisplacementMap')) && svg$.FEDisplacementMapElement.is(svg$.SvgElement.tag('feDisplacementMap'));
+      return dart.test(svg$.SvgElement.isTagSupported('feDisplacementMap')) && svg$.FEDisplacementMapElement.is(svg$.SvgElement.tag('feDisplacementMap'));
     }
     get [dartx.in1]() {
       return this.in1;
@@ -76163,7 +76163,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('feDistantLight')) && svg$.FEDistantLightElement.is(svg$.SvgElement.tag('feDistantLight'));
+      return dart.test(svg$.SvgElement.isTagSupported('feDistantLight')) && svg$.FEDistantLightElement.is(svg$.SvgElement.tag('feDistantLight'));
     }
     get [dartx.azimuth]() {
       return this.azimuth;
@@ -76204,7 +76204,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('feFlood')) && svg$.FEFloodElement.is(svg$.SvgElement.tag('feFlood'));
+      return dart.test(svg$.SvgElement.isTagSupported('feFlood')) && svg$.FEFloodElement.is(svg$.SvgElement.tag('feFlood'));
     }
     get [dartx.height]() {
       return this.height;
@@ -76259,7 +76259,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('feFuncA')) && svg$.FEFuncAElement.is(svg$.SvgElement.tag('feFuncA'));
+      return dart.test(svg$.SvgElement.isTagSupported('feFuncA')) && svg$.FEFuncAElement.is(svg$.SvgElement.tag('feFuncA'));
     }
   };
   dart.defineNamedConstructor(svg$.FEFuncAElement, 'created');
@@ -76282,7 +76282,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('feFuncB')) && svg$.FEFuncBElement.is(svg$.SvgElement.tag('feFuncB'));
+      return dart.test(svg$.SvgElement.isTagSupported('feFuncB')) && svg$.FEFuncBElement.is(svg$.SvgElement.tag('feFuncB'));
     }
   };
   dart.defineNamedConstructor(svg$.FEFuncBElement, 'created');
@@ -76305,7 +76305,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('feFuncG')) && svg$.FEFuncGElement.is(svg$.SvgElement.tag('feFuncG'));
+      return dart.test(svg$.SvgElement.isTagSupported('feFuncG')) && svg$.FEFuncGElement.is(svg$.SvgElement.tag('feFuncG'));
     }
   };
   dart.defineNamedConstructor(svg$.FEFuncGElement, 'created');
@@ -76328,7 +76328,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('feFuncR')) && svg$.FEFuncRElement.is(svg$.SvgElement.tag('feFuncR'));
+      return dart.test(svg$.SvgElement.isTagSupported('feFuncR')) && svg$.FEFuncRElement.is(svg$.SvgElement.tag('feFuncR'));
     }
   };
   dart.defineNamedConstructor(svg$.FEFuncRElement, 'created');
@@ -76370,7 +76370,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('feGaussianBlur')) && svg$.FEGaussianBlurElement.is(svg$.SvgElement.tag('feGaussianBlur'));
+      return dart.test(svg$.SvgElement.isTagSupported('feGaussianBlur')) && svg$.FEGaussianBlurElement.is(svg$.SvgElement.tag('feGaussianBlur'));
     }
     get [dartx.in1]() {
       return this.in1;
@@ -76438,7 +76438,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('feImage')) && svg$.FEImageElement.is(svg$.SvgElement.tag('feImage'));
+      return dart.test(svg$.SvgElement.isTagSupported('feImage')) && svg$.FEImageElement.is(svg$.SvgElement.tag('feImage'));
     }
     get [dartx.preserveAspectRatio]() {
       return this.preserveAspectRatio;
@@ -76495,7 +76495,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('feMerge')) && svg$.FEMergeElement.is(svg$.SvgElement.tag('feMerge'));
+      return dart.test(svg$.SvgElement.isTagSupported('feMerge')) && svg$.FEMergeElement.is(svg$.SvgElement.tag('feMerge'));
     }
     get [dartx.height]() {
       return this.height;
@@ -76538,7 +76538,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('feMergeNode')) && svg$.FEMergeNodeElement.is(svg$.SvgElement.tag('feMergeNode'));
+      return dart.test(svg$.SvgElement.isTagSupported('feMergeNode')) && svg$.FEMergeNodeElement.is(svg$.SvgElement.tag('feMergeNode'));
     }
     get [dartx.in1]() {
       return this.in1;
@@ -76649,7 +76649,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('feOffset')) && svg$.FEOffsetElement.is(svg$.SvgElement.tag('feOffset'));
+      return dart.test(svg$.SvgElement.isTagSupported('feOffset')) && svg$.FEOffsetElement.is(svg$.SvgElement.tag('feOffset'));
     }
     get [dartx.dx]() {
       return this.dx;
@@ -76705,7 +76705,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('fePointLight')) && svg$.FEPointLightElement.is(svg$.SvgElement.tag('fePointLight'));
+      return dart.test(svg$.SvgElement.isTagSupported('fePointLight')) && svg$.FEPointLightElement.is(svg$.SvgElement.tag('fePointLight'));
     }
     get [dartx.x]() {
       return this.x;
@@ -76761,7 +76761,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('feSpecularLighting')) && svg$.FESpecularLightingElement.is(svg$.SvgElement.tag('feSpecularLighting'));
+      return dart.test(svg$.SvgElement.isTagSupported('feSpecularLighting')) && svg$.FESpecularLightingElement.is(svg$.SvgElement.tag('feSpecularLighting'));
     }
     get [dartx.in1]() {
       return this.in1;
@@ -76836,7 +76836,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('feSpotLight')) && svg$.FESpotLightElement.is(svg$.SvgElement.tag('feSpotLight'));
+      return dart.test(svg$.SvgElement.isTagSupported('feSpotLight')) && svg$.FESpotLightElement.is(svg$.SvgElement.tag('feSpotLight'));
     }
     get [dartx.limitingConeAngle]() {
       return this.limitingConeAngle;
@@ -76897,7 +76897,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('feTile')) && svg$.FETileElement.is(svg$.SvgElement.tag('feTile'));
+      return dart.test(svg$.SvgElement.isTagSupported('feTile')) && svg$.FETileElement.is(svg$.SvgElement.tag('feTile'));
     }
     get [dartx.in1]() {
       return this.in1;
@@ -76963,7 +76963,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('feTurbulence')) && svg$.FETurbulenceElement.is(svg$.SvgElement.tag('feTurbulence'));
+      return dart.test(svg$.SvgElement.isTagSupported('feTurbulence')) && svg$.FETurbulenceElement.is(svg$.SvgElement.tag('feTurbulence'));
     }
     get [dartx.baseFrequencyX]() {
       return this.baseFrequencyX;
@@ -77042,7 +77042,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('filter')) && svg$.FilterElement.is(svg$.SvgElement.tag('filter'));
+      return dart.test(svg$.SvgElement.isTagSupported('filter')) && svg$.FilterElement.is(svg$.SvgElement.tag('filter'));
     }
     get [dartx.filterUnits]() {
       return this.filterUnits;
@@ -77132,7 +77132,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('foreignObject')) && svg$.ForeignObjectElement.is(svg$.SvgElement.tag('foreignObject'));
+      return dart.test(svg$.SvgElement.isTagSupported('foreignObject')) && svg$.ForeignObjectElement.is(svg$.SvgElement.tag('foreignObject'));
     }
     get [dartx.height]() {
       return this.height;
@@ -79321,7 +79321,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('set')) && svg$.SetElement.is(svg$.SvgElement.tag('set'));
+      return dart.test(svg$.SvgElement.isTagSupported('set')) && svg$.SetElement.is(svg$.SvgElement.tag('set'));
     }
   };
   dart.defineNamedConstructor(svg$.SetElement, 'created');
@@ -80470,7 +80470,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('cursor')) && svg$._SVGCursorElement.is(svg$.SvgElement.tag('cursor'));
+      return dart.test(svg$.SvgElement.isTagSupported('cursor')) && svg$._SVGCursorElement.is(svg$.SvgElement.tag('cursor'));
     }
   };
   dart.defineNamedConstructor(svg$._SVGCursorElement, 'created');

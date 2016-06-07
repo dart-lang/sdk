@@ -3468,6 +3468,14 @@ class CodeGenerator extends GeneralizingAstVisitor
   @override
   JS.Expression visitBinaryExpression(BinaryExpression node) {
     var op = node.operator;
+
+    // The operands of logical boolean operators are subject to boolean
+    // conversion.
+    if (op.type == TokenType.BAR_BAR ||
+        op.type == TokenType.AMPERSAND_AMPERSAND) {
+      return _visitTest(node);
+    }
+
     var left = node.leftOperand;
     var right = node.rightOperand;
 
@@ -3923,6 +3931,11 @@ class CodeGenerator extends GeneralizingAstVisitor
   @override
   JS.Expression visitPrefixExpression(PrefixExpression node) {
     var op = node.operator;
+
+    // Logical negation, `!e`, is a boolean conversion context since it is
+    // defined as `e ? false : true`.
+    if (op.lexeme == '!') return _visitTest(node);
+
     var expr = node.operand;
 
     var dispatchType = getStaticType(expr);
