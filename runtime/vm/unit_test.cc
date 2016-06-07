@@ -92,6 +92,7 @@ static Dart_Handle ImportableTestLibSource() {
 }
 
 
+#ifndef PRODUCT
 static bool IsIsolateReloadTestLib(const char* url_name) {
   const char* kIsolateReloadTestLibUri = "test:isolate_reload_helper";
   static const intptr_t kIsolateReloadTestLibUriLen =
@@ -102,7 +103,6 @@ static bool IsIsolateReloadTestLib(const char* url_name) {
 }
 
 
-#ifndef PRODUCT
 static Dart_Handle IsolateReloadTestLibSource() {
   // Special library with one function.
   return DartUtils::NewString("void reloadTest() native 'Reload_Test';\n");
