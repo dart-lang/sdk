@@ -140,9 +140,6 @@ class IncrementalCache {
       List<Source> closureSources = _getLibraryClosure(librarySource);
       List<LibraryBundleWithId> closureBundles = <LibraryBundleWithId>[];
       for (Source source in closureSources) {
-        if (source.isInSystemLibrary) {
-          continue;
-        }
         if (getSourceKind(source) == SourceKind.PART) {
           continue;
         }
@@ -250,6 +247,9 @@ class IncrementalCache {
    * all its directly or indirectly imported or exported libraries.
    */
   void _appendLibraryClosure(Set<Source> closure, Source librarySource) {
+    if (librarySource.isInSystemLibrary) {
+      return;
+    }
     if (closure.add(librarySource)) {
       CacheSourceContent contentSource = _getCacheSourceContent(librarySource);
       if (contentSource == null) {
@@ -457,11 +457,13 @@ class IncrementalCache {
    * Write the content based information about the given [source].
    */
   void _writeCacheSourceContent(Source source, CacheSourceContentBuilder b) {
-    String key = _getCacheSourceContentKey(source);
-    List<int> bytes = b.toBuffer();
-    storage.put(key, bytes);
-    // Put into the cache to avoid reading it later.
-    _sourceContentMap[source] = new CacheSourceContent.fromBuffer(bytes);
+    if (!_sourceContentMap.containsKey(source)) {
+      String key = _getCacheSourceContentKey(source);
+      List<int> bytes = b.toBuffer();
+      storage.put(key, bytes);
+      // Put into the cache to avoid reading it later.
+      _sourceContentMap[source] = new CacheSourceContent.fromBuffer(bytes);
+    }
   }
 
   /**
@@ -471,10 +473,6 @@ class IncrementalCache {
   void _writeCacheSourceContents(LibraryElement library,
       [Set<LibraryElement> writtenLibraries]) {
     Source librarySource = library.source;
-    // Do nothing if already cached.
-    if (_sourceContentMap.containsKey(librarySource)) {
-      return;
-    }
     // Stop recursion cycle.
     writtenLibraries ??= new Set<LibraryElement>();
     if (!writtenLibraries.add(library)) {
