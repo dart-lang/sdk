@@ -422,19 +422,21 @@ static bool IsUnreachable(const RawObject* raw_obj) {
 
 class MarkingWeakVisitor : public HandleVisitor {
  public:
-  MarkingWeakVisitor() : HandleVisitor(Thread::Current()) {
-  }
+  MarkingWeakVisitor(Thread* thread, FinalizationQueue* queue) :
+      HandleVisitor(thread), queue_(queue) { }
 
   void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
     RawObject* raw_obj = handle->raw();
     if (IsUnreachable(raw_obj)) {
-      handle->UpdateUnreachable(thread()->isolate());
+      handle->UpdateUnreachable(thread()->isolate(), queue_);
     }
   }
 
  private:
+  FinalizationQueue* queue_;
+
   DISALLOW_COPY_AND_ASSIGN(MarkingWeakVisitor);
 };
 
@@ -668,8 +670,14 @@ void GCMarker::MarkObjects(Isolate* isolate,
       mark.DrainMarkingStack();
       {
         TIMELINE_FUNCTION_GC_DURATION(thread, "WeakHandleProcessing");
-        MarkingWeakVisitor mark_weak;
+        FinalizationQueue* queue = new FinalizationQueue();
+        MarkingWeakVisitor mark_weak(thread, queue);
         IterateWeakRoots(isolate, &mark_weak);
+        if (queue->length() > 0) {
+          Dart::thread_pool()->Run(new BackgroundFinalizer(isolate, queue));
+        } else {
+          delete queue;
+        }
       }
       // All marking done; detach code, etc.
       FinalizeResultsFrom(&mark);
@@ -693,8 +701,14 @@ void GCMarker::MarkObjects(Isolate* isolate,
       // Phase 2: Weak processing on main thread.
       {
         TIMELINE_FUNCTION_GC_DURATION(thread, "WeakHandleProcessing");
-        MarkingWeakVisitor mark_weak;
+        FinalizationQueue* queue = new FinalizationQueue();
+        MarkingWeakVisitor mark_weak(thread, queue);
         IterateWeakRoots(isolate, &mark_weak);
+        if (queue->length() > 0) {
+          Dart::thread_pool()->Run(new BackgroundFinalizer(isolate, queue));
+        } else {
+          delete queue;
+        }
       }
       barrier.Sync();
 
