@@ -44,6 +44,7 @@ main() {
   runReflectiveTests(MethodElementImplTest);
   runReflectiveTests(MultiplyDefinedElementImplTest);
   runReflectiveTests(ParameterElementImplTest);
+  runReflectiveTests(PropertyAccessorElementImplTest);
   runReflectiveTests(TopLevelVariableElementImplTest);
 }
 
@@ -4181,6 +4182,39 @@ main(int p) {
       expect(node.identifier.name, 'p');
       expect(node.element, same(element));
     }
+  }
+}
+
+@reflectiveTest
+class PropertyAccessorElementImplTest extends EngineTestCase {
+  void test_matchesHandle_getter() {
+    CompilationUnitElementImpl compilationUnitElement =
+        ElementFactory.compilationUnit('foo.dart');
+    LibraryElementImpl libraryElement = ElementFactory.library(null, '')
+      ..definingCompilationUnit = compilationUnitElement;
+    PropertyAccessorElementImpl element =
+        ElementFactory.getterElement('x', true, DynamicTypeImpl.instance);
+    compilationUnitElement.accessors = <PropertyAccessorElement>[element];
+    PropertyAccessorElementHandle handle =
+        new PropertyAccessorElementHandle(null, element.location);
+    expect(element.hashCode, handle.hashCode);
+    expect(element == handle, isTrue);
+    expect(handle == element, isTrue);
+  }
+
+  void test_matchesHandle_setter() {
+    CompilationUnitElementImpl compilationUnitElement =
+        ElementFactory.compilationUnit('foo.dart');
+    LibraryElementImpl libraryElement = ElementFactory.library(null, '')
+      ..definingCompilationUnit = compilationUnitElement;
+    PropertyAccessorElementImpl element =
+        ElementFactory.setterElement('x', true, DynamicTypeImpl.instance);
+    compilationUnitElement.accessors = <PropertyAccessorElement>[element];
+    PropertyAccessorElementHandle handle =
+        new PropertyAccessorElementHandle(null, element.location);
+    expect(element.hashCode, handle.hashCode);
+    expect(element == handle, isTrue);
+    expect(handle == element, isTrue);
   }
 }
 

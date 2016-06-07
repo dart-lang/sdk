@@ -7528,9 +7528,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  int get hashCode => JenkinsSmiHash.hash2(super.hashCode, isGetter ? 1 : 2);
-
-  @override
   String get identifier {
     String name = displayName;
     String suffix = isGetter ? "?" : "=";
@@ -7596,11 +7593,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     assert(serializedExecutable == null);
     setModifier(Modifier.STATIC, isStatic);
   }
-
-  @override
-  bool operator ==(Object object) =>
-      super == object &&
-      isGetter == (object as PropertyAccessorElement).isGetter;
 
   @override
   accept(ElementVisitor visitor) => visitor.visitPropertyAccessorElement(this);

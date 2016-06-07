@@ -971,10 +971,10 @@ class PropertyAccessorElementHandle extends ExecutableElementHandle
       actualElement.correspondingSetter;
 
   @override
-  bool get isGetter => actualElement.isGetter;
+  bool get isGetter => !isSetter;
 
   @override
-  bool get isSetter => actualElement.isSetter;
+  bool get isSetter => location.components.last.endsWith('=');
 
   @override
   ElementKind get kind {
