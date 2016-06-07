@@ -245,8 +245,6 @@ Language/Metadata/before_param_t09: RuntimeError # Please triage this failure
 Language/Metadata/before_type_param_t01: CompileTimeError # Please triage this failure
 Language/Metadata/before_typedef_t01: RuntimeError # Please triage this failure
 Language/Metadata/before_variable_t01: RuntimeError # Please triage this failure
-Language/Mixins/Mixin_Application/error_t01: Crash # Issue 26582
-Language/Mixins/Mixin_Application/error_t02: Crash # Issue 26582
 Language/Mixins/Mixin_Application/static_warning_t01: CompileTimeError # Please triage this failure
 Language/Mixins/Mixin_Application/static_warning_t02: CompileTimeError # Please triage this failure
 Language/Mixins/Mixin_Application/superinterfaces_t06: CompileTimeError # Please triage this failure
