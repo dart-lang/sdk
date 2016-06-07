@@ -32,7 +32,7 @@ rem Follow the symbolic links (junctions points) using `dir to determine the
 rem canonical path. Output with a link looks something like this
 rem
 rem 01/03/2013  10:11 PM    <JUNCTION>     abc def
-rem [c:\dart_bleeding\dart-repo.9\dart\build\ReleaseIA32\dart-sdk]
+rem [c:\dart_bleeding\dart-repo.9\dart\out\ReleaseIA32\dart-sdk]
 rem
 rem So in the output of 'dir /a:l "targetdir"' we are looking for a filename
 rem surrounded by right angle bracket and left square bracket. Once we get
