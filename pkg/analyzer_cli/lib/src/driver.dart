@@ -628,7 +628,7 @@ class Driver implements CommandLineStarter {
   ErrorSeverity _runAnalyzer(Source source, CommandLineOptions options) {
     int startTime = currentTimeMillis();
     AnalyzerImpl analyzer =
-        new AnalyzerImpl(_context, source, options, stats, startTime);
+        new AnalyzerImpl(_context, incrementalSession, source, options, stats, startTime);
     var errorSeverity = analyzer.analyzeSync();
     if (errorSeverity == ErrorSeverity.ERROR) {
       exitCode = errorSeverity.ordinal;

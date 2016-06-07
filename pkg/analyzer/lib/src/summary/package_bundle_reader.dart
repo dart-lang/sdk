@@ -117,13 +117,13 @@ class InSummarySource extends Source {
  * The [ResultProvider] that provides results using summary resynthesizer.
  */
 abstract class ResynthesizerResultProvider extends ResultProvider {
-  final InternalAnalysisContext _context;
+  final InternalAnalysisContext context;
   final SummaryDataStore _dataStore;
 
   _FileBasedSummaryResynthesizer _resynthesizer;
   ResynthesizerResultProvider _sdkProvider;
 
-  ResynthesizerResultProvider(this._context, this._dataStore);
+  ResynthesizerResultProvider(this.context, this._dataStore);
 
   SummaryResynthesizer get resynthesizer => _resynthesizer;
 
@@ -234,15 +234,15 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
   void createResynthesizer(
       InternalAnalysisContext sdkContext, TypeProvider typeProvider) {
     // Set the type provider to prevent the context from computing it.
-    _context.typeProvider = typeProvider;
+    context.typeProvider = typeProvider;
     // Create a chained resynthesizer.
     _sdkProvider = sdkContext?.resultProvider;
     _resynthesizer = new _FileBasedSummaryResynthesizer(
         _sdkProvider?.resynthesizer,
-        _context,
+        context,
         typeProvider,
-        _context.sourceFactory,
-        _context.analysisOptions.strongMode,
+        context.sourceFactory,
+        context.analysisOptions.strongMode,
         _dataStore);
   }
 

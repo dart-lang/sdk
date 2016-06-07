@@ -19,6 +19,7 @@ import 'package:analyzer/src/summary/incremental_cache.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:analyzer_cli/src/options.dart';
 
@@ -47,12 +48,12 @@ IncrementalAnalysisSession configureIncrementalAnalysis(
     context.resultProvider = new _CacheBasedResultProvider(context, cache);
     // Listen for new libraries to put into the cache.
     _IncrementalAnalysisSession session =
-        new _IncrementalAnalysisSession(options, cache, context);
+        new _IncrementalAnalysisSession(options, context, cache);
     context
         .onResultChanged(LIBRARY_ELEMENT1)
         .listen((ResultChangedEvent event) {
       if (event.wasComputed) {
-        session.librarySources.add(event.target.source);
+        session.newLibrarySources.add(event.target.source);
       }
     });
     return session;
@@ -70,6 +71,13 @@ abstract class IncrementalAnalysisSession {
    * cache, evict old results, etc.
    */
   void finish();
+
+  /**
+   * Sets the set of [Source]s analyzed in the context, both explicit and
+   * implicit, for which errors might be requested.  This set is used to compute
+   * containing libraries for every source in the context.
+   */
+  void setAnalyzedSources(Iterable<Source> sources);
 }
 
 /**
@@ -91,14 +99,17 @@ class _CacheBasedResultProvider extends ResynthesizerResultProvider {
   @override
   bool compute(CacheEntry entry, ResultDescriptor result) {
     AnalysisTarget target = entry.target;
-    // TODO(scheglov) remove the check after finishing optimizations.
-    if (target.source != null &&
-        target.source.fullName
-            .endsWith('analysis_server/lib/src/computer/computer_hover.dart')) {
-      return false;
-    }
     // Source based results.
     if (target is Source) {
+      if (result == SOURCE_KIND) {
+        SourceKind kind = cache.getSourceKind(target);
+        if (kind != null) {
+          entry.setValue(result, kind, TargetedResult.EMPTY_LIST);
+          return true;
+        } else {
+          return false;
+        }
+      }
       if (result == INCLUDED_PARTS) {
         List<Source> parts = cache.getLibraryParts(target);
         if (parts != null) {
@@ -109,8 +120,18 @@ class _CacheBasedResultProvider extends ResynthesizerResultProvider {
         }
       }
       if (result == DART_ERRORS) {
-        // TODO(scheglov) provide actual errors
-        entry.setValue(result, <AnalysisError>[], TargetedResult.EMPTY_LIST);
+        List<Source> librarySources = context.getLibrariesContaining(target);
+        List<List<AnalysisError>> errorList = <List<AnalysisError>>[];
+        for (Source librarySource in librarySources) {
+          List<AnalysisError> errors =
+              cache.getSourceErrorsInLibrary(librarySource, target);
+          if (errors == null) {
+            return false;
+          }
+          errorList.add(errors);
+        }
+        List<AnalysisError> mergedErrors = AnalysisError.mergeLists(errorList);
+        entry.setValue(result, mergedErrors, TargetedResult.EMPTY_LIST);
         return true;
       }
     }
@@ -145,28 +166,51 @@ class _CacheBasedResultProvider extends ResynthesizerResultProvider {
 
 class _IncrementalAnalysisSession implements IncrementalAnalysisSession {
   final CommandLineOptions commandLineOptions;
-  final IncrementalCache cache;
   final AnalysisContext context;
+  final IncrementalCache cache;
 
-  final Set<Source> librarySources = new Set<Source>();
+  final Set<Source> newLibrarySources = new Set<Source>();
 
   _IncrementalAnalysisSession(
-      this.commandLineOptions, this.cache, this.context);
+      this.commandLineOptions, this.context, this.cache);
 
   @override
   void finish() {
     // Finish computing new libraries and put them into the cache.
-    for (Source librarySource in librarySources) {
+    for (Source librarySource in newLibrarySources) {
       if (!commandLineOptions.machineFormat) {
         print('Compute library element for $librarySource');
       }
-      LibraryElement libraryElement =
-          context.computeResult(librarySource, LIBRARY_ELEMENT);
-      // TODO(scheglov) compute and store errors
-//      context.computeResult(librarySource, DART_ERRORS);
-      try {
-        cache.putLibrary(libraryElement);
-      } catch (e) {}
+      _putLibrary(librarySource);
+    }
+  }
+
+  @override
+  void setAnalyzedSources(Iterable<Source> sources) {
+    for (Source source in sources) {
+      SourceKind kind = context.computeKindOf(source);
+      if (kind == SourceKind.LIBRARY) {
+        context.computeResult(source, LINE_INFO);
+        context.computeResult(source, INCLUDED_PARTS);
+      }
+    }
+  }
+
+  void _putLibrary(Source librarySource) {
+    LibraryElement libraryElement =
+        context.computeResult(librarySource, LIBRARY_ELEMENT);
+    try {
+      cache.putLibrary(libraryElement);
+    } catch (e) {
+      return;
+    }
+    // Write errors for the library units.
+    for (CompilationUnitElement unit in libraryElement.units) {
+      Source unitSource = unit.source;
+      List<AnalysisError> errors = context.computeResult(
+          new LibrarySpecificUnit(librarySource, unitSource),
+          LIBRARY_UNIT_ERRORS);
+      cache.putSourceErrorsInLibrary(librarySource, unitSource, errors);
     }
   }
 }
