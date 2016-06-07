@@ -20,6 +20,8 @@ class Loader {
   explicit Loader(IsolateData* isolate_data);
   ~Loader();
 
+  static void InitForSnapshot(const char* snapshot_uri);
+
   // A static tag handler that hides all usage of a loader for an isolate.
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                        Dart_Handle library,

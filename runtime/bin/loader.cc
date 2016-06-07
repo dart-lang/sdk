@@ -37,11 +37,13 @@ Loader::Loader(IsolateData* isolate_data)
 
 
 Loader::~Loader() {
-  monitor_->Enter();
   ASSERT(port_ != ILLEGAL_PORT);
+  // Enter the monitor while we close the Dart port. After the Dart port is
+  // closed, no more results can be queued.
+  monitor_->Enter();
   Dart_CloseNativePort(port_);
-  RemoveLoader(port_);
   monitor_->Exit();
+  RemoveLoader(port_);
   port_ = ILLEGAL_PORT;
   isolate_data_->set_loader(NULL);
   isolate_data_ = NULL;
@@ -315,6 +317,23 @@ static bool IsWindowsHost() {
 #else  // defined(TARGET_OS_WINDOWS)
   return false;
 #endif  // defined(TARGET_OS_WINDOWS)
+}
+
+
+void Loader::InitForSnapshot(const char* snapshot_uri) {
+  IsolateData* isolate_data =
+      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
+  ASSERT(isolate_data != NULL);
+  ASSERT(!isolate_data->HasLoader());
+  // Setup a loader. The constructor does a bunch of leg work.
+  Loader* loader = new Loader(isolate_data);
+  // Send the init message.
+  loader->Init(isolate_data->package_root,
+               isolate_data->packages_file,
+               DartUtils::original_working_directory,
+               snapshot_uri);
+  // Destroy the loader. The destructor does a bunch of leg work.
+  delete loader;
 }
 
 

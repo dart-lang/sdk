@@ -691,7 +691,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
                                                 int* exit_code) {
   ASSERT(script_uri != NULL);
 
-  const bool needs_load_port = !run_app_snapshot;
+  const bool needs_load_port = true;
 #if defined(PRODUCT)
   const bool run_service_isolate = needs_load_port;
 #else
@@ -771,6 +771,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   if (run_app_snapshot) {
     result = DartUtils::SetupIOLibrary(script_uri);
     CHECK_RESULT(result);
+    Loader::InitForSnapshot(script_uri);
   } else {
     // Load the specified application script into the newly created isolate.
     Dart_Handle uri =
@@ -1361,7 +1362,6 @@ bool RunMainIsolate(const char* script_name,
         reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
     result = Dart_LibraryImportLibrary(
         isolate_data->builtin_lib(), root_lib, Dart_Null());
-#if !defined(PRODUCT)
     if (is_noopt ||
         (gen_snapshot_kind == kAppAfterRun) ||
         (gen_snapshot_kind == kAppAOT) ||
@@ -1376,7 +1376,6 @@ bool RunMainIsolate(const char* script_name,
         exit(kErrorExitCode);
       }
     }
-#endif  // PRODUCT
 
     if (compile_all) {
       result = Dart_CompileAll();
@@ -1412,9 +1411,7 @@ bool RunMainIsolate(const char* script_name,
         { "dart:io", "_ProcessStartStatus", "set:_errorMessage" },
         { "dart:io", "_SecureFilterImpl", "get:ENCRYPTED_SIZE" },
         { "dart:io", "_SecureFilterImpl", "get:SIZE" },
-#if !defined(PRODUCT)
         { "dart:vmservice_io", "::", "main" },
-#endif  // !PRODUCT
         { NULL, NULL, NULL }  // Must be terminated with NULL entries.
       };
 
