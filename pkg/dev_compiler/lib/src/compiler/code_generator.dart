@@ -11,10 +11,9 @@ import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show StringToken;
-//TODO(leafp): Remove deprecated dependency
-//ignore: DEPRECATED_MEMBER_USE
-import 'package:analyzer/src/generated/element.dart'
-    show DynamicTypeImpl, LocalVariableElementImpl;
+import 'package:analyzer/src/dart/element/element.dart'
+    show LocalVariableElementImpl;
+import 'package:analyzer/src/dart/element/type.dart' show DynamicTypeImpl;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, NamespaceBuilder;
@@ -291,6 +290,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       case ModuleFormat.es6:
         return module;
     }
+    return null; // unreachable. It is here to suppress a bogus Analyzer message
   }
 
   List<String> _getJSName(Element e) {
@@ -2169,7 +2169,6 @@ class CodeGenerator extends GeneralizingAstVisitor
     } else {
       return js.call('dart.fn(#, #)', [fn, typeRep]);
     }
-    throw 'Function has non function type: $type';
   }
 
   /// Emits an arrow FunctionExpression node.

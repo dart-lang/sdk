@@ -29,6 +29,10 @@ dev_dependencies:
   unittest: ^0.11.6
   webdriver: ^0.8.8
 
+dependency_overrides:
+  # Remove once there is a package:test that allows 1.18 SDKs in its contraint.
+  test: ^0.12.0
+
 environment:
   sdk: ">=1.12.0 <2.0.0"
 

@@ -289,4 +289,4 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.9"
-sdk: ">=1.16.0 <1.18.0"
+sdk: ">=1.16.0 <2.0.0"
