@@ -935,9 +935,11 @@ static void ShutdownIsolate(void* callback_data) {
 }
 
 
-static const char* ServiceRequestError(Dart_Handle error) {
+static const char* InternalJsonRpcError(Dart_Handle error) {
   TextBuffer buffer(128);
-  buffer.Printf("{\"type\":\"Error\",\"text\":\"Internal error %s\"}",
+  buffer.Printf("{\"code\":-32603,"
+                "\"message\":\"Internal error\","
+                "\"details\": \"%s\"}",
                 Dart_GetError(error));
   return buffer.Steal();
 }
@@ -950,28 +952,32 @@ class DartScope {
 };
 
 
-static const char* ServiceGetIOHandler(
+static bool ServiceGetIOHandler(
     const char* method,
     const char** param_keys,
     const char** param_values,
     intptr_t num_params,
-    void* user_data) {
+    void* user_data,
+    const char** response) {
   DartScope scope;
   // TODO(ajohnsen): Store the library/function in isolate data or user_data.
   Dart_Handle dart_io_str = Dart_NewStringFromCString("dart:io");
   if (Dart_IsError(dart_io_str)) {
-    return ServiceRequestError(dart_io_str);
+    *response = InternalJsonRpcError(dart_io_str);
+    return false;
   }
 
   Dart_Handle io_lib = Dart_LookupLibrary(dart_io_str);
   if (Dart_IsError(io_lib)) {
-    return ServiceRequestError(io_lib);
+    *response = InternalJsonRpcError(io_lib);
+    return false;
   }
 
   Dart_Handle handler_function_name =
       Dart_NewStringFromCString("_serviceObjectHandler");
   if (Dart_IsError(handler_function_name)) {
-    return ServiceRequestError(handler_function_name);
+    *response = InternalJsonRpcError(handler_function_name);
+    return false;
   }
 
   // TODO(johnmccutchan): paths is no longer used.  Update the io
@@ -986,15 +992,18 @@ static const char* ServiceGetIOHandler(
   Dart_Handle args[] = {paths, keys, values};
   Dart_Handle result = Dart_Invoke(io_lib, handler_function_name, 3, args);
   if (Dart_IsError(result)) {
-    return ServiceRequestError(result);
+    *response = InternalJsonRpcError(result);
+    return false;
   }
 
   const char *json;
   result = Dart_StringToCString(result, &json);
   if (Dart_IsError(result)) {
-    return ServiceRequestError(result);
+    *response = InternalJsonRpcError(result);
+    return false;
   }
-  return strdup(json);
+  *response = strdup(json);
+  return true;
 }
 
 

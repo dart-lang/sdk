@@ -859,7 +859,6 @@ void Service::InvokeMethod(Isolate* I, const Array& msg) {
 
     if (handler != NULL) {
       EmbedderHandleMessage(handler, &js);
-      js.PostReply();
       return;
     }
 
@@ -1126,16 +1125,16 @@ void Service::EmbedderHandleMessage(EmbedderServiceHandler* handler,
   ASSERT(handler != NULL);
   Dart_ServiceRequestCallback callback = handler->callback();
   ASSERT(callback != NULL);
-  const char* r = NULL;
-  const char* method = js->method();
-  const char** keys = js->param_keys();
-  const char** values = js->param_values();
-  r = callback(method, keys, values, js->num_params(), handler->user_data());
-  ASSERT(r != NULL);
-  // TODO(johnmccutchan): Allow for NULL returns?
-  TextBuffer* buffer = js->buffer();
-  buffer->AddString(r);
-  free(const_cast<char*>(r));
+  const char* response = NULL;
+  bool success = callback(js->method(), js->param_keys(), js->param_values(),
+                          js->num_params(), handler->user_data(), &response);
+  ASSERT(response != NULL);
+  if (!success) {
+    js->SetupError();
+  }
+  js->buffer()->AddString(response);
+  js->PostReply();
+  free(const_cast<char*>(response));
 }
 
 
