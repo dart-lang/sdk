@@ -131,7 +131,13 @@ class _CacheBasedResultProvider extends ResynthesizerResultProvider {
           errorList.add(errors);
         }
         List<AnalysisError> mergedErrors = AnalysisError.mergeLists(errorList);
-        entry.setValue(result, mergedErrors, TargetedResult.EMPTY_LIST);
+        // Filter the errors.
+        IgnoreInfo ignoreInfo = context.getResult(target, IGNORE_INFO);
+        LineInfo lineInfo = context.getResult(target, LINE_INFO);
+        List<AnalysisError> filteredErrors =
+            DartErrorsTask.filterIgnored(mergedErrors, ignoreInfo, lineInfo);
+        // Set the result.
+        entry.setValue(result, filteredErrors, TargetedResult.EMPTY_LIST);
         return true;
       }
     }
@@ -191,6 +197,7 @@ class _IncrementalAnalysisSession implements IncrementalAnalysisSession {
       SourceKind kind = context.computeKindOf(source);
       if (kind == SourceKind.LIBRARY) {
         context.computeResult(source, LINE_INFO);
+        context.computeResult(source, IGNORE_INFO);
         context.computeResult(source, INCLUDED_PARTS);
       }
     }

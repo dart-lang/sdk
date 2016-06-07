@@ -2597,15 +2597,7 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
 
     LineInfo lineInfo = getRequiredInput(LINE_INFO_INPUT);
 
-    bool isIgnored(AnalysisError error) {
-      int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-      String errorCode = error.errorCode.name.toLowerCase();
-      // Ignores can be on the line or just preceding the error.
-      return ignoreInfo.ignoredAt(errorCode, errorLine) ||
-          ignoreInfo.ignoredAt(errorCode, errorLine - 1);
-    }
-
-    return errors.where((AnalysisError e) => !isIgnored(e)).toList();
+    return filterIgnored(errors, ignoreInfo, lineInfo);
   }
 
   /**
@@ -2649,6 +2641,27 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
   static DartErrorsTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new DartErrorsTask(context, target);
+  }
+
+  /**
+   * Return a new list with items from [errors] which are not filtered out by
+   * the [ignoreInfo].
+   */
+  static List<AnalysisError> filterIgnored(
+      List<AnalysisError> errors, IgnoreInfo ignoreInfo, LineInfo lineInfo) {
+    if (errors.isEmpty || !ignoreInfo.hasIgnores) {
+      return errors;
+    }
+
+    bool isIgnored(AnalysisError error) {
+      int errorLine = lineInfo.getLocation(error.offset).lineNumber;
+      String errorCode = error.errorCode.name.toLowerCase();
+      // Ignores can be on the line or just preceding the error.
+      return ignoreInfo.ignoredAt(errorCode, errorLine) ||
+          ignoreInfo.ignoredAt(errorCode, errorLine - 1);
+    }
+
+    return errors.where((AnalysisError e) => !isIgnored(e)).toList();
   }
 }
 
