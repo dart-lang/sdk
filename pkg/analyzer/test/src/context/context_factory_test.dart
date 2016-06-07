@@ -19,17 +19,24 @@ main() {
 
 @reflectiveTest
 class PackageMapProcessorTest {
-  static MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+  MemoryResourceProvider resourceProvider;
 
-  static Folder empty = resourceProvider.newFolder('/empty');
-  static Folder tmp_sdk_ext = resourceProvider.newFolder('/tmp_sdk_ext');
-  static Folder tmp_embedder = resourceProvider.newFolder('/tmp_embedder');
+  Folder empty;
+  Folder tmp_sdk_ext;
+  Folder tmp_embedder;
+  Map<String, List<Folder>> packageMap;
 
-  static Map<String, List<Folder>> packageMap = <String, List<Folder>>{
-    'empty': [empty],
-    'tmp_embedder': [tmp_embedder],
-    'tmp_sdk_ext': [tmp_sdk_ext]
-  };
+  void setUp() {
+    resourceProvider = new MemoryResourceProvider();
+    empty = resourceProvider.newFolder('/empty');
+    tmp_sdk_ext = resourceProvider.newFolder('/tmp_sdk_ext');
+    tmp_embedder = resourceProvider.newFolder('/tmp_embedder');
+    packageMap = <String, List<Folder>>{
+      'empty': [empty],
+      'tmp_embedder': [tmp_embedder],
+      'tmp_sdk_ext': [tmp_sdk_ext]
+    };
+  }
 
   void test_basic_processing() {
     resourceProvider.newFile(
@@ -51,7 +58,19 @@ embedded_libs:
 
     PackageMapProcessor proc = new PackageMapProcessor(packageMap);
     expect(proc.embeddedLibraries.size(), 5);
+    expect(proc.embeddedLibraries.getLibrary('dart:core').path,
+        '/tmp_embedder/core.dart');
     expect(proc.extendedLibraries.size(), 1);
+    expect(proc.extendedLibraries.getLibrary('dart:ui').path,
+        '/tmp_sdk_ext/ui.dart');
+  }
+
+  void test_empty_package_map() {
+    PackageMapProcessor proc =
+        new PackageMapProcessor(<String, List<Folder>>{});
+    expect(proc.embeddedLibraries.size(), 0);
+    expect(proc.extendedLibraries.size(), 0);
+    expect(proc.libraryMap.size(), 0);
   }
 
   void test_extenders_do_not_override() {
@@ -74,5 +93,67 @@ embedded_libs:
     expect(proc.extendedLibraries.size(), 1);
     expect(proc.libraryMap.size(), 2);
     expect(proc.libraryMap.getLibrary('dart:ui').path, '/tmp_embedder/ui.dart');
+  }
+
+  void test_invalid_embedder() {
+    resourceProvider.newFile(
+        '/tmp_embedder/_embedder.yaml',
+        r'''
+invalid contents, will not parse
+''');
+
+    PackageMapProcessor proc = new PackageMapProcessor(packageMap);
+    expect(proc.embeddedLibraries.size(), 0);
+    expect(proc.extendedLibraries.size(), 0);
+    expect(proc.libraryMap.size(), 0);
+  }
+
+  void test_invalid_extender() {
+    resourceProvider.newFile(
+        '/tmp_sdk_ext/_sdkext',
+        r'''
+invalid contents, will not parse
+''');
+
+    PackageMapProcessor proc = new PackageMapProcessor(packageMap);
+    expect(proc.embeddedLibraries.size(), 0);
+    expect(proc.extendedLibraries.size(), 0);
+    expect(proc.libraryMap.size(), 0);
+  }
+
+  void test_no_embedder() {
+    resourceProvider.newFile(
+        '/tmp_sdk_ext/_sdkext',
+        r'''
+  {
+    "dart:ui": "ui2.dart"
+  }''');
+
+    PackageMapProcessor proc = new PackageMapProcessor(packageMap);
+    expect(proc.embeddedLibraries.size(), 0);
+    expect(proc.extendedLibraries.size(), 1);
+    expect(proc.libraryMap.size(), 1);
+  }
+
+  void test_no_embedder_or_extender() {
+    PackageMapProcessor proc = new PackageMapProcessor(packageMap);
+    expect(proc.embeddedLibraries.size(), 0);
+    expect(proc.extendedLibraries.size(), 0);
+    expect(proc.libraryMap.size(), 0);
+  }
+
+  void test_no_extender() {
+    resourceProvider.newFile(
+        '/tmp_embedder/_embedder.yaml',
+        r'''
+embedded_libs:
+  "dart:core" : "core.dart"
+  "dart:ui": "ui.dart"
+''');
+
+    PackageMapProcessor proc = new PackageMapProcessor(packageMap);
+    expect(proc.embeddedLibraries.size(), 2);
+    expect(proc.extendedLibraries.size(), 0);
+    expect(proc.libraryMap.size(), 2);
   }
 }
