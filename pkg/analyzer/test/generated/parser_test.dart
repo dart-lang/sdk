@@ -6121,7 +6121,7 @@ class SimpleParserTest extends ParserTestCase {
     CommentAndMetadata commentAndMetadata =
         parse4("parseCommentAndMetadata", "/** 1 */ void");
     expect(commentAndMetadata.comment, isNotNull);
-    expect(commentAndMetadata.metadata, hasLength(0));
+    expect(commentAndMetadata.metadata, isNull);
   }
 
   void test_parseCommentAndMetadata_cmc() {
@@ -6177,7 +6177,7 @@ class SimpleParserTest extends ParserTestCase {
     CommentAndMetadata commentAndMetadata =
         parse4("parseCommentAndMetadata", "void");
     expect(commentAndMetadata.comment, isNull);
-    expect(commentAndMetadata.metadata, hasLength(0));
+    expect(commentAndMetadata.metadata, isNull);
   }
 
   void test_parseCommentAndMetadata_singleLine() {
@@ -6188,7 +6188,7 @@ class SimpleParserTest extends ParserTestCase {
 /// 2
 void''');
     expect(commentAndMetadata.comment, isNotNull);
-    expect(commentAndMetadata.metadata, hasLength(0));
+    expect(commentAndMetadata.metadata, isNull);
   }
 
   void test_parseCommentReference_new_prefixed() {
@@ -6999,7 +6999,7 @@ void''');
 
   void test_parseConstructorFieldInitializer_qualified() {
     ConstructorFieldInitializer invocation =
-        parse4("parseConstructorFieldInitializer", "this.a = b");
+        parse2("parseConstructorFieldInitializer", [true], "this.a = b");
     expect(invocation.equals, isNotNull);
     expect(invocation.expression, isNotNull);
     expect(invocation.fieldName, isNotNull);
@@ -7009,7 +7009,7 @@ void''');
 
   void test_parseConstructorFieldInitializer_unqualified() {
     ConstructorFieldInitializer invocation =
-        parse4("parseConstructorFieldInitializer", "a = b");
+        parse2("parseConstructorFieldInitializer", [false], "a = b");
     expect(invocation.equals, isNotNull);
     expect(invocation.expression, isNotNull);
     expect(invocation.fieldName, isNotNull);
@@ -9691,7 +9691,7 @@ void''');
 
   void test_parseRedirectingConstructorInvocation_named() {
     RedirectingConstructorInvocation invocation =
-        parse4("parseRedirectingConstructorInvocation", "this.a()");
+        parse2("parseRedirectingConstructorInvocation", [true], "this.a()");
     expect(invocation.argumentList, isNotNull);
     expect(invocation.constructorName, isNotNull);
     expect(invocation.thisKeyword, isNotNull);
@@ -9700,7 +9700,7 @@ void''');
 
   void test_parseRedirectingConstructorInvocation_unnamed() {
     RedirectingConstructorInvocation invocation =
-        parse4("parseRedirectingConstructorInvocation", "this()");
+        parse2("parseRedirectingConstructorInvocation", [false], "this()");
     expect(invocation.argumentList, isNotNull);
     expect(invocation.constructorName, isNull);
     expect(invocation.thisKeyword, isNotNull);
