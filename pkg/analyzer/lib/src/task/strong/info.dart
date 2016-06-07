@@ -92,12 +92,6 @@ abstract class DownCast extends CoercionInfo {
     // types, but the function type is not assignable to the class
     assert(toType.isSubtypeOf(fromType) || fromType.isAssignableTo(toType));
 
-    // Handle null call specially.
-    if (expression is NullLiteral) {
-      // TODO(vsm): Create a NullCast for this once we revisit nonnullability.
-      return new DownCastImplicit(rules, expression, fromType, toType);
-    }
-
     // Inference "casts":
     if (expression is Literal || expression is FunctionExpression) {
       // fromT should be an exact type - this will almost certainly fail at
