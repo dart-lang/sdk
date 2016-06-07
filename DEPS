@@ -44,7 +44,7 @@ vars = {
   "code_transformers_rev": "@bfe9799e88d9c231747435e1c1d2495ef5ecd966",
   "collection_tag": "@1.6.0",
   "convert_tag": "@1.0.0",
-  "crypto_tag" : "@1.1.0",
+  "crypto_tag" : "@1.1.1",
   "csslib_tag" : "@0.12.0",
   "dart2js_info_rev" : "@0a221eaf16aec3879c45719de656680ccb80d8a1",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
