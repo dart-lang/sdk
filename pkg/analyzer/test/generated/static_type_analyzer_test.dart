@@ -1078,6 +1078,29 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
+  void test_visitListLiteral_unresolved() {
+    _analyzer = _createAnalyzer(strongMode: true);
+    // [a] // where 'a' is not resolved
+    Identifier identifier = AstFactory.identifier3('a');
+    Expression node = AstFactory.listLiteral([identifier]);
+    DartType resultType = _analyze(node);
+    expect(resultType, isNull);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitListLiteral_unresolved_multiple() {
+    _analyzer = _createAnalyzer(strongMode: true);
+    // [0, a, 1] // where 'a' is not resolved
+    Identifier identifier = AstFactory.identifier3('a');
+    Expression node = AstFactory
+        .listLiteral([_resolvedInteger(0), identifier, _resolvedInteger(1)]);
+    DartType resultType = _analyze(node);
+    _assertType2(
+        _typeProvider.listType.instantiate(<DartType>[_typeProvider.intType]),
+        resultType);
+    _listener.assertNoErrors();
+  }
+
   void test_visitMapLiteral_empty() {
     // {}
     Expression node = AstFactory.mapLiteral2();
@@ -1488,11 +1511,16 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   /**
    * Create the analyzer used by the tests.
-   *
-   * @return the analyzer to be used by the tests
    */
-  StaticTypeAnalyzer _createAnalyzer() {
-    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
+  StaticTypeAnalyzer _createAnalyzer({bool strongMode: false}) {
+    InternalAnalysisContext context;
+    if (strongMode) {
+      AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+      options.strongMode = true;
+      context = AnalysisContextFactory.contextWithCoreAndOptions(options);
+    } else {
+      context = AnalysisContextFactory.contextWithCore();
+    }
     FileBasedSource source =
         new FileBasedSource(FileUtilities2.createFile("/lib.dart"));
     CompilationUnitElementImpl definingCompilationUnit =

@@ -662,8 +662,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       // elements
       if (node.elements.isNotEmpty) {
         // Infer the list type from the arguments.
-        DartType staticType =
-            node.elements.map((e) => e.staticType).reduce(_leastUpperBound);
+        Iterable<DartType> types =
+            node.elements.map((e) => e.staticType).where((t) => t != null);
+        if (types.isEmpty) {
+          return null;
+        }
+        DartType staticType = types.reduce(_leastUpperBound);
         if (staticType.isBottom) {
           staticType = _dynamicType;
         }
