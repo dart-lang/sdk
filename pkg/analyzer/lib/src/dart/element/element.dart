@@ -2071,7 +2071,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   void set isCycleFree(bool isCycleFree) {
-    assert(serializedExecutable == null);
+    // This property is updated in ConstantEvaluationEngine even for
+    // resynthesized constructors, so we don't have the usual assert here.
     _isCycleFree = isCycleFree;
   }
 
