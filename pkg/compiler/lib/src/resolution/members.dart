@@ -1996,15 +1996,17 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // TODO(23998): Remove this when all information goes through
       // the [SendStructure].
       registry.setSelector(node, selector);
-      
+
+      // The node itself is not a constant but we register the selector (the
+      // identifier that refers to the class/typedef) as a constant.
       registry.useElement(node.selector, element);
-      analyzeConstantDeferred(node.selector);
+      analyzeConstantDeferred(node.selector, enforceConst: false);
 
       registry.registerSendStructure(
           node, new InvokeStructure(semantics, selector));
       return const NoneResult();
     } else {
-      analyzeConstantDeferred(node);
+      analyzeConstantDeferred(node, enforceConst: false);
 
       registry.setConstant(node, semantics.constant);
       registry.registerSendStructure(node, new GetStructure(semantics));
@@ -4003,9 +4005,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
   }
 
-  void analyzeConstant(Node node) {
-    ConstantExpression constant =
-        compiler.resolver.constantCompiler.compileNode(node, registry.mapping);
+  void analyzeConstant(Node node, {enforceConst: true}) {
+    ConstantExpression constant = compiler.resolver.constantCompiler
+        .compileNode(node, registry.mapping, enforceConst: enforceConst);
 
     if (constant == null) {
       assert(invariant(node, compiler.compilationFailed));
@@ -4018,9 +4020,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
   }
 
-  void analyzeConstantDeferred(Node node, {void onAnalyzed()}) {
+  void analyzeConstantDeferred(Node node,
+      {bool enforceConst: true, void onAnalyzed()}) {
     addDeferredAction(enclosingElement, () {
-      analyzeConstant(node);
+      analyzeConstant(node, enforceConst: enforceConst);
       if (onAnalyzed != null) {
         onAnalyzed();
       }
