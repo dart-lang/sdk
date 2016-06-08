@@ -56,6 +56,9 @@ generic_methods_type_expression_test: CompiletimeError # DartOptions not passed 
 
 # Experimental feature: Use initializing formals in initializers and constructor body.
 initializing_formal_access_test: CompiletimeError # DartOptions not passed to compiler.
+initializing_formal_capture_test: CompiletimeError # DartOptions not passed to compiler.
+initializing_formal_final_test: CompiletimeError # DartOptions not passed to compiler.
+initializing_formal_type_test: CompiletimeError # DartOptions not passed to compiler.
 
 [ $compiler == dart2js ]
 invocation_mirror_empty_arguments_test: Fail # Issue 24331

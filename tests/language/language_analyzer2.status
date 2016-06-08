@@ -512,3 +512,7 @@ generic_methods_type_expression_test: CompiletimeError # Issue 25868
 
 # Experimental feature: Use initializing formals in initializers and constructor body.
 initializing_formal_access_test: CompiletimeError # TODO(eernst): Create a suitable sdk issue.
+initializing_formal_capture_test: CompiletimeError # TODO(eernst): Create a suitable sdk issue.
+initializing_formal_final_test: CompiletimeError # TODO(eernst): Create a suitable sdk issue.
+initializing_formal_promotion_test: StaticWarning # TODO(eernst): Create a suitable sdk issue.
+initializing_formal_type_test: CompiletimeError # TODO(eernst): Create a suitable sdk issue.

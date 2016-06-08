@@ -3859,7 +3859,7 @@ class TryBoxedVariables extends ast.Visitor {
     if (Elements.isLocal(element)) {
       LocalElement local = element;
       if (insideInitializer &&
-          local.isParameter &&
+          (local.isParameter || local.isInitializingFormal) &&
           local.enclosingElement == currentFunction) {
         assert(local.enclosingElement.isConstructor);
         // Initializers in an initializer-list can communicate via parameters.
@@ -3871,7 +3871,9 @@ class TryBoxedVariables extends ast.Visitor {
         // outlive the activation of the function).
         markAsCaptured(local);
       } else if (inTryStatement) {
-        assert(local.isParameter || local.isVariable);
+        assert(local.isParameter ||
+            local.isVariable ||
+            local.isInitializingFormal);
         // Search for the position of the try block containing the variable
         // declaration, or -1 if it is declared outside the outermost try.
         int i = tryNestingStack.length - 1;
