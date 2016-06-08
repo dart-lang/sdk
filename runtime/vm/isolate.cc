@@ -1067,7 +1067,7 @@ void Isolate::ReportReloadError(const Error& error) {
 
 
 void Isolate::OnStackReload() {
-  UNREACHABLE();
+  ReloadSources();
 }
 
 

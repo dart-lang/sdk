@@ -423,6 +423,9 @@ bool Class::CanReload(const Class& replacement) const {
     TIR_Print("Finalized replacement class for %s\n", ToCString());
   }
 
+  // At this point the original and replacement must be in the same state.
+  ASSERT(is_finalized() == replacement.is_finalized());
+
   if (is_finalized()) {
     // Get the field maps for both classes. These field maps walk the class
     // hierarchy.

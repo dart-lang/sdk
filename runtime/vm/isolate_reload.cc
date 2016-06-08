@@ -257,9 +257,6 @@ void IsolateReloadContext::StartReload() {
   DeoptimizeDependentCode();
   Checkpoint();
 
-  // Block class finalization attempts when calling into the library
-  // tag handler.
-  I->BlockClassFinalization();
   Object& result = Object::Handle(thread->zone());
   {
     TransitionVMToNative transition(thread);
@@ -267,11 +264,10 @@ void IsolateReloadContext::StartReload() {
 
     Dart_Handle retval =
         (I->library_tag_handler())(Dart_kScriptTag,
-                                Api::NewHandle(thread, Library::null()),
-                                Api::NewHandle(thread, root_lib_url.raw()));
+                                   Api::NewHandle(thread, Library::null()),
+                                   Api::NewHandle(thread, root_lib_url.raw()));
     result = Api::UnwrapHandle(retval);
   }
-  I->UnblockClassFinalization();
   if (result.IsError()) {
     ReportError(Error::Cast(result));
   }
