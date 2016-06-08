@@ -3257,19 +3257,20 @@ abstract class InferStaticVariableTask extends ConstantEvaluationAnalysisTask {
    */
   VariableDeclaration getDeclaration(CompilationUnit unit) {
     VariableElement variable = target;
-    AstNode node = new NodeLocator2(variable.nameOffset).searchWithin(unit);
+    int offset = variable.nameOffset;
+    AstNode node = new NodeLocator2(offset).searchWithin(unit);
     if (node == null) {
       Source variableSource = variable.source;
       Source unitSource = unit.element.source;
       if (variableSource != unitSource) {
         throw new AnalysisException(
             "Failed to find the AST node for the variable "
-            "${variable.displayName} in $variableSource "
+            "${variable.displayName} at $offset in $variableSource "
             "because we were looking in $unitSource");
       }
       throw new AnalysisException(
           "Failed to find the AST node for the variable "
-          "${variable.displayName} in $variableSource");
+          "${variable.displayName} at $offset in $variableSource");
     }
     VariableDeclaration declaration =
         node.getAncestor((AstNode ancestor) => ancestor is VariableDeclaration);
@@ -3277,14 +3278,28 @@ abstract class InferStaticVariableTask extends ConstantEvaluationAnalysisTask {
       Source variableSource = variable.source;
       Source unitSource = unit.element.source;
       if (variableSource != unitSource) {
+        if (declaration == null) {
+          throw new AnalysisException(
+              "Failed to find the declaration of the variable "
+              "${variable.displayName} at $offset in $variableSource "
+              "because the node was not in a variable declaration "
+              "possibly because we were looking in $unitSource");
+        }
         throw new AnalysisException(
             "Failed to find the declaration of the variable "
-            "${variable.displayName} in $variableSource"
+            "${variable.displayName} at $offset in $variableSource "
             "because we were looking in $unitSource");
+      }
+      if (declaration == null) {
+        throw new AnalysisException(
+            "Failed to find the declaration of the variable "
+            "${variable.displayName} at $offset in $variableSource "
+            "because the node was not in a variable declaration");
       }
       throw new AnalysisException(
           "Failed to find the declaration of the variable "
-          "${variable.displayName} in $variableSource");
+          "${variable.displayName} at $offset in $variableSource "
+          "because the node was not the name in a variable declaration");
     }
     return declaration;
   }
