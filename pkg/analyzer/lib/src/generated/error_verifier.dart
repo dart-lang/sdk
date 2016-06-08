@@ -6222,6 +6222,13 @@ class RequiredConstantsComputer extends RecursiveAstVisitor {
   RequiredConstantsComputer(this.source);
 
   @override
+  Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    _checkForMissingRequiredParam(
+        node.staticInvokeType, node.argumentList, node);
+    return super.visitFunctionExpressionInvocation(node);
+  }
+
+  @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
     DartType type = node.constructorName.type.type;
     if (type is InterfaceType) {
@@ -6236,6 +6243,25 @@ class RequiredConstantsComputer extends RecursiveAstVisitor {
     _checkForMissingRequiredParam(
         node.staticInvokeType, node.argumentList, node.methodName);
     return super.visitMethodInvocation(node);
+  }
+
+  @override
+  Object visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
+    DartType type = node.staticElement?.type;
+    if (type != null) {
+      _checkForMissingRequiredParam(type, node.argumentList, node);
+    }
+    return super.visitRedirectingConstructorInvocation(node);
+  }
+
+  @override
+  Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    DartType type = node.staticElement?.type;
+    if (type != null) {
+      _checkForMissingRequiredParam(type, node.argumentList, node);
+    }
+    return super.visitSuperConstructorInvocation(node);
   }
 
   void _checkForMissingRequiredParam(

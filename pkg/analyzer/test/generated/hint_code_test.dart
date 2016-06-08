@@ -1830,6 +1830,37 @@ main() {
     verify([source]);
   }
 
+  void test_required_constructor_param_redirecting_cons_call() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  C({@required int x});
+  C.named() : this();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
+    verify([source]);
+  }
+
+  void test_required_constructor_param_super_call() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  C({@Required('must specify an `a`') int a}) {}
+}
+
+class D extends C {
+  D() : super();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
+    verify([source]);
+  }
+
   void test_required_function_param() {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
@@ -1880,6 +1911,23 @@ f() {
 
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
+    verify([source]);
+  }
+
+  void test_required_typedef_function_param() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+String test(C c) => c.m()();
+
+typedef String F({@required String x});
+
+class C {
+  F m() => ({@required String x}) => null;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
     verify([source]);
   }
 
