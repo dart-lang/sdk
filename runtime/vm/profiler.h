@@ -356,8 +356,8 @@ class Sample {
     kTruncatedTraceBit = 5,
     kClassAllocationSampleBit = 6,
     kContinuationSampleBit = 7,
-    kThreadTaskBit = 8,  // 5 bits.
-    kNextFreeBit = 13,
+    kThreadTaskBit = 8,  // 4 bits.
+    kNextFreeBit = 12,
   };
   class HeadSampleBit : public BitField<uword, bool, kHeadSampleBit, 1> {};
   class LeafFrameIsDart :
@@ -373,7 +373,7 @@ class Sample {
   class ContinuationSampleBit
       : public BitField<uword, bool, kContinuationSampleBit, 1> {};
   class ThreadTaskBit
-      : public BitField<uword, Thread::TaskKind, kThreadTaskBit, 5> {};
+      : public BitField<uword, Thread::TaskKind, kThreadTaskBit, 4> {};
 
   int64_t timestamp_;
   ThreadId tid_;

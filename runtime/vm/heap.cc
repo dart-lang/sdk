@@ -35,8 +35,6 @@ Heap::Heap(Isolate* isolate,
       old_space_(this, max_old_gen_words, max_external_words),
       barrier_(new Monitor()),
       barrier_done_(new Monitor()),
-      finalization_tasks_lock_(new Monitor()),
-      finalization_tasks_(0),
       read_only_(false),
       gc_new_space_in_progress_(false),
       gc_old_space_in_progress_(false),
@@ -54,7 +52,6 @@ Heap::Heap(Isolate* isolate,
 Heap::~Heap() {
   delete barrier_;
   delete barrier_done_;
-  delete finalization_tasks_lock_;
 
   for (int sel = 0;
        sel < kNumWeakSelectors;
