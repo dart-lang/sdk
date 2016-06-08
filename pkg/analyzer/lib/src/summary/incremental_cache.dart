@@ -17,6 +17,12 @@ import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 
 /**
+ * The version of the incremental cache.  It should be incremented every time
+ * when any cache data structure is changed.
+ */
+const int _VERSION = 1;
+
+/**
  * Storage for cache data.
  */
 abstract class CacheStorage {
@@ -285,6 +291,7 @@ class IncrementalCache {
     ByteConversionSink byteSink = md5.startChunkedConversion(digestSink);
     // Add data.
     addData(byteSink);
+    byteSink.add(const <int>[_VERSION]);
     byteSink.add(configSalt);
     // Done.
     byteSink.close();
@@ -368,6 +375,10 @@ class IncrementalCache {
         return null;
       }
       bundle = new PackageBundle.fromBuffer(bytes);
+      if (bundle.majorVersion != PackageBundleAssembler.currentMajorVersion ||
+          bundle.minorVersion != PackageBundleAssembler.currentMinorVersion) {
+        return null;
+      }
       _bundleMap[key] = bundle;
     }
     return bundle;
