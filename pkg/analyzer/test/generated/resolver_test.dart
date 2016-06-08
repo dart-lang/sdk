@@ -2920,8 +2920,12 @@ class TypeProviderImplTest extends EngineTestCase {
         context, AstFactory.libraryIdentifier2(["dart.core"]));
     coreLibrary.definingCompilationUnit = coreUnit;
 
-    LibraryElementImpl mockAsyncLib =
-        (context as AnalysisContextImpl).createMockAsyncLib(coreLibrary);
+    Source asyncSource = new NonExistingSource(
+        'async.dart', Uri.parse('dart:async'), UriKind.DART_URI);
+    LibraryElementImpl mockAsyncLib = (context as AnalysisContextImpl)
+        .createMockAsyncLib(coreLibrary, asyncSource);
+    expect(mockAsyncLib.source, same(asyncSource));
+    expect(mockAsyncLib.definingCompilationUnit.source, same(asyncSource));
     expect(mockAsyncLib.publicNamespace, isNotNull);
 
     //

@@ -1804,8 +1804,9 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
     LibraryElement coreLibrary = getRequiredInput(CORE_INPUT);
     LibraryElement asyncLibrary = getOptionalInput(ASYNC_INPUT);
     if (asyncLibrary == null) {
-      asyncLibrary =
-          (context as AnalysisContextImpl).createMockAsyncLib(coreLibrary);
+      Source asyncSource = context.sourceFactory.forUri(DartSdk.DART_ASYNC);
+      asyncLibrary = (context as AnalysisContextImpl)
+          .createMockAsyncLib(coreLibrary, asyncSource);
     }
     Namespace coreNamespace = coreLibrary.publicNamespace;
     Namespace asyncNamespace = asyncLibrary.publicNamespace;
@@ -1814,7 +1815,8 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
     //
     if (!context.analysisOptions.enableAsync) {
       AnalysisContextImpl contextImpl = context;
-      asyncLibrary = contextImpl.createMockAsyncLib(coreLibrary);
+      Source asyncSource = context.sourceFactory.forUri(DartSdk.DART_ASYNC);
+      asyncLibrary = contextImpl.createMockAsyncLib(coreLibrary, asyncSource);
       asyncNamespace = asyncLibrary.publicNamespace;
     }
     TypeProvider typeProvider =
