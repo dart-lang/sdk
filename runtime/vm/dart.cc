@@ -655,7 +655,6 @@ void Dart::RunShutdownCallback() {
   Isolate* isolate = Isolate::Current();
   void* callback_data = isolate->init_callback_data();
   Dart_IsolateShutdownCallback callback = Isolate::ShutdownCallback();
-  ServiceIsolate::SendIsolateShutdownMessage();
   if (callback != NULL) {
     (callback)(callback_data);
   }

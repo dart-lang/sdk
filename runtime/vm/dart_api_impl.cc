@@ -1297,13 +1297,14 @@ DART_EXPORT void Dart_ShutdownIsolate() {
     StackZone zone(T);
     HandleScope handle_scope(T);
     Dart::RunShutdownCallback();
+    // The Thread structure is disassociated from the isolate, we do the
+    // safepoint transition explicity here instead of using the TransitionXXX
+    // scope objects as the original transition happened outside this scope in
+    // Dart_EnterIsolate/Dart_CreateIsolate.
+    T->ExitSafepoint();
+    T->set_execution_state(Thread::kThreadInVM);
+    ServiceIsolate::SendIsolateShutdownMessage();
   }
-  // The Thread structure is disassociated from the isolate, we do the
-  // safepoint transition explicity here instead of using the TransitionXXX
-  // scope objects as the original transition happened outside this scope in
-  // Dart_EnterIsolate/Dart_CreateIsolate.
-  T->ExitSafepoint();
-  T->set_execution_state(Thread::kThreadInVM);
   Dart::ShutdownIsolate();
 }
 
