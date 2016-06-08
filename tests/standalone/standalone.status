@@ -170,6 +170,7 @@ package/scenarios/both_dir_and_file/prefers_packages_file_test: StaticWarning
 package/scenarios/packages_file_in_parent/sub/packages_file_in_parent_test: StaticWarning
 typed_data_test: StaticWarning
 typed_data_view_test: StaticWarning
+deferred_transitive_import_error: Skip # Contains intentional errors.
 
 [ $compiler == dart2analyzer ]
 package/package1_test: CompileTimeError
