@@ -2,6 +2,7 @@ library kernel.type_propagation.visualizer;
 
 import 'constraints.dart';
 import 'builder.dart';
+import 'solver.dart';
 import '../ast.dart';
 import '../text/ast_to_text.dart';
 
@@ -13,6 +14,8 @@ class Visualizer {
   final Map<int, List<Annotation>> annotations = <int, List<Annotation>>{};
   FieldNames fieldNames;
   ConstraintSystem constraints;
+  Solver solver;
+  Builder builder;
 
   List<GraphNode> _graphNodes;
   final Map<Member, Set<GraphNode>> _graphNodesInMember =
@@ -25,6 +28,10 @@ class Visualizer {
 
   List<Annotation> getAnnotations(int variable) {
     return annotations.putIfAbsent(variable, _makeAnnotationList);
+  }
+
+  Annotator getTextAnnotator() {
+    return new TextAnnotator(this);
   }
 
   /// Called from the builder to associate information with a variable.
@@ -271,4 +278,57 @@ String shorten(String text) {
     return text.substring(0, 30) + '...' + text.substring(text.length - 27);
   }
   return text;
+}
+
+class TextAnnotator extends Annotator {
+  final Visualizer visualizer;
+  final Map<VariableDeclaration, int> variables = <VariableDeclaration, int>{};
+  final Map<FunctionNode, int> functionReturns = <FunctionNode, int>{};
+
+  Builder get builder => visualizer.builder;
+
+  String getValueForVariable(Printer printer, int variable) {
+    if (variable == null) {
+      return '<missing type>';
+    }
+    Class value = visualizer.solver.getVariableValue(variable);
+    if (value == null) {
+      return 'bottom';
+    } else {
+      return printer.getClassReference(value);
+    }
+  }
+
+  TextAnnotator(this.visualizer) {
+    // The correspondence between AST and constraint system is exposed by the
+    // builder, but only at the level of Members.
+    // To get to the correspondence at the statement/expression level, we use
+    // the annotation map from the visualizer API.
+    // TODO(asgerf): If we use these annotations for testing, the necessary
+    //   bindings should arguably be part of the API for the Builder.
+    visualizer.annotations
+        .forEach((int variable, List<Annotation> annotations) {
+      for (Annotation annotation in annotations) {
+        if (annotation.node is VariableDeclaration && annotation.info == null) {
+          variables[annotation.node] = variable;
+        }
+        if (annotation.node is FunctionNode && annotation.info == 'return') {
+          functionReturns[annotation.node] = variable;
+        }
+      }
+    });
+  }
+
+  String annotateVariable(Printer printer, VariableDeclaration node) {
+    return getValueForVariable(
+        printer, builder.functionParameters[node] ?? variables[node]);
+  }
+
+  String annotateReturn(Printer printer, FunctionNode node) {
+    return getValueForVariable(printer, functionReturns[node]);
+  }
+
+  String annotateField(Printer printer, Field node) {
+    return getValueForVariable(printer, builder.fields[node]);
+  }
 }

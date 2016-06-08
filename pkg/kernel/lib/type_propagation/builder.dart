@@ -44,25 +44,30 @@ class Builder {
   int iteratorField;
   int currentField;
 
+  bool verbose;
+
   Builder(Program program,
       {ClassHierarchy hierarchy,
       FieldNames names,
       CoreTypes coreTypes,
-      Visualizer visualizer})
+      Visualizer visualizer,
+      bool verbose: false})
       : this._internal(
             program,
             hierarchy ?? new ClassHierarchy(program),
             names ?? new FieldNames(),
             coreTypes ?? new CoreTypes(program),
-            visualizer);
+            visualizer,
+            verbose);
 
   Builder._internal(this.program, ClassHierarchy hierarchy, FieldNames names,
-      this.coreTypes, Visualizer visualizer)
+      this.coreTypes, Visualizer visualizer, this.verbose)
       : this.hierarchy = hierarchy,
         this.fieldNames = names,
         this.visualizer = visualizer,
         this.constraints = new ConstraintSystem(hierarchy.classes.length) {
     if (visualizer != null) {
+      visualizer.builder = this;
       visualizer.constraints = constraints;
       visualizer.fieldNames = fieldNames;
       for (int i = 0; i < hierarchy.classes.length; ++i) {
@@ -257,7 +262,11 @@ class Builder {
         }
       }
     }
-    environment.returnValue ??= newVariable(node, 'return');
+    if (environment.returnValue == null) {
+      environment.returnValue = newVariable(node, 'return');
+    } else {
+      visualizer?.annotateVariable(environment.returnValue, node, 'return');
+    }
     if (functionValue != null) {
       for (int arity = minArity; arity <= maxArity; ++arity) {
         addStore(functionValue, getReturnField(arity), environment.returnValue);
@@ -269,7 +278,7 @@ class Builder {
   Set<String> _unsupportedNodes = new Set<String>();
 
   int unsupported(Node node) {
-    if (_unsupportedNodes.add('${node.runtimeType}')) {
+    if (verbose && _unsupportedNodes.add('${node.runtimeType}')) {
       print('Unsupported: ${node.runtimeType}');
     }
     return dynamicNode;

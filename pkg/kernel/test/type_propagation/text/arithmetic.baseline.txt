@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo(core::int/core::Object x, core::int/core::Object y) → core::int/core::Object {
+  dynamic/core::Object z = x.+(y);
+  return z.<<(4);
+}
+static method main() → dynamic/bottom {
+  self::foo(4, 5);
+  self::foo(6, 7);
+}

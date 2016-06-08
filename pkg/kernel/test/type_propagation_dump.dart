@@ -1,4 +1,5 @@
 import 'package:kernel/kernel.dart';
+import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/type_propagation/builder.dart';
 import 'package:kernel/type_propagation/constraints.dart';
 import 'package:kernel/type_propagation/solver.dart';
@@ -8,6 +9,7 @@ import 'dart:io';
 
 ArgParser parser = new ArgParser()
   ..addFlag('graph', help: 'Generate graphviz dot files')
+  ..addFlag('text', help: 'Generate annotated kernel text files')
   ..addFlag('stats',
       help: 'Print times and constraint system size', defaultsTo: true);
 
@@ -32,21 +34,34 @@ main(List<String> args) {
   }
   String path = options.rest.single;
 
-  bool visualize = options['graph'];
+  bool printGraphviz = options['graph'];
+  bool printText = options['text'];
+  bool useVisualizer = printGraphviz || printText;
 
   Program program = loadProgramFromBinary(path);
   Stopwatch watch = new Stopwatch()..start();
-  Visualizer visualizer = visualize ? new Visualizer(program) : null;
-  Builder builder = new Builder(program, visualizer: visualizer);
+  Visualizer visualizer = useVisualizer ? new Visualizer(program) : null;
+  Builder builder = new Builder(program, visualizer: visualizer, verbose: true);
   int buildTime = watch.elapsedMilliseconds;
-  ConstraintSystem constraints = builder.constraints;
 
-  watch..reset();
+  watch.reset();
   var solver = new Solver(builder);
   solver.solve();
   int solveTime = watch.elapsedMilliseconds;
+  visualizer?.solver = solver;
 
-  if (options['graph']) {
+  if (options['text']) {
+    print('Printing kernel text files...');
+    new Directory(outputDir).createSync();
+    StringBuffer buffer = new StringBuffer();
+    Printer printer =
+        new Printer(buffer, annotator: visualizer.getTextAnnotator());
+    printer.writeProgramFile(program);
+    String path = '$outputDir/program.txt';
+    new File(path).writeAsStringSync('$buffer');
+  }
+
+  if (printGraphviz) {
     print('Printing graphviz dot files...');
     new Directory(outputDir).createSync();
     void dumpMember(Member member) {

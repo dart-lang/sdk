@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:isolate" as iso;
+
+static field dynamic/core::Object subscription;
+static method onData(dynamic/core::Object x) → void/bottom {
+  core::print(x);
+  self::subscription.cancel();
+}
+static method main() → dynamic/bottom {
+  dynamic/bottom string = core::String::fromCharCode(65);
+  dynamic/bottom port = iso::ReceivePort::•();
+  self::subscription = port.listen(self::onData);
+  port.sendPort.send(string);
+}

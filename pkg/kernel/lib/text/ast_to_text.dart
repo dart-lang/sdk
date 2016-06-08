@@ -137,10 +137,17 @@ class NameSystem {
   }
 }
 
+abstract class Annotator {
+  String annotateVariable(Printer printer, VariableDeclaration node);
+  String annotateReturn(Printer printer, FunctionNode node);
+  String annotateField(Printer printer, Field node);
+}
+
 /// A quick and dirty ambiguous text printer.
 class Printer extends Visitor<Null> {
   final NameSystem syntheticNames;
   final StringSink sink;
+  final Annotator annotator;
   ImportTable importTable;
   int indentation = 0;
 
@@ -149,8 +156,85 @@ class Printer extends Visitor<Null> {
   static int SYMBOL = 2;
   int state = SPACE;
 
-  Printer(this.sink, {NameSystem syntheticNames, this.importTable})
+  Printer(this.sink,
+      {NameSystem syntheticNames, this.importTable, this.annotator})
       : this.syntheticNames = syntheticNames ?? new NameSystem();
+
+  Printer._inner(Printer parent, this.importTable)
+      : sink = parent.sink,
+        syntheticNames = parent.syntheticNames,
+        annotator = parent.annotator;
+
+  String getLibraryName(Library node) {
+    return node.name ?? syntheticNames.nameLibrary(node);
+  }
+
+  String getLibraryReference(Library node) {
+    if (node == null) return '<No Library>';
+    if (importTable != null && importTable.getImportIndex(node) != -1) {
+      return syntheticNames.nameLibraryPrefix(node);
+    }
+    return getLibraryName(node);
+  }
+
+  String getClassName(Class node) {
+    return node.name ?? syntheticNames.nameClass(node);
+  }
+
+  String getClassReference(Class node) {
+    if (node == null) return '<No Class>';
+    String name = getClassName(node);
+    String library = getLibraryReference(node.enclosingLibrary);
+    return '$library::$name';
+  }
+
+  static final String emptyNameString = '•';
+  static final Name emptyName = new Name(emptyNameString);
+
+  Name getMemberName(Member node) {
+    if (node.name?.name == '') return emptyName;
+    if (node.name != null) return node.name;
+    return new Name(syntheticNames.nameMember(node));
+  }
+
+  String getMemberReference(Member node) {
+    if (node == null) return '<No Member>';
+    String name = getMemberName(node).name;
+    if (node.parent is Class) {
+      String className = getClassReference(node.parent);
+      return '$className::$name';
+    } else {
+      String library = getLibraryReference(node.enclosingLibrary);
+      return '$library::$name';
+    }
+  }
+
+  String getVariableName(VariableDeclaration node) {
+    return node.name ?? syntheticNames.nameVariable(node);
+  }
+
+  String getVariableReference(VariableDeclaration node) {
+    if (node == null) return '<No VariableDeclaration>';
+    return getVariableName(node);
+  }
+
+  String getTypeParameterName(TypeParameter node) {
+    return node.name ?? syntheticNames.nameTypeParameter(node);
+  }
+
+  String getTypeParameterReference(TypeParameter node) {
+    if (node == null) return '<No TypeParameter>';
+    String name = getTypeParameterName(node);
+    if (node.parent is FunctionNode && node.parent.parent is Member) {
+      String member = getMemberReference(node.parent.parent);
+      return '$member::$name';
+    } else if (node.parent is Class) {
+      String className = getClassReference(node.parent);
+      return '$className::$name';
+    } else {
+      return name; // Bound inside a function type.
+    }
+  }
 
   void writeLibraryFile(Library library) {
     writeWord('library');
@@ -171,8 +255,7 @@ class Printer extends Visitor<Null> {
       }
     }
     endLine();
-    var inner =
-        new Printer(sink, importTable: imports, syntheticNames: syntheticNames);
+    var inner = new Printer._inner(this, imports);
     library.classes.forEach(inner.writeNode);
     library.fields.forEach(inner.writeNode);
     library.procedures.forEach(inner.writeNode);
@@ -180,8 +263,7 @@ class Printer extends Visitor<Null> {
 
   void writeProgramFile(Program program) {
     ImportTable imports = new ProgramImportTable(program);
-    var inner =
-        new Printer(sink, importTable: imports, syntheticNames: syntheticNames);
+    var inner = new Printer._inner(this, imports);
     endLine('program;');
     writeWord('main');
     writeSpaced('=');
@@ -272,6 +354,15 @@ class Printer extends Visitor<Null> {
     }
   }
 
+  void writeAnnotatedType(DartType type, String annotation) {
+    writeType(type);
+    if (annotation != null) {
+      write('/');
+      write(annotation);
+      state = WORD;
+    }
+  }
+
   void writeType(DartType type) {
     type.accept(this);
   }
@@ -316,7 +407,8 @@ class Printer extends Visitor<Null> {
     writeTypeParameterList(function.typeParameters);
     writeParameterList(function.positionalParameters, function.namedParameters,
         function.requiredParameterCount);
-    writeReturnType(function.returnType);
+    writeReturnType(
+        function.returnType, annotator?.annotateReturn(this, function));
     if (initializers != null && initializers.isNotEmpty) {
       endLine();
       ++indentation;
@@ -394,10 +486,10 @@ class Printer extends Visitor<Null> {
     }
   }
 
-  void writeReturnType(DartType type) {
+  void writeReturnType(DartType type, String annotation) {
     if (type == null) return;
     writeSpaced('→');
-    writeType(type);
+    writeAnnotatedType(type, annotation);
   }
 
   void writeTypeParameterList(List<TypeParameter> typeParameters) {
@@ -446,72 +538,23 @@ class Printer extends Visitor<Null> {
   }
 
   void writeMemberReference(Member member) {
-    if (member == null) {
-      writeWord('<No Member>');
-    } else {
-      if (member.enclosingClass != null) {
-        writeClassReference(member.enclosingClass);
-      } else {
-        writeLibraryReference(member.enclosingLibrary);
-      }
-      writeSymbol('::');
-      var name = getMemberName(member);
-      writeWord(name.name);
-    }
+    writeWord(getMemberReference(member));
   }
 
   void writeClassReference(Class classNode) {
-    if (classNode == null) {
-      writeWord('<No Class>');
-    } else {
-      if (classNode.enclosingLibrary != null) {
-        writeLibraryReference(classNode.enclosingLibrary);
-      }
-      writeSymbol('::');
-      writeWord(classNode.name ?? syntheticNames.nameClass(classNode));
-    }
+    writeWord(getClassReference(classNode));
   }
 
   void writeLibraryReference(Library library) {
-    if (library == null) {
-      writeWord('<No Library>');
-    } else if (importTable != null &&
-        importTable.getImportIndex(library) != -1) {
-      writeWord(syntheticNames.nameLibraryPrefix(library));
-    } else {
-      writeWord(library.name ?? syntheticNames.nameLibrary(library));
-    }
+    writeWord(getLibraryReference(library));
   }
 
   void writeVariableReference(VariableDeclaration variable) {
-    if (variable == null) {
-      writeWord('<No Var>');
-    } else {
-      writeWord(variable.name ?? syntheticNames.nameVariable(variable));
-    }
-  }
-
-  String getTypeParameterName(TypeParameter node) {
-    return node.name ?? syntheticNames.nameTypeParameter(node);
+    writeWord(getVariableReference(variable));
   }
 
   void writeTypeParameterReference(TypeParameter node) {
-    if (node == null) {
-      writeWord('<No TypeVar>');
-      return;
-    }
-    var parent = node.parent;
-    if (parent is Class) {
-      writeClassReference(parent);
-      writeSymbol('::');
-      writeWord(getTypeParameterName(node));
-    } else if (parent is FunctionNode && parent.parent is Member) {
-      writeMemberReference(parent.parent);
-      writeSymbol('::');
-      writeWord(getTypeParameterName(node));
-    } else {
-      writeWord(getTypeParameterName(node));
-    }
+    writeWord(getTypeParameterReference(node));
   }
 
   void writeExpression(Expression node, [int minimumPrecedence]) {
@@ -528,27 +571,13 @@ class Printer extends Visitor<Null> {
 
   visitLibrary(Library node) {}
 
-  static final String emptyNameString = '•';
-  static final Name emptyName = new Name(emptyNameString);
-
-  Name getMemberName(Member node) {
-    if (node.name?.name == '') return emptyName;
-    if (node.name != null) return node.name;
-    return new Name(syntheticNames.nameMember(node));
-  }
-
-  String getClassName(Class node) {
-    if (node.name != null) return node.name;
-    return syntheticNames.nameClass(node);
-  }
-
   visitField(Field node) {
     writeIndentation();
     writeModifier(node.isStatic, 'static');
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
     writeWord('field');
-    writeOptionalType(node.type);
+    writeAnnotatedType(node.type, annotator?.annotateField(this, node));
     writeName(getMemberName(node));
     if (node.initializer != null) {
       writeSpaced('=');
@@ -1097,11 +1126,6 @@ class Printer extends Visitor<Null> {
     endLine(';');
   }
 
-  String getVariableName(VariableDeclaration node) {
-    if (node.name != null) return node.name;
-    return syntheticNames.nameVariable(node);
-  }
-
   visitFunctionDeclaration(FunctionDeclaration node) {
     writeIndentation();
     writeWord('function');
@@ -1113,7 +1137,7 @@ class Printer extends Visitor<Null> {
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
     if (node.type != null) {
-      writeType(node.type);
+      writeAnnotatedType(node.type, annotator?.annotateVariable(this, node));
     }
     if (useVarKeyword && !node.isFinal && !node.isConst && node.type == null) {
       writeWord('var');

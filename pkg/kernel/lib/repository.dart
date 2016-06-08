@@ -32,7 +32,7 @@ class Repository {
       this.packageRoot,
       String workingDirectory,
       AnalyzerLoader analyzerLoader,
-      this.strongMode})
+      this.strongMode: false})
       : this.workingDirectory = workingDirectory ?? Directory.current.path,
         _analyzerLoader = analyzerLoader;
 
