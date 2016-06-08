@@ -114,6 +114,7 @@ issue14236_test: Skip # dart2js does not deal with Script snapshots.
 unboxed_int_converter_test: Skip
 pair_location_remapping_test: Skip
 regress_25335_test: Skip # Int64List not supported.
+deferred_transitive_import_error_test: Skip # Contains intentional errors.
 
 [ $compiler == dart2js && $cps_ir && $checked ]
 *: Skip # `assert` not implemented
