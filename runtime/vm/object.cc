@@ -10936,12 +10936,17 @@ bool LibraryPrefix::LoadLibrary() const {
     pending_deferred_loads.Add(deferred_lib);
     const String& lib_url = String::Handle(zone, deferred_lib.url());
     Dart_LibraryTagHandler handler = isolate->library_tag_handler();
+    Object& obj = Object::Handle(zone);
     {
       TransitionVMToNative transition(thread);
       Api::Scope api_scope(thread);
-      handler(Dart_kImportTag,
-              Api::NewHandle(thread, importer()),
-              Api::NewHandle(thread, lib_url.raw()));
+      obj = Api::UnwrapHandle(
+              handler(Dart_kImportTag,
+                      Api::NewHandle(thread, importer()),
+                      Api::NewHandle(thread, lib_url.raw())));
+    }
+    if (obj.IsError()) {
+      Exceptions::PropagateError(Error::Cast(obj));
     }
   } else {
     // Another load request is in flight.
