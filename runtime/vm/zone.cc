@@ -169,6 +169,21 @@ char* Zone::MakeCopyOfString(const char* str) {
 }
 
 
+char* Zone::MakeCopyOfStringN(const char* str, intptr_t len) {
+  ASSERT(len >= 0);
+  for (intptr_t i = 0; i < len; i++) {
+    if (str[i] == '\0') {
+      len = i;
+      break;
+    }
+  }
+  char* copy = Alloc<char>(len + 1);  // +1 for '\0'
+  strncpy(copy, str, len);
+  copy[len] = '\0';
+  return copy;
+}
+
+
 char* Zone::ConcatStrings(const char* a, const char* b, char join) {
   intptr_t a_len = (a == NULL) ? 0 : strlen(a);
   const intptr_t b_len = strlen(b) + 1;  // '\0'-terminated.

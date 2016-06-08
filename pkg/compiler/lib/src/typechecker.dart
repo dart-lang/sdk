@@ -40,7 +40,7 @@ import 'elements/elements.dart'
         TypeDeclarationElement,
         TypedElement,
         VariableElement;
-import 'resolution/class_members.dart' show MembersCreator;
+import 'resolution/class_members.dart' show MembersCreator, ErroneousMember;
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'tree/tree.dart';
 import 'util/util.dart' show Link, LinkBuilder;
@@ -733,7 +733,11 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         Name name, DartType unaliasedBound, InterfaceType interface) {
       MemberSignature member = lookupMemberSignature(memberName, interface);
       if (member != null) {
-        return new MemberAccess(member);
+        if (member is ErroneousMember) {
+          return const DynamicAccess();
+        } else {
+          return new MemberAccess(member);
+        }
       }
       if (name == const PublicName('call')) {
         if (unaliasedBound.isFunctionType) {
@@ -1057,7 +1061,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     } else if (element.isFunction) {
       // foo() where foo is a method in the same class.
       return createResolvedAccess(node, name, element);
-    } else if (element.isVariable || element.isParameter || element.isField) {
+    } else if (element.isVariable ||
+        element.isParameter ||
+        element.isField ||
+        element.isInitializingFormal) {
       // foo() where foo is a field in the same class.
       return createResolvedAccess(node, name, element);
     } else if (element.isGetter || element.isSetter) {

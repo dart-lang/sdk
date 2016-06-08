@@ -51,6 +51,11 @@ class Builtin {
 
   static Dart_Handle SetLoadPort(Dart_Port port);
 
+  static Dart_Port LoadPort() {
+    ASSERT(load_port_ != ILLEGAL_PORT);
+    return load_port_;
+  }
+
  private:
   // Map specified URI to an actual file name from 'source_paths' and read
   // the file.

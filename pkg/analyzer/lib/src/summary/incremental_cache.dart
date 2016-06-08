@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show ChunkedConversionSink, UTF8;
+import 'dart:convert';
 import 'dart:core' hide Resource;
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -139,9 +140,6 @@ class IncrementalCache {
       List<Source> closureSources = _getLibraryClosure(librarySource);
       List<LibraryBundleWithId> closureBundles = <LibraryBundleWithId>[];
       for (Source source in closureSources) {
-        if (source.isInSystemLibrary) {
-          continue;
-        }
         if (getSourceKind(source) == SourceKind.PART) {
           continue;
         }
@@ -153,6 +151,48 @@ class IncrementalCache {
         closureBundles.add(new LibraryBundleWithId(source, key, bundle));
       }
       return closureBundles;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /**
+   * Return the parts of the given [librarySource], or `null` if unknown.
+   */
+  List<Source> getLibraryParts(Source librarySource) {
+    try {
+      CacheSourceContent contentSource = _getCacheSourceContent(librarySource);
+      if (contentSource != null) {
+        return contentSource.partUris.map((String partUri) {
+          Source partSource = _resolveUri(librarySource, partUri);
+          if (partSource == null) {
+            throw new StateError(
+                'Unable to resolve $partUri in $librarySource');
+          }
+          return partSource;
+        }).toList();
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  /**
+   * Return cached errors in the given [source] in the context of the given
+   * [librarySource], or `null` if the cache does not have this information.
+   */
+  List<AnalysisError> getSourceErrorsInLibrary(
+      Source librarySource, Source source) {
+    try {
+      String key = _getSourceErrorsKey(librarySource, source);
+      List<int> bytes = storage.get(key);
+      if (bytes == null) {
+        return null;
+      }
+      CacheSourceErrorsInLibrary errorsObject =
+          new CacheSourceErrorsInLibrary.fromBuffer(bytes);
+      return errorsObject.errors
+          .map((e) => _convertErrorFromCached(source, e))
+          .toList();
     } catch (e) {
       return null;
     }
@@ -189,11 +229,27 @@ class IncrementalCache {
   }
 
   /**
+   * Associate the given [errors] with the [source] in the [librarySource].
+   */
+  void putSourceErrorsInLibrary(
+      Source librarySource, Source source, List<AnalysisError> errors) {
+    CacheSourceErrorsInLibraryBuilder builder =
+        new CacheSourceErrorsInLibraryBuilder(
+            errors: errors.map(_convertErrorToCached).toList());
+    String key = _getSourceErrorsKey(librarySource, source);
+    List<int> bytes = builder.toBuffer();
+    storage.put(key, bytes);
+  }
+
+  /**
    * Fill the whole source closure of the library with the given
    * [librarySource]. It includes defining units and parts of the library and
    * all its directly or indirectly imported or exported libraries.
    */
   void _appendLibraryClosure(Set<Source> closure, Source librarySource) {
+    if (librarySource.isInSystemLibrary) {
+      return;
+    }
     if (closure.add(librarySource)) {
       CacheSourceContent contentSource = _getCacheSourceContent(librarySource);
       if (contentSource == null) {
@@ -218,6 +274,48 @@ class IncrementalCache {
       contentSource.importedUris.forEach(appendLibrarySources);
       contentSource.exportedUris.forEach(appendLibrarySources);
     }
+  }
+
+  List<int> _computeSaltedMD5OfBytes(addData(ByteConversionSink byteSink)) {
+    Digest digest;
+    ChunkedConversionSink<Digest> digestSink =
+        new ChunkedConversionSink<Digest>.withCallback((List<Digest> digests) {
+      digest = digests.single;
+    });
+    ByteConversionSink byteSink = md5.startChunkedConversion(digestSink);
+    // Add data.
+    addData(byteSink);
+    byteSink.add(configSalt);
+    // Done.
+    byteSink.close();
+    return digest.bytes;
+  }
+
+  /**
+   * Return the [AnalysisError] for the given [cachedError].
+   */
+  AnalysisError _convertErrorFromCached(
+      Source source, CacheAnalysisError cachedError) {
+    ErrorCode errorCode = _getErrorCode(cachedError);
+    return new AnalysisError.forValues(
+        source,
+        cachedError.offset,
+        cachedError.length,
+        errorCode,
+        cachedError.message,
+        cachedError.correction);
+  }
+
+  /**
+   * Return the [CacheAnalysisError] for the given [error].
+   */
+  CacheAnalysisError _convertErrorToCached(AnalysisError error) {
+    return new CacheAnalysisErrorBuilder(
+        errorCodeUniqueName: error.errorCode.uniqueName,
+        offset: error.offset,
+        length: error.length,
+        message: error.message,
+        correction: error.correction);
   }
 
   /**
@@ -245,6 +343,18 @@ class IncrementalCache {
     List<int> hash = _getSourceContentHash(source);
     String hashStr = hex.encode(hash);
     return '$hashStr.content';
+  }
+
+  /**
+   * Return the [ErrorCode] of the given [error], throws if not found.
+   */
+  ErrorCode _getErrorCode(CacheAnalysisError error) {
+    String uniqueName = error.errorCodeUniqueName;
+    ErrorCode errorCode = ErrorCode.byUniqueName(uniqueName);
+    if (errorCode != null) {
+      return errorCode;
+    }
+    throw new StateError('Unable to find ErrorCode: $uniqueName');
   }
 
   /**
@@ -292,31 +402,12 @@ class IncrementalCache {
   List<int> _getLibraryClosureHash(Source librarySource) {
     return _libraryClosureHashMap.putIfAbsent(librarySource, () {
       List<Source> closure = _getLibraryClosure(librarySource);
-
-      Digest digest;
-
-      var digestSink = new ChunkedConversionSink<Digest>.withCallback(
-          (List<Digest> digests) {
-        digest = digests.single;
+      return _computeSaltedMD5OfBytes((ByteConversionSink byteSink) {
+        for (Source source in closure) {
+          List<int> sourceHash = _getSourceContentHash(source);
+          byteSink.add(sourceHash);
+        }
       });
-
-      var byteSink = md5.startChunkedConversion(digestSink);
-
-      for (Source source in closure) {
-        List<int> sourceHash = _getSourceContentHash(source);
-        byteSink.add(sourceHash);
-      }
-      byteSink.add(configSalt);
-
-      byteSink.close();
-      // TODO(paulberry): this call to `close` should not be needed.
-      // Can be removed once
-      //   https://github.com/dart-lang/crypto/issues/33
-      // is fixed – ensure the min version constraint on crypto is updated, tho.
-      // Does not cause any problems in the mean time.
-      digestSink.close();
-
-      return digest.bytes;
     });
   }
 
@@ -329,6 +420,18 @@ class IncrementalCache {
       List<int> sourceBytes = UTF8.encode(sourceText);
       return md5.convert(sourceBytes).bytes;
     });
+  }
+
+  /**
+   * Return the key for errors in the [source] in the [librarySource].
+   */
+  String _getSourceErrorsKey(Source librarySource, Source source) {
+    List<int> hash = _computeSaltedMD5OfBytes((ByteConversionSink byteSink) {
+      byteSink.add(_getLibraryClosureHash(librarySource));
+      byteSink.add(_getSourceContentHash(source));
+    });
+    String hashStr = hex.encode(hash);
+    return '$hashStr.errorsInLibrary';
   }
 
   /**
@@ -354,11 +457,13 @@ class IncrementalCache {
    * Write the content based information about the given [source].
    */
   void _writeCacheSourceContent(Source source, CacheSourceContentBuilder b) {
-    String key = _getCacheSourceContentKey(source);
-    List<int> bytes = b.toBuffer();
-    storage.put(key, bytes);
-    // Put into the cache to avoid reading it later.
-    _sourceContentMap[source] = new CacheSourceContent.fromBuffer(bytes);
+    if (!_sourceContentMap.containsKey(source)) {
+      String key = _getCacheSourceContentKey(source);
+      List<int> bytes = b.toBuffer();
+      storage.put(key, bytes);
+      // Put into the cache to avoid reading it later.
+      _sourceContentMap[source] = new CacheSourceContent.fromBuffer(bytes);
+    }
   }
 
   /**
@@ -368,10 +473,6 @@ class IncrementalCache {
   void _writeCacheSourceContents(LibraryElement library,
       [Set<LibraryElement> writtenLibraries]) {
     Source librarySource = library.source;
-    // Do nothing if already cached.
-    if (_sourceContentMap.containsKey(librarySource)) {
-      return;
-    }
     // Stop recursion cycle.
     writtenLibraries ??= new Set<LibraryElement>();
     if (!writtenLibraries.add(library)) {

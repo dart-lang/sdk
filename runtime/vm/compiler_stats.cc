@@ -26,8 +26,8 @@ class TokenStreamVisitor : public ObjectVisitor {
   }
 
   void VisitObject(RawObject* raw_obj) {
-    if (raw_obj->IsFreeListElement()) {
-      return;
+    if (raw_obj->IsPseudoObject()) {
+      return;  // Cannot be wrapped in handles.
     }
     obj_ = raw_obj;
     if (obj_.GetClassId() == TokenStream::kClassId) {

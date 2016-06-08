@@ -274,6 +274,8 @@ class ObjectPointerVisitor;
   V(ByteBufferDot_New, "ByteBuffer._New")                                      \
   V(_WeakProperty, "_WeakProperty")                                            \
   V(_MirrorReference, "_MirrorReference")                                      \
+  V(FreeListElement, "FreeListElement")                                        \
+  V(ForwardingCorpse, "ForwardingCorpse")                                      \
   V(InvocationMirror, "_InvocationMirror")                                     \
   V(AllocateInvocationMirror, "_allocateInvocationMirror")                     \
   V(toString, "toString")                                                      \

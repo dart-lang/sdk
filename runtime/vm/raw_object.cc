@@ -4,6 +4,7 @@
 
 #include "vm/raw_object.h"
 
+#include "vm/become.h"
 #include "vm/class_table.h"
 #include "vm/dart.h"
 #include "vm/freelist.h"
@@ -177,6 +178,12 @@ intptr_t RawObject::SizeFromClass() const {
       instance_size = element->Size();
       break;
     }
+    case kForwardingCorpse: {
+      uword addr = RawObject::ToAddr(this);
+      ForwardingCorpse* element = reinterpret_cast<ForwardingCorpse*>(addr);
+      instance_size = element->Size();
+      break;
+    }
     default: {
       // Get the (constant) instance size out of the class object.
       // TODO(koda): Add Size(ClassTable*) interface to allow caching in loops.
@@ -286,6 +293,12 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
         uword addr = RawObject::ToAddr(this);
         FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
         size = element->Size();
+        break;
+      }
+      case kForwardingCorpse: {
+        uword addr = RawObject::ToAddr(this);
+        ForwardingCorpse* forwarder = reinterpret_cast<ForwardingCorpse*>(addr);
+        size = forwarder->Size();
         break;
       }
       case kNullCid:

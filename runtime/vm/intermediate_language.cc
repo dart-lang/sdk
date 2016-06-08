@@ -3038,6 +3038,34 @@ static const StubEntry* TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
     default:          return NULL;
   }
 }
+#else
+static void TryFastPathSmiOp(
+    FlowGraphCompiler* compiler, ICData* call_ic_data, const String& name) {
+  if (!FLAG_two_args_smi_icd) {
+    return;
+  }
+  if (name.raw() == Symbols::Plus().raw()) {
+    __ AddTOS();
+  } else if (name.raw() == Symbols::Minus().raw()) {
+    __ SubTOS();
+  } else if (name.raw() == Symbols::EqualOperator().raw()) {
+    __ EqualTOS();
+  } else if (name.raw() == Symbols::LAngleBracket().raw()) {
+    __ LessThanTOS();
+  } else if (name.raw() == Symbols::RAngleBracket().raw()) {
+    __ GreaterThanTOS();
+  } else if (name.raw() == Symbols::BitAnd().raw()) {
+    __ BitAndTOS();
+  } else if (name.raw() == Symbols::BitOr().raw()) {
+    __ BitOrTOS();
+  } else if (name.raw() == Symbols::Star().raw()) {
+    __ MulTOS();
+  } else {
+    return;
+  }
+  bool is_smi_two_args_op = call_ic_data->AddSmiSmiCheckForFastSmiStubs();
+  ASSERT(is_smi_two_args_op);
+}
 #endif
 
 
@@ -3110,28 +3138,14 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   }
 #else
-  call_ic_data = &ICData::ZoneHandle(call_ic_data->Original());
+  ICData* ic_data = &ICData::ZoneHandle(call_ic_data->Original());
 
   // Emit smi fast path instruction. If fast-path succeeds it skips the next
   // instruction otherwise it falls through.
-  if (function_name().raw() == Symbols::Plus().raw()) {
-    __ AddTOS();
-  } else if (function_name().raw() == Symbols::EqualOperator().raw()) {
-    __ EqualTOS();
-  } else if (function_name().raw() == Symbols::LAngleBracket().raw()) {
-    __ LessThanTOS();
-  } else if (function_name().raw() == Symbols::RAngleBracket().raw()) {
-    __ GreaterThanTOS();
-  } else if (function_name().raw() == Symbols::BitAnd().raw()) {
-    __ BitAndTOS();
-  } else if (function_name().raw() == Symbols::BitOr().raw()) {
-    __ BitOrTOS();
-  } else if (function_name().raw() == Symbols::Star().raw()) {
-    __ MulTOS();
-  }
+  TryFastPathSmiOp(compiler, ic_data, function_name());
 
   const intptr_t call_ic_data_kidx = __ AddConstant(*call_ic_data);
-  switch (call_ic_data->NumArgsTested()) {
+  switch (ic_data->NumArgsTested()) {
     case 1:
       if (compiler->is_optimizing()) {
         __ InstanceCall1Opt(ArgumentCount(), call_ic_data_kidx);

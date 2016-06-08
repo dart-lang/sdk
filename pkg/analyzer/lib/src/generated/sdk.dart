@@ -38,6 +38,11 @@ abstract class DartSdk {
   static const String DART_HTML = "dart:html";
 
   /**
+   * The prefix shared by all dart library URIs.
+   */
+  static const String DART_LIBRARY_PREFIX = "dart:";
+
+  /**
    * The version number that is returned when the real version number could not
    * be determined.
    */

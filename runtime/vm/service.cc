@@ -859,7 +859,6 @@ void Service::InvokeMethod(Isolate* I, const Array& msg) {
 
     if (handler != NULL) {
       EmbedderHandleMessage(handler, &js);
-      js.PostReply();
       return;
     }
 
@@ -1126,16 +1125,16 @@ void Service::EmbedderHandleMessage(EmbedderServiceHandler* handler,
   ASSERT(handler != NULL);
   Dart_ServiceRequestCallback callback = handler->callback();
   ASSERT(callback != NULL);
-  const char* r = NULL;
-  const char* method = js->method();
-  const char** keys = js->param_keys();
-  const char** values = js->param_values();
-  r = callback(method, keys, values, js->num_params(), handler->user_data());
-  ASSERT(r != NULL);
-  // TODO(johnmccutchan): Allow for NULL returns?
-  TextBuffer* buffer = js->buffer();
-  buffer->AddString(r);
-  free(const_cast<char*>(r));
+  const char* response = NULL;
+  bool success = callback(js->method(), js->param_keys(), js->param_values(),
+                          js->num_params(), handler->user_data(), &response);
+  ASSERT(response != NULL);
+  if (!success) {
+    js->SetupError();
+  }
+  js->buffer()->AddString(response);
+  js->PostReply();
+  free(const_cast<char*>(response));
 }
 
 
@@ -2217,7 +2216,7 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
 
   virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
     RawObject* raw_obj = it->Get();
-    if (raw_obj->IsFreeListElement()) {
+    if (raw_obj->IsPseudoObject()) {
       return kProceed;
     }
     Thread* thread = Thread::Current();
@@ -3341,8 +3340,7 @@ class ContainsAddressVisitor : public FindObjectVisitor {
   virtual uword filter_addr() const { return addr_; }
 
   virtual bool FindObject(RawObject* obj) const {
-    // Free list elements are not real objects, so skip them.
-    if (obj->IsFreeListElement()) {
+    if (obj->IsPseudoObject()) {
       return false;
     }
     uword obj_begin = RawObject::ToAddr(obj);
@@ -3593,6 +3591,19 @@ static bool GetObject(Thread* thread, JSONStream* js) {
   }
 
   PrintInvalidParamError(js, "objectId");
+  return true;
+}
+
+
+static const MethodParameter* get_object_store_params[] = {
+  RUNNABLE_ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool GetObjectStore(Thread* thread, JSONStream* js) {
+  JSONObject jsobj(js);
+  thread->isolate()->object_store()->PrintToJSONObject(&jsobj);
   return true;
 }
 
@@ -3973,6 +3984,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_isolate_metric_list_params },
   { "getObject", GetObject,
     get_object_params },
+  { "_getObjectStore", GetObjectStore,
+    get_object_store_params },
   { "_getObjectByAddress", GetObjectByAddress,
     get_object_by_address_params },
   { "_getPersistentHandles", GetPersistentHandles,

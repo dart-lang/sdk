@@ -130,9 +130,13 @@ testUriPerRFCs() {
   // Test non-URI base (no scheme, no authority, relative path).
   base = Uri.parse("a/b/c?_#_");
   testResolve("a/b/g?q#f", "g?q#f");
+  testResolve("./", "../..");
   testResolve("../", "../../..");
   testResolve("a/b/", ".");
   testResolve("c", "../../c");
+  base = Uri.parse("../../a/b/c?_#_");  // Initial ".." in base url.
+  testResolve("../../a/d", "../d");
+  testResolve("../../../d", "../../../d");
 
   base = Uri.parse("s:a/b");
   testResolve("s:/c", "../c");

@@ -888,6 +888,15 @@ CompileType AllocateUninitializedContextInstr::ComputeType() const {
 }
 
 
+CompileType PolymorphicInstanceCallInstr::ComputeType() const {
+  if (!HasSingleRecognizedTarget()) return CompileType::Dynamic();
+  const Function& target = Function::Handle(ic_data().GetTargetAt(0));
+  return (target.recognized_kind() != MethodRecognizer::kUnknown)
+      ? CompileType::FromCid(MethodRecognizer::ResultCid(target))
+      : CompileType::Dynamic();
+}
+
+
 CompileType StaticCallInstr::ComputeType() const {
   if (result_cid_ != kDynamicCid) {
     return CompileType::FromCid(result_cid_);

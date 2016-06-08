@@ -211,8 +211,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       optype.includeTypeNameSuggestions = true;
       optype.typeNameSuggestionsFilter = (DartType dartType, int relevance) {
         DartType staticType = node.expression.staticType;
-        if (staticType.isDynamic ||
-            (dartType.isSubtypeOf(staticType) && dartType != staticType)) {
+        if (staticType != null &&
+            (staticType.isDynamic ||
+                (dartType.isSubtypeOf(staticType) && dartType != staticType))) {
           return relevance;
         } else {
           return null;
@@ -592,8 +593,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       optype.includeTypeNameSuggestions = true;
       optype.typeNameSuggestionsFilter = (DartType dartType, int relevance) {
         DartType staticType = node.expression.staticType;
-        if (staticType.isDynamic ||
-            (dartType.isSubtypeOf(staticType) && dartType != staticType)) {
+        if (staticType != null &&
+            (staticType.isDynamic ||
+                (dartType.isSubtypeOf(staticType) && dartType != staticType))) {
           return relevance;
         } else {
           return null;
@@ -770,6 +772,10 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (identical(entity, node.expression)) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
+    } else if (node.statements.contains(entity)) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+      optype.includeVoidReturnSuggestions = true;
     }
   }
 
@@ -873,14 +879,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
-  }
-
-  bool _isEntityPrevToken(TokenType expectedType) {
-    Object entity = this.entity;
-    if (entity is SimpleIdentifier && entity.token.isSynthetic) {
-      return entity.token.previous.type == expectedType;
-    }
-    return false;
   }
 
   bool _isEntityPrevTokenSynthetic() {

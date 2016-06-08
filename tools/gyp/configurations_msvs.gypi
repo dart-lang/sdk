@@ -10,6 +10,11 @@
     'configurations': {
       'Dart_Win_Base': {
         'abstract': 1,
+        'msvs_configuration_attributes': {
+          'OutputDirectory': '<(DEPTH)\\out\\$(ConfigurationName)',
+          'IntermediateDirectory': '$(OutDir)\\obj\\$(ProjectName)',
+          'CharacterSet': '1',
+        },
         'defines': [
           '_HAS_EXCEPTIONS=0',  # disable C++ exceptions use in C++ std. libs.
         ],

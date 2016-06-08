@@ -4,6 +4,7 @@
 
 #include "vm/dart.h"
 
+#include "vm/become.h"
 #include "vm/code_observers.h"
 #include "vm/cpu.h"
 #include "vm/dart_api_state.h"
@@ -146,6 +147,7 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   Isolate::InitOnce();
   PortMap::InitOnce();
   FreeListElement::InitOnce();
+  ForwardingCorpse::InitOnce();
   Api::InitOnce();
   NOT_IN_PRODUCT(CodeObservers::InitOnce());
   if (FLAG_profiler) {
@@ -653,7 +655,6 @@ void Dart::RunShutdownCallback() {
   Isolate* isolate = Isolate::Current();
   void* callback_data = isolate->init_callback_data();
   Dart_IsolateShutdownCallback callback = Isolate::ShutdownCallback();
-  ServiceIsolate::SendIsolateShutdownMessage();
   if (callback != NULL) {
     (callback)(callback_data);
   }

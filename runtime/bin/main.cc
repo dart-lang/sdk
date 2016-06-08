@@ -17,6 +17,7 @@
 #include "bin/extensions.h"
 #include "bin/file.h"
 #include "bin/isolate_data.h"
+#include "bin/loader.h"
 #include "bin/log.h"
 #include "bin/platform.h"
 #include "bin/process.h"
@@ -690,7 +691,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
                                                 int* exit_code) {
   ASSERT(script_uri != NULL);
 
-  const bool needs_load_port = !run_app_snapshot;
+  const bool needs_load_port = true;
 #if defined(PRODUCT)
   const bool run_service_isolate = needs_load_port;
 #else
@@ -726,7 +727,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   }
 
   // Set up the library tag handler for this isolate.
-  Dart_Handle result = Dart_SetLibraryTagHandler(DartUtils::LibraryTagHandler);
+  Dart_Handle result = Dart_SetLibraryTagHandler(Loader::LibraryTagHandler);
   CHECK_RESULT(result);
 
   if (Dart_IsServiceIsolate(isolate)) {
@@ -770,13 +771,15 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   if (run_app_snapshot) {
     result = DartUtils::SetupIOLibrary(script_uri);
     CHECK_RESULT(result);
+    Loader::InitForSnapshot(script_uri);
   } else {
     // Load the specified application script into the newly created isolate.
-    result = DartUtils::LoadScript(script_uri);
-    CHECK_RESULT(result);
-
-    // Run event-loop and wait for script loading to complete.
-    result = Dart_RunLoop();
+    Dart_Handle uri =
+        DartUtils::ResolveScript(Dart_NewStringFromCString(script_uri));
+    CHECK_RESULT(uri);
+    result = Loader::LibraryTagHandler(Dart_kScriptTag,
+                                       Dart_Null(),
+                                       uri);
     CHECK_RESULT(result);
 
     Dart_TimelineEvent("LoadScript",
@@ -932,9 +935,11 @@ static void ShutdownIsolate(void* callback_data) {
 }
 
 
-static const char* ServiceRequestError(Dart_Handle error) {
+static const char* InternalJsonRpcError(Dart_Handle error) {
   TextBuffer buffer(128);
-  buffer.Printf("{\"type\":\"Error\",\"text\":\"Internal error %s\"}",
+  buffer.Printf("{\"code\":-32603,"
+                "\"message\":\"Internal error\","
+                "\"details\": \"%s\"}",
                 Dart_GetError(error));
   return buffer.Steal();
 }
@@ -947,28 +952,32 @@ class DartScope {
 };
 
 
-static const char* ServiceGetIOHandler(
+static bool ServiceGetIOHandler(
     const char* method,
     const char** param_keys,
     const char** param_values,
     intptr_t num_params,
-    void* user_data) {
+    void* user_data,
+    const char** response) {
   DartScope scope;
   // TODO(ajohnsen): Store the library/function in isolate data or user_data.
   Dart_Handle dart_io_str = Dart_NewStringFromCString("dart:io");
   if (Dart_IsError(dart_io_str)) {
-    return ServiceRequestError(dart_io_str);
+    *response = InternalJsonRpcError(dart_io_str);
+    return false;
   }
 
   Dart_Handle io_lib = Dart_LookupLibrary(dart_io_str);
   if (Dart_IsError(io_lib)) {
-    return ServiceRequestError(io_lib);
+    *response = InternalJsonRpcError(io_lib);
+    return false;
   }
 
   Dart_Handle handler_function_name =
       Dart_NewStringFromCString("_serviceObjectHandler");
   if (Dart_IsError(handler_function_name)) {
-    return ServiceRequestError(handler_function_name);
+    *response = InternalJsonRpcError(handler_function_name);
+    return false;
   }
 
   // TODO(johnmccutchan): paths is no longer used.  Update the io
@@ -983,15 +992,18 @@ static const char* ServiceGetIOHandler(
   Dart_Handle args[] = {paths, keys, values};
   Dart_Handle result = Dart_Invoke(io_lib, handler_function_name, 3, args);
   if (Dart_IsError(result)) {
-    return ServiceRequestError(result);
+    *response = InternalJsonRpcError(result);
+    return false;
   }
 
   const char *json;
   result = Dart_StringToCString(result, &json);
   if (Dart_IsError(result)) {
-    return ServiceRequestError(result);
+    *response = InternalJsonRpcError(result);
+    return false;
   }
-  return strdup(json);
+  *response = strdup(json);
+  return true;
 }
 
 
@@ -1359,7 +1371,6 @@ bool RunMainIsolate(const char* script_name,
         reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
     result = Dart_LibraryImportLibrary(
         isolate_data->builtin_lib(), root_lib, Dart_Null());
-#if !defined(PRODUCT)
     if (is_noopt ||
         (gen_snapshot_kind == kAppAfterRun) ||
         (gen_snapshot_kind == kAppAOT) ||
@@ -1374,7 +1385,6 @@ bool RunMainIsolate(const char* script_name,
         exit(kErrorExitCode);
       }
     }
-#endif  // PRODUCT
 
     if (compile_all) {
       result = Dart_CompileAll();
@@ -1386,11 +1396,11 @@ bool RunMainIsolate(const char* script_name,
         { "dart:_builtin", "::", "_getMainClosure" },
         { "dart:_builtin", "::", "_getPrintClosure" },
         { "dart:_builtin", "::", "_getUriBaseClosure" },
+        { "dart:_builtin", "::", "_resolveInWorkingDirectory" },
         { "dart:_builtin", "::", "_resolveUri" },
         { "dart:_builtin", "::", "_setWorkingDirectory" },
         { "dart:_builtin", "::", "_setPackageRoot" },
-        { "dart:_builtin", "::", "_loadPackagesMap" },
-        { "dart:_builtin", "::", "_loadDataAsync" },
+        { "dart:_builtin", "::", "_libraryFilePath" },
         { "dart:io", "::", "_makeUint8ListView" },
         { "dart:io", "::", "_makeDatagram" },
         { "dart:io", "::", "_setupHooks" },
@@ -1410,9 +1420,7 @@ bool RunMainIsolate(const char* script_name,
         { "dart:io", "_ProcessStartStatus", "set:_errorMessage" },
         { "dart:io", "_SecureFilterImpl", "get:ENCRYPTED_SIZE" },
         { "dart:io", "_SecureFilterImpl", "get:SIZE" },
-#if !defined(PRODUCT)
         { "dart:vmservice_io", "::", "main" },
-#endif  // !PRODUCT
         { NULL, NULL, NULL }  // Must be terminated with NULL entries.
       };
 

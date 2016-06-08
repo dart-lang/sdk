@@ -404,7 +404,7 @@ namespace dart {
   V(StoreLocal,                      X, xeg, ___, ___) \
   V(PopLocal,                        X, xeg, ___, ___) \
   V(StaticCall,                    A_D, num, num, ___) \
-  V(InstanceCall1,                  A_D, num, num, ___) \
+  V(InstanceCall1,                 A_D, num, num, ___) \
   V(InstanceCall2,                 A_D, num, num, ___) \
   V(InstanceCall1Opt,              A_D, num, num, ___) \
   V(InstanceCall2Opt,              A_D, num, num, ___) \

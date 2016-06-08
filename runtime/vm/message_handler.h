@@ -81,6 +81,8 @@ class MessageHandler {
     return live_ports_;
   }
 
+  void DebugDump();
+
   bool paused() const { return paused_ > 0; }
 
   void increment_paused() { paused_++; }

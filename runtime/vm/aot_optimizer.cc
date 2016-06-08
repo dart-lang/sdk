@@ -108,8 +108,6 @@ void AotOptimizer::ApplyClassIds() {
             VisitInstanceCall(call);
           }
         }
-      } else if (instr->IsPolymorphicInstanceCall()) {
-        SpecializePolymorphicInstanceCall(instr->AsPolymorphicInstanceCall());
       }
     }
     current_iterator_ = NULL;
@@ -265,37 +263,6 @@ const ICData& AotOptimizer::TrySpecializeICData(const ICData& ic_data,
   }
 
   return ic_data;
-}
-
-
-void AotOptimizer::SpecializePolymorphicInstanceCall(
-    PolymorphicInstanceCallInstr* call) {
-  if (!FLAG_polymorphic_with_deopt) {
-    // Specialization adds receiver checks which can lead to deoptimization.
-    return;
-  }
-  if (!call->with_checks()) {
-    return;  // Already specialized.
-  }
-
-  const intptr_t receiver_cid =
-      call->PushArgumentAt(0)->value()->Type()->ToCid();
-  if (receiver_cid == kDynamicCid) {
-    return;  // No information about receiver was infered.
-  }
-
-  const ICData& ic_data = TrySpecializeICData(call->ic_data(), receiver_cid);
-  if (ic_data.raw() == call->ic_data().raw()) {
-    // No specialization.
-    return;
-  }
-
-  PolymorphicInstanceCallInstr* specialized =
-      new(Z) PolymorphicInstanceCallInstr(call->instance_call(),
-                                          ic_data,
-                                          /* with_checks = */ false,
-                                          /* complete = */ false);
-  call->ReplaceWith(specialized, current_iterator());
 }
 
 
@@ -2148,6 +2115,11 @@ static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
 // TODO(srdjan): Use ICData to check if always true or false.
 void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
+  // Guard against repeated speculative inlining.
+  if (!use_speculative_inlining_ ||
+      IsBlackListedForInlining(call->deopt_id())) {
+    return;
+  }
   Definition* left = call->ArgumentAt(0);
   Definition* type_args = NULL;
   AbstractType& type = AbstractType::ZoneHandle(Z);
@@ -2256,6 +2228,11 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
 // TODO(srdjan): Apply optimizations as in ReplaceWithInstanceOf (TestCids).
 void AotOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeCastOperator(call->token_kind()));
+  // Guard against repeated speculative inlining.
+  if (!use_speculative_inlining_ ||
+      IsBlackListedForInlining(call->deopt_id())) {
+    return;
+  }
   Definition* left = call->ArgumentAt(0);
   Definition* type_args = call->ArgumentAt(1);
   const AbstractType& type =

@@ -1255,7 +1255,9 @@ class ProfileBuilder : public ValueObject {
 
   void Build() {
     ScopeTimer sw("ProfileBuilder::Build", FLAG_trace_profiler);
-    FilterSamples();
+    if (!FilterSamples()) {
+      return;
+    }
 
     Setup();
     BuildCodeTable();
@@ -1297,15 +1299,16 @@ class ProfileBuilder : public ValueObject {
     RegisterProfileCodeTag(VMTag::kInlineEndCodeTagId);
   }
 
-  void FilterSamples() {
+  bool FilterSamples() {
     ScopeTimer sw("ProfileBuilder::FilterSamples", FLAG_trace_profiler);
     SampleBuffer* sample_buffer = Profiler::sample_buffer();
     if (sample_buffer == NULL) {
-      return;
+      return false;
     }
     samples_ = sample_buffer->BuildProcessedSampleBuffer(filter_);
     profile_->samples_ = samples_;
     profile_->sample_count_ = samples_->length();
+    return true;
   }
 
   void UpdateMinMaxTimes(int64_t timestamp) {
@@ -2518,7 +2521,7 @@ void Profile::PrintTimelineJSON(JSONStream* stream) {
 
 
 ProfileFunction* Profile::FindFunction(const Function& function) {
-  return functions_->Lookup(function);
+  return (functions_ != NULL) ? functions_->Lookup(function) : NULL;
 }
 
 

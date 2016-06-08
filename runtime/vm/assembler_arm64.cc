@@ -1126,7 +1126,33 @@ void Assembler::CheckCodePointer() {
 }
 
 
+void Assembler::SetupDartSP() {
+  mov(SP, CSP);
+}
+
+
+void Assembler::RestoreCSP() {
+  mov(CSP, SP);
+}
+
+
 void Assembler::EnterFrame(intptr_t frame_size) {
+  // The ARM64 ABI requires at all times
+  //   - stack limit < CSP <= stack base
+  //   - CSP mod 16 = 0
+  //   - we do not access stack memory below CSP
+  // Pratically, this means we need to keep the C stack pointer ahead of the
+  // Dart stack pointer and 16-byte aligned for signal handlers. If we knew the
+  // real stack limit, we could just set CSP to a value near it during
+  // SetupDartSP, but we do not know the real stack limit for the initial
+  // thread or threads created by the embedder.
+  // TODO(26472): It would be safer to use CSP as the Dart stack pointer, but
+  // this requires adjustments to stack handling to maintain the 16-byte
+  // alignment.
+  const intptr_t kMaxDartFrameSize = 4096;
+  sub(TMP, SP, Operand(kMaxDartFrameSize));
+  andi(CSP, TMP, Immediate(~15));
+
   PushPair(LR, FP);
   mov(FP, SP);
 

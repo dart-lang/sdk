@@ -62,8 +62,6 @@ class AotOptimizer : public FlowGraphVisitor {
   bool TryCreateICData(InstanceCallInstr* call);
   const ICData& TrySpecializeICData(const ICData& ic_data, intptr_t cid);
 
-  void SpecializePolymorphicInstanceCall(PolymorphicInstanceCallInstr* call);
-
   bool TryReplaceWithIndexedOp(InstanceCallInstr* call);
 
   bool TryReplaceWithBinaryOp(InstanceCallInstr* call, Token::Kind op_kind);

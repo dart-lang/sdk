@@ -206,7 +206,9 @@ abstract class ElementX extends Element with ElementCommon {
   }
 }
 
-class ErroneousElementX extends ElementX implements ErroneousElement {
+class ErroneousElementX extends ElementX
+    with ConstructorElementCommon
+    implements ErroneousElement {
   final MessageKind messageKind;
   final Map messageArguments;
 
@@ -282,9 +284,6 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   get isEffectiveTargetMalformed {
     throw new UnsupportedError("isEffectiveTargetMalformed");
   }
-
-  @override
-  bool get isFromEnvironmentConstructor => false;
 
   @override
   List<DartType> get typeVariables => unsupported();
@@ -1820,7 +1819,11 @@ class InitializingFormalElementX extends ParameterElementX
 
   MemberElement get memberContext => enclosingElement;
 
-  bool get isLocal => false;
+  @override
+  bool get isFinal => true;
+
+  @override
+  bool get isLocal => true;
 }
 
 class ErroneousInitializingFormalElementX extends ParameterElementX
@@ -1845,7 +1848,9 @@ class ErroneousInitializingFormalElementX extends ParameterElementX
   DynamicType get type => const DynamicType();
 }
 
-class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
+class AbstractFieldElementX extends ElementX
+    with AbstractFieldElementCommon
+    implements AbstractFieldElement {
   GetterElementX getter;
   SetterElementX setter;
 
@@ -1888,17 +1893,8 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
     }
   }
 
-  bool get isInstanceMember {
-    return isClassMember && !isStatic;
-  }
-
   accept(ElementVisitor visitor, arg) {
     return visitor.visitAbstractFieldElement(this, arg);
-  }
-
-  bool get isAbstract {
-    return getter != null && getter.isAbstract ||
-        setter != null && setter.isAbstract;
   }
 }
 
@@ -2170,21 +2166,13 @@ abstract class ConstantConstructorMixin implements ConstructorElement {
     }
   }
 
-  bool get isFromEnvironmentConstructor {
-    return name == 'fromEnvironment' &&
-        library.isDartCore &&
-        (enclosingClass.name == 'bool' ||
-            enclosingClass.name == 'int' ||
-            enclosingClass.name == 'String');
-  }
-
   /// Returns the empty list of type variables by default.
   @override
   List<DartType> get typeVariables => functionSignature.typeVariables;
 }
 
 abstract class ConstructorElementX extends FunctionElementX
-    with ConstantConstructorMixin
+    with ConstantConstructorMixin, ConstructorElementCommon
     implements ConstructorElement {
   bool isRedirectingGenerative = false;
 
@@ -2995,7 +2983,6 @@ abstract class MixinApplicationElementX extends BaseClassElementX
   ClassElement get mixin => mixinType != null ? mixinType.element : null;
 
   bool get isMixinApplication => true;
-  bool get isUnnamedMixinApplication => node is! NamedMixinApplication;
   bool get hasConstructor => !constructors.isEmpty;
   bool get hasLocalScopeMembers => !constructors.isEmpty;
 
@@ -3053,14 +3040,20 @@ class NamedMixinApplicationElementX extends MixinApplicationElementX
   Modifiers get modifiers => node.modifiers;
 
   DeclarationSite get declarationSite => this;
+
+  ClassElement get subclass => null;
 }
 
 class UnnamedMixinApplicationElementX extends MixinApplicationElementX {
   final Node node;
+  final ClassElement subclass;
 
   UnnamedMixinApplicationElementX(
-      String name, CompilationUnitElement enclosing, int id, this.node)
-      : super(name, enclosing, id);
+      String name, ClassElement subclass, int id, this.node)
+      : this.subclass = subclass,
+        super(name, subclass.compilationUnit, id);
+
+  bool get isUnnamedMixinApplication => true;
 
   bool get isAbstract => true;
 }

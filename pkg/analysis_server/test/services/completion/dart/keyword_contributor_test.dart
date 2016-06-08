@@ -371,6 +371,22 @@ class KeywordContributorTest extends DartCompletionContributorTest {
         pseudoKeywords: ['async', 'async*', 'sync*']);
   }
 
+  test_anonymous_function_async6() async {
+    addTestSource('main() {foo("bar", () as^{}}');
+    await computeSuggestions();
+    assertSuggestKeywords([],
+        pseudoKeywords: ['async', 'async*', 'sync*'],
+        relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_anonymous_function_async7() async {
+    addTestSource('main() {foo("bar", () as^ => null');
+    await computeSuggestions();
+    assertSuggestKeywords([],
+        pseudoKeywords: ['async', 'async*', 'sync*'],
+        relevance: DART_RELEVANCE_HIGH);
+  }
+
   test_argument() async {
     addTestSource('main() {foo(^);}');
     await computeSuggestions();
@@ -1179,6 +1195,12 @@ class A {
     assertSuggestKeywords([Keyword.IS], relevance: DART_RELEVANCE_HIGH);
   }
 
+  test_is_expression_partial() async {
+    addTestSource('main() {if (x i^)}');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.IS], relevance: DART_RELEVANCE_HIGH);
+  }
+
   test_library() async {
     addTestSource('library foo;^');
     await computeSuggestions();
@@ -1338,6 +1360,18 @@ class A {
     addTestSource('class A { foo() {return ^}}');
     await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_INSTANCE);
+  }
+
+  test_method_invocation() async {
+    addTestSource('class A { foo() {bar.^}}');
+    await computeSuggestions();
+    assertNoSuggestions();
+  }
+
+  test_method_invocation2() async {
+    addTestSource('class A { foo() {bar.as^}}');
+    await computeSuggestions();
+    assertNoSuggestions();
   }
 
   test_method_param() async {

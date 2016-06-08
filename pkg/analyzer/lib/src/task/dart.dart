@@ -335,6 +335,12 @@ final ListResultDescriptor<AnalysisError> HINTS =
         'HINT_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
+ * The ignore information for a [Source].
+ */
+final ResultDescriptor<IgnoreInfo> IGNORE_INFO =
+    new ResultDescriptor<IgnoreInfo>('IGNORE_INFO', null);
+
+/**
  * A list of the [VariableElement]s whose type should be inferred that another
  * inferable static variable (the target) depends on.
  *
@@ -2520,8 +2526,6 @@ class DartDelta extends Delta {
  * of errors.
  */
 class DartErrorsTask extends SourceBasedAnalysisTask {
-  static final RegExp spacesRegExp = new RegExp(r'\s+');
-
   /**
    * The task descriptor describing this kind of task.
    */
@@ -2529,17 +2533,14 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
       createTask, buildInputs, <ResultDescriptor>[DART_ERRORS]);
 
   /**
+   * The name of the [IGNORE_INFO_INPUT] input.
+   */
+  static const String IGNORE_INFO_INPUT = 'IGNORE_INFO_INPUT';
+
+  /**
    * The name of the [LINE_INFO_INPUT] input.
    */
   static const String LINE_INFO_INPUT = 'LINE_INFO_INPUT';
-
-  /**
-   * The name of the [PARSED_UNIT_INPUT] input.
-   */
-  static const String PARSED_UNIT_INPUT = 'PARSED_UNIT_INPUT';
-
-  // Prefix for comments ignoring error codes.
-  static const String _normalizedIgnorePrefix = '//ignore:';
 
   DartErrorsTask(InternalAnalysisContext context, AnalysisTarget target)
       : super(context, target);
@@ -2584,69 +2585,19 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
     outputs[DART_ERRORS] = errors;
   }
 
-  Token _advanceToLine(Token token, LineInfo lineInfo, int line) {
-    int offset = lineInfo.getOffsetOfLine(line - 1); // 0-based
-    while (token.offset < offset) {
-      token = token.next;
-    }
-    return token;
-  }
-
   List<AnalysisError> _filterIgnores(List<AnalysisError> errors) {
     if (errors.isEmpty) {
       return errors;
     }
 
-    // Sort errors.
-    errors.sort((AnalysisError e1, AnalysisError e2) => e1.offset - e2.offset);
+    IgnoreInfo ignoreInfo = getRequiredInput(IGNORE_INFO_INPUT);
+    if (!ignoreInfo.hasIgnores) {
+      return errors;
+    }
 
-    CompilationUnit cu = getRequiredInput(PARSED_UNIT_INPUT);
-    Token token = cu.beginToken;
     LineInfo lineInfo = getRequiredInput(LINE_INFO_INPUT);
 
-    bool isIgnored(AnalysisError error) {
-      int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-      token = _advanceToLine(token, lineInfo, errorLine);
-
-      //Check for leading comment.
-      Token comments = token.precedingComments;
-      while (comments?.next != null) {
-        comments = comments.next;
-      }
-      if (_isIgnoredBy(error, comments)) {
-        return true;
-      }
-
-      //Check for trailing comment.
-      int lineNumber = errorLine + 1;
-      if (lineNumber <= lineInfo.lineCount) {
-        Token nextLine = _advanceToLine(token, lineInfo, lineNumber);
-        comments = nextLine.precedingComments;
-        if (comments != null && nextLine.previous.type != TokenType.EOF) {
-          int commentLine = lineInfo.getLocation(comments.offset).lineNumber;
-          if (commentLine == errorLine) {
-            return _isIgnoredBy(error, comments);
-          }
-        }
-      }
-
-      return false;
-    }
-
-    return errors.where((AnalysisError e) => !isIgnored(e)).toList();
-  }
-
-  bool _isIgnoredBy(AnalysisError error, Token comment) {
-    //Normalize first.
-    String contents =
-        comment?.lexeme?.toLowerCase()?.replaceAll(spacesRegExp, '');
-    if (contents == null || !contents.startsWith(_normalizedIgnorePrefix)) {
-      return false;
-    }
-    return contents
-        .substring(_normalizedIgnorePrefix.length)
-        .split(',')
-        .contains(error.errorCode.name.toLowerCase());
+    return filterIgnored(errors, ignoreInfo, lineInfo);
   }
 
   /**
@@ -2658,7 +2609,7 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
     Source source = target;
     Map<String, TaskInput> inputs = <String, TaskInput>{};
     inputs[LINE_INFO_INPUT] = LINE_INFO.of(source);
-    inputs[PARSED_UNIT_INPUT] = PARSED_UNIT.of(source);
+    inputs[IGNORE_INFO_INPUT] = IGNORE_INFO.of(source);
     EnginePlugin enginePlugin = AnalysisEngine.instance.enginePlugin;
     // for Source
     List<ResultDescriptor> errorsForSource = enginePlugin.dartErrorsForSource;
@@ -2690,6 +2641,27 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
   static DartErrorsTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new DartErrorsTask(context, target);
+  }
+
+  /**
+   * Return a new list with items from [errors] which are not filtered out by
+   * the [ignoreInfo].
+   */
+  static List<AnalysisError> filterIgnored(
+      List<AnalysisError> errors, IgnoreInfo ignoreInfo, LineInfo lineInfo) {
+    if (errors.isEmpty || !ignoreInfo.hasIgnores) {
+      return errors;
+    }
+
+    bool isIgnored(AnalysisError error) {
+      int errorLine = lineInfo.getLocation(error.offset).lineNumber;
+      String errorCode = error.errorCode.name.toLowerCase();
+      // Ignores can be on the line or just preceding the error.
+      return ignoreInfo.ignoredAt(errorCode, errorLine) ||
+          ignoreInfo.ignoredAt(errorCode, errorLine - 1);
+    }
+
+    return errors.where((AnalysisError e) => !isIgnored(e)).toList();
   }
 }
 
@@ -3096,6 +3068,78 @@ class GenerateLintsTask extends SourceBasedAnalysisTask {
   static GenerateLintsTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new GenerateLintsTask(context, target);
+  }
+}
+
+/**
+ * Information about analysis `//ignore:` comments within a source file.
+ */
+class IgnoreInfo {
+  /**
+   *  Instance shared by all cases without matches.
+   */
+  static final IgnoreInfo _EMPTY_INFO = new IgnoreInfo();
+
+  /**
+   * A regular expression for matching 'ignore' comments.  Produces matches
+   * containing 2 groups.  For example:
+   *
+   *     * ['//ignore: error_code', 'error_code']
+   *
+   * Resulting codes may be in a list ('error_code_1,error_code2').
+   */
+  static final RegExp _IGNORE_MATCHER =
+      new RegExp(r'//[ ]*ignore:(.*)$', multiLine: true);
+
+  final Map<int, List<String>> _ignoreMap = new HashMap<int, List<String>>();
+
+  /**
+   * Whether this info object defines any ignores.
+   */
+  bool get hasIgnores => ignores.isNotEmpty;
+
+  /**
+   * Map of line numbers to associated ignored error codes.
+   */
+  Map<int, Iterable<String>> get ignores => _ignoreMap;
+
+  /**
+   * Ignore this [errorCode] at [line].
+   */
+  void add(int line, String errorCode) {
+    _ignoreMap.putIfAbsent(line, () => new List<String>()).add(errorCode);
+  }
+
+  /**
+   * Ignore these [errorCodes] at [line].
+   */
+  void addAll(int line, Iterable<String> errorCodes) {
+    _ignoreMap.putIfAbsent(line, () => new List<String>()).addAll(errorCodes);
+  }
+
+  /**
+   * Test whether this [errorCode] is ignored at the given [line].
+   */
+  bool ignoredAt(String errorCode, int line) =>
+      _ignoreMap[line]?.contains(errorCode) == true;
+
+  /**
+   * Calculate ignores for the given [content] with line [info].
+   */
+  static IgnoreInfo calculateIgnores(String content, LineInfo info) {
+    Iterable<Match> matches = _IGNORE_MATCHER.allMatches(content);
+    if (matches.isEmpty) {
+      return _EMPTY_INFO;
+    }
+
+    IgnoreInfo ignoreInfo = new IgnoreInfo();
+    for (Match match in matches) {
+      // See _IGNORE_MATCHER for format --- note the possibility of error lists.
+      Iterable<String> codes =
+          match.group(1).split(',').map((String code) => code.trim());
+      ignoreInfo.addAll(info.getLocation(match.start).lineNumber, codes);
+    }
+    return ignoreInfo;
   }
 }
 
@@ -5429,7 +5473,7 @@ class ScanDartTask extends SourceBasedAnalysisTask {
       'ScanDartTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[LINE_INFO, SCAN_ERRORS, TOKEN_STREAM],
+      <ResultDescriptor>[IGNORE_INFO, LINE_INFO, SCAN_ERRORS, TOKEN_STREAM],
       suitabilityFor: suitabilityFor);
 
   /**
@@ -5482,8 +5526,12 @@ class ScanDartTask extends SourceBasedAnalysisTask {
       scanner.preserveComments = context.analysisOptions.preserveComments;
       scanner.scanGenericMethodComments = context.analysisOptions.strongMode;
 
+      LineInfo lineInfo = new LineInfo(scanner.lineStarts);
+
       outputs[TOKEN_STREAM] = scanner.tokenize();
-      outputs[LINE_INFO] = new LineInfo(scanner.lineStarts);
+      outputs[LINE_INFO] = lineInfo;
+      outputs[IGNORE_INFO] =
+          IgnoreInfo.calculateIgnores(fragment.content, lineInfo);
       outputs[SCAN_ERRORS] = getUniqueErrors(errorListener.errors);
     } else if (target is Source) {
       String content = getRequiredInput(CONTENT_INPUT_NAME);
@@ -5493,8 +5541,11 @@ class ScanDartTask extends SourceBasedAnalysisTask {
       scanner.preserveComments = context.analysisOptions.preserveComments;
       scanner.scanGenericMethodComments = context.analysisOptions.strongMode;
 
+      LineInfo lineInfo = new LineInfo(scanner.lineStarts);
+
       outputs[TOKEN_STREAM] = scanner.tokenize();
-      outputs[LINE_INFO] = new LineInfo(scanner.lineStarts);
+      outputs[LINE_INFO] = lineInfo;
+      outputs[IGNORE_INFO] = IgnoreInfo.calculateIgnores(content, lineInfo);
       outputs[SCAN_ERRORS] = getUniqueErrors(errorListener.errors);
     } else {
       throw new AnalysisException(

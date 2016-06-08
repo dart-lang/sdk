@@ -1381,7 +1381,7 @@ f() { return new G<A>(); }
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
-  void test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias() {
+  void fail_typeArgumentNotMatchingBounds_ofFunctionTypeAlias() {
     assertErrorsInCode(
         r'''
 class A {}

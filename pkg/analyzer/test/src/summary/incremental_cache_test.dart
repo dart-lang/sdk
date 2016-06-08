@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/incremental_cache.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
 import '../abstract_single_unit.dart';
 
@@ -117,6 +119,63 @@ main() {}
     List<LibraryBundleWithId> bundles =
         cache.getLibraryClosureBundles(testSource);
     expect(bundles, isNotNull);
+  }
+
+  void test_getLibraryParts_hasParts() {
+    Source part1Source = addSource('/part1.dart', r'part of test;');
+    Source part2Source = addSource('/part2.dart', r'part of test;');
+    putTestLibrary(r'''
+library test;
+part 'part1.dart';
+part 'part2.dart';
+''');
+    expect(cache.getLibraryParts(testSource),
+        unorderedEquals([part1Source, part2Source]));
+  }
+
+  void test_getLibraryParts_noParts() {
+    putTestLibrary(r'''
+main() {}
+''');
+    expect(cache.getLibraryParts(testSource), isEmpty);
+  }
+
+  void test_getSourceErrorsInLibrary_library() {
+    verifyNoTestUnitErrors = false;
+    putTestLibrary(r'''
+main() {
+  int unusedVar = 42;
+}
+''');
+    List<AnalysisError> computedErrors = context.computeErrors(testSource);
+    cache.putSourceErrorsInLibrary(testSource, testSource, computedErrors);
+    List<AnalysisError> readErrors =
+        cache.getSourceErrorsInLibrary(testSource, testSource);
+    new GatheringErrorListener()
+      ..addAll(readErrors)
+      ..assertErrors(computedErrors);
+  }
+
+  void test_getSourceErrorsInLibrary_part() {
+    verifyNoTestUnitErrors = false;
+    Source partSource = addSource(
+        '/foo.dart',
+        r'''
+main() {
+  int unusedVar = 42;
+}
+''');
+    putTestLibrary(r'''
+library lib;
+part 'foo.dart';
+''');
+    List<AnalysisError> computedErrors = context.computeErrors(partSource);
+    cache.putSourceErrorsInLibrary(testSource, partSource, computedErrors);
+    List<AnalysisError> readErrors =
+        cache.getSourceErrorsInLibrary(testSource, partSource);
+    new GatheringErrorListener()
+      ..addAll(readErrors)
+      ..assertErrors(computedErrors);
   }
 
   void test_getSourceKind_library() {

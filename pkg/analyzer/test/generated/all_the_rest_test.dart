@@ -3916,10 +3916,10 @@ String f(E e) {
   }
 }
 ''');
-    _assertNthStatementExits(source, 0);
+    _assertNthStatementDoesNotExit(source, 0);
   }
 
-  void test_switch_withEnum_true_withDefault() {
+  void test_switch_withEnum_true_withExitingDefault() {
     Source source = addSource(r'''
 enum E { A, B }
 String f(E e) {
@@ -3932,6 +3932,22 @@ String f(E e) {
 }
 ''');
     _assertNthStatementExits(source, 0);
+  }
+
+  void test_switch_withEnum_true_withNonExitingDefault() {
+    Source source = addSource(r'''
+enum E { A, B }
+String f(E e) {
+  var x;
+  switch (e) {
+    case A:
+      return 'A';
+    default:
+      x = '?';
+  }
+}
+''');
+    _assertNthStatementDoesNotExit(source, 1);
   }
 
   void test_whileStatement_breakWithLabel() {
@@ -3957,6 +3973,42 @@ void f() {
       break x;
     }
   }
+}
+''');
+    _assertNthStatementExits(source, 0);
+  }
+
+  void test_yieldStatement_plain() {
+    Source source = addSource(r'''
+void f() sync* {
+  yield 1;
+}
+''');
+    _assertNthStatementDoesNotExit(source, 0);
+  }
+
+  void test_yieldStatement_throw() {
+    Source source = addSource(r'''
+void f() sync* {
+  yield throw '';
+}
+''');
+    _assertNthStatementExits(source, 0);
+  }
+
+  void test_yieldStatement_star_plain() {
+    Source source = addSource(r'''
+void f() sync* {
+  yield* 1;
+}
+''');
+    _assertNthStatementDoesNotExit(source, 0);
+  }
+
+  void test_yieldStatement_star_throw() {
+    Source source = addSource(r'''
+void f() sync* {
+  yield* throw '';
 }
 ''');
     _assertNthStatementExits(source, 0);

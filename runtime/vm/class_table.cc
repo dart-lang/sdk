@@ -35,6 +35,7 @@ ClassTable::ClassTable()
       table_[i] = vm_class_table->At(i);
     }
     table_[kFreeListElement] = vm_class_table->At(kFreeListElement);
+    table_[kForwardingCorpse] = vm_class_table->At(kForwardingCorpse);
     table_[kDynamicCid] = vm_class_table->At(kDynamicCid);
     table_[kVoidCid] = vm_class_table->At(kVoidCid);
     class_heap_stats_table_ = reinterpret_cast<ClassHeapStats*>(
@@ -218,9 +219,6 @@ void ClassTable::Print() {
     if (!HasValidClassAt(i)) {
       continue;
     }
-    if (i == kFreeListElement) {
-      continue;
-    }
     cls = At(i);
     if (cls.raw() != reinterpret_cast<RawClass*>(0)) {
       name = cls.Name();
@@ -395,7 +393,10 @@ ClassHeapStats* ClassTable::PreliminaryStatsAt(intptr_t cid) {
 
 
 ClassHeapStats* ClassTable::StatsWithUpdatedSize(intptr_t cid) {
-  if (!HasValidClassAt(cid) || (cid == kFreeListElement) || (cid == kSmiCid)) {
+  if (!HasValidClassAt(cid) ||
+      (cid == kFreeListElement) ||
+      (cid == kForwardingCorpse) ||
+      (cid == kSmiCid)) {
     return NULL;
   }
   Class& cls = Class::Handle(At(cid));

@@ -6,10 +6,70 @@
 #define VM_BECOME_H_
 
 #include "vm/allocation.h"
+#include "vm/raw_object.h"
 
 namespace dart {
 
 class Array;
+
+// Objects that are a source in a become are tranformed into forwarding
+// corpses pointing to the corresponding target. Forwarding corpses have the
+// same heap sizes as the source object to ensure the heap remains walkable.
+// If the heap sizes is small enough to be encoded in the size field of the
+// header, a forwarding corpse consists only of a header and the target pointer.
+// If the heap size is too big to be encoded in the header's size field, the
+// word after the target pointer contains the size.  This is the same
+// representation as a FreeListElement.
+class ForwardingCorpse {
+ public:
+  RawObject* target() const {
+    return target_;
+  }
+  void set_target(RawObject* target) {
+    target_ = target;
+  }
+
+  intptr_t Size() {
+    intptr_t size = RawObject::SizeTag::decode(tags_);
+    if (size != 0) return size;
+    return *SizeAddress();
+  }
+
+  static ForwardingCorpse* AsForwarder(uword addr, intptr_t size);
+
+  static void InitOnce();
+
+  // Used to allocate class for forwarding corpses in Object::InitOnce.
+  class FakeInstance {
+   public:
+    FakeInstance() { }
+    static cpp_vtable vtable() { return 0; }
+    static intptr_t InstanceSize() { return 0; }
+    static intptr_t NextFieldOffset() { return -kWordSize; }
+    static const ClassId kClassId = kForwardingCorpse;
+    static bool IsInstance() { return true; }
+
+   private:
+    DISALLOW_ALLOCATION();
+    DISALLOW_COPY_AND_ASSIGN(FakeInstance);
+  };
+
+ private:
+  // This layout mirrors the layout of RawObject.
+  uword tags_;
+  RawObject* target_;
+
+  // Returns the address of the embedded size.
+  intptr_t* SizeAddress() const {
+    uword addr = reinterpret_cast<uword>(&target_) + kWordSize;
+    return reinterpret_cast<intptr_t*>(addr);
+  }
+
+  // ForwardingCorpses cannot be allocated. Instead references to them are
+  // created using the AsForwarder factory method.
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(ForwardingCorpse);
+};
 
 // TODO(johnmccutchan): Refactor this class so that it is not all static and
 // provides utility methods for building the mapping of before and after.

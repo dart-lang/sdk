@@ -365,6 +365,7 @@ class Parser::TryStack : public ZoneAllocated {
   void exit_finally() { inside_finally_ = false; }
 
   void AddNodeForFinallyInlining(AstNode* node);
+  void RemoveJumpToLabel(SourceLabel *label);
   AstNode* GetNodeToInlineFinally(int index) {
     if (0 <= index && index < inlined_finally_nodes_.length()) {
       return inlined_finally_nodes_[index];
@@ -387,6 +388,25 @@ class Parser::TryStack : public ZoneAllocated {
 
 void Parser::TryStack::AddNodeForFinallyInlining(AstNode* node) {
   inlined_finally_nodes_.Add(node);
+}
+
+
+void Parser::TryStack::RemoveJumpToLabel(SourceLabel *label) {
+  int i = 0;
+  while (i < inlined_finally_nodes_.length()) {
+    if (inlined_finally_nodes_[i]->IsJumpNode()) {
+      JumpNode* jump = inlined_finally_nodes_[i]->AsJumpNode();
+      if (jump->label() == label) {
+        // Shift remaining entries left and delete last entry.
+        for (int j = i + 1; j < inlined_finally_nodes_.length(); j++) {
+          inlined_finally_nodes_[j - 1] = inlined_finally_nodes_[j];
+        }
+        inlined_finally_nodes_.RemoveLast();
+        continue;
+      }
+    }
+    i++;
+  }
 }
 
 
@@ -505,6 +525,14 @@ const Function& Parser::current_function() const {
 
 const Function& Parser::innermost_function() const {
   return innermost_function_;
+}
+
+
+int Parser::FunctionLevel() const {
+  if (current_block_ != NULL) {
+    return current_block_->scope->function_level();
+  }
+  return 0;
 }
 
 
@@ -2369,7 +2397,7 @@ ClosureNode* Parser::CreateImplicitClosureNode(const Function& func,
     // If we create an implicit instance closure from inside a closure of a
     // parameterized class, make sure that the receiver is captured as
     // instantiator.
-    if (current_block_->scope->function_level() > 0) {
+    if (FunctionLevel() > 0) {
       const Type& signature_type = Type::Handle(Z,
           implicit_closure_function.SignatureType());
       const Class& scope_class = Class::Handle(Z, signature_type.type_class());
@@ -3358,7 +3386,7 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
     AddFormalParamsToScope(&params, current_block_->scope);
 
     if (I->type_checks() &&
-        (current_block_->scope->function_level() > 0)) {
+        (FunctionLevel() > 0)) {
       // We are parsing, but not compiling, a local function.
       // The instantiator may be required at run time for generic type checks.
       if (IsInstantiatorRequired()) {
@@ -7406,7 +7434,7 @@ LocalVariable* Parser::LookupTypeArgumentsParameter(LocalScope* from_scope,
 
 
 void Parser::CaptureInstantiator() {
-  ASSERT(current_block_->scope->function_level() > 0);
+  ASSERT(FunctionLevel() > 0);
   const String* variable_name = current_function().IsInFactoryScope() ?
       &Symbols::TypeArgumentsParameter() : &Symbols::This();
   current_block_->scope->CaptureVariable(
@@ -7643,6 +7671,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   // Note that we cannot share the same closure function between the closurized
   // and non-closurized versions of the same parent function.
   Function& function = Function::ZoneHandle(Z);
+  bool found_func = true;
   // TODO(hausner): There could be two different closures at the given
   // function_pos, one enclosed in a closurized function and one enclosed in the
   // non-closurized version of this same function.
@@ -7651,6 +7680,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     // The function will be registered in the lookup table by the
     // EffectGraphVisitor::VisitClosureNode when the newly allocated closure
     // function has been properly setup.
+    found_func = false;
     function = Function::NewClosureFunction(*function_name,
                                             innermost_function(),
                                             function_pos);
@@ -7700,15 +7730,40 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     }
   }
 
-  // Parse the local function.
-  SequenceNode* statements = Parser::ParseFunc(function, !is_literal);
-  INC_STAT(thread(), num_functions_parsed, 1);
+  Type& signature_type = Type::ZoneHandle(Z);
+  SequenceNode* statements = NULL;
+  if (!found_func) {
+    // Parse the local function. As a side effect of the parsing, the
+    // variables of this function's scope that are referenced by the local
+    // function (and its inner nested functions) will be marked as captured.
 
-  // Now that the local function has formal parameters, lookup the signature
-  Type& signature_type = Type::ZoneHandle(Z, function.SignatureType());
-  signature_type ^= ClassFinalizer::FinalizeType(
-      current_class(), signature_type, ClassFinalizer::kCanonicalize);
-  function.SetSignatureType(signature_type);
+    statements = Parser::ParseFunc(function, !is_literal);
+    INC_STAT(thread(), num_functions_parsed, 1);
+
+    // Now that the local function has formal parameters, lookup the signature
+    signature_type = function.SignatureType();
+    signature_type ^= ClassFinalizer::FinalizeType(
+        current_class(), signature_type, ClassFinalizer::kCanonicalize);
+    function.SetSignatureType(signature_type);
+  } else {
+    // The local function was parsed before. The captured variables are
+    // saved in the function's context scope. Iterate over the context scope
+    // and mark its variables as captured.
+    const ContextScope& context_scope =
+        ContextScope::Handle(Z, function.context_scope());
+    ASSERT(!context_scope.IsNull());
+    String& var_name = String::Handle(Z);
+    for (int i = 0; i < context_scope.num_variables(); i++) {
+      var_name = context_scope.NameAt(i);
+      // We need to look up the name in a way that returns even hidden
+      // variables, e.g. 'this' in an initializer list.
+      LocalVariable* v = current_block_->scope->LookupVariable(var_name, true);
+      ASSERT(v != NULL);
+      current_block_->scope->CaptureVariable(v);
+    }
+    SkipFunctionLiteral();
+    signature_type = function.SignatureType();
+  }
 
   // Local functions are registered in the enclosing class, but
   // ignored during class finalization. The enclosing class has
@@ -7717,7 +7772,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   ASSERT(signature_type.IsFinalized());
 
   // Make sure that the instantiator is captured.
-  if ((current_block_->scope->function_level() > 0) &&
+  if ((FunctionLevel() > 0) &&
       Class::Handle(signature_type.type_class()).IsGeneric()) {
     CaptureInstantiator();
   }
@@ -7763,8 +7818,9 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   // variables are not relevant for the compilation of the enclosing function.
   // This pruning is done by omitting to hook the local scope in its parent
   // scope in the constructor of LocalScope.
-  AstNode* closure = new(Z) ClosureNode(
-      function_pos, function, NULL, statements->scope());
+  AstNode* closure =
+      new(Z) ClosureNode(function_pos, function, NULL,
+                         statements != NULL ? statements->scope() : NULL);
 
   if (function_variable == NULL) {
     ASSERT(is_literal);
@@ -8405,6 +8461,7 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
         // We have seen a 'continue' with this label name. Resolve
         // the forward reference.
         case_label->ResolveForwardReference();
+        RemoveNodesForFinallyInlining(case_label);
       } else {
         ReportError(label_pos, "label '%s' already exists in scope",
                     label_name->ToCString());
@@ -8548,7 +8605,7 @@ void Parser::CheckAsyncOpInTryBlock(
   if (try_stack_ != NULL) {
     LocalScope* scope = try_stack_->try_block()->scope;
     uint16_t try_index = try_stack_->try_index();
-    const int current_function_level = current_block_->scope->function_level();
+    const int current_function_level = FunctionLevel();
     if (scope->function_level() == current_function_level) {
       // The block declaring :saved_try_ctx_var variable is the parent of the
       // pushed try block.
@@ -9299,7 +9356,7 @@ void Parser::AddNodeForFinallyInlining(AstNode* node) {
     return;
   }
   ASSERT(node->IsReturnNode() || node->IsJumpNode());
-  const intptr_t func_level = current_block_->scope->function_level();
+  const intptr_t func_level = FunctionLevel();
   TryStack* iterator = try_stack_;
   while ((iterator != NULL) &&
       (iterator->try_block()->scope->function_level() == func_level)) {
@@ -9313,11 +9370,27 @@ void Parser::AddNodeForFinallyInlining(AstNode* node) {
       // so we do not need to inline the finally code. Otherwise we need
       // to inline the finally code of this try block and then move on to the
       // next outer try block.
-      if (label->owner()->IsNestedWithin(try_scope)) {
+      // For unresolved forward jumps to switch cases, we don't yet know
+      // to which scope the label will be resolved. Tentatively add the
+      // jump to all nested try statements and remove the outermost ones
+      // when we know the exact jump target. (See
+      // RemoveNodesForFinallyInlining below.)
+      if (!label->IsUnresolved() && label->owner()->IsNestedWithin(try_scope)) {
         break;
       }
     }
     iterator->AddNodeForFinallyInlining(node);
+    iterator = iterator->outer_try();
+  }
+}
+
+
+void Parser::RemoveNodesForFinallyInlining(SourceLabel* label) {
+  TryStack* iterator = try_stack_;
+  const intptr_t func_level = FunctionLevel();
+  while ((iterator != NULL) &&
+         (iterator->try_block()->scope->function_level() == func_level)) {
+    iterator->RemoveJumpToLabel(label);
     iterator = iterator->outer_try();
   }
 }
@@ -9329,7 +9402,9 @@ void Parser::AddFinallyClauseToNode(bool is_async,
                                     InlinedFinallyNode* finally_clause) {
   ReturnNode* return_node = node->AsReturnNode();
   if (return_node != NULL) {
-    parsed_function()->EnsureFinallyReturnTemp(is_async);
+    if (FunctionLevel() == 0) {
+      parsed_function()->EnsureFinallyReturnTemp(is_async);
+    }
     return_node->AddInlinedFinallyNode(finally_clause);
     return;
   }
@@ -9444,7 +9519,7 @@ SequenceNode* Parser::ParseCatchClauses(
       // Has a type specification that is not malformed or malbounded.  Now
       // form an 'if type check' to guard the catch handler code.
       if (!exception_param.type->IsInstantiated() &&
-          (current_block_->scope->function_level() > 0)) {
+          (FunctionLevel() > 0)) {
         // Make sure that the instantiator is captured.
         CaptureInstantiator();
       }
@@ -9859,7 +9934,7 @@ AstNode* Parser::ParseJump(String* label_name) {
   if (jump_kind == Token::kBREAK && target->kind() == SourceLabel::kCase) {
     ReportError(jump_pos, "'break' to case clause label is illegal");
   }
-  if (target->FunctionLevel() != current_block_->scope->function_level()) {
+  if (target->FunctionLevel() != FunctionLevel()) {
     ReportError(jump_pos, "'%s' target must be in same function context",
                 Token::Str(jump_kind));
   }
@@ -10058,17 +10133,16 @@ AstNode* Parser::ParseStatement() {
     if (CurrentToken() != Token::kSEMICOLON) {
       const TokenPosition expr_pos = TokenPos();
       if (current_function().IsGenerativeConstructor() &&
-          (current_block_->scope->function_level() == 0)) {
+          (FunctionLevel() == 0)) {
         ReportError(expr_pos,
                     "return of a value is not allowed in constructors");
       } else if (current_function().IsGeneratorClosure() &&
-          (current_block_->scope->function_level() == 0)) {
+          (FunctionLevel() == 0)) {
         ReportError(expr_pos, "generator functions may not return a value");
       }
       AstNode* expr = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
       if (I->type_checks() &&
-          current_function().IsAsyncClosure() &&
-          (current_block_->scope->function_level() == 0)) {
+          current_function().IsAsyncClosure() && (FunctionLevel() == 0)) {
         // In checked mode, when the declared result type is Future<T>, verify
         // that the returned expression is of type T or Future<T> as follows:
         // return temp = expr, temp is Future ? temp as Future<T> : temp as T;
@@ -10119,7 +10193,7 @@ AstNode* Parser::ParseStatement() {
       statement = new(Z) ReturnNode(statement_pos, expr);
     } else {
       if (current_function().IsSyncGenClosure() &&
-          (current_block_->scope->function_level() == 0)) {
+          (FunctionLevel() == 0)) {
         // In a synchronous generator, return without an expression
         // returns false, signaling that the iterator terminates and
         // did not yield a value.
@@ -10529,8 +10603,7 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
         const TokenPosition type_pos = TokenPos();
         const AbstractType& type = AbstractType::ZoneHandle(Z,
             ParseType(ClassFinalizer::kCanonicalize));
-        if (!type.IsInstantiated() &&
-            (current_block_->scope->function_level() > 0)) {
+        if (!type.IsInstantiated() && (FunctionLevel() > 0)) {
           // Make sure that the instantiator is captured.
           CaptureInstantiator();
         }
@@ -11451,7 +11524,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                         "from static function",
                         name.ToCString());
           }
-          if (current_block_->scope->function_level() > 0) {
+          if (FunctionLevel() > 0) {
             // Make sure that the instantiator is captured.
             CaptureInstantiator();
           }
@@ -11547,7 +11620,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                         "from static function",
                         name.ToCString());
           }
-          if (current_block_->scope->function_level() > 0) {
+          if (FunctionLevel() > 0) {
             // Make sure that the instantiator is captured.
             CaptureInstantiator();
           }
@@ -11665,7 +11738,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                         "from static function",
                         name.ToCString());
           }
-          if (current_block_->scope->function_level() > 0) {
+          if (FunctionLevel() > 0) {
             // Make sure that the instantiator is captured.
             CaptureInstantiator();
           }
@@ -12498,7 +12571,7 @@ AstNode* Parser::ResolveIdent(TokenPosition ident_pos,
       TypeParameter& type_parameter = TypeParameter::ZoneHandle(Z,
           current_class().LookupTypeParameter(ident));
       if (!type_parameter.IsNull()) {
-        if (current_block_->scope->function_level() > 0) {
+        if (FunctionLevel() > 0) {
           // Make sure that the instantiator is captured.
           CaptureInstantiator();
         }
@@ -12839,7 +12912,7 @@ AstNode* Parser::ParseListLiteral(TokenPosition type_pos,
     ASSERT(!factory_method.IsNull());
     if (!list_type_arguments.IsNull() &&
         !list_type_arguments.IsInstantiated() &&
-        (current_block_->scope->function_level() > 0)) {
+        (FunctionLevel() > 0)) {
       // Make sure that the instantiator is captured.
       CaptureInstantiator();
     }
@@ -13101,7 +13174,7 @@ AstNode* Parser::ParseMapLiteral(TokenPosition type_pos,
     ASSERT(!factory_method.IsNull());
     if (!map_type_arguments.IsNull() &&
         !map_type_arguments.IsInstantiated() &&
-        (current_block_->scope->function_level() > 0)) {
+        (FunctionLevel() > 0)) {
       // Make sure that the instantiator is captured.
       CaptureInstantiator();
     }
@@ -13685,7 +13758,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
     CheckConstructorCallTypeArguments(new_pos, constructor, type_arguments);
     if (!type_arguments.IsNull() &&
         !type_arguments.IsInstantiated() &&
-        (current_block_->scope->function_level() > 0)) {
+        (FunctionLevel() > 0)) {
       // Make sure that the instantiator is captured.
       CaptureInstantiator();
     }
@@ -14352,6 +14425,7 @@ void Parser::SkipSelectors() {
 void Parser::SkipPostfixExpr() {
   SkipPrimary();
   if (CurrentToken() == Token::kHASH) {
+    ConsumeToken();
     if (IsIdentifier()) {
       ConsumeToken();
       SkipIf(Token::kASSIGN);

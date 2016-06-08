@@ -379,6 +379,17 @@ Dart_Handle DartUtils::ResolveUri(Dart_Handle library_url, Dart_Handle url) {
 }
 
 
+Dart_Handle DartUtils::ResolveScript(Dart_Handle url) {
+  const int kNumArgs = 1;
+  Dart_Handle dart_args[kNumArgs];
+  dart_args[0] = url;
+  return Dart_Invoke(DartUtils::BuiltinLib(),
+                     NewString("_resolveScriptUri"),
+                     kNumArgs,
+                     dart_args);
+}
+
+
 static Dart_Handle LoadDataAsync_Invoke(Dart_Handle tag,
                                         Dart_Handle url,
                                         Dart_Handle library_url) {
@@ -397,6 +408,9 @@ static Dart_Handle LoadDataAsync_Invoke(Dart_Handle tag,
 Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
                                          Dart_Handle library,
                                          Dart_Handle url) {
+  if (tag == Dart_kCanonicalizeUrl) {
+    return Dart_DefaultCanonicalizeUrl(library, url);
+  }
   if (!Dart_IsLibrary(library)) {
     return Dart_NewApiError("not a library");
   }
@@ -420,10 +434,7 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
 
   // Handle canonicalization, 'import' and 'part' of 'dart:' libraries.
   if (is_dart_scheme_url || is_dart_library) {
-    if (tag == Dart_kCanonicalizeUrl) {
-      // These will be handled internally.
-      return url;
-    } else if (tag == Dart_kImportTag) {
+    if (tag == Dart_kImportTag) {
       Builtin::BuiltinLibraryId id = Builtin::FindId(url_string);
       if (id == Builtin::kInvalidLibrary) {
         return NewError("The built-in library '%s' is not available"
@@ -450,11 +461,6 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
     }
     // All cases should have been handled above.
     UNREACHABLE();
-  }
-
-  if (tag == Dart_kCanonicalizeUrl) {
-    // Resolve the url within the context of the library's URL.
-    return ResolveUri(library_url, url);
   }
 
   if (DartUtils::IsDartExtensionSchemeURL(url_string)) {
@@ -747,7 +753,7 @@ Dart_Handle DartUtils::SetupPackageRoot(const char* package_root,
     Dart_Handle dart_args[kNumArgs];
     dart_args[0] = result;
     result = Dart_Invoke(DartUtils::BuiltinLib(),
-                         NewString("_loadPackagesMap"),
+                         NewString("_setPackagesMap"),
                          kNumArgs,
                          dart_args);
     RETURN_IF_ERROR(result);

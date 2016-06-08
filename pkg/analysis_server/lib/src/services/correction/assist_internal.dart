@@ -338,7 +338,7 @@ class AssistProcessor {
     }
     // add edit
     Token keyword = declarationList.keyword;
-    if (keyword.keyword == Keyword.VAR) {
+    if (keyword?.keyword == Keyword.VAR) {
       SourceRange range = rangeToken(keyword);
       _addReplaceEdit(range, typeSource);
     } else {

@@ -149,6 +149,10 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
   /// methods where type arguments are passed.
   final bool enableGenericMethodSyntax;
 
+  /// Support access to initializing formal constructor arguments, e.g., the
+  /// use of `x` to initialize `y` in `C(this.x) : y = x`.
+  final bool enableInitializingFormalAccess;
+
   /// Whether the user specified a flag to allow the use of dart:mirrors. This
   /// silences a warning produced by the compiler.
   final bool enableExperimentalMirrors;
@@ -292,6 +296,8 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
         enableAssertMessage: _hasOption(options, Flags.enableAssertMessage),
         enableGenericMethodSyntax:
             _hasOption(options, Flags.genericMethodSyntax),
+        enableInitializingFormalAccess:
+            _hasOption(options, Flags.initializingFormalAccess),
         enableExperimentalMirrors:
             _hasOption(options, Flags.enableExperimentalMirrors),
         enableMinification: _hasOption(options, Flags.minify),
@@ -361,6 +367,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       bool emitJavaScript: true,
       bool enableAssertMessage: false,
       bool enableGenericMethodSyntax: false,
+      bool enableInitializingFormalAccess: false,
       bool enableExperimentalMirrors: false,
       bool enableMinification: false,
       bool enableNativeLiveTypeAnalysis: true,
@@ -434,6 +441,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
         emitJavaScript: emitJavaScript,
         enableAssertMessage: enableAssertMessage,
         enableGenericMethodSyntax: enableGenericMethodSyntax,
+        enableInitializingFormalAccess: enableInitializingFormalAccess,
         enableExperimentalMirrors: enableExperimentalMirrors,
         enableMinification: enableMinification,
         enableNativeLiveTypeAnalysis: enableNativeLiveTypeAnalysis,
@@ -487,6 +495,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       this.emitJavaScript: true,
       this.enableAssertMessage: false,
       this.enableGenericMethodSyntax: false,
+      this.enableInitializingFormalAccess: false,
       this.enableExperimentalMirrors: false,
       this.enableMinification: false,
       this.enableNativeLiveTypeAnalysis: false,

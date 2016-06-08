@@ -46,19 +46,27 @@ class _LibraryPrefix {
 // second element is the Completer for the load request.
 var _outstandingLoadRequests = new List<List>();
 
-// Called from the VM when all outstanding load requests have
-// finished.
+// Called from the VM when an outstanding load request has finished.
 _completeDeferredLoads() {
+  // Determine which outstanding load requests have completed and complete
+  // their completer (with an error or true). For outstanding load requests
+  // which have not completed, remember them for next time in
+  // stillOutstandingLoadRequests.
+  var stillOutstandingLoadRequests = new List<List>();
   for (int i = 0; i < _outstandingLoadRequests.length; i++) {
     var prefix = _outstandingLoadRequests[i][0];
-    var completer = _outstandingLoadRequests[i][1];
-    var error = prefix._loadError();
-    if (error != null) {
-      completer.completeError(error);
+    if (prefix._load()) {
+      var completer = _outstandingLoadRequests[i][1];
+      var error = prefix._loadError();
+      if (error != null) {
+        completer.completeError(error);
+      } else {
+        prefix._invalidateDependentCode();
+        completer.complete(true);
+      }
     } else {
-      prefix._invalidateDependentCode();
-      completer.complete(true);
+      stillOutstandingLoadRequests.add(_outstandingLoadRequests[i]);
     }
   }
-  _outstandingLoadRequests.clear();
+  _outstandingLoadRequests = stillOutstandingLoadRequests;
 }

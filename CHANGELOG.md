@@ -1,4 +1,4 @@
-## 1.17.0
+## 1.17.0 - 2016-06-06
 
 ### Core library changes
 * `dart:convert`
@@ -33,6 +33,13 @@
 
 * Dartium and content shell
   * Debugging Dart code inside iframes improved, was broken.
+
+## 1.16.1 - 2016-05-24
+
+Patch release, resolves one issue:
+
+* VM: Fixes a bug that caused intermittent hangs on Windows.
+(SDK issue [26400](https://github.com/dart-lang/sdk/issues/26400))
 
 ## 1.16.0 - 2016-04-26
 

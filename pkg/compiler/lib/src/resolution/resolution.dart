@@ -359,8 +359,21 @@ class ResolverTask extends CompilerTask {
     // TODO(johnniwinther): Share the resolved type between all variables
     // declared in the same declaration.
     if (tree.type != null) {
-      element.variables.type = visitor.resolveTypeAnnotation(tree.type);
-    } else {
+      DartType type = visitor.resolveTypeAnnotation(tree.type);
+      assert(invariant(
+          element,
+          element.variables.type == null ||
+              // Crude check but we have no equivalence relation that
+              // equates malformed types, like matching creations of type
+              // `Foo<Unresolved>`.
+              element.variables.type.toString() == type.toString(),
+          message: "Unexpected type computed for $element. "
+              "Was ${element.variables.type}, computed $type."));
+      element.variables.type = type;
+    } else if (element.variables.type == null) {
+      // Only assign the dynamic type if the element has no known type. This
+      // happens for enum fields where the type is known but is not in the
+      // synthesized AST.
       element.variables.type = const DynamicType();
     }
 

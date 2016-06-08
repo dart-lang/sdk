@@ -464,11 +464,9 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
     total_count += count;
     while (!pending->IsEmpty()) {
       RawObject* raw_object = pending->Pop();
-      if (raw_object->IsFreeListElement()) {
-        // TODO(rmacnak): Forwarding corpse from become. Probably we should also
-        // visit the store buffer blocks during become, and mark any forwardees
-        // as remembered if their forwarders are remembered to satisfy the
-        // following assert.
+      if (raw_object->IsForwardingCorpse()) {
+        // A source object in a become was a remembered object, but we do
+        // not visit the store buffer during become to remove it.
         continue;
       }
       ASSERT(raw_object->IsRemembered());

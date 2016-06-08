@@ -211,6 +211,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   ClassElementImpl _enclosingClass;
 
   /**
+   * The enum containing the AST nodes being visited, or `null` if we are not
+   * in the scope of an enum.
+   */
+  ClassElement _enclosingEnum;
+
+  /**
    * The method or function that we are currently visiting, or `null` if we are
    * not inside a method or function.
    */
@@ -435,7 +441,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     ClassElementImpl outerClass = _enclosingClass;
     try {
       _isInNativeClass = node.nativeClause != null;
-      _enclosingClass = ClassElementImpl.getImpl(node.element);
+      _enclosingClass = AbstractClassElementImpl.getImpl(node.element);
       ExtendsClause extendsClause = node.extendsClause;
       ImplementsClause implementsClause = node.implementsClause;
       WithClause withClause = node.withClause;
@@ -484,7 +490,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   void visitClassDeclarationIncrementally(ClassDeclaration node) {
     _isInNativeClass = node.nativeClause != null;
-    _enclosingClass = ClassElementImpl.getImpl(node.element);
+    _enclosingClass = AbstractClassElementImpl.getImpl(node.element);
     // initialize initialFieldElementsMap
     if (_enclosingClass != null) {
       List<FieldElement> fieldElements = _enclosingClass.fields;
@@ -504,7 +510,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     ClassElementImpl outerClassElement = _enclosingClass;
     try {
-      _enclosingClass = ClassElementImpl.getImpl(node.element);
+      _enclosingClass = AbstractClassElementImpl.getImpl(node.element);
       ImplementsClause implementsClause = node.implementsClause;
       // Only check for all of the inheritance logic around clauses if there
       // isn't an error code such as "Cannot extend double" already on the
@@ -622,13 +628,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitEnumDeclaration(EnumDeclaration node) {
-    ClassElementImpl outerClass = _enclosingClass;
+    ClassElement outerEnum = _enclosingEnum;
     try {
-      _isInNativeClass = false;
-      _enclosingClass = ClassElementImpl.getImpl(node.element);
+      _enclosingEnum = node.element;
       return super.visitEnumDeclaration(node);
     } finally {
-      _enclosingClass = outerClass;
+      _enclosingEnum = outerEnum;
     }
   }
 
@@ -5199,7 +5204,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return;
     }
     Element element = type.element;
-    if (element is TypeParameterizedElement) {
+    if (element is ClassElement) {
       // prepare type parameters
       List<TypeParameterElement> parameterElements = element.typeParameters;
       List<DartType> parameterTypes = element.type.typeArguments;
@@ -5362,6 +5367,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     Element enclosingElement = element.enclosingElement;
     if (identical(enclosingElement, _enclosingClass)) {
+      return;
+    }
+    if (identical(enclosingElement, _enclosingEnum)) {
       return;
     }
     if (enclosingElement is! ClassElement) {

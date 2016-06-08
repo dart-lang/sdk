@@ -308,12 +308,90 @@ class S {
 class C = S with M;
 ''',
       }),
+
+  const Test('Import mirrors, thus checking import paths', const {
+    'main.dart': '''
+import 'dart:mirrors';
+main() {}
+''',
+  },
+      expectedWarningCount: 1),
+
+  const Test('Serialized symbol literal', const {
+    'main.dart': '''
+import 'lib.dart';
+main() => m();
+''',
+  }, preserializedSourceFiles: const {
+    'lib.dart': '''
+m() => print(#main);
+''',
+  }),
+
+  const Test('Indirect unserialized library', const {
+    'main.dart': '''
+import 'a.dart';
+main() => foo();
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+import 'memory:b.dart';
+foo() => bar();
+''',
+  }, unserializedSourceFiles: const {
+    'b.dart': '''
+import 'memory:a.dart';
+bar() => foo();
+''',
+  }),
+
+  const Test('Multiple structurally identical mixins', const {
+    'main.dart': '''
+class S {}
+class M {}
+class C1 extends S with M {}
+class C2 extends S with M {}
+main() {
+  new C1();
+  new C2();
+}
+''',
+  }),
+
+  const Test('Deferred loading', const {
+    'main.dart': '''
+import 'a.dart' deferred as lib;
+main() {
+  lib.foo();
+}
+''',
+    'a.dart': '''
+void foo() {}
+''',
+  }),
+
+  const Test('fromEnvironment constants', const {
+    'main.dart': '''
+main() => const String.fromEnvironment("foo");
+''',
+  }),
+
+  const Test('Disable tree shaking through reflection', const {
+    'main.dart': '''
+import 'dart:mirrors';
+
+main() {
+  reflect(null).invoke(#toString, []).reflectee;
+}
+''',
+  }, expectedWarningCount: 1),
 ];
 
 class Test {
   final String name;
   final Map sourceFiles;
   final Map preserializedSourceFiles;
+  final Map unserializedSourceFiles;
   final int expectedErrorCount;
   final int expectedWarningCount;
   final int expectedHintCount;
@@ -323,6 +401,7 @@ class Test {
       this.name,
       this.sourceFiles,
       {this.preserializedSourceFiles,
+      this.unserializedSourceFiles,
       this.expectedErrorCount: 0,
       this.expectedWarningCount: 0,
       this.expectedHintCount: 0,

@@ -301,7 +301,9 @@ abstract class ContainerMixin
   }
 }
 
-class AbstractFieldElementZ extends ElementZ implements AbstractFieldElement {
+class AbstractFieldElementZ extends ElementZ
+    with AbstractFieldElementCommon
+    implements AbstractFieldElement {
   final String name;
   final GetterElementZ getter;
   final SetterElementZ setter;
@@ -346,6 +348,18 @@ class AbstractFieldElementZ extends ElementZ implements AbstractFieldElement {
 
   @override
   ClassElement get enclosingClass => _canonicalElement.enclosingClass;
+
+  @override
+  bool get isClassMember => _canonicalElement.isClassMember;
+
+  @override
+  bool get isInstanceMember => _canonicalElement.isInstanceMember;
+
+  @override
+  bool get isStatic => _canonicalElement.isStatic;
+
+  @override
+  bool get isTopLevel => _canonicalElement.isTopLevel;
 }
 
 class LibraryElementZ extends DeserializedElementZ
@@ -468,7 +482,9 @@ class LibraryElementZ extends DeserializedElementZ
 
   @override
   Iterable<ImportElement> getImportsFor(Element element) {
-    return _unsupported('getImportsFor');
+    // TODO(johnniwinther): Serialize this to support deferred access to
+    // serialized entities.
+    return <ImportElement>[];
   }
 
   String toString() {
@@ -566,6 +582,9 @@ class CompilationUnitElementZ extends DeserializedElementZ
 
   @override
   SourceSpan get sourcePosition => new SourceSpan(script.resourceUri, 0, 0);
+
+  @override
+  bool get isTopLevel => false;
 
   @override
   accept(ElementVisitor visitor, arg) {
@@ -669,6 +688,9 @@ abstract class InstanceMemberMixin implements DeserializedElementZ {
 
   @override
   bool get isInstanceMember => true;
+
+  @override
+  bool get isClassMember => true;
 }
 
 abstract class StaticMemberMixin implements DeserializedElementZ {
@@ -677,6 +699,9 @@ abstract class StaticMemberMixin implements DeserializedElementZ {
 
   @override
   bool get isStatic => true;
+
+  @override
+  bool get isClassMember => true;
 }
 
 abstract class TypedElementMixin implements DeserializedElementZ, TypedElement {
@@ -810,7 +835,8 @@ abstract class ClassElementMixin
   @override
   ConstructorElement lookupDefaultConstructor() {
     ConstructorElement constructor = lookupConstructor("");
-    if (constructor != null && constructor.parameters.isEmpty) {
+    if (constructor != null &&
+        constructor.functionSignature.requiredParameterCount == 0) {
       return constructor;
     }
     return null;
@@ -823,8 +849,10 @@ abstract class ClassElementMixin
   void ensureResolved(Resolution resolution) {
     if (!_isResolved) {
       _isResolved = true;
-      class_members.MembersCreator
-          .computeClassMembersByName(resolution, this, Identifiers.call);
+      // TODO(johnniwinther): Avoid eager computation of all members. `call` is
+      // always needed, but the remaining should be computed on-demand or on
+      // type instantiation.
+      class_members.MembersCreator.computeAllClassMembers(resolution, this);
       resolution.registerClass(this);
     }
   }
@@ -946,6 +974,9 @@ class NamedMixinApplicationElementZ extends ClassElementZ
 
   @override
   InterfaceType get mixinType => _mixinType ??= _decoder.getType(Key.MIXIN);
+
+  @override
+  ClassElement get subclass => null;
 }
 
 class UnnamedMixinApplicationElementZ extends ElementZ
@@ -959,24 +990,28 @@ class UnnamedMixinApplicationElementZ extends ElementZ
         MixinApplicationElementCommon,
         MixinApplicationElementMixin {
   final String name;
-  final ClassElement _subclass;
-  final InterfaceType supertype;
-  final Link<DartType> interfaces;
+  final ClassElement subclass;
+  final InterfaceType _supertypeBase;
+  final InterfaceType _mixinBase;
+  InterfaceType _supertype;
+  Link<DartType> _interfaces;
   OrderedTypeSet _allSupertypesAndSelf;
   Link<ConstructorElement> _constructors;
 
   UnnamedMixinApplicationElementZ(
-      ClassElement subclass, InterfaceType supertype, InterfaceType mixin)
-      : this._subclass = subclass,
-        this.supertype = supertype,
-        this.interfaces = const Link<DartType>().prepend(mixin),
+      this.subclass, InterfaceType supertype, InterfaceType mixin)
+      : this._supertypeBase = supertype,
+        this._mixinBase = mixin,
         this.name = "${supertype.name}+${mixin.name}";
 
   @override
-  CompilationUnitElement get compilationUnit => _subclass.compilationUnit;
+  CompilationUnitElement get compilationUnit => subclass.compilationUnit;
 
   @override
   bool get isTopLevel => true;
+
+  @override
+  bool get isAbstract => true;
 
   @override
   bool get isUnnamedMixinApplication => true;
@@ -1005,7 +1040,7 @@ class UnnamedMixinApplicationElementZ extends ElementZ
     // Create synthetic type variables for the mixin application.
     List<DartType> typeVariables = <DartType>[];
     int index = 0;
-    for (TypeVariableType type in _subclass.typeVariables) {
+    for (TypeVariableType type in subclass.typeVariables) {
       SyntheticTypeVariableElementZ typeVariableElement =
           new SyntheticTypeVariableElementZ(this, index, type.name);
       TypeVariableType typeVariable = new TypeVariableType(typeVariableElement);
@@ -1013,14 +1048,53 @@ class UnnamedMixinApplicationElementZ extends ElementZ
       index++;
     }
     // Setup bounds on the synthetic type variables.
-    for (TypeVariableType type in _subclass.typeVariables) {
+    for (TypeVariableType type in subclass.typeVariables) {
       TypeVariableType typeVariable = typeVariables[type.element.index];
       SyntheticTypeVariableElementZ typeVariableElement = typeVariable.element;
       typeVariableElement._type = typeVariable;
       typeVariableElement._bound =
-          type.element.bound.subst(typeVariables, _subclass.typeVariables);
+          type.element.bound.subst(typeVariables, subclass.typeVariables);
     }
     return typeVariables;
+  }
+
+  @override
+  InterfaceType get supertype {
+    if (_supertype == null) {
+      // Substitute the type variables in [_supertypeBase] provided by
+      // [_subclass] with the type variables in this unnamed mixin application.
+      //
+      // For instance
+      //    class S<S.T> {}
+      //    class M<M.T> {}
+      //    class C<C.T> extends S<C.T> with M<C.T> {}
+      // the unnamed mixin application should be
+      //    abstract class S+M<S+M.T> extends S<S+M.T> implements M<S+M.T> {}
+      // but the supertype is provided as S<C.T> and we need to substitute S+M.T
+      // for C.T.
+      _supertype = _supertypeBase.subst(typeVariables, subclass.typeVariables);
+    }
+    return _supertype;
+  }
+
+  @override
+  Link<DartType> get interfaces {
+    if (_interfaces == null) {
+      // Substitute the type variables in [_mixinBase] provided by
+      // [_subclass] with the type variables in this unnamed mixin application.
+      //
+      // For instance
+      //    class S<S.T> {}
+      //    class M<M.T> {}
+      //    class C<C.T> extends S<C.T> with M<C.T> {}
+      // the unnamed mixin application should be
+      //    abstract class S+M<S+M.T> extends S<S+M.T> implements M<S+M.T> {}
+      // but the mixin is provided as M<C.T> and we need to substitute S+M.T
+      // for C.T.
+      _interfaces = const Link<DartType>()
+          .prepend(_mixinBase.subst(typeVariables, subclass.typeVariables));
+    }
+    return _interfaces;
   }
 
   @override
@@ -1038,7 +1112,7 @@ class UnnamedMixinApplicationElementZ extends ElementZ
   }
 
   @override
-  Element get enclosingElement => _subclass.enclosingElement;
+  Element get enclosingElement => subclass.enclosingElement;
 
   @override
   bool get isObject => false;
@@ -1053,10 +1127,10 @@ class UnnamedMixinApplicationElementZ extends ElementZ
   InterfaceType get mixinType => interfaces.head;
 
   @override
-  int get sourceOffset => _subclass.sourceOffset;
+  int get sourceOffset => subclass.sourceOffset;
 
   @override
-  SourceSpan get sourcePosition => _subclass.sourcePosition;
+  SourceSpan get sourcePosition => subclass.sourcePosition;
 }
 
 class EnumClassElementZ extends ClassElementZ implements EnumClassElement {
@@ -1084,7 +1158,8 @@ abstract class ConstructorElementZ extends DeserializedElementZ
         FunctionTypedElementMixin,
         ParametersMixin,
         TypedElementMixin,
-        MemberElementMixin
+        MemberElementMixin,
+        ConstructorElementCommon
     implements
         ConstructorElement,
         // TODO(johnniwinther): Sort out whether a constructor is a method.
@@ -1103,14 +1178,6 @@ abstract class ConstructorElementZ extends DeserializedElementZ
 
   @override
   bool get isExternal => _decoder.getBool(Key.IS_EXTERNAL);
-
-  bool get isFromEnvironmentConstructor {
-    return name == 'fromEnvironment' &&
-        library.isDartCore &&
-        (enclosingClass.name == 'bool' ||
-            enclosingClass.name == 'int' ||
-            enclosingClass.name == 'String');
-  }
 
   ConstantConstructor get constantConstructor {
     if (isConst && _constantConstructor == null) {
@@ -1263,8 +1330,13 @@ class RedirectingFactoryConstructorElementZ extends ConstructorElementZ {
 }
 
 class ForwardingConstructorElementZ extends ElementZ
-    with AnalyzableElementMixin, AstElementMixinZ
-    implements ConstructorElement {
+    with
+        AnalyzableElementMixin,
+        AstElementMixinZ
+    implements
+        ConstructorElement,
+        // TODO(johnniwinther): Sort out whether a constructor is a method.
+        MethodElement {
   final MixinApplicationElement enclosingClass;
   final ConstructorElement definingConstructor;
 
@@ -1291,6 +1363,9 @@ class ForwardingConstructorElementZ extends ElementZ
 
   @override
   bool get isConst => false;
+
+  @override
+  bool get isClassMember => true;
 
   @override
   ConstantConstructor get constantConstructor => null;
@@ -1330,6 +1405,15 @@ class ForwardingConstructorElementZ extends ElementZ
 
   @override
   bool get isFromEnvironmentConstructor => false;
+
+  @override
+  bool get isIntFromEnvironmentConstructor => false;
+
+  @override
+  bool get isBoolFromEnvironmentConstructor => false;
+
+  @override
+  bool get isStringFromEnvironmentConstructor => false;
 
   @override
   bool get isRedirectingFactory => false;
@@ -1493,6 +1577,9 @@ abstract class FunctionElementZ extends DeserializedElementZ
   }
 
   @override
+  bool get isAbstract => _decoder.getBool(Key.IS_ABSTRACT);
+
+  @override
   bool get isOperator => _decoder.getBool(Key.IS_OPERATOR);
 }
 
@@ -1594,6 +1681,9 @@ abstract class GetterElementZ extends DeserializedElementZ
   }
 
   @override
+  bool get isAbstract => _decoder.getBool(Key.IS_ABSTRACT);
+
+  @override
   AsyncMarker get asyncMarker => AsyncMarker.SYNC;
 }
 
@@ -1632,6 +1722,9 @@ abstract class SetterElementZ extends DeserializedElementZ
   accept(ElementVisitor visitor, arg) {
     return visitor.visitSetterElement(this, arg);
   }
+
+  @override
+  bool get isAbstract => _decoder.getBool(Key.IS_ABSTRACT);
 
   @override
   AsyncMarker get asyncMarker => AsyncMarker.SYNC;
@@ -1960,7 +2053,7 @@ class LocalParameterElementZ extends ParameterElementZ
   ElementKind get kind => ElementKind.PARAMETER;
 }
 
-class InitializingFormalElementZ extends ParameterElementZ
+class InitializingFormalElementZ extends LocalParameterElementZ
     implements InitializingFormalElement {
   FieldElement _fieldElement;
 
@@ -1981,6 +2074,9 @@ class InitializingFormalElementZ extends ParameterElementZ
 
   @override
   ElementKind get kind => ElementKind.INITIALIZING_FORMAL;
+
+  @override
+  bool get isLocal => true;
 }
 
 class LocalVariableElementZ extends DeserializedElementZ

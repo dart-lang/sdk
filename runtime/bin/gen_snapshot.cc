@@ -63,7 +63,17 @@ static const char* isolate_snapshot_filename = NULL;
 static const char* assembly_filename = NULL;
 static const char* instructions_blob_filename = NULL;
 static const char* rodata_blob_filename = NULL;
-static const char* package_root = NULL;
+
+
+// Value of the --package-root flag.
+// (This pointer points into an argv buffer and does not need to be
+// free'd.)
+static const char* commandline_package_root = NULL;
+
+// Value of the --packages flag.
+// (This pointer points into an argv buffer and does not need to be
+// free'd.)
+static const char* commandline_packages_file = NULL;
 
 
 // Global state which contains a pointer to the script name for which
@@ -249,7 +259,17 @@ static bool ProcessPackageRootOption(const char* option) {
     name = ProcessOption(option, "--package-root=");
   }
   if (name != NULL) {
-    package_root = name;
+    commandline_package_root = name;
+    return true;
+  }
+  return false;
+}
+
+
+static bool ProcessPackagesOption(const char* option) {
+  const char* name = ProcessOption(option, "--packages=");
+  if (name != NULL) {
+    commandline_packages_file = name;
     return true;
   }
   return false;
@@ -296,6 +316,7 @@ static int ParseArguments(int argc,
         ProcessEmbedderEntryPointsManifestOption(argv[i]) ||
         ProcessURLmappingOption(argv[i]) ||
         ProcessPackageRootOption(argv[i]) ||
+        ProcessPackagesOption(argv[i]) ||
         ProcessEnvironmentOption(argv[i])) {
       i += 1;
       continue;
@@ -310,6 +331,14 @@ static int ParseArguments(int argc,
     i += 1;
   } else {
     *script_name = NULL;
+  }
+
+  // Verify consistency of arguments.
+  if ((commandline_package_root != NULL) &&
+      (commandline_packages_file != NULL)) {
+    Log::PrintErr("Specifying both a packages directory and a packages "
+                  "file is invalid.\n");
+    return -1;
   }
 
   if (vm_isolate_snapshot_filename == NULL) {
@@ -452,7 +481,7 @@ static Dart_Handle ResolveUri(const char* library_uri, const char* uri) {
 
     // Run DartUtils::ResolveUri in context of uri resolver isolate.
     Dart_Handle result = DartUtils::ResolveUri(
-        DartUtils::NewString(library_uri), DartUtils::NewString(uri));
+      DartUtils::NewString(library_uri), DartUtils::NewString(uri));
     if (Dart_IsError(result)) {
       failed = true;
       result_string = strdup(Dart_GetError(result));
@@ -466,6 +495,7 @@ static Dart_Handle ResolveUri(const char* library_uri, const char* uri) {
   free(result_string);
   return result;
 }
+
 
 
 static Builtin::BuiltinLibraryId BuiltinId(const char* url) {
@@ -644,6 +674,8 @@ static void PrintUsage() {
 "                                                                            \n"
 "    --package_root=<path>             Where to find packages, that is,      \n"
 "                                      package:...  imports.                 \n"
+"                                                                            \n"
+"    --packages=<packages_file>        Where to find a package spec file     \n"
 "                                                                            \n"
 "    --url_mapping=<mapping>           Uses the URL mapping(s) specified on  \n"
 "                                      the command line to load the          \n"
@@ -1285,7 +1317,8 @@ int main(int argc, char** argv) {
     CHECK_RESULT(result);
 
     // Setup package root if specified.
-    result = DartUtils::SetupPackageRoot(package_root, NULL);
+    result = DartUtils::SetupPackageRoot(commandline_package_root,
+                                         commandline_packages_file);
     CHECK_RESULT(result);
 
     Dart_ExitScope();

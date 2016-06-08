@@ -45,6 +45,10 @@ Future checkModels(
      int index,
      Test test,
      bool verbose: false}) async {
+  if (test != null && test.name == 'Disable tree shaking through reflection') {
+    // TODO(johnniwinther): Support serialization of metadata.
+    return;
+  }
 
   String testDescription = test != null ? test.name : '${entryPoint}';
   String id = index != null ? '$index: ' : '';
@@ -220,8 +224,17 @@ void checkClassHierarchyNodes(
       }
     }
     if (!found) {
+      if (child.isInstantiated) {
+        print('Missing subclass ${child.cls} of ${node1.cls} '
+            'in ${node2.directSubclasses}');
+        print(compiler1.world.dump(
+            verbose ? compiler1.coreClasses.objectClass : node1.cls));
+        print(compiler2.world.dump(
+            verbose ? compiler2.coreClasses.objectClass : node2.cls));
+      }
       Expect.isFalse(child.isInstantiated,
-          'Missing subclass ${child.cls} of ${node1.cls}');
+          'Missing subclass ${child.cls} of ${node1.cls} in '
+              '${node2.directSubclasses}');
     }
   }
   checkMixinUses(compiler1, compiler2, node1.cls, node2.cls, verbose: verbose);

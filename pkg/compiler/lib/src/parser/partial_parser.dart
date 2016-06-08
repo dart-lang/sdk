@@ -49,7 +49,8 @@ class PartialParser extends Parser {
       }
       if (identical(value, '=') ||
           identical(value, '?') ||
-          identical(value, ':')) {
+          identical(value, ':') ||
+          identical(value, '??')) {
         var nextValue = token.next.stringValue;
         if (identical(nextValue, 'const')) {
           token = token.next;

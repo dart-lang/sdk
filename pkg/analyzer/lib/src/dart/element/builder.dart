@@ -421,12 +421,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     ClassElementImpl element = new ClassElementImpl.forNode(className);
     _setCodeRange(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
-    List<TypeParameterElement> typeParameters = holder.typeParameters;
-    List<DartType> typeArguments = _createTypeParameterTypes(typeParameters);
-    InterfaceTypeImpl interfaceType = new InterfaceTypeImpl(element);
-    interfaceType.typeArguments = typeArguments;
-    element.type = interfaceType;
-    element.typeParameters = typeParameters;
+    element.typeParameters = holder.typeParameters;
     setElementDocumentationComment(element, node);
     element.abstract = node.isAbstract;
     element.accessors = holder.accessors;
@@ -473,12 +468,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     element.metadata = _createElementAnnotations(node.metadata);
     element.abstract = node.abstractKeyword != null;
     element.mixinApplication = true;
-    List<TypeParameterElement> typeParameters = holder.typeParameters;
-    element.typeParameters = typeParameters;
-    List<DartType> typeArguments = _createTypeParameterTypes(typeParameters);
-    InterfaceTypeImpl interfaceType = new InterfaceTypeImpl(element);
-    interfaceType.typeArguments = typeArguments;
-    element.type = interfaceType;
+    element.typeParameters = holder.typeParameters;
     setElementDocumentationComment(element, node);
     _currentHolder.addType(element);
     className.staticElement = element;
@@ -617,18 +607,11 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   @override
   Object visitEnumDeclaration(EnumDeclaration node) {
     SimpleIdentifier enumName = node.name;
-    ClassElementImpl enumElement = new ClassElementImpl.forNode(enumName);
+    EnumElementImpl enumElement = new EnumElementImpl.forNode(enumName);
     _setCodeRange(enumElement, node);
     enumElement.metadata = _createElementAnnotations(node.metadata);
-    enumElement.enum2 = true;
     setElementDocumentationComment(enumElement, node);
-    InterfaceTypeImpl enumType = new InterfaceTypeImpl(enumElement);
-    enumElement.type = enumType;
-    // The equivalent code for enums in the spec shows a single constructor,
-    // but that constructor is not callable (since it is a compile-time error
-    // to subclass, mix-in, implement, or explicitly instantiate an enum).  So
-    // we represent this as having no constructors.
-    enumElement.constructors = ConstructorElement.EMPTY_LIST;
+    InterfaceTypeImpl enumType = enumElement.type;
     //
     // Build the elements for the constants. These are minimal elements; the
     // rest of the constant elements (and elements for other fields) must be
@@ -645,7 +628,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       constantField.type = enumType;
       setElementDocumentationComment(constantField, constant);
       fields.add(constantField);
-      _createGetter(constantField);
+      new PropertyAccessorElementImpl_ImplicitGetter(constantField);
       constantName.staticElement = constantField;
     }
     enumElement.fields = fields;
@@ -1247,25 +1230,13 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       holder.validate();
     }
     if (element is PropertyInducingElementImpl) {
-      PropertyAccessorElementImpl getter =
-          new PropertyAccessorElementImpl.forVariable(element);
-      getter.getter = true;
-      if (element.hasImplicitType) {
-        getter.hasImplicitReturnType = true;
-      }
+      PropertyAccessorElementImpl_ImplicitGetter getter =
+          new PropertyAccessorElementImpl_ImplicitGetter(element);
       _currentHolder.addAccessor(getter);
-      element.getter = getter;
       if (!isConst && !isFinal) {
-        PropertyAccessorElementImpl setter =
-            new PropertyAccessorElementImpl.forVariable(element);
-        setter.setter = true;
-        ParameterElementImpl parameter =
-            new ParameterElementImpl("_${element.name}", element.nameOffset);
-        parameter.synthetic = true;
-        parameter.parameterKind = ParameterKind.REQUIRED;
-        setter.parameters = <ParameterElement>[parameter];
+        PropertyAccessorElementImpl_ImplicitSetter setter =
+            new PropertyAccessorElementImpl_ImplicitSetter(element);
         _currentHolder.addAccessor(setter);
-        element.setter = setter;
       }
     }
     return null;
@@ -1318,9 +1289,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     ConstructorElementImpl constructor =
         new ConstructorElementImpl.forNode(null);
     constructor.synthetic = true;
-    constructor.returnType = definingClass.type;
     constructor.enclosingElement = definingClass;
-    constructor.type = new FunctionTypeImpl(constructor);
     return <ConstructorElement>[constructor];
   }
 
@@ -1339,18 +1308,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       a.elementAnnotation = elementAnnotation;
       return elementAnnotation;
     }).toList();
-  }
-
-  /**
-   * Create a getter that corresponds to the given [field].
-   */
-  void _createGetter(FieldElementImpl field) {
-    PropertyAccessorElementImpl getter =
-        new PropertyAccessorElementImpl.forVariable(field);
-    getter.getter = true;
-    getter.returnType = field.type;
-    getter.type = new FunctionTypeImpl(getter);
-    field.getter = getter;
   }
 
   /**

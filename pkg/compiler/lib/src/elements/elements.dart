@@ -1067,7 +1067,7 @@ abstract class FormalElement extends Element
 ///
 /// Normal parameter that introduce a local variable are modeled by
 /// [LocalParameterElement] whereas initializing formals, that is parameter of
-/// the form `this.x`, are modeled by [InitializingFormalParameter].
+/// the form `this.x`, are modeled by [InitializingFormalElement].
 abstract class ParameterElement extends Element
     implements VariableElement, FormalElement, LocalElement {
   /// Use [functionDeclaration] instead.
@@ -1092,7 +1092,7 @@ abstract class LocalParameterElement extends ParameterElement
 /// A formal parameter in a constructor that directly initializes a field.
 ///
 /// For example: `A(this.field)`.
-abstract class InitializingFormalElement extends ParameterElement {
+abstract class InitializingFormalElement extends LocalParameterElement {
   /// The field initialized by this initializing formal.
   FieldElement get fieldElement;
 
@@ -1324,6 +1324,15 @@ abstract class ConstructorElement extends FunctionElement
   /// `int.fromEnvironment`, or `String.fromEnvironment`.
   bool get isFromEnvironmentConstructor;
 
+  /// `true` if this constructor is `int.fromEnvironment`.
+  bool get isIntFromEnvironmentConstructor;
+
+  /// `true` if this constructor is `bool.fromEnvironment`.
+  bool get isBoolFromEnvironmentConstructor;
+
+  /// `true` if this constructor is `String.fromEnvironment`.
+  bool get isStringFromEnvironmentConstructor;
+
   /// Use [enclosingClass] instead.
   @deprecated
   get enclosingElement;
@@ -1490,6 +1499,8 @@ abstract class ClassElement extends TypeDeclarationElement
 
   Element lookupSuperMemberInLibrary(String memberName, LibraryElement library);
 
+  // TODO(johnniwinther): Clean up semantics. Can the default constructor take
+  // optional arguments? Must it be resolved?
   ConstructorElement lookupDefaultConstructor();
   ConstructorElement lookupConstructor(String name);
 
@@ -1526,6 +1537,10 @@ abstract class ClassElement extends TypeDeclarationElement
 abstract class MixinApplicationElement extends ClassElement {
   ClassElement get mixin;
   InterfaceType get mixinType;
+
+  /// If this is an unnamed mixin application [subclass] is the subclass for
+  /// which this mixin application is created.
+  ClassElement get subclass;
 }
 
 /// Enum declaration.

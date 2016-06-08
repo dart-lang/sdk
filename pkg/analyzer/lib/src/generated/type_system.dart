@@ -73,7 +73,6 @@ class StrongTypeSystemImpl extends TypeSystem {
   }
 
   /// Computes the greatest lower bound of [type1] and [type2].
-  @override
   DartType getGreatestLowerBound(
       TypeProvider provider, DartType type1, DartType type2) {
     // The greatest lower bound relation is reflexive.
@@ -202,6 +201,23 @@ class StrongTypeSystemImpl extends TypeSystem {
     // are implied by this.
     var inferringTypeSystem =
         new _StrongInferenceTypeSystem(typeProvider, fnType.typeFormals);
+
+    // Special case inference for Future.then.
+    //
+    // We don't have union types, so Future<T>.then<S> is typed to take a
+    // callback `T -> S`. However, the lambda might actually return a
+    // Future<S>. So we handle that special case here.
+    if (argumentTypes.isNotEmpty && argumentTypes[0] is FunctionType) {
+      Element element = fnType?.element;
+      bool isFutureThen = element is MethodElement &&
+          element.name == 'then' &&
+          element.enclosingElement.type.isDartAsyncFuture;
+      if (isFutureThen) {
+        // Ignore return context. We'll let the onValue function's return type
+        // drive inference.
+        returnContextType = null;
+      }
+    }
 
     if (returnContextType != null) {
       inferringTypeSystem.isSubtypeOf(fnType.returnType, returnContextType);

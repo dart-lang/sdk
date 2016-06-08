@@ -7,6 +7,7 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "vm/assembler.h"
+#include "vm/become.h"
 #include "vm/cpu.h"
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
@@ -562,6 +563,13 @@ void Object::InitOnce(Isolate* isolate) {
   cls.set_is_finalized();
   cls.set_is_type_finalized();
 
+  // Allocate and initialize the forwarding corpse class.
+  cls = Class::New<ForwardingCorpse::FakeInstance>(kForwardingCorpse);
+  cls.set_num_type_arguments(0);
+  cls.set_num_own_type_arguments(0);
+  cls.set_is_finalized();
+  cls.set_is_type_finalized();
+
   // Allocate and initialize the sentinel values of Null class.
   {
     *sentinel_ ^=
@@ -929,6 +937,8 @@ class PremarkingVisitor : public ObjectVisitor {
   void VisitObject(RawObject* obj) {
     // Free list elements should never be marked.
     ASSERT(!obj->IsMarked());
+    // No forwarding corpses in the VM isolate.
+    ASSERT(!obj->IsForwardingCorpse());
     if (!obj->IsFreeListElement()) {
       ASSERT(obj->IsVMHeapObject());
       obj->SetMarkBitUnsynchronized();
@@ -999,6 +1009,13 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   cls.set_name(Symbols::_List());
   cls = isolate->object_store()->one_byte_string_class();
   cls.set_name(Symbols::OneByteString());
+
+  // Set up names for the pseudo-classes for free list elements and forwarding
+  // corpses. Mainly this makes VM debugging easier.
+  cls = isolate->class_table()->At(kFreeListElement);
+  cls.set_name(Symbols::FreeListElement());
+  cls = isolate->class_table()->At(kForwardingCorpse);
+  cls.set_name(Symbols::ForwardingCorpse());
 
   {
     ASSERT(isolate == Dart::vm_isolate());
@@ -1080,6 +1097,7 @@ void Object::VerifyBuiltinVtables() {
     }
   }
   ASSERT(builtin_vtables_[kFreeListElement] == 0);
+  ASSERT(builtin_vtables_[kForwardingCorpse] == 0);
 #endif
 }
 
@@ -1916,8 +1934,6 @@ RawObject* Object::Clone(const Object& orig, Heap::Space space) {
 
 
 RawString* Class::Name() const {
-  // TODO(turnidge): This assert fails for the fake kFreeListElement class.
-  // Fix this.
   ASSERT(raw_ptr()->name_ != String::null());
   return raw_ptr()->name_;
 }
@@ -7123,11 +7139,10 @@ bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
       // This output can be copied into a file, then used with sed
       // to replace the old values.
       // sed -i .bak -f /tmp/newkeys runtime/vm/method_recognizer.h
-      THR_Print("s/V(%s, %d)/V(%s, %d)/\n",
-                prefix, fp, prefix, SourceFingerprint());
+      THR_Print("s/0x%08x/0x%08x/\n", fp, SourceFingerprint());
     } else {
       THR_Print("FP mismatch while recognizing method %s:"
-                " expecting %d found %d\n",
+                " expecting 0x%08x found 0x%08x\n",
                 ToFullyQualifiedCString(),
                 fp,
                 SourceFingerprint());
@@ -11315,33 +11330,39 @@ void Library::CheckFunctionFingerprints() {
     OS::Print("Function not found %s.%s\n", #class_name, #function_name);      \
   } else {                                                                     \
     CHECK_FINGERPRINT3(func, class_name, function_name, dest, fp);             \
-  }                                                                            \
+  }
+
+#define CHECK_FINGERPRINTS2(class_name, function_name, dest, type, fp) \
+  CHECK_FINGERPRINTS(class_name, function_name, dest, fp)
 
   all_libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
-  CORE_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
-  CORE_INTEGER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+  CORE_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
+  CORE_INTEGER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
 
   all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::CollectionLibrary()));
-  OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS);
+  OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS2);
   INLINE_WHITE_LIST(CHECK_FINGERPRINTS);
   INLINE_BLACK_LIST(CHECK_FINGERPRINTS);
   POLYMORPHIC_TARGET_LIST(CHECK_FINGERPRINTS);
 
   all_libs.Clear();
   all_libs.Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
-  DEVELOPER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+  DEVELOPER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
 
   all_libs.Clear();
   all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
-  MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+  MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
 
   all_libs.Clear();
   all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
-  TYPED_DATA_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+  TYPED_DATA_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
 
 #undef CHECK_FINGERPRINTS
+#undef CHECK_FINGERPRINTS2
+
+
 
 Class& cls = Class::Handle();
 

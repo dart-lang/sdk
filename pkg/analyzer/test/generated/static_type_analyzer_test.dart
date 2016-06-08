@@ -990,9 +990,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     String constructorName = "m";
     ConstructorElementImpl constructor =
         ElementFactory.constructorElement2(classElement, constructorName);
-    constructor.returnType = classElement.type;
-    FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
-    constructor.type = constructorType;
     classElement.constructors = <ConstructorElement>[constructor];
     InstanceCreationExpression node = AstFactory.instanceCreationExpression2(
         null,
@@ -1010,9 +1007,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     ConstructorElementImpl constructor =
         ElementFactory.constructorElement2(elementC, null);
     elementC.constructors = <ConstructorElement>[constructor];
-    constructor.returnType = elementC.type;
-    FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
-    constructor.type = constructorType;
     TypeName typeName =
         AstFactory.typeName(elementC, [AstFactory.typeName(elementI)]);
     typeName.type = elementC.type.instantiate(<DartType>[elementI.type]);
@@ -1031,9 +1025,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     ClassElementImpl classElement = ElementFactory.classElement2("C");
     ConstructorElementImpl constructor =
         ElementFactory.constructorElement2(classElement, null);
-    constructor.returnType = classElement.type;
-    FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
-    constructor.type = constructorType;
     classElement.constructors = <ConstructorElement>[constructor];
     InstanceCreationExpression node = AstFactory.instanceCreationExpression2(
         null, AstFactory.typeName(classElement));

@@ -51,16 +51,6 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
 
   bool get checkPropagatedTypes => true;
 
-  /**
-   * Derived classes can override this getter to return `true` in order to
-   * cause certain checks to be skipped if they are known to fail with
-   * AST-based type inference.
-   *
-   * TODO(paulberry): remove this flag once AST-based type inference is fully
-   * working.
-   */
-  bool get skipBrokenAstInference => false;
-
   void addLibrary(String uri) {
     otherLibrarySources.add(context.sourceFactory.forUri(uri));
   }
@@ -211,10 +201,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     }
   }
 
-  void compareClassElements(
-      ClassElement resynthesized, ClassElement original, String desc) {
-    ClassElementImpl r = ClassElementImpl.getImpl(resynthesized);
-    ClassElementImpl o = ClassElementImpl.getImpl(original);
+  void compareClassElements(ClassElement r, ClassElement o, String desc) {
     compareElements(r, o, desc);
     expect(r.fields.length, o.fields.length, reason: '$desc fields.length');
     for (int i = 0; i < r.fields.length; i++) {
@@ -222,16 +209,18 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       compareFieldElements(r.fields[i], o.fields[i], '$desc.field $name');
     }
     compareTypes(r.supertype, o.supertype, '$desc supertype');
-    expect(r.interfaces.length, o.interfaces.length);
+    expect(r.interfaces.length, o.interfaces.length,
+        reason: '$desc interfaces.length');
     for (int i = 0; i < r.interfaces.length; i++) {
       compareTypes(r.interfaces[i], o.interfaces[i],
           '$desc interface ${o.interfaces[i].name}');
     }
-    expect(r.mixins.length, o.mixins.length);
+    expect(r.mixins.length, o.mixins.length, reason: '$desc mixins.length');
     for (int i = 0; i < r.mixins.length; i++) {
       compareTypes(r.mixins[i], o.mixins[i], '$desc mixin ${o.mixins[i].name}');
     }
-    expect(r.typeParameters.length, o.typeParameters.length);
+    expect(r.typeParameters.length, o.typeParameters.length,
+        reason: '$desc typeParameters.length');
     for (int i = 0; i < r.typeParameters.length; i++) {
       compareTypeParameterElements(r.typeParameters[i], o.typeParameters[i],
           '$desc type parameter ${o.typeParameters[i].name}');
@@ -242,18 +231,23 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       compareConstructorElements(r.constructors[i], o.constructors[i],
           '$desc constructor ${o.constructors[i].name}');
     }
-    expect(r.accessors.length, o.accessors.length);
+    expect(r.accessors.length, o.accessors.length,
+        reason: '$desc accessors.length');
+    List<PropertyAccessorElement> rAccessors = _getSortedPropertyAccessors(r);
+    List<PropertyAccessorElement> oAccessors = _getSortedPropertyAccessors(o);
     for (int i = 0; i < r.accessors.length; i++) {
-      comparePropertyAccessorElements(r.accessors[i], o.accessors[i],
-          '$desc accessor ${o.accessors[i].name}');
+      comparePropertyAccessorElements(
+          rAccessors[i], oAccessors[i], '$desc accessor ${oAccessors[i].name}');
     }
-    expect(r.methods.length, o.methods.length);
+    expect(r.methods.length, o.methods.length, reason: '$desc methods.length');
     for (int i = 0; i < r.methods.length; i++) {
       compareMethodElements(
           r.methods[i], o.methods[i], '$desc.${o.methods[i].name}');
     }
     compareTypes(r.type, o.type, desc);
-    expect(r.hasBeenInferred, o.hasBeenInferred, reason: desc);
+    if (r is ClassElementImpl && o is ClassElementImpl) {
+      expect(r.hasBeenInferred, o.hasBeenInferred, reason: desc);
+    }
   }
 
   void compareCompilationUnitElements(CompilationUnitElementImpl resynthesized,
@@ -677,7 +671,9 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       expect(rImpl.evaluationResult, isNull);
     } else {
       Type rRuntimeType;
-      if (rImpl is FunctionElementImpl) {
+      if (rImpl is ConstFieldElementImpl) {
+        rRuntimeType = ConstFieldElementImpl;
+      } else if (rImpl is FunctionElementImpl) {
         rRuntimeType = FunctionElementImpl;
       } else {
         rRuntimeType = rImpl.runtimeType;
@@ -1040,7 +1036,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         expect(resynthesized.element.type, same(resynthesized));
       }
       expect(resynthesized.typeArguments.length, original.typeArguments.length,
-          reason: desc);
+          reason: '$desc typeArguments.length');
       for (int i = 0; i < resynthesized.typeArguments.length; i++) {
         if (resynthesized.typeArguments[i].isDynamic &&
             original.typeArguments[i] is TypeParameterType) {
@@ -1108,10 +1104,8 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     VariableElementImpl resynthesizedActual =
         getActualElement(resynthesized, desc);
     VariableElementImpl originalActual = getActualElement(original, desc);
-    if (!skipBrokenAstInference) {
-      compareFunctionElements(resynthesizedActual.initializer,
-          originalActual.initializer, '$desc initializer');
-    }
+    compareFunctionElements(resynthesizedActual.initializer,
+        originalActual.initializer, '$desc initializer');
     if (originalActual is ConstVariableElement) {
       Element oEnclosing = original.enclosingElement;
       if (oEnclosing is ClassElement && oEnclosing.isEnum) {
@@ -1245,6 +1239,13 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     expect(initializer, new isInstanceOf<SimpleIdentifier>(), reason: desc);
     SimpleIdentifier identifier = initializer;
     expect(identifier.staticElement, isNull, reason: desc);
+  }
+
+  List<PropertyAccessorElement> _getSortedPropertyAccessors(
+      ClassElement classElement) {
+    List<PropertyAccessorElement> accessors = classElement.accessors.toList();
+    accessors.sort((a, b) => a.displayName.compareTo(b.displayName));
+    return accessors;
   }
 
   bool _hasModifier(Element element, Modifier modifier) {
@@ -3662,7 +3663,8 @@ get g {
   }
 
   test_localLabels_inConstructor() {
-    checkLibrary(r'''
+    checkLibrary(
+        r'''
 class C {
   C() {
     aaa: while (true) {}
@@ -3672,11 +3674,13 @@ class C {
     }
   }
 }
-''');
+''',
+        allowErrors: true);
   }
 
   test_localLabels_inMethod() {
-    checkLibrary(r'''
+    checkLibrary(
+        r'''
 class C {
   m() {
     aaa: while (true) {}
@@ -3686,11 +3690,13 @@ class C {
     }
   }
 }
-''');
+''',
+        allowErrors: true);
   }
 
   test_localLabels_inTopLevelFunction() {
-    checkLibrary(r'''
+    checkLibrary(
+        r'''
 main() {
   aaa: while (true) {}
   bbb: switch (42) {
@@ -3698,7 +3704,8 @@ main() {
       break;
   }
 }
-''');
+''',
+        allowErrors: true);
   }
 
   test_localVariables_inConstructor() {

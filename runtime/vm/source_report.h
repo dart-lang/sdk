@@ -40,6 +40,7 @@ class SourceReport {
   // (e.g. kCallSites | kCoverage).
   explicit SourceReport(intptr_t report_set,
                         CompileMode compile = kNoCompile);
+  ~SourceReport();
 
   // Generate a source report for (some subrange of) a script.
   //
@@ -50,6 +51,7 @@ class SourceReport {
                  TokenPosition end_pos = TokenPosition::kNoSource);
 
  private:
+  void ClearScriptTable();
   void Init(Thread* thread, const Script* script,
             TokenPosition start_pos, TokenPosition end_pos);
 
@@ -69,6 +71,9 @@ class SourceReport {
   void PrintPossibleBreakpointsData(JSONObject* jsobj,
                                     const Function& func, const Code& code);
   void PrintProfileData(JSONObject* jsobj, ProfileFunction* profile_function);
+#if defined(DEBUG)
+  void VerifyScriptTable();
+#endif
   void PrintScriptTable(JSONArray* jsarr);
 
   void VisitFunction(JSONArray* jsarr, const Function& func);
@@ -114,7 +119,7 @@ class SourceReport {
   TokenPosition start_pos_;
   TokenPosition end_pos_;
   Profile profile_;
-  GrowableArray<ScriptTableEntry> script_table_entries_;
+  GrowableArray<ScriptTableEntry*> script_table_entries_;
   DirectChainedHashMap<ScriptTableTrait> script_table_;
   intptr_t next_script_index_;
 };

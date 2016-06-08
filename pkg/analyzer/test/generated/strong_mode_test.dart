@@ -1795,10 +1795,12 @@ class D extends C {
     errors.sort((AnalysisError e1, AnalysisError e2) =>
         e1.errorCode.name.compareTo(e2.errorCode.name));
 
-    expect(errors.map((e) => e.errorCode.name), [
-      'INVALID_METHOD_OVERRIDE_RETURN_TYPE',
-      'STRONG_MODE_INVALID_METHOD_OVERRIDE'
-    ]);
+    expect(
+        errors.map((e) => e.errorCode.name),
+        unorderedEquals([
+          'INVALID_METHOD_OVERRIDE_RETURN_TYPE',
+          'STRONG_MODE_INVALID_METHOD_OVERRIDE'
+        ]));
     expect(errors[0].message, contains('Iterable<S>'),
         reason: 'errors should be in terms of the type parameters '
             'at the error location');
@@ -1818,11 +1820,12 @@ class D extends C {
     // TODO(jmesserly): this is modified code from assertErrors, which we can't
     // use directly because STRONG_MODE_* errors don't have working equality.
     List<AnalysisError> errors = analysisContext2.computeErrors(source);
-    List errorNames = errors.map((e) => e.errorCode.name).toList();
-    expect(errorNames, hasLength(2));
-    expect(errorNames, contains('STRONG_MODE_INVALID_METHOD_OVERRIDE'));
     expect(
-        errorNames, contains('INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND'));
+        errors.map((e) => e.errorCode.name),
+        unorderedEquals([
+          'INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND',
+          'STRONG_MODE_INVALID_METHOD_OVERRIDE'
+        ]));
     verify([source]);
   }
 
@@ -1837,10 +1840,12 @@ class D extends C {
     // TODO(jmesserly): we can't use assertErrors because STRONG_MODE_* errors
     // from CodeChecker don't have working equality.
     List<AnalysisError> errors = analysisContext2.computeErrors(source);
-    expect(errors.map((e) => e.errorCode.name), [
-      'STRONG_MODE_INVALID_METHOD_OVERRIDE',
-      'INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS'
-    ]);
+    expect(
+        errors.map((e) => e.errorCode.name),
+        unorderedEquals([
+          'STRONG_MODE_INVALID_METHOD_OVERRIDE',
+          'INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS'
+        ]));
     verify([source]);
   }
 

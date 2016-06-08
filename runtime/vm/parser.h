@@ -338,6 +338,10 @@ class Parser : public ValueObject {
   // current_function(), but is greater than zero while parsing the body of
   // local functions nested in current_function().
 
+  // FunctionLevel is 0 when parsing code of current_function(), and denotes
+  // the relative nesting level when parsing a nested function.
+  int FunctionLevel() const;
+
   // The class being parsed.
   const Class& current_class() const;
   void set_current_class(const Class& value);
@@ -739,6 +743,7 @@ class Parser : public ValueObject {
   // Add specified node to try block list so that it can be patched with
   // inlined finally code if needed.
   void AddNodeForFinallyInlining(AstNode* node);
+  void RemoveNodesForFinallyInlining(SourceLabel* label);
   // Add the inlined finally clause to the specified node.
   void AddFinallyClauseToNode(bool is_async,
                               AstNode* node,

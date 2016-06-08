@@ -2649,7 +2649,9 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->AddSlowPathCode(slow_path);
 
   __ ldr(TMP, Address(THR, Thread::stack_limit_offset()));
-  __ CompareRegisters(SP, TMP);
+  // Compare to CSP not SP because CSP is closer to the stack limit. See
+  // Assembler::EnterFrame.
+  __ CompareRegisters(CSP, TMP);
   __ b(slow_path->entry_label(), LS);
   if (compiler->CanOSRFunction() && in_loop()) {
     const Register temp = locs()->temp(0).reg();

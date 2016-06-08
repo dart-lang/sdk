@@ -66,8 +66,10 @@ CompilationUnit check() {
   AnalysisOptionsImpl options = context.analysisOptions as AnalysisOptionsImpl;
   options.strongMode = true;
   options.strongModeHints = true;
+  var mockSdk = new MockSdk();
+  mockSdk.context.analysisOptions.strongMode = true;
   context.sourceFactory =
-      new SourceFactory([new DartUriResolver(new MockSdk()), uriResolver]);
+      new SourceFactory([new DartUriResolver(mockSdk), uriResolver]);
 
   // Run the checker on /main.dart.
   Source mainSource = uriResolver.resolveAbsolute(new Uri.file('/main.dart'));

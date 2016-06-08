@@ -104,6 +104,9 @@ abstract class BackendConstantEnvironment extends ConstantEnvironment {
 
   /// Returns the compile-time constant value of [metadata].
   ConstantValue getConstantValueForMetadata(MetadataAnnotation metadata);
+
+  /// Register that [element] needs lazy initialization.
+  void registerLazyStatic(FieldElement element);
 }
 
 /// Interface for the task that compiles the constant environments for the
@@ -142,6 +145,8 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
    *
    * Invariant: The keys in this map are declarations.
    */
+  // TODO(johnniwinther): Make this purely internal when no longer used by
+  // poi/forget_element_test.
   final Map<VariableElement, ConstantExpression> initialVariableValues =
       new Map<VariableElement, ConstantExpression>();
 
@@ -922,10 +927,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       assert(normalizedArguments != null);
       concreteArguments = normalizedArguments;
     }
-
-    if (constructor == compiler.intEnvironment ||
-        constructor == compiler.boolEnvironment ||
-        constructor == compiler.stringEnvironment) {
+    if (constructor.isFromEnvironmentConstructor) {
       return createFromEnvironmentConstant(node, constructedType, constructor,
           callStructure, normalizedArguments, concreteArguments);
     } else {
@@ -969,7 +971,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       return null;
     }
 
-    if (constructor == compiler.intEnvironment &&
+    if (constructor.isIntFromEnvironmentConstructor &&
         !(defaultValue.isNull || defaultValue.isInt)) {
       DartType type = defaultValue.getType(coreTypes);
       reporter.reportErrorMessage(
@@ -979,7 +981,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       return null;
     }
 
-    if (constructor == compiler.boolEnvironment &&
+    if (constructor.isBoolFromEnvironmentConstructor &&
         !(defaultValue.isNull || defaultValue.isBool)) {
       DartType type = defaultValue.getType(coreTypes);
       reporter.reportErrorMessage(
@@ -989,7 +991,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       return null;
     }
 
-    if (constructor == compiler.stringEnvironment &&
+    if (constructor.isStringFromEnvironmentConstructor &&
         !(defaultValue.isNull || defaultValue.isString)) {
       DartType type = defaultValue.getType(coreTypes);
       reporter.reportErrorMessage(
@@ -1009,13 +1011,13 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       if (concreteArguments.length > 1) {
         defaultValue = concreteArguments[1].expression;
       }
-      if (constructor == compiler.intEnvironment) {
+      if (constructor.isIntFromEnvironmentConstructor) {
         expression =
             new IntFromEnvironmentConstantExpression(name, defaultValue);
-      } else if (constructor == compiler.boolEnvironment) {
+      } else if (constructor.isBoolFromEnvironmentConstructor) {
         expression =
             new BoolFromEnvironmentConstantExpression(name, defaultValue);
-      } else if (constructor == compiler.stringEnvironment) {
+      } else if (constructor.isStringFromEnvironmentConstructor) {
         expression =
             new StringFromEnvironmentConstantExpression(name, defaultValue);
       }
@@ -1025,11 +1027,11 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
 
     if (value == null) {
       return createEvaluatedConstant(defaultValue);
-    } else if (constructor == compiler.intEnvironment) {
+    } else if (constructor.isIntFromEnvironmentConstructor) {
       int number = int.parse(value, onError: (_) => null);
       return createEvaluatedConstant(
           (number == null) ? defaultValue : constantSystem.createInt(number));
-    } else if (constructor == compiler.boolEnvironment) {
+    } else if (constructor.isBoolFromEnvironmentConstructor) {
       if (value == 'true') {
         return createEvaluatedConstant(constantSystem.createBool(true));
       } else if (value == 'false') {
@@ -1038,7 +1040,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
         return createEvaluatedConstant(defaultValue);
       }
     } else {
-      assert(constructor == compiler.stringEnvironment);
+      assert(constructor.isStringFromEnvironmentConstructor);
       return createEvaluatedConstant(
           constantSystem.createString(new DartString.literal(value)));
     }
@@ -1182,6 +1184,9 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       if (parameter.isInitializingFormal) {
         InitializingFormalElement initializingFormal = parameter;
         updateFieldValue(node, initializingFormal.fieldElement, argument);
+        if (compiler.options.enableInitializingFormalAccess) {
+          definitions[parameter] = argument;
+        }
       } else {
         potentiallyCheckType(parameter, argument);
         definitions[parameter] = argument;

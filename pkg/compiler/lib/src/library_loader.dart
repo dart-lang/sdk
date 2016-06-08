@@ -131,7 +131,7 @@ typedef Future<Iterable<LibraryElement>> ReuseLibrariesFunction(
  * point to the 'packages' folder.
  *
  */
-abstract class LibraryLoaderTask implements CompilerTask {
+abstract class LibraryLoaderTask implements LibraryProvider, CompilerTask {
   factory LibraryLoaderTask(
       ResolvedUriTranslator uriTranslator,
       ScriptLoader scriptLoader,
@@ -144,9 +144,6 @@ abstract class LibraryLoaderTask implements CompilerTask {
 
   /// Returns all libraries that have been loaded.
   Iterable<LibraryElement> get libraries;
-
-  /// Looks up the library with the [canonicalUri].
-  LibraryElement lookupLibrary(Uri canonicalUri);
 
   /// Loads the library specified by the [resolvedUri] and returns its
   /// [LibraryElement].
@@ -174,6 +171,14 @@ abstract class LibraryLoaderTask implements CompilerTask {
   /// Similar to [resetAsync] but [reuseLibrary] maps all libraries to a list
   /// of libraries that can be reused.
   Future<Null> resetLibraries(ReuseLibrariesFunction reuseLibraries);
+}
+
+/// Interface for an entity that provide libraries. For instance from normal
+/// library loading or from deserialization.
+// TODO(johnniwinther): Use this to integrate deserialized libraries better.
+abstract class LibraryProvider {
+  /// Looks up the library with the [canonicalUri].
+  LibraryElement lookupLibrary(Uri canonicalUri);
 }
 
 /// Handle for creating synthesized/patch libraries during library loading.
@@ -299,9 +304,15 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
 
   final DiagnosticReporter reporter;
 
-  _LibraryLoaderTask(this.uriTranslator, this.scriptLoader,
-      this.scanner, this.deserializer, this.listener, this.environment,
-      this.reporter, Measurer measurer)
+  _LibraryLoaderTask(
+      this.uriTranslator,
+      this.scriptLoader,
+      this.scanner,
+      this.deserializer,
+      this.listener,
+      this.environment,
+      this.reporter,
+      Measurer measurer)
       : super(measurer);
 
   String get name => 'LibraryLoader';
@@ -1384,8 +1395,6 @@ class _LoadedLibraries implements LoadedLibraries {
       suffixChainMap[library] = const <Link<Uri>>[];
       List<Link<Uri>> suffixes = [];
       if (targetUri != canonicalUri) {
-        LibraryDependencyNode node = nodeMap[library];
-
         /// Process the import (or export) of [importedLibrary].
         void processLibrary(LibraryElement importedLibrary) {
           bool suffixesArePrecomputed =
@@ -1416,12 +1425,12 @@ class _LoadedLibraries implements LoadedLibraries {
           }
         }
 
-        for (ImportLink import in node.imports.reverse()) {
+        for (ImportElement import in library.imports) {
           processLibrary(import.importedLibrary);
           if (aborted) return;
         }
-        for (LibraryElement exportedLibrary in node.exports.reverse()) {
-          processLibrary(exportedLibrary);
+        for (ExportElement export in library.exports) {
+          processLibrary(export.exportedLibrary);
           if (aborted) return;
         }
       } else {

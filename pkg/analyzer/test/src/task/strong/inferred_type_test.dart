@@ -449,6 +449,29 @@ var f = /*info:INFERRED_TYPE_CLOSURE*/() sync* {
     expect(f.type.toString(), '() → Iterable<num>');
   }
 
+  void test_bottom() {
+    // When a type is inferred from the expression `null`, the inferred type is
+    // `dynamic`, but the inferred type of the initializer is `bottom`.
+    // TODO(paulberry): Is this intentional/desirable?
+    var mainUnit = checkFile('''
+var v = null;
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'dynamic');
+    expect(v.initializer.type.toString(), '() → <bottom>');
+  }
+
+  void test_bottom_inClosure() {
+    // When a closure's return type is inferred from the expression `null`, the
+    // inferred type is `dynamic`.
+    var mainUnit = checkFile('''
+var v = () => null;
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), '() → dynamic');
+    expect(v.initializer.type.toString(), '() → () → dynamic');
+  }
+
   void test_canInferAlsoFromStaticAndInstanceFieldsFlagOn() {
     addFile(
         '''
@@ -477,6 +500,32 @@ test1() {
   x = new A().a2;
 }
 ''');
+  }
+
+  void test_circularReference_viaClosures() {
+    var mainUnit = checkFile('''
+var x = () => y;
+var y = () => x;
+''');
+    var x = mainUnit.topLevelVariables[0];
+    var y = mainUnit.topLevelVariables[1];
+    expect(x.name, 'x');
+    expect(y.name, 'y');
+    expect(x.type.toString(), 'dynamic');
+    expect(y.type.toString(), 'dynamic');
+  }
+
+  void test_circularReference_viaClosures_initializerTypes() {
+    var mainUnit = checkFile('''
+var x = () => y;
+var y = () => x;
+''');
+    var x = mainUnit.topLevelVariables[0];
+    var y = mainUnit.topLevelVariables[1];
+    expect(x.name, 'x');
+    expect(y.name, 'y');
+    expect(x.initializer.returnType.toString(), '() → dynamic');
+    expect(y.initializer.returnType.toString(), '() → dynamic');
   }
 
   void test_conflictsCanHappen() {
@@ -1266,6 +1315,14 @@ int get y => null;
 ''');
     var x = mainUnit.types[0].fields[0];
     expect(x.type.toString(), 'int');
+  }
+
+  void test_futureThen() {
+    checkFile('''
+import 'dart:async';
+Future f;
+Future<int> t1 = f.then((_) => new Future<int>.value(42));
+''');
   }
 
   void test_genericMethods_basicDownwardInference() {
@@ -2551,6 +2608,19 @@ final x = <String, F<int>>{};
     expect(x.type.toString(), 'Map<String, () → int>');
   }
 
+  void test_inferredType_opAssignToProperty() {
+    var mainUnit = checkFile('''
+class C {
+  num n;
+}
+C f() => null;
+var x = (f().n *= null);
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.name, 'x');
+    expect(x.type.toString(), 'num');
+  }
+
   void test_inferredType_opAssignToProperty_prefixedIdentifier() {
     var mainUnit = checkFile('''
 class C {
@@ -2578,19 +2648,6 @@ var x = (c.n *= null);
     expect(x.type.toString(), 'num');
   }
 
-  void test_inferredType_opAssignToProperty() {
-    var mainUnit = checkFile('''
-class C {
-  num n;
-}
-C f() => null;
-var x = (f().n *= null);
-''');
-    var x = mainUnit.topLevelVariables[0];
-    expect(x.name, 'x');
-    expect(x.type.toString(), 'num');
-  }
-
   void test_inferredType_opAssignToProperty_viaInterface() {
     var mainUnit = checkFile('''
 class I {
@@ -2603,6 +2660,42 @@ var x = (f().n *= null);
     var x = mainUnit.topLevelVariables[0];
     expect(x.name, 'x');
     expect(x.type.toString(), 'num');
+  }
+
+  void test_inferredType_viaClosure_multipleLevelsOfNesting() {
+    var mainUnit = checkFile('''
+class C {
+  static final f = (bool b) => (int i) => /*info:INFERRED_TYPE_LITERAL*/{i: b};
+}
+''');
+    var f = mainUnit.getType('C').fields[0];
+    expect(f.type.toString(), '(bool) → (int) → Map<int, bool>');
+  }
+
+  void test_inferredType_viaClosure_typeDependsOnArgs() {
+    var mainUnit = checkFile('''
+class C {
+  static final f = (bool b) => b;
+}
+''');
+    var f = mainUnit.getType('C').fields[0];
+    expect(f.type.toString(), '(bool) → bool');
+  }
+
+  void test_inferredType_viaClosure_typeIndependentOfArgs_field() {
+    var mainUnit = checkFile('''
+class C {
+  static final f = (bool b) => 1;
+}
+''');
+    var f = mainUnit.getType('C').fields[0];
+    expect(f.type.toString(), '(bool) → int');
+  }
+
+  void test_inferredType_viaClosure_typeIndependentOfArgs_topLevel() {
+    var mainUnit = checkFile('final f = (bool b) => 1;');
+    var f = mainUnit.topLevelVariables[0];
+    expect(f.type.toString(), '(bool) → int');
   }
 
   void test_inferStaticsTransitively() {
@@ -3272,6 +3365,54 @@ var x = { null: null };
 ''');
     var x = unit.topLevelVariables[0];
     expect(x.type.toString(), 'Map<dynamic, dynamic>');
+  }
+
+  void test_methodCall_withTypeArguments_instanceMethod() {
+    var mainUnit = checkFile('''
+class C {
+  D/*<T>*/ f/*<T>*/() => null;
+}
+class D<T> {}
+var f = new C().f/*<int>*/();
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'D<int>');
+  }
+
+  void test_methodCall_withTypeArguments_instanceMethod_identifierSequence() {
+    var mainUnit = checkFile('''
+class C {
+  D/*<T>*/ f/*<T>*/() => null;
+}
+class D<T> {}
+C c;
+var f = c.f/*<int>*/();
+''');
+    var v = mainUnit.topLevelVariables[1];
+    expect(v.name, 'f');
+    expect(v.type.toString(), 'D<int>');
+  }
+
+  void test_methodCall_withTypeArguments_staticMethod() {
+    var mainUnit = checkFile('''
+class C {
+  static D/*<T>*/ f/*<T>*/() => null;
+}
+class D<T> {}
+var f = C.f/*<int>*/();
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'D<int>');
+  }
+
+  void test_methodCall_withTypeArguments_topLevelFunction() {
+    var mainUnit = checkFile('''
+D/*<T>*/ f/*<T>*/() => null;
+class D<T> {}
+var g = f/*<int>*/();
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'D<int>');
   }
 
   void test_noErrorWhenDeclaredTypeIsNumAndAssignedNull() {

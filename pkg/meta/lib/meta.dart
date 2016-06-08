@@ -69,8 +69,9 @@ const _OptionalTypeArgs optionalTypeArgs = const _OptionalTypeArgs();
 /// field) `m` in a class `C`. If the annotation is on a field it applies to the
 /// getter, and setter if appropriate, that are induced by the field. Indicates
 /// that `m` should only be invoked from instance methods of `C` or classes that
-/// extend or mix in `C`, either directly or indirectly. Additionally indicates
-/// that `m` should only be invoked on `this`, whether explicitly or implicitly.
+/// extend, implement or mix in `C`, either directly or indirectly. Additionally
+/// indicates that `m` should only be invoked on `this`, whether explicitly or
+/// implicitly.
 ///
 /// Tools, such as the analyzer, can provide feedback if
 ///

@@ -32,6 +32,81 @@ static RawObject* ExecuteTest(const Code& code) {
 #define __ assembler->
 
 
+static RawClass* CreateDummyClass(const String& class_name,
+                                  const Script& script) {
+  const Class& cls = Class::Handle(Class::New(
+      Library::Handle(), class_name, script, TokenPosition::kNoSource));
+  cls.set_is_synthesized_class();  // Dummy class for testing.
+  return cls.raw();
+}
+
+
+static RawLibrary* CreateDummyLibrary(const String& library_name) {
+  return Library::New(library_name);
+}
+
+
+static RawFunction* CreateFunction(const char* name) {
+  Thread* thread = Thread::Current();
+  const String& class_name = String::Handle(Symbols::New(thread, "ownerClass"));
+  const String& lib_name = String::Handle(Symbols::New(thread, "ownerLibrary"));
+  const Script& script = Script::Handle();
+  const Class& owner_class =
+      Class::Handle(CreateDummyClass(class_name, script));
+  const Library& owner_library =
+      Library::Handle(CreateDummyLibrary(lib_name));
+  owner_class.set_library(owner_library);
+  const String& function_name = String::ZoneHandle(Symbols::New(thread, name));
+  return Function::New(function_name, RawFunction::kRegularFunction,
+                       true, false, false, false, false, owner_class,
+                       TokenPosition::kMinSource);
+}
+
+
+static void GenerateDummyCode(Assembler* assembler, const Object& result) {
+  __ PushConstant(result);
+  __ ReturnTOS();
+}
+
+
+static void MakeDummyInstanceCall(Assembler* assembler, const Object& result) {
+  // Make a dummy function.
+  Assembler _assembler_;
+  GenerateDummyCode(&_assembler_, result);
+  const char* dummy_function_name = "dummy_instance_function";
+  const Function& dummy_instance_function =
+      Function::Handle(CreateFunction(dummy_function_name));
+  Code& code =
+      Code::Handle(Code::FinalizeCode(dummy_instance_function, &_assembler_));
+  dummy_instance_function.AttachCode(code);
+
+  // Make a dummy ICData.
+  const Array& dummy_arguments_descriptor =
+      Array::Handle(ArgumentsDescriptor::New(2));
+  const ICData& ic_data = ICData::Handle(ICData::New(
+      dummy_instance_function,
+      String::Handle(dummy_instance_function.name()),
+      dummy_arguments_descriptor,
+      Thread::kNoDeoptId,
+      2));
+
+  // Wire up the Function in the ICData.
+  GrowableArray<intptr_t> cids(2);
+  cids.Add(kSmiCid);
+  cids.Add(kSmiCid);
+  ic_data.AddCheck(cids, dummy_instance_function);
+
+  // For the non-Smi tests.
+  cids[0] = kBigintCid;
+  ic_data.AddCheck(cids, dummy_instance_function);
+  ICData* call_ic_data = &ICData::ZoneHandle(ic_data.Original());
+
+  // Generate the instance call.
+  const intptr_t call_ic_data_kidx = __ AddConstant(*call_ic_data);
+  __ InstanceCall2(2, call_ic_data_kidx);
+}
+
+
 ASSEMBLER_TEST_GENERATE(Simple, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(42)));
   __ ReturnTOS();
@@ -66,7 +141,8 @@ ASSEMBLER_TEST_GENERATE(AddTOS, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(-42)));
   __ PushConstant(Smi::Handle(Smi::New(84)));
   __ AddTOS();
-  __ PushConstant(Smi::Handle(Smi::New(0)));  // Should be skipped.
+  // Should be skipped.
+  MakeDummyInstanceCall(assembler, Smi::Handle(Smi::New(0)));
   __ ReturnTOS();
 }
 
@@ -80,7 +156,8 @@ ASSEMBLER_TEST_GENERATE(AddTOSOverflow, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(Smi::kMaxValue)));
   __ PushConstant(Smi::Handle(Smi::New(1)));
   __ AddTOS();
-  __ PushConstant(Smi::Handle(Smi::New(42)));  // Shouldn't be skipped.
+  // Shouldn't be skipped.
+  MakeDummyInstanceCall(assembler, Smi::Handle(Smi::New(42)));
   __ ReturnTOS();
 }
 
@@ -96,7 +173,8 @@ ASSEMBLER_TEST_GENERATE(AddTOSNonSmi, assembler) {
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(1)));
   __ AddTOS();
-  __ PushConstant(Smi::Handle(Smi::New(42)));  // Shouldn't be skipped.
+  // Shouldn't be skipped.
+  MakeDummyInstanceCall(assembler, Smi::Handle(Smi::New(42)));
   __ ReturnTOS();
 }
 
@@ -110,7 +188,8 @@ ASSEMBLER_TEST_GENERATE(SubTOS, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(30)));
   __ PushConstant(Smi::Handle(Smi::New(-12)));
   __ SubTOS();
-  __ PushConstant(Smi::Handle(Smi::New(0)));  // Should be skipped.
+  // Should be skipped.
+  MakeDummyInstanceCall(assembler, Smi::Handle(Smi::New(0)));
   __ ReturnTOS();
 }
 
@@ -124,7 +203,8 @@ ASSEMBLER_TEST_GENERATE(SubTOSOverflow, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(Smi::kMinValue)));
   __ PushConstant(Smi::Handle(Smi::New(1)));
   __ SubTOS();
-  __ PushConstant(Smi::Handle(Smi::New(42)));  // Shouldn't be skipped.
+  // Shouldn't be skipped.
+  MakeDummyInstanceCall(assembler, Smi::Handle(Smi::New(42)));
   __ ReturnTOS();
 }
 
@@ -140,7 +220,8 @@ ASSEMBLER_TEST_GENERATE(SubTOSNonSmi, assembler) {
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(1)));
   __ SubTOS();
-  __ PushConstant(Smi::Handle(Smi::New(42)));  // Shouldn't be skipped.
+  // Shouldn't be skipped.
+  MakeDummyInstanceCall(assembler, Smi::Handle(Smi::New(42)));
   __ ReturnTOS();
 }
 
@@ -154,7 +235,8 @@ ASSEMBLER_TEST_GENERATE(MulTOS, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(-6)));
   __ PushConstant(Smi::Handle(Smi::New(-7)));
   __ MulTOS();
-  __ PushConstant(Smi::Handle(Smi::New(0)));  // Should be skipped.
+  // Should be skipped.
+  MakeDummyInstanceCall(assembler, Smi::Handle(Smi::New(0)));
   __ ReturnTOS();
 }
 
@@ -168,7 +250,8 @@ ASSEMBLER_TEST_GENERATE(MulTOSOverflow, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(Smi::kMaxValue)));
   __ PushConstant(Smi::Handle(Smi::New(-8)));
   __ MulTOS();
-  __ PushConstant(Smi::Handle(Smi::New(42)));  // Shouldn't be skipped.
+  // Shouldn't be skipped.
+  MakeDummyInstanceCall(assembler, Smi::Handle(Smi::New(42)));
   __ ReturnTOS();
 }
 
@@ -184,7 +267,8 @@ ASSEMBLER_TEST_GENERATE(MulTOSNonSmi, assembler) {
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(1)));
   __ MulTOS();
-  __ PushConstant(Smi::Handle(Smi::New(42)));  // Shouldn't be skipped.
+  // Shouldn't be skipped.
+  MakeDummyInstanceCall(assembler, Smi::Handle(Smi::New(42)));
   __ ReturnTOS();
 }
 
@@ -198,7 +282,8 @@ ASSEMBLER_TEST_GENERATE(BitOrTOS, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(0x22)));
   __ PushConstant(Smi::Handle(Smi::New(0x08)));
   __ BitOrTOS();
-  __ PushConstant(Smi::Handle(Smi::New(0)));  // Should be skipped.
+  // Should be skipped.
+  MakeDummyInstanceCall(assembler, Smi::Handle(Smi::New(0)));
   __ ReturnTOS();
 }
 
@@ -214,7 +299,8 @@ ASSEMBLER_TEST_GENERATE(BitOrTOSNonSmi, assembler) {
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(0x08)));
   __ BitOrTOS();
-  __ PushConstant(Smi::Handle(Smi::New(42)));  // Shouldn't be skipped.
+  // Shouldn't be skipped.
+  MakeDummyInstanceCall(assembler, Smi::Handle(Smi::New(42)));
   __ ReturnTOS();
 }
 
@@ -228,7 +314,8 @@ ASSEMBLER_TEST_GENERATE(BitAndTOS, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(0x2a)));
   __ PushConstant(Smi::Handle(Smi::New(0xaa)));
   __ BitAndTOS();
-  __ PushConstant(Smi::Handle(Smi::New(0)));  // Should be skipped.
+  // Should be skipped.
+  MakeDummyInstanceCall(assembler, Smi::Handle(Smi::New(0)));
   __ ReturnTOS();
 }
 
@@ -244,7 +331,8 @@ ASSEMBLER_TEST_GENERATE(BitAndTOSNonSmi, assembler) {
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(0x08)));
   __ BitAndTOS();
-  __ PushConstant(Smi::Handle(Smi::New(42)));  // Shouldn't be skipped.
+  // Shouldn't be skipped.
+  MakeDummyInstanceCall(assembler, Smi::Handle(Smi::New(42)));
   __ ReturnTOS();
 }
 
@@ -258,7 +346,8 @@ ASSEMBLER_TEST_GENERATE(EqualTOSTrue, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(42)));
   __ PushConstant(Smi::Handle(Smi::New(42)));
   __ EqualTOS();
-  __ PushConstant(Bool::False());  // Should be skipped.
+  // Should be skipped.
+  MakeDummyInstanceCall(assembler, Bool::False());
   __ ReturnTOS();
 }
 
@@ -272,7 +361,8 @@ ASSEMBLER_TEST_GENERATE(EqualTOSFalse, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(42)));
   __ PushConstant(Smi::Handle(Smi::New(-42)));
   __ EqualTOS();
-  __ PushConstant(Bool::True());  // Should be skipped.
+  // Should be skipped.
+  MakeDummyInstanceCall(assembler, Bool::True());
   __ ReturnTOS();
 }
 
@@ -288,7 +378,8 @@ ASSEMBLER_TEST_GENERATE(EqualTOSNonSmi, assembler) {
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(-42)));
   __ EqualTOS();
-  __ PushConstant(Bool::True());  // Shouldn't be skipped.
+  // Shouldn't be skipped.
+  MakeDummyInstanceCall(assembler, Bool::True());
   __ ReturnTOS();
 }
 
@@ -302,7 +393,8 @@ ASSEMBLER_TEST_GENERATE(LessThanTOSTrue, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(-42)));
   __ PushConstant(Smi::Handle(Smi::New(42)));
   __ LessThanTOS();
-  __ PushConstant(Bool::False());  // Should be skipped.
+  // Should be skipped.
+  MakeDummyInstanceCall(assembler, Bool::False());
   __ ReturnTOS();
 }
 
@@ -316,7 +408,8 @@ ASSEMBLER_TEST_GENERATE(LessThanTOSFalse, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(42)));
   __ PushConstant(Smi::Handle(Smi::New(-42)));
   __ LessThanTOS();
-  __ PushConstant(Bool::False());  // Should be skipped.
+  // Should be skipped.
+  MakeDummyInstanceCall(assembler, Bool::False());
   __ ReturnTOS();
 }
 
@@ -332,7 +425,8 @@ ASSEMBLER_TEST_GENERATE(LessThanTOSNonSmi, assembler) {
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(-42)));
   __ LessThanTOS();
-  __ PushConstant(Bool::True());  // Shouldn't be skipped.
+  // Shouldn't be skipped.
+  MakeDummyInstanceCall(assembler, Bool::True());
   __ ReturnTOS();
 }
 
@@ -346,7 +440,8 @@ ASSEMBLER_TEST_GENERATE(GreaterThanTOSTrue, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(42)));
   __ PushConstant(Smi::Handle(Smi::New(-42)));
   __ GreaterThanTOS();
-  __ PushConstant(Bool::False());  // Should be skipped.
+  // Should be skipped.
+  MakeDummyInstanceCall(assembler, Bool::False());
   __ ReturnTOS();
 }
 
@@ -360,7 +455,8 @@ ASSEMBLER_TEST_GENERATE(GreaterThanTOSFalse, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(-42)));
   __ PushConstant(Smi::Handle(Smi::New(42)));
   __ GreaterThanTOS();
-  __ PushConstant(Bool::False());  // Should be skipped.
+  // Should be skipped.
+  MakeDummyInstanceCall(assembler, Bool::False());
   __ ReturnTOS();
 }
 
@@ -376,7 +472,8 @@ ASSEMBLER_TEST_GENERATE(GreaterThanTOSNonSmi, assembler) {
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(-42)));
   __ GreaterThanTOS();
-  __ PushConstant(Bool::True());  // Shouldn't be skipped.
+  // Shouldn't be skipped.
+  MakeDummyInstanceCall(assembler, Bool::True());
   __ ReturnTOS();
 }
 
@@ -777,7 +874,7 @@ ASSEMBLER_TEST_GENERATE(DropR, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(41)));
   __ DropR(11);
   __ AddTOS();
-  __ PushConstant(Smi::Handle(Smi::New(0)));  // Should be skipped.
+  MakeDummyInstanceCall(assembler, Smi::Handle(Smi::New(0)));
   __ ReturnTOS();
 }
 
@@ -840,11 +937,13 @@ ASSEMBLER_TEST_RUN(FrameInitialized, test) {
 //    Push FP[rX] to the stack.
 ASSEMBLER_TEST_GENERATE(StoreLocalPush, assembler) {
   __ Frame(1);
+  __ PushConstant(Smi::Handle(Smi::New(37)));
   __ PushConstant(Smi::Handle(Smi::New(21)));
   __ StoreLocal(0);
   __ Push(0);
   __ AddTOS();
-  __ PushConstant(Smi::Handle(Smi::New(0)));  // Should be skipped.
+  // Should be skipped.
+  MakeDummyInstanceCall(assembler, Smi::Handle(Smi::New(0)));
   __ ReturnTOS();
 }
 
@@ -861,7 +960,8 @@ ASSEMBLER_TEST_GENERATE(PopLocalPush, assembler) {
   __ Push(0);
   __ Push(0);
   __ AddTOS();
-  __ PushConstant(Smi::Handle(Smi::New(0)));  // Should be skipped.
+  // Should be skipped.
+  MakeDummyInstanceCall(assembler, Smi::Handle(Smi::New(0)));
   __ ReturnTOS();
 }
 
@@ -877,7 +977,8 @@ ASSEMBLER_TEST_GENERATE(LoadConstantPush, assembler) {
   __ Push(0);
   __ Push(0);
   __ AddTOS();
-  __ PushConstant(Smi::Handle(Smi::New(0)));  // Should be skipped.
+  // Should be skipped.
+  MakeDummyInstanceCall(assembler, Smi::Handle(Smi::New(0)));
   __ ReturnTOS();
 }
 
@@ -900,7 +1001,8 @@ ASSEMBLER_TEST_GENERATE(MoveLocalLocal, assembler) {
   __ Push(0);
   __ Push(1);
   __ AddTOS();
-  __ PushConstant(Smi::Handle(Smi::New(0)));  // Should be skipped.
+  // Should be skipped.
+  MakeDummyInstanceCall(assembler, Smi::Handle(Smi::New(0)));
   __ ReturnTOS();
 }
 
@@ -951,14 +1053,16 @@ ASSEMBLER_TEST_GENERATE(Loop, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(1)));
   __ Push(1);
   __ AddTOS();
-  __ Jump(&error);
+  // Should be skipped.
+  MakeDummyInstanceCall(assembler, Smi::Handle(Smi::New(-1)));
   __ PopLocal(1);
 
   // Subtract 1 from FP[0].
   __ Push(0);
   __ PushConstant(Smi::Handle(Smi::New(1)));
   __ SubTOS();
-  __ Jump(&error);
+  // Should be skipped.
+  MakeDummyInstanceCall(assembler, Smi::Handle(Smi::New(-1)));
 
   // Jump to loop_entry if FP[0] != 0.
   __ StoreLocal(0);

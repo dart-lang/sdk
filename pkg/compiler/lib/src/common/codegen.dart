@@ -251,4 +251,6 @@ class CodegenWorkItem extends WorkItem {
     registry = new CodegenRegistry(compiler, element);
     return compiler.codegen(this, world);
   }
+
+  String toString() => 'CodegenWorkItem(${resolvedAst.element})';
 }

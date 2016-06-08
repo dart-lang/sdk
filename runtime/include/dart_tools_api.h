@@ -752,22 +752,44 @@ DART_EXPORT Dart_IsolateId Dart_GetIsolateId(Dart_Isolate isolate);
  * a service request it can't handle and the service request command name
  * matches one of the embedder registered handlers.
  *
+ * The return value of the callback indicates whether the response
+ * should be used as a regular result or an error result.
+ * Specifically, if the callback returns true, a regular JSON-RPC
+ * response is built in the following way:
+ *
+ * {
+ *   "jsonrpc": "2.0",
+ *   "result": <json_object>,
+ *   "id": <some sequence id>,
+ * }
+ *
+ * If the callback returns false, a JSON-RPC error is built like this:
+ *
+ * {
+ *   "jsonrpc": "2.0",
+ *   "error": <json_object>,
+ *   "id": <some sequence id>,
+ * }
+ *
  * \param method The rpc method name.
  * \param param_keys Service requests can have key-value pair parameters. The
  *   keys and values are flattened and stored in arrays.
  * \param param_values The values associated with the keys.
  * \param num_params The length of the param_keys and param_values arrays.
  * \param user_data The user_data pointer registered with this handler.
+ * \param result A C string containing a valid JSON object. The returned
+ *   pointer will be freed by the VM by calling free.
  *
- * \return Returns a C string containing a valid JSON object. The returned
- * pointer will be freed by the VM by calling free.
+ * \return True if the result is a regular JSON-RPC response, false if the
+ *   result is a JSON-RPC error.
  */
-typedef const char* (*Dart_ServiceRequestCallback)(
+typedef bool (*Dart_ServiceRequestCallback)(
     const char* method,
     const char** param_keys,
     const char** param_values,
     intptr_t num_params,
-    void* user_data);
+    void* user_data,
+    const char** json_object);
 
 
 /**

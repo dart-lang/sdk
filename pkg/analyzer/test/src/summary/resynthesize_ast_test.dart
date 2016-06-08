@@ -47,9 +47,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   bool get mayCheckTypesOfLocals => false;
 
   @override
-  bool get skipBrokenAstInference => true;
-
-  @override
   void addFile(String content, {String name: '/main.dart'}) {
     addLibrarySource(name, content);
   }
@@ -150,6 +147,12 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   void test_canInferAlsoFromStaticAndInstanceFieldsFlagOn() {
     variablesWithNotConstInitializers.add('a2');
     super.test_canInferAlsoFromStaticAndInstanceFieldsFlagOn();
+  }
+
+  @override
+  @failingTest
+  void test_circularReference_viaClosures_initializerTypes() {
+    super.test_circularReference_viaClosures_initializerTypes();
   }
 
   @override

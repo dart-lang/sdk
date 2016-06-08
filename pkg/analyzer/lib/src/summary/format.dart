@@ -141,6 +141,198 @@ class _UnlinkedParamKindReader extends fb.Reader<idl.UnlinkedParamKind> {
   }
 }
 
+class CacheAnalysisErrorBuilder extends Object with _CacheAnalysisErrorMixin implements idl.CacheAnalysisError {
+  bool _finished = false;
+
+  String _correction;
+  String _errorCodeUniqueName;
+  int _length;
+  String _message;
+  int _offset;
+
+  @override
+  String get correction => _correction ??= '';
+
+  /**
+   * The correction to be displayed for this error, or `null` if there is no
+   * correction information for this error. The correction should indicate how
+   * the user can fix the error.
+   */
+  void set correction(String _value) {
+    assert(!_finished);
+    _correction = _value;
+  }
+
+  @override
+  String get errorCodeUniqueName => _errorCodeUniqueName ??= '';
+
+  /**
+   * The unique name of the error code.
+   */
+  void set errorCodeUniqueName(String _value) {
+    assert(!_finished);
+    _errorCodeUniqueName = _value;
+  }
+
+  @override
+  int get length => _length ??= 0;
+
+  /**
+   * Length of the error range.
+   */
+  void set length(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _length = _value;
+  }
+
+  @override
+  String get message => _message ??= '';
+
+  /**
+   * The message to be displayed for this error. The message should indicate
+   * what is wrong and why it is wrong.
+   */
+  void set message(String _value) {
+    assert(!_finished);
+    _message = _value;
+  }
+
+  @override
+  int get offset => _offset ??= 0;
+
+  /**
+   * Offset of the error range relative to the beginning of the file.
+   */
+  void set offset(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _offset = _value;
+  }
+
+  CacheAnalysisErrorBuilder({String correction, String errorCodeUniqueName, int length, String message, int offset})
+    : _correction = correction,
+      _errorCodeUniqueName = errorCodeUniqueName,
+      _length = length,
+      _message = message,
+      _offset = offset;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    assert(!_finished);
+    _finished = true;
+    fb.Offset offset_correction;
+    fb.Offset offset_errorCodeUniqueName;
+    fb.Offset offset_message;
+    if (_correction != null) {
+      offset_correction = fbBuilder.writeString(_correction);
+    }
+    if (_errorCodeUniqueName != null) {
+      offset_errorCodeUniqueName = fbBuilder.writeString(_errorCodeUniqueName);
+    }
+    if (_message != null) {
+      offset_message = fbBuilder.writeString(_message);
+    }
+    fbBuilder.startTable();
+    if (offset_correction != null) {
+      fbBuilder.addOffset(4, offset_correction);
+    }
+    if (offset_errorCodeUniqueName != null) {
+      fbBuilder.addOffset(0, offset_errorCodeUniqueName);
+    }
+    if (_length != null && _length != 0) {
+      fbBuilder.addUint32(2, _length);
+    }
+    if (offset_message != null) {
+      fbBuilder.addOffset(3, offset_message);
+    }
+    if (_offset != null && _offset != 0) {
+      fbBuilder.addUint32(1, _offset);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _CacheAnalysisErrorReader extends fb.TableReader<_CacheAnalysisErrorImpl> {
+  const _CacheAnalysisErrorReader();
+
+  @override
+  _CacheAnalysisErrorImpl createObject(fb.BufferContext bc, int offset) => new _CacheAnalysisErrorImpl(bc, offset);
+}
+
+class _CacheAnalysisErrorImpl extends Object with _CacheAnalysisErrorMixin implements idl.CacheAnalysisError {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _CacheAnalysisErrorImpl(this._bc, this._bcOffset);
+
+  String _correction;
+  String _errorCodeUniqueName;
+  int _length;
+  String _message;
+  int _offset;
+
+  @override
+  String get correction {
+    _correction ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 4, '');
+    return _correction;
+  }
+
+  @override
+  String get errorCodeUniqueName {
+    _errorCodeUniqueName ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
+    return _errorCodeUniqueName;
+  }
+
+  @override
+  int get length {
+    _length ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
+    return _length;
+  }
+
+  @override
+  String get message {
+    _message ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 3, '');
+    return _message;
+  }
+
+  @override
+  int get offset {
+    _offset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
+    return _offset;
+  }
+}
+
+abstract class _CacheAnalysisErrorMixin implements idl.CacheAnalysisError {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (correction != '') _result["correction"] = correction;
+    if (errorCodeUniqueName != '') _result["errorCodeUniqueName"] = errorCodeUniqueName;
+    if (length != 0) _result["length"] = length;
+    if (message != '') _result["message"] = message;
+    if (offset != 0) _result["offset"] = offset;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+    "correction": correction,
+    "errorCodeUniqueName": errorCodeUniqueName,
+    "length": length,
+    "message": message,
+    "offset": offset,
+  };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
+}
+
 class CacheSourceContentBuilder extends Object with _CacheSourceContentMixin implements idl.CacheSourceContent {
   bool _finished = false;
 
@@ -310,6 +502,96 @@ abstract class _CacheSourceContentMixin implements idl.CacheSourceContent {
     "importedUris": importedUris,
     "kind": kind,
     "partUris": partUris,
+  };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
+}
+
+class CacheSourceErrorsInLibraryBuilder extends Object with _CacheSourceErrorsInLibraryMixin implements idl.CacheSourceErrorsInLibrary {
+  bool _finished = false;
+
+  List<CacheAnalysisErrorBuilder> _errors;
+
+  @override
+  List<CacheAnalysisErrorBuilder> get errors => _errors ??= <CacheAnalysisErrorBuilder>[];
+
+  /**
+   * The list of errors in the source in the library.
+   */
+  void set errors(List<CacheAnalysisErrorBuilder> _value) {
+    assert(!_finished);
+    _errors = _value;
+  }
+
+  CacheSourceErrorsInLibraryBuilder({List<CacheAnalysisErrorBuilder> errors})
+    : _errors = errors;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _errors?.forEach((b) => b.flushInformative());
+  }
+
+  List<int> toBuffer() {
+    fb.Builder fbBuilder = new fb.Builder();
+    return fbBuilder.finish(finish(fbBuilder), "CSEL");
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    assert(!_finished);
+    _finished = true;
+    fb.Offset offset_errors;
+    if (!(_errors == null || _errors.isEmpty)) {
+      offset_errors = fbBuilder.writeList(_errors.map((b) => b.finish(fbBuilder)).toList());
+    }
+    fbBuilder.startTable();
+    if (offset_errors != null) {
+      fbBuilder.addOffset(0, offset_errors);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+idl.CacheSourceErrorsInLibrary readCacheSourceErrorsInLibrary(List<int> buffer) {
+  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  return const _CacheSourceErrorsInLibraryReader().read(rootRef, 0);
+}
+
+class _CacheSourceErrorsInLibraryReader extends fb.TableReader<_CacheSourceErrorsInLibraryImpl> {
+  const _CacheSourceErrorsInLibraryReader();
+
+  @override
+  _CacheSourceErrorsInLibraryImpl createObject(fb.BufferContext bc, int offset) => new _CacheSourceErrorsInLibraryImpl(bc, offset);
+}
+
+class _CacheSourceErrorsInLibraryImpl extends Object with _CacheSourceErrorsInLibraryMixin implements idl.CacheSourceErrorsInLibrary {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _CacheSourceErrorsInLibraryImpl(this._bc, this._bcOffset);
+
+  List<idl.CacheAnalysisError> _errors;
+
+  @override
+  List<idl.CacheAnalysisError> get errors {
+    _errors ??= const fb.ListReader<idl.CacheAnalysisError>(const _CacheAnalysisErrorReader()).vTableGet(_bc, _bcOffset, 0, const <idl.CacheAnalysisError>[]);
+    return _errors;
+  }
+}
+
+abstract class _CacheSourceErrorsInLibraryMixin implements idl.CacheSourceErrorsInLibrary {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (errors.isNotEmpty) _result["errors"] = errors.map((_value) => _value.toJson()).toList();
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+    "errors": errors,
   };
 
   @override

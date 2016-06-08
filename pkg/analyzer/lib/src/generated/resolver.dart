@@ -262,7 +262,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitMethodInvocation(MethodInvocation node) {
     _checkForCanBeNullAfterNullAware(node.realTarget, node.operator);
-    _checkForInvalidProtectedMethodCalls(node);
     DartType staticInvokeType = node.staticInvokeType;
     if (staticInvokeType is InterfaceType) {
       MethodElement methodElement = staticInvokeType.lookUpMethod(
@@ -300,7 +299,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     _checkForDeprecatedMemberUseAtIdentifier(node);
-    _checkForInvalidProtectedPropertyAccess(node);
+    _checkForInvalidProtectedMemberAccess(node);
     return super.visitSimpleIdentifier(node);
   }
 
@@ -678,61 +677,35 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Produces a hint if the given invocation is of a protected method outside
-   * a subclass instance method.
+   * Produces a hint if the given identifier is a protected closure, field or
+   * getter/setter, method closure or invocation accessed outside a subclass.
    */
-  void _checkForInvalidProtectedMethodCalls(MethodInvocation node) {
-    Element element = node.methodName.bestElement;
-    if (element == null || !element.isProtected) {
-      return;
-    }
-
-    ClassElement definingClass = element.enclosingElement;
-
-    MethodDeclaration decl =
-        node.getAncestor((AstNode node) => node is MethodDeclaration);
-    if (decl == null) {
-      _errorReporter.reportErrorForNode(
-          HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
-          node,
-          [node.methodName.toString(), definingClass.name]);
-      return;
-    }
-
-    ClassElement invokingClass = decl.element?.enclosingElement;
-    if (invokingClass != null) {
-      if (!_hasSuperClassOrMixin(invokingClass, definingClass.type)) {
-        _errorReporter.reportErrorForNode(
-            HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
-            node,
-            [node.methodName.toString(), definingClass.name]);
-      }
-    }
-  }
-
-  /**
-   * Produces a hint if the given identifier is a protected field or getter
-   * accessed outside a subclass.
-   */
-  void _checkForInvalidProtectedPropertyAccess(SimpleIdentifier identifier) {
+  void _checkForInvalidProtectedMemberAccess(SimpleIdentifier identifier) {
     if (identifier.inDeclarationContext()) {
       return;
     }
+
+    bool isProtected(Element element) {
+      if (element is PropertyAccessorElement &&
+          element.enclosingElement is ClassElement &&
+          (element.isProtected || element.variable.isProtected)) {
+        return true;
+      }
+      if (element is MethodElement &&
+          element.enclosingElement is ClassElement &&
+          element.isProtected) {
+        return true;
+      }
+      return false;
+    }
+
     Element element = identifier.bestElement;
-    if (element is PropertyAccessorElement &&
-        element.enclosingElement is ClassElement &&
-        (element.isProtected || element.variable.isProtected)) {
+    if (isProtected(element)) {
       ClassElement definingClass = element.enclosingElement;
       ClassDeclaration accessingClass =
           identifier.getAncestor((AstNode node) => node is ClassDeclaration);
-
-      if (accessingClass == null) {
-        _errorReporter.reportErrorForNode(
-            HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
-            identifier,
-            [identifier.name.toString(), definingClass.name]);
-      } else if (!_hasSuperClassOrMixin(
-          accessingClass.element, definingClass.type)) {
+      if (accessingClass == null ||
+          !_hasTypeOrSuperType(accessingClass.element, definingClass.type)) {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
             identifier,
@@ -962,6 +935,25 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Check for situations where the result of a method or function is used, when
+   * it returns 'void'.
+   *
+   * See [HintCode.USE_OF_VOID_RESULT].
+   */
+  void _checkForUseOfVoidResult(Expression expression) {
+    // TODO(jwren) Many other situations of use could be covered. We currently
+    // cover the cases var x = m() and x = m(), but we could also cover cases
+    // such as m().x, m()[k], a + m(), f(m()), return m().
+    if (expression is MethodInvocation) {
+      if (identical(expression.staticType, VoidTypeImpl.instance)) {
+        SimpleIdentifier methodName = expression.methodName;
+        _errorReporter.reportErrorForNode(
+            HintCode.USE_OF_VOID_RESULT, methodName, [methodName.name]);
+      }
+    }
+  }
+
+  /**
    * Check for the passed class declaration for the
    * [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE] hint code.
    *
@@ -990,41 +982,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 //    return false;
 //  }
 
-  /**
-   * Check for situations where the result of a method or function is used, when
-   * it returns 'void'.
-   *
-   * See [HintCode.USE_OF_VOID_RESULT].
-   */
-  void _checkForUseOfVoidResult(Expression expression) {
-    // TODO(jwren) Many other situations of use could be covered. We currently
-    // cover the cases var x = m() and x = m(), but we could also cover cases
-    // such as m().x, m()[k], a + m(), f(m()), return m().
-    if (expression is MethodInvocation) {
-      if (identical(expression.staticType, VoidTypeImpl.instance)) {
-        SimpleIdentifier methodName = expression.methodName;
-        _errorReporter.reportErrorForNode(
-            HintCode.USE_OF_VOID_RESULT, methodName, [methodName.name]);
-      }
+  bool _hasTypeOrSuperType(ClassElement element, InterfaceType type) {
+    if (element == null) {
+      return false;
     }
-  }
-
-  bool _hasSuperClassOrMixin(ClassElement element, InterfaceType type) {
-    List<ClassElement> seenClasses = <ClassElement>[];
-    while (element != null && !seenClasses.contains(element)) {
-      if (element.type == type) {
-        return true;
-      }
-
-      if (element.mixins.any((InterfaceType t) => t == type)) {
-        return true;
-      }
-
-      seenClasses.add(element);
-      element = element.supertype?.element;
-    }
-
-    return false;
+    ClassElement typeElement = type.element;
+    return element == typeElement ||
+        element.allSupertypes
+            .any((InterfaceType t) => t.element == typeElement);
   }
 
   /**
@@ -2079,22 +2044,25 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
 
   /**
    * Given some [NodeList] of [Statement]s, from either a [Block] or
-   * [SwitchMember], this loops through the list in reverse order searching for statements
-   * after a return, unlabeled break or unlabeled continue statement to mark them as dead code.
+   * [SwitchMember], this loops through the list searching for dead statements.
    *
    * @param statements some ordered list of statements in a [Block] or [SwitchMember]
    */
   void _checkForDeadStatementsInNodeList(NodeList<Statement> statements) {
+    bool statementExits(Statement statement) {
+      if (statement is BreakStatement) {
+        return statement.label == null;
+      } else if (statement is ContinueStatement) {
+        return statement.label == null;
+      }
+      return ExitDetector.exits(statement);
+    }
+
     int size = statements.length;
     for (int i = 0; i < size; i++) {
       Statement currentStatement = statements[i];
       currentStatement?.accept(this);
-      bool returnOrBreakingStatement = currentStatement is ReturnStatement ||
-          (currentStatement is BreakStatement &&
-              currentStatement.label == null) ||
-          (currentStatement is ContinueStatement &&
-              currentStatement.label == null);
-      if (returnOrBreakingStatement && i != size - 1) {
+      if (statementExits(currentStatement) && i != size - 1) {
         Statement nextStatement = statements[i + 1];
         Statement lastStatement = statements[size - 1];
         int offset = nextStatement.offset;
@@ -3346,9 +3314,8 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
     //
     // Finish building the enum.
     //
-    ClassElementImpl enumElement = node.name.staticElement as ClassElementImpl;
+    EnumElementImpl enumElement = node.name.staticElement as EnumElementImpl;
     InterfaceType enumType = enumElement.type;
-    enumElement.supertype = _typeProvider.objectType;
     //
     // Populate the fields.
     //
@@ -3407,19 +3374,10 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Create a getter that corresponds to the given field.
-   *
-   * @param field the field for which a getter is to be created
-   * @return the getter that was created
+   * Create a getter that corresponds to the given [field].
    */
   PropertyAccessorElement _createGetter(FieldElementImpl field) {
-    PropertyAccessorElementImpl getter =
-        new PropertyAccessorElementImpl.forVariable(field);
-    getter.getter = true;
-    getter.returnType = field.type;
-    getter.type = new FunctionTypeImpl(getter);
-    field.getter = getter;
-    return getter;
+    return new PropertyAccessorElementImpl_ImplicitGetter(field);
   }
 }
 
@@ -3817,18 +3775,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
           return false;
         }
       }
-      // All of the members exit, determine whether there are possible cases
-      // that are not caught by the members.
-      DartType type = node.expression?.bestType;
-      if (type is InterfaceType) {
-        ClassElement element = type.element;
-        if (element != null && element.isEnum) {
-          // If some of the enum values are not covered, then a warning will
-          // have already been generated, so there's no point in generating a
-          // hint.
-          return true;
-        }
-      }
+      // As all cases exit, return whether that list includes `default`.
       return hasDefault;
     } finally {
       _enclosingBlockContainsBreak = outerBreakValue;
@@ -3904,6 +3851,9 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       _enclosingBlockContainsBreak = outerBreakValue;
     }
   }
+
+  @override
+  bool visitYieldStatement(YieldStatement node) => _nodeExits(node.expression);
 
   /**
    * Return `true` if the given node exits.
@@ -9995,8 +9945,7 @@ class TypeResolverVisitor extends ScopedVisitor {
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     super.visitConstructorDeclaration(node);
-    ExecutableElementImpl element = node.element as ExecutableElementImpl;
-    if (element == null) {
+    if (node.element == null) {
       ClassDeclaration classNode =
           node.getAncestor((node) => node is ClassDeclaration);
       StringBuffer buffer = new StringBuffer();
@@ -10013,10 +9962,6 @@ class TypeResolverVisitor extends ScopedVisitor {
       buffer.write(" was not set while trying to resolve types.");
       AnalysisEngine.instance.logger.logError(buffer.toString(),
           new CaughtException(new AnalysisException(), null));
-    } else {
-      ClassElement definingClass = element.enclosingElement as ClassElement;
-      element.returnType = definingClass.type;
-      element.type = new FunctionTypeImpl(element);
     }
     return null;
   }
@@ -10216,26 +10161,8 @@ class TypeResolverVisitor extends ScopedVisitor {
       declaredType = _typeNameResolver._getType(typeName);
     }
     Element element = node.name.staticElement;
-    if (element is VariableElement) {
-      (element as VariableElementImpl).type = declaredType;
-      if (element is PropertyInducingElement) {
-        PropertyAccessorElementImpl getter =
-            element.getter as PropertyAccessorElementImpl;
-        getter.returnType = declaredType;
-        getter.type = new FunctionTypeImpl(getter);
-        PropertyAccessorElementImpl setter =
-            element.setter as PropertyAccessorElementImpl;
-        if (setter != null) {
-          List<ParameterElement> parameters = setter.parameters;
-          if (parameters.length > 0) {
-            (parameters[0] as ParameterElementImpl).type = declaredType;
-          }
-          setter.returnType = VoidTypeImpl.instance;
-          setter.type = new FunctionTypeImpl(setter);
-        }
-      }
-    } else {
-      // TODO(brianwilkerson) Report the internal error.
+    if (element is VariableElementImpl) {
+      element.type = declaredType;
     }
     return null;
   }

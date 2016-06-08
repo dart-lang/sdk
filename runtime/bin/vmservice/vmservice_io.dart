@@ -39,6 +39,7 @@ _lazyServerBoot() {
 }
 
 Future cleanupCallback() async {
+  shutdownLoaders();
   // Cancel the sigquit subscription.
   if (_signalSubscription != null) {
     await _signalSubscription.cancel();
@@ -50,6 +51,10 @@ Future cleanupCallback() async {
     } catch (e, st) {
       print("Error in vm-service shutdown: $e\n$st\n");
     }
+  }
+  if (_registerSignalHandlerTimer != null) {
+    _registerSignalHandlerTimer.cancel();
+    _registerSignalHandlerTimer = null;
   }
   // Call out to embedder's shutdown callback.
   _shutdown();
@@ -73,7 +78,10 @@ _onSignal(ProcessSignal signal) {
   }
 }
 
+Timer _registerSignalHandlerTimer;
+
 _registerSignalHandler() {
+  _registerSignalHandlerTimer = null;
   if (_signalWatch == null) {
     // Cannot register for signals.
     return;
@@ -88,6 +96,9 @@ _registerSignalHandler() {
 main() {
   // Set embedder hooks.
   VMServiceEmbedderHooks.cleanup = cleanupCallback;
+  // Always instantiate the vmservice object so that the exit message
+  // can be delivered and waiting loaders can be cancelled.
+  var service = new VMService();
   if (_autoStart) {
     _lazyServerBoot();
     server.startup();
@@ -95,12 +106,10 @@ main() {
     // scheduled microtasks.
     Timer.run(() {});
   }
-  // TODO(johnmccutchan): Fixup service isolate shutdown in the general case.
-  // See ServiceIsolate::KillServiceIsolate and ServiceIsolate::Shutdown.
   scriptLoadPort.handler = _processLoadRequest;
   // Register signal handler after a small delay to avoid stalling main
   // isolate startup.
-  new Timer(shortDelay, _registerSignalHandler);
+  _registerSignalHandlerTimer = new Timer(shortDelay, _registerSignalHandler);
   return scriptLoadPort;
 }
 

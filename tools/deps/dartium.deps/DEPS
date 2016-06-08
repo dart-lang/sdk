@@ -8,8 +8,8 @@ execfile(os.path.join(path, 'src', 'dart', 'tools', 'deps', 'dartium.deps', 'DEP
 # Now we need to override some settings and add some new ones.
 
 vars.update({
-  "dartium_chromium_commit": "b6b6b76417ce80120ee48b662a7c7ef257723494",
-  "dartium_webkit_commit": "586bcb7d9e5c46c84a3c9d1f43f26343da78548a",
+  "dartium_chromium_commit": "ef7d4ae18c646aea34c07a7ef62de7342c3b8c12",
+  "dartium_webkit_commit": "b7c1bc7268a2b3bdd0cbf59998d99624b3e1a4e9",
   "chromium_base_revision": "338390",
 
   # We use mirrors of all github repos to guarantee reproducibility and
@@ -68,7 +68,7 @@ vars.update({
   "web_components_rev": "@6349e09f9118dce7ae1b309af5763745e25a9d61",
   "WebCore_rev": "@a86fe28efadcfc781f836037a80f27e22a5dad17",
 
-  "co19_rev": "@3ed795ea02e022ef19c77cf1b6095b7c8f5584d0",
+  "co19_rev": "@3f0a4bc9a080a792cdf5f093147a900f99ea301f",
 })
 
 deps.update({

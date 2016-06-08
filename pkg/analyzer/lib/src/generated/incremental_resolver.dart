@@ -77,6 +77,12 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   ClassElementImpl _enclosingClass;
 
   /**
+   * The enum containing the AST nodes being visited, or `null` if we are not
+   * in the scope of an enum.
+   */
+  EnumElementImpl _enclosingEnum;
+
+  /**
    * The parameter containing the AST nodes being visited, or `null` if we are not in the
    * scope of a parameter.
    */
@@ -214,7 +220,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   @override
   visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     String name = node.name.name;
-    FieldElement element = _findElement(_enclosingClass.fields, name);
+    FieldElement element = _findElement(_enclosingEnum.fields, name);
     _processElement(element);
   }
 
@@ -222,7 +228,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   visitEnumDeclaration(EnumDeclaration node) {
     String name = node.name.name;
     ClassElement element = _findElement(_enclosingUnit.enums, name);
-    _enclosingClass = element;
+    _enclosingEnum = element;
     _processElement(element);
     _assertTrue(element.isEnum);
     super.visitEnumDeclaration(node);

@@ -27,7 +27,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/context/source.dart';
@@ -35,6 +37,8 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
@@ -1313,7 +1317,8 @@ class GetHandler {
         buffer.write('</table></p>');
       }
     }
-    void writeOptions(StringBuffer buffer, AnalysisOptionsImpl options) {
+    void writeOptions(StringBuffer buffer, AnalysisOptionsImpl options,
+        {void writeAdditionalOptions(StringBuffer buffer)}) {
       if (options == null) {
         buffer.write('<p>No option information available.</p>');
         return;
@@ -1339,8 +1344,10 @@ class GetHandler {
           options.incrementalApi);
       _writeOption(buffer, 'Preserve comments', options.preserveComments);
       _writeOption(buffer, 'Strong mode', options.strongMode);
-      _writeOption(buffer, 'Strong mode hints', options.strongModeHints,
-          last: true);
+      _writeOption(buffer, 'Strong mode hints', options.strongModeHints);
+      if (writeAdditionalOptions != null) {
+        writeAdditionalOptions(buffer);
+      }
       buffer.write('</p>');
     }
 
@@ -1357,8 +1364,13 @@ class GetHandler {
           },
           (StringBuffer buffer) {
             buffer.write('<p><b>SDK Context Options</b></p>');
-            writeOptions(buffer,
-                context?.sourceFactory?.dartSdk?.context?.analysisOptions);
+            DartSdk sdk = context?.sourceFactory?.dartSdk;
+            writeOptions(buffer, sdk?.context?.analysisOptions,
+                writeAdditionalOptions: (StringBuffer buffer) {
+              if (sdk is DirectoryBasedDartSdk) {
+                _writeOption(buffer, 'Use summaries', sdk.useSummary);
+              }
+            });
           },
           (StringBuffer buffer) {
             List<Linter> lints =
@@ -1388,6 +1400,25 @@ class GetHandler {
           for (UriResolver resolver in sourceFactory.resolvers) {
             buffer.write('<p>');
             buffer.write(resolver.runtimeType);
+            if (resolver is DartUriResolver) {
+              DartSdk sdk = resolver.dartSdk;
+              buffer.write(' (sdk = ');
+              buffer.write(sdk.runtimeType);
+              if (sdk is DirectoryBasedDartSdk) {
+                buffer.write(' (path = ');
+                buffer.write(sdk.directory.getAbsolutePath());
+                buffer.write(')');
+              } else if (sdk is EmbedderSdk) {
+                buffer.write(' (map = ');
+                _writeMapOfStringToString(buffer, sdk.urlMappings);
+                buffer.write(')');
+              }
+              buffer.write(')');
+            } else if (resolver is SdkExtUriResolver) {
+              buffer.write(' (map = ');
+              _writeMapOfStringToString(buffer, resolver.urlMappings);
+              buffer.write(')');
+            }
             buffer.write('</p>');
           }
         }
@@ -2072,6 +2103,27 @@ class GetHandler {
       });
     }
     buffer.write('</ul>');
+  }
+
+  /**
+   * Write to the given [buffer] a representation of the given [map] of strings
+   * to strings.
+   */
+  void _writeMapOfStringToString(StringBuffer buffer, Map<String, String> map) {
+    List<String> keys = map.keys.toList();
+    keys.sort();
+    int length = keys.length;
+    buffer.write('{');
+    for (int i = 0; i < length; i++) {
+      String key = keys[i];
+      if (i > 0) {
+        buffer.write(', ');
+      }
+      buffer.write(key);
+      buffer.write(' = ');
+      buffer.write(map[key]);
+    }
+    buffer.write('}');
   }
 
   /**

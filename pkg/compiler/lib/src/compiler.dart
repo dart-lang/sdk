@@ -209,15 +209,6 @@ abstract class Compiler implements LibraryLoaderListener {
   Element loadLibraryFunction;
   Element functionApplyMethod;
 
-  /// The [int.fromEnvironment] constructor.
-  ConstructorElement intEnvironment;
-
-  /// The [bool.fromEnvironment] constructor.
-  ConstructorElement boolEnvironment;
-
-  /// The [String.fromEnvironment] constructor.
-  ConstructorElement stringEnvironment;
-
   // TODO(zarah): Remove this map and incorporate compile-time errors
   // in the model.
   /// Tracks elements with compile-time errors.
@@ -623,12 +614,6 @@ abstract class Compiler implements LibraryLoaderListener {
       mirrorSystemGetNameFunction = cls.lookupLocalMember('getName');
     } else if (mirrorsUsedClass == cls) {
       mirrorsUsedConstructor = cls.constructors.head;
-    } else if (coreClasses.intClass == cls) {
-      intEnvironment = cls.lookupConstructor(Identifiers.fromEnvironment);
-    } else if (coreClasses.stringClass == cls) {
-      stringEnvironment = cls.lookupConstructor(Identifiers.fromEnvironment);
-    } else if (coreClasses.boolClass == cls) {
-      boolEnvironment = cls.lookupConstructor(Identifiers.fromEnvironment);
     }
   }
 
@@ -2022,10 +2007,17 @@ class _CompilerResolution implements Resolution {
         // Only analyze nodes with a corresponding [TreeElements].
         compiler.checker.check(element);
       }
-      WorldImpact worldImpact = compiler.backend.impactTransformer
-          .transformResolutionImpact(resolutionImpact);
-      return worldImpact;
+      return transformResolutionImpact(element, resolutionImpact);
     });
+  }
+
+  @override
+  WorldImpact transformResolutionImpact(
+      Element element, ResolutionImpact resolutionImpact) {
+    WorldImpact worldImpact = compiler.backend.impactTransformer
+        .transformResolutionImpact(resolutionImpact);
+    _worldImpactCache[element] = worldImpact;
+    return worldImpact;
   }
 
   @override

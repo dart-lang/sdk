@@ -466,13 +466,19 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   TypeProvider get typeProvider {
+    // The `AnalysisContextTarget.request` results go into the SDK partition,
+    // and the TYPE_PROVIDER result is computed and put into the SDK partition
+    // only by the first non-SDK analysis context. So, in order to reuse it
+    // in other analysis contexts, we need to ask for it from the cache.
+    _typeProvider ??= getResult(AnalysisContextTarget.request, TYPE_PROVIDER);
+    if (_typeProvider != null) {
+      return _typeProvider;
+    }
+
     // Make sure a task didn't accidentally try to call back into the context
     // to retrieve the type provider.
     assert(!driver.isTaskRunning);
 
-    if (_typeProvider != null) {
-      return _typeProvider;
-    }
     Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
     if (coreSource == null) {
       throw new AnalysisException("Could not create a source for dart:core");
@@ -726,8 +732,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       ClassElementImpl element =
           new ClassElementImpl.forNode(AstFactory.identifier3(typeName));
       element.supertype = objType;
-      InterfaceTypeImpl type = new InterfaceTypeImpl(element);
-      element.type = type;
       if (parameterNames != null) {
         int count = parameterNames.length;
         if (count > 0) {
@@ -744,7 +748,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             typeParameter.type = typeArguments[i];
           }
           element.typeParameters = typeParameters;
-          type.typeArguments = typeArguments;
         }
       }
       return element;
