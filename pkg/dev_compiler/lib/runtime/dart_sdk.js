@@ -946,6 +946,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.throwStrongModeTypeError = function(object, actual, type) {
     dart.throw(new _js_helper.StrongModeTypeError(object, dart.typeName(actual), dart.typeName(type)));
   };
+  dart.throwUnimplementedError = function(message) {
+    dart.throw(new core.UnimplementedError(message));
+  };
   dart.throwAssertionError = function() {
     dart.throw(new core.AssertionError());
   };

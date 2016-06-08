@@ -2715,21 +2715,35 @@ class CodeGenerator extends GeneralizingAstVisitor
       return _emitSend(target, '[]=', [lhs.index, rhs]);
     }
 
+    if (lhs is SimpleIdentifier) {
+      return _emitSetSimpleIdentifier(lhs, rhs);
+    }
+
     Expression target = null;
     SimpleIdentifier id;
     if (lhs is PropertyAccess) {
       if (lhs.operator.lexeme == '?.') {
         return _emitNullSafeSet(lhs, rhs);
       }
-
       target = _getTarget(lhs);
       id = lhs.propertyName;
     } else if (lhs is PrefixedIdentifier) {
+      if (isLibraryPrefix(lhs.prefix)) {
+        return _emitSet(lhs.identifier, rhs);
+      }
       target = lhs.prefix;
       id = lhs.identifier;
+    } else {
+      assert(false);
     }
 
-    if (target != null && DynamicInvoke.get(target)) {
+    assert(target != null);
+
+    if (target is SuperExpression) {
+      return _emitSetSuper(lhs, target, id, rhs);
+    }
+
+    if (DynamicInvoke.get(target)) {
       if (_inWhitelistCode(lhs)) {
         var vars = <JS.MetaLetVariable, JS.Expression>{};
         var l = _visit(_bindValue(vars, 'l', target));
@@ -2743,6 +2757,138 @@ class CodeGenerator extends GeneralizingAstVisitor
           [_visit(target), _emitMemberName(id.name), _visit(rhs)]);
     }
 
+    var accessor = id.staticElement;
+    var element =
+        accessor is PropertyAccessorElement ? accessor.variable : accessor;
+
+    if (element is ClassMemberElement && element is! ConstructorElement) {
+      bool isStatic = element.isStatic;
+      if (isStatic) {
+        if (element is FieldElement) {
+          return _emitSetStaticProperty(lhs, element, rhs);
+        }
+        return _badAssignment('Unknown static: $element', lhs, rhs);
+      }
+      if (element is FieldElement) {
+        return _emitWriteInstanceProperty(
+            lhs, _visit(target), element, _visit(rhs));
+      }
+    }
+
+    return _badAssignment('Unhandled assignment', lhs, rhs);
+  }
+
+  JS.Expression _badAssignment(String problem, Expression lhs, Expression rhs) {
+    // TODO(sra): We should get here only for compiler bugs or weirdness due to
+    // --unsafe-force-compile. Once those paths have been addressed, throw at
+    // compile time.
+    return js.call('dart.throwUnimplementedError((#, #, #))',
+        [js.string('$lhs ='), _visit(rhs), js.string(problem)]);
+  }
+
+  /// Emits assignment to a simple identifier. Handles all legal simple
+  /// identifier assignment targets (local, top level library member, implicit
+  /// `this` or class, etc.)
+  JS.Expression _emitSetSimpleIdentifier(
+      SimpleIdentifier node, Expression rhs) {
+    JS.Expression unimplemented() {
+      return _badAssignment("Unimplemented: unknown name '$node'", node, rhs);
+    }
+
+    var accessor = node.staticElement;
+    if (accessor == null) return unimplemented();
+
+    // Get the original declaring element. If we had a property accessor, this
+    // indirects back to a (possibly synthetic) field.
+    var element = accessor;
+    if (accessor is PropertyAccessorElement) element = accessor.variable;
+
+    _declareBeforeUse(element);
+
+    if (element is LocalVariableElement || element is ParameterElement) {
+      return _emitSetLocal(node, element, rhs);
+    }
+
+    if (element.enclosingElement is CompilationUnitElement) {
+      // Top level library member.
+      return _emitSetTopLevel(node, element, rhs);
+    }
+
+    // Unqualified class member. This could mean implicit `this`, or implicit
+    // static from the same class.
+    if (element is ClassMemberElement) {
+      bool isStatic = element.isStatic;
+      if (isStatic) {
+        if (element is FieldElement) {
+          return _emitSetStaticProperty(node, element, rhs);
+        }
+        return unimplemented();
+      }
+
+      // For instance members, we add implicit-this.
+      if (element is FieldElement) {
+        return _emitWriteInstanceProperty(
+            node, new JS.This(), element, _visit(rhs));
+      }
+      return unimplemented();
+    }
+
+    // We should not get here.
+    return unimplemented();
+  }
+
+  /// Emits assignment to a simple local variable or parameter.
+  JS.Expression _emitSetLocal(
+      SimpleIdentifier node, Element element, Expression rhs) {
+    JS.Expression target;
+    if (element is TemporaryVariableElement) {
+      // If this is one of our compiler's temporary variables, use its JS form.
+      target = element.jsVariable;
+    } else if (element is ParameterElement) {
+      target = _emitParameter(element);
+    } else {
+      target = new JS.Identifier(element.name);
+    }
+
+    return _visit(rhs).toAssignExpression(annotate(target, node));
+  }
+
+  /// Emits assignment to library scope element [element].
+  JS.Expression _emitSetTopLevel(
+      Expression lhs, Element element, Expression rhs) {
+    return _visit(rhs)
+        .toAssignExpression(annotate(_emitTopLevelName(element), lhs));
+  }
+
+  /// Emits assignment to a static field element or property.
+  JS.Expression _emitSetStaticProperty(
+      Expression lhs, Element element, Expression rhs) {
+    // For static methods, we add the raw type name, without generics or
+    // library prefix. We don't need those because static calls can't use
+    // the generic type.
+    ClassElement classElement = element.enclosingElement;
+    var type = classElement.type;
+    var dynType = _emitType(fillDynamicTypeArgs(type));
+    var member = _emitMemberName(element.name, isStatic: true, type: type);
+    return _visit(rhs).toAssignExpression(
+        annotate(new JS.PropertyAccess(dynType, member), lhs));
+  }
+
+  /// Emits an assignment to the [element] property of instance referenced by
+  /// [jsTarget].
+  JS.Expression _emitWriteInstanceProperty(Expression lhs,
+      JS.Expression jsTarget, Element element, JS.Expression value) {
+    String memberName = element.name;
+    var type = (element.enclosingElement as ClassElement).type;
+    var name = _emitMemberName(memberName, type: type);
+    return value.toAssignExpression(
+        annotate(new JS.PropertyAccess(jsTarget, name), lhs));
+  }
+
+  JS.Expression _emitSetSuper(Expression lhs, SuperExpression target,
+      SimpleIdentifier id, Expression rhs) {
+    // TODO(sra): Determine whether and access helper is required for the
+    // setter. For now fall back on the r-value path.
     return _visit(rhs).toAssignExpression(_visit(lhs));
   }
 
