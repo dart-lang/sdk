@@ -44,8 +44,6 @@ Language/Expressions/Await_Expressions/evaluation_throws_t03: RuntimeError # Ple
 Language/Expressions/Await_Expressions/evaluation_throws_t04: RuntimeError # Please triage this failure
 Language/Expressions/Await_Expressions/evaluation_throws_t06: RuntimeError # Please triage this failure
 Language/Expressions/Await_Expressions/evaluation_throws_t07: RuntimeError # Please triage this failure
-Language/Expressions/Constants/identifier_denotes_a_constant_t06: MissingCompileTimeError # Issue 26580
-Language/Expressions/Constants/identifier_denotes_a_constant_t07: MissingCompileTimeError # Issue 26580
 Language/Expressions/Function_Invocation/async_generator_invokation_t08: Timeout, Skip # Issue 25967
 Language/Expressions/Function_Invocation/async_generator_invokation_t10: Timeout, Skip # Issue 25967
 Language/Expressions/Identifier_Reference/built_in_identifier_t35: MissingCompileTimeError # Issue 25732
