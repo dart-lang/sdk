@@ -115,6 +115,7 @@ class IsolateLoaderState extends IsolateEmbedderData {
   Map<String, Uri> _packageMap = null;
 
   _setPackageRoot(String packageRoot) {
+    packageRoot = _sanitizeWindowsPath(packageRoot);
     packageRoot = _enforceTrailingSlash(packageRoot);
     if (packageRoot.startsWith('file:') ||
         packageRoot.startsWith('http:') ||
