@@ -265,11 +265,11 @@ class NodeListener extends ElementListener {
     pushNode(new Cascade(popNode()));
   }
 
-  void handleAsOperator(Token operathor, Token endToken) {
+  void handleAsOperator(Token operator, Token endToken) {
     TypeAnnotation type = popNode();
     Expression expression = popNode();
     NodeList arguments = new NodeList.singleton(type);
-    pushNode(new Send(expression, new Operator(operathor), arguments));
+    pushNode(new Send(expression, new Operator(operator), arguments));
   }
 
   void handleAssignmentExpression(Token token) {
@@ -759,7 +759,7 @@ class NodeListener extends ElementListener {
         Modifiers.EMPTY, null, null, asyncModifier));
   }
 
-  void handleIsOperator(Token operathor, Token not, Token endToken) {
+  void handleIsOperator(Token operator, Token not, Token endToken) {
     TypeAnnotation type = popNode();
     Expression expression = popNode();
     Node argument;
@@ -770,7 +770,7 @@ class NodeListener extends ElementListener {
     }
 
     NodeList arguments = new NodeList.singleton(argument);
-    pushNode(new Send(expression, new Operator(operathor), arguments));
+    pushNode(new Send(expression, new Operator(operator), arguments));
   }
 
   void handleLabel(Token colon) {
