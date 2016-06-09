@@ -298,6 +298,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.lint = options.lint;
     this._options.preserveComments = options.preserveComments;
     this._options.strongMode = options.strongMode;
+    this._options.trackCacheDependencies = options.trackCacheDependencies;
     if (options is AnalysisOptionsImpl) {
       this._options.strongModeHints = options.strongModeHints;
     }

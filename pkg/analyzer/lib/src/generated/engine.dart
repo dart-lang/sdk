@@ -1144,6 +1144,14 @@ abstract class AnalysisOptions {
   bool get strongMode;
 
   /**
+   * Return `true` if dependencies between computed results should be tracked
+   * by analysis cache.  This option should only be set to `false` if analysis
+   * is performed in such a way that none of the inputs is ever changed
+   * during the life time of the context.
+   */
+  bool get trackCacheDependencies;
+
+  /**
    * Return an integer encoding of the values of the options that need to be the
    * same across all of the contexts associated with partitions that are to be
    * shared by a single analysis context.
@@ -1283,6 +1291,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   // TODO(leafp): replace this with something more general
   bool strongModeHints = false;
 
+  @override
+  bool trackCacheDependencies = true;
+
   /**
    * Initialize a newly created set of analysis options to have their default
    * values.
@@ -1315,6 +1326,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
     }
+    trackCacheDependencies = options.trackCacheDependencies;
   }
 
   bool get analyzeFunctionBodies {

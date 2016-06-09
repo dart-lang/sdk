@@ -278,7 +278,10 @@ class AnalysisDriver {
       AnalysisTarget target = task.target;
       CacheEntry entry = context.getCacheEntry(target);
       if (task.caughtException == null) {
-        List<TargetedResult> dependedOn = item.inputTargetedResults.toList();
+        List<TargetedResult> dependedOn =
+            context.analysisOptions.trackCacheDependencies
+                ? item.inputTargetedResults.toList()
+                : const <TargetedResult>[];
         Map<ResultDescriptor, dynamic> outputs = task.outputs;
         List<ResultDescriptor> results = task.descriptor.results;
         int resultLength = results.length;
