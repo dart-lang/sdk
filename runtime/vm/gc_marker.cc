@@ -201,7 +201,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       // Advance to next weak property in the queue.
       cur_weak = reinterpret_cast<RawWeakProperty*>(next_weak);
     }
-
+    VisitingOldObject(NULL);
     return marked;
   }
 
