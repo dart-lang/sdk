@@ -981,7 +981,7 @@ RawObject* Parser::ParseFunctionParameters(const Function& func) {
     const int param_cnt = params.num_fixed_parameters +
                           params.num_optional_parameters;
     const Array& param_descriptor =
-        Array::Handle(Array::New(param_cnt * kParameterEntrySize));
+        Array::Handle(Array::New(param_cnt * kParameterEntrySize, Heap::kOld));
     for (int i = 0, j = 0; i < param_cnt; i++, j += kParameterEntrySize) {
       param_descriptor.SetAt(j + kParameterIsFinalOffset,
                              param[i].is_final ? Bool::True() : Bool::False());
@@ -1518,7 +1518,7 @@ SequenceNode* Parser::ParseConstructorClosure(const Function& func) {
 
   if (func.HasOptionalNamedParameters()) {
     const Array& arg_names =
-        Array::ZoneHandle(Array::New(func.NumOptionalParameters()));
+        Array::ZoneHandle(Array::New(func.NumOptionalParameters(), Heap::kOld));
     for (intptr_t i = 0; i < arg_names.Length(); i++) {
       intptr_t index = func.num_fixed_parameters() + i;
       arg_names.SetAt(i, String::Handle(func.ParameterNameAt(index)));
@@ -5340,7 +5340,7 @@ void Parser::ParseInterfaceList(const Class& cls) {
   TRACE_PARSER("ParseInterfaceList");
   ASSERT(CurrentToken() == Token::kIMPLEMENTS);
   const GrowableObjectArray& all_interfaces =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New(Heap::kOld));
   AbstractType& interface = AbstractType::Handle(Z);
   // First get all the interfaces already implemented by class.
   Array& cls_interfaces = Array::Handle(Z, cls.interfaces());
@@ -5369,7 +5369,7 @@ RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
   TRACE_PARSER("ParseMixins");
   ASSERT(CurrentToken() == Token::kWITH);
   const GrowableObjectArray& mixin_types =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New(Heap::kOld));
   AbstractType& mixin_type = AbstractType::Handle(Z);
   do {
     ConsumeToken();
@@ -5874,6 +5874,7 @@ void Parser::ParseIdentList(GrowableObjectArray* names) {
 
 void Parser::ParseLibraryImportExport(const Object& tl_owner,
                                       TokenPosition metadata_pos) {
+  ASSERT(Thread::Current()->IsMutatorThread());
   bool is_import = (CurrentToken() == Token::kIMPORT);
   bool is_export = (CurrentToken() == Token::kEXPORT);
   ASSERT(is_import || is_export);
@@ -8385,7 +8386,8 @@ CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
         ArgumentListNode* arguments = new(Z) ArgumentListNode(TokenPos());
         arguments->Add(new(Z) LiteralNode(
             TokenPos(),
-            Integer::ZoneHandle(Z, Integer::New(TokenPos().value()))));
+            Integer::ZoneHandle(Z, Integer::New(TokenPos().value(),
+                                                Heap::kOld))));
         current_block_->statements->Add(
             MakeStaticCall(Symbols::FallThroughError(),
                            Library::PrivateCoreLibName(Symbols::ThrowNew()),
@@ -9164,9 +9166,9 @@ AstNode* Parser::MakeStaticCall(const String& cls_name,
 AstNode* Parser::MakeAssertCall(TokenPosition begin, TokenPosition end) {
   ArgumentListNode* arguments = new(Z) ArgumentListNode(begin);
   arguments->Add(new(Z) LiteralNode(begin,
-      Integer::ZoneHandle(Z, Integer::New(begin.value()))));
+      Integer::ZoneHandle(Z, Integer::New(begin.value(), Heap::kOld))));
   arguments->Add(new(Z) LiteralNode(end,
-      Integer::ZoneHandle(Z, Integer::New(end.value()))));
+      Integer::ZoneHandle(Z, Integer::New(end.value(), Heap::kOld))));
   return MakeStaticCall(Symbols::AssertionError(),
                         Library::PrivateCoreLibName(Symbols::ThrowNew()),
                         arguments);
@@ -10469,7 +10471,8 @@ AstNode* Parser::ThrowTypeError(TokenPosition type_pos,
   }
   // Location argument.
   arguments->Add(new(Z) LiteralNode(
-      type_pos, Integer::ZoneHandle(Z, Integer::New(type_pos.value()))));
+      type_pos, Integer::ZoneHandle(Z, Integer::New(type_pos.value(),
+                                                    Heap::kOld))));
   // Src value argument.
   arguments->Add(new(Z) LiteralNode(type_pos, Object::null_instance()));
   // Dst type argument.
@@ -11697,7 +11700,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
         } else if (primary_node->primary().IsClass()) {
           const Class& type_class = Class::Cast(primary_node->primary());
           AbstractType& type = Type::ZoneHandle(Z, Type::New(
-              type_class, TypeArguments::Handle(Z), primary_pos));
+              type_class, TypeArguments::Handle(Z), primary_pos, Heap::kOld));
           type ^= ClassFinalizer::FinalizeType(
               current_class(), type, ClassFinalizer::kCanonicalize);
           // Type may be malbounded, but not malformed.
@@ -11723,7 +11726,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
         } else if (primary_node->primary().IsClass()) {
           const Class& type_class = Class::Cast(primary_node->primary());
           AbstractType& type = Type::ZoneHandle(Z, Type::New(
-              type_class, TypeArguments::Handle(Z), primary_pos));
+              type_class, TypeArguments::Handle(Z), primary_pos, Heap::kOld));
           type = ClassFinalizer::FinalizeType(
               current_class(), type, ClassFinalizer::kCanonicalize);
           // Type may be malbounded, but not malformed.
@@ -12096,8 +12099,8 @@ const AbstractType* Parser::ReceiverType(const Class& cls) {
   if (!type.IsNull()) {
     return &type;
   }
-  type = Type::New(cls,
-      TypeArguments::Handle(Z, cls.type_parameters()), cls.token_pos());
+  type = Type::New(cls, TypeArguments::Handle(Z, cls.type_parameters()),
+                   cls.token_pos(), Heap::kOld);
   if (cls.is_type_finalized()) {
     type ^= ClassFinalizer::FinalizeType(
         cls, type, ClassFinalizer::kCanonicalizeWellFormed);
@@ -12121,6 +12124,7 @@ bool Parser::IsInstantiatorRequired() const {
 void Parser::InsertCachedConstantValue(const String& url,
                                        TokenPosition token_pos,
                                        const Instance& value) {
+  ASSERT(Thread::Current()->IsMutatorThread());
   Isolate* isolate = Isolate::Current();
   ConstantPosKey key(url, token_pos);
   if (isolate->object_store()->compile_time_constants() == Array::null()) {
@@ -12617,7 +12621,8 @@ AstNode* Parser::ResolveIdent(TokenPosition ident_pos,
     } else if (primary->primary().IsClass()) {
       const Class& type_class = Class::Cast(primary->primary());
       AbstractType& type = Type::ZoneHandle(Z,
-          Type::New(type_class, TypeArguments::Handle(Z), primary_pos));
+          Type::New(type_class, TypeArguments::Handle(Z), primary_pos,
+                    Heap::kOld));
       type ^= ClassFinalizer::FinalizeType(
           current_class(), type, ClassFinalizer::kCanonicalize);
       // Type may be malbounded, but not malformed.
@@ -12748,7 +12753,7 @@ RawAbstractType* Parser::ParseType(
     return Type::DynamicType();
   }
   AbstractType& type = AbstractType::Handle(
-      Z, Type::New(type_class, type_arguments, ident_pos));
+      Z, Type::New(type_class, type_arguments, ident_pos, Heap::kOld));
   if (finalization >= ClassFinalizer::kResolveTypeParameters) {
     ResolveTypeFromClass(current_class(), finalization, &type);
     if (finalization >= ClassFinalizer::kCanonicalize) {
@@ -12831,7 +12836,7 @@ AstNode* Parser::ParseListLiteral(TokenPosition type_pos,
   ASSERT(list_type_arguments.IsNull() || (list_type_arguments.Length() == 1));
   const Class& array_class = Class::Handle(Z, I->object_store()->array_class());
   Type& type = Type::ZoneHandle(Z,
-      Type::New(array_class, list_type_arguments, type_pos));
+      Type::New(array_class, list_type_arguments, type_pos, Heap::kOld));
   type ^= ClassFinalizer::FinalizeType(
       current_class(), type, ClassFinalizer::kCanonicalize);
   GrowableArray<AstNode*> element_list;
@@ -12923,7 +12928,7 @@ AstNode* Parser::ParseListLiteral(TokenPosition type_pos,
     if (!factory_type_args.IsNull() && (factory_class.NumTypeArguments() > 1)) {
       ASSERT(factory_type_args.Length() == 1);
       Type& factory_type = Type::Handle(Z, Type::New(
-          factory_class, factory_type_args, type_pos, Heap::kNew));
+          factory_class, factory_type_args, type_pos, Heap::kOld));
       factory_type ^= ClassFinalizer::FinalizeType(
           current_class(), factory_type, ClassFinalizer::kFinalize);
       factory_type_args = factory_type.arguments();
@@ -13185,7 +13190,7 @@ AstNode* Parser::ParseMapLiteral(TokenPosition type_pos,
     if (!factory_type_args.IsNull() && (factory_class.NumTypeArguments() > 2)) {
       ASSERT(factory_type_args.Length() == 2);
       Type& factory_type = Type::Handle(Z, Type::New(
-          factory_class, factory_type_args, type_pos, Heap::kNew));
+          factory_class, factory_type_args, type_pos, Heap::kOld));
       factory_type ^= ClassFinalizer::FinalizeType(
           current_class(), factory_type, ClassFinalizer::kFinalize);
       factory_type_args = factory_type.arguments();
@@ -13639,7 +13644,8 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
     }
     ArgumentListNode* error_arguments = new(Z) ArgumentListNode(type_pos);
     error_arguments->Add(new(Z) LiteralNode(
-        TokenPos(), Integer::ZoneHandle(Z, Integer::New(type_pos.value()))));
+        TokenPos(), Integer::ZoneHandle(Z, Integer::New(type_pos.value(),
+                                                        Heap::kOld))));
     error_arguments->Add(new(Z) LiteralNode(
         TokenPos(), String::ZoneHandle(Z, type_class_name.raw())));
     result->AddNode(

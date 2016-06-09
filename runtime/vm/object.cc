@@ -18044,7 +18044,7 @@ RawMixinAppType* MixinAppType::New() {
   // on new heap.
   RawObject* raw = Object::Allocate(MixinAppType::kClassId,
                                     MixinAppType::InstanceSize(),
-                                    Heap::kNew);
+                                    Heap::kOld);
   return reinterpret_cast<RawMixinAppType*>(raw);
 }
 
