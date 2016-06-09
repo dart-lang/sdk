@@ -145,6 +145,11 @@ class Builder {
     return variable;
   }
 
+  /// Returns a variable that should contain all values that may be contained
+  /// in the given field.
+  ///
+  /// For instance fields, do not assign to this variable, but rather emit a
+  /// store to the the receiver object.
   int getFieldVariable(Field field) {
     return fields[field] ??= newVariable(field);
   }
@@ -429,9 +434,13 @@ class Builder {
       var environment = new Environment(this);
       value = new ExpressionBuilder(this, environment).build(node.initializer);
     }
-    constraints.addAssign(value, getFieldVariable(node));
     int field = getPropertyField(node.name);
     addStore(host, field, value);
+    // Ensure all values stored in the field are propagated to the variable,
+    // as this variable is part of the inference output.
+    // TODO(asgerf): We could avoid this redundancy by exposing the Solver's
+    //   internal storage locations for field values.
+    addLoad(host, field, getFieldVariable(node));
   }
 
   void buildConstructor(Constructor node, int host) {

@@ -12,8 +12,8 @@ class DeltaBlue extends core::Object {
   }
 }
 class Strength extends core::Object {
-  final field core::int/bottom value;
-  final field core::String/bottom name;
+  final field core::int/core::Object value;
+  final field core::String/core::Object name;
   const constructor •(core::int/core::int value, core::String/core::String name) → void/bottom
     : self::Strength::value = value, self::Strength::name = name;
   method nextWeaker() → self::Strength/core::Object
@@ -32,7 +32,7 @@ class Strength extends core::Object {
   }
 }
 abstract class Constraint extends core::Object {
-  final field self::Strength/bottom strength;
+  final field self::Strength/self::Strength strength;
   const constructor •(self::Strength/self::Strength strength) → void/bottom
     : self::Constraint::strength = strength;
   abstract method isSatisfied() → core::bool/<missing type>;
@@ -77,7 +77,7 @@ abstract class Constraint extends core::Object {
     return false;
 }
 abstract class UnaryConstraint extends self::Constraint {
-  final field self::Variable/bottom myOutput;
+  final field self::Variable/core::Object myOutput;
   field core::bool/core::bool satisfied = false;
   constructor •(self::Variable/core::Object myOutput, self::Strength/self::Strength strength) → void/bottom
     : self::UnaryConstraint::myOutput = myOutput, super self::Constraint::•(strength) {
@@ -125,8 +125,8 @@ class EditConstraint extends self::UnaryConstraint {
   method execute() → void/bottom {}
 }
 abstract class BinaryConstraint extends self::Constraint {
-  field self::Variable/bottom v1;
-  field self::Variable/bottom v2;
+  field self::Variable/self::Variable v1;
+  field self::Variable/self::Variable v2;
   field core::int/core::int direction = self::NONE;
   constructor •(self::Variable/self::Variable v1, self::Variable/self::Variable v2, self::Strength/self::Strength strength) → void/bottom
     : self::BinaryConstraint::v1 = v1, self::BinaryConstraint::v2 = v2, super self::Constraint::•(strength) {
@@ -184,8 +184,8 @@ abstract class BinaryConstraint extends self::Constraint {
   }
 }
 class ScaleConstraint extends self::BinaryConstraint {
-  final field self::Variable/bottom scale;
-  final field self::Variable/bottom offset;
+  final field self::Variable/core::Object scale;
+  final field self::Variable/core::Object offset;
   constructor •(self::Variable/self::Variable src, self::Variable/self::Variable scale, self::Variable/self::Variable offset, self::Variable/self::Variable dest, self::Strength/self::Strength strength) → void/bottom
     : self::ScaleConstraint::scale = scale, self::ScaleConstraint::offset = offset, super self::BinaryConstraint::•(src, dest, strength);
   method addToGraph() → void/bottom {
@@ -230,12 +230,12 @@ class EqualityConstraint extends self::BinaryConstraint {
 }
 class Variable extends core::Object {
   field core::List<self::Constraint>/core::List constraints = <self::Constraint>[];
-  field self::Constraint/bottom determinedBy;
-  field core::int/core::int mark = 0;
-  field self::Strength/self::Strength walkStrength = self::WEAKEST;
+  field self::Constraint/self::Constraint determinedBy;
+  field core::int/core::Object mark = 0;
+  field self::Strength/core::Object walkStrength = self::WEAKEST;
   field core::bool/core::bool stay = true;
-  field core::int/bottom value;
-  final field core::String/bottom name;
+  field core::int/core::Object value;
+  final field core::String/core::Object name;
   constructor •(core::String/core::String name, core::int/core::Object value) → void/bottom
     : self::Variable::name = name, self::Variable::value = value;
   method addConstraint(self::Constraint/core::Object c) → void/bottom {
@@ -248,7 +248,7 @@ class Variable extends core::Object {
   }
 }
 class Planner extends core::Object {
-  field core::int/core::int currentMark = 0;
+  field core::int/core::Object currentMark = 0;
   constructor •() → void/bottom
     : super core::Object::•()
     ;
@@ -345,7 +345,7 @@ class Planner extends core::Object {
   }
 }
 class Plan extends core::Object {
-  field core::List<self::Constraint>/core::List list = <self::Constraint>[];
+  field core::List<self::Constraint>/core::Iterable list = <self::Constraint>[];
   constructor •() → void/bottom
     : super core::Object::•()
     ;
