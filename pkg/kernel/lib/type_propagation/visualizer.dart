@@ -67,7 +67,8 @@ class Visualizer {
     _graphNodes = new List<GraphNode>(constraints.numberOfVariables);
     // Create all the graph nodes and index them by their enclosing members.
     for (int i = 0; i < constraints.numberOfVariables; ++i) {
-      var graphNode = new GraphNode(i);
+      Class value = solver.getVariableValue(i);
+      var graphNode = new GraphNode(i, value == null ? 'bottom' : '$value');
       _graphNodes[i] = graphNode;
       for (var annotation in getAnnotations(i)) {
         // Note: the member may be null, and this is intentional.
@@ -139,14 +140,15 @@ class Visualizer {
       if (node.isGlobal) {
         label += '\n${node.globalAnnotation.toLabel()}';
       }
-      buffer.writeln('$id [shape=box,label="$label"]');
+      String value = node.valueLabel;
+      buffer.writeln('$id [shape=record,label="{$label|$value}"]');
       // Add outgoing edges.
       // Keep track of all that edges leave the context of the current member
       // ("external edges").  There can be a huge number of these, so we compact
       // them into a single outgoing edge so as not to flood the graph.
       Set<String> outgoingExternalEdgeLabels = new Set<String>();
       for (Edge edge in node.outputs) {
-        if (edge.to.annotationForContext.containsKey(member)) {
+        if (edge.to.isLocal(member)) {
           buffer.writeln('$id -> ${edge.to.variable} [label="${edge.label}"]');
         } else if (outgoingExternalEdgeLabels.length < 3) {
           String annotation = edge.to.externalLabel;
@@ -172,7 +174,7 @@ class Visualizer {
       Set<String> ingoingExternalEdgeLabels = new Set<String>();
       for (Edge edge in node.inputs) {
         GraphNode source = edge.from;
-        if (source.isInScope(member)) continue;
+        if (source.isLocal(member)) continue;
         String annotation = source.externalLabel;
         if (annotation != '') {
           if (ingoingExternalEdgeLabels.length < 3) {
@@ -235,11 +237,14 @@ class GraphNode {
   /// The annotation to show when visualized in the context of a given member.
   final Map<Member, Annotation> annotationForContext = <Member, Annotation>{};
 
-  GraphNode(this.variable);
+  final String valueLabel;
+
+  GraphNode(this.variable, this.valueLabel);
 
   bool get isGlobal => annotationForContext.containsKey(null);
   Annotation get globalAnnotation => annotationForContext[null];
   bool isInScope(Member member) => annotationForContext.containsKey(member);
+  bool isLocal(Member member) => !isGlobal && isInScope(member);
 
   /// The label to show for the given node when seen from the context of
   /// another member.

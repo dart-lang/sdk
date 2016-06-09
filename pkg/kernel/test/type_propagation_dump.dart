@@ -1,7 +1,6 @@
 import 'package:kernel/kernel.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/type_propagation/builder.dart';
-import 'package:kernel/type_propagation/constraints.dart';
 import 'package:kernel/type_propagation/solver.dart';
 import 'package:kernel/type_propagation/visualizer.dart';
 import 'package:args/args.dart';
@@ -77,11 +76,6 @@ main(List<String> args) {
       }
     }
   }
-
-  // for (Field field in builder.fields.keys) {
-  //   int variable = builder.fields[field];
-  //   print('$field: ${solver.getVariableValue(variable)}');
-  // }
 
   if (options['stats']) {
     var constraints = solver.constraints;

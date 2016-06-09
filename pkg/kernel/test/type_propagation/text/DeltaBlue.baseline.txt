@@ -14,7 +14,7 @@ class DeltaBlue extends core::Object {
 class Strength extends core::Object {
   final field core::int/bottom value;
   final field core::String/bottom name;
-  const constructor •(core::int/core::int value, core::String/core::String name) → void/<missing type>
+  const constructor •(core::int/core::int value, core::String/core::String name) → void/bottom
     : self::Strength::value = value, self::Strength::name = name;
   method nextWeaker() → self::Strength/core::Object
     return const <self::Strength>[self::STRONG_PREFERRED, self::PREFERRED, self::STRONG_DEFAULT, self::NORMAL, self::WEAK_DEFAULT, self::WEAKEST].[](this.value);
@@ -33,7 +33,7 @@ class Strength extends core::Object {
 }
 abstract class Constraint extends core::Object {
   final field self::Strength/bottom strength;
-  const constructor •(self::Strength/<missing type> strength) → void/<missing type>
+  const constructor •(self::Strength/bottom strength) → void/bottom
     : self::Constraint::strength = strength;
   abstract method isSatisfied() → core::bool/<missing type>;
   abstract method markUnsatisfied() → void/<missing type>;
@@ -113,12 +113,12 @@ abstract class UnaryConstraint extends self::Constraint {
   }
 }
 class StayConstraint extends self::UnaryConstraint {
-  constructor •(self::Variable/self::Variable v, self::Strength/self::Strength str) → void/<missing type>
+  constructor •(self::Variable/self::Variable v, self::Strength/self::Strength str) → void/bottom
     : super self::UnaryConstraint::•(v, str);
   method execute() → void/bottom {}
 }
 class EditConstraint extends self::UnaryConstraint {
-  constructor •(self::Variable/core::Object v, self::Strength/self::Strength str) → void/<missing type>
+  constructor •(self::Variable/core::Object v, self::Strength/self::Strength str) → void/bottom
     : super self::UnaryConstraint::•(v, str);
   method isInput() → core::bool/core::bool
     return true;
@@ -186,7 +186,7 @@ abstract class BinaryConstraint extends self::Constraint {
 class ScaleConstraint extends self::BinaryConstraint {
   final field self::Variable/bottom scale;
   final field self::Variable/bottom offset;
-  constructor •(self::Variable/self::Variable src, self::Variable/self::Variable scale, self::Variable/self::Variable offset, self::Variable/self::Variable dest, self::Strength/self::Strength strength) → void/<missing type>
+  constructor •(self::Variable/self::Variable src, self::Variable/self::Variable scale, self::Variable/self::Variable offset, self::Variable/self::Variable dest, self::Strength/self::Strength strength) → void/bottom
     : self::ScaleConstraint::scale = scale, self::ScaleConstraint::offset = offset, super self::BinaryConstraint::•(src, dest, strength);
   method addToGraph() → void/bottom {
     super.self::BinaryConstraint::addToGraph();
@@ -222,7 +222,7 @@ class ScaleConstraint extends self::BinaryConstraint {
   }
 }
 class EqualityConstraint extends self::BinaryConstraint {
-  constructor •(self::Variable/self::Variable v1, self::Variable/self::Variable v2, self::Strength/self::Strength strength) → void/<missing type>
+  constructor •(self::Variable/self::Variable v1, self::Variable/self::Variable v2, self::Strength/self::Strength strength) → void/bottom
     : super self::BinaryConstraint::•(v1, v2, strength);
   method execute() → void/bottom {
     this.output().value = this.input().value;
@@ -236,7 +236,7 @@ class Variable extends core::Object {
   field core::bool/core::bool stay = true;
   field core::int/bottom value;
   final field core::String/bottom name;
-  constructor •(core::String/core::String name, core::int/core::Object value) → void/<missing type>
+  constructor •(core::String/core::String name, core::int/core::Object value) → void/bottom
     : self::Variable::name = name, self::Variable::value = value;
   method addConstraint(self::Constraint/core::Object c) → void/bottom {
     this.constraints.add(c);

@@ -9,8 +9,8 @@ static method onData(dynamic/core::Object x) → void/bottom {
   self::subscription.cancel();
 }
 static method main() → dynamic/bottom {
-  dynamic/bottom string = core::String::fromCharCode(65);
-  dynamic/bottom port = iso::ReceivePort::•();
+  dynamic/core::String string = core::String::fromCharCode(65);
+  dynamic/iso::ReceivePort port = iso::ReceivePort::•();
   self::subscription = port.listen(self::onData);
   port.sendPort.send(string);
 }

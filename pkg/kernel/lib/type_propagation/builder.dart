@@ -24,6 +24,15 @@ class Builder {
   final Map<VariableDeclaration, int> functionParameters =
       <VariableDeclaration, int>{};
   final Map<Procedure, int> returnValues = <Procedure, int>{};
+  final Map<TypeParameter, int> functionTypeParameters = <TypeParameter, int>{};
+
+  /// Maps a class index to the result of [getInterfaceEscapeVariable].
+  final List<int> interfaceEscapeVariables;
+
+  /// Maps a class index to the result of [getExternalInstanceVariable].
+  final List<int> externalClassVariables;
+
+  final List<int> externalClassWorklist = <int>[];
 
   int bottomNode;
   int dynamicNode;
@@ -65,7 +74,9 @@ class Builder {
       : this.hierarchy = hierarchy,
         this.fieldNames = names,
         this.visualizer = visualizer,
-        this.constraints = new ConstraintSystem(hierarchy.classes.length) {
+        this.constraints = new ConstraintSystem(hierarchy.classes.length),
+        this.interfaceEscapeVariables = new List<int>(hierarchy.classes.length),
+        this.externalClassVariables = new List<int>(hierarchy.classes.length) {
     if (visualizer != null) {
       visualizer.builder = this;
       visualizer.constraints = constraints;
@@ -76,19 +87,19 @@ class Builder {
     }
 
     bottomNode = newVariable(null, 'bottom');
-    dynamicNode = getClassValue(coreTypes.objectClass);
-    boolNode = getClassValue(coreTypes.boolClass);
-    intNode = getClassValue(coreTypes.intClass);
-    doubleNode = getClassValue(coreTypes.doubleClass);
-    stringNode = getClassValue(coreTypes.stringClass);
-    symbolNode = getClassValue(coreTypes.symbolClass);
-    typeNode = getClassValue(coreTypes.typeClass);
-    listNode = getClassValue(coreTypes.listClass);
-    mapNode = getClassValue(coreTypes.mapClass);
-    iterableNode = getClassValue(coreTypes.iterableClass);
-    futureNode = getClassValue(coreTypes.futureClass);
-    streamNode = getClassValue(coreTypes.streamClass);
-    functionValueNode = getClassValue(coreTypes.functionClass);
+    dynamicNode = getExternalInstanceVariable(coreTypes.objectClass);
+    boolNode = getExternalInstanceVariable(coreTypes.boolClass);
+    intNode = getExternalInstanceVariable(coreTypes.intClass);
+    doubleNode = getExternalInstanceVariable(coreTypes.doubleClass);
+    stringNode = getExternalInstanceVariable(coreTypes.stringClass);
+    symbolNode = getExternalInstanceVariable(coreTypes.symbolClass);
+    typeNode = getExternalInstanceVariable(coreTypes.typeClass);
+    listNode = getExternalInstanceVariable(coreTypes.listClass);
+    mapNode = getExternalInstanceVariable(coreTypes.mapClass);
+    iterableNode = getExternalInstanceVariable(coreTypes.iterableClass);
+    futureNode = getExternalInstanceVariable(coreTypes.futureClass);
+    streamNode = getExternalInstanceVariable(coreTypes.streamClass);
+    functionValueNode = getExternalInstanceVariable(coreTypes.functionClass);
     nullNode = bottomNode; // Assume anything might be null so don't propagate.
 
     iteratorField = getPropertyField(Names.iterator);
@@ -96,30 +107,35 @@ class Builder {
 
     for (Library library in program.libraries) {
       for (Procedure procedure in library.procedures) {
-        buildStaticMethod(procedure);
+        buildProcedure(procedure, null);
       }
       for (Field field in library.fields) {
         buildStaticField(field);
       }
       for (Class class_ in library.classes) {
+        int host = getInstanceVariable(class_);
         for (Procedure procedure in class_.procedures) {
-          if (procedure.isStatic) {
-            buildStaticMethod(procedure);
-          } else {
-            buildInstanceMethod(procedure);
+          if (!procedure.isAbstract) {
+            buildProcedure(procedure, host);
           }
         }
         for (Field field in class_.fields) {
           if (field.isStatic) {
             buildStaticField(field);
           } else {
-            buildInstanceField(field);
+            buildInstanceField(field, host);
           }
         }
         for (Constructor constructor in class_.constructors) {
-          buildConstructor(constructor);
+          buildConstructor(constructor, host);
         }
       }
+    }
+
+    // Build constraints mocking the external interfaces.
+    while (externalClassWorklist.isNotEmpty) {
+      int classIndex = externalClassWorklist.removeLast();
+      _buildExternalClassValue(classIndex);
     }
   }
 
@@ -129,24 +145,208 @@ class Builder {
     return variable;
   }
 
-  int getField(Field field) {
+  int getFieldVariable(Field field) {
     return fields[field] ??= newVariable(field);
   }
 
-  int getFunctionParameter(VariableDeclaration node) {
+  int getParameterVariable(VariableDeclaration node) {
     return functionParameters[node] ??= newVariable(node, 'parameter');
   }
 
-  int getReturnValue(Procedure node) {
+  /// Returns the variable representing all the values that would be checked
+  /// against the given function type parameter in checked mode.
+  ///
+  /// This is used to model the behavior of external generic methods.
+  ///
+  /// For example:
+  ///
+  ///     class List {
+  ///         external static factory List<T> filled<T>(int length, T value);
+  ///     }
+  ///
+  /// A variable `v` representing `T` will be generated. All values that are
+  /// passed into the `value` parameter will flow into `v`, and `v` will
+  /// in turn flow into the type parameter field of `List`, because the method
+  /// returns `List<T>`.  Also see [FieldNames.getTypeParameterField].
+  int getFunctionTypeParameterVariable(TypeParameter node) {
+    return functionTypeParameters[node] ??= newVariable(node);
+  }
+
+  int getReturnVariable(Procedure node) {
     return returnValues[node] ??= newVariable(node, 'return');
   }
 
-  int getTearOff(Procedure node) {
+  int getTearOffVariable(Procedure node) {
     return tearOffs[node] ??= newVariable(node, 'function');
   }
 
-  int getClassValue(Class node) {
+  /// Returns a variable containing the instances of the given class.
+  int getInstanceVariable(Class node) {
     return hierarchy.getClassIndex(node);
+  }
+
+  /// Returns a variable containing the external instances of the given class.
+  ///
+  /// An "external instance of C" is an instance allocated by external code,
+  /// and is either a direct instance of C or an instance of an external class
+  /// that implements C.
+  ///
+  /// For the moment, basic types like `int` and `bool` are treated as external
+  /// instances of their respective classes.
+  ///
+  /// Unlike [getInstanceVariable], this method ensures that the relevant
+  /// constraints have been generated to model an external implementation of the
+  /// class.
+  int getExternalInstanceVariable(Class node) {
+    int classIndex = hierarchy.getClassIndex(node);
+    int externalObject = externalClassVariables[classIndex];
+    if (externalObject == null) {
+      // TODO(asgerf): For now we use the same abstract object for internal
+      // and external instances, but we may want to change this.
+      externalObject = classIndex;
+      externalClassVariables[classIndex] = externalObject;
+      externalClassWorklist.add(classIndex);
+    }
+    return externalObject;
+  }
+
+  void _buildExternalClassValue(int index) {
+    Class node = hierarchy.classes[index];
+    int externalObject = externalClassVariables[index];
+    for (Member member in hierarchy.getInterfaceMembers(node, setters: false)) {
+      _buildExternalInterfaceMember(member, externalObject);
+    }
+    for (Member member in hierarchy.getInterfaceMembers(node, setters: true)) {
+      _buildExternalInterfaceMember(member, externalObject);
+    }
+  }
+
+  void _buildExternalInterfaceMember(Member member, int object) {
+    TypeEnvironment environment = new TypeEnvironment(this, thisValue: object);
+    int propertyField = fieldNames.getPropertyField(member.name);
+    if (member is Field) {
+      int value = buildCovariantType(member.type, environment);
+      addStore(object, propertyField, value);
+    } else {
+      Procedure procedure = member;
+      FunctionNode function = procedure.function;
+      if (procedure.isGetter) {
+        int value = buildCovariantType(function.returnType, environment);
+        addStore(object, propertyField, value);
+      } else if (procedure.isSetter) {
+        int value = getLoad(object, propertyField);
+        buildContravariantType(
+            function.positionalParameters[0].type, environment, value);
+      } else {
+        int externalMember = buildCovariantFunctionType(function, environment);
+        addStore(object, propertyField, externalMember);
+      }
+    }
+  }
+
+  /// Returns a variable that is exposed to external calls through the
+  /// given interface.
+  ///
+  /// For example, consider this code with a simplified version of SendPort:
+  ///
+  ///     abstract class SendPort {
+  ///         void send(dynamic x);
+  ///     }
+  ///
+  ///     class MySendPort implements SendPort {
+  ///         void send(x) { ... }
+  ///     }
+  ///
+  ///     external void spawnFunction(SendPort readyPort);
+  ///
+  ///     main() {
+  ///         spawnFunction(new MySendPort());
+  ///     }
+  ///
+  /// We must ensure that the parameter to `MySendPort::send` is inferred to
+  /// be unknown because the external function `spawnFunction` may cause an
+  /// invocation of its `send` method with an unknown argument.
+  ///
+  /// The interface escape variable for this version of `SendPort` would be a
+  /// variable `v` with constraints corresponding to a call `v.send(<dynamic>)`.
+  ///
+  /// Values that escape into an external parameter typed as `SendPort`, such
+  /// as `new MySendPort()` must then be made to flow into `v`.
+  int getInterfaceEscapeVariable(Class node) {
+    int index = hierarchy.getClassIndex(node);
+    return interfaceEscapeVariables[index] ??
+        _buildInterfaceEscapeVariable(node, index);
+  }
+
+  int _buildInterfaceEscapeVariable(Class node, int index) {
+    int escapingObject = constraints.newVariable();
+    visualizer?.annotateVariable(escapingObject, node, 'escape point');
+    interfaceEscapeVariables[index] = escapingObject;
+    for (Member member in hierarchy.getInterfaceMembers(node)) {
+      _buildEscapingInterfaceMember(member, escapingObject);
+    }
+    for (Member member in hierarchy.getInterfaceMembers(node, setters: true)) {
+      _buildEscapingInterfaceMember(member, escapingObject);
+    }
+    return escapingObject;
+  }
+
+  /// Models the behavior of external code invoking [member] on
+  /// [escapingObject].
+  void _buildEscapingInterfaceMember(Member member, int escapingObject) {
+    TypeEnvironment environment =
+        new TypeEnvironment(this, thisValue: escapingObject);
+    int propertyField = fieldNames.getPropertyField(member.name);
+    if (member is Field) {
+      int escapingMember = getLoad(escapingObject, propertyField);
+      buildContravariantType(member.type, environment, escapingMember);
+    } else {
+      Procedure procedure = member;
+      FunctionNode function = procedure.function;
+      if (procedure.isGetter) {
+        int escapingMember = getLoad(escapingObject, propertyField);
+        buildContravariantType(
+            function.returnType, environment, escapingMember);
+      } else if (procedure.isSetter) {
+        VariableDeclaration parameter = function.positionalParameters[0];
+        int escapingMember = getLoad(escapingObject, propertyField);
+        int field = fieldNames.getPositionalParameterField(1, 0);
+        int value = buildCovariantType(parameter.type, environment);
+        addStore(escapingMember, field, value);
+      } else {
+        int escapingMember = getLoad(escapingObject, propertyField);
+        buildContravariantFunctionType(function, environment, escapingMember);
+      }
+    }
+  }
+
+  /// Returns a variable with the possible values of [type] as provided by
+  /// external code.
+  int buildCovariantType(DartType type, TypeEnvironment environment) {
+    return new CovariantExternalTypeVisitor(this, environment).visit(type);
+  }
+
+  /// Like [buildCovariantType], but for the function type implied by the
+  /// type annotations on a function AST node.
+  int buildCovariantFunctionType(
+      FunctionNode node, TypeEnvironment environment) {
+    return new CovariantExternalTypeVisitor(this, environment)
+        .buildFunctionNode(node);
+  }
+
+  /// Generates constraints to model the behavior of [input] escaping into
+  /// external code through a parameter annotated with [type].
+  void buildContravariantType(
+      DartType type, TypeEnvironment environment, int input) {
+    new ContravariantExternalTypeVisitor(this, environment, input).visit(type);
+  }
+
+  /// Like [buildContravariantType], but for the function type implied by the
+  /// type annotations on a function AST node.
+  void buildContravariantFunctionType(
+      FunctionNode node, TypeEnvironment environment, int input) {
+    new ContravariantExternalTypeVisitor(this, environment, input)
+        .buildFunctionNode(node);
   }
 
   int getJoin(int first, int second) {
@@ -194,72 +394,80 @@ class Builder {
     return fieldNames.getReturnField(arity);
   }
 
-  void buildStaticMethod(Procedure node) {
-    var environment =
-        new Environment(this, returnValue: getReturnValue(node));
-    buildFunctionNode(node.function, environment,
-        functionValue: getTearOff(node));
-  }
-
   void buildStaticField(Field field) {
     int value = nullNode;
     if (field.initializer != null) {
       var environment = new Environment(this);
       value = new ExpressionBuilder(this, environment).build(field.initializer);
     }
-    constraints.addAssign(value, getField(field));
+    constraints.addAssign(value, getFieldVariable(field));
   }
 
-  void buildInstanceMethod(Procedure node) {
+  void buildProcedure(Procedure node, int host) {
+    if (node.isAbstract) return;
+    int propertyName = fieldNames.getPropertyField(node.name);
     var environment = new Environment(this,
-        returnValue: getReturnValue(node),
-        thisValue: getClassValue(node.enclosingClass));
+        returnValue: getReturnVariable(node), thisValue: host);
     buildFunctionNode(node.function, environment,
-        functionValue: getTearOff(node));
+        addTypeBasedSummary: node.isExternal,
+        functionValue: getTearOffVariable(node));
+    if (host != null) {
+      if (node.isGetter) {
+        addStore(host, propertyName, getReturnVariable(node));
+      } else if (node.isSetter) {
+        addLoad(host, propertyName,
+            getParameterVariable(node.function.positionalParameters[0]));
+      } else {
+        addStore(host, propertyName, getTearOffVariable(node));
+      }
+    }
   }
 
-  void buildInstanceField(Field node) {
+  void buildInstanceField(Field node, int host) {
     int value = nullNode;
     if (node.initializer != null) {
       var environment = new Environment(this);
       value = new ExpressionBuilder(this, environment).build(node.initializer);
     }
-    constraints.addAssign(value, getField(node));
-    var host = getClassValue(node.enclosingClass);
+    constraints.addAssign(value, getFieldVariable(node));
     int field = getPropertyField(node.name);
     addStore(host, field, value);
   }
 
-  void buildConstructor(Constructor node) {
-    var environment = new Environment(this,
-        thisValue: getClassValue(node.enclosingClass));
+  void buildConstructor(Constructor node, int host) {
+    var environment = new Environment(this, thisValue: host);
     buildFunctionNode(node.function, environment);
   }
 
   void buildFunctionNode(FunctionNode node, Environment environment,
-      {int functionValue}) {
-    if (node.body == null) return;
+      {int functionValue, bool addTypeBasedSummary: false}) {
     int minArity = node.requiredParameterCount;
     int maxArity = node.positionalParameters.length;
     for (int i = 0; i < node.positionalParameters.length; ++i) {
       var parameter = node.positionalParameters[i];
-      int value = getFunctionParameter(parameter);
+      int value = getParameterVariable(parameter);
       environment.localVariables[parameter] = value;
       if (functionValue != null) {
         for (int arity = minArity; arity <= maxArity; ++arity) {
           addLoad(functionValue, getPositionalParameterField(arity, i), value);
         }
       }
+      if (addTypeBasedSummary) {
+        buildContravariantType(parameter.type, environment, value);
+      }
     }
     for (int i = 0; i < node.namedParameters.length; ++i) {
       var parameter = node.namedParameters[i];
-      int value = getFunctionParameter(parameter);
+      int value = getParameterVariable(parameter);
       environment.localVariables[parameter] = value;
       if (functionValue != null) {
         for (int arity = minArity; arity <= maxArity; ++arity) {
           addLoad(functionValue, getNamedParameterField(arity, parameter.name),
               value);
         }
+      }
+      if (addTypeBasedSummary) {
+        buildContravariantType(parameter.type, environment, value);
       }
     }
     if (environment.returnValue == null) {
@@ -272,7 +480,27 @@ class Builder {
         addStore(functionValue, getReturnField(arity), environment.returnValue);
       }
     }
-    new StatementBuilder(this, environment).build(node.body);
+    if (addTypeBasedSummary) {
+      int returnFromType = buildCovariantType(node.returnType, environment);
+      constraints.addAssign(returnFromType, environment.returnValue);
+    }
+    if (node.body != null) {
+      new StatementBuilder(this, environment).build(node.body);
+    }
+  }
+
+  /// Returns true if we can assume that externals treat the given types as
+  /// covariant.
+  ///
+  /// For example, if an external method returns a `List`, the values stored
+  /// in the list from user code are not considered escaping.
+  bool isAssumedCovariant(Class classNode) {
+    return classNode == coreTypes.listClass ||
+        classNode == coreTypes.mapClass ||
+        classNode == coreTypes.iterableClass ||
+        classNode == coreTypes.iteratorClass ||
+        classNode == coreTypes.futureClass ||
+        classNode == coreTypes.streamClass;
   }
 
   Set<String> _unsupportedNodes = new Set<String>();
@@ -296,6 +524,7 @@ class FieldNames {
   static const int _TagPositionalParameter = 2;
   static const int _TagNamedParameter = 3;
   static const int _TagReturn = 4;
+  static const int _TagTypeParameter = 5;
 
   /// Field representing the value returned from a getter, passed into a setter,
   /// or stored in a Dart field with the given name.
@@ -320,6 +549,21 @@ class FieldNames {
     return _table.get2(_TagReturn, arity);
   }
 
+  /// Field representing the values that would be checked against the given
+  /// type parameter in checked mode.
+  ///
+  /// The type-based modeling of externals uses this to handle types that
+  /// involve type variables.  Roughly speaking, we assume that a method whose
+  /// return type is a type variable T can return any value that was passed into
+  /// any parameter of type T.  In particular, this is used to model the
+  /// external backend storage in collection types.
+  ///
+  /// This field keeps track of the values that may flow into and out of a
+  /// type variable for a given instance.
+  int getTypeParameterField(TypeParameter parameter) {
+    return _table.get2(_TagTypeParameter, parameter);
+  }
+
   int get length => _table.length;
 
   String getDiagnosticNameOfField(int field) {
@@ -333,20 +577,28 @@ class FieldNames {
         return 'named(${tuple[1]},${tuple[2]})';
       case _TagReturn:
         return 'return(${tuple[1]})';
+      case _TagTypeParameter:
+        return 'type-param(${tuple[1]})';
       default:
         return '!error';
     }
   }
 }
 
-class Environment {
+class TypeEnvironment {
   final Builder builder;
+  int thisValue;
+
+  TypeEnvironment(this.builder, {this.thisValue});
+}
+
+class Environment extends TypeEnvironment {
   final Map<VariableDeclaration, int> localVariables =
       <VariableDeclaration, int>{};
-  int thisValue;
   int returnValue;
 
-  Environment(this.builder, {this.thisValue, this.returnValue});
+  Environment(Builder builder, {int thisValue, this.returnValue})
+      : super(builder, thisValue: thisValue);
 
   int getVariable(VariableDeclaration variable) {
     return localVariables[variable] ??= builder.newVariable(variable);
@@ -359,7 +611,7 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
 
   ConstraintSystem get constraints => builder.constraints;
   Visualizer get visualizer => builder.visualizer;
-  FieldNames get names => builder.fieldNames;
+  FieldNames get fieldNames => builder.fieldNames;
 
   ExpressionBuilder(this.builder, this.environment);
 
@@ -390,13 +642,13 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
 
   int visitPropertyGet(PropertyGet node) {
     int object = build(node.receiver);
-    int field = names.getPropertyField(node.name);
+    int field = fieldNames.getPropertyField(node.name);
     return builder.getLoad(object, field);
   }
 
   int visitPropertySet(PropertySet node) {
     int object = build(node.receiver);
-    int field = names.getPropertyField(node.name);
+    int field = fieldNames.getPropertyField(node.name);
     int value = build(node.value);
     builder.addStore(object, field, value);
     return value;
@@ -424,17 +676,17 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
     if (node.target is Procedure) {
       Procedure target = node.target;
       if (target.isGetter) {
-        return builder.getReturnValue(target);
+        return builder.getReturnVariable(target);
       } else {
         return unsupported(node);
       }
     }
-    return builder.getField(node.target);
+    return builder.getFieldVariable(node.target);
   }
 
   int visitStaticSet(StaticSet node) {
     int value = build(node.value);
-    int field = builder.getField(node.target);
+    int field = builder.getFieldVariable(node.target);
     constraints.addAssign(value, field);
     return value;
   }
@@ -467,7 +719,7 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
       int argument = build(node.positional[i]);
       if (i < function.positionalParameters.length) {
         int parameter =
-            environment.getVariable(function.positionalParameters[i]);
+            builder.getParameterVariable(function.positionalParameters[i]);
         constraints.addAssign(argument, parameter);
       }
     }
@@ -478,7 +730,7 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
       for (int j = 0; j < function.namedParameters.length; ++j) {
         var namedParameter = function.namedParameters[j];
         if (namedParameter.name == namedNode.name) {
-          int parameter = builder.getFunctionParameter(namedParameter);
+          int parameter = builder.getParameterVariable(namedParameter);
           constraints.addAssign(argument, parameter);
           break;
         }
@@ -488,17 +740,17 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
 
   int visitSuperMethodInvocation(SuperMethodInvocation node) {
     passArgumentsToFunction(node.arguments, node.target.function);
-    return builder.getReturnValue(node.target);
+    return builder.getReturnVariable(node.target);
   }
 
   int visitStaticInvocation(StaticInvocation node) {
     passArgumentsToFunction(node.arguments, node.target.function);
-    return builder.getReturnValue(node.target);
+    return builder.getReturnVariable(node.target);
   }
 
   int visitConstructorInvocation(ConstructorInvocation node) {
     passArgumentsToFunction(node.arguments, node.target.function);
-    return builder.getClassValue(node.target.enclosingClass);
+    return builder.getInstanceVariable(node.target.enclosingClass);
   }
 
   int visitNot(Not node) {
@@ -561,21 +813,27 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
   }
 
   int visitListLiteral(ListLiteral node) {
-    // TODO(asgerf): The list should contain the values.
-    //   This will be easier to support when we add externals.
+    var object = builder.listNode;
+    TypeParameter parameter = builder.coreTypes.listClass.typeParameters.single;
+    int field = fieldNames.getTypeParameterField(parameter);
     for (int i = 0; i < node.expressions.length; ++i) {
-      build(node.expressions[i]);
+      int value = build(node.expressions[i]);
+      builder.addStore(object, field, value);
     }
-    return builder.listNode;
+    return object;
   }
 
   int visitMapLiteral(MapLiteral node) {
+    var object = builder.mapNode;
+    List<TypeParameter> parameters = builder.coreTypes.mapClass.typeParameters;
+    int keys = fieldNames.getTypeParameterField(parameters[0]);
+    int values = fieldNames.getTypeParameterField(parameters[1]);
     for (int i = 0; i < node.entries.length; ++i) {
       var entry = node.entries[i];
-      build(entry.key);
-      build(entry.value);
+      builder.addStore(object, keys, build(entry.key));
+      builder.addStore(object, values, build(entry.value));
     }
-    return builder.mapNode;
+    return object;
   }
 
   int visitAwaitExpression(AwaitExpression node) {
@@ -768,4 +1026,185 @@ class Names {
   static final Name current = new Name('current');
   static final Name iterator = new Name('iterator');
   static final Name then = new Name('then');
+}
+
+/// Returns a variable with the possible values of a given type, as provided
+/// by external code.
+class CovariantExternalTypeVisitor extends DartTypeVisitor<int> {
+  final Builder builder;
+  final TypeEnvironment environment;
+
+  FieldNames get fieldNames => builder.fieldNames;
+
+  CovariantExternalTypeVisitor(this.builder, this.environment);
+
+  void visitContravariant(DartType type, int input) {
+    return new ContravariantExternalTypeVisitor(builder, environment, input)
+        .visit(type);
+  }
+
+  int visit(DartType type) => type.accept(this);
+
+  int visitInvalidType(InvalidType node) {
+    return builder.bottomNode;
+  }
+
+  int visitDynamicType(DynamicType node) {
+    return builder.dynamicNode;
+  }
+
+  int visitVoidType(VoidType node) {
+    return builder.nullNode;
+  }
+
+  int visitInterfaceType(InterfaceType node) {
+    int object = builder.getExternalInstanceVariable(node.classNode);
+    for (int i = 0; i < node.typeArguments.length; ++i) {
+      int field =
+          fieldNames.getTypeParameterField(node.classNode.typeParameters[i]);
+      int outputValue = visit(node.typeArguments[i]);
+      builder.addStore(object, field, outputValue);
+      if (!builder.isAssumedCovariant(node.classNode)) {
+        int userValue = builder.getLoad(object, field);
+        visitContravariant(node.typeArguments[i], userValue);
+      }
+    }
+    return object;
+  }
+
+  int visitTypeParameterType(TypeParameterType node) {
+    if (node.parameter.parent is Class) {
+      assert(environment.thisValue != null);
+      return builder.getLoad(environment.thisValue,
+          fieldNames.getTypeParameterField(node.parameter));
+    } else {
+      return builder.getFunctionTypeParameterVariable(node.parameter);
+    }
+  }
+
+  int visitFunctionType(FunctionType node) {
+    // TODO: Handle arity range.
+    int arity = node.positionalParameters.length;
+    int function = builder.functionValueNode;
+    for (int i = 0; i < node.positionalParameters.length; ++i) {
+      int field = fieldNames.getPositionalParameterField(arity, i);
+      int argument = builder.getLoad(function, field);
+      visitContravariant(node.positionalParameters[i], argument);
+    }
+    node.namedParameters.forEach((String name, DartType type) {
+      int field = fieldNames.getNamedParameterField(arity, name);
+      int argument = builder.getLoad(function, field);
+      visitContravariant(type, argument);
+    });
+    int returnValue = visit(node.returnType);
+    builder.addStore(function, fieldNames.getReturnField(arity), returnValue);
+    return function;
+  }
+
+  /// Equivalent to visiting the FunctionType for the given function.
+  int buildFunctionNode(FunctionNode node) {
+    // TODO: Handle arity range.
+    int arity = node.positionalParameters.length;
+    int function = builder.functionValueNode;
+    for (int i = 0; i < node.positionalParameters.length; ++i) {
+      int field = fieldNames.getPositionalParameterField(arity, i);
+      int argument = builder.getLoad(function, field);
+      visitContravariant(node.positionalParameters[i].type, argument);
+    }
+    for (int i = 0; i < node.namedParameters.length; ++i) {
+      VariableDeclaration variable = node.namedParameters[i];
+      int field = fieldNames.getNamedParameterField(arity, variable.name);
+      int argument = builder.getLoad(function, field);
+      visitContravariant(variable.type, argument);
+    }
+    int returnValue = visit(node.returnType);
+    builder.addStore(function, fieldNames.getReturnField(arity), returnValue);
+    return function;
+  }
+}
+
+/// Generates constraints to model the behavior of a value escaping into
+/// external code through a given type.
+class ContravariantExternalTypeVisitor extends DartTypeVisitor<Null> {
+  final Builder builder;
+  final TypeEnvironment environment;
+  final int input;
+
+  FieldNames get fieldNames => builder.fieldNames;
+  ConstraintSystem get constraints => builder.constraints;
+
+  ContravariantExternalTypeVisitor(this.builder, this.environment, this.input);
+
+  void visit(DartType type) {
+    type.accept(this);
+  }
+
+  void visitContravariant(DartType type, int input) {
+    return new ContravariantExternalTypeVisitor(builder, environment, input)
+        .visit(type);
+  }
+
+  int visitCovariant(DartType type) {
+    return new CovariantExternalTypeVisitor(builder, environment).visit(type);
+  }
+
+  visitInvalidType(InvalidType node) {}
+
+  visitDynamicType(DynamicType node) {}
+
+  visitVoidType(VoidType node) {}
+
+  visitInterfaceType(InterfaceType node) {
+    int escapePoint = builder.getInterfaceEscapeVariable(node.classNode);
+    constraints.addAssign(input, escapePoint);
+  }
+
+  visitTypeParameterType(TypeParameterType node) {
+    if (node.parameter.parent is Class) {
+      assert(environment.thisValue != null);
+      builder.addStore(environment.thisValue,
+          fieldNames.getTypeParameterField(node.parameter), input);
+    } else {
+      constraints.addAssign(
+          input, builder.getFunctionTypeParameterVariable(node.parameter));
+    }
+  }
+
+  visitFunctionType(FunctionType node) {
+    // TODO: Handle arity range.
+    int arity = node.positionalParameters.length;
+    for (int i = 0; i < node.positionalParameters.length; ++i) {
+      int argument = visitCovariant(node.positionalParameters[i]);
+      int field = fieldNames.getPositionalParameterField(arity, i);
+      builder.addStore(input, field, argument);
+    }
+    node.namedParameters.forEach((String name, DartType type) {
+      int argument = visitCovariant(type);
+      int field = fieldNames.getNamedParameterField(arity, name);
+      builder.addStore(input, field, argument);
+    });
+    int returnLocation =
+        builder.getLoad(input, fieldNames.getReturnField(arity));
+    visitContravariant(node.returnType, returnLocation);
+  }
+
+  /// Equivalent to visiting the FunctionType for the given function.
+  void buildFunctionNode(FunctionNode node) {
+    // TODO: Handle arity range.
+    int arity = node.positionalParameters.length;
+    for (int i = 0; i < node.positionalParameters.length; ++i) {
+      int argument = visitCovariant(node.positionalParameters[i].type);
+      int field = fieldNames.getPositionalParameterField(arity, i);
+      builder.addStore(input, field, argument);
+    }
+    for (int i = 0; i < node.namedParameters.length; ++i) {
+      VariableDeclaration variable = node.namedParameters[i];
+      int argument = visitCovariant(variable.type);
+      int field = fieldNames.getNamedParameterField(arity, variable.name);
+      builder.addStore(input, field, argument);
+    }
+    int returnLocation =
+        builder.getLoad(input, fieldNames.getReturnField(arity));
+    visitContravariant(node.returnType, returnLocation);
+  }
 }
