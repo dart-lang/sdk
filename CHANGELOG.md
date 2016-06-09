@@ -1,4 +1,4 @@
-## 1.17.0 - 2016-06-06
+## 1.17.0 - 2016-06-08
 
 ### Core library changes
 * `dart:convert`
