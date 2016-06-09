@@ -209,7 +209,7 @@ void FlowGraphCompiler::RecordAfterCall(Instruction* instr) {
 
 void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
                                              intptr_t stub_ix) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
 }
 
 

@@ -108,7 +108,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(UnboxInteger32)                                                            \
   M(CheckedSmiOp)                                                              \
   M(CheckArrayBound)                                                           \
-  M(CheckSmi)                                                                  \
   M(CheckClassId)                                                              \
   M(CheckClass)                                                                \
   M(BinarySmiOp)                                                               \
@@ -850,8 +849,12 @@ Representation LoadIndexedInstr::representation() const {
 Representation StoreIndexedInstr::RequiredInputRepresentation(
     intptr_t idx) const {
   // Array can be a Dart object or a pointer to external data.
-  if (idx == 0)  return kNoRepresentation;  // Flexible input representation.
-  if (idx == 1) return kTagged;  // Index is a smi.
+  if (idx == 0) {
+    return kNoRepresentation;  // Flexible input representation.
+  }
+  if (idx == 1) {
+    return kTagged;  // Index is a smi.
+  }
   ASSERT(idx == 2);
   switch (class_id_) {
     case kArrayCid:
@@ -902,6 +905,13 @@ void Environment::DropArguments(intptr_t argc) {
     values_.TruncateTo(values_.length() - argc);
 }
 
+
+EMIT_NATIVE_CODE(CheckSmi, 1) {
+  __ CheckSmi(locs()->in(0).reg());
+  compiler->EmitDeopt(deopt_id(),
+                      ICData::kDeoptCheckSmi,
+                      licm_hoisted_ ? ICData::kHoisted : 0);
+}
 
 }  // namespace dart
 

@@ -987,6 +987,25 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
 }
 
 
+#if defined(TARGET_ARCH_DBC)
+void FlowGraphCompiler::EmitDeopt(intptr_t deopt_id,
+                                  ICData::DeoptReasonId reason,
+                                  uint32_t flags) {
+  ASSERT(is_optimizing());
+  ASSERT(!intrinsic_mode());
+  CompilerDeoptInfo* info =
+      new(zone()) CompilerDeoptInfo(deopt_id,
+                                    reason,
+                                    flags,
+                                    pending_deoptimization_env_);
+
+  deopt_infos_.Add(info);
+  assembler()->Deopt(0, /*is_eager =*/ 1);
+  info->set_pc_offset(assembler()->CodeSize());
+}
+#endif  // defined(TARGET_ARCH_DBC)
+
+
 void FlowGraphCompiler::FinalizeExceptionHandlers(const Code& code) {
   ASSERT(exception_handlers_list_ != NULL);
   const ExceptionHandlers& handlers = ExceptionHandlers::Handle(

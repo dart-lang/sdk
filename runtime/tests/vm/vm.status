@@ -141,6 +141,7 @@ cc/SourceReport_CallSites_PolymorphicCall: Skip
 cc/SourceReport_CallSites_SimpleCall: Skip
 cc/SourceReport_Coverage_AllFunctions: Skip
 cc/SourceReport_Coverage_ForceCompile: Skip
+cc/SourceReport_Coverage_AllFunctions_ForceCompile: Skip
 cc/SourceReport_Coverage_NestedFunctions: Skip
 cc/SourceReport_Coverage_SimpleCall: Skip
 cc/SourceReport_Coverage_UnusedClass_NoForceCompile: Skip

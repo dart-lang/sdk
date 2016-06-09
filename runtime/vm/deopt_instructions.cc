@@ -67,13 +67,17 @@ DeoptContext::DeoptContext(const StackFrame* frame,
   // return-address. This section is copied as well, so that its contained
   // values can be updated before returning to the deoptimized function.
   // Note: on DBC stack grows upwards unlike on all other architectures.
+#if defined(TARGET_ARCH_DBC)
+  ASSERT(frame->sp() >= frame->fp());
+  const intptr_t frame_size = (frame->sp() - frame->fp()) / kWordSize;
+#else
+  ASSERT(frame->fp() >= frame->sp());
+  const intptr_t frame_size = (frame->fp() - frame->sp()) / kWordSize;
+#endif
+
   source_frame_size_ =
       + kDartFrameFixedSize  // For saved values below sp.
-#if !defined(TARGET_ARCH_DBC)
-      + ((frame->fp() - frame->sp()) / kWordSize)  // For frame size incl. sp.
-#else
-      + ((frame->sp() - frame->fp()) / kWordSize)  // For frame size incl. sp.
-#endif  // !defined(TARGET_ARCH_DBC)
+      + frame_size  // For frame size incl. sp.
       + 1  // For fp.
       + kParamEndSlotFromFp  // For saved values above fp.
       + num_args_;  // For arguments.

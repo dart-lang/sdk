@@ -1132,6 +1132,39 @@ ASSEMBLER_TEST_RUN(CreateArrayTOS, test) {
   EXPECT_EQ(10, array.Length());
 }
 
+
+//  - CheckSmi rA
+//
+//    If FP[rA] is a Smi, then skip the next instruction.
+ASSEMBLER_TEST_GENERATE(CheckSmiPass, assembler) {
+  __ Frame(1);
+  __ PushConstant(Smi::Handle(Smi::New(42)));
+  __ LoadConstant(0, Smi::Handle(Smi::New(0)));
+  __ CheckSmi(0);
+  __ PushConstant(Smi::Handle(Smi::New(-1)));
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(CheckSmiPass, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CheckSmiFail, assembler) {
+  __ Frame(1);
+  __ PushConstant(Smi::Handle(Smi::New(-1)));
+  __ LoadConstant(0, Bool::True());
+  __ CheckSmi(0);
+  __ PushConstant(Smi::Handle(Smi::New(42)));
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(CheckSmiFail, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
 }  // namespace dart
 
 #endif  // defined(TARGET_ARCH_DBC)

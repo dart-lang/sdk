@@ -528,6 +528,12 @@ class FlowGraphCompiler : public ValueObject {
                       ICData::DeoptReasonId reason,
                       uint32_t flags = 0);
 
+#if defined(TARGET_ARCH_DBC)
+  void EmitDeopt(intptr_t deopt_id,
+                 ICData::DeoptReasonId reason,
+                 uint32_t flags = 0);
+#endif  // defined(TARGET_ARCH_DBC)
+
   void AddDeoptIndexAtCall(intptr_t deopt_id, TokenPosition token_pos);
 
   void AddSlowPathCode(SlowPathCode* slow_path);
