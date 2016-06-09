@@ -429,6 +429,9 @@ abstract class ElementHandle implements Element {
       actualElement.isAccessibleIn(library);
 
   @override
+  String toString() => actualElement.toString();
+
+  @override
   void visitChildren(ElementVisitor visitor) {
     actualElement.visitChildren(visitor);
   }

@@ -407,10 +407,12 @@ class Driver implements ServerStarter {
       // Use DirectoryBasedDartSdk.defaultSdkDirectory, which will make a guess.
       defaultSdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
     }
+    bool useSummaries = analysisServerOptions.fileReadMode == 'as-is';
     SdkCreator defaultSdkCreator = (AnalysisOptions options) {
       DirectoryBasedDartSdk sdk =
           new DirectoryBasedDartSdk(defaultSdkDirectory);
       sdk.analysisOptions = options;
+      sdk.useSummary = useSummaries;
       return sdk;
     };
     // TODO(brianwilkerson) It would be nice to avoid creating an SDK that

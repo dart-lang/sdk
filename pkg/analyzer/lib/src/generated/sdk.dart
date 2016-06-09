@@ -129,12 +129,7 @@ class DartSdkManager {
    */
   DartSdk getSdkForOptions(AnalysisOptions options) {
     int encoding = options.encodeCrossContextOptions();
-    DartSdk sdk = sdkMap[encoding];
-    if (sdk == null) {
-      sdk = sdkCreator(options);
-      sdkMap[encoding] = sdk;
-    }
-    return sdk;
+    return sdkMap.putIfAbsent(encoding, () => sdkCreator(options));
   }
 }
 
