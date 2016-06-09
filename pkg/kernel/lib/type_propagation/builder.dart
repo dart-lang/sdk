@@ -437,6 +437,10 @@ class Builder {
   void buildConstructor(Constructor node, int host) {
     var environment = new Environment(this, thisValue: host);
     buildFunctionNode(node.function, environment);
+    InitializerBuilder builder = new InitializerBuilder(this, environment);
+    for (Initializer initializer in node.initializers) {
+      builder.build(initializer);
+    }
   }
 
   void buildFunctionNode(FunctionNode node, Environment environment,
@@ -1019,6 +1023,45 @@ class StatementBuilder extends StatementVisitor {
     environment.localVariables[node.variable] = builder.functionValueNode;
     builder.buildFunctionNode(node.function, environment,
         functionValue: builder.functionValueNode);
+  }
+}
+
+class InitializerBuilder extends InitializerVisitor<Null> {
+  final Builder builder;
+  final Environment environment;
+  ExpressionBuilder expressionBuilder;
+
+  FieldNames get fieldNames => builder.fieldNames;
+
+  InitializerBuilder(this.builder, this.environment) {
+    expressionBuilder = new ExpressionBuilder(builder, environment);
+  }
+
+  void build(Initializer node) {
+    node.accept(this);
+  }
+
+  int buildExpression(Expression node) {
+    return expressionBuilder.build(node);
+  }
+
+  visitInvalidInitializer(InvalidInitializer node) {}
+
+  visitFieldInitializer(FieldInitializer node) {
+    builder.addStore(
+        environment.thisValue,
+        fieldNames.getPropertyField(node.field.name),
+        buildExpression(node.value));
+  }
+
+  visitSuperInitializer(SuperInitializer node) {
+    expressionBuilder.passArgumentsToFunction(
+        node.arguments, node.target.function);
+  }
+
+  visitRedirectingInitializer(RedirectingInitializer node) {
+    expressionBuilder.passArgumentsToFunction(
+        node.arguments, node.target.function);
   }
 }
 

@@ -33,7 +33,7 @@ class Strength extends core::Object {
 }
 abstract class Constraint extends core::Object {
   final field self::Strength/bottom strength;
-  const constructor •(self::Strength/bottom strength) → void/bottom
+  const constructor •(self::Strength/self::Strength strength) → void/bottom
     : self::Constraint::strength = strength;
   abstract method isSatisfied() → core::bool/<missing type>;
   abstract method markUnsatisfied() → void/<missing type>;
@@ -79,7 +79,7 @@ abstract class Constraint extends core::Object {
 abstract class UnaryConstraint extends self::Constraint {
   final field self::Variable/bottom myOutput;
   field core::bool/core::bool satisfied = false;
-  constructor •(self::Variable/bottom myOutput, self::Strength/bottom strength) → void/bottom
+  constructor •(self::Variable/core::Object myOutput, self::Strength/self::Strength strength) → void/bottom
     : self::UnaryConstraint::myOutput = myOutput, super self::Constraint::•(strength) {
     this.addConstraint();
   }
@@ -93,7 +93,7 @@ abstract class UnaryConstraint extends self::Constraint {
   method isSatisfied() → core::bool/core::bool
     return this.satisfied;
   method markInputs(core::int/core::Object mark) → void/bottom {}
-  method output() → self::Variable/bottom
+  method output() → self::Variable/core::Object
     return this.myOutput;
   method recalculate() → void/bottom {
     this.myOutput.walkStrength = this.strength;
@@ -128,7 +128,7 @@ abstract class BinaryConstraint extends self::Constraint {
   field self::Variable/bottom v1;
   field self::Variable/bottom v2;
   field core::int/core::int direction = self::NONE;
-  constructor •(self::Variable/bottom v1, self::Variable/bottom v2, self::Strength/bottom strength) → void/bottom
+  constructor •(self::Variable/self::Variable v1, self::Variable/self::Variable v2, self::Strength/self::Strength strength) → void/bottom
     : self::BinaryConstraint::v1 = v1, self::BinaryConstraint::v2 = v2, super self::Constraint::•(strength) {
     this.addConstraint();
   }
@@ -156,9 +156,9 @@ abstract class BinaryConstraint extends self::Constraint {
   method markInputs(core::int/core::Object mark) → void/bottom {
     this.input().mark = mark;
   }
-  method input() → self::Variable/bottom
+  method input() → self::Variable/self::Variable
     return this.direction.==(self::FORWARD) ? this.v1 : this.v2;
-  method output() → self::Variable/bottom
+  method output() → self::Variable/self::Variable
     return this.direction.==(self::FORWARD) ? this.v2 : this.v1;
   method recalculate() → void/bottom {
     self::Variable/core::Object ihn = this.input();
