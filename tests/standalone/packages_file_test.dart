@@ -220,7 +220,7 @@ Future runTests([List<ConfigurationTransformer> transformations]) async {
 // * `Process.packageConfig`
 // * `Isolate.packageRoot`
 // * `Isolate.packageRoot`
-// * `Isolate.resolvePacakgeUri` of various inputs.
+// * `Isolate.resolvePackageUri` of various inputs.
 // * A variable defined in a library loaded using a `package:` URI.
 //
 // The configurations all have URIs as `root`, `config` and `mainFile` strings,
@@ -292,14 +292,17 @@ void createConfigurations() {
     fixPaths(expect);
 
     expect = {
-      "pconf":   null,
-      "proot":   null,
-      "iconf":   null,
-      "iroot":   null,
-      // "foo":   null,
-      "foo/":    null,
-      "foo/bar": null,
-      "foo.x":  "qux",
+      "pconf":    null,
+      "proot":    null,
+      "iconf":    null,
+      "iroot":    null,
+      // "foo":     null,
+      "foo/":     null,
+      "foo/bar":  null,
+      "foo.x":    "qux",
+      "bar/bar":  null,
+      "relative": "relative/path",
+      "nonpkg":   "http://example.org/file"
     }..addAll(expect ?? const {});
 
     // Add http files to the http server.
@@ -353,6 +356,7 @@ void createConfigurations() {
           "foo/": "%http/packages/foo/",
           "foo/bar": "%http/packages/foo/bar",
           "foo.x": null,
+          "bar/bar": "%http/packages/bar/bar",
         });
     }
 
@@ -366,6 +370,7 @@ void createConfigurations() {
           "iroot": "%$scheme/packages/",
           "foo/": "%$scheme/packages/foo/",
           "foo/bar": "%$scheme/packages/foo/bar",
+          "bar/bar": "%$scheme/packages/bar/bar",
         });
     }
 
@@ -385,6 +390,7 @@ void createConfigurations() {
           "foo/": "%$scheme/sub/packages/foo/",
           "foo/bar": "%$scheme/sub/packages/foo/bar",
           // "foo.x": "qux",  // Blocked by issue http://dartbug.com/26482
+          "bar/bar": "%$scheme/sub/packages/bar/bar",
         });
     }
 
@@ -421,6 +427,7 @@ void createConfigurations() {
           "foo/": "%http/sub/packages/foo/",
           "foo/bar": "%http/sub/packages/foo/bar",
           "foo.x": null,
+          "bar/bar": "%http/sub/packages/bar/bar",
         });
     }
 
@@ -438,6 +445,7 @@ void createConfigurations() {
           "foo/": "%$scheme/notthere/foo/",
           "foo/bar": "%$scheme/notthere/foo/bar",
           "foo.x": null,
+          "bar/bar": "%$scheme/notthere/bar/bar",
         });
     }
 
@@ -472,6 +480,7 @@ void createConfigurations() {
           "iroot": "%$scheme/pkgs/",
           "foo/": "%$scheme/pkgs/foo/",
           "foo/bar": "%$scheme/pkgs/foo/bar",
+          "bar/bar": "%$scheme/pkgs/bar/bar",
         });
     }
 
@@ -488,6 +497,7 @@ void createConfigurations() {
           "iroot": "%$scheme/pkgs/",
           "foo/": "%$scheme/pkgs/foo/",
           "foo/bar": "%$scheme/pkgs/foo/bar",
+          "bar/bar": "%$scheme/pkgs/bar/bar",
         });
     }
 
@@ -547,6 +557,7 @@ void createConfigurations() {
             "iroot": "%$pkgScheme/pkgs/",
             "foo/": "%$pkgScheme/pkgs/foo/",
             "foo/bar": "%$pkgScheme/pkgs/foo/bar",
+            "bar/bar": "%$pkgScheme/pkgs/bar/bar",
             "foo.x": "qux",
           });
       }
@@ -650,6 +661,10 @@ main(_) async {
   Uri res1 = await Isolate.resolvePackageUri(Uri.parse("package:foo"));
   Uri res2 = await Isolate.resolvePackageUri(Uri.parse("package:foo/"));
   Uri res3 = await Isolate.resolvePackageUri(Uri.parse("package:foo/bar"));
+  Uri res4 = await Isolate.resolvePackageUri(Uri.parse("package:bar/bar"));
+  Uri res5 = await Isolate.resolvePackageUri(Uri.parse("relative/path"));
+  Uri res6 = await Isolate.resolvePackageUri(
+      Uri.parse("http://example.org/file"));
   String fooX = await foo
     .loadLibrary()
     .timeout(const Duration(seconds: 1))
@@ -666,6 +681,9 @@ main(_) async {
     "foo/": res2?.toString(),
     "foo/bar": res3?.toString(),
     "foo.x": fooX?.toString(),
+    "bar/bar": res4?.toString(),
+    "relative": res5?.toString(),
+    "nonpkg": res6?.toString(),
   }));
 }
 """;
