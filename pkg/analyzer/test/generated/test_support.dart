@@ -600,9 +600,7 @@ class TestSource extends Source {
     return _name;
   }
 
-  Uri get uri {
-    throw new UnsupportedOperationException();
-  }
+  Uri get uri => new Uri.file(_name);
 
   UriKind get uriKind {
     throw new UnsupportedOperationException();

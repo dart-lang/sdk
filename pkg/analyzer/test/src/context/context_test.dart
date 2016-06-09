@@ -2438,16 +2438,24 @@ int a = 0;''');
    * Perform analysis tasks up to 512 times and assert that it was enough.
    */
   void _analyzeAll_assertFinished([int maxIterations = 512]) {
+    bool finishedAnalyzing = false;
     for (int i = 0; i < maxIterations; i++) {
       List<ChangeNotice> notice = context.performAnalysisTask().changeNotices;
       if (notice == null) {
+        finishedAnalyzing = true;
         bool inconsistent = context.validateCacheConsistency();
         if (!inconsistent) {
           return;
         }
       }
     }
-    fail("performAnalysisTask failed to terminate after analyzing all sources");
+    if (finishedAnalyzing) {
+      fail(
+          "performAnalysisTask failed to finish analyzing all sources after $maxIterations iterations");
+    } else {
+      fail(
+          "performAnalysisTask failed to terminate after analyzing all sources");
+    }
   }
 
   void _assertNoExceptions() {

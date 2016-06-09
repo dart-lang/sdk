@@ -103,8 +103,7 @@ class InSummarySource extends Source {
   UriKind get uriKind => UriKind.PACKAGE_URI;
 
   @override
-  bool operator ==(Object object) =>
-      object is InSummarySource && object.uri == uri;
+  bool operator ==(Object object) => object is Source && object.uri == uri;
 
   @override
   bool exists() => true;

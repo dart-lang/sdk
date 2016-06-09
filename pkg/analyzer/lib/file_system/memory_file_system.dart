@@ -449,7 +449,12 @@ class _MemoryFileSource extends Source {
 
   @override
   bool operator ==(other) {
-    return other is _MemoryFileSource && other.id == id;
+    if (other is _MemoryFileSource) {
+      return id == other.id;
+    } else if (other is Source) {
+      return uri == other.uri;
+    }
+    return false;
   }
 
   @override
