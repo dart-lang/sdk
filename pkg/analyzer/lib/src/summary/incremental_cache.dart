@@ -275,7 +275,17 @@ class IncrementalCache {
         if (refSource == null) {
           throw new StateError('Unable to resolve $refUri in $librarySource');
         }
-        _appendLibraryClosure(closure, refSource);
+        // If we have already the closure for the 'refSource', use it.
+        // Otherwise, continue computing recursively.
+        // It's not the most efficient algorithm, but in practice we might
+        // visit each library multiple times only for the first top-level
+        // bundle requested in `getLibraryClosureBundles`.
+        List<Source> refClosure = _libraryClosureMap[refSource];
+        if (refClosure != null) {
+          closure.addAll(refClosure);
+        } else {
+          _appendLibraryClosure(closure, refSource);
+        }
       }
       contentSource.importedUris.forEach(appendLibrarySources);
       contentSource.exportedUris.forEach(appendLibrarySources);
@@ -400,9 +410,11 @@ class IncrementalCache {
    */
   List<Source> _getLibraryClosure(Source librarySource) {
     return _libraryClosureMap.putIfAbsent(librarySource, () {
-      Set<Source> closure = new Set<Source>();
-      _appendLibraryClosure(closure, librarySource);
-      return closure.toList();
+      Set<Source> closureSet = new Set<Source>();
+      _appendLibraryClosure(closureSet, librarySource);
+      List<Source> closureList = closureSet.toList();
+      closureList.sort((a, b) => a.fullName.compareTo(b.fullName));
+      return closureList;
     });
   }
 
@@ -418,6 +430,15 @@ class IncrementalCache {
           List<int> sourceHash = _getSourceContentHash(source);
           byteSink.add(sourceHash);
         }
+        // When we sort closure sources for two libraries (A, B) we get exactly
+        // the same list of sources for both A and B. So, their hash is exactly
+        // the same. But we use it to store separate summary bundles for
+        // separate libraries. Ideally would be nice to group these libraries
+        // into a single summary bundle. But this would require delaying
+        // saving bundles until we know all of them.
+        // So, for now we make hashes for separate libraries unique be mixing
+        // in the library source again.
+        byteSink.add(_getSourceContentHash(librarySource));
       });
     });
   }
