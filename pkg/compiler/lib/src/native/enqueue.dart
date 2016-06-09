@@ -34,19 +34,17 @@ class NativeEnqueuer {
   /// types to the world.
   void registerNativeBehavior(NativeBehavior nativeBehavior, cause) {}
 
-  /// Notification of a main Enqueuer worklist element.  For methods, adds
-  /// information from metadata attributes, and computes types instantiated due
-  /// to calling the method.
-  void registerElement(Element element) {}
-
-  /// Notification of native field.  Adds information from metadata attributes.
+  // TODO(johnniwinther): Move [handleFieldAnnotations] and
+  // [handleMethodAnnotations] to [JavaScriptBackend] or [NativeData].
+  // TODO(johnniwinther): Change the return type to 'bool' and rename them to
+  // something like `computeNativeField`.
+  /// Process the potentially native [field]. Adds information from metadata
+  /// attributes.
   void handleFieldAnnotations(Element field) {}
 
-  /// Computes types instantiated due to getting a native field.
-  void registerFieldLoad(Element field) {}
-
-  /// Computes types instantiated due to setting a native field.
-  void registerFieldStore(Element field) {}
+  /// Process the potentially native [method]. Adds information from metadata
+  /// attributes.
+  void handleMethodAnnotations(Element method) {}
 
   /// Returns whether native classes are being used.
   bool hasInstantiatedNativeClasses() => false;
@@ -371,26 +369,6 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     }
   }
 
-  registerElement(Element element) {
-    reporter.withCurrentElement(element, () {
-      if (element.isFunction ||
-          element.isFactoryConstructor ||
-          element.isGetter ||
-          element.isSetter) {
-        handleMethodAnnotations(element);
-        if (backend.isNative(element)) {
-          registerMethodUsed(element);
-        }
-      } else if (element.isField) {
-        handleFieldAnnotations(element);
-        if (backend.isNative(element)) {
-          registerFieldLoad(element);
-          registerFieldStore(element);
-        }
-      }
-    });
-  }
-
   void handleFieldAnnotations(Element element) {
     if (compiler.serialization.isDeserialized(element)) {
       return;
@@ -473,18 +451,6 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   void registerNativeBehavior(NativeBehavior nativeBehavior, cause) {
     processNativeBehavior(nativeBehavior, cause);
     flushQueue();
-  }
-
-  void registerMethodUsed(Element method) {
-    registerNativeBehavior(NativeBehavior.ofMethod(method, compiler), method);
-  }
-
-  void registerFieldLoad(Element field) {
-    registerNativeBehavior(NativeBehavior.ofFieldLoad(field, compiler), field);
-  }
-
-  void registerFieldStore(Element field) {
-    registerNativeBehavior(NativeBehavior.ofFieldStore(field, compiler), field);
   }
 
   processNativeBehavior(NativeBehavior behavior, cause) {

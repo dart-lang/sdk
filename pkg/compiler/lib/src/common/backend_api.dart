@@ -44,7 +44,7 @@ import 'registry.dart' show Registry;
 import 'tasks.dart' show CompilerTask;
 import 'work.dart' show ItemCompilationContext;
 
-abstract class Backend implements Target {
+abstract class Backend extends Target {
   final Compiler compiler;
 
   Backend(this.compiler);
@@ -402,6 +402,12 @@ abstract class Backend implements Target {
   Frontend get frontend => compiler.resolution;
 
   EnqueueTask makeEnqueuer() => new EnqueueTask(compiler);
+}
+
+/// Interface for resolving native data for a target specific element.
+abstract class NativeRegistry {
+  /// Registers [nativeData] as part of the resolution impact.
+  void registerNativeData(dynamic nativeData);
 }
 
 /// Interface for resolving calls to foreign functions.

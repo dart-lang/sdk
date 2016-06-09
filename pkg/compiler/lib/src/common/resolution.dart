@@ -202,6 +202,10 @@ abstract class Target {
   /// have special treatment, such as being allowed to extends blacklisted
   /// classes or members being eagerly resolved.
   bool isTargetSpecificLibrary(LibraryElement element);
+
+  /// Resolve target specific information for [element] and register it with
+  /// [registry].
+  void resolveNativeElement(Element element, NativeRegistry registry) {}
 }
 
 // TODO(johnniwinther): Rename to `Resolver` or `ResolverContext`.

@@ -736,6 +736,56 @@ class JavaScriptBackend extends Backend {
   @override
   bool isNative(Element element) => nativeData.isNative(element);
 
+  /// Returns the [NativeBehavior] for calling the native [method].
+  native.NativeBehavior getNativeMethodBehavior(FunctionElement method) {
+    return nativeData.getNativeMethodBehavior(method);
+  }
+
+  /// Returns the [NativeBehavior] for reading from the native [field].
+  native.NativeBehavior getNativeFieldLoadBehavior(FieldElement field) {
+    return nativeData.getNativeFieldLoadBehavior(field);
+  }
+
+  /// Returns the [NativeBehavior] for writing to the native [field].
+  native.NativeBehavior getNativeFieldStoreBehavior(FieldElement field) {
+    return nativeData.getNativeFieldStoreBehavior(field);
+  }
+
+  @override
+  void resolveNativeElement(Element element, NativeRegistry registry) {
+    if (element.isFunction ||
+        element.isConstructor ||
+        element.isGetter ||
+        element.isSetter) {
+      compiler.enqueuer.resolution.nativeEnqueuer
+          .handleMethodAnnotations(element);
+      if (isNative(element)) {
+        native.NativeBehavior behavior =
+            native.NativeBehavior.ofMethod(element, compiler);
+        nativeData.setNativeMethodBehavior(element, behavior);
+        registry.registerNativeData(behavior);
+      }
+    } else if (element.isField) {
+      compiler.enqueuer.resolution.nativeEnqueuer
+          .handleFieldAnnotations(element);
+      if (isNative(element)) {
+        native.NativeBehavior fieldLoadBehavior =
+            native.NativeBehavior.ofFieldLoad(element, compiler);
+        native.NativeBehavior fieldStoreBehavior =
+            native.NativeBehavior.ofFieldStore(element, compiler);
+        nativeData.setNativeFieldLoadBehavior(element, fieldLoadBehavior);
+        nativeData.setNativeFieldStoreBehavior(element, fieldStoreBehavior);
+
+        // TODO(sra): Process fields for storing separately.
+        // We have to handle both loading and storing to the field because we
+        // only get one look at each member and there might be a load or store
+        // we have not seen yet.
+        registry.registerNativeData(fieldLoadBehavior);
+        registry.registerNativeData(fieldStoreBehavior);
+      }
+    }
+  }
+
   bool isNativeOrExtendsNative(ClassElement element) {
     if (element == null) return false;
     if (isNative(element) || isJsInterop(element)) {

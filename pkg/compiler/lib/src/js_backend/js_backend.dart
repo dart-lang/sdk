@@ -13,7 +13,7 @@ import 'package:js_runtime/shared/embedded_names.dart' show JsGetName;
 import '../closure.dart';
 import '../common.dart';
 import '../common/backend_api.dart'
-    show Backend, ImpactTransformer, ForeignResolver;
+    show Backend, ImpactTransformer, ForeignResolver, NativeRegistry;
 import '../common/codegen.dart' show CodegenImpact, CodegenWorkItem;
 import '../common/names.dart' show Identifiers, Names, Selectors, Uris;
 import '../common/registry.dart' show EagerRegistry, Registry;
@@ -38,8 +38,6 @@ import '../deferred_load.dart' show DeferredLoadTask;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
-import '../elements/modelx.dart'
-    show ConstructorBodyElementX, FieldElementX, DeferredLoaderGetterElementX;
 import '../elements/visitor.dart' show BaseElementVisitor;
 import '../enqueue.dart' show Enqueuer, ResolutionEnqueuer;
 import '../io/code_output.dart';
