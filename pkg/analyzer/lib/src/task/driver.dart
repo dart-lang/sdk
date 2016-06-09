@@ -101,15 +101,18 @@ class AnalysisDriver {
     try {
       isTaskRunning = true;
       AnalysisTask task;
-      WorkOrder workOrder = createWorkOrderForResult(target, result);
-      if (workOrder != null) {
-        while (workOrder.moveNext()) {
-//          AnalysisTask previousTask = task;
-//          String message = workOrder.current.toString();
-          task = performWorkItem(workOrder.current);
-//          if (task == null) {
-//            throw new AnalysisException(message, previousTask.caughtException);
-//          }
+      while (true) {
+        try {
+          WorkOrder workOrder = createWorkOrderForResult(target, result);
+          if (workOrder != null) {
+            while (workOrder.moveNext()) {
+              task = performWorkItem(workOrder.current);
+            }
+          }
+          break;
+        } on ModificationTimeMismatchError {
+          // Cache inconsistency was detected and fixed by invalidating
+          // corresponding results in cache. Computation must be restarted.
         }
       }
       return task;
@@ -248,7 +251,12 @@ class AnalysisDriver {
       if (currentWorkOrder == null) {
         currentWorkOrder = createNextWorkOrder();
       } else if (currentWorkOrder.moveNext()) {
-        performWorkItem(currentWorkOrder.current);
+        try {
+          performWorkItem(currentWorkOrder.current);
+        } on ModificationTimeMismatchError {
+          reset();
+          return true;
+        }
       } else {
         currentWorkOrder = createNextWorkOrder();
       }

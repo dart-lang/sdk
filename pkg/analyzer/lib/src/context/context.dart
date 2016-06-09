@@ -682,6 +682,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     CacheState state = entry.getState(descriptor);
     if (state == CacheState.FLUSHED || state == CacheState.INVALID) {
       driver.computeResult(target, descriptor);
+      entry = getCacheEntry(target);
     }
     state = entry.getState(descriptor);
     if (state == CacheState.ERROR) {
@@ -729,7 +730,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * to stand in for a real one if one does not exist
    * facilitating creation a type provider without dart:async.
    */
-  LibraryElement createMockAsyncLib(LibraryElement coreLibrary, Source asyncSource) {
+  LibraryElement createMockAsyncLib(
+      LibraryElement coreLibrary, Source asyncSource) {
     InterfaceType objType = coreLibrary.getType('Object').type;
 
     ClassElement _classElement(String typeName, [List<String> parameterNames]) {
@@ -1057,13 +1059,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     bool changed = newContents != originalContents;
     if (newContents != null) {
       if (changed) {
+        entry.modificationTime = _contentCache.getModificationStamp(source);
         if (!analysisOptions.incremental ||
             !_tryPoorMansIncrementalResolution(source, newContents)) {
           // Don't compare with old contents because the cache has already been
           // updated, and we know at this point that it changed.
           _sourceChanged(source, compareWithOld: false);
         }
-        entry.modificationTime = _contentCache.getModificationStamp(source);
         entry.setValue(CONTENT, newContents, TargetedResult.EMPTY_LIST);
       } else {
         entry.modificationTime = _contentCache.getModificationStamp(source);

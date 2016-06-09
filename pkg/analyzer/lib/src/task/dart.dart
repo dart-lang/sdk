@@ -868,6 +868,27 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT9 =
         cachingPolicy: AST_CACHING_POLICY);
 
 /**
+ * List of all `RESOLVED_UNITx` results.
+ */
+final List<ResultDescriptor<CompilationUnit>> RESOLVED_UNIT_RESULTS =
+    <ResultDescriptor<CompilationUnit>>[
+  RESOLVED_UNIT1,
+  RESOLVED_UNIT2,
+  RESOLVED_UNIT3,
+  RESOLVED_UNIT4,
+  RESOLVED_UNIT5,
+  RESOLVED_UNIT6,
+  RESOLVED_UNIT7,
+  RESOLVED_UNIT8,
+  RESOLVED_UNIT9,
+  RESOLVED_UNIT10,
+  RESOLVED_UNIT11,
+  RESOLVED_UNIT12,
+  RESOLVED_UNIT13,
+  RESOLVED_UNIT
+];
+
+/**
  * The errors produced while scanning a compilation unit.
  *
  * The list will be empty if there were no errors, but will not be `null`.
@@ -5578,7 +5599,7 @@ class ScanDartTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     if (target is Source) {
       return <String, TaskInput>{
-        CONTENT_INPUT_NAME: CONTENT.of(target),
+        CONTENT_INPUT_NAME: CONTENT.of(target, flushOnAccess: true),
         MODIFICATION_TIME_INPUT: MODIFICATION_TIME.of(target)
       };
     } else if (target is DartScript) {

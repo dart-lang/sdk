@@ -856,6 +856,57 @@ part of lib;
         isTrue);
   }
 
+  void test_flushResolvedUnit_updateFile_dontNotify() {
+    String oldCode = '';
+    String newCode = r'''
+import 'dart:async';
+''';
+    String path = '/test.dart';
+    Source source = resourceProvider.newFile(path, oldCode).createSource();
+    context.applyChanges(new ChangeSet()..addedSource(source));
+    context.resolveCompilationUnit2(source, source);
+    // Flush all results units.
+    context.analysisCache.flush((target, result) {
+      if (target.source == source) {
+        return RESOLVED_UNIT_RESULTS.contains(result);
+      }
+      return false;
+    });
+    // Update the file, but don't notify the context.
+    resourceProvider.updateFile(path, newCode);
+    // Driver must detect that the file was changed and recover.
+    CompilationUnit unit = context.resolveCompilationUnit2(source, source);
+    expect(unit, isNotNull);
+  }
+
+  void test_flushResolvedUnit_updateFile_dontNotify2() {
+    String oldCode = r'''
+main() {}
+''';
+    String newCode = r'''
+import 'dart:async';
+main() {}
+''';
+    String path = '/test.dart';
+    Source source = resourceProvider.newFile(path, oldCode).createSource();
+    context.applyChanges(new ChangeSet()..addedSource(source));
+    context.resolveCompilationUnit2(source, source);
+    // Flush all results units.
+    context.analysisCache.flush((target, result) {
+      if (target.source == source) {
+        if (target.source == source) {
+          return RESOLVED_UNIT_RESULTS.contains(result);
+        }
+      }
+      return false;
+    });
+    // Update the file, but don't notify the context.
+    resourceProvider.updateFile(path, newCode);
+    // Driver must detect that the file was changed and recover.
+    CompilationUnit unit = context.resolveCompilationUnit2(source, source);
+    expect(unit, isNotNull);
+  }
+
   void test_getAnalysisOptions() {
     expect(context.analysisOptions, isNotNull);
   }
@@ -1956,7 +2007,7 @@ library expectedToFindSemicolon
     if (AnalysisEngine.instance.limitInvalidationInTaskModel) {
       expect(source.readCount, 7);
     } else {
-      expect(source.readCount, 5);
+      expect(source.readCount, 4);
     }
   }
 
@@ -2171,6 +2222,17 @@ class ClassTwo {
         ["dart.core", "dart.async", "dart.math", "libA", "libB"]);
   }
 
+//  void test_resolveCompilationUnit_sourceChangeDuringResolution() {
+//    _context = new _AnalysisContext_sourceChangeDuringResolution();
+//    AnalysisContextFactory.initContextWithCore(_context);
+//    _sourceFactory = _context.sourceFactory;
+//    Source source = _addSource("/lib.dart", "library lib;");
+//    CompilationUnit compilationUnit =
+//        _context.resolveCompilationUnit2(source, source);
+//    expect(compilationUnit, isNotNull);
+//    expect(_context.getLineInfo(source), isNotNull);
+//  }
+
   void test_resolveCompilationUnit_library() {
     Source source = addSource("/lib.dart", "library lib;");
     LibraryElement library = context.computeLibraryElement(source);
@@ -2186,17 +2248,6 @@ class ClassTwo {
         context.resolveCompilationUnit2(source, source);
     expect(compilationUnit, isNotNull);
   }
-
-//  void test_resolveCompilationUnit_sourceChangeDuringResolution() {
-//    _context = new _AnalysisContext_sourceChangeDuringResolution();
-//    AnalysisContextFactory.initContextWithCore(_context);
-//    _sourceFactory = _context.sourceFactory;
-//    Source source = _addSource("/lib.dart", "library lib;");
-//    CompilationUnit compilationUnit =
-//        _context.resolveCompilationUnit2(source, source);
-//    expect(compilationUnit, isNotNull);
-//    expect(_context.getLineInfo(source), isNotNull);
-//  }
 
   void test_setAnalysisOptions() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
