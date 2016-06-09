@@ -177,12 +177,43 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     return class_stats_size_[class_id];
   }
 
-  // Returns true if some non-zero amount of work was performed.
-  bool DrainMarkingStack() {
+  bool ProcessPendingWeakProperties() {
+    bool marked = false;
+    RawWeakProperty* cur_weak = delayed_weak_properties_;
+    delayed_weak_properties_ = NULL;
+    while (cur_weak != NULL) {
+      uword next_weak = cur_weak->ptr()->next_;
+      RawObject* raw_key = cur_weak->ptr()->key_;
+      // Reset the next pointer in the weak property.
+      cur_weak->ptr()->next_ = 0;
+      if (raw_key->IsMarked()) {
+        RawObject* raw_val = cur_weak->ptr()->value_;
+        marked = marked || (raw_val->IsHeapObject() && !raw_val->IsMarked());
+
+        // The key is marked so we make sure to properly visit all pointers
+        // originating from this weak property.
+        VisitingOldObject(cur_weak);
+        cur_weak->VisitPointers(this);
+      } else {
+        // Requeue this weak property to be handled later.
+        EnqueueWeakProperty(cur_weak);
+      }
+      // Advance to next weak property in the queue.
+      cur_weak = reinterpret_cast<RawWeakProperty*>(next_weak);
+    }
+
+    return marked;
+  }
+
+  void DrainMarkingStack() {
     RawObject* raw_obj = work_list_.Pop();
+    if ((raw_obj == NULL) && ProcessPendingWeakProperties()) {
+      raw_obj = work_list_.Pop();
+    }
+
     if (raw_obj == NULL) {
       ASSERT(visiting_old_object_ == NULL);
-      return false;
+      return;
     }
     do {
       do {
@@ -200,33 +231,13 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       } while (raw_obj != NULL);
 
       // Marking stack is empty.
-      // Process all the pending weak properties in this visitor.
-      RawWeakProperty* cur_weak = delayed_weak_properties_;
-      delayed_weak_properties_ = NULL;
-      while (cur_weak != NULL) {
-        uword next_weak = cur_weak->ptr()->next_;
-        RawObject* raw_key = cur_weak->ptr()->key_;
-        // Reset the next pointer in the weak property.
-        cur_weak->ptr()->next_ = 0;
-        if (raw_key->IsMarked()) {
-          // The key is marked so we make sure to properly visit all pointers
-          // originating from this weak property.
-          VisitingOldObject(cur_weak);
-          cur_weak->VisitPointers(this);
-        } else {
-          // Requeue this weak property to be handled later.
-          EnqueueWeakProperty(cur_weak);
-        }
-        // Advance to next weak property in the queue.
-        cur_weak = reinterpret_cast<RawWeakProperty*>(next_weak);
-      }
+      ProcessPendingWeakProperties();
 
       // Check whether any further work was pushed either by other markers or
       // by the handling of weak properties.
       raw_obj = work_list_.Pop();
     } while (raw_obj != NULL);
     VisitingOldObject(NULL);
-    return true;
   }
 
   void VisitPointers(RawObject** first, RawObject** last) {
@@ -282,6 +293,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     while (cur_weak != NULL) {
       uword next_weak = cur_weak->ptr()->next_;
       cur_weak->ptr()->next_ = 0;
+      RELEASE_ASSERT(!cur_weak->ptr()->key_->IsMarked());
       WeakProperty::Clear(cur_weak);
       weak_properties_cleared++;
       // Advance to next weak property in the queue.
@@ -569,28 +581,54 @@ class MarkTask : public ThreadPool::Task {
                                  skipped_code_functions);
       // Phase 1: Iterate over roots and drain marking stack in tasks.
       marker_->IterateRoots(isolate_, &visitor, task_index_, num_tasks_);
+
+      bool more_to_mark = false;
       do {
-        visitor.DrainMarkingStack();
+        do {
+          visitor.DrainMarkingStack();
 
-        // I can't find more work right now. If no other task is busy,
-        // then there will never be more work (NB: 1 is *before* decrement).
-        if (AtomicOperations::FetchAndDecrement(num_busy_) == 1) break;
+          // I can't find more work right now. If no other task is busy,
+          // then there will never be more work (NB: 1 is *before* decrement).
+          if (AtomicOperations::FetchAndDecrement(num_busy_) == 1) break;
 
-        // Wait for some work to appear.
-        // TODO(iposva): Replace busy-waiting with a solution using Monitor,
-        // and redraw the boundaries between stack/visitor/task as needed.
-        while (marking_stack_->IsEmpty() &&
-               AtomicOperations::LoadRelaxed(num_busy_) > 0) {
+          // Wait for some work to appear.
+          // TODO(iposva): Replace busy-waiting with a solution using Monitor,
+          // and redraw the boundaries between stack/visitor/task as needed.
+          while (marking_stack_->IsEmpty() &&
+                 AtomicOperations::LoadRelaxed(num_busy_) > 0) {
+          }
+
+          // If no tasks are busy, there will never be more work.
+          if (AtomicOperations::LoadRelaxed(num_busy_) == 0) break;
+
+          // I saw some work; get busy and compete for it.
+          AtomicOperations::FetchAndIncrement(num_busy_);
+        } while (true);
+        // Wait for all markers to stop.
+        barrier_->Sync();
+        ASSERT(AtomicOperations::LoadRelaxed(num_busy_) == 0);
+
+        // Check if we have any pending properties with marked keys.
+        // Those might have been marked by another marker.
+        more_to_mark = visitor.ProcessPendingWeakProperties();
+        if (more_to_mark) {
+          // We have more work to do. Notify others.
+          AtomicOperations::FetchAndIncrement(num_busy_);
         }
 
-        // If no tasks are busy, there will never be more work.
-        if (AtomicOperations::LoadRelaxed(num_busy_) == 0) break;
-
-        // I saw some work; get busy and compete for it.
-        AtomicOperations::FetchAndIncrement(num_busy_);
-      } while (true);
-      ASSERT(AtomicOperations::LoadRelaxed(num_busy_) == 0);
-      barrier_->Sync();
+        // Wait for all other markers to finish processing their pending
+        // weak properties and decide if they need to continue marking.
+        // Caveat: we need two barriers here to make this decision in lock step
+        // between all markers and the main thread.
+        barrier_->Sync();
+        if (!more_to_mark && (AtomicOperations::LoadRelaxed(num_busy_) > 0)) {
+          // All markers continue to marker as long as any single marker has
+          // some work to do.
+          AtomicOperations::FetchAndIncrement(num_busy_);
+          more_to_mark = true;
+        }
+        barrier_->Sync();
+      } while (more_to_mark);
 
       // Phase 2: Weak processing and follow-up marking on main thread.
       barrier_->Sync();
@@ -688,7 +726,19 @@ void GCMarker::MarkObjects(Isolate* isolate,
         ThreadPool* pool = Dart::thread_pool();
         pool->Run(mark_task);
       }
-      barrier.Sync();
+      bool more_to_mark = false;
+      do {
+        // Wait for all markers to stop.
+        barrier.Sync();
+
+        // Wait for all markers to go through weak properties and verify
+        // that there are no more objects to mark.
+        // Note: we need to have two barriers here because we want all markers
+        // and main thread to make decisions in lock step.
+        barrier.Sync();
+        more_to_mark = AtomicOperations::LoadRelaxed(&num_busy) > 0;
+        barrier.Sync();
+      } while (more_to_mark);
 
       // Phase 2: Weak processing on main thread.
       {
