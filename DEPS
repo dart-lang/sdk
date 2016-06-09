@@ -74,7 +74,7 @@ vars = {
   "oauth2_tag": "@1.0.0",
   "observatory_pub_packages_rev": "@cf90eb9077177d3d6b3fd5e8289477c2385c026a",
   "observe_rev": "@eee2b8ec34236fa46982575fbccff84f61202ac6",
-  "package_config_rev": "@0.1.3",
+  "package_config_rev": "@0.1.5",
   "path_tag": "@1.3.6",
   "plugin_tag": "@0.2.0",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
