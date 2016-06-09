@@ -1,0 +1,443 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class DeltaBlue extends core::Object {
+  constructor •() → void/bottom
+    : super core::Object::•()
+    ;
+  method run() → void/bottom {
+    self::chainTest(100);
+    self::projectionTest(100);
+  }
+}
+class Strength extends core::Object {
+  final field core::int/bottom value;
+  final field core::String/bottom name;
+  const constructor •(core::int/core::int value, core::String/core::String name) → void/<missing type>
+    : self::Strength::value = value, self::Strength::name = name;
+  method nextWeaker() → self::Strength/core::Object
+    return const <self::Strength>[self::STRONG_PREFERRED, self::PREFERRED, self::STRONG_DEFAULT, self::NORMAL, self::WEAK_DEFAULT, self::WEAKEST].[](this.value);
+  static method stronger(self::Strength/core::Object s1, self::Strength/core::Object s2) → core::bool/core::Object {
+    return s1.value.<(s2.value);
+  }
+  static method weaker(self::Strength/core::Object s1, self::Strength/core::Object s2) → core::bool/core::Object {
+    return s1.value.>(s2.value);
+  }
+  static method weakest(self::Strength/core::Object s1, self::Strength/core::Object s2) → self::Strength/core::Object {
+    return self::Strength::weaker(s1, s2) ? s1 : s2;
+  }
+  static method strongest(self::Strength/core::Object s1, self::Strength/core::Object s2) → self::Strength/core::Object {
+    return self::Strength::stronger(s1, s2) ? s1 : s2;
+  }
+}
+abstract class Constraint extends core::Object {
+  final field self::Strength/bottom strength;
+  const constructor •(self::Strength/<missing type> strength) → void/<missing type>
+    : self::Constraint::strength = strength;
+  abstract method isSatisfied() → core::bool/<missing type>;
+  abstract method markUnsatisfied() → void/<missing type>;
+  abstract method addToGraph() → void/<missing type>;
+  abstract method removeFromGraph() → void/<missing type>;
+  abstract method chooseMethod(core::int/<missing type> mark) → void/<missing type>;
+  abstract method markInputs(core::int/<missing type> mark) → void/<missing type>;
+  abstract method inputsKnown(core::int/<missing type> mark) → core::bool/<missing type>;
+  abstract method output() → self::Variable/<missing type>;
+  abstract method execute() → void/<missing type>;
+  abstract method recalculate() → void/<missing type>;
+  method addConstraint() → void/bottom {
+    this.addToGraph();
+    self::planner.incrementalAdd(this);
+  }
+  method satisfy(dynamic/core::Object mark) → self::Constraint/self::Constraint {
+    this.chooseMethod(mark);
+    if(!this.isSatisfied()) {
+      if(this.strength.==(self::REQUIRED)) {
+        core::print("Could not satisfy a required constraint!");
+      }
+      return null;
+    }
+    this.markInputs(mark);
+    self::Variable/core::Object out = this.output();
+    self::Constraint/self::Constraint overridden = out.determinedBy;
+    if(!overridden.==(null))
+      overridden.markUnsatisfied();
+    out.determinedBy = this;
+    if(!self::planner.addPropagate(this, mark))
+      core::print("Cycle encountered");
+    out.mark = mark;
+    return overridden;
+  }
+  method destroyConstraint() → void/bottom {
+    if(this.isSatisfied())
+      self::planner.incrementalRemove(this);
+    this.removeFromGraph();
+  }
+  method isInput() → core::bool/core::bool
+    return false;
+}
+abstract class UnaryConstraint extends self::Constraint {
+  final field self::Variable/bottom myOutput;
+  field core::bool/core::bool satisfied = false;
+  constructor •(self::Variable/bottom myOutput, self::Strength/bottom strength) → void/bottom
+    : self::UnaryConstraint::myOutput = myOutput, super self::Constraint::•(strength) {
+    this.addConstraint();
+  }
+  method addToGraph() → void/bottom {
+    this.myOutput.addConstraint(this);
+    this.satisfied = false;
+  }
+  method chooseMethod(core::int/core::Object mark) → void/bottom {
+    this.satisfied = !this.myOutput.mark.==(mark) && self::Strength::stronger(this.strength, this.myOutput.walkStrength);
+  }
+  method isSatisfied() → core::bool/core::bool
+    return this.satisfied;
+  method markInputs(core::int/core::Object mark) → void/bottom {}
+  method output() → self::Variable/bottom
+    return this.myOutput;
+  method recalculate() → void/bottom {
+    this.myOutput.walkStrength = this.strength;
+    this.myOutput.stay = !this.isInput();
+    if(this.myOutput.stay)
+      this.execute();
+  }
+  method markUnsatisfied() → void/bottom {
+    this.satisfied = false;
+  }
+  method inputsKnown(core::int/core::Object mark) → core::bool/core::bool
+    return true;
+  method removeFromGraph() → void/bottom {
+    if(!this.myOutput.==(null))
+      this.myOutput.removeConstraint(this);
+    this.satisfied = false;
+  }
+}
+class StayConstraint extends self::UnaryConstraint {
+  constructor •(self::Variable/self::Variable v, self::Strength/self::Strength str) → void/<missing type>
+    : super self::UnaryConstraint::•(v, str);
+  method execute() → void/bottom {}
+}
+class EditConstraint extends self::UnaryConstraint {
+  constructor •(self::Variable/core::Object v, self::Strength/self::Strength str) → void/<missing type>
+    : super self::UnaryConstraint::•(v, str);
+  method isInput() → core::bool/core::bool
+    return true;
+  method execute() → void/bottom {}
+}
+abstract class BinaryConstraint extends self::Constraint {
+  field self::Variable/bottom v1;
+  field self::Variable/bottom v2;
+  field core::int/core::int direction = self::NONE;
+  constructor •(self::Variable/bottom v1, self::Variable/bottom v2, self::Strength/bottom strength) → void/bottom
+    : self::BinaryConstraint::v1 = v1, self::BinaryConstraint::v2 = v2, super self::Constraint::•(strength) {
+    this.addConstraint();
+  }
+  method chooseMethod(core::int/core::Object mark) → void/bottom {
+    if(this.v1.mark.==(mark)) {
+      this.direction = !this.v2.mark.==(mark) && self::Strength::stronger(this.strength, this.v2.walkStrength) ? self::FORWARD : self::NONE;
+    }
+    if(this.v2.mark.==(mark)) {
+      this.direction = !this.v1.mark.==(mark) && self::Strength::stronger(this.strength, this.v1.walkStrength) ? self::BACKWARD : self::NONE;
+    }
+    if(self::Strength::weaker(this.v1.walkStrength, this.v2.walkStrength)) {
+      this.direction = self::Strength::stronger(this.strength, this.v1.walkStrength) ? self::BACKWARD : self::NONE;
+    }
+    else {
+      this.direction = self::Strength::stronger(this.strength, this.v2.walkStrength) ? self::FORWARD : self::BACKWARD;
+    }
+  }
+  method addToGraph() → void/bottom {
+    this.v1.addConstraint(this);
+    this.v2.addConstraint(this);
+    this.direction = self::NONE;
+  }
+  method isSatisfied() → core::bool/core::bool
+    return!this.direction.==(self::NONE);
+  method markInputs(core::int/core::Object mark) → void/bottom {
+    this.input().mark = mark;
+  }
+  method input() → self::Variable/bottom
+    return this.direction.==(self::FORWARD) ? this.v1 : this.v2;
+  method output() → self::Variable/bottom
+    return this.direction.==(self::FORWARD) ? this.v2 : this.v1;
+  method recalculate() → void/bottom {
+    self::Variable/core::Object ihn = this.input();
+    self::Variable/core::Object out = this.output();
+    out.walkStrength = self::Strength::weakest(this.strength, ihn.walkStrength);
+    out.stay = ihn.stay;
+    if(out.stay)
+      this.execute();
+  }
+  method markUnsatisfied() → void/bottom {
+    this.direction = self::NONE;
+  }
+  method inputsKnown(core::int/core::Object mark) → core::bool/core::bool {
+    self::Variable/core::Object i = this.input();
+    return i.mark.==(mark) || i.stay || i.determinedBy.==(null);
+  }
+  method removeFromGraph() → void/bottom {
+    if(!this.v1.==(null))
+      this.v1.removeConstraint(this);
+    if(!this.v2.==(null))
+      this.v2.removeConstraint(this);
+    this.direction = self::NONE;
+  }
+}
+class ScaleConstraint extends self::BinaryConstraint {
+  final field self::Variable/bottom scale;
+  final field self::Variable/bottom offset;
+  constructor •(self::Variable/self::Variable src, self::Variable/self::Variable scale, self::Variable/self::Variable offset, self::Variable/self::Variable dest, self::Strength/self::Strength strength) → void/<missing type>
+    : self::ScaleConstraint::scale = scale, self::ScaleConstraint::offset = offset, super self::BinaryConstraint::•(src, dest, strength);
+  method addToGraph() → void/bottom {
+    super.self::BinaryConstraint::addToGraph();
+    this.scale.addConstraint(this);
+    this.offset.addConstraint(this);
+  }
+  method removeFromGraph() → void/bottom {
+    super.self::BinaryConstraint::removeFromGraph();
+    if(!this.scale.==(null))
+      this.scale.removeConstraint(this);
+    if(!this.offset.==(null))
+      this.offset.removeConstraint(this);
+  }
+  method markInputs(core::int/core::Object mark) → void/bottom {
+    super.self::BinaryConstraint::markInputs(mark);
+    this.scale.mark = this.offset.mark = mark;
+  }
+  method execute() → void/bottom {
+    if(this.direction.==(self::FORWARD)) {
+      this.v2.value = this.v1.value.*(this.scale.value).+(this.offset.value);
+    }
+    else {
+      this.v1.value = this.v2.value.-(this.offset.value).~/(this.scale.value);
+    }
+  }
+  method recalculate() → void/bottom {
+    self::Variable/core::Object ihn = this.input();
+    self::Variable/core::Object out = this.output();
+    out.walkStrength = self::Strength::weakest(this.strength, ihn.walkStrength);
+    out.stay = ihn.stay && this.scale.stay && this.offset.stay;
+    if(out.stay)
+      this.execute();
+  }
+}
+class EqualityConstraint extends self::BinaryConstraint {
+  constructor •(self::Variable/self::Variable v1, self::Variable/self::Variable v2, self::Strength/self::Strength strength) → void/<missing type>
+    : super self::BinaryConstraint::•(v1, v2, strength);
+  method execute() → void/bottom {
+    this.output().value = this.input().value;
+  }
+}
+class Variable extends core::Object {
+  field core::List<self::Constraint>/core::List constraints = <self::Constraint>[];
+  field self::Constraint/bottom determinedBy;
+  field core::int/core::int mark = 0;
+  field self::Strength/self::Strength walkStrength = self::WEAKEST;
+  field core::bool/core::bool stay = true;
+  field core::int/bottom value;
+  final field core::String/bottom name;
+  constructor •(core::String/core::String name, core::int/core::Object value) → void/<missing type>
+    : self::Variable::name = name, self::Variable::value = value;
+  method addConstraint(self::Constraint/core::Object c) → void/bottom {
+    this.constraints.add(c);
+  }
+  method removeConstraint(self::Constraint/core::Object c) → void/bottom {
+    this.constraints.remove(c);
+    if(this.determinedBy.==(c))
+      this.determinedBy = null;
+  }
+}
+class Planner extends core::Object {
+  field core::int/core::int currentMark = 0;
+  constructor •() → void/bottom
+    : super core::Object::•()
+    ;
+  method incrementalAdd(self::Constraint/core::Object c) → void/bottom {
+    core::int/core::Object mark = this.newMark();
+    for(self::Constraint/core::Object overridden = c.satisfy(mark); !overridden.==(null); overridden = overridden.satisfy(mark))
+      ;
+  }
+  method incrementalRemove(self::Constraint/core::Object c) → void/bottom {
+    self::Variable/core::Object out = c.output();
+    c.markUnsatisfied();
+    c.removeFromGraph();
+    core::List<self::Constraint>/core::Object unsatisfied = this.removePropagateFrom(out);
+    self::Strength/core::Object strength = self::REQUIRED;
+    do {
+      for(core::int/core::Object i = 0; i.<(unsatisfied.length); i = i.+(1)) {
+        self::Constraint/core::Object u = unsatisfied.[](i);
+        if(u.strength.==(strength))
+          this.incrementalAdd(u);
+      }
+      strength = strength.nextWeaker();
+    }
+    while (!strength.==(self::WEAKEST))
+  }
+  method newMark() → core::int/core::Object
+    return this.currentMark = this.currentMark.+(1);
+  method makePlan(core::List<self::Constraint>/core::Object sources) → self::Plan/self::Plan {
+    core::int/core::Object mark = this.newMark();
+    self::Plan/self::Plan plan = new self::Plan::•();
+    core::List<self::Constraint>/core::Object todo = sources;
+    while (todo.length.>(0)) {
+      self::Constraint/core::Object c = todo.removeLast();
+      if(!c.output().mark.==(mark) && c.inputsKnown(mark)) {
+        plan.addConstraint(c);
+        c.output().mark = mark;
+        this.addConstraintsConsumingTo(c.output(), todo);
+      }
+    }
+    return plan;
+  }
+  method extractPlanFromConstraints(core::List<self::Constraint>/core::Object constraints) → self::Plan/core::Object {
+    core::List<self::Constraint>/core::List sources = <self::Constraint>[];
+    for(core::int/core::Object i = 0; i.<(constraints.length); i = i.+(1)) {
+      self::Constraint/core::Object c = constraints.[](i);
+      if(c.isInput() && c.isSatisfied())
+        sources.add(c);
+    }
+    return this.makePlan(sources);
+  }
+  method addPropagate(self::Constraint/core::Object c, core::int/core::Object mark) → core::bool/core::bool {
+    core::List<self::Constraint>/core::List todo = <self::Constraint>[c];
+    while (todo.length.>(0)) {
+      self::Constraint/core::Object d = todo.removeLast();
+      if(d.output().mark.==(mark)) {
+        this.incrementalRemove(c);
+        return false;
+      }
+      d.recalculate();
+      this.addConstraintsConsumingTo(d.output(), todo);
+    }
+    return true;
+  }
+  method removePropagateFrom(self::Variable/core::Object out) → core::List<self::Constraint>/core::List {
+    out.determinedBy = null;
+    out.walkStrength = self::WEAKEST;
+    out.stay = true;
+    core::List<self::Constraint>/core::List unsatisfied = <self::Constraint>[];
+    core::List<self::Variable>/core::List todo = <self::Variable>[out];
+    while (todo.length.>(0)) {
+      self::Variable/core::Object v = todo.removeLast();
+      for(core::int/core::Object i = 0; i.<(v.constraints.length); i = i.+(1)) {
+        self::Constraint/core::Object c = v.constraints.[](i);
+        if(!c.isSatisfied())
+          unsatisfied.add(c);
+      }
+      self::Constraint/self::Constraint determining = v.determinedBy;
+      for(core::int/core::Object i = 0; i.<(v.constraints.length); i = i.+(1)) {
+        self::Constraint/core::Object next = v.constraints.[](i);
+        if(!next.==(determining) && next.isSatisfied()) {
+          next.recalculate();
+          todo.add(next.output());
+        }
+      }
+    }
+    return unsatisfied;
+  }
+  method addConstraintsConsumingTo(self::Variable/core::Object v, core::List<self::Constraint>/core::Object coll) → void/bottom {
+    self::Constraint/self::Constraint determining = v.determinedBy;
+    for(core::int/core::Object i = 0; i.<(v.constraints.length); i = i.+(1)) {
+      self::Constraint/core::Object c = v.constraints.[](i);
+      if(!c.==(determining) && c.isSatisfied())
+        coll.add(c);
+    }
+  }
+}
+class Plan extends core::Object {
+  field core::List<self::Constraint>/core::List list = <self::Constraint>[];
+  constructor •() → void/bottom
+    : super core::Object::•()
+    ;
+  method addConstraint(self::Constraint/core::Object c) → void/bottom {
+    this.list.add(c);
+  }
+  method size() → core::int/core::Object
+    return this.list.length;
+  method execute() → void/bottom {
+    for(core::int/core::Object i = 0; i.<(this.list.length); i = i.+(1)) {
+      this.list.[](i).execute();
+    }
+  }
+}
+static const field dynamic/self::Strength REQUIRED = const self::Strength::•(0, "required");
+static const field dynamic/self::Strength STRONG_PREFERRED = const self::Strength::•(1, "strongPreferred");
+static const field dynamic/self::Strength PREFERRED = const self::Strength::•(2, "preferred");
+static const field dynamic/self::Strength STRONG_DEFAULT = const self::Strength::•(3, "strongDefault");
+static const field dynamic/self::Strength NORMAL = const self::Strength::•(4, "normal");
+static const field dynamic/self::Strength WEAK_DEFAULT = const self::Strength::•(5, "weakDefault");
+static const field dynamic/self::Strength WEAKEST = const self::Strength::•(6, "weakest");
+static const field core::int/core::int NONE = 1;
+static const field core::int/core::int FORWARD = 2;
+static const field core::int/core::int BACKWARD = 0;
+static field self::Planner/self::Planner planner;
+static method main() → dynamic/bottom {
+  new self::DeltaBlue::•().run();
+}
+static method chainTest(core::int/core::Object n) → void/bottom {
+  self::planner = new self::Planner::•();
+  self::Variable/self::Variable prev = null;
+  self::Variable/self::Variable first = null;
+  self::Variable/self::Variable last = null;
+  for(core::int/core::Object i = 0; i.<=(n); i = i.+(1)) {
+    self::Variable/self::Variable v = new self::Variable::•("v${i}", 0);
+    if(!prev.==(null))
+      new self::EqualityConstraint::•(prev, v, self::REQUIRED);
+    if(i.==(0))
+      first = v;
+    if(i.==(n))
+      last = v;
+    prev = v;
+  }
+  new self::StayConstraint::•(last, self::STRONG_DEFAULT);
+  self::EditConstraint/self::EditConstraint edit = new self::EditConstraint::•(first, self::PREFERRED);
+  self::Plan/core::Object plan = self::planner.extractPlanFromConstraints(<self::Constraint>[edit]);
+  for(core::int/core::Object i = 0; i.<(100); i = i.+(1)) {
+    first.value = i;
+    plan.execute();
+    if(!last.value.==(i)) {
+      core::print("Chain test failed:");
+      core::print("Expected last value to be ${i} but it was ${last.value}.");
+    }
+  }
+}
+static method projectionTest(core::int/core::Object n) → void/bottom {
+  self::planner = new self::Planner::•();
+  self::Variable/self::Variable scale = new self::Variable::•("scale", 10);
+  self::Variable/self::Variable offset = new self::Variable::•("offset", 1000);
+  self::Variable/self::Variable src = null;
+  self::Variable/self::Variable dst = null;
+  core::List<self::Variable>/core::List dests = <self::Variable>[];
+  for(core::int/core::Object i = 0; i.<(n); i = i.+(1)) {
+    src = new self::Variable::•("src", i);
+    dst = new self::Variable::•("dst", i);
+    dests.add(dst);
+    new self::StayConstraint::•(src, self::NORMAL);
+    new self::ScaleConstraint::•(src, scale, offset, dst, self::REQUIRED);
+  }
+  self::change(src, 17);
+  if(!dst.value.==(1170))
+    core::print("Projection 1 failed");
+  self::change(dst, 1050);
+  if(!src.value.==(5))
+    core::print("Projection 2 failed");
+  self::change(scale, 5);
+  for(core::int/core::Object i = 0; i.<(n.-(1)); i = i.+(1)) {
+    if(!dests.[](i).value.==(i.*(5).+(1000)))
+      core::print("Projection 3 failed");
+  }
+  self::change(offset, 2000);
+  for(core::int/core::Object i = 0; i.<(n.-(1)); i = i.+(1)) {
+    if(!dests.[](i).value.==(i.*(5).+(2000)))
+      core::print("Projection 4 failed");
+  }
+}
+static method change(self::Variable/core::Object v, core::int/core::Object newValue) → void/bottom {
+  self::EditConstraint/self::EditConstraint edit = new self::EditConstraint::•(v, self::PREFERRED);
+  self::Plan/core::Object plan = self::planner.extractPlanFromConstraints(<self::EditConstraint>[edit]);
+  for(core::int/core::Object i = 0; i.<(10); i = i.+(1)) {
+    v.value = newValue;
+    plan.execute();
+  }
+  edit.destroyConstraint();
+}
