@@ -70,7 +70,7 @@ import "../foo/foo.dart";
 ''');
     Source barSource = bar.createSource();
     server.setAnalysisRoots('0', ['/foo', '/bar'], [], {});
-    return pumpEventQueue(40).then((_) {
+    return server.onAnalysisComplete.then((_) {
       expect(server.statusAnalyzing, isFalse);
       // Make sure getAnalysisContext returns the proper context for each.
       AnalysisContext fooContext =
@@ -110,7 +110,7 @@ import "../foo/foo.dart";
     AnalysisContext barContext = server.getAnalysisContextForSource(barSource);
     expect(barContext, isNotNull);
     expect(fooContext, isNot(same(barContext)));
-    return pumpEventQueue(40).then((_) {
+    return server.onAnalysisComplete.then((_) {
       expect(server.statusAnalyzing, isFalse);
       // Make sure getAnalysisContext returned the proper context for each.
       expect(fooContext.getKindOf(fooSource), SourceKind.LIBRARY);
@@ -236,7 +236,7 @@ import "../foo/foo.dart";
     File bar = resourceProvider.newFile('/bar/bar.dart', 'library lib;');
     Source barSource = bar.createSource();
     server.setAnalysisRoots('0', ['/foo', '/bar'], [], {});
-    return pumpEventQueue(500).then((_) {
+    return server.onAnalysisComplete.then((_) {
       expect(server.statusAnalyzing, isFalse);
       // Make sure getAnalysisContext returns the proper context for each.
       AnalysisContext fooContext =
