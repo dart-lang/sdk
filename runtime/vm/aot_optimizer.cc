@@ -2465,58 +2465,104 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
       flow_graph_->IsReceiver(callee_receiver)) {
     // Call receiver is method receiver.
     Class& receiver_class = Class::Handle(Z, function.Owner());
+
     GrowableArray<intptr_t> class_ids(6);
     if (thread()->cha()->ConcreteSubclasses(receiver_class, &class_ids)) {
-      if (class_ids.length() <= FLAG_max_exhaustive_polymorphic_checks) {
-        if (FLAG_trace_cha) {
-          THR_Print("  **(CHA) Only %" Pd " concrete subclasses of %s for %s\n",
-                    class_ids.length(),
-                    receiver_class.ToCString(),
-                    instr->function_name().ToCString());
-        }
+      // First check if all subclasses end up calling the same method.
+      // If this is the case we will replace instance call with a direct
+      // static call.
+      // Otherwise we will try to create ICData that contains all possible
+      // targets with appropriate checks.
+      Function& single_target = Function::Handle(Z);
+      ICData& ic_data = ICData::Handle(Z);
 
-        const Array& args_desc_array = Array::Handle(Z,
-            ArgumentsDescriptor::New(instr->ArgumentCount(),
-                                     instr->argument_names()));
-        ArgumentsDescriptor args_desc(args_desc_array);
+      const Array& args_desc_array = Array::Handle(Z,
+          ArgumentsDescriptor::New(instr->ArgumentCount(),
+                                   instr->argument_names()));
+      ArgumentsDescriptor args_desc(args_desc_array);
 
-        const ICData& ic_data = ICData::Handle(
-            ICData::New(function,
-                        instr->function_name(),
-                        args_desc_array,
-                        Thread::kNoDeoptId,
-                        /* args_tested = */ 1));
+      Function& target = Function::Handle(Z);
+      Class& cls = Class::Handle(Z);
+      for (intptr_t i = 0; i < class_ids.length(); i++) {
+        const intptr_t cid = class_ids[i];
+        cls = isolate()->class_table()->At(cid);
+        target = Resolver::ResolveDynamicForReceiverClass(
+            cls,
+            instr->function_name(),
+            args_desc);
 
-        Function& target = Function::Handle(Z);
-        Class& cls = Class::Handle(Z);
-        bool includes_dispatcher_case = false;
-        for (intptr_t i = 0; i < class_ids.length(); i++) {
-          intptr_t cid = class_ids[i];
-          cls = isolate()->class_table()->At(cid);
-          target = Resolver::ResolveDynamicForReceiverClass(
-              cls,
-              instr->function_name(),
-              args_desc);
-          if (target.IsNull()) {
-            // noSuchMethod, call through getter or closurization
-            includes_dispatcher_case = true;
-          } else {
-            ic_data.AddReceiverCheck(cid, target);
+        if (target.IsNull()) {
+          // Can't resolve the target. It might be a noSuchMethod,
+          // call through getter or closurization.
+          single_target = Function::null();
+          ic_data = ICData::null();
+          break;
+        } else if (ic_data.IsNull()) {
+          // First we are trying to compute a single target for all subclasses.
+          if (single_target.IsNull()) {
+            ASSERT(i == 0);
+            single_target = target.raw();
+            continue;
+          } else if (single_target.raw() == target.raw()) {
+            continue;
           }
+
+          // The call does not resolve to a single target within the hierarchy.
+          // If we have too many subclasses abort the optimization.
+          if (class_ids.length() > FLAG_max_exhaustive_polymorphic_checks) {
+            single_target = Function::null();
+            break;
+          }
+
+          // Create an ICData and map all previously seen classes (< i) to
+          // the computed single_target.
+          ic_data = ICData::New(function,
+                                instr->function_name(),
+                                args_desc_array,
+                                Thread::kNoDeoptId,
+                                /* args_tested = */ 1);
+          for (intptr_t j = 0; j < i; j++) {
+            ic_data.AddReceiverCheck(class_ids[j], single_target);
+          }
+
+          single_target = Function::null();
         }
-        if (!includes_dispatcher_case && (ic_data.NumberOfChecks() > 0)) {
-          PolymorphicInstanceCallInstr* call =
-              new(Z) PolymorphicInstanceCallInstr(instr, ic_data,
-                                                  /* with_checks = */ true,
-                                                  /* complete = */ true);
-          instr->ReplaceWith(call, current_iterator());
-          return;
+
+        ASSERT(ic_data.raw() != ICData::null());
+        ASSERT(single_target.raw() == Function::null());
+        ic_data.AddReceiverCheck(cid, target);
+      }
+
+      if (single_target.raw() != Function::null()) {
+        // We have computed that there is only a single target for this call
+        // within the whole hierarchy. Replace InstanceCall with StaticCall.
+        ZoneGrowableArray<PushArgumentInstr*>* args =
+            new (Z) ZoneGrowableArray<PushArgumentInstr*>(
+                instr->ArgumentCount());
+        for (intptr_t i = 0; i < instr->ArgumentCount(); i++) {
+          args->Add(instr->PushArgumentAt(i));
         }
+        StaticCallInstr* call = new (Z) StaticCallInstr(
+            instr->token_pos(),
+            Function::ZoneHandle(Z, single_target.raw()),
+            instr->argument_names(),
+            args,
+            instr->deopt_id());
+        instr->ReplaceWith(call, current_iterator());
+        return;
+      } else if ((ic_data.raw() != ICData::null()) &&
+                 (ic_data.NumberOfChecks() > 0)) {
+        PolymorphicInstanceCallInstr* call =
+            new(Z) PolymorphicInstanceCallInstr(instr, ic_data,
+                                                /* with_checks = */ true,
+                                                /* complete = */ true);
+        instr->ReplaceWith(call, current_iterator());
+        return;
       }
     }
   }
 
-  // More than one targets. Generate generic polymorphic call without
+  // More than one target. Generate generic polymorphic call without
   // deoptimization.
   if (instr->ic_data()->NumberOfUsedChecks() > 0) {
     ASSERT(!FLAG_polymorphic_with_deopt);
