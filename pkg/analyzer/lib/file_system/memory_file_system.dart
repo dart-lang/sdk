@@ -498,6 +498,16 @@ class _MemoryFolder extends _MemoryResource implements Folder {
   }
 
   @override
+  _MemoryFile getChildAssumingFile(String relPath) {
+    String childPath = canonicalizePath(relPath);
+    _MemoryResource resource = _provider._pathToResource[childPath];
+    if (resource is _MemoryFile) {
+      return resource;
+    }
+    return new _MemoryFile(_provider, childPath);
+  }
+
+  @override
   _MemoryFolder getChildAssumingFolder(String relPath) {
     String childPath = canonicalizePath(relPath);
     _MemoryResource resource = _provider._pathToResource[childPath];

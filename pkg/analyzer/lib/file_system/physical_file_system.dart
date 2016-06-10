@@ -179,6 +179,13 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
   }
 
   @override
+  _PhysicalFile getChildAssumingFile(String relPath) {
+    String canonicalPath = canonicalizePath(relPath);
+    io.File file = new io.File(canonicalPath);
+    return new _PhysicalFile(file);
+  }
+
+  @override
   _PhysicalFolder getChildAssumingFolder(String relPath) {
     String canonicalPath = canonicalizePath(relPath);
     io.Directory directory = new io.Directory(canonicalPath);

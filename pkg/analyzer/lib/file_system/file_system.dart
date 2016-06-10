@@ -106,6 +106,14 @@ abstract class Folder implements Resource {
   Resource getChild(String relPath);
 
   /**
+   * Return a [File] representing a child [Resource] with the given
+   * [relPath].  This call does not check whether a file with the given name
+   * exists on the filesystem - client must call the [File]'s `exists` getter
+   * to determine whether the folder actually exists.
+   */
+  File getChildAssumingFile(String relPath);
+
+  /**
    * Return a [Folder] representing a child [Resource] with the given
    * [relPath].  This call does not check whether a folder with the given name
    * exists on the filesystem--client must call the [Folder]'s `exists` getter

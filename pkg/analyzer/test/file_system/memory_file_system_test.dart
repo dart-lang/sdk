@@ -272,6 +272,26 @@ class FolderTest {
     expect(child.exists, isTrue);
   }
 
+  void test_getChildAssumingFile_doesNotExist() {
+    File child = folder.getChildAssumingFile('name');
+    expect(child, isNotNull);
+    expect(child.exists, isFalse);
+  }
+
+  void test_getChildAssumingFile_file() {
+    provider.newFile('/foo/bar/name', 'content');
+    File child = folder.getChildAssumingFile('name');
+    expect(child, isNotNull);
+    expect(child.exists, isTrue);
+  }
+
+  void test_getChildAssumingFile_folder() {
+    provider.newFolder('/foo/bar/name');
+    File child = folder.getChildAssumingFile('name');
+    expect(child, isNotNull);
+    expect(child.exists, isFalse);
+  }
+
   void test_getChildAssumingFolder_doesNotExist() {
     Folder child = folder.getChildAssumingFolder('foldername');
     expect(child, isNotNull);

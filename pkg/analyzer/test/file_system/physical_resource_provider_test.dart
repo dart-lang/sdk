@@ -254,6 +254,26 @@ class FolderTest extends _BaseTest {
     expect(child.exists, isTrue);
   }
 
+  void test_getChildAssumingFile_doesNotExist() {
+    File child = folder.getChildAssumingFile('no-such-resource');
+    expect(child, isNotNull);
+    expect(child.exists, isFalse);
+  }
+
+  void test_getChildAssumingFile_file() {
+    new io.File(join(path, 'myFile')).createSync();
+    File child = folder.getChildAssumingFile('myFile');
+    expect(child, isNotNull);
+    expect(child.exists, isTrue);
+  }
+
+  void test_getChildAssumingFile_folder() {
+    new io.Directory(join(path, 'myFolder')).createSync();
+    File child = folder.getChildAssumingFile('myFolder');
+    expect(child, isNotNull);
+    expect(child.exists, isFalse);
+  }
+
   void test_getChildAssumingFolder_doesNotExist() {
     Folder child = folder.getChildAssumingFolder('no-such-resource');
     expect(child, isNotNull);
