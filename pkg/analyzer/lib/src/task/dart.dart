@@ -5684,7 +5684,7 @@ class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
     if (options.strongMode) {
       unit.accept(new CodeChecker(
           typeProvider, new StrongTypeSystemImpl(), errorListener,
-          hints: options.strongModeHints));
+          options));
     }
     //
     // Record outputs.

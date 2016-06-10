@@ -13,34 +13,16 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/type_system.dart';
-
-/// A down cast due to a variable declaration to a ground type:
-///
-///     T x = expr;
-///
-/// where `T` is ground.  We exclude non-ground types as these behave
-/// differently compared to standard Dart.
-class AssignmentCast extends DownCast {
-  AssignmentCast(TypeSystem rules, Expression expression, DartType fromType,
-      DartType toType)
-      : super._internal(rules, expression, fromType, toType);
-
-  @override
-  String get name => 'STRONG_MODE_ASSIGNMENT_CAST';
-
-  toErrorCode() => new HintCode(name, message);
-}
 
 /// Implicitly injected expression conversion.
 abstract class CoercionInfo extends StaticInfo {
   static const String _propertyName = 'dev_compiler.src.info.CoercionInfo';
 
-  final TypeSystem rules;
-
   final Expression node;
 
-  CoercionInfo(this.rules, this.node);
+  CoercionInfo(this.node);
 
   DartType get baseType => node.staticType ?? DynamicTypeImpl.instance;
   DartType get convertedType;
@@ -60,14 +42,15 @@ abstract class CoercionInfo extends StaticInfo {
   }
 }
 
-/// Base class for all casts from base type to sub type.
-abstract class DownCast extends CoercionInfo {
+/// Implicit casts from base type to sub type.
+class DownCast extends CoercionInfo {
   final DartType _fromType;
   final DartType _toType;
+  ErrorCode _errorCode;
 
-  DownCast._internal(
-      TypeSystem rules, Expression expression, this._fromType, this._toType)
-      : super(rules, expression);
+  DownCast._(
+      Expression expression, this._fromType, this._toType, this._errorCode)
+      : super(expression);
 
   @override
   List<Object> get arguments => [baseType, convertedType];
@@ -79,14 +62,23 @@ abstract class DownCast extends CoercionInfo {
   @override
   DartType get baseType => _fromType;
 
+  @override
   DartType get convertedType => _toType;
 
   @override
-  String get message => 'Unsound implicit cast from {0} to {1}';
+  String get message => _message;
+
+  @override
+  String get name => _errorCode.name;
+
+  @override
+  toErrorCode() => _errorCode;
+
+  static const String _message = 'Unsound implicit cast from {0} to {1}';
 
   /// Factory to create correct DownCast variant.
   static StaticInfo create(StrongTypeSystemImpl rules, Expression expression,
-      DartType fromType, DartType toType) {
+      DartType fromType, DartType toType, AnalysisOptionsImpl options) {
     // toT <:_R fromT => to <: fromT
     // NB: classes with call methods are subtypes of function
     // types, but the function type is not assignable to the class
@@ -96,7 +88,7 @@ abstract class DownCast extends CoercionInfo {
     if (expression is Literal || expression is FunctionExpression) {
       // fromT should be an exact type - this will almost certainly fail at
       // runtime.
-      return new StaticTypeError(rules, expression, toType);
+      return new StaticTypeError(expression, toType);
     }
 
     if (expression is InstanceCreationExpression) {
@@ -104,19 +96,20 @@ abstract class DownCast extends CoercionInfo {
       if (e == null || !e.isFactory) {
         // fromT should be an exact type - this will almost certainly fail at
         // runtime.
-        return new StaticTypeError(rules, expression, toType);
+        return new StaticTypeError(expression, toType);
       }
     }
 
     if (StaticInfo.isKnownFunction(expression)) {
-      return new StaticTypeError(rules, expression, toType);
+      return new StaticTypeError(expression, toType);
     }
 
     // TODO(vsm): Change this to an assert when we have generic methods and
     // fix TypeRules._coerceTo to disallow implicit sideways casts.
+    bool downCastComposite = false;
     if (!rules.isSubtypeOf(toType, fromType)) {
       assert(toType.isSubtypeOf(fromType) || fromType.isAssignableTo(toType));
-      return new DownCastComposite(rules, expression, fromType, toType);
+      downCastComposite = true;
     }
 
     // Composite cast: these are more likely to fail.
@@ -128,75 +121,44 @@ abstract class DownCast extends CoercionInfo {
         // Iterable<T> to List<T>.  The intuition here is that raw (generic)
         // casts are problematic, and we should complain about those.
         var typeArgs = fromType.typeArguments;
-        if (typeArgs.isEmpty || typeArgs.any((t) => t.isDynamic)) {
-          return new DownCastComposite(rules, expression, fromType, toType);
-        }
+        downCastComposite =
+            typeArgs.isEmpty || typeArgs.any((t) => t.isDynamic);
       } else {
-        return new DownCastComposite(rules, expression, fromType, toType);
+        downCastComposite = true;
       }
     }
 
-    // Dynamic cast
-    if (fromType.isDynamic) {
-      return new DynamicCast(rules, expression, fromType, toType);
-    }
-
-    // Assignment cast
     var parent = expression.parent;
-    if (parent is VariableDeclaration && (parent.initializer == expression)) {
-      return new AssignmentCast(rules, expression, fromType, toType);
+    String name;
+    if (downCastComposite) {
+      name = 'STRONG_MODE_DOWN_CAST_COMPOSITE';
+    } else if (fromType.isDynamic) {
+      name = 'STRONG_MODE_DYNAMIC_CAST';
+    } else if (parent is VariableDeclaration &&
+        parent.initializer == expression) {
+      name = 'STRONG_MODE_ASSIGNMENT_CAST';
+    } else {
+      name = 'STRONG_MODE_DOWN_CAST_IMPLICIT';
     }
 
-    // Other casts
-    return new DownCastImplicit(rules, expression, fromType, toType);
+    // For the remaining cases, we allow implicit casts by default.
+    // However this can be disabled with an option.
+    ErrorCode errorCode;
+    if (!options.implicitCasts) {
+      errorCode = new CompileTimeErrorCode(name, _message);
+    } else if (downCastComposite) {
+      errorCode = new StaticWarningCode(name, _message);
+    } else {
+      errorCode = new HintCode(name, _message);
+    }
+    return new DownCast._(expression, fromType, toType, errorCode);
   }
-}
-
-/// Implicit down casts.  These are only injected by the compiler by flag.
-///
-/// A down cast to a non-ground type.  These behave differently from standard
-/// Dart and may be more likely to fail at runtime.
-class DownCastComposite extends DownCast {
-  DownCastComposite(TypeSystem rules, Expression expression, DartType fromType,
-      DartType toType)
-      : super._internal(rules, expression, fromType, toType);
-
-  @override
-  String get name => 'STRONG_MODE_DOWN_CAST_COMPOSITE';
-
-  toErrorCode() => new StaticWarningCode(name, message);
-}
-
-/// A down cast to a non-ground type.  These behave differently from standard
-/// Dart and may be more likely to fail at runtime.
-class DownCastImplicit extends DownCast {
-  DownCastImplicit(TypeSystem rules, Expression expression, DartType fromType,
-      DartType toType)
-      : super._internal(rules, expression, fromType, toType);
-
-  @override
-  String get name => 'STRONG_MODE_DOWN_CAST_IMPLICIT';
-
-  toErrorCode() => new HintCode(name, message);
-}
-
-/// A down cast from dynamic to T.
-class DynamicCast extends DownCast {
-  DynamicCast(TypeSystem rules, Expression expression, DartType fromType,
-      DartType toType)
-      : super._internal(rules, expression, fromType, toType);
-
-  @override
-  String get name => 'STRONG_MODE_DYNAMIC_CAST';
-
-  toErrorCode() => new HintCode(name, message);
 }
 
 class DynamicInvoke extends CoercionInfo {
   static const String _propertyName = 'dev_compiler.src.info.DynamicInvoke';
 
-  DynamicInvoke(TypeSystem rules, Expression expression)
-      : super(rules, expression);
+  DynamicInvoke(Expression expression) : super(expression);
   DartType get convertedType => DynamicTypeImpl.instance;
   String get message => '{0} requires dynamic invoke';
 
@@ -217,75 +179,41 @@ class DynamicInvoke extends CoercionInfo {
   }
 }
 
-/// Standard / unspecialized inferred type.
-class InferredType extends InferredTypeBase {
-  InferredType(TypeSystem rules, Expression expression, DartType type)
-      : super._internal(rules, expression, type);
-
+/// A marker for an inferred type.
+class InferredType extends CoercionInfo {
   @override
-  String get name => 'STRONG_MODE_INFERRED_TYPE';
+  final String name;
+
+  final DartType type;
+
+  InferredType(Expression expression, this.type, this.name) : super(expression);
 
   /// Factory to create correct InferredType variant.
-  static InferredTypeBase create(
+  static InferredType create(
       TypeSystem rules, Expression expression, DartType type) {
     // Specialized inference:
+    String name;
     if (expression is Literal) {
-      return new InferredTypeLiteral(rules, expression, type);
+      name = 'STRONG_MODE_INFERRED_TYPE_LITERAL';
+    } else if (expression is InstanceCreationExpression) {
+      name = 'STRONG_MODE_INFERRED_TYPE_ALLOCATION';
+    } else if (expression is FunctionExpression) {
+      name = 'STRONG_MODE_INFERRED_TYPE_CLOSURE';
+    } else {
+      name = 'STRONG_MODE_INFERRED_TYPE';
     }
-    if (expression is InstanceCreationExpression) {
-      return new InferredTypeAllocation(rules, expression, type);
-    }
-    if (expression is FunctionExpression) {
-      return new InferredTypeClosure(rules, expression, type);
-    }
-    return new InferredType(rules, expression, type);
+    return new InferredType(expression, type, name);
   }
-}
-
-/// An inferred type for a non-literal allocation site.
-class InferredTypeAllocation extends InferredTypeBase {
-  InferredTypeAllocation(TypeSystem rules, Expression expression, DartType type)
-      : super._internal(rules, expression, type);
-
-  @override
-  String get name => 'STRONG_MODE_INFERRED_TYPE_ALLOCATION';
-}
-
-/// An inferred type for the wrapped expression, which may need to be
-/// reified into the term.
-abstract class InferredTypeBase extends CoercionInfo {
-  final DartType _type;
-
-  InferredTypeBase._internal(
-      TypeSystem rules, Expression expression, this._type)
-      : super(rules, expression);
 
   @override
   List get arguments => [node, type];
+
   DartType get convertedType => type;
+
   @override
   String get message => '{0} has inferred type {1}';
-  DartType get type => _type;
 
   toErrorCode() => new HintCode(name, message);
-}
-
-/// An inferred type for a closure expression.
-class InferredTypeClosure extends InferredTypeBase {
-  InferredTypeClosure(TypeSystem rules, Expression expression, DartType type)
-      : super._internal(rules, expression, type);
-
-  @override
-  String get name => 'STRONG_MODE_INFERRED_TYPE_CLOSURE';
-}
-
-/// An inferred type for a literal expression.
-class InferredTypeLiteral extends InferredTypeBase {
-  InferredTypeLiteral(TypeSystem rules, Expression expression, DartType type)
-      : super._internal(rules, expression, type);
-
-  @override
-  String get name => 'STRONG_MODE_INFERRED_TYPE_LITERAL';
 }
 
 class InvalidFieldOverride extends InvalidOverride {
@@ -484,7 +412,6 @@ abstract class StaticInfo {
     'STRONG_MODE_INVALID_VARIABLE_DECLARATION',
     'STRONG_MODE_NON_GROUND_TYPE_CHECK_INFO',
     'STRONG_MODE_STATIC_TYPE_ERROR',
-    'STRONG_MODE_UNINFERRED_CLOSURE',
   ];
 
   List<Object> get arguments => [node];
@@ -527,7 +454,7 @@ class StaticTypeError extends StaticError {
   final DartType baseType;
   final DartType expectedType;
 
-  StaticTypeError(TypeSystem rules, Expression expression, this.expectedType)
+  StaticTypeError(Expression expression, this.expectedType)
       : baseType = expression.staticType ?? DynamicTypeImpl.instance,
         super(expression);
 

@@ -13,6 +13,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/type_system.dart';
 
@@ -101,16 +102,15 @@ class CodeChecker extends RecursiveAstVisitor {
   final TypeProvider typeProvider;
   final AnalysisErrorListener reporter;
   final _OverrideChecker _overrideChecker;
-  final bool _hints;
+  final AnalysisOptionsImpl _options;
 
   bool _failure = false;
+
   CodeChecker(TypeProvider typeProvider, StrongTypeSystemImpl rules,
-      AnalysisErrorListener reporter,
-      {bool hints: false})
+      AnalysisErrorListener reporter, this._options)
       : typeProvider = typeProvider,
         rules = rules,
         reporter = reporter,
-        _hints = hints,
         _overrideChecker = new _OverrideChecker(typeProvider, rules, reporter);
 
   bool get failure => _failure || _overrideChecker._failure;
@@ -346,7 +346,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
         if (rules.isSubtypeOf(sequenceType, iterableType)) {
           _recordMessage(DownCast.create(
-              rules, node.iterable, iterableType, sequenceType));
+              rules, node.iterable, iterableType, sequenceType, _options));
           elementType = DynamicTypeImpl.instance;
         }
       }
@@ -632,11 +632,11 @@ class CodeChecker extends RecursiveAstVisitor {
             rules.isSubtypeOf(lhsType, rhsType)) {
           // This is also slightly different from spec, but allows us to keep
           // compound operators in the int += num and num += dynamic cases.
-          staticInfo =
-              DownCast.create(rules, expr.rightHandSide, rhsType, lhsType);
+          staticInfo = DownCast.create(
+              rules, expr.rightHandSide, rhsType, lhsType, _options);
           rhsType = lhsType;
         } else {
-          staticInfo = new StaticTypeError(rules, expr, lhsType);
+          staticInfo = new StaticTypeError(expr, lhsType);
         }
         _recordMessage(staticInfo);
       }
@@ -679,7 +679,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
     // Downcast if toT <: fromT
     if (rules.isSubtypeOf(to, from)) {
-      _recordMessage(DownCast.create(rules, expr, from, to));
+      _recordMessage(DownCast.create(rules, expr, from, to, _options));
       return;
     }
 
@@ -694,7 +694,7 @@ class CodeChecker extends RecursiveAstVisitor {
     // Iterable<T> for some concrete T (e.g. Object).  These are unrelated
     // in the restricted system, but List<dynamic> <: Iterable<T> in dart.
     if (from.isAssignableTo(to)) {
-      _recordMessage(DownCast.create(rules, expr, from, to));
+      _recordMessage(DownCast.create(rules, expr, from, to, _options));
     }
   }
 
@@ -894,8 +894,8 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   void _recordDynamicInvoke(AstNode node, AstNode target) {
-    if (_hints) {
-      reporter.onError(new DynamicInvoke(rules, node).toAnalysisError());
+    if (_options.strongModeHints) {
+      reporter.onError(new DynamicInvoke(node).toAnalysisError());
     }
     // TODO(jmesserly): we may eventually want to record if the whole operation
     // (node) was dynamic, rather than the target, but this is an easier fit
@@ -908,7 +908,7 @@ class CodeChecker extends RecursiveAstVisitor {
     var error = info.toAnalysisError();
     var severity = error.errorCode.errorSeverity;
     if (severity == ErrorSeverity.ERROR) _failure = true;
-    if (severity != ErrorSeverity.INFO || _hints) {
+    if (severity != ErrorSeverity.INFO || _options.strongModeHints) {
       reporter.onError(error);
     }
 

@@ -1295,6 +1295,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool trackCacheDependencies = true;
 
   /**
+   * A flag indicating whether implicit casts are allowed in [strongMode]
+   * (they are always allowed in Dart 1.0 mode).
+   *
+   * This option is experimental and subject to change.
+   */
+  bool implicitCasts = true;
+
+  /**
    * Initialize a newly created set of analysis options to have their default
    * values.
    */
@@ -1325,6 +1333,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     strongMode = options.strongMode;
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
+      implicitCasts = options.implicitCasts;
     }
     trackCacheDependencies = options.trackCacheDependencies;
   }

@@ -1900,6 +1900,13 @@ main() {
 ''');
   }
 
+  void test_implicitCasts() {
+    addFile('num n; int i = /*info:ASSIGNMENT_CAST*/n;');
+    check();
+    addFile('num n; int i = /*severe:ASSIGNMENT_CAST*/n;');
+    check(implicitCasts: false);
+  }
+
   void test_invalidOverrides_baseClassOverrideToChildInterface() {
     checkFile('''
 class A {}
