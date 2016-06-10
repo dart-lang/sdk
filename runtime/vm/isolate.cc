@@ -1776,6 +1776,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
     if (reload_context() != NULL) {
       reload_context()->VisitObjectPointers(visitor);
     }
+    if (ServiceIsolate::IsServiceIsolate(this)) {
+      ServiceIsolate::VisitObjectPointers(visitor);
+    }
   )
 
   // Visit objects that are being used for deoptimization.

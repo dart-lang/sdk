@@ -7,6 +7,7 @@
 #include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
+#include "vm/dev_fs.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/message.h"
@@ -457,6 +458,7 @@ void ServiceIsolate::Run() {
   // Grab the isolate create callback here to avoid race conditions with tests
   // that change this after Dart_Initialize returns.
   create_callback_ = Isolate::CreateCallback();
+  DevFS::Init();
   Dart::thread_pool()->Run(new RunServiceTask());
 }
 
@@ -505,6 +507,7 @@ void ServiceIsolate::Shutdown() {
     free(server_address_);
     server_address_ = NULL;
   }
+  DevFS::Cleanup();
 }
 
 
@@ -528,6 +531,10 @@ void ServiceIsolate::BootVmServiceLibrary() {
   }
   ASSERT(port != ILLEGAL_PORT);
   ServiceIsolate::SetServicePort(port);
+}
+
+
+void ServiceIsolate::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 }  // namespace dart
