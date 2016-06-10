@@ -108,7 +108,8 @@ class FileSystem {
     for (iter = files_.begin(); iter != files_.end(); iter++) {
       JSONObject file_info(&jsarr);
       file_info.AddProperty("name", iter->first.c_str());
-      file_info.AddProperty("size", static_cast<int64_t>(iter->second->size()));
+      file_info.AddProperty64("size",
+                              static_cast<int64_t>(iter->second->size()));
     }
   }
 
