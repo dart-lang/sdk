@@ -664,6 +664,7 @@ class Driver implements CommandLineStarter {
   static AnalysisOptionsImpl createAnalysisOptionsForCommandLineOptions(
       CommandLineOptions options) {
     AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
+    contextOptions.trackCacheDependencies = false;
     contextOptions.hint = !options.disableHints;
     contextOptions.enableStrictCallChecks = options.enableStrictCallChecks;
     contextOptions.enableSuperMixins = options.enableSuperMixins;
