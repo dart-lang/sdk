@@ -10134,24 +10134,28 @@ AstNode* Parser::ParseStatement() {
     ConsumeToken();
     if (CurrentToken() != Token::kSEMICOLON) {
       const TokenPosition expr_pos = TokenPos();
+      const int function_level = FunctionLevel();
       if (current_function().IsGenerativeConstructor() &&
-          (FunctionLevel() == 0)) {
+          (function_level == 0)) {
         ReportError(expr_pos,
                     "return of a value is not allowed in constructors");
       } else if (current_function().IsGeneratorClosure() &&
-          (FunctionLevel() == 0)) {
+          (function_level == 0)) {
         ReportError(expr_pos, "generator functions may not return a value");
       }
       AstNode* expr = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
       if (I->type_checks() &&
-          current_function().IsAsyncClosure() && (FunctionLevel() == 0)) {
+          (((function_level == 0) && current_function().IsAsyncClosure()) ||
+           ((function_level > 0) && current_function().IsAsyncFunction()))) {
         // In checked mode, when the declared result type is Future<T>, verify
         // that the returned expression is of type T or Future<T> as follows:
         // return temp = expr, temp is Future ? temp as Future<T> : temp as T;
         // In case of a mismatch, we need a TypeError and not a CastError, so
         // we do not actually implement an "as" test, but an "assignable" test.
-        const Function& async_func =
-            Function::Handle(Z, current_function().parent_function());
+        Function& async_func = Function::Handle(Z, current_function().raw());
+        if (function_level == 0) {
+          async_func = async_func.parent_function();
+        }
         const AbstractType& result_type =
             AbstractType::ZoneHandle(Z, async_func.result_type());
         const Class& future_class =
@@ -10163,32 +10167,41 @@ AstNode* Parser::ParseStatement() {
           if (!result_type_args.IsNull() && (result_type_args.Length() == 1)) {
             const AbstractType& result_type_arg =
                 AbstractType::ZoneHandle(Z, result_type_args.TypeAt(0));
-            LetNode* checked_expr = new(Z) LetNode(expr_pos);
-            LocalVariable* temp = checked_expr->AddInitializer(expr);
-            temp->set_is_final();
-            const AbstractType& future_type =
-                AbstractType::ZoneHandle(Z, future_class.RareType());
-            AstNode* is_future = new(Z) LoadLocalNode(expr_pos, temp);
-            is_future = new(Z) ComparisonNode(expr_pos,
-                                              Token::kIS,
-                                              is_future,
-                                              new(Z) TypeNode(expr_pos,
-                                                              future_type));
-            AstNode* as_future_t = new(Z) LoadLocalNode(expr_pos, temp);
-            as_future_t = new(Z) AssignableNode(expr_pos,
-                                                as_future_t,
-                                                result_type,
-                                                Symbols::FunctionResult());
-            AstNode* as_t = new(Z) LoadLocalNode(expr_pos, temp);
-            as_t = new(Z) AssignableNode(expr_pos,
-                                         as_t,
-                                         result_type_arg,
-                                         Symbols::FunctionResult());
-            checked_expr->AddNode(new(Z) ConditionalExprNode(expr_pos,
-                                                             is_future,
-                                                             as_future_t,
-                                                             as_t));
-            expr = checked_expr;
+            if (function_level == 0) {
+              // Parsing and generating code for async closure.
+              LetNode* checked_expr = new(Z) LetNode(expr_pos);
+              LocalVariable* temp = checked_expr->AddInitializer(expr);
+              temp->set_is_final();
+              const AbstractType& future_type =
+                  AbstractType::ZoneHandle(Z, future_class.RareType());
+              AstNode* is_future = new(Z) LoadLocalNode(expr_pos, temp);
+              is_future = new(Z) ComparisonNode(expr_pos,
+                                                Token::kIS,
+                                                is_future,
+                                                new(Z) TypeNode(expr_pos,
+                                                                future_type));
+              AstNode* as_future_t = new(Z) LoadLocalNode(expr_pos, temp);
+              as_future_t = new(Z) AssignableNode(expr_pos,
+                                                  as_future_t,
+                                                  result_type,
+                                                  Symbols::FunctionResult());
+              AstNode* as_t = new(Z) LoadLocalNode(expr_pos, temp);
+              as_t = new(Z) AssignableNode(expr_pos,
+                                           as_t,
+                                           result_type_arg,
+                                           Symbols::FunctionResult());
+              checked_expr->AddNode(new(Z) ConditionalExprNode(expr_pos,
+                                                               is_future,
+                                                               as_future_t,
+                                                               as_t));
+              expr = checked_expr;
+            } else {
+              // Parsing async function, but not generating async closure code.
+              if (!result_type_arg.IsInstantiated()) {
+                // Make sure that the instantiator is captured.
+                CaptureInstantiator();
+              }
+            }
           }
         }
       }
