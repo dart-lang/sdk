@@ -23,6 +23,37 @@ import 'package:crypto/crypto.dart';
 const int _VERSION = 1;
 
 /**
+ * Compare the given file paths [a] and [b].  Because paths usually have long
+ * equal prefix, comparison is done not as comparision of two generic [String]s.
+ * Instead it starts from the ends of each strings.
+ *
+ * Return `-1` if [a] is ordered before [b], `1` if `this` is ordered after [b],
+ * and zero if [a] and [b] are ordered together.
+ */
+int comparePaths(String a, String b) {
+  int thisLength = a.length;
+  int otherLength = b.length;
+  int len = (thisLength < otherLength) ? thisLength : otherLength;
+  for (int i = 0; i < len; i++) {
+    int thisCodeUnit = a.codeUnitAt(thisLength - 1 - i);
+    int otherCodeUnit = b.codeUnitAt(otherLength - 1 - i);
+    if (thisCodeUnit < otherCodeUnit) {
+      return -1;
+    }
+    if (thisCodeUnit > otherCodeUnit) {
+      return 1;
+    }
+  }
+  if (thisLength < otherLength) {
+    return -1;
+  }
+  if (thisLength > otherLength) {
+    return 1;
+  }
+  return 0;
+}
+
+/**
  * Storage for cache data.
  */
 abstract class CacheStorage {
@@ -413,7 +444,7 @@ class IncrementalCache {
       Set<Source> closureSet = new Set<Source>();
       _appendLibraryClosure(closureSet, librarySource);
       List<Source> closureList = closureSet.toList();
-      closureList.sort((a, b) => a.fullName.compareTo(b.fullName));
+      closureList.sort((a, b) => comparePaths(a.fullName, b.fullName));
       return closureList;
     });
   }
