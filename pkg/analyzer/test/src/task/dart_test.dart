@@ -1573,6 +1573,7 @@ import 'my_lib2.dart';
     AnalysisTarget lib1Target = new LibrarySpecificUnit(lib1Source, lib1Source);
     AnalysisTarget lib2Target = new LibrarySpecificUnit(lib2Source, lib2Source);
     AnalysisTarget lib3Target = new LibrarySpecificUnit(lib3Source, lib3Source);
+
     computeResult(lib1Target, LIBRARY_CYCLE);
     expect(outputs[LIBRARY_CYCLE], hasLength(1));
     computeResult(lib2Target, LIBRARY_CYCLE);
@@ -1580,13 +1581,17 @@ import 'my_lib2.dart';
     computeResult(lib3Target, LIBRARY_CYCLE);
     expect(outputs[LIBRARY_CYCLE], hasLength(1));
 
-    // complete the cycle
+    // create a cycle
     context.setContents(
         lib1Source,
         '''
 library my_lib1;
 import 'my_lib3.dart';
 ''');
+    _expectInvalid(lib1Target);
+    _expectInvalid(lib2Target);
+    _expectInvalid(lib3Target);
+
     computeResult(lib1Target, LIBRARY_CYCLE);
     expect(outputs[LIBRARY_CYCLE], hasLength(3));
     computeResult(lib2Target, LIBRARY_CYCLE);
@@ -1600,6 +1605,10 @@ import 'my_lib3.dart';
         '''
 library my_lib1;
 ''');
+    _expectInvalid(lib1Target);
+    _expectInvalid(lib2Target);
+    _expectInvalid(lib3Target);
+
     computeResult(lib1Target, LIBRARY_CYCLE);
     expect(outputs[LIBRARY_CYCLE], hasLength(1));
     computeResult(lib2Target, LIBRARY_CYCLE);
@@ -1630,6 +1639,7 @@ import 'my_lib2.dart';
     AnalysisTarget lib1Target = new LibrarySpecificUnit(lib1Source, lib1Source);
     AnalysisTarget lib2Target = new LibrarySpecificUnit(lib2Source, lib2Source);
     AnalysisTarget lib3Target = new LibrarySpecificUnit(lib3Source, lib3Source);
+
     computeResult(lib1Target, LIBRARY_CYCLE);
     expect(outputs[LIBRARY_CYCLE], hasLength(1));
     computeResult(lib2Target, LIBRARY_CYCLE);
@@ -1644,6 +1654,10 @@ import 'my_lib2.dart';
 library my_lib1;
 import 'my_lib3.dart';
 ''');
+    _expectInvalid(lib1Target);
+    _expectInvalid(lib2Target);
+    _expectInvalid(lib3Target);
+
     // Ensure that invalidation correctly invalidated everything reachable
     // through lib3
     computeResult(lib1Target, LIBRARY_CYCLE);
@@ -1763,6 +1777,9 @@ library my_lib1;
 import 'my_lib3.dart';
 var foo = 123;
 ''');
+    _expectInvalid(lib1Target);
+    _expectInvalid(lib2Target);
+    _expectInvalid(lib3Target);
 
     computeResult(lib1Target, RESOLVED_UNIT);
     computeResult(lib2Target, RESOLVED_UNIT);
@@ -1998,6 +2015,11 @@ import 'dart:core';
     expect(dep5, hasLength(5)); // dart:core, a.dart, aa.dart, ab.dart, b.dart
     expect(dep6, hasLength(5)); // dart:core, a.dart, aa.dart, ab.dart, b.dart
     expect(dep7, hasLength(5)); // dart:core, a.dart, aa.dart, ab.dart, b.dart
+  }
+
+  void _expectInvalid(LibrarySpecificUnit target) {
+    CacheEntry entry = context.getCacheEntry(target);
+    expect(entry.getState(LIBRARY_CYCLE), CacheState.INVALID);
   }
 }
 
