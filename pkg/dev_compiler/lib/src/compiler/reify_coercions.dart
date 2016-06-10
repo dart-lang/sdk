@@ -9,8 +9,7 @@ import 'package:analyzer/src/dart/ast/ast.dart' show FunctionBodyImpl;
 import 'package:analyzer/src/dart/ast/utilities.dart' show NodeReplacer;
 import 'package:analyzer/src/dart/element/type.dart' show DynamicTypeImpl;
 import 'package:analyzer/src/generated/parser.dart' show ResolutionCopier;
-import 'package:analyzer/src/task/strong/info.dart'
-    show CoercionInfo, DownCast, DynamicInvoke;
+import 'package:analyzer/src/task/strong/ast_properties.dart' as ast_properties;
 import 'package:logging/logging.dart' as logger;
 
 import 'ast_builder.dart' show AstBuilder, RawAstBuilder;
@@ -29,19 +28,36 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
   /// explicit coercion nodes in appropriate places.
   static List<CompilationUnit> reify(List<CompilationUnit> units) {
     var cr = new CoercionReifier._();
-    // Clone compilation units, so we don't modify the originals.
-    units = units.map(cr._clone).toList(growable: false);
-    units.forEach(cr.visitCompilationUnit);
-    return units;
+    return units.map(cr.visitCompilationUnit).toList(growable: false);
+  }
+
+  @override
+  CompilationUnit visitCompilationUnit(CompilationUnit node) {
+    if (ast_properties.hasImplicitCasts(node)) {
+      // Clone compilation unit, so we don't modify the originals.
+      node = _clone(node);
+      super.visitCompilationUnit(node);
+    }
+    return node;
   }
 
   @override
   visitExpression(Expression node) {
-    var coercion = CoercionInfo.get(node);
-    if (coercion is DownCast) {
-      return _visitDownCast(coercion, node);
+    node.visitChildren(this);
+
+    var castType = ast_properties.getImplicitCast(node);
+    if (castType != null) {
+      _replaceNode(node.parent, node, _castExpression(node, castType));
     }
-    return super.visitExpression(node);
+  }
+
+  @override
+  visitMethodInvocation(MethodInvocation node) {
+    if (isInlineJS(node.methodName.staticElement)) {
+      // Don't cast our inline-JS code in SDK.
+      ast_properties.setImplicitCast(node, null);
+    }
+    visitExpression(node);
   }
 
   @override
@@ -58,14 +74,13 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
 
     // If needed, assert a cast inside the body before the variable is read.
     var variable = node.identifier ?? node.loopVariable.identifier;
-    var coercion = CoercionInfo.get(variable);
-    if (coercion is DownCast) {
+    var castType = ast_properties.getImplicitCast(variable);
+    if (castType != null) {
       // Build the cast. We will place this cast in the body, so need to clone
       // the variable's AST node and clear out its static type (otherwise we
       // will optimize away the cast).
       var cast = _castExpression(
-          _clone(variable)..staticType = DynamicTypeImpl.instance,
-          coercion.convertedType);
+          _clone(variable)..staticType = DynamicTypeImpl.instance, castType);
 
       var body = node.body;
       var blockBody = <Statement>[RawAstBuilder.expressionStatement(cast)];
@@ -78,11 +93,6 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
     }
   }
 
-  void _visitDownCast(DownCast node, Expression expr) {
-    expr.visitChildren(this);
-    _replaceNode(expr.parent, expr, coerceExpression(expr, node));
-  }
-
   void _replaceNode(AstNode parent, AstNode oldNode, AstNode newNode) {
     if (!identical(oldNode, newNode)) {
       var replaced = parent.accept(new NodeReplacer(oldNode, newNode));
@@ -90,19 +100,6 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
       // It does throw IllegalArgumentException though, if child is not found.
       assert(replaced);
     }
-  }
-
-  /// Coerce [e] using [c], returning a new expression.
-  Expression coerceExpression(Expression e, DownCast node) {
-    if (e is NamedExpression) {
-      Expression inner = coerceExpression(e.expression, node);
-      return new NamedExpression(e.name, inner);
-    }
-    if (e is MethodInvocation && isInlineJS(e.methodName.staticElement)) {
-      // Inline JS code should not need casts.
-      return e;
-    }
-    return _castExpression(e, node.convertedType);
   }
 
   Expression _castExpression(Expression e, DartType toType) {
@@ -124,9 +121,11 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
 
 class _TreeCloner extends analyzer.AstCloner {
   void _cloneProperties(AstNode clone, AstNode node) {
-    if (clone != null) {
-      CoercionInfo.set(clone, CoercionInfo.get(node));
-      DynamicInvoke.set(clone, DynamicInvoke.get(node));
+    if (clone is Expression) {
+      ast_properties.setImplicitCast(
+          clone, ast_properties.getImplicitCast(node));
+      ast_properties.setIsDynamicInvoke(
+          clone, ast_properties.isDynamicInvoke(node));
     }
   }
 

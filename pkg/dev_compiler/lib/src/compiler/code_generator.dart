@@ -21,7 +21,8 @@ import 'package:analyzer/src/generated/type_system.dart'
     show StrongTypeSystemImpl;
 import 'package:analyzer/src/summary/summarize_elements.dart'
     show PackageBundleAssembler;
-import 'package:analyzer/src/task/strong/info.dart' show DynamicInvoke;
+import 'package:analyzer/src/task/strong/ast_properties.dart'
+    show isDynamicInvoke, setIsDynamicInvoke;
 import 'package:source_maps/source_maps.dart';
 import 'package:path/path.dart' show separator;
 
@@ -2729,7 +2730,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       id = lhs.identifier;
     }
 
-    if (target != null && DynamicInvoke.get(target)) {
+    if (target != null && isDynamicInvoke(target)) {
       if (_inWhitelistCode(lhs)) {
         var vars = <JS.MetaLetVariable, JS.Expression>{};
         var l = _visit(_bindValue(vars, 'l', target));
@@ -2868,7 +2869,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var memberName = _emitMemberName(name, type: type, isStatic: isStatic);
 
     JS.Expression jsTarget = _visit(target);
-    if (DynamicInvoke.get(target) || DynamicInvoke.get(node.methodName)) {
+    if (isDynamicInvoke(target) || isDynamicInvoke(node.methodName)) {
       if (_inWhitelistCode(target)) {
         var vars = <JS.MetaLetVariable, JS.Expression>{};
         var l = _visit(_bindValue(vars, 'l', target));
@@ -2902,7 +2903,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   JS.Expression _emitFunctionCall(InvocationExpression node) {
     var fn = _visit(node.function);
     var args = _visit(node.argumentList) as List<JS.Expression>;
-    if (DynamicInvoke.get(node.function)) {
+    if (isDynamicInvoke(node.function)) {
       var typeArgs = _emitInvokeTypeArguments(node);
       if (typeArgs != null) {
         return js.call('dart.dgcall(#, #, #)',
@@ -3778,7 +3779,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     id.staticElement = new TemporaryVariableElement.forNode(id, variable);
     id.staticType = type;
-    DynamicInvoke.set(id, type.isDynamic);
+    setIsDynamicInvoke(id, type.isDynamic);
     addTemporaryVariable(id.staticElement, nullable: nullable);
     return id;
   }
@@ -3852,7 +3853,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       return expr as SimpleIdentifier;
     }
     result.staticType = expr.staticType;
-    DynamicInvoke.set(result, DynamicInvoke.get(expr));
+    setIsDynamicInvoke(result, isDynamicInvoke(expr));
     return result;
   }
 
@@ -4147,7 +4148,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     bool isStatic = member is ClassMemberElement && member.isStatic;
     var name = _emitMemberName(memberName,
         type: getStaticType(target), isStatic: isStatic);
-    if (DynamicInvoke.get(target)) {
+    if (isDynamicInvoke(target)) {
       if (_inWhitelistCode(target)) {
         var vars = <JS.MetaLetVariable, JS.Expression>{};
         var l = _visit(_bindValue(vars, 'l', target));
@@ -4199,7 +4200,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       Expression target, String name, List<Expression> args) {
     var type = getStaticType(target);
     var memberName = _emitMemberName(name, unary: args.isEmpty, type: type);
-    if (DynamicInvoke.get(target)) {
+    if (isDynamicInvoke(target)) {
       if (_inWhitelistCode(target)) {
         var vars = <JS.MetaLetVariable, JS.Expression>{};
         var l = _visit(_bindValue(vars, 'l', target));
