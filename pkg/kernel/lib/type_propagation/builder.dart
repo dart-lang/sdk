@@ -181,8 +181,25 @@ class Builder {
     return returnValues[node] ??= newVariable(node, 'return');
   }
 
+  /// Returns a variable containing the torn-off copy of the given procedure.
   int getTearOffVariable(Procedure node) {
-    return tearOffs[node] ??= newVariable(node, 'function');
+    return tearOffs[node] ??= _makeTearOffVariable(node);
+  }
+
+  int _makeTearOffVariable(Procedure node) {
+    int variable = newVariable(node, 'function');
+    constraints.addAllocateFunction(newFunctionValue(node.function), variable);
+    return variable;
+  }
+
+  /// Returns a new function value annotated with given AST node.
+  ///
+  /// Note that the returned value is not a variable. Add a function allocation
+  /// constraint to move it into a variable.
+  int newFunctionValue(FunctionNode node) {
+    int functionValue = constraints.newFunctionValue();
+    visualizer?.annotateFunction(functionValue, node);
+    return functionValue;
   }
 
   /// Returns a variable containing the instances of the given class.
@@ -287,7 +304,7 @@ class Builder {
     int escapingObject = constraints.newVariable();
     visualizer?.annotateVariable(escapingObject, node, 'escape point');
     interfaceEscapeVariables[index] = escapingObject;
-    for (Member member in hierarchy.getInterfaceMembers(node)) {
+    for (Member member in hierarchy.getInterfaceMembers(node, setters: false)) {
       _buildEscapingInterfaceMember(member, escapingObject);
     }
     for (Member member in hierarchy.getInterfaceMembers(node, setters: true)) {
@@ -410,20 +427,21 @@ class Builder {
 
   void buildProcedure(Procedure node, int host) {
     if (node.isAbstract) return;
-    int propertyName = fieldNames.getPropertyField(node.name);
-    var environment = new Environment(this,
-        returnValue: getReturnVariable(node), thisValue: host);
+    int functionValue = getTearOffVariable(node);
+    int returnValue = getReturnVariable(node);
+    var environment =
+        new Environment(this, returnValue: returnValue, thisValue: host);
     buildFunctionNode(node.function, environment,
-        addTypeBasedSummary: node.isExternal,
-        functionValue: getTearOffVariable(node));
+        addTypeBasedSummary: node.isExternal, functionValue: functionValue);
     if (host != null) {
+      int propertyName = fieldNames.getPropertyField(node.name);
       if (node.isGetter) {
-        addStore(host, propertyName, getReturnVariable(node));
+        addStore(host, propertyName, returnValue);
       } else if (node.isSetter) {
         addLoad(host, propertyName,
             getParameterVariable(node.function.positionalParameters[0]));
       } else {
-        addStore(host, propertyName, getTearOffVariable(node));
+        addStore(host, propertyName, functionValue);
       }
     }
   }
@@ -667,15 +685,6 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
     return value;
   }
 
-  void buildArguments(Arguments node) {
-    for (int i = 0; i < node.positional.length; ++i) {
-      build(node.positional[i]);
-    }
-    for (int i = 0; i < node.named.length; ++i) {
-      build(node.named[i].value);
-    }
-  }
-
   int visitSuperPropertyGet(SuperPropertyGet node) {
     return unsupported(node);
   }
@@ -691,7 +700,7 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
       if (target.isGetter) {
         return builder.getReturnVariable(target);
       } else {
-        return unsupported(node);
+        return builder.getTearOffVariable(target);
       }
     }
     return builder.getFieldVariable(node.target);
@@ -854,9 +863,12 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
   }
 
   int visitFunctionExpression(FunctionExpression node) {
-    int value = builder.functionValueNode;
-    builder.buildFunctionNode(node.function, environment, functionValue: value);
-    return value;
+    int variable = builder.newVariable(node);
+    constraints.addAllocateFunction(
+        builder.newFunctionValue(node.function), variable);
+    builder.buildFunctionNode(node.function, environment,
+        functionValue: variable);
+    return variable;
   }
 
   int visitStringLiteral(StringLiteral node) {
@@ -1029,9 +1041,12 @@ class StatementBuilder extends StatementVisitor {
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
-    environment.localVariables[node.variable] = builder.functionValueNode;
+    int variable = builder.newVariable(node);
+    environment.localVariables[node.variable] = variable;
+    constraints.addAllocateFunction(
+        builder.newFunctionValue(node.function), variable);
     builder.buildFunctionNode(node.function, environment,
-        functionValue: builder.functionValueNode);
+        functionValue: variable);
   }
 }
 

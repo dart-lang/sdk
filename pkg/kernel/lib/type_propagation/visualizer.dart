@@ -12,6 +12,8 @@ import '../text/ast_to_text.dart';
 class Visualizer {
   final Program program;
   final Map<int, List<Annotation>> annotations = <int, List<Annotation>>{};
+  final Map<int, FunctionNode> value2function = <int, FunctionNode>{};
+  final Map<FunctionNode, int> function2value = <FunctionNode, int>{};
   FieldNames fieldNames;
   ConstraintSystem constraints;
   Solver solver;
@@ -53,6 +55,19 @@ class Visualizer {
       }
       getAnnotations(variable).add(new Annotation(node, info));
     }
+  }
+
+  void annotateFunction(int value, FunctionNode function) {
+    value2function[value] = function;
+    function2value[function] = value;
+  }
+
+  FunctionNode getFunctionFromValue(int value) {
+    return value2function[value];
+  }
+
+  int getFunctionValue(FunctionNode node) {
+    return function2value[node];
   }
 
   Set<GraphNode> _getNodesInMember(Member member) {
@@ -163,7 +178,7 @@ class Visualizer {
         }
       }
       // Emit the outgoing external edge.
-      if (!node.isGlobal && outgoingExternalEdgeLabels.isNotEmpty) {
+      if (outgoingExternalEdgeLabels.isNotEmpty) {
         int freshId = ++freshIdCounter;
         String outLabel = outgoingExternalEdgeLabels.join('\n');
         buffer.writeln('x$freshId [shape=box,style=dotted,label="$outLabel"]');

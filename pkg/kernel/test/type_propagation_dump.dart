@@ -3,14 +3,17 @@ import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/type_propagation/builder.dart';
 import 'package:kernel/type_propagation/solver.dart';
 import 'package:kernel/type_propagation/visualizer.dart';
+import 'package:kernel/type_propagation/constraints.dart';
 import 'package:args/args.dart';
 import 'dart:io';
 
 ArgParser parser = new ArgParser()
   ..addFlag('graph', help: 'Generate graphviz dot files')
   ..addFlag('text', help: 'Generate annotated kernel text files')
+  ..addFlag('escape', help: 'Dump information from escape analysis')
   ..addFlag('stats',
-      help: 'Print times and constraint system size', defaultsTo: true);
+      help: 'Print times and constraint system size', defaultsTo: true)
+  ..addFlag('solve', help: 'Solve the constraint system', defaultsTo: true);
 
 String get usage => """
 Usage: type_propagation_dump [options] FILE.bart
@@ -35,7 +38,8 @@ main(List<String> args) {
 
   bool printGraphviz = options['graph'];
   bool printText = options['text'];
-  bool useVisualizer = printGraphviz || printText;
+  bool printEscape = options['escape'];
+  bool useVisualizer = printGraphviz || printText || printEscape;
 
   Program program = loadProgramFromBinary(path);
   Stopwatch watch = new Stopwatch()..start();
@@ -45,11 +49,30 @@ main(List<String> args) {
 
   watch.reset();
   var solver = new Solver(builder);
-  solver.solve();
+  if (options['solve']) {
+    solver.solve();
+  }
   int solveTime = watch.elapsedMilliseconds;
   visualizer?.solver = solver;
+  ConstraintSystem constraints = builder.constraints;
 
-  if (options['text']) {
+  if (printEscape) {
+    for (int value = 0; value <= constraints.numberOfValues; ++value) {
+      TreeNode node;
+      if (value < constraints.numberOfClasses) {
+        node = builder.hierarchy.classes[value];
+      } else {
+        FunctionNode function = visualizer.getFunctionFromValue(value);
+        if (function == null || function.parent is! Member) continue;
+        node = function.parent;
+      }
+      Class escape = solver.getEscapeContext(value);
+      String escapeString = escape == null ? 'no escape' : '$escape';
+      print('$node -> $escapeString');
+    }
+  }
+
+  if (printText) {
     print('Printing kernel text files...');
     new Directory(outputDir).createSync();
     StringBuffer buffer = new StringBuffer();
@@ -92,6 +115,7 @@ Iterations:  ${solver.iterations}
 
 Classes:     ${constraints.numberOfClasses}
 Variables:   ${constraints.numberOfVariables}
+Fields:      ${builder.fieldNames.length}
 Assignments: ${constraints.numberOfAssignments}
 Loads:       ${constraints.numberOfLoads}
 Stores:      ${constraints.numberOfStores}

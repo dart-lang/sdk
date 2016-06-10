@@ -15,18 +15,40 @@ library kernel.type_propagation.constraints;
 class ConstraintSystem {
   final int numberOfClasses;
   int _numberOfVariables;
+  int _numberOfFunctions = 0;
   final List<int> assignments = <int>[];
   final List<int> loads = <int>[];
   final List<int> stores = <int>[];
+  final List<int> functionAllocations = <int>[];
 
   ConstraintSystem(int numberOfClasses)
       : this.numberOfClasses = numberOfClasses,
         this._numberOfVariables = numberOfClasses;
 
   int get numberOfVariables => _numberOfVariables;
+  int get numberOfFunctions => _numberOfFunctions;
+  int get numberOfValues => numberOfClasses + numberOfFunctions;
+
+  int get firstFunctionValue => numberOfClasses;
+  int get lastFunctionValue => numberOfClasses + numberOfFunctions - 1;
 
   int newVariable() {
     return _numberOfVariables++;
+  }
+
+  /// Creates a new function value and returns its value index.
+  ///
+  /// The result is not a variable.  Use [addAllocateFunction] to move the
+  /// function into a variable.
+  int newFunctionValue() {
+    int functionId = _numberOfFunctions++;
+    return numberOfClasses + functionId;
+  }
+
+  void addAllocateFunction(int functionValue, int destination) {
+    assert(functionValue != null);
+    assert(destination != null);
+    functionAllocations..add(functionValue)..add(destination);
   }
 
   void addAssign(int source, int destination) {

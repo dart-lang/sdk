@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  field dynamic/core::Object _field;
+  field dynamic/self::FooValue _field;
   constructor •() → void/bottom
     : super core::Object::•()
     ;
@@ -14,7 +14,7 @@ class FooValue extends core::Object {
     ;
 }
 class Bar extends core::Object {
-  field dynamic/core::Object _field;
+  field dynamic/self::BarValue _field;
   constructor •() → void/bottom
     : super core::Object::•()
     ;
@@ -27,10 +27,10 @@ class BarValue extends core::Object {
 static method main() → dynamic/bottom {
   dynamic/self::Foo foo = new self::Foo::•();
   foo._field = new self::FooValue::•();
-  dynamic/core::Object fooValue = foo._field;
+  dynamic/self::FooValue fooValue = foo._field;
   core::print(fooValue);
   dynamic/self::Bar bar = new self::Bar::•();
   bar._field = new self::BarValue::•();
-  dynamic/core::Object barValue = bar._field;
+  dynamic/self::BarValue barValue = bar._field;
   core::print(barValue);
 }

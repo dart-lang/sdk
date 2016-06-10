@@ -16,24 +16,59 @@ class Solver {
   /// Maps a variable index to the abstract value held in it.
   final List<int> variableValue;
 
-  /// Maps a field index to the abstract value held in it.
+  /// Maps a class and a field index to the values that may be stored in the
+  /// given field on the given receiver type.
   ///
-  /// The analysis is currently field-based, that is, fields are treated as
-  /// global variables that are not associated with an object.
-  final List<int> fieldValue;
+  /// The entries for `Object` and `Function` are not used, they are handled
+  /// specially due to them having a huge number of subtypes (all functions
+  /// are subtypes of `Function`, even those that are never torn off).
+  final List<Map<int, int>> valuesStoredOnObject;
 
-  /// Maps a class index to a sorted list of its supertype indices.
+  /// The join of all values stored into a given field on any object that
+  /// escapes into dynamic context (i.e. where the best known type is `Object`
+  /// or `Function`).
+  final List<int> valuesStoredOnEscapingObject;
+
+  /// The join of all values stored into a given field where the receiver is
+  /// unknown (i.e. its best known type is `Object` or `Function`).
   ///
-  /// For this purpose a class is considered a supertype of itself and occurs
+  /// This is a way to avoid propagating such stores into almost every entry
+  /// in [valuesStoredOnObject].
+  final List<int> valuesStoredOnUnknownObject;
+
+  /// Maps a value index to a sorted list of its supertype indices.
+  ///
+  /// For this purpose a value is considered a supertype of itself and occurs
   /// as the end of its own supertype list.
   ///
   /// We omit the root class from all the supertype lists.
   final List<List<int>> supertypes;
+
+  /// Maps a value index to a sorted list of its subtypes, including the value
+  /// itself.  For function values the list contains only the value itself.
+  ///
+  /// The entries for the `Object` and `Function` classes are empty.  They are
+  /// special-cased to avoid traversing a huge number of subtypes.
+  final List<List<int>> subtypes;
+
+  /// Maps a value to the lowest-indexed supertype into which it has "escaped"
+  /// through a join operation.
+  ///
+  /// As a value escapes further up the hierarchy, more and more stores and
+  /// loads will see it as a potential target.
+  final List<int> escapeIndex;
+
   int iterations = 0;
+  bool _changed = false;
+
+  final int _numberOfClasses;
+  final int _functionClassIndex;
 
   static const int bottom = -1;
+  static const int rootClass = 0;
 
   static List<int> _makeIntList(int _) => <int>[];
+  static Map<int, int> _makeIntIntMap(int _) => <int, int>{};
 
   Solver(Builder builder)
       : this.constraints = builder.constraints,
@@ -41,10 +76,21 @@ class Solver {
         this.hierarchy = builder.hierarchy,
         this.variableValue =
             new List<int>.filled(builder.constraints.numberOfVariables, bottom),
-        this.fieldValue =
-            new List<int>.filled(builder.fieldNames.length, bottom),
+        this.valuesStoredOnObject = new List<Map<int, int>>.generate(
+            builder.constraints.numberOfValues, _makeIntIntMap),
         this.supertypes = new List<List<int>>.generate(
-            builder.constraints.numberOfClasses, _makeIntList) {
+            builder.constraints.numberOfValues, _makeIntList),
+        this.subtypes = new List<List<int>>.generate(
+            builder.constraints.numberOfValues, _makeIntList),
+        this._numberOfClasses = builder.constraints.numberOfClasses,
+        this._functionClassIndex =
+            builder.hierarchy.getClassIndex(builder.coreTypes.functionClass),
+        this.valuesStoredOnEscapingObject =
+            new List<int>.filled(builder.fieldNames.length, bottom),
+        this.valuesStoredOnUnknownObject =
+            new List<int>.filled(builder.fieldNames.length, bottom),
+        this.escapeIndex =
+            new List<int>.filled(builder.constraints.numberOfValues, 0) {
     // The first N variables are the N classes.  Fill in their values.
     for (int i = 0; i < constraints.numberOfClasses; ++i) {
       variableValue[i] = i;
@@ -70,6 +116,24 @@ class Solver {
       }
       _sortAndRemoveDuplicates(superList);
       superList.add(i);
+      // Update the inverse list.
+      for (int j = 0; j < superList.length; ++j) {
+        subtypes[superList[j]].add(i);
+      }
+      // Mark all classes (not functions) as escaping to Object.
+      // This is currently necessary because we do not track the 'this' argument
+      // in methods call, but the intent is to change that.
+      // TODO(asgerf): Initialize to `i` when we have proper 'this' handling.
+      escapeIndex[i] = 0;
+    }
+
+    // Build the super types of the function values.  These consist of just
+    // the Function class and the function value itself.
+    int firstFunctionValue = constraints.numberOfClasses;
+    for (int i = firstFunctionValue; i < constraints.numberOfValues; ++i) {
+      supertypes[i]..add(_functionClassIndex)..add(i);
+      subtypes[i].add(i);
+      escapeIndex[i] = i;
     }
   }
 
@@ -99,13 +163,14 @@ class Solver {
   //
   // TODO(asgerf): I think we can fix this by introducing intersection types
   //   for the class pairs that are ambiguous least upper bounds.
-  int join(int class1, int class2) {
+  int join(int value1, int value2) {
+    if (value1 == value2) return value1;
     // Check if either is the bottom value (-1).  Perform the check using "< 0"
     // to eliminate the lower bounds check in the following list lookups.
-    if (class1 < 0) return class2;
-    if (class2 < 0) return class1;
-    List<int> superList1 = supertypes[class1];
-    List<int> superList2 = supertypes[class2];
+    if (value1 < 0) return value2;
+    if (value2 < 0) return value1;
+    List<int> superList1 = supertypes[value1];
+    List<int> superList2 = supertypes[value2];
     // Classes are topologically and numerically sorted, so the more specific
     // supertypes always occur after the less specific ones.  Traverse both
     // lists from the right until a common supertype is found.  Starting from
@@ -119,24 +184,43 @@ class Solver {
       } else if (super1 > super2) {
         --i;
       } else {
+        // Both types have "escaped" into their common super type.
+        _updateEscapeIndex(value1, super1);
+        _updateEscapeIndex(value2, super1);
         return super1;
       }
     }
-    return 0; // Root class.
+    // Both types have escaped into a completely dynamic context.
+    _updateEscapeIndex(value1, rootClass);
+    _updateEscapeIndex(value2, rootClass);
+    return rootClass;
   }
 
-  String valueToString(int value) {
-    return value < 0 ? 'bottom($value)' : hierarchy.classes[value];
+  void _updateEscapeIndex(int value, int escapeValue) {
+    if (escapeIndex[value] > escapeValue) {
+      escapeIndex[value] = escapeValue;
+      _changed = true;
+    }
+  }
+
+  void _initializeFunctionAllocations() {
+    List<int> functionAllocations = constraints.functionAllocations;
+    for (int i = 0; i < functionAllocations.length; i += 2) {
+      int destination = functionAllocations[i + 1];
+      int functionId = functionAllocations[i];
+      variableValue[destination] = join(variableValue[destination], functionId);
+    }
   }
 
   void solve() {
+    _initializeFunctionAllocations();
     List<int> assignments = constraints.assignments;
     List<int> loads = constraints.loads;
     List<int> stores = constraints.stores;
-    bool changed = true;
-    while (changed) {
+    int functionClass = _functionClassIndex;
+    do {
       ++iterations;
-      changed = false;
+      _changed = false;
       for (int i = 0; i < assignments.length; i += 2) {
         int destination = assignments[i + 1];
         int source = assignments[i];
@@ -145,40 +229,112 @@ class Solver {
         int newValue = join(inputValue, oldValue);
         if (newValue != oldValue) {
           variableValue[destination] = newValue;
-          changed = true;
+          _changed = true;
         }
       }
       for (int i = 0; i < stores.length; i += 3) {
-        int source = stores[i + 2];
+        int sourceVariable = stores[i + 2];
         int field = stores[i + 1];
-        int _ = stores[i]; // The object reference is unused for now.
-        int inputValue = variableValue[source];
-        int oldValue = fieldValue[field];
-        int newValue = join(inputValue, oldValue);
-        if (newValue != oldValue) {
-          fieldValue[field] = newValue;
-          changed = true;
+        int objectVariable = stores[i];
+        int inputValue = variableValue[sourceVariable];
+        int objectValue = variableValue[objectVariable];
+        if (objectValue == bottom) continue;
+        if (objectValue == rootClass || objectValue == functionClass) {
+          int oldValue = valuesStoredOnUnknownObject[field];
+          int newValue = join(inputValue, oldValue);
+          if (newValue != oldValue) {
+            valuesStoredOnUnknownObject[field] = newValue;
+            _changed = true;
+          }
+        } else {
+          // Store the value on all subtypes that can escape into this
+          // context or worse.
+          List<int> receivers = subtypes[objectValue];
+          for (int j = 0; j < receivers.length; ++j) {
+            int receiver = receivers[j];
+            if (escapeIndex[receiver] > objectValue) {
+              continue; // Skip receivers that have not escaped this far.
+            }
+            Map<int, int> fieldMap = valuesStoredOnObject[receiver];
+            int oldValue = fieldMap[field] ?? bottom;
+            int newValue = join(inputValue, oldValue);
+            if (newValue != oldValue) {
+              fieldMap[field] = newValue;
+              _changed = true;
+            }
+          }
+        }
+        int escape = escapeIndex[objectValue];
+        if (escape == rootClass || escape == functionClass) {
+          // The object escapes.  Throw the stored value into the tarpit so it
+          // can be seen when loading the same field from an unknown receiver.
+          int oldValue = valuesStoredOnEscapingObject[field];
+          int newValue = join(oldValue, inputValue);
+          if (newValue != oldValue) {
+            valuesStoredOnEscapingObject[field] = newValue;
+            _changed = true;
+          }
         }
       }
       for (int i = 0; i < loads.length; i += 3) {
         int destination = loads[i + 2];
         int field = loads[i + 1];
-        int _ = loads[i]; // The object reference is unused for now.
-        int inputValue = fieldValue[field];
+        int objectVariable = loads[i];
+        int objectValue = variableValue[objectVariable];
         int oldValue = variableValue[destination];
-        int newValue = join(inputValue, oldValue);
-        if (newValue != oldValue) {
-          variableValue[destination] = newValue;
-          changed = true;
+        if (objectValue == bottom) continue;
+        if (objectValue == rootClass || objectValue == functionClass) {
+          // Receiver is unknown. Take the value out of the tarpit.
+          int inputValue = valuesStoredOnEscapingObject[field];
+          int newValue = join(inputValue, oldValue);
+          if (newValue != oldValue) {
+            variableValue[destination] = newValue;
+            _changed = true;
+          }
+        } else {
+          int escape = escapeIndex[objectValue];
+          // If we load from an object that escapes, include all values stored
+          // on an unknown receiver.
+          int newValue = (escape == rootClass || escape == functionClass)
+              ? valuesStoredOnUnknownObject[field]
+              : bottom;
+          // Load the values stored on all the subtypes that can escape into
+          // this context or worse.
+          List<int> receivers = subtypes[objectValue];
+          for (int j = 0; j < receivers.length; ++j) {
+            int receiver = receivers[j];
+            if (escapeIndex[receiver] > objectValue) {
+              continue; // Skip receivers that have not escaped this far.
+            }
+            int inputValue = valuesStoredOnObject[receiver][field] ?? bottom;
+            newValue = join(inputValue, newValue);
+          }
+          newValue = join(newValue, oldValue);
+          if (newValue != oldValue) {
+            variableValue[destination] = newValue;
+            _changed = true;
+          }
         }
       }
-    }
+    } while (_changed);
   }
 
   /// Returns a class that is implemented by all possible values that may
   /// flow into [variable], or `null` if nothing can flow into [variable].
   Class getVariableValue(int variable) {
     int value = variableValue[variable];
-    return value < 0 ? null : hierarchy.classes[value];
+    if (value < 0) return null;
+    if (value >= _numberOfClasses) {
+      return hierarchy.classes[_functionClassIndex];
+    }
+    return hierarchy.classes[value];
+  }
+
+  /// Returns the least specific type into which the given value escapes,
+  /// or `null` if the value is a function value that does not escape.
+  Class getEscapeContext(int value) {
+    int index = escapeIndex[value];
+    if (index < _numberOfClasses) return hierarchy.classes[index];
+    return null;
   }
 }
