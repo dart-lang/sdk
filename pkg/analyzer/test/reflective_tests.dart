@@ -30,6 +30,11 @@ const _FailingTest failingTest = const _FailingTest();
 const ReflectiveTest reflectiveTest = const ReflectiveTest();
 
 /**
+ * Test classes annotated with this annotation are run using [solo_group].
+ */
+const _SoloTest soloTest = const _SoloTest();
+
+/**
  * Is `true` the application is running in the checked mode.
  */
 final bool _isCheckedMode = () {
@@ -65,8 +70,7 @@ void runReflectiveTests(Type type) {
     throw new Exception('Class $name must have annotation "@reflectiveTest" '
         'in order to be run by runReflectiveTests.');
   }
-  String className = MirrorSystem.getName(classMirror.simpleName);
-  group(className, () {
+  void runMembers() {
     classMirror.instanceMembers
         .forEach((Symbol symbol, MethodMirror memberMirror) {
       // we need only methods
@@ -105,7 +109,13 @@ void runReflectiveTests(Type type) {
         });
       }
     });
-  });
+  }
+  String className = MirrorSystem.getName(classMirror.simpleName);
+  if (_hasAnnotationInstance(classMirror, soloTest)) {
+    solo_group(className, runMembers);
+  } else {
+    group(className, runMembers);
+  }
 }
 
 bool _hasAnnotationInstance(DeclarationMirror declaration, instance) =>
@@ -177,4 +187,12 @@ class _AssertFailingTest {
  */
 class _FailingTest {
   const _FailingTest();
+}
+
+/**
+ * A marker annotation used to annotate a test class to run it using
+ * [solo_group].
+ */
+class _SoloTest {
+  const _SoloTest();
 }
