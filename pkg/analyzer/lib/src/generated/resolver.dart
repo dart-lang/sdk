@@ -3790,14 +3790,18 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitTryStatement(TryStatement node) {
-    if (_nodeExits(node.body)) {
+    if (_nodeExits(node.finallyBlock)) {
       return true;
     }
-    Block finallyBlock = node.finallyBlock;
-    if (_nodeExits(finallyBlock)) {
-      return true;
+    if (!_nodeExits(node.body)) {
+      return false;
     }
-    return false;
+    for (CatchClause c in node.catchClauses) {
+      if (!_nodeExits(c.body)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @override

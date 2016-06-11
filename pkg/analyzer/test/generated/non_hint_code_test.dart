@@ -18,6 +18,25 @@ main() {
 
 @reflectiveTest
 class NonHintCodeTest extends ResolverTestCase {
+  void test_deadCode_afterTryCatch() {
+    Source source = addSource('''
+main() {
+  try {
+    return f();
+  } catch (e) {
+    print(e);
+  }
+  print('not dead');
+}
+f() {
+  throw 'foo';
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_deadCode_deadBlock_conditionalElse_debugConst() {
     Source source = addSource(r'''
 const bool DEBUG = true;
