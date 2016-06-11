@@ -134,7 +134,8 @@ List<InterfaceType> _findImplementedInterfaces(InterfaceType type,
 
 DartType _findIterableTypeArgument(InterfaceType type,
     {List<InterfaceType> accumulator: const []}) {
-  if (type == null || type.isObject || accumulator.contains(type)) {
+  if (type == null || type.isObject || type.isDynamic ||
+      accumulator.contains(type)) {
     return null;
   }
 
