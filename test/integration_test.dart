@@ -178,6 +178,36 @@ defineTests() {
       });
     });
 
+    group('close_sinks', () {
+      IOSink currentOut = outSink;
+      CollectingSink collectingOut = new CollectingSink();
+      setUp(() {
+        exitCode = 0;
+        outSink = collectingOut;
+      });
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+        exitCode = 0;
+      });
+
+      test('close sinks', () {
+        dartlint.main([
+          'test/_data/close_sinks',
+          '--rules=close_sinks'
+        ]);
+        expect(exitCode, 1);
+        expect(
+            collectingOut.trim(),
+            stringContainsInOrder(
+                [
+                  'IOSink _sinkA; // LINT',
+                  'IOSink _sinkF; // LINT',
+                  '1 file analyzed, 2 issues found, in'
+                ]));
+      });
+    });
+
     group('examples', () {
       test('lintconfig.yaml', () {
         var src = readFile('example/lintconfig.yaml');
