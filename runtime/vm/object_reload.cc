@@ -56,48 +56,38 @@ void Function::ZeroEdgeCounters() const {
 }
 
 
-void Code::ResetICDatas(const Function& function) const {
-  // Iterate over the Code's object pool and reset all ICDatas.
-#ifdef TARGET_ARCH_IA32
-  // IA32 does not have an object pool, but, we can iterate over all
-  // embedded objects by using the variable length data section.
-  if (!is_alive()) {
+static void ClearICs(const Function& function, const Code& code) {
+  if (function.ic_data_array() == Array::null()) {
+    return;  // Already reset in an earlier round.
+  }
+
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  ZoneGrowableArray<const ICData*>* ic_data_array =
+      new(zone) ZoneGrowableArray<const ICData*>();
+  function.RestoreICDataMap(ic_data_array, false /* clone ic-data */);
+  if (ic_data_array->length() == 0) {
     return;
   }
-  const Instructions& instrs = Instructions::Handle(instructions());
-  ASSERT(!instrs.IsNull());
-  uword base_address = instrs.EntryPoint();
-  Object& object = Object::Handle();
-  intptr_t offsets_length = pointer_offsets_length();
-  const int32_t* offsets = raw_ptr()->data();
-  for (intptr_t i = 0; i < offsets_length; i++) {
-    int32_t offset = offsets[i];
-    RawObject** object_ptr =
-        reinterpret_cast<RawObject**>(base_address + offset);
-    RawObject* raw_object = *object_ptr;
-    if (!raw_object->IsHeapObject()) {
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(code.pc_descriptors());
+  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kIcCall |
+                                            RawPcDescriptors::kUnoptStaticCall);
+  while (iter.MoveNext()) {
+    const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
+    if (ic_data == NULL) {
       continue;
     }
-    object = raw_object;
-    if (object.IsICData()) {
-      ICData::Cast(object).Reset();
-    }
+    bool is_static_call = iter.Kind() == RawPcDescriptors::kUnoptStaticCall;
+    ic_data->Reset(is_static_call);
   }
-#else
-  const ObjectPool& pool = ObjectPool::Handle(object_pool());
-  Object& object = Object::Handle();
-  ASSERT(!pool.IsNull());
-  for (intptr_t i = 0; i < pool.Length(); i++) {
-    ObjectPool::EntryType entry_type = pool.InfoAt(i);
-    if (entry_type != ObjectPool::kTaggedObject) {
-      continue;
-    }
-    object = pool.ObjectAt(i);
-    if (object.IsICData()) {
-      ICData::Cast(object).Reset();
-    }
-  }
-#endif
+}
+
+
+void Function::FillICDataWithSentinels(const Code& code) const {
+  ASSERT(code.raw() == CurrentCode());
+  ClearICs(*this, code);
 }
 
 
@@ -523,8 +513,10 @@ bool Library::CanReload(const Library& replacement) const {
 
 static const Function* static_call_target = NULL;
 
-void ICData::Reset() const {
-  if (is_static_call()) {
+void ICData::Reset(bool is_static_call) const {
+  // TODO(johnmccutchan): ICData should know whether or not it's for a
+  // static call.
+  if (is_static_call) {
     const Function& old_target = Function::Handle(GetTargetAt(0));
     if (old_target.IsNull()) {
       FATAL("old_target is NULL.\n");

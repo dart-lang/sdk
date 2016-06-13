@@ -12570,17 +12570,6 @@ void ICData::AddDeoptReason(DeoptReasonId reason) const {
 }
 
 
-void ICData::SetIsStaticCall(bool static_call) const {
-  StoreNonPointer(&raw_ptr()->state_bits_,
-                  StaticCallBit::update(static_call, raw_ptr()->state_bits_));
-}
-
-
-bool ICData::is_static_call() const {
-  return StaticCallBit::decode(raw_ptr()->state_bits_);
-}
-
-
 void ICData::set_state_bits(uint32_t bits) const {
   StoreNonPointer(&raw_ptr()->state_bits_, bits);
 }
@@ -13484,8 +13473,6 @@ RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
       num_args_tested));
   // Copy deoptimization reasons.
   result.SetDeoptReasons(from.DeoptReasons());
-  // Copy whether or not this is a static call.
-  result.SetIsStaticCall(from.is_static_call());
   return result.raw();
 }
 
@@ -13509,7 +13496,6 @@ RawICData* ICData::Clone(const ICData& from) {
     obj = from_array.At(i);
     cloned_array.SetAt(i, obj);
   }
-  result.SetIsStaticCall(from.is_static_call());
   result.set_ic_data_array(cloned_array);
   // Copy deoptimization reasons.
   result.SetDeoptReasons(from.DeoptReasons());
