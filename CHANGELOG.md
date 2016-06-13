@@ -1,3 +1,8 @@
+# 0.1.19
+
+* New `close_sinks` lint.
+* Fixes to `iterable_contains_unrelated_type `.
+
 # 0.1.18
 
 * Fix NSME in `iterable_contains_unrelated_type` (#245).
