@@ -281,6 +281,11 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   }
 
   @override
+  void delete() {
+    throw new FileSystemException(path, 'File could not be deleted');
+  }
+
+  @override
   bool isOrContains(String path) {
     return path == this.path;
   }
@@ -339,6 +344,11 @@ class _MemoryFile extends _MemoryResource implements File {
       uri = _provider.pathContext.toUri(path);
     }
     return new _MemoryFileSource(this, uri);
+  }
+
+  @override
+  void delete() {
+    _provider.deleteFile(path);
   }
 
   @override
@@ -485,6 +495,11 @@ class _MemoryFolder extends _MemoryResource implements Folder {
   @override
   bool contains(String path) {
     return _provider.pathContext.isWithin(this.path, path);
+  }
+
+  @override
+  void delete() {
+    _provider.deleteFolder(path);
   }
 
   @override

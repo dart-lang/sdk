@@ -263,5 +263,14 @@ abstract class _PhysicalResource implements Resource {
   }
 
   @override
+  void delete() {
+    try {
+      _entry.deleteSync(recursive: true);
+    } on io.FileSystemException catch (exception) {
+      throw new FileSystemException(exception.path, exception.message);
+    }
+  }
+
+  @override
   String toString() => path;
 }

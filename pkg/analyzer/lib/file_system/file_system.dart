@@ -155,6 +155,13 @@ abstract class Resource {
   String get shortName;
 
   /**
+   * Synchronously deletes this resource and its children.
+   *
+   * Throws an exception if the resource cannot be deleted.
+   */
+  void delete();
+
+  /**
    * Return `true` if absolute [path] references this resource or a resource in
    * this folder.
    */

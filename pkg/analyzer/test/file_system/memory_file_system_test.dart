@@ -48,6 +48,14 @@ class FileSystemExceptionTest {
 class FileTest {
   MemoryResourceProvider provider = new MemoryResourceProvider();
 
+  void test_delete() {
+    File file = provider.newFile('/foo/file.txt', 'content');
+    expect(file.exists, isTrue);
+    // delete
+    file.delete();
+    expect(file.exists, isFalse);
+  }
+
   void test_equals_beforeAndAfterCreate() {
     String path = '/file.txt';
     File file1 = provider.getResource(path);
@@ -239,6 +247,23 @@ class FolderTest {
     expect(folder.contains('/foo/bar/aaa/bbb.txt'), isTrue);
     expect(folder.contains('/baz.txt'), isFalse);
     expect(folder.contains('/foo/bar'), isFalse);
+  }
+
+  void test_delete() {
+    Folder folder = provider.newFolder('/foo');
+    Folder barFolder = provider.newFolder('/foo/bar');
+    File aFile = provider.newFile('/foo/bar/a.txt', '');
+    File bFile = provider.newFile('/foo/b.txt', '');
+    expect(folder.exists, isTrue);
+    expect(barFolder.exists, isTrue);
+    expect(aFile.exists, isTrue);
+    expect(bFile.exists, isTrue);
+    // delete 'folder'
+    folder.delete();
+    expect(folder.exists, isFalse);
+    expect(barFolder.exists, isFalse);
+    expect(aFile.exists, isFalse);
+    expect(bFile.exists, isFalse);
   }
 
   void test_equal_false() {

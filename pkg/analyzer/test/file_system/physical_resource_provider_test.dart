@@ -50,6 +50,14 @@ class FileTest extends _BaseTest {
     expect(source.contents.data, 'contents');
   }
 
+  void test_delete() {
+    new io.File(path).writeAsStringSync('contents');
+    expect(file.exists, isTrue);
+    // delete
+    file.delete();
+    expect(file.exists, isFalse);
+  }
+
   void test_equals_differentPaths() {
     String path2 = join(tempPath, 'file2.txt');
     File file2 = PhysicalResourceProvider.INSTANCE.getResource(path2);
@@ -220,6 +228,16 @@ class FolderTest extends _BaseTest {
     expect(folder.contains(join(path, 'aaa', 'bbb.txt')), isTrue);
     expect(folder.contains(join(tempPath, 'baz.txt')), isFalse);
     expect(folder.contains(path), isFalse);
+  }
+
+  void test_delete() {
+    new io.File(join(path, 'myFile')).createSync();
+    var child = folder.getChild('myFile');
+    expect(child, _isFile);
+    expect(child.exists, isTrue);
+    // delete "folder"
+    folder.delete();
+    expect(child.exists, isFalse);
   }
 
   void test_equals_differentPaths() {
