@@ -2851,6 +2851,24 @@ abstract class ErrorCode {
     StaticWarningCode.UNDEFINED_SUPER_SETTER,
     StaticWarningCode.VOID_RETURN_FOR_GETTER,
     StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+    StrongModeCode.ASSIGNMENT_CAST,
+    StrongModeCode.DOWN_CAST_COMPOSITE,
+    StrongModeCode.DOWN_CAST_IMPLICIT,
+    StrongModeCode.DYNAMIC_CAST,
+    StrongModeCode.DYNAMIC_INVOKE,
+    StrongModeCode.INFERRED_TYPE,
+    StrongModeCode.INFERRED_TYPE_ALLOCATION,
+    StrongModeCode.INFERRED_TYPE_CLOSURE,
+    StrongModeCode.INFERRED_TYPE_LITERAL,
+    StrongModeCode.INVALID_FIELD_OVERRIDE,
+    StrongModeCode.INVALID_METHOD_OVERRIDE,
+    StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_BASE,
+    StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_MIXIN,
+    StrongModeCode.INVALID_PARAMETER_DECLARATION,
+    StrongModeCode.INVALID_SUPER_INVOCATION,
+    StrongModeCode.NON_GROUND_TYPE_CHECK_INFO,
+    StrongModeCode.STATIC_TYPE_ERROR,
+
     TodoCode.TODO,
 
     //
@@ -5804,6 +5822,117 @@ class StaticWarningCode extends ErrorCode {
 
   @override
   ErrorType get type => ErrorType.STATIC_WARNING;
+}
+
+/**
+ * This class has Strong Mode specific error codes.
+ *
+ * These error codes tend to use the same message across different severity
+ * levels, so they are grouped for clarity.
+ *
+ * All of these error codes also use the "STRONG_MODE_" prefix in their name.
+ */
+class StrongModeCode extends ErrorCode {
+  static const String _implicitCastMessage =
+      'Unsound implicit cast from {0} to {1}';
+
+  static const String _typeCheckMessage =
+      'Type check failed: {0} is not of type {1}';
+
+  static const String _invalidOverrideMessage =
+      'The type of {0}.{1} ({2}) is not a '
+      'subtype of {3}.{1} ({4}).';
+
+  static const String _inferredTypeMessage = '{0} has inferred type {1}';
+
+  static const StrongModeCode DOWN_CAST_COMPOSITE = const StrongModeCode(
+      ErrorType.STATIC_WARNING, 'DOWN_CAST_COMPOSITE', _implicitCastMessage);
+
+  static const StrongModeCode DOWN_CAST_IMPLICIT = const StrongModeCode(
+      ErrorType.HINT, 'DOWN_CAST_IMPLICIT', _implicitCastMessage);
+
+  static const StrongModeCode DYNAMIC_CAST = const StrongModeCode(
+      ErrorType.HINT, 'DYNAMIC_CAST', _implicitCastMessage);
+
+  static const StrongModeCode ASSIGNMENT_CAST = const StrongModeCode(
+      ErrorType.HINT, 'ASSIGNMENT_CAST', _implicitCastMessage);
+
+  static const StrongModeCode INVALID_PARAMETER_DECLARATION =
+      const StrongModeCode(ErrorType.COMPILE_TIME_ERROR,
+          'INVALID_PARAMETER_DECLARATION', _typeCheckMessage);
+
+  static const StrongModeCode INFERRED_TYPE = const StrongModeCode(
+      ErrorType.HINT, 'INFERRED_TYPE', _inferredTypeMessage);
+
+  static const StrongModeCode INFERRED_TYPE_LITERAL = const StrongModeCode(
+      ErrorType.HINT, 'INFERRED_TYPE_LITERAL', _inferredTypeMessage);
+
+  static const StrongModeCode INFERRED_TYPE_ALLOCATION = const StrongModeCode(
+      ErrorType.HINT, 'INFERRED_TYPE_ALLOCATION', _inferredTypeMessage);
+
+  static const StrongModeCode INFERRED_TYPE_CLOSURE = const StrongModeCode(
+      ErrorType.HINT, 'INFERRED_TYPE_CLOSURE', _inferredTypeMessage);
+
+  static const StrongModeCode STATIC_TYPE_ERROR = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'STATIC_TYPE_ERROR',
+      'Type check failed: {0} ({1}) is not of type {2}');
+
+  static const StrongModeCode INVALID_SUPER_INVOCATION = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'INVALID_SUPER_INVOCATION',
+      "super call must be last in an initializer "
+      "list (see https://goo.gl/EY6hDP): {0}");
+
+  static const StrongModeCode NON_GROUND_TYPE_CHECK_INFO = const StrongModeCode(
+      ErrorType.HINT,
+      'NON_GROUND_TYPE_CHECK_INFO',
+      "Runtime check on non-ground type {0} may throw StrongModeError");
+
+  static const StrongModeCode DYNAMIC_INVOKE = const StrongModeCode(
+      ErrorType.HINT, 'DYNAMIC_INVOKE', '{0} requires a dynamic invoke');
+
+  static const StrongModeCode INVALID_METHOD_OVERRIDE = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'INVALID_METHOD_OVERRIDE',
+      'Invalid override. $_invalidOverrideMessage');
+
+  static const StrongModeCode INVALID_METHOD_OVERRIDE_FROM_BASE =
+      const StrongModeCode(
+          ErrorType.COMPILE_TIME_ERROR,
+          'INVALID_METHOD_OVERRIDE_FROM_BASE',
+          'Base class introduces an invalid override. '
+          '$_invalidOverrideMessage');
+
+  static const StrongModeCode INVALID_METHOD_OVERRIDE_FROM_MIXIN =
+      const StrongModeCode(
+          ErrorType.COMPILE_TIME_ERROR,
+          'INVALID_METHOD_OVERRIDE_FROM_MIXIN',
+          'Mixin introduces an invalid override. $_invalidOverrideMessage');
+
+  static const StrongModeCode INVALID_FIELD_OVERRIDE = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'INVALID_FIELD_OVERRIDE',
+      'Field declaration {3}.{1} cannot be '
+      'overridden in {0}.');
+
+  @override
+  final ErrorType type;
+
+  /**
+   * Initialize a newly created error code to have the given [type] and [name].
+   *
+   * The message associated with the error will be created from the given
+   * [message] template. The correction associated with the error will be
+   * created from the optional [correction] template.
+   */
+  const StrongModeCode(ErrorType type, String name, String message,
+      [String correction])
+      : type = type,
+        super('STRONG_MODE_$name', message, correction);
+
+  @override
+  ErrorSeverity get errorSeverity => type.severity;
 }
 
 /**
