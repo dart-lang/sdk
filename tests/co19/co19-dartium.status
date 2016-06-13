@@ -14,8 +14,9 @@ LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Pass, RuntimeEr
 
 [ $compiler == none && $runtime == dartium && $system == windows ]
 LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Pass, RuntimeError # Issue 21605
-WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: RuntimeError # Please triage this failure.
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t01: Skip # Timesout Issue 26134
+WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: Skip # Timesout sporadically
+WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-003_t01: Skip # Timesout sporadically
 LayoutTests/fast/css/MarqueeLayoutTest_t01: Pass, RuntimeError # Please triage this failure
 
 [ $compiler == none && $runtime == dartium && $system != windows ]
