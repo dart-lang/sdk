@@ -1,3 +1,7 @@
+# 0.1.20
+
+* New `cancel_subscriptions` lint.
+
 # 0.1.19
 
 * New `close_sinks` lint.
