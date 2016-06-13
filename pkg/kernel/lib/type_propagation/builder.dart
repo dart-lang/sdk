@@ -23,7 +23,7 @@ class Builder {
   final Map<Procedure, int> tearOffs = <Procedure, int>{};
   final Map<VariableDeclaration, int> functionParameters =
       <VariableDeclaration, int>{};
-  final Map<Procedure, int> returnValues = <Procedure, int>{};
+  final Map<Procedure, int> returnVariables = <Procedure, int>{};
   final Map<TypeParameter, int> functionTypeParameters = <TypeParameter, int>{};
 
   /// Maps a class index to the result of [getInterfaceEscapeVariable].
@@ -178,7 +178,7 @@ class Builder {
   }
 
   int getReturnVariable(Procedure node) {
-    return returnValues[node] ??= newVariable(node, 'return');
+    return returnVariables[node] ??= newVariable(node, 'return');
   }
 
   /// Returns a variable containing the torn-off copy of the given procedure.
@@ -428,15 +428,15 @@ class Builder {
   void buildProcedure(Procedure node, int host) {
     if (node.isAbstract) return;
     int functionValue = getTearOffVariable(node);
-    int returnValue = getReturnVariable(node);
+    int returnVariable = getReturnVariable(node);
     var environment =
-        new Environment(this, returnValue: returnValue, thisValue: host);
+        new Environment(this, returnVariable: returnVariable, thisValue: host);
     buildFunctionNode(node.function, environment,
         addTypeBasedSummary: node.isExternal, functionValue: functionValue);
     if (host != null) {
       int propertyName = fieldNames.getPropertyField(node.name);
       if (node.isGetter) {
-        addStore(host, propertyName, returnValue);
+        addStore(host, propertyName, returnVariable);
       } else if (node.isSetter) {
         addLoad(host, propertyName,
             getParameterVariable(node.function.positionalParameters[0]));
@@ -501,19 +501,20 @@ class Builder {
         buildContravariantType(parameter.type, environment, value);
       }
     }
-    if (environment.returnValue == null) {
-      environment.returnValue = newVariable(node, 'return');
+    if (environment.returnVariable == null) {
+      environment.returnVariable = newVariable(node, 'return');
     } else {
-      visualizer?.annotateVariable(environment.returnValue, node, 'return');
+      visualizer?.annotateVariable(environment.returnVariable, node, 'return');
     }
     if (functionValue != null) {
       for (int arity = minArity; arity <= maxArity; ++arity) {
-        addStore(functionValue, getReturnField(arity), environment.returnValue);
+        addStore(
+            functionValue, getReturnField(arity), environment.returnVariable);
       }
     }
     if (addTypeBasedSummary) {
       int returnFromType = buildCovariantType(node.returnType, environment);
-      constraints.addAssign(returnFromType, environment.returnValue);
+      constraints.addAssign(returnFromType, environment.returnVariable);
     }
     if (node.body != null) {
       new StatementBuilder(this, environment).build(node.body);
@@ -626,10 +627,13 @@ class TypeEnvironment {
 class Environment extends TypeEnvironment {
   final Map<VariableDeclaration, int> localVariables =
       <VariableDeclaration, int>{};
-  int returnValue;
+  int returnVariable;
 
-  Environment(Builder builder, {int thisValue, this.returnValue})
+  Environment(Builder builder, {int thisValue, this.returnVariable})
       : super(builder, thisValue: thisValue);
+
+  Environment.inner(Environment outer, {this.returnVariable})
+      : super(outer.builder, thisValue: outer.thisValue);
 
   int getVariable(VariableDeclaration variable) {
     return localVariables[variable] ??= builder.newVariable(variable);
@@ -863,12 +867,7 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
   }
 
   int visitFunctionExpression(FunctionExpression node) {
-    int variable = builder.newVariable(node);
-    constraints.addAllocateFunction(
-        builder.newFunctionValue(node.function), variable);
-    builder.buildFunctionNode(node.function, environment,
-        functionValue: variable);
-    return variable;
+    return buildInnerFunction(node.function);
   }
 
   int visitStringLiteral(StringLiteral node) {
@@ -895,6 +894,18 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
     environment.localVariables[node.variable] =
         build(node.variable.initializer);
     return build(node.body);
+  }
+
+  int buildInnerFunction(FunctionNode node, {VariableDeclaration self}) {
+    int variable = builder.newVariable(node);
+    if (self != null) {
+      assert(!environment.localVariables.containsKey(self));
+      environment.localVariables[self] = variable;
+    }
+    Environment inner = new Environment.inner(environment);
+    constraints.addAllocateFunction(builder.newFunctionValue(node), variable);
+    builder.buildFunctionNode(node, inner, functionValue: variable);
+    return variable;
   }
 }
 
@@ -1005,7 +1016,7 @@ class StatementBuilder extends StatementVisitor {
   visitReturnStatement(ReturnStatement node) {
     if (node.expression != null) {
       int value = buildExpression(node.expression);
-      constraints.addAssign(value, environment.returnValue);
+      constraints.addAssign(value, environment.returnVariable);
     }
   }
 
@@ -1041,12 +1052,7 @@ class StatementBuilder extends StatementVisitor {
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
-    int variable = builder.newVariable(node);
-    environment.localVariables[node.variable] = variable;
-    constraints.addAllocateFunction(
-        builder.newFunctionValue(node.function), variable);
-    builder.buildFunctionNode(node.function, environment,
-        functionValue: variable);
+    expressionBuilder.buildInnerFunction(node.function, self: node.variable);
   }
 }
 
@@ -1163,8 +1169,9 @@ class CovariantExternalTypeVisitor extends DartTypeVisitor<int> {
       int argument = builder.getLoad(function, field);
       visitContravariant(type, argument);
     });
-    int returnValue = visit(node.returnType);
-    builder.addStore(function, fieldNames.getReturnField(arity), returnValue);
+    int returnVariable = visit(node.returnType);
+    builder.addStore(
+        function, fieldNames.getReturnField(arity), returnVariable);
     return function;
   }
 
@@ -1184,8 +1191,9 @@ class CovariantExternalTypeVisitor extends DartTypeVisitor<int> {
       int argument = builder.getLoad(function, field);
       visitContravariant(variable.type, argument);
     }
-    int returnValue = visit(node.returnType);
-    builder.addStore(function, fieldNames.getReturnField(arity), returnValue);
+    int returnVariable = visit(node.returnType);
+    builder.addStore(
+        function, fieldNames.getReturnField(arity), returnVariable);
     return function;
   }
 }
