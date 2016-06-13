@@ -52,7 +52,11 @@ enum FileLock {
   /// Shared file lock.
   SHARED,
   /// Exclusive file lock.
-  EXCLUSIVE
+  EXCLUSIVE,
+  /// Blocking shared file lock.
+  BLOCKING_SHARED,
+  /// Blocking exclusive file lock.
+  BLOCKING_EXCLUSIVE,
 }
 
 /**
@@ -735,6 +739,11 @@ abstract class RandomAccessFile {
    *
    * To obtain an exclusive lock on a file it must be opened for writing.
    *
+   * If [mode] is [FileLock.EXCLUSIVE] or [FileLock.SHARED], an error is
+   * signaled if the lock cannot be obtained. If [mode] is
+   * [FileLock.BLOCKING_EXCLUSIVE] or [FileLock.BLOCKING_SHARED], the
+   * returned [Future] is resolved only when the lock has been obtained.
+   *
    * *NOTE* file locking does have slight differences in behavior across
    * platforms:
    *
@@ -767,6 +776,11 @@ abstract class RandomAccessFile {
    * explicit value of `end` which is past the current length of the file.
    *
    * To obtain an exclusive lock on a file it must be opened for writing.
+   *
+   * If [mode] is [FileLock.EXCLUSIVE] or [FileLock.SHARED], an exception is
+   * thrown if the lock cannot be obtained. If [mode] is
+   * [FileLock.BLOCKING_EXCLUSIVE] or [FileLock.BLOCKING_SHARED], the
+   * call returns only after the lock has been obtained.
    *
    * *NOTE* file locking does have slight differences in behavior across
    * platforms:

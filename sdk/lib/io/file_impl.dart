@@ -919,6 +919,18 @@ class _RandomAccessFile implements RandomAccessFile {
   static final int LOCK_UNLOCK = 0;
   static final int LOCK_SHARED = 1;
   static final int LOCK_EXCLUSIVE = 2;
+  static final int LOCK_BLOCKING_SHARED = 3;
+  static final int LOCK_BLOCKING_EXCLUSIVE = 4;
+
+  int _fileLockValue(FileLock fl) {
+    switch (fl) {
+      case FileLock.SHARED: return LOCK_SHARED;
+      case FileLock.EXCLUSIVE: return LOCK_EXCLUSIVE;
+      case FileLock.BLOCKING_SHARED: return LOCK_BLOCKING_SHARED;
+      case FileLock.BLOCKING_EXCLUSIVE: return LOCK_BLOCKING_EXCLUSIVE;
+      default: return -1;
+    }
+  }
 
   Future<RandomAccessFile> lock(
       [FileLock mode = FileLock.EXCLUSIVE, int start = 0, int end = -1]) {
@@ -928,7 +940,7 @@ class _RandomAccessFile implements RandomAccessFile {
     if ((start < 0) || (end < -1) || ((end != -1) && (start >= end))) {
       throw new ArgumentError();
     }
-    int lock = (mode == FileLock.EXCLUSIVE) ? LOCK_EXCLUSIVE : LOCK_SHARED;
+    int lock = _fileLockValue(mode);
     return _dispatch(_FILE_LOCK, [null, lock, start, end])
         .then((response) {
           if (_isErrorResponse(response)) {
@@ -963,7 +975,7 @@ class _RandomAccessFile implements RandomAccessFile {
     if ((start < 0) || (end < -1) || ((end != -1) && (start >= end))) {
       throw new ArgumentError();
     }
-    int lock = (mode == FileLock.EXCLUSIVE) ? LOCK_EXCLUSIVE : LOCK_SHARED;
+    int lock = _fileLockValue(mode);
     var result = _ops.lock(lock, start, end);
     if (result is OSError) {
       throw new FileSystemException('lock failed', path, result);
