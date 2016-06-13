@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(jmesserly): this file needs to be refactored, it's a port from
+// package:dev_compiler's tests
+/// General type checking tests
 library analyzer.test.src.task.strong.checker_test;
 
 import '../../../reflective_tests.dart';
@@ -19,7 +22,7 @@ class CheckerTest {
 import 'dart:async';
 main() async {
   // Don't choke if sequence is not stream.
-  await for (var i in /*severe:FOR_IN_OF_INVALID_TYPE*/1234) {}
+  await for (var i in /*warning:FOR_IN_OF_INVALID_TYPE*/1234) {}
 
   // Dynamic cast.
   await for (String /*info:DYNAMIC_CAST*/s in new Stream<dynamic>()) {}
@@ -83,7 +86,7 @@ test() {
   a = a + b;
   a = a + /*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/a;
   a = a - b;
-  b = /*severe:INVALID_ASSIGNMENT*/b - b;
+  b = /*warning:INVALID_ASSIGNMENT*/b - b;
   a = a << b;
   a = a >> b;
   a = a & b;
@@ -102,7 +105,7 @@ test() {
   p = p && /*info:DYNAMIC_CAST*/c;
   p = (/*info:DYNAMIC_CAST*/c) && p;
   p = (/*info:DYNAMIC_CAST*/c) && /*info:DYNAMIC_CAST*/c;
-  p = /*severe:NON_BOOL_OPERAND*/y && p;
+  p = /*warning:NON_BOOL_OPERAND*/y && p;
   p = c == y;
 
   a = a[b];
@@ -296,7 +299,7 @@ test() {
   a += b;
   a += /*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/a;
   a -= b;
-  /*severe:STATIC_TYPE_ERROR*/b -= /*severe:INVALID_ASSIGNMENT*/b;
+  /*severe:STATIC_TYPE_ERROR*/b -= /*warning:INVALID_ASSIGNMENT*/b;
   a <<= b;
   a >>= b;
   a &= b;
@@ -444,8 +447,8 @@ void main() {
     int x;
     double y;
     x = f(3);
-    x = /*severe:INVALID_ASSIGNMENT*/f.col(3.0);
-    y = /*severe:INVALID_ASSIGNMENT*/f(3);
+    x = /*warning:INVALID_ASSIGNMENT*/f.col(3.0);
+    y = /*warning:INVALID_ASSIGNMENT*/f(3);
     y = f.col(3.0);
     f(/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3.0);
     f.col(/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3);
@@ -480,7 +483,7 @@ void main() {
     A f = new B();
     /*info:DYNAMIC_INVOKE*/f.col(42.0);
     /*info:DYNAMIC_INVOKE*/f.foo(42.0);
-    /*info:DYNAMIC_INVOKE*/f./*severe:UNDEFINED_GETTER*/x;
+    /*info:DYNAMIC_INVOKE*/f./*warning:UNDEFINED_GETTER*/x;
   }
 }
 ''');
@@ -627,7 +630,7 @@ class Child2 implements Base {
     checkFile('''
 main() {
   // Don't choke if sequence is not iterable.
-  for (var i in /*severe:FOR_IN_OF_INVALID_TYPE*/1234) {}
+  for (var i in /*warning:FOR_IN_OF_INVALID_TYPE*/1234) {}
 
   // Dynamic cast.
   for (String /*info:DYNAMIC_CAST*/s in <dynamic>[]) {}
@@ -660,7 +663,7 @@ main() {
     checkFile('''
 foo() {
   for (int i = 0; i < 10; i++) {
-    i = /*severe:INVALID_ASSIGNMENT*/"hi";
+    i = /*warning:INVALID_ASSIGNMENT*/"hi";
   }
 }
 bar() {
@@ -683,14 +686,14 @@ Future foo2() async => x;
 Future<int> foo3() async => /*info:DYNAMIC_CAST*/x;
 Future<int> foo4() async => new Future<int>.value(/*info:DYNAMIC_CAST*/x);
 Future<int> foo5() async =>
-    /*severe:RETURN_OF_INVALID_TYPE*/new Future<String>.value(/*info:DYNAMIC_CAST*/x);
+    /*warning:RETURN_OF_INVALID_TYPE*/new Future<String>.value(/*info:DYNAMIC_CAST*/x);
 
 bar1() async { return x; }
 Future bar2() async { return x; }
 Future<int> bar3() async { return /*info:DYNAMIC_CAST*/x; }
 Future<int> bar4() async { return new Future<int>.value(/*info:DYNAMIC_CAST*/x); }
 Future<int> bar5() async {
-  return /*severe:RETURN_OF_INVALID_TYPE*/new Future<String>.value(/*info:DYNAMIC_CAST*/x);
+  return /*warning:RETURN_OF_INVALID_TYPE*/new Future<String>.value(/*info:DYNAMIC_CAST*/x);
 }
 
 int y;
@@ -700,7 +703,7 @@ baz() async {
   int a = /*info:DYNAMIC_CAST*/await x;
   int b = await y;
   int c = await z;
-  String d = /*severe:INVALID_ASSIGNMENT*/await z;
+  String d = /*warning:INVALID_ASSIGNMENT*/await z;
 }
 
 Future<bool> get issue_264 async {
@@ -723,7 +726,7 @@ dynamic x;
 bar1() async* { yield x; }
 Stream bar2() async* { yield x; }
 Stream<int> bar3() async* { yield /*info:DYNAMIC_CAST*/x; }
-Stream<int> bar4() async* { yield /*severe:YIELD_OF_INVALID_TYPE*/new Stream<int>(); }
+Stream<int> bar4() async* { yield /*warning:YIELD_OF_INVALID_TYPE*/new Stream<int>(); }
 
 baz1() async* { yield* /*info:DYNAMIC_CAST*/x; }
 Stream baz2() async* { yield* /*info:DYNAMIC_CAST*/x; }
@@ -740,7 +743,7 @@ dynamic x;
 bar1() sync* { yield x; }
 Iterable bar2() sync* { yield x; }
 Iterable<int> bar3() sync* { yield /*info:DYNAMIC_CAST*/x; }
-Iterable<int> bar4() sync* { yield /*severe:YIELD_OF_INVALID_TYPE*/bar3(); }
+Iterable<int> bar4() sync* { yield /*warning:YIELD_OF_INVALID_TYPE*/bar3(); }
 
 baz1() sync* { yield* /*info:DYNAMIC_CAST*/x; }
 Iterable baz2() sync* { yield* /*info:DYNAMIC_CAST*/x; }
@@ -1499,91 +1502,91 @@ void main() {
 
    r = r;
    r = o;
-   r = /*severe:INVALID_ASSIGNMENT*/n;
-   r = /*severe:INVALID_ASSIGNMENT*/rr;
+   r = /*warning:INVALID_ASSIGNMENT*/n;
+   r = /*warning:INVALID_ASSIGNMENT*/rr;
    r = ro;
    r = rn;
    r = oo;
-   r = /*severe:INVALID_ASSIGNMENT*/nn;
-   r = /*severe:INVALID_ASSIGNMENT*/nnn;
+   r = /*warning:INVALID_ASSIGNMENT*/nn;
+   r = /*warning:INVALID_ASSIGNMENT*/nnn;
 
    o = /*warning:DOWN_CAST_COMPOSITE*/r;
    o = o;
-   o = /*severe:INVALID_ASSIGNMENT*/n;
-   o = /*severe:INVALID_ASSIGNMENT*/rr;
-   o = /*severe:INVALID_ASSIGNMENT*/ro;
-   o = /*severe:INVALID_ASSIGNMENT*/rn;
+   o = /*warning:INVALID_ASSIGNMENT*/n;
+   o = /*warning:INVALID_ASSIGNMENT*/rr;
+   o = /*warning:INVALID_ASSIGNMENT*/ro;
+   o = /*warning:INVALID_ASSIGNMENT*/rn;
    o = oo;
-   o = /*severe:INVALID_ASSIGNMENT*/nn;
-   o = /*severe:INVALID_ASSIGNMENT*/nnn;
+   o = /*warning:INVALID_ASSIGNMENT*/nn;
+   o = /*warning:INVALID_ASSIGNMENT*/nnn;
 
-   n = /*severe:INVALID_ASSIGNMENT*/r;
-   n = /*severe:INVALID_ASSIGNMENT*/o;
+   n = /*warning:INVALID_ASSIGNMENT*/r;
+   n = /*warning:INVALID_ASSIGNMENT*/o;
    n = n;
-   n = /*severe:INVALID_ASSIGNMENT*/rr;
-   n = /*severe:INVALID_ASSIGNMENT*/ro;
-   n = /*severe:INVALID_ASSIGNMENT*/rn;
-   n = /*severe:INVALID_ASSIGNMENT*/oo;
+   n = /*warning:INVALID_ASSIGNMENT*/rr;
+   n = /*warning:INVALID_ASSIGNMENT*/ro;
+   n = /*warning:INVALID_ASSIGNMENT*/rn;
+   n = /*warning:INVALID_ASSIGNMENT*/oo;
    n = nn;
    n = nnn;
 
-   rr = /*severe:INVALID_ASSIGNMENT*/r;
-   rr = /*severe:INVALID_ASSIGNMENT*/o;
-   rr = /*severe:INVALID_ASSIGNMENT*/n;
+   rr = /*warning:INVALID_ASSIGNMENT*/r;
+   rr = /*warning:INVALID_ASSIGNMENT*/o;
+   rr = /*warning:INVALID_ASSIGNMENT*/n;
    rr = rr;
    rr = ro;
-   rr = /*severe:INVALID_ASSIGNMENT*/rn;
+   rr = /*warning:INVALID_ASSIGNMENT*/rn;
    rr = oo;
-   rr = /*severe:INVALID_ASSIGNMENT*/nn;
-   rr = /*severe:INVALID_ASSIGNMENT*/nnn;
+   rr = /*warning:INVALID_ASSIGNMENT*/nn;
+   rr = /*warning:INVALID_ASSIGNMENT*/nnn;
 
    ro = /*warning:DOWN_CAST_COMPOSITE*/r;
-   ro = /*severe:INVALID_ASSIGNMENT*/o;
-   ro = /*severe:INVALID_ASSIGNMENT*/n;
+   ro = /*warning:INVALID_ASSIGNMENT*/o;
+   ro = /*warning:INVALID_ASSIGNMENT*/n;
    ro = /*warning:DOWN_CAST_COMPOSITE*/rr;
    ro = ro;
-   ro = /*severe:INVALID_ASSIGNMENT*/rn;
+   ro = /*warning:INVALID_ASSIGNMENT*/rn;
    ro = oo;
-   ro = /*severe:INVALID_ASSIGNMENT*/nn;
-   ro = /*severe:INVALID_ASSIGNMENT*/nnn;
+   ro = /*warning:INVALID_ASSIGNMENT*/nn;
+   ro = /*warning:INVALID_ASSIGNMENT*/nnn;
 
    rn = /*warning:DOWN_CAST_COMPOSITE*/r;
-   rn = /*severe:INVALID_ASSIGNMENT*/o;
-   rn = /*severe:INVALID_ASSIGNMENT*/n;
-   rn = /*severe:INVALID_ASSIGNMENT*/rr;
-   rn = /*severe:INVALID_ASSIGNMENT*/ro;
+   rn = /*warning:INVALID_ASSIGNMENT*/o;
+   rn = /*warning:INVALID_ASSIGNMENT*/n;
+   rn = /*warning:INVALID_ASSIGNMENT*/rr;
+   rn = /*warning:INVALID_ASSIGNMENT*/ro;
    rn = rn;
-   rn = /*severe:INVALID_ASSIGNMENT*/oo;
-   rn = /*severe:INVALID_ASSIGNMENT*/nn;
-   rn = /*severe:INVALID_ASSIGNMENT*/nnn;
+   rn = /*warning:INVALID_ASSIGNMENT*/oo;
+   rn = /*warning:INVALID_ASSIGNMENT*/nn;
+   rn = /*warning:INVALID_ASSIGNMENT*/nnn;
 
    oo = /*warning:DOWN_CAST_COMPOSITE*/r;
    oo = /*warning:DOWN_CAST_COMPOSITE*/o;
-   oo = /*severe:INVALID_ASSIGNMENT*/n;
+   oo = /*warning:INVALID_ASSIGNMENT*/n;
    oo = /*warning:DOWN_CAST_COMPOSITE*/rr;
    oo = /*warning:DOWN_CAST_COMPOSITE*/ro;
-   oo = /*severe:INVALID_ASSIGNMENT*/rn;
+   oo = /*warning:INVALID_ASSIGNMENT*/rn;
    oo = oo;
-   oo = /*severe:INVALID_ASSIGNMENT*/nn;
-   oo = /*severe:INVALID_ASSIGNMENT*/nnn;
+   oo = /*warning:INVALID_ASSIGNMENT*/nn;
+   oo = /*warning:INVALID_ASSIGNMENT*/nnn;
 
-   nn = /*severe:INVALID_ASSIGNMENT*/r;
-   nn = /*severe:INVALID_ASSIGNMENT*/o;
+   nn = /*warning:INVALID_ASSIGNMENT*/r;
+   nn = /*warning:INVALID_ASSIGNMENT*/o;
    nn = /*warning:DOWN_CAST_COMPOSITE*/n;
-   nn = /*severe:INVALID_ASSIGNMENT*/rr;
-   nn = /*severe:INVALID_ASSIGNMENT*/ro;
-   nn = /*severe:INVALID_ASSIGNMENT*/rn;
-   nn = /*severe:INVALID_ASSIGNMENT*/oo;
+   nn = /*warning:INVALID_ASSIGNMENT*/rr;
+   nn = /*warning:INVALID_ASSIGNMENT*/ro;
+   nn = /*warning:INVALID_ASSIGNMENT*/rn;
+   nn = /*warning:INVALID_ASSIGNMENT*/oo;
    nn = nn;
    nn = nnn;
 
-   nnn = /*severe:INVALID_ASSIGNMENT*/r;
-   nnn = /*severe:INVALID_ASSIGNMENT*/o;
+   nnn = /*warning:INVALID_ASSIGNMENT*/r;
+   nnn = /*warning:INVALID_ASSIGNMENT*/o;
    nnn = /*warning:DOWN_CAST_COMPOSITE*/n;
-   nnn = /*severe:INVALID_ASSIGNMENT*/rr;
-   nnn = /*severe:INVALID_ASSIGNMENT*/ro;
-   nnn = /*severe:INVALID_ASSIGNMENT*/rn;
-   nnn = /*severe:INVALID_ASSIGNMENT*/oo;
+   nnn = /*warning:INVALID_ASSIGNMENT*/rr;
+   nnn = /*warning:INVALID_ASSIGNMENT*/ro;
+   nnn = /*warning:INVALID_ASSIGNMENT*/rn;
+   nnn = /*warning:INVALID_ASSIGNMENT*/oo;
    nnn = /*warning:DOWN_CAST_COMPOSITE*/nn;
    nnn = nnn;
 }
@@ -1606,7 +1609,7 @@ void main() {
    {
      I2I f;
      f = new A();
-     f = /*severe:INVALID_ASSIGNMENT*/new B();
+     f = /*warning:INVALID_ASSIGNMENT*/new B();
      f = i2i;
      f = /*severe:STATIC_TYPE_ERROR*/n2n;
      f = /*warning:DOWN_CAST_COMPOSITE*/i2i as Object;
@@ -1614,7 +1617,7 @@ void main() {
    }
    {
      N2N f;
-     f = /*severe:INVALID_ASSIGNMENT*/new A();
+     f = /*warning:INVALID_ASSIGNMENT*/new A();
      f = new B();
      f = /*severe:STATIC_TYPE_ERROR*/i2i;
      f = n2n;
@@ -1624,18 +1627,18 @@ void main() {
    {
      A f;
      f = new A();
-     f = /*severe:INVALID_ASSIGNMENT*/new B();
-     f = /*severe:INVALID_ASSIGNMENT*/i2i;
-     f = /*severe:INVALID_ASSIGNMENT*/n2n;
+     f = /*warning:INVALID_ASSIGNMENT*/new B();
+     f = /*warning:INVALID_ASSIGNMENT*/i2i;
+     f = /*warning:INVALID_ASSIGNMENT*/n2n;
      f = /*info:DOWN_CAST_IMPLICIT*/i2i as Object;
      f = /*info:DOWN_CAST_IMPLICIT*/n2n as Function;
    }
    {
      B f;
-     f = /*severe:INVALID_ASSIGNMENT*/new A();
+     f = /*warning:INVALID_ASSIGNMENT*/new A();
      f = new B();
-     f = /*severe:INVALID_ASSIGNMENT*/i2i;
-     f = /*severe:INVALID_ASSIGNMENT*/n2n;
+     f = /*warning:INVALID_ASSIGNMENT*/i2i;
+     f = /*warning:INVALID_ASSIGNMENT*/n2n;
      f = /*info:DOWN_CAST_IMPLICIT*/i2i as Object;
      f = /*info:DOWN_CAST_IMPLICIT*/n2n as Function;
    }
@@ -1711,8 +1714,8 @@ void main() {
     local = g; // valid
 
     // Non-generic function cannot subtype a generic one.
-    local = /*severe:INVALID_ASSIGNMENT*/(x) => null;
-    local = /*severe:INVALID_ASSIGNMENT*/nonGenericFn;
+    local = /*warning:INVALID_ASSIGNMENT*/(x) => null;
+    local = /*warning:INVALID_ASSIGNMENT*/nonGenericFn;
   }
   {
     Iterable/*<R>*/ f/*<P, R>*/(List/*<P>*/ p) => null;
@@ -1727,8 +1730,8 @@ void main() {
     local2 = /*warning:DOWN_CAST_COMPOSITE*/local;
 
     // Non-generic function cannot subtype a generic one.
-    local = /*severe:INVALID_ASSIGNMENT*/(x) => null;
-    local = /*severe:INVALID_ASSIGNMENT*/nonGenericFn;
+    local = /*warning:INVALID_ASSIGNMENT*/(x) => null;
+    local = /*warning:INVALID_ASSIGNMENT*/nonGenericFn;
   }
 }
 ''');
@@ -1877,22 +1880,22 @@ main() {
   if (b) {}
   if (/*info:DYNAMIC_CAST*/dyn) {}
   if (/*info:DOWN_CAST_IMPLICIT*/obj) {}
-  if (/*severe:NON_BOOL_CONDITION*/i) {}
+  if (/*warning:NON_BOOL_CONDITION*/i) {}
 
   while (b) {}
   while (/*info:DYNAMIC_CAST*/dyn) {}
   while (/*info:DOWN_CAST_IMPLICIT*/obj) {}
-  while (/*severe:NON_BOOL_CONDITION*/i) {}
+  while (/*warning:NON_BOOL_CONDITION*/i) {}
 
   do {} while (b);
   do {} while (/*info:DYNAMIC_CAST*/dyn);
   do {} while (/*info:DOWN_CAST_IMPLICIT*/obj);
-  do {} while (/*severe:NON_BOOL_CONDITION*/i);
+  do {} while (/*warning:NON_BOOL_CONDITION*/i);
 
   for (;b;) {}
   for (;/*info:DYNAMIC_CAST*/dyn;) {}
   for (;/*info:DOWN_CAST_IMPLICIT*/obj;) {}
-  for (;/*severe:NON_BOOL_CONDITION*/i;) {}
+  for (;/*warning:NON_BOOL_CONDITION*/i;) {}
 }
 ''');
   }
@@ -1900,9 +1903,7 @@ main() {
   void test_implicitCasts() {
     addFile('num n; int i = /*info:ASSIGNMENT_CAST*/n;');
     check();
-    // TODO(jmesserly): should not be emitting the hint as well as the error.
-    addFile(
-        'num n; int i = /*info:ASSIGNMENT_CAST,severe:INVALID_ASSIGNMENT*/n;');
+    addFile('num n; int i = /*severe:ASSIGNMENT_CAST*/n;');
     check(implicitCasts: false);
   }
 
@@ -1919,8 +1920,8 @@ class Base {
     m(B a) {}
 }
 
-class /*severe:INCONSISTENT_METHOD_INHERITANCE*/T1
-    /*severe:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends Base implements I {}
+class /*warning:INCONSISTENT_METHOD_INHERITANCE*/T1
+    /*severe:INVALID_METHOD_OVERRIDE*/extends Base implements I {}
 ''');
   }
 
@@ -2079,8 +2080,8 @@ class M {
     m(B a) {}
 }
 
-class /*severe:INCONSISTENT_METHOD_INHERITANCE*/T1
-    extends Object with /*severe:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M
+class /*warning:INCONSISTENT_METHOD_INHERITANCE*/T1
+    extends Object with /*severe:INVALID_METHOD_OVERRIDE*/M
     implements I {}
 ''');
   }
@@ -2103,12 +2104,12 @@ class M2 {
     int x;
 }
 
-class /*severe:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Base
-    with /*severe:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M1 {}
-class /*severe:INCONSISTENT_METHOD_INHERITANCE*/T2 extends Base
-    with /*severe:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M1, /*severe:INVALID_FIELD_OVERRIDE*/M2 {}
-class /*severe:INCONSISTENT_METHOD_INHERITANCE*/T3 extends Base
-    with /*severe:INVALID_FIELD_OVERRIDE*/M2, /*severe:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M1 {}
+class /*warning:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Base
+    with /*severe:INVALID_METHOD_OVERRIDE*/M1 {}
+class /*warning:INCONSISTENT_METHOD_INHERITANCE*/T2 extends Base
+    with /*severe:INVALID_METHOD_OVERRIDE*/M1, /*severe:INVALID_FIELD_OVERRIDE*/M2 {}
+class /*warning:INCONSISTENT_METHOD_INHERITANCE*/T3 extends Base
+    with /*severe:INVALID_FIELD_OVERRIDE*/M2, /*severe:INVALID_METHOD_OVERRIDE*/M1 {}
 ''');
   }
 
@@ -2130,9 +2131,9 @@ class M2 {
     int x;
 }
 
-class /*severe:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Base
+class /*warning:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Base
     with M1,
-    /*severe:INVALID_METHOD_OVERRIDE_FROM_MIXIN,severe:INVALID_FIELD_OVERRIDE*/M2 {}
+    /*severe:INVALID_METHOD_OVERRIDE,severe:INVALID_FIELD_OVERRIDE*/M2 {}
 ''');
   }
 
@@ -2160,8 +2161,8 @@ class M3 {
     m(B a) {}
 }
 
-class /*severe:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Base
-    with M1, /*severe:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M2, M3 {}
+class /*warning:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Base
+    with M1, /*severe:INVALID_METHOD_OVERRIDE*/M2, M3 {}
 ''');
   }
 
@@ -2181,16 +2182,16 @@ class I1 {
     m(B a) {}
 }
 
-class /*severe:INCONSISTENT_METHOD_INHERITANCE*/T1
-    /*severe:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends Base
+class /*warning:INCONSISTENT_METHOD_INHERITANCE*/T1
+    /*severe:INVALID_METHOD_OVERRIDE*/extends Base
     implements I1 {}
 
 class T2 extends Base implements I1 {
     m(a) {}
 }
 
-class /*severe:INCONSISTENT_METHOD_INHERITANCE*/T3
-    extends Object with /*severe:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/Base
+class /*warning:INCONSISTENT_METHOD_INHERITANCE*/T3
+    extends Object with /*severe:INVALID_METHOD_OVERRIDE*/Base
     implements I1 {}
 
 class T4 extends Object with Base implements I1 {
@@ -2263,9 +2264,9 @@ class A <S extends  Returns<S>, T extends Returns<T>> {
     S s;
     T t;
     if (b) {
-      return /*severe:RETURN_OF_INVALID_TYPE*/b ? s : t;
+      return /*warning:RETURN_OF_INVALID_TYPE*/b ? s : t;
     } else {
-      return /*severe:RETURN_OF_INVALID_TYPE*/s ?? t;
+      return /*warning:RETURN_OF_INVALID_TYPE*/s ?? t;
     }
   }
 }
@@ -2274,7 +2275,7 @@ class B<S, T extends S> {
   T t;
   S s;
   int test(bool b) {
-    return /*severe:RETURN_OF_INVALID_TYPE*/b ? t : s;
+    return /*warning:RETURN_OF_INVALID_TYPE*/b ? t : s;
   }
 }
 
@@ -2285,7 +2286,7 @@ class C {
   int test1(bool b) {
     List<int> li;
     List<double> ld;
-    return /*severe:RETURN_OF_INVALID_TYPE*/b ? li : ld;
+    return /*warning:RETURN_OF_INVALID_TYPE*/b ? li : ld;
   }
   // TODO(leafp): This case isn't handled yet.  This test checks
   // the case where two related classes are instantiated with related
@@ -2294,7 +2295,7 @@ class C {
     List<int> li;
     Iterable<double> id;
     int x =
-        /*info:ASSIGNMENT_CAST should be severe:INVALID_ASSIGNMENT*/
+        /*info:ASSIGNMENT_CAST should be warning:INVALID_ASSIGNMENT*/
         b ? li : id;
     return /*warning:DOWN_CAST_COMPOSITE should be pass*/b ? li : id;
   }
@@ -2377,8 +2378,8 @@ class M {
     m(B a) {}
 }
 
-class /*severe:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Base
-    with /*severe:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M {}
+class /*warning:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Base
+    with /*severe:INVALID_METHOD_OVERRIDE*/M {}
 ''');
   }
 
@@ -2398,7 +2399,7 @@ class M {
     m(B a) {}
 }
 
-class /*severe:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Base
+class /*warning:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Base
     with M {}
 ''');
   }
@@ -2417,8 +2418,8 @@ class M {
     m(B a) {}
 }
 
-class /*severe:INCONSISTENT_METHOD_INHERITANCE*/T1
-    extends Object with /*severe:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M
+class /*warning:INCONSISTENT_METHOD_INHERITANCE*/T1
+    extends Object with /*severe:INVALID_METHOD_OVERRIDE*/M
     implements I2 {}
 ''');
   }
@@ -2437,8 +2438,8 @@ class M {
     m(B a) {}
 }
 
-class /*severe:INCONSISTENT_METHOD_INHERITANCE*/T1
-    extends Object with /*severe:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M
+class /*warning:INCONSISTENT_METHOD_INHERITANCE*/T1
+    extends Object with /*severe:INVALID_METHOD_OVERRIDE*/M
     implements I2 {}
 ''');
   }
@@ -2457,8 +2458,8 @@ class M {
     m(B a) {}
 }
 
-class /*severe:INCONSISTENT_METHOD_INHERITANCE*/T1
-    extends Object with /*severe:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M
+class /*warning:INCONSISTENT_METHOD_INHERITANCE*/T1
+    extends Object with /*severe:INVALID_METHOD_OVERRIDE*/M
     implements I2 {}
 ''');
   }
@@ -2484,9 +2485,9 @@ class M {
 // Here we want to report both, because the error location is
 // different.
 // TODO(sigmund): should we merge these as well?
-class /*severe:INCONSISTENT_METHOD_INHERITANCE*/T1
-    /*severe:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends Base
-    with /*severe:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M
+class /*warning:INCONSISTENT_METHOD_INHERITANCE*/T1
+    /*severe:INVALID_METHOD_OVERRIDE*/extends Base
+    with /*severe:INVALID_METHOD_OVERRIDE*/M
     implements I1 {}
 ''');
   }
@@ -2511,11 +2512,11 @@ class Parent1 extends Grandparent {
 class Parent2 extends Grandparent {}
 
 // Note: otherwise both errors would be reported on this line
-class /*severe:INCONSISTENT_METHOD_INHERITANCE*/T1
-    /*severe:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends Parent1
+class /*warning:INCONSISTENT_METHOD_INHERITANCE*/T1
+    /*severe:INVALID_METHOD_OVERRIDE*/extends Parent1
     implements I1 {}
-class /*severe:INCONSISTENT_METHOD_INHERITANCE*/T2
-    /*severe:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends Parent2
+class /*warning:INCONSISTENT_METHOD_INHERITANCE*/T2
+    /*severe:INVALID_METHOD_OVERRIDE*/extends Parent2
     implements I1 {}
 ''');
   }
@@ -2541,9 +2542,9 @@ class M2 {
 // Here we want to report both, because the error location is
 // different.
 // TODO(sigmund): should we merge these as well?
-class /*severe:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Object
-    with /*severe:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M1,
-    /*severe:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M2
+class /*warning:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Object
+    with /*severe:INVALID_METHOD_OVERRIDE*/M1,
+    /*severe:INVALID_METHOD_OVERRIDE*/M2
     implements I1 {}
 ''');
   }
@@ -2571,8 +2572,8 @@ class T1 extends Base implements I1 {
 
 // If there is no error in the class, we do report the error at
 // the base class:
-class /*severe:INCONSISTENT_METHOD_INHERITANCE*/T2
-    /*severe:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends Base
+class /*warning:INCONSISTENT_METHOD_INHERITANCE*/T2
+    /*severe:INVALID_METHOD_OVERRIDE*/extends Base
     implements I1 {}
 ''');
   }
@@ -2596,8 +2597,8 @@ class T1 extends Object with M implements I1 {
       /*warning:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
 }
 
-class /*severe:INCONSISTENT_METHOD_INHERITANCE*/T2
-    extends Object with /*severe:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M
+class /*warning:INCONSISTENT_METHOD_INHERITANCE*/T2
+    extends Object with /*severe:INVALID_METHOD_OVERRIDE*/M
     implements I1 {}
 ''');
   }
@@ -2731,7 +2732,7 @@ void main() {
   }
   {
     lOfAs = /*warning:DOWN_CAST_COMPOSITE*/mOfDs;
-    lOfAs = /*severe:INVALID_ASSIGNMENT*/mOfOs;
+    lOfAs = /*warning:INVALID_ASSIGNMENT*/mOfOs;
     lOfAs = mOfAs;
     lOfAs = /*warning:DOWN_CAST_COMPOSITE*/lOfDs;
     lOfAs = /*info:DOWN_CAST_IMPLICIT*/lOfOs;
@@ -2753,7 +2754,7 @@ void main() {
     mOfOs = mOfAs;
     mOfOs = /*info:DOWN_CAST_IMPLICIT*/lOfDs;
     mOfOs = /*info:DOWN_CAST_IMPLICIT*/lOfOs;
-    mOfOs = /*severe:INVALID_ASSIGNMENT*/lOfAs;
+    mOfOs = /*warning:INVALID_ASSIGNMENT*/lOfAs;
     mOfOs = new M<Object>(); // Reset type propagation.
   }
   {
@@ -2800,13 +2801,13 @@ void voidFn() => null;
 class A {
   set a(y) => 4;
   set b(y) => voidFn();
-  void set c(y) => /*severe:RETURN_OF_INVALID_TYPE*/4;
+  void set c(y) => /*warning:RETURN_OF_INVALID_TYPE*/4;
   void set d(y) => voidFn();
   /*warning:NON_VOID_RETURN_FOR_SETTER*/int set e(y) => 4;
   /*warning:NON_VOID_RETURN_FOR_SETTER*/int set f(y) =>
-      /*severe:RETURN_OF_INVALID_TYPE*/voidFn();
-  set g(y) {return /*severe:RETURN_OF_INVALID_TYPE*/4;}
-  void set h(y) {return /*severe:RETURN_OF_INVALID_TYPE*/4;}
+      /*warning:RETURN_OF_INVALID_TYPE*/voidFn();
+  set g(y) {return /*warning:RETURN_OF_INVALID_TYPE*/4;}
+  void set h(y) {return /*warning:RETURN_OF_INVALID_TYPE*/4;}
   /*warning:NON_VOID_RETURN_FOR_SETTER*/int set i(y) {return 4;}
 }
 ''');
@@ -2930,8 +2931,8 @@ class Base {
     m(B a) {}
 }
 
-class /*severe:INCONSISTENT_METHOD_INHERITANCE*/T1
-    /*severe:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends Base implements I2 {}
+class /*warning:INCONSISTENT_METHOD_INHERITANCE*/T1
+    /*severe:INVALID_METHOD_OVERRIDE*/extends Base implements I2 {}
 ''');
   }
 
@@ -2949,8 +2950,8 @@ class Base {
     m(B a) {}
 }
 
-class /*severe:INCONSISTENT_METHOD_INHERITANCE*/T1
-    /*severe:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends Base
+class /*warning:INCONSISTENT_METHOD_INHERITANCE*/T1
+    /*severe:INVALID_METHOD_OVERRIDE*/extends Base
     implements I2 {}
 ''');
   }
@@ -2969,8 +2970,8 @@ class Base {
     m(B a) {}
 }
 
-class /*severe:INCONSISTENT_METHOD_INHERITANCE*/T1
-    /*severe:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends Base
+class /*warning:INCONSISTENT_METHOD_INHERITANCE*/T1
+    /*severe:INVALID_METHOD_OVERRIDE*/extends Base
     implements I2 {}
 ''');
   }
@@ -3025,7 +3026,7 @@ void main() {
   int i = 42;
 
   // Check the boolean conversion of the condition.
-  print(/*severe:NON_BOOL_CONDITION*/i ? false : true);
+  print(/*warning:NON_BOOL_CONDITION*/i ? false : true);
   print((/*info:DOWN_CAST_IMPLICIT*/obj) ? false : true);
   print((/*info:DYNAMIC_CAST*/dyn) ? false : true);
 }
@@ -3083,14 +3084,14 @@ f() {
   dynamic x;
   if (x is int) {
     int y = x;
-    String z = /*severe:INVALID_ASSIGNMENT*/x;
+    String z = /*warning:INVALID_ASSIGNMENT*/x;
   }
 }
 g() {
   Object x;
   if (x is int) {
     int y = x;
-    String z = /*severe:INVALID_ASSIGNMENT*/x;
+    String z = /*warning:INVALID_ASSIGNMENT*/x;
   }
 }
 ''');
@@ -3111,9 +3112,9 @@ void main() {
    B b;
    y = a;
    o = a;
-   i = /*severe:INVALID_ASSIGNMENT*/a;
-   d = /*severe:INVALID_ASSIGNMENT*/a;
-   n = /*severe:INVALID_ASSIGNMENT*/a;
+   i = /*warning:INVALID_ASSIGNMENT*/a;
+   d = /*warning:INVALID_ASSIGNMENT*/a;
+   n = /*warning:INVALID_ASSIGNMENT*/a;
    a = a;
    b = /*info:DOWN_CAST_IMPLICIT*/a;
 }
@@ -3137,12 +3138,12 @@ void main() {
    C c;
    y = b;
    o = b;
-   i = /*severe:INVALID_ASSIGNMENT*/b;
-   d = /*severe:INVALID_ASSIGNMENT*/b;
-   n = /*severe:INVALID_ASSIGNMENT*/b;
+   i = /*warning:INVALID_ASSIGNMENT*/b;
+   d = /*warning:INVALID_ASSIGNMENT*/b;
+   n = /*warning:INVALID_ASSIGNMENT*/b;
    a = b;
    b = b;
-   c = /*severe:INVALID_ASSIGNMENT*/b;
+   c = /*warning:INVALID_ASSIGNMENT*/b;
 }
 ''');
   }
@@ -3214,12 +3215,12 @@ void main() {
    {
      left = /*info:DOWN_CAST_IMPLICIT*/top;
      left = left;
-     left = /*severe:INVALID_ASSIGNMENT*/right;
+     left = /*warning:INVALID_ASSIGNMENT*/right;
      left = bot;
    }
    {
      right = /*info:DOWN_CAST_IMPLICIT*/top;
-     right = /*severe:INVALID_ASSIGNMENT*/left;
+     right = /*warning:INVALID_ASSIGNMENT*/left;
      right = right;
      right = bot;
    }
@@ -3252,7 +3253,7 @@ test() {
   ~a;
   (/*info:DYNAMIC_INVOKE*/~d);
 
-  !/*severe:NON_BOOL_NEGATION_EXPRESSION*/a;
+  !/*warning:NON_BOOL_NEGATION_EXPRESSION*/a;
   !/*info:DYNAMIC_CAST*/d;
 
   -a;
@@ -3301,7 +3302,7 @@ void main() {
 typedef int Foo();
 void foo() {}
 void main () {
-  Foo x = /*severe:INVALID_ASSIGNMENT,info:USE_OF_VOID_RESULT*/foo();
+  Foo x = /*warning:INVALID_ASSIGNMENT,info:USE_OF_VOID_RESULT*/foo();
 }
 ''');
   }

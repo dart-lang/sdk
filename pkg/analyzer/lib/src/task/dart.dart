@@ -5682,12 +5682,9 @@ class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     AnalysisOptionsImpl options = context.analysisOptions;
     if (options.strongMode) {
-      CodeChecker checker = new CodeChecker(
-          typeProvider,
-          new StrongTypeSystemImpl(implicitCasts: options.implicitCasts),
-          errorListener,
-          options);
-      checker.visitCompilationUnit(unit);
+      unit.accept(new CodeChecker(
+          typeProvider, new StrongTypeSystemImpl(), errorListener,
+          options));
     }
     //
     // Record outputs.

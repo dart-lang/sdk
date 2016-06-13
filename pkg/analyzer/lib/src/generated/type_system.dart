@@ -12,8 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -24,15 +23,6 @@ typedef bool _GuardedSubtypeChecker<T>(T t1, T t2, Set<Element> visited);
  * https://github.com/dart-lang/dev_compiler/blob/master/STRONG_MODE.md
  */
 class StrongTypeSystemImpl extends TypeSystem {
-  /**
-   * True if implicit casts should be allowed, otherwise false.
-   *
-   * This affects the behavior of [isAssignableTo].
-   */
-  final bool implicitCasts;
-
-  StrongTypeSystemImpl({this.implicitCasts: true});
-
   bool anyParameterType(FunctionType ft, bool predicate(DartType t)) {
     return ft.parameters.any((p) => predicate(p.type));
   }
@@ -300,10 +290,6 @@ class StrongTypeSystemImpl extends TypeSystem {
       return true;
     }
 
-    if (!implicitCasts) {
-      return false;
-    }
-
     // Don't allow implicit downcasts between function types
     // and call method objects, as these will almost always fail.
     if ((fromType is FunctionType && getCallMethodType(toType) != null) ||
@@ -323,13 +309,16 @@ class StrongTypeSystemImpl extends TypeSystem {
       return false;
     }
 
-    // If the subtype relation goes the other way, allow the implicit
-    // downcast.
+    // If the subtype relation goes the other way, allow the implicit downcast.
+    // TODO(leafp): Emit warnings and hints for these in some way.
+    // TODO(leafp): Consider adding a flag to disable these?  Or just rely on
+    //   --warnings-as-errors?
     if (isSubtypeOf(toType, fromType) || toType.isAssignableTo(fromType)) {
-      // TODO(leafp,jmesserly): we emit warnings/hints for these in
-      // src/task/strong/checker.dart, which is a bit inconsistent. That
-      // code should be handled into places that use isAssignableTo, such as
-      // ErrorVerifier.
+      // TODO(leafp): error if type is known to be exact (literal,
+      //  instance creation).
+      // TODO(leafp): Warn on composite downcast.
+      // TODO(leafp): hint on object/dynamic downcast.
+      // TODO(leafp): Consider allowing assignment casts.
       return true;
     }
 
@@ -1191,9 +1180,8 @@ abstract class TypeSystem {
    * Create either a strong mode or regular type system based on context.
    */
   static TypeSystem create(AnalysisContext context) {
-    var options = context.analysisOptions as AnalysisOptionsImpl;
-    return options.strongMode
-        ? new StrongTypeSystemImpl(implicitCasts: options.implicitCasts)
+    return (context.analysisOptions.strongMode)
+        ? new StrongTypeSystemImpl()
         : new TypeSystemImpl();
   }
 }
