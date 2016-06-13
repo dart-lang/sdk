@@ -21,7 +21,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/html.dart';
-import 'package:analyzer/src/task/strong/info.dart';
+import 'package:analyzer/src/task/strong/ast_properties.dart' as strong_ast;
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
@@ -5090,9 +5090,7 @@ void main() {
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
     ExpressionStatement statement = statements[1];
     IndexExpression idx = statement.expression;
-    expect(DynamicInvoke.get(idx.target), isNotNull);
-    expect(DynamicInvoke.get(idx.target), isNotNull);
-    expect(DynamicInvoke.get(idx.target), isTrue);
+    expect(strong_ast.isDynamicInvoke(idx.target), isTrue);
   }
 
   void test_perform_verifyError() {

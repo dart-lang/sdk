@@ -30,8 +30,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/task/strong/info.dart'
-    show InferredType, StaticInfo;
 
 export 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 export 'package:analyzer/src/dart/resolver/scope.dart';
@@ -4646,7 +4644,7 @@ class InferenceContext {
   /**
    * The error listener on which to record inference information.
    */
-  final AnalysisErrorListener _errorListener;
+  final ErrorReporter _errorReporter;
 
   /**
    * If true, emit hints when types are inferred
@@ -4679,7 +4677,7 @@ class InferenceContext {
   // https://github.com/dart-lang/sdk/issues/25322
   final List<DartType> _returnStack = <DartType>[];
 
-  InferenceContext._(this._errorListener, TypeProvider typeProvider,
+  InferenceContext._(this._errorReporter, TypeProvider typeProvider,
       this._typeSystem, this._inferenceHints)
       : _typeProvider = typeProvider;
 
@@ -4758,12 +4756,22 @@ class InferenceContext {
    * [type] has been inferred as the type of [node].
    */
   void recordInference(Expression node, DartType type) {
-    StaticInfo info = InferredType.create(_typeSystem, node, type);
-    if (!_inferenceHints || info == null) {
+    if (!_inferenceHints) {
       return;
     }
-    AnalysisError error = info.toAnalysisError();
-    _errorListener.onError(error);
+
+    ErrorCode error;
+    if (node is Literal) {
+      error = StrongModeCode.INFERRED_TYPE_LITERAL;
+    } else if (node is InstanceCreationExpression) {
+      error = StrongModeCode.INFERRED_TYPE_ALLOCATION;
+    } else if (node is FunctionExpression) {
+      error = StrongModeCode.INFERRED_TYPE_CLOSURE;
+    } else {
+      error = StrongModeCode.INFERRED_TYPE;
+    }
+
+    _errorReporter.reportErrorForNode(error, node, [node, type]);
   }
 
   List<DartType> _matchTypes(InterfaceType t1, InterfaceType t2) {
@@ -5577,7 +5585,7 @@ class ResolverVisitor extends ScopedVisitor {
       strongModeHints = options.strongModeHints;
     }
     this.inferenceContext = new InferenceContext._(
-        errorListener, typeProvider, typeSystem, strongModeHints);
+        errorReporter, typeProvider, typeSystem, strongModeHints);
     this.typeAnalyzer = new StaticTypeAnalyzer(this);
   }
 

@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -29,9 +30,9 @@ bool _checkCalled;
 ///   * all expected failures are listed in the source code using comments
 ///     immediately in front of the AST node that should contain the error.
 ///
-///   * errors are formatted as a token `level:Type`, where `level` is the
-///     logging level were the error would be reported at, and `Type` is the
-///     concrete subclass of [StaticInfo] that denotes the error.
+///   * errors are formatted as a token `severity:ErrorCode`, where
+///     `severity` is the ErrorSeverity the error would be reported at, and
+///     `ErrorCode` is the error code's name.
 ///
 /// For example to check that an assignment produces a type error, you can
 /// create a file like:
@@ -76,7 +77,7 @@ CompilationUnit check({bool implicitCasts: true}) {
   Source mainSource = uriResolver.resolveAbsolute(new Uri.file('/main.dart'));
   var initialLibrary = context.resolveCompilationUnit2(mainSource, mainSource);
 
-  var collector = new _ErrorCollector();
+  var collector = new _ErrorCollector(context);
 
   // Extract expectations from the comments in the test files, and
   // check that all errors we emit are included in the expected map.
@@ -102,7 +103,7 @@ CompilationUnit check({bool implicitCasts: true}) {
           e.errorCode != HintCode.UNUSED_IMPORT &&
           e.errorCode != HintCode.UNUSED_LOCAL_VARIABLE &&
           e.errorCode != TodoCode.TODO));
-      _expectErrors(resolved, errors);
+      _expectErrors(context, resolved, errors);
     }
   }
 
@@ -131,12 +132,12 @@ void initStrongModeTests() {
   });
 }
 
-Level _actualErrorLevel(AnalysisError actual) {
+Level _actualErrorLevel(AnalysisContext context, AnalysisError actual) {
   return const <ErrorSeverity, Level>{
     ErrorSeverity.ERROR: Level.SEVERE,
     ErrorSeverity.WARNING: Level.WARNING,
     ErrorSeverity.INFO: Level.INFO
-  }[actual.errorCode.errorSeverity];
+  }[_errorSeverity(context, actual)];
 }
 
 SourceSpanWithContext _createSpanHelper(
@@ -175,7 +176,14 @@ String _errorCodeName(ErrorCode errorCode) {
   }
 }
 
-void _expectErrors(CompilationUnit unit, List<AnalysisError> actualErrors) {
+ErrorSeverity _errorSeverity(AnalysisContext context, AnalysisError error) {
+  // Attempt to process severity in a similar way to analyzer_cli and server.
+  return ErrorProcessor.getProcessor(context, error)?.severity ??
+      error.errorCode.errorSeverity;
+}
+
+void _expectErrors(AnalysisContext context, CompilationUnit unit,
+    List<AnalysisError> actualErrors) {
   var expectedErrors = _findExpectedErrors(unit.beginToken);
 
   // Sort both lists: by offset, then level, then name.
@@ -183,7 +191,7 @@ void _expectErrors(CompilationUnit unit, List<AnalysisError> actualErrors) {
     int delta = x.offset.compareTo(y.offset);
     if (delta != 0) return delta;
 
-    delta = x.errorCode.errorSeverity.compareTo(y.errorCode.errorSeverity);
+    delta = _errorSeverity(context, x).compareTo(_errorSeverity(context, y));
     if (delta != 0) return delta;
 
     return _errorCodeName(x.errorCode).compareTo(_errorCodeName(y.errorCode));
@@ -205,7 +213,7 @@ void _expectErrors(CompilationUnit unit, List<AnalysisError> actualErrors) {
   for (var expected in expectedErrors) {
     AnalysisError actual = expected._removeMatchingActual(actualErrors);
     if (actual != null) {
-      if (_actualErrorLevel(actual) != expected.level ||
+      if (_actualErrorLevel(context, actual) != expected.level ||
           _errorCodeName(actual.errorCode) != expected.typeName) {
         different[expected] = actual;
       }
@@ -218,7 +226,7 @@ void _expectErrors(CompilationUnit unit, List<AnalysisError> actualErrors) {
   List<AnalysisError> unexpected = actualErrors;
 
   if (unreported.isNotEmpty || unexpected.isNotEmpty || different.isNotEmpty) {
-    _reportFailure(unit, unreported, unexpected, different);
+    _reportFailure(context, unit, unreported, unexpected, different);
   }
 }
 
@@ -272,6 +280,7 @@ List<LibraryElement> _reachableLibraries(LibraryElement start) {
 }
 
 void _reportFailure(
+    AnalysisContext context,
     CompilationUnit unit,
     List<_ErrorExpectation> unreported,
     List<AnalysisError> unexpected,
@@ -286,7 +295,7 @@ void _reportFailure(
     var span = _createSpanHelper(
         unit.lineInfo, offset, unit.element.source, sourceCode,
         end: offset + length);
-    var levelName = _actualErrorLevel(error).name.toLowerCase();
+    var levelName = _actualErrorLevel(context, error).name.toLowerCase();
     return '@$offset $levelName:${_errorCodeName(error.errorCode)}\n' +
         span.message(error.message);
   }
@@ -322,15 +331,16 @@ void _reportFailure(
 }
 
 class _ErrorCollector implements AnalysisErrorListener {
+  final AnalysisContext _context;
   List<AnalysisError> errors;
   final bool hints;
 
-  _ErrorCollector({this.hints: true});
+  _ErrorCollector(this._context, {this.hints: true});
 
   void onError(AnalysisError error) {
     // Unless DDC hints are requested, filter them out.
     var HINT = ErrorSeverity.INFO.ordinal;
-    if (hints || error.errorCode.errorSeverity.ordinal > HINT) {
+    if (hints || _errorSeverity(_context, error).ordinal > HINT) {
       errors.add(error);
     }
   }
