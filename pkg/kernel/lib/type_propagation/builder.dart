@@ -712,8 +712,16 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
 
   int visitStaticSet(StaticSet node) {
     int value = build(node.value);
-    int field = builder.getFieldVariable(node.target);
-    constraints.addAssign(value, field);
+    int destination;
+    if (node.target is Procedure) {
+      Procedure target = node.target;
+      assert(target.isSetter);
+      destination =
+          builder.getParameterVariable(target.function.positionalParameters[0]);
+    } else {
+      destination = builder.getFieldVariable(node.target);
+    }
+    constraints.addAssign(value, destination);
     return value;
   }
 
