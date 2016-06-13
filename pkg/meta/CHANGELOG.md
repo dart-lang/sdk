@@ -1,3 +1,6 @@
+## 1.0.0
+* First stable API release.
+
 ## 0.12.2
 * Updated `@protected` to include implemented interfaces (linter#252).
 
