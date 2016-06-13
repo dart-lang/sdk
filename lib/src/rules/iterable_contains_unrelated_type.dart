@@ -8,7 +8,7 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/linter.dart';
-import 'package:linter/src/rules/unrelated_type_equality_checks.dart';
+import 'package:linter/src/util/dart_type_utilities.dart';
 
 const _desc = r'Invocation of Iterable<E>.contains with references of unrelated'
     r' types.';
@@ -195,7 +195,8 @@ class _Visitor extends SimpleAstVisitor {
             ?.element
             ?.type;
     Expression argument = node.argumentList.arguments.first;
-    if (unrelatedTypes(argument.bestType, _findIterableTypeArgument(type))) {
+    if (DartTypeUtilities.unrelatedTypes(
+        argument.bestType, _findIterableTypeArgument(type))) {
       rule.reportLint(node);
     }
   }

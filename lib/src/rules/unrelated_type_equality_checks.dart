@@ -7,9 +7,8 @@ library linter.src.rules.unrelated_type_equality_checks;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/linter.dart';
+import 'package:linter/src/util/dart_type_utilities.dart';
 
 const String _desc = r'Equality operator (==) invocation with references of'
     r' unrelated types.';
@@ -168,23 +167,4 @@ class _Visitor extends SimpleAstVisitor {
 bool _hasNonComparableOperands(BinaryExpression node) =>
     node.leftOperand is! NullLiteral &&
         node.rightOperand is! NullLiteral &&
-        unrelatedTypes(node.leftOperand.bestType, node.rightOperand.bestType);
-
-bool unrelatedTypes(DartType leftType, DartType rightType) {
-  if (leftType == null || leftType.isBottom || leftType.isDynamic ||
-      rightType == null || rightType.isBottom || rightType.isDynamic) {
-    return false;
-    }
-    if (leftType == rightType ||
-        leftType.isMoreSpecificThan(rightType) ||
-        rightType.isMoreSpecificThan(leftType)) {
-      return false;
-    }
-    Element leftElement = leftType.element;
-    Element rightElement = rightType.element;
-    if (leftElement is ClassElement && rightElement is ClassElement) {
-      return leftElement.supertype.isObject ||
-          leftElement.supertype != rightElement.supertype;
-    }
-    return false;
-}
+        DartTypeUtilities.unrelatedTypes(node.leftOperand.bestType, node.rightOperand.bestType);

@@ -208,6 +208,36 @@ defineTests() {
       });
     });
 
+    group('cancel_subscriptions', () {
+      IOSink currentOut = outSink;
+      CollectingSink collectingOut = new CollectingSink();
+      setUp(() {
+        exitCode = 0;
+        outSink = collectingOut;
+      });
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+        exitCode = 0;
+      });
+
+      test('cancel subscriptions', () {
+        dartlint.main([
+          'test/_data/cancel_subscriptions',
+          '--rules=cancel_subscriptions'
+        ]);
+        expect(exitCode, 1);
+        expect(
+            collectingOut.trim(),
+            stringContainsInOrder(
+                [
+                  'StreamSubscription _subscriptionA; // LINT',
+                  'StreamSubscription _subscriptionF; // LINT',
+                  '1 file analyzed, 2 issues found, in'
+                ]));
+      });
+    });
+
     group('examples', () {
       test('lintconfig.yaml', () {
         var src = readFile('example/lintconfig.yaml');

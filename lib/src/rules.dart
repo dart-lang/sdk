@@ -17,6 +17,7 @@ import 'package:linter/src/rules/avoid_init_to_null.dart';
 import 'package:linter/src/rules/avoid_return_types_on_setters.dart';
 import 'package:linter/src/rules/await_only_futures.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
+import 'package:linter/src/rules/cancel_subscriptions.dart';
 import 'package:linter/src/rules/close_sinks.dart';
 import 'package:linter/src/rules/comment_references.dart';
 import 'package:linter/src/rules/constant_identifier_names.dart';
@@ -58,6 +59,7 @@ final Registry ruleRegistry = new Registry()
   ..register(new AvoidInitToNull())
   ..register(new AwaitOnlyFutures())
   ..register(new CamelCaseTypes())
+  ..register(new CancelSubscriptions())
   ..register(new CloseSinks())
   ..register(new CommentReferences())
   ..register(new ConstantIdentifierNames())
