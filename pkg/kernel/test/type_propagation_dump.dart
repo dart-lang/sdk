@@ -9,6 +9,9 @@ import 'dart:io';
 
 ArgParser parser = new ArgParser()
   ..addFlag('graph', help: 'Generate graphviz dot files')
+  ..addOption('graph-filter',
+      valueHelp: 'name',
+      help: 'Only print graph for members whose name contains the given string')
   ..addFlag('text', help: 'Generate annotated kernel text files')
   ..addFlag('escape', help: 'Dump information from escape analysis')
   ..addFlag('stats',
@@ -85,8 +88,10 @@ main(List<String> args) {
 
   if (printGraphviz) {
     print('Printing graphviz dot files...');
+    String filter = options['graph-filter'];
     new Directory(outputDir).createSync();
     void dumpMember(Member member) {
+      if (filter != null && !'$member'.contains(filter)) return;
       String name = sanitizeFilename('$member');
       String path = '$outputDir/$name.dot';
       String dotCode = visualizer.dumpMember(member);
