@@ -10551,6 +10551,18 @@ void Library::AllocatePrivateKey() const {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
 
+  if (isolate->IsReloading()) {
+    // When reloading, we need to make sure we use the original private key
+    // if this library previously existed.
+    IsolateReloadContext* reload_context = isolate->reload_context();
+    const String& original_key =
+        String::Handle(reload_context->FindLibraryPrivateKey(*this));
+    if (!original_key.IsNull()) {
+      StorePointer(&raw_ptr()->private_key_, original_key.raw());
+      return;
+    }
+  }
+
   // Format of the private key is: "@<sequence number><6 digits of hash>
   const intptr_t hash_mask = 0x7FFFF;
 

@@ -1075,6 +1075,16 @@ RawClass* IsolateReloadContext::OldClassOrNull(
 }
 
 
+RawString* IsolateReloadContext::FindLibraryPrivateKey(
+    const Library& replacement_or_new) {
+  const Library& old = Library::Handle(OldLibraryOrNull(replacement_or_new));
+  if (old.IsNull()) {
+    return String::null();
+  }
+  return old.private_key();
+}
+
+
 RawLibrary* IsolateReloadContext::OldLibraryOrNull(
     const Library& replacement_or_new) {
   UnorderedHashSet<LibraryMapTraits>
@@ -1099,6 +1109,11 @@ void IsolateReloadContext::BuildLibraryMapping() {
     }
     old ^= OldLibraryOrNull(replacement_or_new);
     if (old.IsNull()) {
+      if (FLAG_identity_reload) {
+        TIR_Print("Could not find original library for %s\n",
+                  replacement_or_new.ToCString());
+        UNREACHABLE();
+      }
       // New library.
       AddLibraryMapping(replacement_or_new, replacement_or_new);
     } else {
