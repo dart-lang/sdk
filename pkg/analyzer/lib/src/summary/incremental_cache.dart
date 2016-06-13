@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:core' hide Resource;
 
@@ -58,6 +59,11 @@ int comparePaths(String a, String b) {
  */
 abstract class CacheStorage {
   /**
+   * Compact the storage, e.g. remove unused entries.
+   */
+  void compact();
+
+  /**
    * Return bytes for the given [key], `null` if [key] is not in the storage.
    */
   List<int> get(String key);
@@ -80,6 +86,11 @@ abstract class CacheStorage {
  */
 class FolderCacheStorage implements CacheStorage {
   /**
+   * The maximum number of entries to keep in the cache.
+   */
+  static const MAX_ENTRIES = 20000;
+
+  /**
    * The folder to read and write files.
    */
   final Folder folder;
@@ -91,14 +102,46 @@ class FolderCacheStorage implements CacheStorage {
    */
   final String tempFileName;
 
-  FolderCacheStorage(this.folder, this.tempFileName);
+  /**
+   * The set of recently used entries, with the most recently used entries
+   * on the bottom.
+   */
+  final LinkedHashSet<String> _recentEntries = new LinkedHashSet<String>();
+
+  FolderCacheStorage(this.folder, this.tempFileName) {
+    try {
+      File file = folder.getChildAssumingFile('.entries');
+      if (file.exists) {
+        String entriesString = file.readAsStringSync();
+        List<String> entriesLists = entriesString.split('\n');
+        _recentEntries.addAll(entriesLists);
+      }
+    } catch (_) {}
+  }
+
+  @override
+  void compact() {
+    while (_recentEntries.length > MAX_ENTRIES) {
+      String key = _recentEntries.first;
+      _recentEntries.remove(key);
+      try {
+        folder.getChildAssumingFile(key).delete();
+      } catch (_) {}
+    }
+    try {
+      List<int> bytes = UTF8.encode(_recentEntries.join('\n'));
+      folder.getChildAssumingFile('.entries').writeAsBytesSync(bytes);
+    } catch (_) {}
+  }
 
   @override
   List<int> get(String key) {
     Resource file = folder.getChild(key);
     if (file is File) {
       try {
-        return file.readAsBytesSync();
+        List<int> bytes = file.readAsBytesSync();
+        _accessedKey(key);
+        return bytes;
       } on FileSystemException {}
     }
     return null;
@@ -111,7 +154,16 @@ class FolderCacheStorage implements CacheStorage {
     tempFile.writeAsBytesSync(bytes);
     try {
       tempFile.renameSync(absPath);
+      _accessedKey(key);
     } catch (e) {}
+  }
+
+  /**
+   * The given [key] was accessed, update recently used entries.
+   */
+  void _accessedKey(String key) {
+    _recentEntries.remove(key);
+    _recentEntries.add(key);
   }
 }
 

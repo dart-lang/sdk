@@ -48,7 +48,7 @@ IncrementalAnalysisSession configureIncrementalAnalysis(
     context.resultProvider = new _CacheBasedResultProvider(context, cache);
     // Listen for new libraries to put into the cache.
     _IncrementalAnalysisSession session =
-        new _IncrementalAnalysisSession(options, context, cache);
+        new _IncrementalAnalysisSession(options, storage, context, cache);
     context
         .onResultChanged(LIBRARY_ELEMENT1)
         .listen((ResultChangedEvent event) {
@@ -172,13 +172,14 @@ class _CacheBasedResultProvider extends ResynthesizerResultProvider {
 
 class _IncrementalAnalysisSession implements IncrementalAnalysisSession {
   final CommandLineOptions commandLineOptions;
+  final CacheStorage cacheStorage;
   final AnalysisContext context;
   final IncrementalCache cache;
 
   final Set<Source> newLibrarySources = new Set<Source>();
 
   _IncrementalAnalysisSession(
-      this.commandLineOptions, this.context, this.cache);
+      this.commandLineOptions, this.cacheStorage, this.context, this.cache);
 
   @override
   void finish() {
@@ -189,6 +190,8 @@ class _IncrementalAnalysisSession implements IncrementalAnalysisSession {
       }
       _putLibrary(librarySource);
     }
+    // Compact the cache.
+    cacheStorage.compact();
   }
 
   @override

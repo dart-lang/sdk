@@ -283,6 +283,9 @@ class _TestCacheStorage implements CacheStorage {
   final Map<String, List<int>> map = <String, List<int>>{};
 
   @override
+  void compact() {}
+
+  @override
   List<int> get(String key) {
     return map[key];
   }
