@@ -449,3 +449,4 @@ Language/Expressions/Property_Extraction/General_Closurization/static_type_t07: 
 Language/Libraries_and_Scripts/Scripts/syntax_t11: Pass, CompileTimeError # Issue 26592
 Language/Libraries_and_Scripts/Parts/compilation_t04: Pass, CompileTimeError # Issue 26592
 Language/Libraries_and_Scripts/Parts/compilation_t02: Pass, MissingCompileTimeError # Issue 26692
+Language/Libraries_and_Scripts/Parts/compilation_t01: Pass, MissingCompileTimeError # Issue 26692
