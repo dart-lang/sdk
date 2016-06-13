@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules.close_sinks;
+library linter.src.rules.cancel_subscriptions;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -10,21 +10,19 @@ import 'package:linter/src/linter.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 import 'package:linter/src/util/leak_detector_visitor.dart';
 
-
-
-const _desc = r'Close instances of `dart.core.Sink`.';
+const _desc = r'Cancel instances of dart.async.StreamSubscription.';
 
 const _details = r'''
 
-**DO** invoke `close` on instances of `dart.core.Sink` to avoid memory leaks and
-unexpected behaviors.
+**DO** Invoke `cancel` on instances of `dart.async.StreamSubscription` to avoid
+memory leaks and unexpected behaviors.
 
 **BAD:**
 ```
 class A {
-  IOSink _sinkA;
-  void init(filename) {
-    _sinkA = new File(filename).openWrite(); // LINT
+  StreamSubscription _subscriptionA; // LINT
+  void init(Stream stream) {
+    _subscriptionA = stream.listen((_) {});
   }
 }
 ```
@@ -32,20 +30,20 @@ class A {
 **BAD:**
 ```
 void someFunction() {
-  IOSink _sinkF; // LINT
+  StreamSubscription _subscriptionF; // LINT
 }
 ```
 
 **GOOD:**
 ```
 class B {
-  IOSink _sinkB;
-  void init(filename) {
-    _sinkB = new File(filename).openWrite(); // OK
+  StreamSubscription _subscriptionB; // OK
+  void init(Stream stream) {
+    _subscriptionB = stream.listen((_) {});
   }
 
   void dispose(filename) {
-    _sinkB.close();
+    _subscriptionB.cancel();
   }
 }
 ```
@@ -53,17 +51,17 @@ class B {
 **GOOD:**
 ```
 void someFunctionOK() {
-  IOSink _sinkFOK; // OK
-  _sinkFOK.close();
+  StreamSubscription _subscriptionB; // OK
+  _subscriptionB.cancel();
 }
 ```
 ''';
 
-class CloseSinks extends LintRule {
+class CancelSubscriptions extends LintRule {
   _Visitor _visitor;
 
-  CloseSinks() : super(
-      name: 'close_sinks',
+  CancelSubscriptions() : super(
+      name: 'cancel_subscriptions',
       description: _desc,
       details: _details,
       group: Group.errors,
@@ -76,16 +74,16 @@ class CloseSinks extends LintRule {
 }
 
 class _Visitor extends LeakDetectorVisitor {
-  static const _closeMethodName = 'close';
+  static const _cancelMethodName = 'cancel';
 
   _Visitor(LintRule rule) : super(rule);
 
   @override
-  String get methodName => _closeMethodName;
+  String get methodName => _cancelMethodName;
 
   @override
-  DartTypePredicate get predicate => _isSink;
+  DartTypePredicate get predicate => _isSubscription;
 }
 
-bool _isSink(DartType type) =>
-    DartTypeUtilities.implementsInterface(type, 'Sink', 'dart.core');
+bool _isSubscription(DartType type) =>
+    DartTypeUtilities.implementsInterface(type, 'StreamSubscription', 'dart.async');
