@@ -1842,7 +1842,7 @@ class ICData : public Object {
 
   bool IsImmutable() const;
 
-  void Reset(bool is_static_call) const;
+  void Reset() const;
   void ResetData() const;
 
   // Note: only deopts with reasons before Unknown in this list are recorded in
@@ -2146,6 +2146,9 @@ class ICData : public Object {
   intptr_t tag() const { return raw_ptr()->tag_; }
 #endif
 
+  void SetIsStaticCall(bool static_call) const;
+  bool is_static_call() const;
+
  private:
   static RawICData* New();
 
@@ -2167,7 +2170,9 @@ class ICData : public Object {
     kDeoptReasonPos = kNumArgsTestedPos + kNumArgsTestedSize,
     kDeoptReasonSize = kLastRecordedDeoptReason + 1,
     kRangeFeedbackPos = kDeoptReasonPos + kDeoptReasonSize,
-    kRangeFeedbackSize = kBitsPerRangeFeedback * kRangeFeedbackSlots
+    kRangeFeedbackSize = kBitsPerRangeFeedback * kRangeFeedbackSlots,
+    kStaticCallPos = kRangeFeedbackPos + kRangeFeedbackSize,
+    kStaticCallSize = 1,
   };
 
   class NumArgsTestedBits : public BitField<uint32_t,
@@ -2183,6 +2188,10 @@ class ICData : public Object {
                                             ICData::kRangeFeedbackPos,
                                             ICData::kRangeFeedbackSize> {};
 
+  class StaticCallBit : public BitField<uint32_t,
+                                        bool,
+                                        ICData::kStaticCallPos,
+                                        ICData::kStaticCallSize> {};
 #if defined(DEBUG)
   // Used in asserts to verify that a check is not added twice.
   bool HasCheck(const GrowableArray<intptr_t>& cids) const;
@@ -2275,7 +2284,6 @@ class Function : public Object {
   // Reloading support:
   void Reparent(const Class& new_cls) const;
   void ZeroEdgeCounters() const;
-  void FillICDataWithSentinels(const Code& code) const;
 
   RawClass* Owner() const;
   RawClass* origin() const;
@@ -4538,6 +4546,9 @@ class Code : public Object {
     ASSERT(code_source_map.IsOld());
     StorePointer(&raw_ptr()->code_source_map_, code_source_map.raw());
   }
+
+  // Used during reloading (see object_reload.cc).
+  void ResetICDatas(const Function& function) const;
 
   TokenPosition GetTokenPositionAt(intptr_t offset) const;
 

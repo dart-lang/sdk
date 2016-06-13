@@ -1736,17 +1736,20 @@ const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
     ASSERT(res->deopt_id() == deopt_id);
     ASSERT(res->target_name() == target_name.raw());
     ASSERT(res->NumArgsTested() == num_args_tested);
+    ASSERT(!res->is_static_call());
     return res;
   }
   const ICData& ic_data = ICData::ZoneHandle(zone(), ICData::New(
       parsed_function().function(), target_name,
       arguments_descriptor, deopt_id, num_args_tested));
+  ic_data.SetIsStaticCall(false);
 #if defined(TAG_IC_DATA)
   ic_data.set_tag(Instruction::kInstanceCall);
 #endif
   if (deopt_id_to_ic_data_ != NULL) {
     (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
   }
+  ASSERT(!ic_data.is_static_call());
   return &ic_data;
 }
 
@@ -1762,18 +1765,21 @@ const ICData* FlowGraphCompiler::GetOrAddStaticCallICData(
     ASSERT(res->deopt_id() == deopt_id);
     ASSERT(res->target_name() == target.name());
     ASSERT(res->NumArgsTested() == num_args_tested);
+    ASSERT(res->is_static_call());
     return res;
   }
   const ICData& ic_data = ICData::ZoneHandle(zone(), ICData::New(
       parsed_function().function(), String::Handle(zone(), target.name()),
       arguments_descriptor, deopt_id, num_args_tested));
   ic_data.AddTarget(target);
+  ic_data.SetIsStaticCall(true);
 #if defined(TAG_IC_DATA)
   ic_data.set_tag(Instruction::kStaticCall);
 #endif
   if (deopt_id_to_ic_data_ != NULL) {
     (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
   }
+  ASSERT(ic_data.is_static_call());
   return &ic_data;
 }
 
