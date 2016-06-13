@@ -40,7 +40,7 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
                                                          target_name,
                                                          args_descriptor,
                                                          15,
-                                                         1));
+                                                         1, false));
 
   // Code accessing pp is generated, but not executed. Uninitialized pp is OK.
   __ set_constant_pool_allowed(true);

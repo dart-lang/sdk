@@ -1773,7 +1773,8 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
                     String::Handle(old_checks.target_name()),
                     Array::Handle(old_checks.arguments_descriptor()),
                     old_checks.deopt_id(),
-                    1));  // Number of args tested.
+                    1,        // Number of args tested.
+                    false));  // is_static_call
     for (intptr_t i = 0; i < non_inlined_variants_.length(); ++i) {
       new_checks.AddReceiverCheck(non_inlined_variants_[i].cid,
                                   *non_inlined_variants_[i].target,
@@ -2651,7 +2652,8 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
                                 Thread::kNoDeoptId,
-                                1);
+                                1,
+                                false);
       value_check.AddReceiverCheck(kSmiCid, target);
       break;
     }
@@ -2663,7 +2665,8 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
                                   i_call->function_name(),
                                   Object::empty_array(),  // Dummy args. descr.
                                   Thread::kNoDeoptId,
-                                  1);
+                                  1,
+                                  false);
         value_check.AddReceiverCheck(kSmiCid, target);
       }
       break;
@@ -2674,7 +2677,8 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
                                 Thread::kNoDeoptId,
-                                1);
+                                1,
+                                false);
       value_check.AddReceiverCheck(kDoubleCid, target);
       break;
     }
@@ -2684,7 +2688,8 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
                                 Thread::kNoDeoptId,
-                                1);
+                                1,
+                                false);
       value_check.AddReceiverCheck(kInt32x4Cid, target);
       break;
     }
@@ -2694,7 +2699,8 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
                                 Thread::kNoDeoptId,
-                                1);
+                                1,
+                                false);
       value_check.AddReceiverCheck(kFloat32x4Cid, target);
       break;
     }

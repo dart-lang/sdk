@@ -76,7 +76,7 @@ void AotOptimizer::PopulateWithICData() {
           const ICData& ic_data = ICData::ZoneHandle(zone(), ICData::New(
               function(), call->function_name(),
               arguments_descriptor, call->deopt_id(),
-              call->checked_argument_count()));
+              call->checked_argument_count(), false));
           call->set_ic_data(&ic_data);
         }
       }
@@ -256,7 +256,7 @@ const ICData& AotOptimizer::TrySpecializeICData(const ICData& ic_data,
         String::Handle(Z, ic_data.target_name()),
         Object::empty_array(),  // Dummy argument descriptor.
         ic_data.deopt_id(),
-        ic_data.NumArgsTested()));
+        ic_data.NumArgsTested(), false));
     new_ic_data.SetDeoptReasons(ic_data.DeoptReasons());
     new_ic_data.AddReceiverCheck(cid, function);
     return new_ic_data;
@@ -2447,7 +2447,8 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
                         instr->function_name(),
                         args_desc_array,
                         Thread::kNoDeoptId,
-                        /* args_tested = */ 1));
+                        /* args_tested = */ 1,
+                        false));
         ic_data.AddReceiverCheck(receiver_class.id(), function);
         PolymorphicInstanceCallInstr* call =
             new(Z) PolymorphicInstanceCallInstr(instr, ic_data,
@@ -2520,7 +2521,7 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
                                 instr->function_name(),
                                 args_desc_array,
                                 Thread::kNoDeoptId,
-                                /* args_tested = */ 1);
+                                /* args_tested = */ 1, false);
           for (intptr_t j = 0; j < i; j++) {
             ic_data.AddReceiverCheck(class_ids[j], single_target);
           }
