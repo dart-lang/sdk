@@ -88,7 +88,8 @@ static void MakeDummyInstanceCall(Assembler* assembler, const Object& result) {
       String::Handle(dummy_instance_function.name()),
       dummy_arguments_descriptor,
       Thread::kNoDeoptId,
-      2));
+      2,
+      /* is_static_call= */ false));
 
   // Wire up the Function in the ICData.
   GrowableArray<intptr_t> cids(2);
