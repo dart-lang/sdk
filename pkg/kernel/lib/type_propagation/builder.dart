@@ -34,6 +34,9 @@ class Builder {
 
   final List<int> externalClassWorklist = <int>[];
 
+  final Uint31PairMap<int> _stores = new Uint31PairMap<int>();
+  final Uint31PairMap<int> _loads = new Uint31PairMap<int>();
+
   int bottomNode;
   int dynamicNode;
   int boolNode;
@@ -614,10 +617,12 @@ class TypeEnvironment {
   }
 
   int getLoad(int object, int field) {
-    // TODO(asgerf): Canonicalize loads.
-    int variable = constraints.newVariable();
+    int variable = builder._loads.lookup(object, field);
+    if (variable != null) return variable;
+    variable = constraints.newVariable();
     constraints.addLoad(object, field, variable);
     visualizer?.annotateLoad(object, field, variable, member);
+    builder._loads.put(variable);
     return variable;
   }
 
@@ -627,16 +632,17 @@ class TypeEnvironment {
   }
 
   int getStore(int object, int field) {
-    // TODO(asgerf): Canonicalize stores.
-    int variable = constraints.newVariable();
+    int variable = builder._stores.lookup(object, field);
+    if (variable != null) return variable;
+    variable = constraints.newVariable();
     constraints.addStore(object, field, variable);
     visualizer?.annotateStore(object, field, variable, member);
+    builder._stores.put(variable);
     return variable;
   }
 
   void addStore(int object, int field, int value) {
-    constraints.addStore(object, field, value);
-    visualizer?.annotateStore(object, field, value, member);
+    addAssign(value, getStore(object, field));
   }
 }
 

@@ -56,20 +56,52 @@ class TupleCanonicalizer {
   }
 
   int get length => _canonicalList.length;
+
+  static bool _contentEquals(List<Object> first, List<Object> second) {
+    if (first.length != second.length) return false;
+    for (int i = 0; i < first.length; ++i) {
+      if (first[i] != second[i]) return false;
+    }
+    return true;
+  }
+
+  static int _contentHashCode(List<Object> list) {
+    int hash = 0;
+    for (int i = 0; i < list.length; ++i) {
+      hash = (hash * 31 + hash ^ list[i].hashCode) & 0x3fffffff;
+    }
+    return hash;
+  }
 }
 
-bool _contentEquals(List<Object> first, List<Object> second) {
-  if (first.length != second.length) return false;
-  for (int i = 0; i < first.length; ++i) {
-    if (first[i] != second[i]) return false;
-  }
-  return true;
-}
+/// Maps uint31 pairs to values of type [T].
+class Uint31PairMap<T> {
+  final HashMap<int, T> _table = new HashMap<int, T>(hashCode: _bigintHash);
+  int _key;
 
-int _contentHashCode(List<Object> list) {
-  int hash = 0;
-  for (int i = 0; i < list.length; ++i) {
-    hash = (hash * 31 + hash ^ list[i].hashCode) & 0x3fffffff;
+  /// Returns the value associated with the given pair, or `null` if no value
+  /// is associated with the pair.
+  ///
+  /// This association can be changed using a subsequent call to [put].
+  T lookup(int x, int y) {
+    int key = (x << 31) + y;
+    _key = key;
+    return _table[key];
   }
-  return hash;
+
+  /// Associates [value] with the pair previously queried using [lookup].
+  void put(T value) {
+    _table[_key] = value;
+  }
+
+  Iterable<T> get values => _table.values;
+
+  static int _bigintHash(int bigint) {
+  	int x = 0x3fffffff & (bigint >> 31);
+  	int y = 0x3fffffff & bigint;
+    int hash = 0x3fffffff & (x * 1367);
+    hash = 0x3fffffff & (y * 31 + hash ^ y);
+    hash = 0x3fffffff & ((x ^ y) * 31 + hash ^ y);
+    return hash;
+  }
 }
