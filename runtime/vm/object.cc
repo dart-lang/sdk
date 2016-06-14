@@ -10364,6 +10364,8 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(thread->IsMutatorThread());
+  // Force the url to have a hash code.
+  url.Hash();
   const Library& result = Library::Handle(zone, Library::New());
   result.StorePointer(&result.raw_ptr()->name_, Symbols::Empty().raw());
   result.StorePointer(&result.raw_ptr()->url_, url.raw());

@@ -1050,7 +1050,7 @@ RawLibrary* IsolateReloadContext::OldLibraryOrNull(
       old_libraries_set(old_libraries_set_storage_);
   Library& lib = Library::Handle();
   lib ^= old_libraries_set.GetOrNull(replacement_or_new);
-  old_libraries_set_storage_ = old_libraries_set.Release().raw();
+  old_libraries_set.Release();
   return lib.raw();
 }
 
