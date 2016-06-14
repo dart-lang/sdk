@@ -296,7 +296,7 @@ void createConfigurations() {
       "proot":    null,
       "iconf":    null,
       "iroot":    null,
-      "foo":      null,
+      // "foo":     null,
       "foo/":     null,
       "foo/bar":  null,
       "foo.x":    "qux",

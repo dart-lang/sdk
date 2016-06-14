@@ -116,16 +116,15 @@ class IsolateLoaderState extends IsolateEmbedderData {
 
   _setPackageRoot(String packageRoot) {
     packageRoot = _sanitizeWindowsPath(packageRoot);
+    packageRoot = _enforceTrailingSlash(packageRoot);
     if (packageRoot.startsWith('file:') ||
         packageRoot.startsWith('http:') ||
         packageRoot.startsWith('https:')) {
-      packageRoot = _enforceTrailingSlash(packageRoot);
       _packageRoot = _workingDirectory.resolve(packageRoot);
     } else {
       packageRoot = _sanitizeWindowsPath(packageRoot);
       packageRoot = _trimWindowsPath(packageRoot);
-      _packageRoot =
-          _workingDirectory.resolveUri(new Uri.directory(packageRoot));
+      _packageRoot = _workingDirectory.resolveUri(new Uri.file(packageRoot));
     }
   }
 
@@ -164,12 +163,12 @@ class IsolateLoaderState extends IsolateEmbedderData {
   List<Function> _pendingPackageLoads = [];
 
   // Given a uri with a 'package' scheme, return a Uri that is prefixed with
-  // the package root or resolved relative to the package configuration.
+  // the package root.
   Uri _resolvePackageUri(Uri uri) {
     assert(uri.scheme == "package");
     assert(_packagesReady);
 
-    if (uri.host.isNotEmpty) {
+    if (!uri.host.isEmpty) {
       var path = '${uri.host}${uri.path}';
       var right = 'package:$path';
       var wrong = 'package://$path';
@@ -178,18 +177,6 @@ class IsolateLoaderState extends IsolateEmbedderData {
             "'$right', not '$wrong'.";
     }
 
-    var packageNameEnd = uri.path.indexOf('/');
-    if (packageNameEnd == 0) {
-      // Package URIs must have a non-empty package name (not start with "/").
-      throw "URIS using the 'package:' scheme should look like "
-            "'package:packageName${uri.path}', not 'package:${uri.path}'";
-    }
-    if (packageNameEnd < 0) {
-      // Package URIs must have a path after the package name, even if it's
-      // just "/".
-      throw "URIS using the 'package:' scheme should look like "
-            "'package:${uri.path}/', not 'package:${uri.path}'";
-    }
     if (_traceLoading) {
       _log('Resolving package with uri path: ${uri.path}');
     }
@@ -202,7 +189,7 @@ class IsolateLoaderState extends IsolateEmbedderData {
     } else if (_packageRoot != null) {
       resolvedUri = _packageRoot.resolve(uri.path);
     } else {
-      var packageName = uri.path.substring(0, packageNameEnd);
+      var packageName = uri.pathSegments[0];
       var mapping = _packageMap[packageName];
       if (_traceLoading) {
         _log("Mapped '$packageName' package to '$mapping'");
@@ -211,8 +198,14 @@ class IsolateLoaderState extends IsolateEmbedderData {
         throw "No mapping for '$packageName' package when resolving '$uri'.";
       }
       var path;
-      assert(uri.path.length > packageName.length);
-      path = uri.path.substring(packageName.length + 1);
+      if (uri.path.length > packageName.length) {
+        path = uri.path.substring(packageName.length + 1);
+      } else {
+        // Handle naked package resolution to the default package name:
+        // package:foo is equivalent to package:foo/foo.dart
+        assert(uri.path.length == packageName.length);
+        path = "$packageName.dart";
+      }
       if (_traceLoading) {
         _log("Path to be resolved in package: $path");
       }
