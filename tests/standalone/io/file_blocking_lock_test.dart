@@ -39,7 +39,6 @@ runPeer(String path, int len, FileLock mode) {
 
 testLockWholeFile() async {
   const int length = 25;
-  asyncStart();
   Directory directory = await Directory.systemTemp.createTemp('dart_file_lock');
   File file = new File(join(directory.path, "file"));
   await file.writeAsBytes(new List.filled(length, 0));
@@ -47,10 +46,6 @@ testLockWholeFile() async {
   await raf.setPosition(0);
   await raf.lock(FileLock.BLOCKING_EXCLUSIVE, 0, length);
   Process peer = await runPeer(file.path, length, FileLock.BLOCKING_EXCLUSIVE);
-
-  // Wait a bit for the other process to get started. We'll synchronize on
-  // the file lock.
-  await new Future.delayed(const Duration(seconds: 1));
 
   int nextToWrite = 1;
   int at = 0;
@@ -64,13 +59,17 @@ testLockWholeFile() async {
     // other process was able to take the lock and write some bytes.
     iWrote[nextToWrite-1] = nextToWrite;
     nextToWrite++;
-    await raf.unlock(0, length);
-    try {
-      await raf.lock(FileLock.EXCLUSIVE, 0, length);
-    } catch(e) {
-      // Check that at some point the non-blocking lock fails.
-      nonBlockingFailed = true;
-      await raf.lock(FileLock.BLOCKING_EXCLUSIVE, 0, length);
+    // Let the other process get the lock at least once by spinning until the
+    // non-blocking lock fails.
+    while (!nonBlockingFailed) {
+      await raf.unlock(0, length);
+      try {
+        await raf.lock(FileLock.EXCLUSIVE, 0, length);
+      } catch(e) {
+        // Check that at some point the non-blocking lock fails.
+        nonBlockingFailed = true;
+        await raf.lock(FileLock.BLOCKING_EXCLUSIVE, 0, length);
+      }
     }
     while (true) {
       p = await raf.position();
@@ -96,14 +95,15 @@ testLockWholeFile() async {
 
   Expect.equals(true, nonBlockingFailed);
 
-  peer.exitCode.then((v) {
+  await peer.exitCode.then((v) async {
     Expect.equals(0, v);
-    raf.closeSync();
-    directory.deleteSync(recursive: true);
-    asyncEnd();
+    await raf.close();
+    await directory.delete(recursive: true);
   });
 }
 
-main() {
-  testLockWholeFile();
+main() async {
+  asyncStart();
+  await testLockWholeFile();
+  asyncEnd();
 }
