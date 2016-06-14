@@ -1234,7 +1234,7 @@ void testToStrings() {
       String source1 = "$date ${time}Z";
       String source2 = "${date}T${time}Z";
       var utcTime1 = DateTime.parse(source1);
-      var utcTime2 = DateTime.parse(source1);
+      var utcTime2 = DateTime.parse(source2);
       Expect.isTrue(utcTime1.isUtc);
       Expect.equals(utcTime1, utcTime2);
       Expect.equals(source1, utcTime1.toString());
@@ -1244,7 +1244,7 @@ void testToStrings() {
       String source1 = "$date $time";
       String source2 = "${date}T$time";
       var utcTime1 = DateTime.parse(source1);
-      var utcTime2 = DateTime.parse(source1);
+      var utcTime2 = DateTime.parse(source2);
       Expect.isFalse(utcTime1.isUtc);
       Expect.equals(utcTime1, utcTime2);
       Expect.equals(source1, utcTime1.toString());

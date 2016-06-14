@@ -25,8 +25,9 @@ class OS {
   // Returns the current process id.
   static intptr_t ProcessId();
 
-  // Returns the abbreviated time-zone name for the given instant.
-  // For example "CET" or "CEST".
+  // Returns a time-zone name for the given instant.
+  // The name is provided by the underlying platform.
+  // The returned string may be Zone allocated.
   static const char* GetTimeZoneName(int64_t seconds_since_epoch);
 
   // Returns the difference in seconds between local time and UTC for the given
