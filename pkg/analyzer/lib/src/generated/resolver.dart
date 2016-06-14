@@ -3755,23 +3755,28 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     _enclosingBlockContainsBreak = false;
     try {
       bool hasDefault = false;
+      bool hasNonExitingCase = false;
       List<SwitchMember> members = node.members;
       for (int i = 0; i < members.length; i++) {
         SwitchMember switchMember = members[i];
         if (switchMember is SwitchDefault) {
           hasDefault = true;
-          // If this is the last member and there are no statements, return
-          // false
+          // If this is the last member and there are no statements, then it
+          // does not exit.
           if (switchMember.statements.isEmpty && i + 1 == members.length) {
-            return false;
+            hasNonExitingCase = true;
+            continue;
           }
         }
-        // For switch members with no statements, don't visit the children,
-        // otherwise, return false if no return is found in the children
-        // statements.
+        // For switch members with no statements, don't visit the children.
+        // Otherwise, if there children statements don't exit, mark this as a
+        // non-exiting case.
         if (!switchMember.statements.isEmpty && !switchMember.accept(this)) {
-          return false;
+          hasNonExitingCase = true;
         }
+      }
+      if (hasNonExitingCase) {
+        return false;
       }
       // As all cases exit, return whether that list includes `default`.
       return hasDefault;

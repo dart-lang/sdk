@@ -4033,6 +4033,20 @@ void f() {
     _assertNthStatementDoesNotExit(source, 0);
   }
 
+  void test_whileStatement_switchWithBreakWithLabel() {
+    Source source = addSource(r'''
+void f() {
+  x: while (true) {
+    switch (true) {
+      case false: break;
+      case true: break x;
+    }
+  }
+}
+''');
+    _assertNthStatementDoesNotExit(source, 0);
+  }
+
   void test_whileStatement_breakWithLabel_afterExting() {
     Source source = addSource(r'''
 void f() {
