@@ -496,6 +496,10 @@ isFunctionSubtype(ft1, ft2, covariant) => JS('', '''(() => {
     return true;
   }
 
+  if ($ft1 === $Function) {
+    return false;
+  }
+
   let ret1 = $ft1.returnType;
   let ret2 = $ft2.returnType;
 

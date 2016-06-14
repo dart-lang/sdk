@@ -1567,6 +1567,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     if (ft2 === core.Function) {
       return true;
     }
+    if (ft1 === core.Function) {
+      return false;
+    }
     let ret1 = ft1.returnType;
     let ret2 = ft2.returnType;
     let args1 = ft1.args;
