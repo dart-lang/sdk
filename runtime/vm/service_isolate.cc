@@ -458,7 +458,9 @@ void ServiceIsolate::Run() {
   // Grab the isolate create callback here to avoid race conditions with tests
   // that change this after Dart_Initialize returns.
   create_callback_ = Isolate::CreateCallback();
-  DevFS::Init();
+  if (FLAG_support_service) {
+    DevFS::Init();
+  }
   Dart::thread_pool()->Run(new RunServiceTask());
 }
 
@@ -507,7 +509,9 @@ void ServiceIsolate::Shutdown() {
     free(server_address_);
     server_address_ = NULL;
   }
-  DevFS::Cleanup();
+  if (FLAG_support_service) {
+    DevFS::Cleanup();
+  }
 }
 
 

@@ -16,6 +16,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 static const uint8_t decode_table[256] = {
   64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
   64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
@@ -367,5 +369,7 @@ void DevFS::ReadFile(JSONStream* js,
                           &((*file_contents)[0]),
                           file_contents->size());
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

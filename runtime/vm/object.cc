@@ -10553,7 +10553,7 @@ void Library::AllocatePrivateKey() const {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
 
-  if (isolate->IsReloading()) {
+  if (FLAG_support_reload && isolate->IsReloading()) {
     // When reloading, we need to make sure we use the original private key
     // if this library previously existed.
     IsolateReloadContext* reload_context = isolate->reload_context();
