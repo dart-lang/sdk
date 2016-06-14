@@ -5104,7 +5104,7 @@ String jsLibraryName(String buildRoot, LibraryElement library) {
         uri.path.substring(buildRoot.length).replaceAll('/', separator);
   } else {
     // We don't have a unique name.
-    throw 'Invalid build root.  $buildRoot does not contain ${uri.toFilePath()}';
+    throw 'Invalid build root. $buildRoot does not contain ${uri.toFilePath()}';
   }
   return pathToJSIdentifier(qualifiedPath);
 }

@@ -163,7 +163,8 @@ main() {
     test('incorrect usage', () {
       var result = Process.runSync('dart', ['bin/dartdevc.dart', 'oops',]);
       expect(result.exitCode, 64);
-      expect(result.stdout, contains('Could not find a command named "oops"'));
+      expect(
+          result.stdout, contains('Please include the output file location.'));
       expect(result.stdout, isNot(contains('#0')));
     });
 
