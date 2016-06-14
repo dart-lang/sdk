@@ -349,6 +349,16 @@ void main() {
 ''');
   }
 
+  void test_constructorInvalid() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26695
+    checkFile('''
+class A {
+  B({ /*severe:FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR*/this.test: 1.0 }) {}
+  final double test = 0.0;
+}
+''');
+  }
+
   void test_conversionAndDynamicInvoke() {
     addFile(
         '''

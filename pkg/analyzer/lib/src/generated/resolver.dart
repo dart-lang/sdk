@@ -10004,18 +10004,15 @@ class TypeResolverVisitor extends ScopedVisitor {
         TypeName typeName = node.type;
         if (typeName == null) {
           element.hasImplicitType = true;
-          type = _dynamicType;
           if (element is FieldFormalParameterElement) {
             FieldElement fieldElement =
                 (element as FieldFormalParameterElement).field;
-            if (fieldElement != null) {
-              type = fieldElement.type;
-            }
+            type = fieldElement?.type;
           }
         } else {
           type = _typeNameResolver._getType(typeName);
         }
-        element.type = type;
+        element.type = type ?? _dynamicType;
       } else {
         _setFunctionTypedParameterType(element, node.type, node.parameters);
       }
