@@ -244,6 +244,7 @@ class GraphNode {
   final int variable;
   final List<Edge> inputs = <Edge>[];
   final List<Edge> outputs = <Edge>[];
+  final List<Annotation> annotations = <Annotation>[];
 
   /// The annotation to show when visualized in the context of a given member.
   final Map<Member, Annotation> annotationForContext = <Member, Annotation>{};
@@ -281,7 +282,9 @@ class GraphNode {
   }
 
   void addAnnotation(Member member, TreeNode astNode, String info) {
-    annotationForContext[member] = new Annotation(astNode, info);
+    var annotation = new Annotation(astNode, info);
+    annotations.add(annotation);
+    annotationForContext[member] = annotation;
   }
 }
 
@@ -335,7 +338,7 @@ class TextAnnotator extends Annotator {
     // TODO(asgerf): If we use these annotations for testing, the necessary
     //   bindings should arguably be part of the API for the Builder.
     visualizer.variableNodes.forEach((int variable, GraphNode node) {
-      for (Annotation annotation in node.annotationForContext.values) {
+      for (Annotation annotation in node.annotations) {
         if (annotation.node is VariableDeclaration && annotation.info == null) {
           variables[annotation.node] = variable;
         }
