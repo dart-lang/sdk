@@ -296,7 +296,7 @@ void createConfigurations() {
       "proot":    null,
       "iconf":    null,
       "iroot":    null,
-      // "foo":     null,
+      "foo":      null,
       "foo/":     null,
       "foo/bar":  null,
       "foo.x":    "qux",
@@ -353,6 +353,7 @@ void createConfigurations() {
           "foo.x": null
         } : {
           "iroot": "%http/packages/",
+          "foo": "%http/packages/foo",
           "foo/": "%http/packages/foo/",
           "foo/bar": "%http/packages/foo/bar",
           "foo.x": null,
@@ -368,6 +369,7 @@ void createConfigurations() {
         files: files,
         expect: {
           "iroot": "%$scheme/packages/",
+          "foo": "%$scheme/packages/foo",
           "foo/": "%$scheme/packages/foo/",
           "foo/bar": "%$scheme/packages/foo/bar",
           "bar/bar": "%$scheme/packages/bar/bar",
@@ -387,6 +389,7 @@ void createConfigurations() {
         files: files,
         expect: {
           "iroot": "%$scheme/sub/packages/",
+          "foo": "%$scheme/sub/packages/foo",
           "foo/": "%$scheme/sub/packages/foo/",
           "foo/bar": "%$scheme/sub/packages/foo/bar",
           // "foo.x": "qux",  // Blocked by issue http://dartbug.com/26482
@@ -424,6 +427,7 @@ void createConfigurations() {
           "foo/bar": "%file/pkgs/foo/bar",
         } : {
           "iroot": "%http/sub/packages/",
+          "foo": "%http/sub/packages/foo",
           "foo/": "%http/sub/packages/foo/",
           "foo/bar": "%http/sub/packages/foo/bar",
           "foo.x": null,
@@ -442,6 +446,7 @@ void createConfigurations() {
         expect: {
           "proot": "%$scheme/notthere/",
           "iroot": "%$scheme/notthere/",
+          "foo": "%$scheme/notthere/foo",
           "foo/": "%$scheme/notthere/foo/",
           "foo/bar": "%$scheme/notthere/foo/bar",
           "foo.x": null,
@@ -478,6 +483,7 @@ void createConfigurations() {
         expect: {
           "proot": "%$scheme/pkgs/",
           "iroot": "%$scheme/pkgs/",
+          "foo": "%$scheme/pkgs/foo",
           "foo/": "%$scheme/pkgs/foo/",
           "foo/bar": "%$scheme/pkgs/foo/bar",
           "bar/bar": "%$scheme/pkgs/bar/bar",
@@ -495,6 +501,7 @@ void createConfigurations() {
         expect: {
           "proot": "%$scheme/pkgs/",
           "iroot": "%$scheme/pkgs/",
+          "foo": "%$scheme/pkgs/foo",
           "foo/": "%$scheme/pkgs/foo/",
           "foo/bar": "%$scheme/pkgs/foo/bar",
           "bar/bar": "%$scheme/pkgs/bar/bar",
@@ -555,6 +562,7 @@ void createConfigurations() {
           expect: {
             "proot": "%$pkgScheme/pkgs/",
             "iroot": "%$pkgScheme/pkgs/",
+            "foo": "%$pkgScheme/pkgs/foo",
             "foo/": "%$pkgScheme/pkgs/foo/",
             "foo/bar": "%$pkgScheme/pkgs/foo/bar",
             "bar/bar": "%$pkgScheme/pkgs/bar/bar",

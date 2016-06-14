@@ -132,6 +132,9 @@ message3_test/int32x4: RuntimeError, OK  # Uses Isolate.spawn.
 browser/typed_data_message_test: StaticWarning
 mint_maker_test: StaticWarning
 
+[ $compiler == none && $runtime == vm ]
+scenarios/short_package/short_package_test: Fail, OK  # We do not plan to support the tested behavior anyway.
+
 [ $compiler != none || $runtime != vm ]
 package_root_test: SkipByDesign  # Uses Isolate.packageRoot
 package_config_test: SkipByDesign  # Uses Isolate.packageConfig
