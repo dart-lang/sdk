@@ -10,12 +10,25 @@ import 'dart:core';
 import 'dart:collection';
 import 'dart:html' as html;
 
-/// Config object to pass to devtools to signal that an object should not be
-/// formatted by the Dart formatter. This is used to specify that an Object
+/// JsonMLConfig object to pass to devtools to specify how an Object should
+/// be displayed. skipDart signals that an object should not be formatted
+/// by the Dart formatter. This is used to specify that an Object
 /// should just be displayed using the regular JavaScript view instead of a
 /// custom Dart view. For example, this is used to display the JavaScript view
-/// of a Dart Function as a child of the regular Function object.
-const skipDartConfig = const Object();
+/// of a Dart Function as a child of the regular Function object. keyToString
+/// signals that a map key object should have its toString() displayed by
+/// the Dart formatter.
+///
+/// We'd like this to be an enum, but we can't because it's a dev_compiler bug.
+class JsonMLConfig {
+  const JsonMLConfig(this.name);
+
+  final String name;
+  static const none = const JsonMLConfig("none");
+  static const skipDart = const JsonMLConfig("skipDart");
+  static const keyToString = const JsonMLConfig("keyToString");
+}
+
 final int maxIterableChildrenToDisplay = 50;
 
 var _devtoolsFormatter = new JsonMLFormatter(new DartFormatter());
@@ -85,8 +98,7 @@ bool hasMethod(object, String name) {
 
 /// [JsonMLFormatter] consumes [NameValuePair] objects and
 class NameValuePair {
-  NameValuePair({this.name, this.value, bool skipDart})
-      : skipDart = skipDart == true;
+  NameValuePair({this.name, this.value, this.config: JsonMLConfig.none});
 
   // Define equality and hashCode so that NameValuePair can be used
   // in a Set to dedupe entries with duplicate names.
@@ -95,13 +107,13 @@ class NameValuePair {
 
   final String name;
   final Object value;
-  final bool skipDart;
+  final JsonMLConfig config;
 }
 
 class MapEntry {
   MapEntry({this.key, this.value});
 
-  final String key;
+  final Object key;
   final Object value;
 }
 
@@ -193,12 +205,16 @@ class JsonMLFormatter {
   JsonMLFormatter(this._simpleFormatter);
 
   header(object, config) {
-    if (identical(config, skipDartConfig) || isNativeJavaScriptObject(object)) {
+    if (config == JsonMLConfig.skipDart || isNativeJavaScriptObject(object)) {
       return null;
     }
 
     var c = _simpleFormatter.preview(object);
     if (c == null) return null;
+
+    if (config == JsonMLConfig.keyToString) {
+      c = object.toString();
+    }
 
     // Indicate this is a Dart Object by using a Dart background color.
     // This is stylistically a bit ugly but it eases distinguishing Dart and
@@ -230,9 +246,7 @@ class JsonMLFormatter {
 
         li.appendChild(nameSpan);
         var objectTag = li.createObjectTag(child.value);
-        if (child.skipDart) {
-          objectTag.addAttribute('config', skipDartConfig);
-        }
+        objectTag.addAttribute('config', child.config);
         if (!_simpleFormatter.hasChildren(child.value)) {
           li.setStyle("padding-left: 13px;");
         }
@@ -426,7 +440,9 @@ class FunctionFormatter extends Formatter {
   List<NameValuePair> children(object) => <NameValuePair>[
         new NameValuePair(name: 'signature', value: preview(object)),
         new NameValuePair(
-            name: 'JavaScript Function', value: object, skipDart: true)
+            name: 'JavaScript Function',
+            value: object,
+            config: JsonMLConfig.skipDart)
       ];
 }
 
@@ -532,7 +548,9 @@ class ClassMetadataFormatter implements Formatter {
           name: '[[Mixins]]', value: new HeritageClause('mixins', mixins)));
     }
     ret.add(new NameValuePair(
-        name: '[[JavaScript View]]', value: entry.object, skipDart: true));
+        name: '[[JavaScript View]]',
+        value: entry.object,
+        config: JsonMLConfig.skipDart));
 
     // TODO(jacobr): provide a link to the base class or perhaps the entire
     // base class hierarchy as a flat list.
@@ -541,7 +559,7 @@ class ClassMetadataFormatter implements Formatter {
       ret.add(new NameValuePair(
           name: '[[JavaScript Constructor]]',
           value: JSNative.getProperty(entry.object, 'constructor'),
-          skipDart: true));
+          config: JsonMLConfig.skipDart));
       // TODO(jacobr): add constructors, methods, extended class, and static
     }
     return ret;
@@ -561,7 +579,8 @@ class MapEntryFormatter implements Formatter {
   bool hasChildren(object) => true;
 
   List<NameValuePair> children(object) => <NameValuePair>[
-        new NameValuePair(name: 'key', value: object.key),
+        new NameValuePair(
+            name: 'key', value: object.key, config: JsonMLConfig.keyToString),
         new NameValuePair(name: 'value', value: object.value)
       ];
 }

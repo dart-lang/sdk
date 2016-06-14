@@ -946,6 +946,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.throwStrongModeTypeError = function(object, actual, type) {
     dart.throw(new _js_helper.StrongModeTypeError(object, dart.typeName(actual), dart.typeName(type)));
   };
+  dart.throwUnimplementedError = function(message) {
+    dart.throw(new core.UnimplementedError(message));
+  };
   dart.throwAssertionError = function() {
     dart.throw(new core.AssertionError());
   };
@@ -1563,6 +1566,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.isFunctionSubtype = function(ft1, ft2, covariant) {
     if (ft2 === core.Function) {
       return true;
+    }
+    if (ft1 === core.Function) {
+      return false;
     }
     let ret1 = ft1.returnType;
     let ret2 = ft2.returnType;
@@ -2251,7 +2257,25 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart._typeFormalCount = Symbol("_typeFormalCount");
   dart.isSubtype = dart._subtypeMemo((t1, t2) => t1 === t2 || dart._isSubtype(t1, t2, true));
   dart.hasOwnProperty = Object.prototype.hasOwnProperty;
-  _debugger.skipDartConfig = dart.const(new core.Object());
+  _debugger.JsonMLConfig = class JsonMLConfig extends core.Object {
+    new(name) {
+      this.name = name;
+    }
+  };
+  dart.setSignature(_debugger.JsonMLConfig, {
+    constructors: () => ({new: dart.definiteFunctionType(_debugger.JsonMLConfig, [core.String])})
+  });
+  dart.defineLazy(_debugger.JsonMLConfig, {
+    get none() {
+      return dart.const(new _debugger.JsonMLConfig("none"));
+    },
+    get skipDart() {
+      return dart.const(new _debugger.JsonMLConfig("skipDart"));
+    },
+    get keyToString() {
+      return dart.const(new _debugger.JsonMLConfig("keyToString"));
+    }
+  });
   _debugger.maxIterableChildrenToDisplay = 50;
   dart.defineLazy(_debugger, {
     get _devtoolsFormatter() {
@@ -2334,10 +2358,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     new(opts) {
       let name = opts && 'name' in opts ? opts.name : null;
       let value = opts && 'value' in opts ? opts.value : null;
-      let skipDart = opts && 'skipDart' in opts ? opts.skipDart : null;
+      let config = opts && 'config' in opts ? opts.config : _debugger.JsonMLConfig.none;
       this.name = name;
       this.value = value;
-      this.skipDart = skipDart == true;
+      this.config = config;
     }
     ['=='](other) {
       return _debugger.NameValuePair.is(other) && other.name == this.name;
@@ -2347,7 +2371,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(_debugger.NameValuePair, {
-    constructors: () => ({new: dart.definiteFunctionType(_debugger.NameValuePair, [], {name: core.String, value: core.Object, skipDart: core.bool})})
+    constructors: () => ({new: dart.definiteFunctionType(_debugger.NameValuePair, [], {name: core.String, value: core.Object, config: _debugger.JsonMLConfig})})
   });
   _debugger.MapEntry = class MapEntry extends core.Object {
     new(opts) {
@@ -2358,7 +2382,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(_debugger.MapEntry, {
-    constructors: () => ({new: dart.definiteFunctionType(_debugger.MapEntry, [], {key: core.String, value: core.Object})})
+    constructors: () => ({new: dart.definiteFunctionType(_debugger.MapEntry, [], {key: core.Object, value: core.Object})})
   });
   _debugger.ClassMetadata = class ClassMetadata extends core.Object {
     new(object) {
@@ -2445,11 +2469,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_simpleFormatter] = simpleFormatter;
     }
     header(object, config) {
-      if (core.identical(config, _debugger.skipDartConfig) || dart.test(_debugger.isNativeJavaScriptObject(object))) {
+      if (dart.equals(config, _debugger.JsonMLConfig.skipDart) || dart.test(_debugger.isNativeJavaScriptObject(object))) {
         return null;
       }
       let c = this[_simpleFormatter].preview(object);
       if (c == null) return null;
+      if (dart.equals(config, _debugger.JsonMLConfig.keyToString)) {
+        c = dart.toString(object);
+      }
       let element = new _debugger.JsonMLElement('span');
       element.setStyle('background-color: #d9edf7');
       element.createTextChild(c);
@@ -2471,9 +2498,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           nameSpan.addStyle("padding-left: 13px;");
           li.appendChild(nameSpan);
           let objectTag = li.createObjectTag(child.value);
-          if (dart.test(child.skipDart)) {
-            objectTag.addAttribute('config', _debugger.skipDartConfig);
-          }
+          objectTag.addAttribute('config', child.config);
           if (!dart.test(this[_simpleFormatter].hasChildren(child.value))) {
             li.setStyle("padding-left: 13px;");
           }
@@ -2650,7 +2675,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return core.String._check(dart.typeName(dart.getReifiedType(object)));
     }
     children(object) {
-      return JSArrayOfNameValuePair().of([new _debugger.NameValuePair({name: 'signature', value: this.preview(object)}), new _debugger.NameValuePair({name: 'JavaScript Function', value: object, skipDart: true})]);
+      return JSArrayOfNameValuePair().of([new _debugger.NameValuePair({name: 'signature', value: this.preview(object)}), new _debugger.NameValuePair({name: 'JavaScript Function', value: object, config: _debugger.JsonMLConfig.skipDart})]);
     }
   };
   dart.setSignature(_debugger.FunctionFormatter, {
@@ -2676,7 +2701,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let map = core.Map._check(object);
       let entries = LinkedHashSetOfNameValuePair().new();
       map[dartx.forEach](dart.fn((key, value) => {
-        let entryWrapper = new _debugger.MapEntry({key: core.String._check(key), value: value});
+        let entryWrapper = new _debugger.MapEntry({key: key, value: value});
         entries.add(new _debugger.NameValuePair({name: dart.toString(entries.length), value: entryWrapper}));
       }, dynamicAnddynamicTovoid()));
       this.addMetadataChildren(object, entries);
@@ -2744,9 +2769,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (mixins != null && dart.test(dart.dload(mixins, 'isNotEmpty'))) {
         ret[dartx.add](new _debugger.NameValuePair({name: '[[Mixins]]', value: new _debugger.HeritageClause('mixins', core.List._check(mixins))}));
       }
-      ret[dartx.add](new _debugger.NameValuePair({name: '[[JavaScript View]]', value: entry.object, skipDart: true}));
+      ret[dartx.add](new _debugger.NameValuePair({name: '[[JavaScript View]]', value: entry.object, config: _debugger.JsonMLConfig.skipDart}));
       if (!core.Type.is(entry.object)) {
-        ret[dartx.add](new _debugger.NameValuePair({name: '[[JavaScript Constructor]]', value: _debugger.JSNative.getProperty(entry.object, 'constructor'), skipDart: true}));
+        ret[dartx.add](new _debugger.NameValuePair({name: '[[JavaScript Constructor]]', value: _debugger.JSNative.getProperty(entry.object, 'constructor'), config: _debugger.JsonMLConfig.skipDart}));
       }
       return ret;
     }
@@ -2773,7 +2798,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return true;
     }
     children(object) {
-      return JSArrayOfNameValuePair().of([new _debugger.NameValuePair({name: 'key', value: dart.dload(object, 'key')}), new _debugger.NameValuePair({name: 'value', value: dart.dload(object, 'value')})]);
+      return JSArrayOfNameValuePair().of([new _debugger.NameValuePair({name: 'key', value: dart.dload(object, 'key'), config: _debugger.JsonMLConfig.keyToString}), new _debugger.NameValuePair({name: 'value', value: dart.dload(object, 'value')})]);
     }
   };
   _debugger.MapEntryFormatter[dart.implements] = () => [_debugger.Formatter];

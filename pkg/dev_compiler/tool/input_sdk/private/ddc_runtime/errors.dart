@@ -27,6 +27,10 @@ throwStrongModeTypeError(object, actual, type) => JS('', '''(() => {
                                    $typeName($type)));
 })()''');
 
+throwUnimplementedError(message) => JS('', '''(() => {
+  $throw_(new $UnimplementedError($message));
+})()''');
+
 throwAssertionError() => JS('', '''(() => {
   $throw_(new $AssertionError());
 })()''');

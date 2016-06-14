@@ -142,7 +142,9 @@ AnalysisContext createAnalysisContextWithSources(AnalyzerOptions options,
 /// Creates an analysis context that contains our restricted typing rules.
 AnalysisContextImpl createAnalysisContext() {
   var res = AnalysisEngine.instance.createAnalysisContext();
-  res.analysisOptions = new AnalysisOptionsImpl()..strongMode = true;
+  res.analysisOptions = new AnalysisOptionsImpl()
+    ..strongMode = true
+    ..trackCacheDependencies = false;
   return res;
 }
 
