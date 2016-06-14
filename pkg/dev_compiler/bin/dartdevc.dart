@@ -57,6 +57,11 @@ Future main(List<String> args) async {
 Future<int> _runCommand(List<String> args,
     {MessageHandler messageHandler}) async {
   try {
+    if (args.isEmpty || args.first != 'compile' && args.first != 'help') {
+      // TODO(jmesserly): we should deprecate the commands. For now they are
+      // still supported for backwards compatibility.
+      args.insert(0, 'compile');
+    }
     var runner = new CommandRunner('dartdevc', 'Dart Development Compiler');
     runner.addCommand(new CompileCommand(messageHandler: messageHandler));
     await runner.run(args);
