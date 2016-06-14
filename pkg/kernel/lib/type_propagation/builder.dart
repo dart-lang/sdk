@@ -244,24 +244,25 @@ class Builder {
   }
 
   void _buildExternalInterfaceMember(Member member, int object) {
-    TypeEnvironment environment = new TypeEnvironment(this, thisValue: object);
+    TypeEnvironment environment =
+        new TypeEnvironment(this, member, thisValue: object);
     int propertyField = fieldNames.getPropertyField(member.name);
     if (member is Field) {
       int value = buildCovariantType(member.type, environment);
-      addStore(object, propertyField, value);
+      environment.addStore(object, propertyField, value);
     } else {
       Procedure procedure = member;
       FunctionNode function = procedure.function;
       if (procedure.isGetter) {
         int value = buildCovariantType(function.returnType, environment);
-        addStore(object, propertyField, value);
+        environment.addStore(object, propertyField, value);
       } else if (procedure.isSetter) {
-        int value = getLoad(object, propertyField);
+        int value = environment.getLoad(object, propertyField);
         buildContravariantType(
             function.positionalParameters[0].type, environment, value);
       } else {
         int externalMember = buildCovariantFunctionType(function, environment);
-        addStore(object, propertyField, externalMember);
+        environment.addStore(object, propertyField, externalMember);
       }
     }
   }
@@ -317,26 +318,26 @@ class Builder {
   /// [escapingObject].
   void _buildEscapingInterfaceMember(Member member, int escapingObject) {
     TypeEnvironment environment =
-        new TypeEnvironment(this, thisValue: escapingObject);
+        new TypeEnvironment(this, member, thisValue: escapingObject);
     int propertyField = fieldNames.getPropertyField(member.name);
     if (member is Field) {
-      int escapingMember = getLoad(escapingObject, propertyField);
+      int escapingMember = environment.getLoad(escapingObject, propertyField);
       buildContravariantType(member.type, environment, escapingMember);
     } else {
       Procedure procedure = member;
       FunctionNode function = procedure.function;
       if (procedure.isGetter) {
-        int escapingMember = getLoad(escapingObject, propertyField);
+        int escapingMember = environment.getLoad(escapingObject, propertyField);
         buildContravariantType(
             function.returnType, environment, escapingMember);
       } else if (procedure.isSetter) {
         VariableDeclaration parameter = function.positionalParameters[0];
-        int escapingMember = getLoad(escapingObject, propertyField);
+        int escapingMember = environment.getLoad(escapingObject, propertyField);
         int field = fieldNames.getPositionalParameterField(1, 0);
         int value = buildCovariantType(parameter.type, environment);
-        addStore(escapingMember, field, value);
+        environment.addStore(escapingMember, field, value);
       } else {
-        int escapingMember = getLoad(escapingObject, propertyField);
+        int escapingMember = environment.getLoad(escapingObject, propertyField);
         buildContravariantFunctionType(function, environment, escapingMember);
       }
     }
@@ -371,35 +372,6 @@ class Builder {
         .buildFunctionNode(node);
   }
 
-  int getJoin(int first, int second) {
-    // TODO(asgerf): Avoid redundant joins in common cases.
-    int joinPoint = constraints.newVariable();
-    constraints..addAssign(first, joinPoint)..addAssign(second, joinPoint);
-    return joinPoint;
-  }
-
-  int getLoad(int object, int field) {
-    // TODO(asgerf): Canonicalize loads.
-    int variable = constraints.newVariable();
-    constraints.addLoad(object, field, variable);
-    return variable;
-  }
-
-  void addLoad(int object, int field, int destination) {
-    constraints.addLoad(object, field, destination);
-  }
-
-  int getStore(int object, int field) {
-    // TODO(asgerf): Canonicalize stores.
-    int variable = constraints.newVariable();
-    constraints.addStore(object, field, variable);
-    return variable;
-  }
-
-  void addStore(int object, int field, int value) {
-    constraints.addStore(object, field, value);
-  }
-
   int getPropertyField(Name name) {
     return fieldNames.getPropertyField(name);
   }
@@ -418,51 +390,51 @@ class Builder {
 
   void buildStaticField(Field field) {
     int value = nullNode;
+    var environment = new Environment(this, field);
     if (field.initializer != null) {
-      var environment = new Environment(this);
       value = new ExpressionBuilder(this, environment).build(field.initializer);
     }
-    constraints.addAssign(value, getFieldVariable(field));
+    environment.addAssign(value, getFieldVariable(field));
   }
 
   void buildProcedure(Procedure node, int host) {
     if (node.isAbstract) return;
     int functionValue = getTearOffVariable(node);
     int returnVariable = getReturnVariable(node);
-    var environment =
-        new Environment(this, returnVariable: returnVariable, thisValue: host);
+    var environment = new Environment(this, node,
+        returnVariable: returnVariable, thisValue: host);
     buildFunctionNode(node.function, environment,
         addTypeBasedSummary: node.isExternal, functionValue: functionValue);
     if (host != null) {
       int propertyName = fieldNames.getPropertyField(node.name);
       if (node.isGetter) {
-        addStore(host, propertyName, returnVariable);
+        environment.addStore(host, propertyName, returnVariable);
       } else if (node.isSetter) {
-        addLoad(host, propertyName,
+        environment.addLoad(host, propertyName,
             getParameterVariable(node.function.positionalParameters[0]));
       } else {
-        addStore(host, propertyName, functionValue);
+        environment.addStore(host, propertyName, functionValue);
       }
     }
   }
 
   void buildInstanceField(Field node, int host) {
     int value = nullNode;
+    var environment = new Environment(this, node);
     if (node.initializer != null) {
-      var environment = new Environment(this);
       value = new ExpressionBuilder(this, environment).build(node.initializer);
     }
     int field = getPropertyField(node.name);
-    addStore(host, field, value);
+    environment.addStore(host, field, value);
     // Ensure all values stored in the field are propagated to the variable,
     // as this variable is part of the inference output.
     // TODO(asgerf): We could avoid this redundancy by exposing the Solver's
     //   internal storage locations for field values.
-    addLoad(host, field, getFieldVariable(node));
+    environment.addLoad(host, field, getFieldVariable(node));
   }
 
   void buildConstructor(Constructor node, int host) {
-    var environment = new Environment(this, thisValue: host);
+    var environment = new Environment(this, node, thisValue: host);
     buildFunctionNode(node.function, environment);
     InitializerBuilder builder = new InitializerBuilder(this, environment);
     for (Initializer initializer in node.initializers) {
@@ -480,7 +452,8 @@ class Builder {
       environment.localVariables[parameter] = value;
       if (functionValue != null) {
         for (int arity = minArity; arity <= maxArity; ++arity) {
-          addLoad(functionValue, getPositionalParameterField(arity, i), value);
+          environment.addLoad(
+              functionValue, getPositionalParameterField(arity, i), value);
         }
       }
       if (addTypeBasedSummary) {
@@ -493,8 +466,8 @@ class Builder {
       environment.localVariables[parameter] = value;
       if (functionValue != null) {
         for (int arity = minArity; arity <= maxArity; ++arity) {
-          addLoad(functionValue, getNamedParameterField(arity, parameter.name),
-              value);
+          environment.addLoad(functionValue,
+              getNamedParameterField(arity, parameter.name), value);
         }
       }
       if (addTypeBasedSummary) {
@@ -508,13 +481,13 @@ class Builder {
     }
     if (functionValue != null) {
       for (int arity = minArity; arity <= maxArity; ++arity) {
-        addStore(
+        environment.addStore(
             functionValue, getReturnField(arity), environment.returnVariable);
       }
     }
     if (addTypeBasedSummary) {
       int returnFromType = buildCovariantType(node.returnType, environment);
-      constraints.addAssign(returnFromType, environment.returnVariable);
+      environment.addAssign(returnFromType, environment.returnVariable);
     }
     if (node.body != null) {
       new StatementBuilder(this, environment).build(node.body);
@@ -619,9 +592,52 @@ class FieldNames {
 
 class TypeEnvironment {
   final Builder builder;
+  final Member member;
   int thisValue;
 
-  TypeEnvironment(this.builder, {this.thisValue});
+  ConstraintSystem get constraints => builder.constraints;
+  Visualizer get visualizer => builder.visualizer;
+
+  TypeEnvironment(this.builder, this.member, {this.thisValue});
+
+  void addAssign(int source, int destination) {
+    constraints.addAssign(source, destination);
+    visualizer?.annotateAssign(source, destination, member);
+  }
+
+  int getJoin(int first, int second) {
+    // TODO(asgerf): Avoid redundant joins in common cases.
+    int joinPoint = constraints.newVariable();
+    addAssign(first, joinPoint);
+    addAssign(second, joinPoint);
+    return joinPoint;
+  }
+
+  int getLoad(int object, int field) {
+    // TODO(asgerf): Canonicalize loads.
+    int variable = constraints.newVariable();
+    constraints.addLoad(object, field, variable);
+    visualizer?.annotateLoad(object, field, variable, member);
+    return variable;
+  }
+
+  void addLoad(int object, int field, int destination) {
+    constraints.addLoad(object, field, destination);
+    visualizer?.annotateLoad(object, field, destination, member);
+  }
+
+  int getStore(int object, int field) {
+    // TODO(asgerf): Canonicalize stores.
+    int variable = constraints.newVariable();
+    constraints.addStore(object, field, variable);
+    visualizer?.annotateStore(object, field, variable, member);
+    return variable;
+  }
+
+  void addStore(int object, int field, int value) {
+    constraints.addStore(object, field, value);
+    visualizer?.annotateStore(object, field, value, member);
+  }
 }
 
 class Environment extends TypeEnvironment {
@@ -629,11 +645,12 @@ class Environment extends TypeEnvironment {
       <VariableDeclaration, int>{};
   int returnVariable;
 
-  Environment(Builder builder, {int thisValue, this.returnVariable})
-      : super(builder, thisValue: thisValue);
+  Environment(Builder builder, Member member,
+      {int thisValue, this.returnVariable})
+      : super(builder, member, thisValue: thisValue);
 
   Environment.inner(Environment outer, {this.returnVariable})
-      : super(outer.builder, thisValue: outer.thisValue);
+      : super(outer.builder, outer.member, thisValue: outer.thisValue);
 
   int getVariable(VariableDeclaration variable) {
     return localVariables[variable] ??= builder.newVariable(variable);
@@ -671,21 +688,21 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
   int visitVariableSet(VariableSet node) {
     int value = build(node.value);
     int variable = environment.getVariable(node.variable);
-    constraints.addAssign(value, variable);
+    environment.addAssign(value, variable);
     return value;
   }
 
   int visitPropertyGet(PropertyGet node) {
     int object = build(node.receiver);
     int field = fieldNames.getPropertyField(node.name);
-    return builder.getLoad(object, field);
+    return environment.getLoad(object, field);
   }
 
   int visitPropertySet(PropertySet node) {
     int object = build(node.receiver);
     int field = fieldNames.getPropertyField(node.name);
     int value = build(node.value);
-    builder.addStore(object, field, value);
+    environment.addStore(object, field, value);
     return value;
   }
 
@@ -721,7 +738,7 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
     } else {
       destination = builder.getFieldVariable(node.target);
     }
-    constraints.addAssign(value, destination);
+    environment.addAssign(value, destination);
     return value;
   }
 
@@ -730,21 +747,21 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
     int methodProperty = builder.getPropertyField(node.name);
     int function = node.name.name == 'call'
         ? receiver
-        : builder.getLoad(receiver, methodProperty);
+        : environment.getLoad(receiver, methodProperty);
     visualizer?.annotateVariable(function, node, 'callee');
     int arity = node.arguments.positional.length;
     for (int i = 0; i < node.arguments.positional.length; ++i) {
       int field = builder.getPositionalParameterField(arity, i);
       int argument = build(node.arguments.positional[i]);
-      builder.addStore(function, field, argument);
+      environment.addStore(function, field, argument);
     }
     for (int i = 0; i < node.arguments.named.length; ++i) {
       NamedExpression namedNode = node.arguments.named[i];
       int field = builder.getNamedParameterField(arity, namedNode.name);
       int argument = build(namedNode.value);
-      builder.addStore(function, field, argument);
+      environment.addStore(function, field, argument);
     }
-    return builder.getLoad(function, builder.getReturnField(arity));
+    return environment.getLoad(function, builder.getReturnField(arity));
   }
 
   void passArgumentsToFunction(Arguments node, FunctionNode function) {
@@ -754,7 +771,7 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
       if (i < function.positionalParameters.length) {
         int parameter =
             builder.getParameterVariable(function.positionalParameters[i]);
-        constraints.addAssign(argument, parameter);
+        environment.addAssign(argument, parameter);
       }
     }
     for (int i = 0; i < node.named.length; ++i) {
@@ -765,7 +782,7 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
         var namedParameter = function.namedParameters[j];
         if (namedParameter.name == namedNode.name) {
           int parameter = builder.getParameterVariable(namedParameter);
-          constraints.addAssign(argument, parameter);
+          environment.addAssign(argument, parameter);
           break;
         }
       }
@@ -796,7 +813,7 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
     int left = build(node.left);
     int right = build(node.right);
     if (node.operator == '??') {
-      return builder.getJoin(left, right);
+      return environment.getJoin(left, right);
     } else {
       return builder.boolNode;
     }
@@ -806,7 +823,7 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
     build(node.condition);
     int then = build(node.then);
     int otherwise = build(node.otherwise);
-    return builder.getJoin(then, otherwise);
+    return environment.getJoin(then, otherwise);
   }
 
   int visitStringConcatenation(StringConcatenation node) {
@@ -852,7 +869,7 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
     int field = fieldNames.getTypeParameterField(parameter);
     for (int i = 0; i < node.expressions.length; ++i) {
       int value = build(node.expressions[i]);
-      builder.addStore(object, field, value);
+      environment.addStore(object, field, value);
     }
     return object;
   }
@@ -864,8 +881,8 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
     int values = fieldNames.getTypeParameterField(parameters[1]);
     for (int i = 0; i < node.entries.length; ++i) {
       var entry = node.entries[i];
-      builder.addStore(object, keys, build(entry.key));
-      builder.addStore(object, values, build(entry.value));
+      environment.addStore(object, keys, build(entry.key));
+      environment.addStore(object, values, build(entry.value));
     }
     return object;
   }
@@ -997,10 +1014,10 @@ class StatementBuilder extends StatementVisitor {
 
   visitForInStatement(ForInStatement node) {
     int iterable = buildExpression(node.iterable);
-    int iterator = builder.getLoad(iterable, builder.iteratorField);
-    int current = builder.getLoad(iterator, builder.currentField);
+    int iterator = environment.getLoad(iterable, builder.iteratorField);
+    int current = environment.getLoad(iterator, builder.currentField);
     int variable = environment.getVariable(node.variable);
-    constraints.addAssign(current, variable);
+    environment.addAssign(current, variable);
     build(node.body);
   }
 
@@ -1024,7 +1041,7 @@ class StatementBuilder extends StatementVisitor {
   visitReturnStatement(ReturnStatement node) {
     if (node.expression != null) {
       int value = buildExpression(node.expression);
-      constraints.addAssign(value, environment.returnVariable);
+      environment.addAssign(value, environment.returnVariable);
     }
   }
 
@@ -1056,7 +1073,7 @@ class StatementBuilder extends StatementVisitor {
         ? builder.nullNode
         : buildExpression(node.initializer);
     int variable = environment.getVariable(node);
-    constraints.addAssign(value, variable);
+    environment.addAssign(value, variable);
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
@@ -1086,7 +1103,7 @@ class InitializerBuilder extends InitializerVisitor<Null> {
   visitInvalidInitializer(InvalidInitializer node) {}
 
   visitFieldInitializer(FieldInitializer node) {
-    builder.addStore(
+    environment.addStore(
         environment.thisValue,
         fieldNames.getPropertyField(node.field.name),
         buildExpression(node.value));
@@ -1144,9 +1161,9 @@ class CovariantExternalTypeVisitor extends DartTypeVisitor<int> {
       int field =
           fieldNames.getTypeParameterField(node.classNode.typeParameters[i]);
       int outputValue = visit(node.typeArguments[i]);
-      builder.addStore(object, field, outputValue);
+      environment.addStore(object, field, outputValue);
       if (!builder.isAssumedCovariant(node.classNode)) {
-        int userValue = builder.getLoad(object, field);
+        int userValue = environment.getLoad(object, field);
         visitContravariant(node.typeArguments[i], userValue);
       }
     }
@@ -1156,7 +1173,7 @@ class CovariantExternalTypeVisitor extends DartTypeVisitor<int> {
   int visitTypeParameterType(TypeParameterType node) {
     if (node.parameter.parent is Class) {
       assert(environment.thisValue != null);
-      return builder.getLoad(environment.thisValue,
+      return environment.getLoad(environment.thisValue,
           fieldNames.getTypeParameterField(node.parameter));
     } else {
       return builder.getFunctionTypeParameterVariable(node.parameter);
@@ -1169,16 +1186,16 @@ class CovariantExternalTypeVisitor extends DartTypeVisitor<int> {
     int function = builder.functionValueNode;
     for (int i = 0; i < node.positionalParameters.length; ++i) {
       int field = fieldNames.getPositionalParameterField(arity, i);
-      int argument = builder.getLoad(function, field);
+      int argument = environment.getLoad(function, field);
       visitContravariant(node.positionalParameters[i], argument);
     }
     node.namedParameters.forEach((String name, DartType type) {
       int field = fieldNames.getNamedParameterField(arity, name);
-      int argument = builder.getLoad(function, field);
+      int argument = environment.getLoad(function, field);
       visitContravariant(type, argument);
     });
     int returnVariable = visit(node.returnType);
-    builder.addStore(
+    environment.addStore(
         function, fieldNames.getReturnField(arity), returnVariable);
     return function;
   }
@@ -1190,17 +1207,17 @@ class CovariantExternalTypeVisitor extends DartTypeVisitor<int> {
     int function = builder.functionValueNode;
     for (int i = 0; i < node.positionalParameters.length; ++i) {
       int field = fieldNames.getPositionalParameterField(arity, i);
-      int argument = builder.getLoad(function, field);
+      int argument = environment.getLoad(function, field);
       visitContravariant(node.positionalParameters[i].type, argument);
     }
     for (int i = 0; i < node.namedParameters.length; ++i) {
       VariableDeclaration variable = node.namedParameters[i];
       int field = fieldNames.getNamedParameterField(arity, variable.name);
-      int argument = builder.getLoad(function, field);
+      int argument = environment.getLoad(function, field);
       visitContravariant(variable.type, argument);
     }
     int returnVariable = visit(node.returnType);
-    builder.addStore(
+    environment.addStore(
         function, fieldNames.getReturnField(arity), returnVariable);
     return function;
   }
@@ -1239,16 +1256,16 @@ class ContravariantExternalTypeVisitor extends DartTypeVisitor<Null> {
 
   visitInterfaceType(InterfaceType node) {
     int escapePoint = builder.getInterfaceEscapeVariable(node.classNode);
-    constraints.addAssign(input, escapePoint);
+    environment.addAssign(input, escapePoint);
   }
 
   visitTypeParameterType(TypeParameterType node) {
     if (node.parameter.parent is Class) {
       assert(environment.thisValue != null);
-      builder.addStore(environment.thisValue,
+      environment.addStore(environment.thisValue,
           fieldNames.getTypeParameterField(node.parameter), input);
     } else {
-      constraints.addAssign(
+      environment.addAssign(
           input, builder.getFunctionTypeParameterVariable(node.parameter));
     }
   }
@@ -1259,15 +1276,15 @@ class ContravariantExternalTypeVisitor extends DartTypeVisitor<Null> {
     for (int i = 0; i < node.positionalParameters.length; ++i) {
       int argument = visitCovariant(node.positionalParameters[i]);
       int field = fieldNames.getPositionalParameterField(arity, i);
-      builder.addStore(input, field, argument);
+      environment.addStore(input, field, argument);
     }
     node.namedParameters.forEach((String name, DartType type) {
       int argument = visitCovariant(type);
       int field = fieldNames.getNamedParameterField(arity, name);
-      builder.addStore(input, field, argument);
+      environment.addStore(input, field, argument);
     });
     int returnLocation =
-        builder.getLoad(input, fieldNames.getReturnField(arity));
+        environment.getLoad(input, fieldNames.getReturnField(arity));
     visitContravariant(node.returnType, returnLocation);
   }
 
@@ -1278,16 +1295,16 @@ class ContravariantExternalTypeVisitor extends DartTypeVisitor<Null> {
     for (int i = 0; i < node.positionalParameters.length; ++i) {
       int argument = visitCovariant(node.positionalParameters[i].type);
       int field = fieldNames.getPositionalParameterField(arity, i);
-      builder.addStore(input, field, argument);
+      environment.addStore(input, field, argument);
     }
     for (int i = 0; i < node.namedParameters.length; ++i) {
       VariableDeclaration variable = node.namedParameters[i];
       int argument = visitCovariant(variable.type);
       int field = fieldNames.getNamedParameterField(arity, variable.name);
-      builder.addStore(input, field, argument);
+      environment.addStore(input, field, argument);
     }
     int returnLocation =
-        builder.getLoad(input, fieldNames.getReturnField(arity));
+        environment.getLoad(input, fieldNames.getReturnField(arity));
     visitContravariant(node.returnType, returnLocation);
   }
 }

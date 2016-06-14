@@ -5,13 +5,14 @@ import 'builder.dart';
 import 'solver.dart';
 import '../ast.dart';
 import '../text/ast_to_text.dart';
+import '../class_hierarchy.dart';
 
 /// Visualizes the constraint system using a Graphviz dot graph.
 ///
 /// Variables are visualized as nodes and constraints as labeled edges.
 class Visualizer {
   final Program program;
-  final Map<int, List<Annotation>> annotations = <int, List<Annotation>>{};
+  final Map<int, GraphNode> variableNodes = <int, GraphNode>{};
   final Map<int, FunctionNode> value2function = <int, FunctionNode>{};
   final Map<FunctionNode, int> function2value = <FunctionNode, int>{};
   FieldNames fieldNames;
@@ -19,21 +20,21 @@ class Visualizer {
   Solver solver;
   Builder builder;
 
-  List<GraphNode> _graphNodes;
+  ClassHierarchy get hierarchy => builder.hierarchy;
+
   final Map<Member, Set<GraphNode>> _graphNodesInMember =
       <Member, Set<GraphNode>>{};
 
   Visualizer(this.program);
 
-  static List<Annotation> _makeAnnotationList() => <Annotation>[];
   static Set<GraphNode> _makeGraphNodeSet() => new Set<GraphNode>();
-
-  List<Annotation> getAnnotations(int variable) {
-    return annotations.putIfAbsent(variable, _makeAnnotationList);
-  }
 
   Annotator getTextAnnotator() {
     return new TextAnnotator(this);
+  }
+
+  GraphNode getVariableNode(int variable) {
+    return variableNodes[variable] ??= new GraphNode(variable);
   }
 
   /// Called from the builder to associate information with a variable.
@@ -46,15 +47,51 @@ class Visualizer {
   /// node.  When a constraint variable has no logical 1:1 corresondence with
   /// an AST node, it is best to pick a nearby AST node and set the [info] to
   /// clarify its relationship with the node.
-  void annotateVariable(int variable, TreeNode node, [String info]) {
-    if (node != null || info != null) {
-      if (node is VariableSet || node is PropertySet || node is StaticSet) {
-        // There will always be a separte annotation added for the right-hand
-        // side of these nodes, which gives a better visualization.
+  void annotateVariable(int variable, TreeNode astNode, [String info]) {
+    if (astNode != null || info != null) {
+      if (astNode is VariableSet ||
+          astNode is PropertySet ||
+          astNode is StaticSet) {
+        // These will also be registered for the right-hand side, which makes
+        // for a better annotation.
         return;
       }
-      getAnnotations(variable).add(new Annotation(node, info));
+      var node = getVariableNode(variable);
+      Member member = _getEnclosingMember(astNode);
+      node.addAnnotation(member, astNode, info);
+      _graphNodesInMember.putIfAbsent(member, _makeGraphNodeSet).add(node);
     }
+  }
+
+  static Member _getEnclosingMember(TreeNode node) {
+    while (node != null) {
+      if (node is Member) return node;
+      node = node.parent;
+    }
+    return null;
+  }
+
+  void annotateAssign(int source, int destination, Member member) {
+    addEdge(source, destination, member, '');
+  }
+
+  void annotateLoad(int object, int field, int destination, Member member) {
+    String fieldName = fieldNames.getDiagnosticNameOfField(field);
+    addEdge(object, destination, member, 'Load[$fieldName]');
+  }
+
+  void annotateStore(int object, int field, int source, Member member) {
+    String fieldName = fieldNames.getDiagnosticNameOfField(field);
+    addEdge(source, object, member, 'Store[$fieldName]');
+  }
+
+  void addEdge(int source, int destination, Member member, String label) {
+    var sourceNode = getVariableNode(source);
+    var destinationNode = getVariableNode(destination);
+    _graphNodesInMember.putIfAbsent(member, _makeGraphNodeSet)
+      ..add(sourceNode)
+      ..add(destinationNode);
+    sourceNode.addEdgeTo(destinationNode, member, label);
   }
 
   void annotateFunction(int value, FunctionNode function) {
@@ -74,62 +111,6 @@ class Visualizer {
     return _graphNodesInMember.putIfAbsent(member, _makeGraphNodeSet);
   }
 
-  /// Builds the entire graph.
-  ///
-  /// Because the graph is too large to visualize at once, we also build an
-  /// index for lookup up the subgraph that is relevant for a given member.
-  void _buildGraph() {
-    _graphNodes = new List<GraphNode>(constraints.numberOfVariables);
-    // Create all the graph nodes and index them by their enclosing members.
-    for (int i = 0; i < constraints.numberOfVariables; ++i) {
-      Class value = solver.getVariableValue(i);
-      var graphNode = new GraphNode(i, value == null ? 'bottom' : '$value');
-      _graphNodes[i] = graphNode;
-      for (var annotation in getAnnotations(i)) {
-        // Note: the member may be null, and this is intentional.
-        // We use null as context for "global" nodes.
-        Member member = _getEnclosingMember(annotation.node);
-        graphNode.annotationForContext[member] = annotation;
-        _getNodesInMember(member).add(graphNode);
-      }
-    }
-    // Add all the constraint edges.
-    for (int i = 0; i < constraints.assignments.length; i += 2) {
-      int source = constraints.assignments[i];
-      int destination = constraints.assignments[i + 1];
-      GraphNode sourceNode = _graphNodes[source];
-      GraphNode destinationNode = _graphNodes[destination];
-      sourceNode.addEdgeTo(destinationNode);
-    }
-    for (int i = 0; i < constraints.loads.length; i += 3) {
-      int object = constraints.loads[i];
-      int field = constraints.loads[i + 1];
-      int destination = constraints.loads[i + 2];
-      GraphNode objectNode = _graphNodes[object];
-      String fieldName = fieldNames.getDiagnosticNameOfField(field);
-      GraphNode destinationNode = _graphNodes[destination];
-      objectNode.addEdgeTo(destinationNode,
-          label: escapeLabel('Load[$fieldName]'));
-    }
-    for (int i = 0; i < constraints.stores.length; i += 3) {
-      int object = constraints.stores[i];
-      int field = constraints.stores[i + 1];
-      int source = constraints.stores[i + 2];
-      GraphNode objectNode = _graphNodes[object];
-      String fieldName = fieldNames.getDiagnosticNameOfField(field);
-      GraphNode sourceNode = _graphNodes[source];
-      sourceNode.addEdgeTo(objectNode, label: escapeLabel('Store[$fieldName]'));
-    }
-  }
-
-  Member _getEnclosingMember(TreeNode node) {
-    while (node != null) {
-      if (node is Member) return node;
-      node = node.parent;
-    }
-    return null;
-  }
-
   String _getCodeAsLabel(Member member) {
     String code = debugNodeToString(member);
     code = escapeLabel(code);
@@ -138,11 +119,18 @@ class Visualizer {
     return code;
   }
 
+  String _getValueLabel(GraphNode node) {
+    int value = solver.variableValue[node.variable];
+    if (value < 0) return 'bottom';
+    if (value < constraints.numberOfClasses) {
+      return '${hierarchy.classes[value]}';
+    }
+    FunctionNode function = value2function[value];
+    return escapeLabel(shorten('${function.parent}'));
+  }
+
   /// Returns the Graphviz Dot code a the subgraph relevant for [member].
   String dumpMember(Member member) {
-    if (_graphNodes == null) {
-      _buildGraph();
-    }
     int freshIdCounter = 0;
     StringBuffer buffer = new StringBuffer();
     buffer.writeln('digraph {');
@@ -150,12 +138,18 @@ class Visualizer {
     buffer.writeln('source [shape=box,label="$source"]');
     for (GraphNode node in _getNodesInMember(member)) {
       int id = node.variable;
-      Annotation annotation = node.annotationForContext[member];
-      String label = annotation.toLabel();
+      String label = node.getAnnotationInContextOf(member);
+      // Global nodes have a ton of edges that are visualized specially.
+      // If the global node has a local annotation, also print its annotated
+      // version somewhere, but omit all its edges.
       if (node.isGlobal) {
-        label += '\n${node.globalAnnotation.toLabel()}';
+        if (label != '') {
+          label += '\n${node.globalAnnotation.toLabel()}';
+          buffer.writeln('$id [shape=record,label="$label"]');
+        }
+        continue;
       }
-      String value = node.valueLabel;
+      String value = _getValueLabel(node);
       buffer.writeln('$id [shape=record,label="{$label|$value}"]');
       // Add outgoing edges.
       // Keep track of all that edges leave the context of the current member
@@ -226,7 +220,9 @@ class Annotation {
   String toLabel() {
     if (node == null && info == null) return '(missing annotation)';
     if (node == null) return escapeLabel(info);
-    String label = node is NullLiteral ? 'null literal' : shorten('$node');
+    String label = node is NullLiteral
+        ? 'null literal'
+        : node is FunctionNode ? shorten('${node.parent}') : shorten('$node');
     if (info != null) {
       label = '$info: $label';
     }
@@ -252,9 +248,7 @@ class GraphNode {
   /// The annotation to show when visualized in the context of a given member.
   final Map<Member, Annotation> annotationForContext = <Member, Annotation>{};
 
-  final String valueLabel;
-
-  GraphNode(this.variable, this.valueLabel);
+  GraphNode(this.variable);
 
   bool get isGlobal => annotationForContext.containsKey(null);
   Annotation get globalAnnotation => annotationForContext[null];
@@ -271,18 +265,32 @@ class GraphNode {
     return annotation.toLabelWithContext(member);
   }
 
-  void addEdgeTo(GraphNode other, {String label: ''}) {
-    Edge edge = new Edge(this, other, label);
+  String getAnnotationInContextOf(Member member) {
+    if (annotationForContext.isEmpty) return '';
+    Annotation annotation = annotationForContext[member];
+    if (annotation != null) return annotation.toLabel();
+    annotation =
+        annotationForContext[null] ?? annotationForContext.values.first;
+    return annotation.toLabelWithContext(member);
+  }
+
+  void addEdgeTo(GraphNode other, Member member, String label) {
+    Edge edge = new Edge(this, other, member, label);
     outputs.add(edge);
     other.inputs.add(edge);
+  }
+
+  void addAnnotation(Member member, TreeNode astNode, String info) {
+    annotationForContext[member] = new Annotation(astNode, info);
   }
 }
 
 class Edge {
   final GraphNode from, to;
+  final Member member;
   final String label;
 
-  Edge(this.from, this.to, this.label);
+  Edge(this.from, this.to, this.member, this.label);
 }
 
 final RegExp escapeRegexp = new RegExp('["{}<>|]', multiLine: true);
@@ -326,9 +334,8 @@ class TextAnnotator extends Annotator {
     // the annotation map from the visualizer API.
     // TODO(asgerf): If we use these annotations for testing, the necessary
     //   bindings should arguably be part of the API for the Builder.
-    visualizer.annotations
-        .forEach((int variable, List<Annotation> annotations) {
-      for (Annotation annotation in annotations) {
+    visualizer.variableNodes.forEach((int variable, GraphNode node) {
+      for (Annotation annotation in node.annotationForContext.values) {
         if (annotation.node is VariableDeclaration && annotation.info == null) {
           variables[annotation.node] = variable;
         }
