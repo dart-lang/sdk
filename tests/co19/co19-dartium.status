@@ -658,7 +658,6 @@ LayoutTests/fast/forms/formmethod-attribute-button-html_t01: Skip # Test reloads
 LayoutTests/fast/forms/formmethod-attribute-input-2_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/formmethod-attribute-input-html_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/formmethod-attribute-input-html_t01: Skip # Test reloads itself. Issue 18558.
-LayoutTests/fast/forms/input-appearance-elementFromPoint_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/input-hit-test-border_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/input-inputmode_t01: RuntimeError # Experimental feature not exposed in Chrome yet
 LayoutTests/fast/forms/input-width-height-attributes-without-renderer-loaded-image_t01: RuntimeError # co19-roll r801: Please triage this failure.
@@ -698,8 +697,6 @@ LayoutTests/fast/inline/inline-with-empty-inline-children_t01: RuntimeError # co
 LayoutTests/fast/inline/out-of-flow-objects-and-whitespace-after-empty-inline_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/inline/parent-inline-element-padding-contributes-width_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/inline/positioned-element-padding-contributes-width_t01: RuntimeError # co19-roll r801: Please triage this failure.
-LayoutTests/fast/layers/normal-flow-hit-test_t01: RuntimeError # co19 issue 11.
-LayoutTests/fast/layers/normal-flow-hit-test_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/layers/zindex-hit-test_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/layers/zindex-hit-test_t01: RuntimeError # co19 issue 11.
 LayoutTests/fast/lists/list-style-position-inside_t01: Pass, RuntimeError # co19 issue 11.
@@ -731,7 +728,6 @@ LayoutTests/fast/multicol/hit-test-above-or-below_t01: RuntimeError # co19-roll 
 LayoutTests/fast/multicol/hit-test-end-of-column-with-line-height_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/hit-test-end-of-column_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/hit-test-float_t01: RuntimeError # co19-roll r801: Please triage this failure.
-LayoutTests/fast/multicol/hit-test-gap-between-pages-flipped_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/hit-test-gap-between-pages_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/newmulticol/balance-images_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/newmulticol/balance-maxheight_t01: RuntimeError # co19-roll r801: Please triage this failure.
