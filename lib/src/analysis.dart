@@ -45,6 +45,7 @@ void printAndFail(String message, {int exitCode: 15}) {
 AnalysisOptions _buildAnalyzerOptions(DriverOptions options) {
   AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
   analysisOptions.cacheSize = options.cacheSize;
+  analysisOptions.strongMode = options.strongMode;
   analysisOptions.hint = false;
   analysisOptions.lint = options.enableLints;
   analysisOptions.generateSdkErrors = options.showSdkWarnings;
@@ -221,6 +222,9 @@ class DriverOptions {
 
   /// The path to the dart SDK.
   String dartSdkPath;
+
+  /// Whether to use Dart's Strong Mode analyzer.
+  bool strongMode = true;
 
   /// Whether to show lint warnings.
   bool enableLints = true;
