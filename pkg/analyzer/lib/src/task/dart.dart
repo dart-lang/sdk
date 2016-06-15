@@ -4545,7 +4545,6 @@ class ReferencedNames {
           if (delta.isNameAffected(dependency)) {
             if (delta.nameChanged(user)) {
               hasProgress = true;
-              break;
             }
           }
         }
@@ -4664,6 +4663,17 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
   }
 
   @override
+  visitMethodDeclaration(MethodDeclaration node) {
+    ReferencedNamesScope outerScope = scope;
+    try {
+      scope = new ReferencedNamesScope.forMethod(scope, node);
+      super.visitMethodDeclaration(node);
+    } finally {
+      scope = outerScope;
+    }
+  }
+
+  @override
   visitSimpleIdentifier(SimpleIdentifier node) {
     // Ignore all declarations.
     if (node.inDeclarationContext()) {
@@ -4714,7 +4724,11 @@ class ReferencedNamesScope {
     ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
     scope._addTypeParameters(node.typeParameters);
     for (ClassMember member in node.members) {
-      if (member is MethodDeclaration) {
+      if (member is FieldDeclaration) {
+        for (VariableDeclaration variable in member.fields.variables) {
+          scope.add(variable.name.name);
+        }
+      } else if (member is MethodDeclaration) {
         scope.add(member.name.name);
       }
     }
@@ -4725,9 +4739,7 @@ class ReferencedNamesScope {
       ReferencedNamesScope enclosing, FunctionDeclaration node) {
     ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
     scope._addTypeParameters(node.functionExpression.typeParameters);
-    node.functionExpression.parameters?.parameters
-        ?.map((p) => p is NormalFormalParameter ? p.identifier.name : '')
-        ?.forEach(scope.add);
+    scope._addFormalParameters(node.functionExpression.parameters);
     return scope;
   }
 
@@ -4735,6 +4747,14 @@ class ReferencedNamesScope {
       ReferencedNamesScope enclosing, FunctionTypeAlias node) {
     ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
     scope._addTypeParameters(node.typeParameters);
+    return scope;
+  }
+
+  factory ReferencedNamesScope.forMethod(
+      ReferencedNamesScope enclosing, MethodDeclaration node) {
+    ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
+    scope._addTypeParameters(node.typeParameters);
+    scope._addFormalParameters(node.parameters);
     return scope;
   }
 
@@ -4753,8 +4773,18 @@ class ReferencedNamesScope {
     return false;
   }
 
+  void _addFormalParameters(FormalParameterList parameterList) {
+    if (parameterList != null) {
+      parameterList.parameters
+          .map((p) => p is NormalFormalParameter ? p.identifier.name : '')
+          .forEach(add);
+    }
+  }
+
   void _addTypeParameters(TypeParameterList typeParameterList) {
-    typeParameterList?.typeParameters?.map((p) => p.name.name)?.forEach(add);
+    if (typeParameterList != null) {
+      typeParameterList.typeParameters.map((p) => p.name.name).forEach(add);
+    }
   }
 }
 

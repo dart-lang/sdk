@@ -4042,11 +4042,95 @@ class U {
     expect(info.userToDependsOn['U'], unorderedEquals(['A']));
   }
 
+  test_referencedNames_class_members() {
+    ReferencedNames info = _computeReferencedNames('''
+class U {
+  int a;
+  int get b;
+  set c(_) {}
+  m(D d) {
+    a;
+    b;
+    c = 1;
+    m();
+  }
+}
+''');
+    expect(info.names, unorderedEquals(['int', 'D']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['U']));
+    expect(info.userToDependsOn['U'], unorderedEquals(['int', 'D']));
+  }
+
+  test_referencedNames_class_members_dontHideQualified() {
+    ReferencedNames info = _computeReferencedNames('''
+class U {
+  int a;
+  int get b;
+  set c(_) {}
+  m(D d) {
+    d.a;
+    d.b;
+    d.c;
+  }
+}
+''');
+    expect(info.names, unorderedEquals(['int', 'D', 'a', 'b', 'c']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['U']));
+    expect(info.userToDependsOn['U'], unorderedEquals(['int', 'D']));
+  }
+
   test_referencedNames_class_method() {
     ReferencedNames info = _computeReferencedNames('''
 class U {
   A m(B p) {
     C v = 0;
+  }
+}
+''');
+    expect(info.names, unorderedEquals(['A', 'B', 'C']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['U']));
+    expect(info.userToDependsOn['U'], unorderedEquals(['A', 'B']));
+  }
+
+  test_referencedNames_class_method_localVariables() {
+    ReferencedNames info = _computeReferencedNames('''
+class U {
+  A m() {
+    B b = null;
+    b;
+    {
+      C c = null;
+      b;
+      c;
+    }
+    d;
+  }
+}
+''');
+    expect(info.names, unorderedEquals(['A', 'B', 'C', 'd']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['U']));
+    expect(info.userToDependsOn['U'], unorderedEquals(['A']));
+  }
+
+  test_referencedNames_class_method_parameters() {
+    ReferencedNames info = _computeReferencedNames('''
+class U {
+  m(A a) {
+    a;
+    b;
+  }
+}
+''');
+    expect(info.names, unorderedEquals(['A', 'b']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['U']));
+    expect(info.userToDependsOn['U'], unorderedEquals(['A']));
+  }
+
+  test_referencedNames_class_method_typeParameters() {
+    ReferencedNames info = _computeReferencedNames('''
+class U {
+  A m<T>(B b, T t) {
+    C c = 0;
   }
 }
 ''');
