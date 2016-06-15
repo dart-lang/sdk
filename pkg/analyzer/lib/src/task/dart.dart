@@ -529,6 +529,23 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT9 =
         cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
+ * List of all `LIBRARY_ELEMENT` results.
+ */
+final List<ResultDescriptor<LibraryElement>> LIBRARY_ELEMENT_RESULTS =
+    <ResultDescriptor<LibraryElement>>[
+  LIBRARY_ELEMENT1,
+  LIBRARY_ELEMENT2,
+  LIBRARY_ELEMENT3,
+  LIBRARY_ELEMENT4,
+  LIBRARY_ELEMENT5,
+  LIBRARY_ELEMENT6,
+  LIBRARY_ELEMENT7,
+  LIBRARY_ELEMENT8,
+  LIBRARY_ELEMENT9,
+  LIBRARY_ELEMENT
+];
+
+/**
  * The flag specifying whether all analysis errors are computed in a specific
  * library.
  *
