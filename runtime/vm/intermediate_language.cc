@@ -3045,26 +3045,38 @@ static void TryFastPathSmiOp(
     return;
   }
   if (name.raw() == Symbols::Plus().raw()) {
-    __ AddTOS();
+    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+      __ AddTOS();
+    }
   } else if (name.raw() == Symbols::Minus().raw()) {
-    __ SubTOS();
+    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+      __ SubTOS();
+    }
   } else if (name.raw() == Symbols::EqualOperator().raw()) {
-    __ EqualTOS();
+    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+      __ EqualTOS();
+    }
   } else if (name.raw() == Symbols::LAngleBracket().raw()) {
-    __ LessThanTOS();
+    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+     __ LessThanTOS();
+    }
   } else if (name.raw() == Symbols::RAngleBracket().raw()) {
-    __ GreaterThanTOS();
+    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+      __ GreaterThanTOS();
+    }
   } else if (name.raw() == Symbols::BitAnd().raw()) {
-    __ BitAndTOS();
+    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+      __ BitAndTOS();
+    }
   } else if (name.raw() == Symbols::BitOr().raw()) {
-    __ BitOrTOS();
+    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+      __ BitOrTOS();
+    }
   } else if (name.raw() == Symbols::Star().raw()) {
-    __ MulTOS();
-  } else {
-    return;
+    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+      __ MulTOS();
+    }
   }
-  bool is_smi_two_args_op = call_ic_data->AddSmiSmiCheckForFastSmiStubs();
-  ASSERT(is_smi_two_args_op);
 }
 #endif
 
@@ -3298,9 +3310,6 @@ void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // DBC does not use LocationSummaries in the same way as other architectures.
 #if !defined(TARGET_ARCH_DBC)
   ASSERT(locs()->in(0).reg() == locs()->out(0).reg());
-#else
-  ASSERT(!compiler->is_optimizing() ||
-         (locs()->in(0).reg() == locs()->out(0).reg()));
 #endif  // !defined(TARGET_ARCH_DBC)
 }
 
@@ -3312,7 +3321,11 @@ LocationSummary* DeoptimizeInstr::MakeLocationSummary(Zone* zone,
 
 
 void DeoptimizeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+#if !defined(TARGET_ARCH_DBC)
   __ Jump(compiler->AddDeoptStub(deopt_id(), deopt_reason_));
+#else
+  compiler->EmitDeopt(deopt_id(), deopt_reason_);
+#endif
 }
 
 

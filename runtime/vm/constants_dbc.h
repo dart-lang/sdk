@@ -83,6 +83,10 @@ namespace dart {
 //
 //    Unreachable instruction.
 //
+//  - Nop
+//
+//    This instuction does nothing.
+//
 //  - Compile
 //
 //    Compile current function and start executing newly produced code
@@ -159,6 +163,19 @@ namespace dart {
 //    both smis and result of SP[0] <op> SP[-1] is a smi - if this is true
 //    then pops operands and pushes result on the stack and skips the next
 //    instruction (which implements a slow path fallback).
+//
+//  - Add, Sub, Mul, Div, Mod, Shl, Shr rA, rB, rC
+//
+//    Arithmetic operations on Smis. FP[rA] <- FP[rB] op FP[rC].
+//    If these instructions can trigger a deoptimization, the following
+//    instruction should be Deopt. If no deoptimization should be triggered,
+//    the immediately following instruction is skipped. These instructions
+//    expect their operands to be Smis, but don't check that they are.
+//
+//  - BitOr, BitAnd, BitXor rA, rB, rC
+//
+//    FP[rA] <- FP[rB] op FP[rC]. These instructions expect their operands to be
+//    Smis, but don't check that they are.
 //
 //  - StoreStaticTOS D
 //
@@ -389,6 +406,7 @@ namespace dart {
 //
 #define BYTECODES_LIST(V)                              \
   V(Trap,                            0, ___, ___, ___) \
+  V(Nop,                             0, ___, ___, ___) \
   V(Compile,                         0, ___, ___, ___) \
   V(HotCheck,                      A_D, num, num, ___) \
   V(Intrinsic,                       A, num, ___, ___) \
@@ -422,6 +440,16 @@ namespace dart {
   V(EqualTOS,                        0, ___, ___, ___) \
   V(LessThanTOS,                     0, ___, ___, ___) \
   V(GreaterThanTOS,                  0, ___, ___, ___) \
+  V(Add,                         A_B_C, reg, reg, reg) \
+  V(Sub,                         A_B_C, reg, reg, reg) \
+  V(Mul,                         A_B_C, reg, reg, reg) \
+  V(Div,                         A_B_C, reg, reg, reg) \
+  V(Mod,                         A_B_C, reg, reg, reg) \
+  V(BitOr,                       A_B_C, reg, reg, reg) \
+  V(BitAnd,                      A_B_C, reg, reg, reg) \
+  V(BitXor,                      A_B_C, reg, reg, reg) \
+  V(Shl,                         A_B_C, reg, reg, reg) \
+  V(Shr,                         A_B_C, reg, reg, reg) \
   V(StoreStaticTOS,                  D, lit, ___, ___) \
   V(PushStatic,                      D, lit, ___, ___) \
   V(InitStaticTOS,                   0, ___, ___, ___) \

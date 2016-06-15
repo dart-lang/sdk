@@ -442,7 +442,7 @@ DART_FORCE_INLINE static bool SignedMulWithOverflow(intptr_t lhs,
       : "r"(rhs), "r"(out)
       : "cc", "r12");
 #elif defined(HOST_ARCH_ARM64)
-  int64_t prod_lo;
+  int64_t prod_lo = 0;
   asm volatile(
       "mul %1, %2, %3\n"
       "smulh %2, %2, %3\n"
@@ -451,7 +451,7 @@ DART_FORCE_INLINE static bool SignedMulWithOverflow(intptr_t lhs,
       "mov %0, #0;\n"
       "str %1, [%4, #0]\n"
       "1:"
-      : "+r"(res), "=r"(prod_lo), "+r"(lhs)
+      : "=r"(res), "+r"(prod_lo), "+r"(lhs)
       : "r"(rhs), "r"(out)
       : "cc");
 #else
@@ -477,6 +477,7 @@ DART_FORCE_INLINE static bool AreBothSmis(intptr_t a, intptr_t b) {
 #define SMI_GT(lhs, rhs, pres) SMI_COND(>, lhs, rhs, pres)
 #define SMI_BITOR(lhs, rhs, pres) ((*(pres) = (lhs | rhs)), false)
 #define SMI_BITAND(lhs, rhs, pres) ((*(pres) = ((lhs) & (rhs))), false)
+#define SMI_BITXOR(lhs, rhs, pres) ((*(pres) = ((lhs) ^ (rhs))), false)
 
 
 void Simulator::CallRuntime(Thread* thread,
@@ -785,6 +786,28 @@ static DART_NOINLINE bool InvokeNativeWrapper(
       SP--;                                                                    \
     }                                                                          \
   }
+
+// Skip the next instruction if there is no overflow.
+#define SMI_OP_CHECK(ResultT, Func)                                            \
+  {                                                                            \
+    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);                   \
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]);                   \
+    ResultT* slot = reinterpret_cast<ResultT*>(&FP[rA]);                       \
+    if (LIKELY(!Func(lhs, rhs, slot))) {                                       \
+      /* Success. Skip the instruction that follows. */                        \
+      pc++;                                                                    \
+    }                                                                          \
+  }
+
+// Do not check for overflow.
+#define SMI_OP_NOCHECK(ResultT, Func)                                          \
+  {                                                                            \
+    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);                   \
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]);                   \
+    ResultT* slot = reinterpret_cast<ResultT*>(&FP[rA]);                       \
+    Func(lhs, rhs, slot);                                                      \
+  }                                                                            \
+
 
 // Exception handling helper. Gets handler FP and PC from the Simulator where
 // they were stored by Simulator::Longjmp and proceeds to execute the handler.
@@ -1541,6 +1564,97 @@ RawObject* Simulator::Call(const Code& code,
     SMI_FASTPATH_TOS(RawObject*, SMI_GT);
     DISPATCH();
   }
+  {
+    BYTECODE(Add, A_B_C);
+    SMI_OP_CHECK(intptr_t, SignedAddWithOverflow);
+    DISPATCH();
+  }
+  {
+    BYTECODE(Sub, A_B_C);
+    SMI_OP_CHECK(intptr_t, SignedSubWithOverflow);
+    DISPATCH();
+  }
+  {
+    BYTECODE(Mul, A_B_C);
+    SMI_OP_CHECK(intptr_t, SMI_MUL);
+    DISPATCH();
+  }
+  {
+    BYTECODE(BitOr, A_B_C);
+    SMI_OP_NOCHECK(intptr_t, SMI_BITOR);
+    DISPATCH();
+  }
+  {
+    BYTECODE(BitAnd, A_B_C);
+    SMI_OP_NOCHECK(intptr_t, SMI_BITAND);
+    DISPATCH();
+  }
+  {
+    BYTECODE(BitXor, A_B_C);
+    SMI_OP_NOCHECK(intptr_t, SMI_BITXOR);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(Div, A_B_C);
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]);
+    if (rhs != 0) {
+      const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
+      const intptr_t res = (lhs >> kSmiTagSize) / (rhs >> kSmiTagSize);
+#if defined(ARCH_IS_64_BIT)
+      const intptr_t untaggable = 0x4000000000000000LL;
+#else
+      const intptr_t untaggable = 0x40000000L;
+#endif  // defined(ARCH_IS_64_BIT)
+      if (res != untaggable) {
+        *reinterpret_cast<intptr_t*>(&FP[rA]) = res << kSmiTagSize;
+        pc++;
+      }
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(Mod, A_B_C);
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]);
+    if (rhs != 0) {
+      const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
+      const intptr_t res =
+          ((lhs >> kSmiTagSize) % (rhs >> kSmiTagSize)) << kSmiTagSize;
+      *reinterpret_cast<intptr_t*>(&FP[rA]) =
+          (res < 0) ? ((rhs < 0) ? (res - rhs) : (res + rhs)) : res;
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(Shl, A_B_C);
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]) >> kSmiTagSize;
+    if (rhs >= 0) {
+      const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
+      const intptr_t res = lhs << rhs;
+      if (lhs == (res >> rhs)) {
+        *reinterpret_cast<intptr_t*>(&FP[rA]) = res;
+        pc++;
+      }
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(Shr, A_B_C);
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]) >> kSmiTagSize;
+    if (rhs >= 0) {
+      const intptr_t shift_amount =
+          (rhs >= kBitsPerWord) ? (kBitsPerWord - 1) : rhs;
+      const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]) >> kSmiTagSize;
+      *reinterpret_cast<intptr_t*>(&FP[rA]) =
+          (lhs >> shift_amount) << kSmiTagSize;
+      pc++;
+    }
+    DISPATCH();
+  }
 
   // Return and return like instructions (Instrinsic).
   {
@@ -2038,6 +2152,11 @@ RawObject* Simulator::Call(const Code& code,
     } else {
       SP--;  // No result to push.
     }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(Nop, 0);
     DISPATCH();
   }
 

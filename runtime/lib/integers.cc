@@ -146,7 +146,7 @@ DEFINE_NATIVE_ENTRY(Integer_moduloFromInteger, 2) {
   const Integer& right_int = Integer::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left_int, arguments->NativeArgAt(1));
   ASSERT(CheckInteger(right_int));
-  ASSERT(CheckInteger(right_int));
+  ASSERT(CheckInteger(left_int));
   if (FLAG_trace_intrinsified_natives) {
     OS::Print("Integer_moduloFromInteger %s mod %s\n",
         left_int.ToCString(), right_int.ToCString());

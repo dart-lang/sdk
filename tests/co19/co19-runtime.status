@@ -54,7 +54,7 @@ LibTest/core/List/List_class_A01_t02: Pass, Slow
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $system == windows ]
 Language/Expressions/Function_Invocation/async_invokation_t04: Pass, RuntimeError # co19 issue 54
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && ($arch != x64 && $arch != simarm64 && $arch != arm64) ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && ($arch != x64 && $arch != simarm64 && $arch != arm64 && $arch != simdbc && $arch != simdbc64) ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 
 [ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && ($arch == mips || $arch == arm64) ]
@@ -64,7 +64,7 @@ LibTest/core/List/List_class_A01_t02: Skip # co19 issue 673
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip # co19 issue 673
 LibTest/collection/ListBase/ListBase_class_A01_t02: Skip # co19 issue 673
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && ($arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simmips || $arch == simarm64) ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && ($arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simmips || $arch == simarm64 || $arch == simdbc || $arch == simdbc64) ]
 LibTest/core/Uri/Uri_A06_t03: Skip  # Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip  # Timeout
 LibTest/collection/ListBase/ListBase_class_A01_t01: Skip  # Timeout
