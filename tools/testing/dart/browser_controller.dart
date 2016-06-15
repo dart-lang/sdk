@@ -504,13 +504,32 @@ class SafariMobileSimulator extends Safari {
     "Library/Application Support/iPhone Simulator/7.1/Applications"
   ];
 
+  // Helper function to delete many directories recursively.
+  Future<bool> deleteIfExists(Iterable<String> paths) async {
+    for (var path in paths) {
+      Directory directory = new Directory(path);
+      if (await directory.exists()) {
+        _logEvent("Deleting $path");
+        try {
+          await directory.delete(recursive: true);
+        } catch (error) {
+          _logEvent("Failure trying to delete $path: $error");
+          return false;
+        }
+      } else {
+        _logEvent("$path is not present");
+      }
+    }
+    return true;
+  }
+
   // Clears the cache if the static resetBrowserConfiguration flag is set.
   // Returns false if the command to actually clear the cache did not complete.
   Future<bool> resetConfiguration() {
     if (!Browser.resetBrowserConfiguration) return new Future.value(true);
     var home = Platform.environment['HOME'];
-    Iterator iterator = CACHE_DIRECTORIES.map((s) => "$home/$s").iterator;
-    return deleteIfExists(iterator);
+    var paths = CACHE_DIRECTORIES.map((s) => "$home/$s");
+    return deleteIfExists(paths);
   }
 
   Future<bool> start(String url) {
@@ -902,7 +921,7 @@ class BrowserTestRunner {
 
   final String localIp;
   final String browserName;
-  final int maxNumBrowsers;
+  int maxNumBrowsers;
   final bool checkedMode;
   int numBrowsers = 0;
   // Used to send back logs from the browser (start, stop etc)
