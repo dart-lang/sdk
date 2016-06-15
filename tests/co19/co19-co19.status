@@ -25,16 +25,15 @@ LibTest/async/Stream/asBroadcastStream_A02_t01: Fail # co19 issue 687
 
 LibTest/core/Symbol/Symbol_A01_t04: RuntimeError # Issue 25804
 
-Language/Classes/same_name_type_variable_t01: Pass, MissingCompileTimeError, Fail # Issue 14513
-Language/Classes/same_name_type_variable_t04: Pass, MissingCompileTimeError, Fail # Issue 14513
-Language/Classes/same_name_type_variable_t07: Pass, MissingCompileTimeError, Fail # Issue 14513
+Language/Classes/same_name_type_variable_t04: Pass, MissingCompileTimeError, Fail # Issue 14513,25525
+Language/Classes/same_name_type_variable_t07: Pass, MissingCompileTimeError, Fail # Issue 14513,25525
 
-LibTest/math/acos_A01_t01: PASS, FAIL, OK  # Issue 26261 
-LibTest/math/asin_A01_t01: PASS, FAIL, OK  # Issue 26261 
-LibTest/math/atan_A01_t01: PASS, FAIL, OK  # Issue 26261 
+LibTest/math/acos_A01_t01: PASS, FAIL, OK  # Issue 26261
+LibTest/math/asin_A01_t01: PASS, FAIL, OK  # Issue 26261
+LibTest/math/atan_A01_t01: PASS, FAIL, OK  # Issue 26261
 
-LibTest/math/cos_A01_t01: PASS, FAIL, OK  # Issue 26261 
-LibTest/math/tan_A01_t01: PASS, FAIL, OK  # Issue 26261 
+LibTest/math/cos_A01_t01: PASS, FAIL, OK  # Issue 26261
+LibTest/math/tan_A01_t01: PASS, FAIL, OK  # Issue 26261
 
 LibTest/core/Expando/Expando_A03_t01: RuntimeError # Issue 17735
 LibTest/core/Expando/Expando_A03_t03: RuntimeError # Issue 17735

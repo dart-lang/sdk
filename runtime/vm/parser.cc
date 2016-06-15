@@ -4677,6 +4677,11 @@ void Parser::ParseClassDefinition(const Class& cls) {
   }
   ExpectToken(Token::kRBRACE);
 
+  if (cls.LookupTypeParameter(class_name) != TypeParameter::null()) {
+    ReportError(class_pos,
+                "class name conflicts with type parameter '%s'",
+                class_name.ToCString());
+  }
   CheckConstructors(&members);
 
   // Need to compute this here since MakeArray() will clear the

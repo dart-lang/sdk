@@ -30,6 +30,7 @@ Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeErro
 Language/Classes/Static_Methods/type_object_t01: RuntimeError # Please triage this failure
 Language/Classes/Static_Methods/type_object_t02: RuntimeError # Please triage this failure
 Language/Classes/definition_t23: CompileTimeError # Please triage this failure
+Language/Classes/same_name_type_variable_t01: Fail # Missing CT error on class with same name a type parameter
 Language/Classes/same_name_type_variable_t02: Fail # Missing CT error on member with same name a type parameter
 Language/Classes/same_name_type_variable_t03: Fail # Missing CT error on member with same name a type parameter
 Language/Classes/same_name_type_variable_t05: Fail # Missing CT error on member with same name a type parameter
@@ -1549,7 +1550,7 @@ WebPlatformTest/shadow-dom/events/event-dispatch/test-003_t01: RuntimeError # Pl
 WebPlatformTest/shadow-dom/events/event-retargeting/test-001_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/events/event-retargeting/test-002_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/events/event-retargeting/test-004_t01: RuntimeError # Please triage this failure
-WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-001_t01: Pass, RuntimeError # Issue 52 
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-001_t01: Pass, RuntimeError # Issue 52
 WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-002_t01: Pass, RuntimeError # Issue 52
 WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-003_t01: Pass, RuntimeError # Issue 52
 WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-004_t01: Pass, RuntimeError # Issue 52
