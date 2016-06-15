@@ -190,6 +190,26 @@ f() {
     verify([source]);
   }
 
+  void test_deadCode_deadFinalBreakInCase() {
+    Source source = addSource(r'''
+f() {
+  switch (true) {
+  case true:
+    try {
+      int a = 1;
+    } finally {
+      return;
+    }
+    break;
+  default:
+    break;
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_deprecatedMemberUse_inDeprecatedClass() {
     Source source = addSource(r'''
 @deprecated

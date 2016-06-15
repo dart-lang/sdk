@@ -473,6 +473,49 @@ f(v) {
     verify([source]);
   }
 
+  void test_deadCode_deadFinalReturnInCase() {
+    Source source = addSource(r'''
+f() {
+  switch (true) {
+  case true:
+    try {
+      int a = 1;
+    } finally {
+      return;
+    }
+    return;
+  default:
+    break;
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
+  void test_deadCode_deadFinalStatementInCase() {
+    Source source = addSource(r'''
+f() {
+  switch (true) {
+  case true:
+    try {
+      int a = 1;
+    } finally {
+      return;
+    }
+    int b = 1;
+  default:
+    break;
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    // A single dead statement at the end of a switch case that is not a
+    // terminating statement will yield two errors.
+    assertErrors(source,
+        [HintCode.DEAD_CODE, StaticWarningCode.CASE_BLOCK_NOT_TERMINATED]);
+    verify([source]);
+  }
+
   void test_deadCode_statementAfterBreak_inWhileStatement() {
     Source source = addSource(r'''
 f(v) {

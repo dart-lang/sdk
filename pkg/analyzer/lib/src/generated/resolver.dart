@@ -1913,13 +1913,13 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitSwitchCase(SwitchCase node) {
-    _checkForDeadStatementsInNodeList(node.statements);
+    _checkForDeadStatementsInNodeList(node.statements, allowMandated: true);
     return super.visitSwitchCase(node);
   }
 
   @override
   Object visitSwitchDefault(SwitchDefault node) {
-    _checkForDeadStatementsInNodeList(node.statements);
+    _checkForDeadStatementsInNodeList(node.statements, allowMandated: true);
     return super.visitSwitchDefault(node);
   }
 
@@ -2045,8 +2045,12 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
    * [SwitchMember], this loops through the list searching for dead statements.
    *
    * @param statements some ordered list of statements in a [Block] or [SwitchMember]
+   * @param allowMandated allow dead statements mandated by the language spec.
+   *            This allows for a final break, continue, return, or throw statement
+   *            at the end of a switch case, that are mandated by the language spec.
    */
-  void _checkForDeadStatementsInNodeList(NodeList<Statement> statements) {
+  void _checkForDeadStatementsInNodeList(
+      NodeList<Statement> statements, {bool allowMandated: false}) {
     bool statementExits(Statement statement) {
       if (statement is BreakStatement) {
         return statement.label == null;
@@ -2063,6 +2067,13 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
       if (statementExits(currentStatement) && i != size - 1) {
         Statement nextStatement = statements[i + 1];
         Statement lastStatement = statements[size - 1];
+        // If mandated statements are allowed, and only the last statement is
+        // dead, and it's a BreakStatement, then assume it is a statement
+        // mandated by the language spec, there to avoid a
+        // CASE_BLOCK_NOT_TERMINATED error.
+        if (allowMandated && i == size - 2 && nextStatement is BreakStatement) {
+          return;
+        }
         int offset = nextStatement.offset;
         int length = lastStatement.end - offset;
         _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE, offset, length);
