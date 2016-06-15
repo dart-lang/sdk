@@ -117,6 +117,7 @@ LayoutTests/fast/shapes/parsing/parsing-shape-image-threshold_t01: RuntimeError 
 LayoutTests/fast/shapes/parsing/parsing-shape-margin_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/table/absolute-table-percent-lengths_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/css-table-width_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/table/css-table-width-with-border-padding_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/table/fixed-table-layout-width-change_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/html-table-width-max-width-constrained_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/margins-flipped-text-direction_t01: RuntimeError # co19-roll r786: Please triage this failure.
@@ -131,6 +132,7 @@ LayoutTests/fast/table/table-width-exceeding-max-width_t01: RuntimeError # co19-
 LayoutTests/fast/text/line-break-after-inline-latin1_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/url/trivial-segments_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/url/trivial_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/writing-mode/auto-sizing-orthogonal-flows_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/xpath/xpath-result-eventlistener-crash_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LibTest/html/Node/ownerDocument_A01_t01: RuntimeError # co19-roll r722: Issue 18251
 WebPlatformTest/DOMEvents/approved/Propagation.path.target.removed_t01: RuntimeError # co19-roll r738: Please triage this failure.
