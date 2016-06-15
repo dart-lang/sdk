@@ -202,7 +202,7 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags, arch):
     else:
       cmd.extend(['--progress=buildbot', '-v'])
 
-    cmd.append('--reset-browser-configuration')
+    cmd.append('--clear_browser_cache')
 
     global IsFirstTestStepCall
     if IsFirstTestStepCall:

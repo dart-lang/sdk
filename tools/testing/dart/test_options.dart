@@ -338,11 +338,9 @@ Note: currently only implemented for dart2js.''',
           false,
           type: 'bool'),
       new _TestOptionSpecification(
-          'reset_browser_configuration',
-          'Browser specific reset of configuration. '
-          'WARNING: Using this option may remove your bookmarks and '
-          'other settings.',
-          ['--reset-browser-configuration'],
+          'clear_browser_cache',
+          'Browser specific clearing of caches(i.e., delete it).',
+          ['--clear_browser_cache'],
           [],
           false,
           type: 'bool'),
