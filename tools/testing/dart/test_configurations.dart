@@ -69,7 +69,7 @@ Future testConfigurations(List<Map> configurations) async {
   var recordingPath = firstConf['record_to_file'];
   var recordingOutputPath = firstConf['replay_from_file'];
 
-  Browser.deleteCache = firstConf['clear_browser_cache'];
+  Browser.resetBrowserConfiguration = firstConf['reset_browser_configuration'];
 
   if (recordingPath != null && recordingOutputPath != null) {
     print("Fatal: Can't have the '--record_to_file' and '--replay_from_file'"
