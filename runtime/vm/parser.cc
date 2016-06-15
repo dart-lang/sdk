@@ -9182,21 +9182,13 @@ AstNode* Parser::MakeAssertCall(TokenPosition begin, TokenPosition end) {
 }
 
 
-AstNode* Parser::InsertClosureCallNodes(AstNode* condition) {
-  if (condition->IsClosureNode() ||
-      (condition->IsStoreLocalNode() &&
-       condition->AsStoreLocalNode()->value()->IsClosureNode())) {
-    // Function literal in assert implies a call.
-    const TokenPosition pos = condition->token_pos();
-    condition = BuildClosureCall(pos,
-                                 condition,
-                                 new(Z) ArgumentListNode(pos));
-  } else if (condition->IsConditionalExprNode()) {
-    ConditionalExprNode* cond_expr = condition->AsConditionalExprNode();
-    cond_expr->set_true_expr(InsertClosureCallNodes(cond_expr->true_expr()));
-    cond_expr->set_false_expr(InsertClosureCallNodes(cond_expr->false_expr()));
-  }
-  return condition;
+AstNode* Parser::HandleAssertCondition(AstNode* condition) {
+  const TokenPosition pos = condition->token_pos();
+  ArgumentListNode* arguments = new(Z) ArgumentListNode(pos);
+  arguments->Add(condition);
+  return MakeStaticCall(Symbols::AssertionError(),
+                        Library::PrivateCoreLibName(Symbols::HandleCondition()),
+                        arguments);
 }
 
 
@@ -9213,7 +9205,7 @@ AstNode* Parser::ParseAssertStatement() {
   AstNode* condition = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
   const TokenPosition condition_end = TokenPos();
   ExpectToken(Token::kRPAREN);
-  condition = InsertClosureCallNodes(condition);
+  condition = HandleAssertCondition(condition);
   condition = new(Z) UnaryOpNode(condition_pos, Token::kNOT, condition);
   AstNode* assert_throw = MakeAssertCall(condition_pos, condition_end);
   return new(Z) IfNode(
