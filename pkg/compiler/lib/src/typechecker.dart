@@ -771,7 +771,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       return access;
     }
     if (receiverElement != null &&
-        (receiverElement.isVariable || receiverElement.isParameter ||
+        (receiverElement.isVariable ||
+            receiverElement.isParameter ||
             (receiverElement.isInitializingFormal &&
                 compiler.options.enableInitializingFormalAccess))) {
       Link<TypePromotion> typePromotions = typePromotionsMap[receiverElement];
@@ -1089,7 +1090,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   ElementAccess createPromotedAccess(Element element) {
-    if (element.isVariable || element.isParameter ||
+    if (element.isVariable ||
+        element.isParameter ||
         (element.isInitializingFormal &&
             compiler.options.enableInitializingFormalAccess)) {
       TypePromotion typePromotion = getKnownTypePromotion(element);

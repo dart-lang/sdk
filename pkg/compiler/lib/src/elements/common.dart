@@ -608,34 +608,48 @@ abstract class AbstractFieldElementCommon implements AbstractFieldElement {
   }
 }
 
+enum _FromEnvironmentState { NOT, BOOL, INT, STRING, }
+
 abstract class ConstructorElementCommon implements ConstructorElement {
+  _FromEnvironmentState _fromEnvironmentState;
+
+  _FromEnvironmentState get fromEnvironmentState {
+    if (_fromEnvironmentState == null) {
+      _fromEnvironmentState = _FromEnvironmentState.NOT;
+      if (name == Identifiers.fromEnvironment && library.isDartCore) {
+        switch (enclosingClass.name) {
+          case 'bool':
+            _fromEnvironmentState = _FromEnvironmentState.BOOL;
+            break;
+          case 'int':
+            _fromEnvironmentState = _FromEnvironmentState.INT;
+            break;
+          case 'String':
+            _fromEnvironmentState = _FromEnvironmentState.STRING;
+            break;
+        }
+      }
+    }
+    return _fromEnvironmentState;
+  }
+
   @override
   bool get isFromEnvironmentConstructor {
-    return name == Identifiers.fromEnvironment &&
-        library.isDartCore &&
-        (enclosingClass.name == 'bool' ||
-            enclosingClass.name == 'int' ||
-            enclosingClass.name == 'String');
+    return fromEnvironmentState != _FromEnvironmentState.NOT;
   }
 
   @override
   bool get isIntFromEnvironmentConstructor {
-    return name == Identifiers.fromEnvironment &&
-        library.isDartCore &&
-        enclosingClass.name == 'int';
+    return fromEnvironmentState == _FromEnvironmentState.INT;
   }
 
   @override
   bool get isBoolFromEnvironmentConstructor {
-    return name == Identifiers.fromEnvironment &&
-        library.isDartCore &&
-        enclosingClass.name == 'bool';
+    return fromEnvironmentState == _FromEnvironmentState.BOOL;
   }
 
   @override
   bool get isStringFromEnvironmentConstructor {
-    return name == Identifiers.fromEnvironment &&
-        library.isDartCore &&
-        enclosingClass.name == 'String';
+    return fromEnvironmentState == _FromEnvironmentState.STRING;
   }
 }
