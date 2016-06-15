@@ -819,6 +819,9 @@ class _InternalAnalysisContextMock extends TypedMock
   AnalysisCache analysisCache;
 
   @override
+  final AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+
+  @override
   List<AnalysisTarget> explicitTargets = <AnalysisTarget>[];
 
   @override

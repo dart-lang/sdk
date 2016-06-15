@@ -705,13 +705,12 @@ class NativeBehavior {
     behavior._capture(type, compiler.resolution,
         isInterop: isInterop, compiler: compiler);
 
-    // TODO(sra): Optional arguments are currently missing from the
-    // DartType. This should be fixed so the following work-around can be
-    // removed.
-    method.functionSignature
-        .forEachOptionalParameter((ParameterElement parameter) {
-      behavior._escape(parameter.type, compiler.resolution);
-    });
+    for (DartType type in type.optionalParameterTypes) {
+      behavior._escape(type, compiler.resolution);
+    }
+    for (DartType type in type.namedParameterTypes) {
+      behavior._escape(type, compiler.resolution);
+    }
 
     behavior._overrideWithAnnotations(method, compiler);
     return behavior;

@@ -1067,7 +1067,7 @@ void Isolate::ReportReloadError(const Error& error) {
 
 
 void Isolate::OnStackReload() {
-  UNREACHABLE();
+  ReloadSources();
 }
 
 
@@ -1775,6 +1775,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
     // Visit objects that are being used for isolate reload.
     if (reload_context() != NULL) {
       reload_context()->VisitObjectPointers(visitor);
+    }
+    if (ServiceIsolate::IsServiceIsolate(this)) {
+      ServiceIsolate::VisitObjectPointers(visitor);
     }
   )
 
@@ -2626,7 +2629,9 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
   const String& lib_url = String::Handle(lib.url());
   library_url_ = NewConstChar(lib_url.ToCString());
 
-  const String& func_name = String::Handle(func.name());
+  String& func_name = String::Handle();
+  func_name ^= func.name();
+  func_name ^= String::ScrubName(func_name);
   function_name_ = NewConstChar(func_name.ToCString());
   if (!cls.IsTopLevel()) {
     const String& class_name = String::Handle(cls.Name());

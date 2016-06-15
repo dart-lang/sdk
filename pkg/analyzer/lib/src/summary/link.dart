@@ -2700,6 +2700,7 @@ class ExprTypeComputer {
       case UnlinkedExprAssignOperator.postfixDecrement:
         return TokenType.MINUS_MINUS;
     }
+    return null;
   }
 }
 
@@ -3917,6 +3918,7 @@ class ParameterElementForLink implements ParameterElementImpl {
       case UnlinkedParamKind.named:
         return ParameterKind.NAMED;
     }
+    return null;
   }
 
   @override

@@ -1338,6 +1338,14 @@ class StandardTestSuite extends TestSuite {
         contentShellOptions.add('--no-timeout');
         contentShellOptions.add('--dump-render-tree');
 
+        // Disable the GPU under Linux and Dartium. If the GPU is enabled,
+        // Chrome may send a termination signal to a test.  The test will be
+        // terminated if a machine (bot) doesn't have a GPU or if a test is
+        // still running after a certain period of time.
+        if (configuration['system'] == 'linux' &&
+            configuration['runtime'] == 'drt') {
+          contentShellOptions.add('--disable-gpu');
+        }
         if (compiler == 'none') {
           dartFlags.add('--ignore-unrecognized-flags');
           if (configuration["checked"]) {

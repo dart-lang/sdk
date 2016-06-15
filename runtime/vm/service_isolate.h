@@ -12,6 +12,8 @@
 
 namespace dart {
 
+class ObjectPointerVisitor;
+
 class ServiceIsolate : public AllStatic {
  public:
   static const char* kName;
@@ -40,6 +42,8 @@ class ServiceIsolate : public AllStatic {
   static const char* server_address() {
     return server_address_;
   }
+
+  static void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
  private:
   static void KillServiceIsolate();

@@ -82,6 +82,14 @@ const y = x; // ignore: const_initialized_with_non_constant_value
     assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
+  void test_ignore_upper_case() {
+    Source source = addSource('''
+int x = ''; // ignore: INVALID_ASSIGNMENT
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+  }
+
   void test_invalid_error_code() {
     Source source = addSource('''
 // ignore: right_format_wrong_code

@@ -1572,5 +1572,8 @@ class _TestSource implements Source {
   @override
   Source get source => this;
 
+  @override
+  Uri get uri => new Uri.file(fullName);
+
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

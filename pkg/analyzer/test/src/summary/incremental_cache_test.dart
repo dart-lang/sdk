@@ -14,7 +14,55 @@ import '../abstract_single_unit.dart';
 
 main() {
   groupSep = ' | ';
+  runReflectiveTests(ComparePathsTest);
   runReflectiveTests(IncrementalCacheTest);
+}
+
+@reflectiveTest
+class ComparePathsTest extends AbstractSingleUnitTest {
+  void test_empty() {
+    expect(comparePaths('', ''), 0);
+  }
+
+  void test_equal() {
+    expect(comparePaths('abc', 'abc'), 0);
+  }
+
+  void test_longer_suffixAfter() {
+    expect(comparePaths('aab', 'aa'), 1);
+  }
+
+  void test_longer_suffixBefore() {
+    expect(comparePaths('aaa', 'ab'), -1);
+  }
+
+  void test_longer_suffixSame() {
+    expect(comparePaths('aaa', 'aa'), 1);
+  }
+
+  void test_sameLength_before0() {
+    expect(comparePaths('aaa', 'bbb'), -1);
+  }
+
+  void test_sameLength_before1() {
+    expect(comparePaths('aaa', 'bba'), -1);
+  }
+
+  void test_sameLength_before2() {
+    expect(comparePaths('aaa', 'bba'), -1);
+  }
+
+  void test_shorter_suffixAfter() {
+    expect(comparePaths('ab', 'aaa'), 1);
+  }
+
+  void test_shorter_suffixBefore() {
+    expect(comparePaths('aa', 'aab'), -1);
+  }
+
+  void test_shorter_suffixSame() {
+    expect(comparePaths('aa', 'aaa'), -1);
+  }
 }
 
 /**
@@ -233,6 +281,9 @@ part 'foo.dart';
  */
 class _TestCacheStorage implements CacheStorage {
   final Map<String, List<int>> map = <String, List<int>>{};
+
+  @override
+  void compact() {}
 
   @override
   List<int> get(String key) {

@@ -212,18 +212,20 @@ void Loader::BlockUntilComplete() {
 }
 
 
-bool Loader::ProcessResultLocked(Loader::IOResult* result) {
-  // A negative result tag indicates a loading error occurred in the service
-  // isolate. The payload is a C string of the error message.
-  if (result->tag < 0) {
-    error_ =
-        Dart_NewUnhandledExceptionError(
-            Dart_NewStringFromUTF8(result->payload,
-                                   result->payload_length));
-
-    return false;
+static bool LibraryHandleError(Dart_Handle library, Dart_Handle error) {
+  if (!Dart_IsNull(library) && !Dart_IsError(library)) {
+    ASSERT(Dart_IsLibrary(library));
+    Dart_Handle res = Dart_LibraryHandleError(library, error);
+    if (Dart_IsNull(res)) {
+      // Error was handled by library.
+      return true;
+    }
   }
+  return false;
+}
 
+
+bool Loader::ProcessResultLocked(Loader::IOResult* result) {
   // We have to copy everything we care about out of |result| because after
   // dropping the lock below |result| may no longer valid.
   Dart_Handle uri =
@@ -233,6 +235,25 @@ bool Loader::ProcessResultLocked(Loader::IOResult* result) {
     library_uri =
         Dart_NewStringFromCString(reinterpret_cast<char*>(result->library_uri));
   }
+
+  // A negative result tag indicates a loading error occurred in the service
+  // isolate. The payload is a C string of the error message.
+  if (result->tag < 0) {
+    Dart_Handle library = Dart_LookupLibrary(uri);
+    Dart_Handle error = Dart_NewStringFromUTF8(result->payload,
+                                               result->payload_length);
+    // If a library with the given uri exists, give it a chance to handle
+    // the error. If the load requests stems from a deferred library load,
+    // an IO error is not fatal.
+    if (LibraryHandleError(library, error)) {
+      return true;
+    }
+    // Fall through
+    error_ = Dart_NewUnhandledExceptionError(error);
+    return false;
+  }
+
+
   // Check for payload and load accordingly.
   bool is_snapshot = false;
   const uint8_t* payload = result->payload;
@@ -341,7 +362,11 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
                                       Dart_Handle library,
                                       Dart_Handle url) {
   if (tag == Dart_kCanonicalizeUrl) {
-    return Dart_DefaultCanonicalizeUrl(library, url);
+    Dart_Handle library_url = Dart_LibraryUrl(library);
+    if (Dart_IsError(library_url)) {
+      return library_url;
+    }
+    return Dart_DefaultCanonicalizeUrl(library_url, url);
   }
   const char* url_string = NULL;
   Dart_Handle result = Dart_StringToCString(url, &url_string);
@@ -353,6 +378,9 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   if (tag != Dart_kScriptTag) {
     // Grab the library's url.
     Dart_Handle library_url = Dart_LibraryUrl(library);
+    if (Dart_IsError(library_url)) {
+      return library_url;
+    }
     const char* library_url_string = NULL;
     result = Dart_StringToCString(library_url, &library_url_string);
     if (Dart_IsError(result)) {
@@ -378,6 +406,9 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
                                  url_string);
     }
     Dart_Handle library_url = Dart_LibraryUrl(library);
+    if (Dart_IsError(library_url)) {
+      return library_url;
+    }
     Dart_Handle library_file_path = DartUtils::LibraryFilePath(library_url);
     const char* lib_path_str = NULL;
     Dart_StringToCString(library_file_path, &lib_path_str);
@@ -402,8 +433,11 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
 
   // The outer invocation of the tag handler for this isolate. We make the outer
   // invocation block and allow any nested invocations to operate in parallel.
-  bool blocking_call = !isolate_data->HasLoader();
+  const bool blocking_call = !isolate_data->HasLoader();
 
+  // If we are the outer invocation of the tag handler and the tag is an import
+  // this means that we are starting a deferred library load.
+  const bool is_deferred_import = blocking_call && (tag == Dart_kImportTag);
   if (!isolate_data->HasLoader()) {
     // The isolate doesn't have a loader -- this is the outer invocation which
     // will block.
@@ -440,8 +474,23 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     delete loader;
 
     // An error occurred during loading.
-    if (Dart_IsError(error)) {
-      return error;
+    if (!Dart_IsNull(error)) {
+      if (false && is_deferred_import) {
+        // This blocks handles transitive load errors caused by a deferred
+        // import. Non-transitive load errors are handled above (see callers of
+        // |LibraryHandleError|). To handle the transitive case, we give the
+        // originating deferred library an opportunity to handle it.
+        Dart_Handle deferred_library = Dart_LookupLibrary(url);
+        if (!LibraryHandleError(deferred_library, error)) {
+          // Library did not handle it, return to caller as an unhandled
+          // exception.
+          return Dart_NewUnhandledExceptionError(error);
+        }
+      } else {
+        // We got an error during loading but we aren't loading a deferred
+        // library, return the error to the caller.
+        return error;
+      }
     }
 
     // Finalize loading. This will complete any futures for completed deferred

@@ -310,6 +310,24 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
 }
 
 
+// This waits until only the VM isolate and the service isolate remains in the
+// list, i.e. list length == 2.
+void Dart::WaitForApplicationIsolateShutdown() {
+  ASSERT(!Isolate::creation_enabled_);
+  MonitorLocker ml(Isolate::isolates_list_monitor_);
+  while ((Isolate::isolates_list_head_ != NULL) &&
+         (Isolate::isolates_list_head_->next_ != NULL) &&
+         (Isolate::isolates_list_head_->next_->next_ != NULL)) {
+    ml.Wait();
+  }
+  ASSERT(
+      ((Isolate::isolates_list_head_ == Dart::vm_isolate()) &&
+       ServiceIsolate::IsServiceIsolate(Isolate::isolates_list_head_->next_)) ||
+      ((Isolate::isolates_list_head_->next_ == Dart::vm_isolate()) &&
+       ServiceIsolate::IsServiceIsolate(Isolate::isolates_list_head_)));
+}
+
+
 // This waits until only the VM isolate remains in the list.
 void Dart::WaitForIsolateShutdown() {
   ASSERT(!Isolate::creation_enabled_);
@@ -371,6 +389,16 @@ const char* Dart::Cleanup() {
     }
     Isolate::KillAllIsolates(Isolate::kInternalKillMsg);
 
+    // Wait for all isolates, but the service and the vm isolate to shut down.
+    // Only do that if there is a service isolate running.
+    if (ServiceIsolate::IsRunning()) {
+      if (FLAG_trace_shutdown) {
+        OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down app isolates\n",
+                     timestamp());
+      }
+      WaitForApplicationIsolateShutdown();
+    }
+
     // Shutdown the service isolate.
     if (FLAG_trace_shutdown) {
       OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down service isolate\n",
@@ -378,7 +406,7 @@ const char* Dart::Cleanup() {
     }
     ServiceIsolate::Shutdown();
 
-    // Wait for all application isolates and the service isolate to shutdown
+    // Wait for the remaining isolate (service isolate) to shutdown
     // before shutting down the thread pool.
     if (FLAG_trace_shutdown) {
       OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Waiting for isolate shutdown\n",

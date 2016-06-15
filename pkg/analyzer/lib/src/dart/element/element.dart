@@ -2264,6 +2264,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
         initializer.constructorName?.staticElement = element;
         return initializer;
     }
+    return null;
   }
 }
 

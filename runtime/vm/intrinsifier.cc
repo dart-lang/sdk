@@ -607,7 +607,8 @@ bool Intrinsifier::Build_Float64ArraySetIndexed(FlowGraph* flow_graph) {
       String::Handle(flow_graph->function().name()),
       Object::empty_array(),  // Dummy args. descr.
       Thread::kNoDeoptId,
-      1));
+      1,
+      false));
   value_check.AddReceiverCheck(kDoubleCid, flow_graph->function());
   builder.AddInstruction(
       new CheckClassInstr(new Value(value),
@@ -740,7 +741,8 @@ static bool BuildBinaryFloat32x4Op(FlowGraph* flow_graph, Token::Kind kind) {
       String::Handle(flow_graph->function().name()),
       Object::empty_array(),  // Dummy args. descr.
       Thread::kNoDeoptId,
-      1));
+      1,
+      false));
   value_check.AddReceiverCheck(kFloat32x4Cid, flow_graph->function());
   // Check argument. Receiver (left) is known to be a Float32x4.
   builder.AddInstruction(
@@ -982,7 +984,8 @@ bool Intrinsifier::Build_GrowableArraySetData(FlowGraph* flow_graph) {
       String::Handle(flow_graph->function().name()),
       Object::empty_array(),  // Dummy args. descr.
       Thread::kNoDeoptId,
-      1));
+      1,
+      false));
   value_check.AddReceiverCheck(kArrayCid, flow_graph->function());
   builder.AddInstruction(
       new CheckClassInstr(new Value(data),

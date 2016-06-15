@@ -987,6 +987,25 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
 }
 
 
+#if defined(TARGET_ARCH_DBC)
+void FlowGraphCompiler::EmitDeopt(intptr_t deopt_id,
+                                  ICData::DeoptReasonId reason,
+                                  uint32_t flags) {
+  ASSERT(is_optimizing());
+  ASSERT(!intrinsic_mode());
+  CompilerDeoptInfo* info =
+      new(zone()) CompilerDeoptInfo(deopt_id,
+                                    reason,
+                                    flags,
+                                    pending_deoptimization_env_);
+
+  deopt_infos_.Add(info);
+  assembler()->Deopt(0, /*is_eager =*/ 1);
+  info->set_pc_offset(assembler()->CodeSize());
+}
+#endif  // defined(TARGET_ARCH_DBC)
+
+
 void FlowGraphCompiler::FinalizeExceptionHandlers(const Code& code) {
   ASSERT(exception_handlers_list_ != NULL);
   const ExceptionHandlers& handlers = ExceptionHandlers::Handle(
@@ -1717,17 +1736,19 @@ const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
     ASSERT(res->deopt_id() == deopt_id);
     ASSERT(res->target_name() == target_name.raw());
     ASSERT(res->NumArgsTested() == num_args_tested);
+    ASSERT(!res->is_static_call());
     return res;
   }
   const ICData& ic_data = ICData::ZoneHandle(zone(), ICData::New(
       parsed_function().function(), target_name,
-      arguments_descriptor, deopt_id, num_args_tested));
+      arguments_descriptor, deopt_id, num_args_tested, false));
 #if defined(TAG_IC_DATA)
   ic_data.set_tag(Instruction::kInstanceCall);
 #endif
   if (deopt_id_to_ic_data_ != NULL) {
     (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
   }
+  ASSERT(!ic_data.is_static_call());
   return &ic_data;
 }
 
@@ -1743,11 +1764,12 @@ const ICData* FlowGraphCompiler::GetOrAddStaticCallICData(
     ASSERT(res->deopt_id() == deopt_id);
     ASSERT(res->target_name() == target.name());
     ASSERT(res->NumArgsTested() == num_args_tested);
+    ASSERT(res->is_static_call());
     return res;
   }
   const ICData& ic_data = ICData::ZoneHandle(zone(), ICData::New(
       parsed_function().function(), String::Handle(zone(), target.name()),
-      arguments_descriptor, deopt_id, num_args_tested));
+      arguments_descriptor, deopt_id, num_args_tested, true));
   ic_data.AddTarget(target);
 #if defined(TAG_IC_DATA)
   ic_data.set_tag(Instruction::kStaticCall);

@@ -281,6 +281,11 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   }
 
   @override
+  void delete() {
+    throw new FileSystemException(path, 'File could not be deleted');
+  }
+
+  @override
   bool isOrContains(String path) {
     return path == this.path;
   }
@@ -339,6 +344,11 @@ class _MemoryFile extends _MemoryResource implements File {
       uri = _provider.pathContext.toUri(path);
     }
     return new _MemoryFileSource(this, uri);
+  }
+
+  @override
+  void delete() {
+    _provider.deleteFile(path);
   }
 
   @override
@@ -449,7 +459,12 @@ class _MemoryFileSource extends Source {
 
   @override
   bool operator ==(other) {
-    return other is _MemoryFileSource && other.id == id;
+    if (other is _MemoryFileSource) {
+      return id == other.id;
+    } else if (other is Source) {
+      return uri == other.uri;
+    }
+    return false;
   }
 
   @override
@@ -483,6 +498,11 @@ class _MemoryFolder extends _MemoryResource implements Folder {
   }
 
   @override
+  void delete() {
+    _provider.deleteFolder(path);
+  }
+
+  @override
   Resource getChild(String relPath) {
     String childPath = canonicalizePath(relPath);
     _MemoryResource resource = _provider._pathToResource[childPath];
@@ -490,6 +510,16 @@ class _MemoryFolder extends _MemoryResource implements Folder {
       resource = new _MemoryFile(_provider, childPath);
     }
     return resource;
+  }
+
+  @override
+  _MemoryFile getChildAssumingFile(String relPath) {
+    String childPath = canonicalizePath(relPath);
+    _MemoryResource resource = _provider._pathToResource[childPath];
+    if (resource is _MemoryFile) {
+      return resource;
+    }
+    return new _MemoryFile(_provider, childPath);
   }
 
   @override

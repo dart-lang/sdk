@@ -257,9 +257,6 @@ void IsolateReloadContext::StartReload() {
   DeoptimizeDependentCode();
   Checkpoint();
 
-  // Block class finalization attempts when calling into the library
-  // tag handler.
-  I->BlockClassFinalization();
   Object& result = Object::Handle(thread->zone());
   {
     TransitionVMToNative transition(thread);
@@ -267,11 +264,10 @@ void IsolateReloadContext::StartReload() {
 
     Dart_Handle retval =
         (I->library_tag_handler())(Dart_kScriptTag,
-                                Api::NewHandle(thread, Library::null()),
-                                Api::NewHandle(thread, root_lib_url.raw()));
+                                   Api::NewHandle(thread, Library::null()),
+                                   Api::NewHandle(thread, root_lib_url.raw()));
     result = Api::UnwrapHandle(retval);
   }
-  I->UnblockClassFinalization();
   if (result.IsError()) {
     ReportError(Error::Cast(result));
   }
@@ -885,46 +881,6 @@ ObjectStore* IsolateReloadContext::object_store() {
 }
 
 
-static void ResetICs(const Function& function, const Code& code) {
-  // TODO(johnmccutchan): Relying on the function's ICData Map can miss ICDatas.
-  // Use the code's object pool instead.
-  if (function.ic_data_array() == Array::null()) {
-    // TODO(johnmccutchan): Even in this case, we need to scan the code's object
-    // pool instead.
-    return;  // Already reset in an earlier round.
-  }
-
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-
-  ZoneGrowableArray<const ICData*>* ic_data_array =
-      new(zone) ZoneGrowableArray<const ICData*>();
-  function.RestoreICDataMap(ic_data_array, false /* clone ic-data */);
-  const intptr_t ic_data_array_length = ic_data_array->length();
-  if (ic_data_array_length == 0) {
-    return;
-  }
-  const PcDescriptors& descriptors =
-      PcDescriptors::Handle(code.pc_descriptors());
-  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kIcCall |
-                                            RawPcDescriptors::kUnoptStaticCall);
-  while (iter.MoveNext()) {
-    const intptr_t index = iter.DeoptId();
-    if (index >= ic_data_array_length) {
-      // TODO(johnmccutchan): Investigate how this can happen.
-      continue;
-    }
-    const ICData* ic_data = (*ic_data_array)[index];
-    if (ic_data == NULL) {
-      // TODO(johnmccutchan): Investigate how this can happen.
-      continue;
-    }
-    bool is_static_call = iter.Kind() == RawPcDescriptors::kUnoptStaticCall;
-    ic_data->Reset(is_static_call);
-  }
-}
-
-
 void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
   Code& code = Code::Handle();
   Function& function = Function::Handle();
@@ -939,10 +895,9 @@ void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
       function = code.function();
       code = function.unoptimized_code();
       ASSERT(!code.IsNull());
-      ResetICs(function, code);
+      code.ResetICDatas();
     } else {
-      function = code.function();
-      ResetICs(function, code);
+      code.ResetICDatas();
     }
     frame = iterator.NextFrame();
   }
@@ -995,7 +950,7 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
         if (clear_code) {
           ClearAllCode(func);
         } else {
-          PreserveUnoptimizedCode(func);
+          PreserveUnoptimizedCode();
         }
       }
 
@@ -1015,11 +970,11 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
     func.set_was_compiled(false);
   }
 
-  void PreserveUnoptimizedCode(const Function& func) {
+  void PreserveUnoptimizedCode() {
     ASSERT(!code_.IsNull());
     // We are preserving the unoptimized code, fill all ICData arrays with
     // the sentinel values so that we have no stale type feedback.
-    func.FillICDataWithSentinels(code_);
+    code_.ResetICDatas();
   }
 
   bool IsFromDirtyLibrary(const Function& func) {
@@ -1079,13 +1034,23 @@ RawClass* IsolateReloadContext::OldClassOrNull(
 }
 
 
+RawString* IsolateReloadContext::FindLibraryPrivateKey(
+    const Library& replacement_or_new) {
+  const Library& old = Library::Handle(OldLibraryOrNull(replacement_or_new));
+  if (old.IsNull()) {
+    return String::null();
+  }
+  return old.private_key();
+}
+
+
 RawLibrary* IsolateReloadContext::OldLibraryOrNull(
     const Library& replacement_or_new) {
   UnorderedHashSet<LibraryMapTraits>
       old_libraries_set(old_libraries_set_storage_);
   Library& lib = Library::Handle();
   lib ^= old_libraries_set.GetOrNull(replacement_or_new);
-  old_libraries_set_storage_ = old_libraries_set.Release().raw();
+  old_libraries_set.Release();
   return lib.raw();
 }
 
@@ -1103,6 +1068,11 @@ void IsolateReloadContext::BuildLibraryMapping() {
     }
     old ^= OldLibraryOrNull(replacement_or_new);
     if (old.IsNull()) {
+      if (FLAG_identity_reload) {
+        TIR_Print("Could not find original library for %s\n",
+                  replacement_or_new.ToCString());
+        UNREACHABLE();
+      }
       // New library.
       AddLibraryMapping(replacement_or_new, replacement_or_new);
     } else {

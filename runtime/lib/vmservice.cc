@@ -116,6 +116,15 @@ DEFINE_NATIVE_ENTRY(VMService_SendRootServiceMessage, 1) {
 }
 
 
+DEFINE_NATIVE_ENTRY(VMService_SendObjectRootServiceMessage, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(0));
+  if (FLAG_support_service) {
+    Service::HandleObjectRootMessage(message);
+  }
+  return Object::null();
+}
+
+
 DEFINE_NATIVE_ENTRY(VMService_OnStart, 0) {
   if (FLAG_trace_service) {
     OS::Print("vm-service: Booting dart:vmservice library.\n");

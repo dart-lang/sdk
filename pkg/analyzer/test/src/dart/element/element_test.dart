@@ -4190,7 +4190,7 @@ class PropertyAccessorElementImplTest extends EngineTestCase {
   void test_matchesHandle_getter() {
     CompilationUnitElementImpl compilationUnitElement =
         ElementFactory.compilationUnit('foo.dart');
-    LibraryElementImpl libraryElement = ElementFactory.library(null, '')
+    ElementFactory.library(null, '')
       ..definingCompilationUnit = compilationUnitElement;
     PropertyAccessorElementImpl element =
         ElementFactory.getterElement('x', true, DynamicTypeImpl.instance);
@@ -4205,7 +4205,7 @@ class PropertyAccessorElementImplTest extends EngineTestCase {
   void test_matchesHandle_setter() {
     CompilationUnitElementImpl compilationUnitElement =
         ElementFactory.compilationUnit('foo.dart');
-    LibraryElementImpl libraryElement = ElementFactory.library(null, '')
+    ElementFactory.library(null, '')
       ..definingCompilationUnit = compilationUnitElement;
     PropertyAccessorElementImpl element =
         ElementFactory.setterElement('x', true, DynamicTypeImpl.instance);

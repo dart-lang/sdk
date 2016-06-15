@@ -26,6 +26,11 @@ class _AssertionError extends Error implements AssertionError {
   static _throwNew(int assertionStart, int assertionEnd)
       native "AssertionError_throwNew";
 
+  static _handleCondition(condition) {
+    if (condition is Function) return condition();
+    return condition;
+  }
+
   String toString() {
     if (_url == null) {
       return _failedAssertion;

@@ -292,12 +292,14 @@ input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
 touchevent_test/supported: Fail # Safari does not support TouchEvents
 notification_test/constructors: Fail # Safari doesn't let us access the fields of the Notification to verify them.
-
-[ $runtime == safari ]
 indexeddb_1_test/functional: Skip # Times out. Issue 21433
 indexeddb_2_test: RuntimeError # Issue 21433
 indexeddb_4_test: RuntimeError # Issue 21433
 indexeddb_5_test: RuntimeError # Issue 21433
+
+
+js_test/JsArray: RuntimeError # Fails 10 out of 10.
+indexeddb_3_test: Skip # Times out 1 out of 10.
 
 [ $runtime == opera ]
 blob_constructor_test: Fail

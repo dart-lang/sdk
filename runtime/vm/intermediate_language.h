@@ -3267,6 +3267,25 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
     ASSERT(argument_names.IsZoneHandle() ||  argument_names.InVMHeap());
   }
 
+  StaticCallInstr(TokenPosition token_pos,
+                  const Function& function,
+                  const Array& argument_names,
+                  ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                  intptr_t deopt_id)
+      : TemplateDefinition(deopt_id),
+        ic_data_(NULL),
+        token_pos_(token_pos),
+        function_(function),
+        argument_names_(argument_names),
+        arguments_(arguments),
+        result_cid_(kDynamicCid),
+        is_known_list_constructor_(false),
+        is_native_list_factory_(false),
+        identity_(AliasIdentity::Unknown()) {
+    ASSERT(function.IsZoneHandle());
+    ASSERT(argument_names.IsZoneHandle() ||  argument_names.InVMHeap());
+  }
+
   // ICData for static calls carries call count.
   const ICData* ic_data() const { return ic_data_; }
   bool HasICData() const {

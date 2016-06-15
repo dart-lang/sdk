@@ -281,6 +281,12 @@ T DynamicAssertionHelper::NotNull(const T p) {
 #endif  // if defined(DEBUG)
 
 
+#define RELEASE_ASSERT(cond)                                                   \
+  do {                                                                         \
+    if (!(cond)) dart::Assert(__FILE__, __LINE__).Fail("expected: %s", #cond); \
+  } while (false)
+
+
 // The COMPILE_ASSERT macro can be used to verify that a compile time
 // expression is true. For example, you could use it to verify the
 // size of a static array:

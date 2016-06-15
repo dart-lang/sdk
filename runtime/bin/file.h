@@ -81,7 +81,9 @@ class File : public ReferenceCounted<File> {
     kLockUnlock = 0,
     kLockShared = 1,
     kLockExclusive = 2,
-    kLockMax = 2
+    kLockBlockingShared = 3,
+    kLockBlockingExclusive = 4,
+    kLockMax = 4
   };
 
   intptr_t GetFD();

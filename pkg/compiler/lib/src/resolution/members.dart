@@ -2573,6 +2573,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       } else {
         semantics = new StaticAccess.parameter(element);
       }
+    } else if (element.isInitializingFormal &&
+        compiler.options.enableInitializingFormalAccess) {
+      error = reportAndCreateErroneousElement(node.selector, name.text,
+          MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER, {'name': name});
+      semantics = new StaticAccess.finalParameter(element);
     } else if (element.isVariable) {
       if (element.isFinal || element.isConst) {
         error = reportAndCreateErroneousElement(node.selector, name.text,

@@ -1996,7 +1996,7 @@ class RawLinkedHashMap : public RawInstance {
 class RawFloat32x4 : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Float32x4);
 
-  float value_[4];
+  ALIGN8 float value_[4];
 
   friend class SnapshotReader;
  public:
@@ -2005,12 +2005,13 @@ class RawFloat32x4 : public RawInstance {
   float z() const { return value_[2]; }
   float w() const { return value_[3]; }
 };
+COMPILE_ASSERT(sizeof(RawFloat32x4) == 24);
 
 
 class RawInt32x4 : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Int32x4);
 
-  int32_t value_[4];
+  ALIGN8 int32_t value_[4];
 
   friend class SnapshotReader;
  public:
@@ -2019,18 +2020,20 @@ class RawInt32x4 : public RawInstance {
   int32_t z() const { return value_[2]; }
   int32_t w() const { return value_[3]; }
 };
+COMPILE_ASSERT(sizeof(RawInt32x4) == 24);
 
 
 class RawFloat64x2 : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Float64x2);
 
-  double value_[2];
+  ALIGN8 double value_[2];
 
   friend class SnapshotReader;
  public:
   double x() const { return value_[0]; }
   double y() const { return value_[1]; }
 };
+COMPILE_ASSERT(sizeof(RawFloat64x2) == 24);
 
 
 // Define an aliases for intptr_t.

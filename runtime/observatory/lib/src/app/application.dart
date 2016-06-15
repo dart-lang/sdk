@@ -185,7 +185,7 @@ class ObservatoryApplication extends Observable {
   void _installPage(Page page) {
     assert(page != null);
     if (currentPage == page) {
-      // Already isntalled.
+      // Already installed.
       return;
     }
     if (currentPage != null) {

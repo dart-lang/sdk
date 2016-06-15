@@ -53,7 +53,12 @@ enum JSONRpcErrorCode {
   kStreamNotSubscribed       = 104,
   kIsolateMustBeRunnable     = 105,
   kIsolateMustBePaused       = 106,
-  kIsolateIsReloading        = 107,
+
+  // Experimental (used in private rpcs).
+  kIsolateIsReloading        = 1000,
+  kFileSystemAlreadyExists   = 1001,
+  kFileSystemDoesNotExist    = 1002,
+  kFileDoesNotExist          = 1003,
 };
 
 // Expected that user_data is a JSONStream*.
@@ -73,7 +78,8 @@ class JSONStream : ValueObject {
              const Instance& seq,
              const String& method,
              const Array& param_keys,
-             const Array& param_values);
+             const Array& param_values,
+             bool parameters_are_dart_objects = false);
   void SetupError();
 
   void PrintError(intptr_t code, const char* details_format, ...);
@@ -98,6 +104,11 @@ class JSONStream : ValueObject {
                  intptr_t num_params);
 
   Dart_Port reply_port() const { return reply_port_; }
+
+  intptr_t NumObjectParameters() const;
+  RawObject* GetObjectParameterKey(intptr_t i) const;
+  RawObject* GetObjectParameterValue(intptr_t i) const;
+  RawObject* LookupObjectParam(const char* key) const;
 
   intptr_t num_params() const { return num_params_; }
   const char* GetParamKey(intptr_t i) const {
@@ -227,6 +238,8 @@ class JSONStream : ValueObject {
   ServiceIdZone* id_zone_;
   Dart_Port reply_port_;
   Instance* seq_;
+  Array* parameter_keys_;
+  Array* parameter_values_;
   const char* method_;
   const char** param_keys_;
   const char** param_values_;

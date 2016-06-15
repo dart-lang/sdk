@@ -319,9 +319,7 @@ class Listener {
 
   void endWhileStatement(Token whileKeyword, Token endToken) {}
 
-  void handleAsOperator(Token operathor, Token endToken) {
-    // TODO(ahe): Rename [operathor] to "operator" when VM bug is fixed.
-  }
+  void handleAsOperator(Token operator, Token endToken) {}
 
   void handleAssignmentExpression(Token token) {}
 
@@ -338,9 +336,7 @@ class Listener {
   void handleIndexedExpression(
       Token openCurlyBracket, Token closeCurlyBracket) {}
 
-  void handleIsOperator(Token operathor, Token not, Token endToken) {
-    // TODO(ahe): Rename [operathor] to "operator" when VM bug is fixed.
-  }
+  void handleIsOperator(Token operator, Token not, Token endToken) {}
 
   void handleLiteralBool(Token token) {}
 

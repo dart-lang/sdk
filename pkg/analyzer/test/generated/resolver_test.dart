@@ -42,6 +42,7 @@ main() {
   runReflectiveTests(ErrorResolverTest);
   runReflectiveTests(LibraryImportScopeTest);
   runReflectiveTests(LibraryScopeTest);
+  runReflectiveTests(PrefixedNamespaceTest);
   runReflectiveTests(ScopeTest);
   runReflectiveTests(StrictModeTest);
   runReflectiveTests(SubtypeManagerTest);
@@ -532,6 +533,35 @@ class LibraryScopeTest extends ResolverTestCase {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     LibraryScope scope = new LibraryScope(definingLibrary, errorListener);
     expect(scope.errorListener, errorListener);
+  }
+}
+
+@reflectiveTest
+class PrefixedNamespaceTest extends ResolverTestCase {
+  void test_lookup_missing() {
+    ClassElement element = ElementFactory.classElement2('A');
+    PrefixedNamespace namespace = new PrefixedNamespace('p', _toMap([element]));
+    expect(namespace.get('p.B'), isNull);
+  }
+
+  void test_lookup_missing_matchesPrefix() {
+    ClassElement element = ElementFactory.classElement2('A');
+    PrefixedNamespace namespace = new PrefixedNamespace('p', _toMap([element]));
+    expect(namespace.get('p'), isNull);
+  }
+
+  void test_lookup_valid() {
+    ClassElement element = ElementFactory.classElement2('A');
+    PrefixedNamespace namespace = new PrefixedNamespace('p', _toMap([element]));
+    expect(namespace.get('p.A'), same(element));
+  }
+
+  HashMap<String, Element> _toMap(List<Element> elements) {
+    HashMap<String, Element> map = new HashMap<String, Element>();
+    for (Element element in elements) {
+      map[element.name] = element;
+    }
+    return map;
   }
 }
 
@@ -2890,8 +2920,12 @@ class TypeProviderImplTest extends EngineTestCase {
         context, AstFactory.libraryIdentifier2(["dart.core"]));
     coreLibrary.definingCompilationUnit = coreUnit;
 
-    LibraryElementImpl mockAsyncLib =
-        (context as AnalysisContextImpl).createMockAsyncLib(coreLibrary);
+    Source asyncSource = new NonExistingSource(
+        'async.dart', Uri.parse('dart:async'), UriKind.DART_URI);
+    LibraryElementImpl mockAsyncLib = (context as AnalysisContextImpl)
+        .createMockAsyncLib(coreLibrary, asyncSource);
+    expect(mockAsyncLib.source, same(asyncSource));
+    expect(mockAsyncLib.definingCompilationUnit.source, same(asyncSource));
     expect(mockAsyncLib.publicNamespace, isNotNull);
 
     //

@@ -15,7 +15,6 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/general.dart';
-import 'package:analyzer/src/task/strong/info.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:source_span/source_span.dart';
@@ -161,8 +160,6 @@ class ErrorFilterOptionValidator extends OptionsValidator {
       _errorCodes = new HashSet<String>();
       // Engine codes.
       _errorCodes.addAll(ErrorCode.values.map((ErrorCode code) => code.name));
-      // Strong-mode codes.
-      _errorCodes.addAll(StaticInfo.names);
     }
     return _errorCodes;
   }

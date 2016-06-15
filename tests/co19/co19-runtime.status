@@ -84,9 +84,6 @@ WebPlatformTest/*: SkipByDesign # dart:html not supported on VM.
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $mode == debug && $builder_tag == asan ]
 Language/Types/Interface_Types/subtype_t27: Skip  # Issue 21174.
 
-[ ($runtime == vm || $runtime == dart_app) && $arch == arm ]
-LibTest/typed_data/Float32x4/operator_multiplication_A01_t01: Fail # Dart issue 24416
-
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
 # co19 update Sep 29, 2015 (3ed795ea02e022ef19c77cf1b6095b7c8f5584d0)
 Language/Classes/Getters/type_object_t01: RuntimeError # Issue 23721
@@ -190,3 +187,6 @@ Language/Expressions/Spawning_an_Isolate/new_isolate_t01: Skip # Issue #26373
 
 LibTest/math/log_A01_t01: RuntimeError # Precision of Math.log (Issue #18998)
 Language/Expressions/Object_Identity/double_t02: RuntimeError # Issue #26374
+
+[ $compiler == precompiler && $runtime == dart_precompiled && $arch == simarm ]
+LibTest/typed_data/Float32x4/operator_division_A01_t02: RuntimeError # Issue #26675

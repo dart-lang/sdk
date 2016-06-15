@@ -88,7 +88,8 @@ static void MakeDummyInstanceCall(Assembler* assembler, const Object& result) {
       String::Handle(dummy_instance_function.name()),
       dummy_arguments_descriptor,
       Thread::kNoDeoptId,
-      2));
+      2,
+      /* is_static_call= */ false));
 
   // Wire up the Function in the ICData.
   GrowableArray<intptr_t> cids(2);
@@ -1130,6 +1131,39 @@ ASSEMBLER_TEST_RUN(CreateArrayTOS, test) {
   Array& array = Array::Handle();
   array ^= obj.raw();
   EXPECT_EQ(10, array.Length());
+}
+
+
+//  - CheckSmi rA
+//
+//    If FP[rA] is a Smi, then skip the next instruction.
+ASSEMBLER_TEST_GENERATE(CheckSmiPass, assembler) {
+  __ Frame(1);
+  __ PushConstant(Smi::Handle(Smi::New(42)));
+  __ LoadConstant(0, Smi::Handle(Smi::New(0)));
+  __ CheckSmi(0);
+  __ PushConstant(Smi::Handle(Smi::New(-1)));
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(CheckSmiPass, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CheckSmiFail, assembler) {
+  __ Frame(1);
+  __ PushConstant(Smi::Handle(Smi::New(-1)));
+  __ LoadConstant(0, Bool::True());
+  __ CheckSmi(0);
+  __ PushConstant(Smi::Handle(Smi::New(42)));
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(CheckSmiFail, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
 
 }  // namespace dart

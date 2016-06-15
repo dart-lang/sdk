@@ -898,7 +898,7 @@ class Parser : public ValueObject {
                                 const String* left_ident,
                                 TokenPosition left_pos,
                                 bool is_compound = false);
-  AstNode* InsertClosureCallNodes(AstNode* condition);
+  AstNode* HandleAssertCondition(AstNode* condition);
 
   ConstructorCallNode* CreateConstructorCallNode(
       TokenPosition token_pos,

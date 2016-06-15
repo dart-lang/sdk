@@ -42,7 +42,10 @@ class ServerRpcException extends RpcException {
   static const kStreamNotSubscribed     = 104;
   static const kIsolateMustBeRunnable   = 105;
   static const kIsolateMustBePaused     = 106;
-  static const kIsolateIsReloading      = 107;
+  static const kIsolateIsReloading      = 1000;
+  static const kFileSystemAlreadyExists = 1001;
+  static const kFileSystemDoesNotExist  = 1002;
+  static const kFileDoesNotExist        = 1003;
 
   int code;
   Map data;

@@ -3479,12 +3479,12 @@ class ExitDetectorTest extends ParserTestCase {
     expect(new ExitDetector(), isNotNull);
   }
 
-  void test_doStatement_throwCondition() {
-    _assertTrue("{ do {} while (throw ''); }");
-  }
-
   void test_doStatement_return() {
     _assertTrue("{ do { return null; } while (1 == 2); }");
+  }
+
+  void test_doStatement_throwCondition() {
+    _assertTrue("{ do {} while (throw ''); }");
   }
 
   void test_doStatement_true_break() {
@@ -3779,16 +3779,85 @@ class ExitDetectorTest extends ParserTestCase {
     _assertFalse("try {} catch (e, s) {} finally {}");
   }
 
+  void test_tryStatement_noReturn_noFinally() {
+    _assertFalse("try {} catch (e, s) {}");
+  }
+
   void test_tryStatement_return_catch() {
     _assertFalse("try {} catch (e, s) { return 1; } finally {}");
+  }
+
+  void test_tryStatement_return_catch_noFinally() {
+    _assertFalse("try {} catch (e, s) { return 1; }");
   }
 
   void test_tryStatement_return_finally() {
     _assertTrue("try {} catch (e, s) {} finally { return 1; }");
   }
 
-  void test_tryStatement_return_try() {
-    _assertTrue("try { return 1; } catch (e, s) {} finally {}");
+  void test_tryStatement_return_try_noCatch() {
+    _assertTrue("try { return 1; } finally {}");
+  }
+
+  void test_tryStatement_return_try_oneCatchDoesNotExit() {
+    _assertFalse("try { return 1; } catch (e, s) {} finally {}");
+  }
+
+  void test_tryStatement_return_try_oneCatchDoesNotExit_noFinally() {
+    _assertFalse("try { return 1; } catch (e, s) {}");
+  }
+
+  void test_tryStatement_return_try_oneCatchExits() {
+    _assertTrue("try { return 1; } catch (e, s) { return 1; } finally {}");
+  }
+
+  void test_tryStatement_return_try_oneCatchExits_noFinally() {
+    _assertTrue("try { return 1; } catch (e, s) { return 1; }");
+  }
+
+  void test_tryStatement_return_try_twoCatchesDoExit() {
+    _assertTrue('''
+try { return 1; }
+on int catch (e, s) { return 1; }
+on String catch (e, s) { return 1; }
+finally {}''');
+  }
+
+  void test_tryStatement_return_try_twoCatchesDoExit_noFinally() {
+    _assertTrue('''
+try { return 1; }
+on int catch (e, s) { return 1; }
+on String catch (e, s) { return 1; }''');
+  }
+
+  void test_tryStatement_return_try_twoCatchesDoNotExit() {
+    _assertFalse('''
+try { return 1; }
+on int catch (e, s) {}
+on String catch (e, s) {}
+finally {}''');
+  }
+
+  void test_tryStatement_return_try_twoCatchesDoNotExit_noFinally() {
+    _assertFalse('''
+try { return 1; }
+on int catch (e, s) {}
+on String catch (e, s) {}''');
+  }
+
+  void test_tryStatement_return_try_twoCatchesMixed() {
+    _assertFalse('''
+try { return 1; }
+on int catch (e, s) {}
+on String catch (e, s) { return 1; }
+finally {}''');
+  }
+
+  void test_tryStatement_return_try_twoCatchesMixed_noFinally() {
+    _assertFalse('''
+try { return 1; }
+on int catch (e, s) {}
+on String catch (e, s) { return 1; }''');
   }
 
   void test_variableDeclarationStatement_noInitializer() {
@@ -3964,6 +4033,20 @@ void f() {
     _assertNthStatementDoesNotExit(source, 0);
   }
 
+  void test_whileStatement_switchWithBreakWithLabel() {
+    Source source = addSource(r'''
+void f() {
+  x: while (true) {
+    switch (true) {
+      case false: break;
+      case true: break x;
+    }
+  }
+}
+''');
+    _assertNthStatementDoesNotExit(source, 0);
+  }
+
   void test_whileStatement_breakWithLabel_afterExting() {
     Source source = addSource(r'''
 void f() {
@@ -3987,15 +4070,6 @@ void f() sync* {
     _assertNthStatementDoesNotExit(source, 0);
   }
 
-  void test_yieldStatement_throw() {
-    Source source = addSource(r'''
-void f() sync* {
-  yield throw '';
-}
-''');
-    _assertNthStatementExits(source, 0);
-  }
-
   void test_yieldStatement_star_plain() {
     Source source = addSource(r'''
 void f() sync* {
@@ -4014,6 +4088,15 @@ void f() sync* {
     _assertNthStatementExits(source, 0);
   }
 
+  void test_yieldStatement_throw() {
+    Source source = addSource(r'''
+void f() sync* {
+  yield throw '';
+}
+''');
+    _assertNthStatementExits(source, 0);
+  }
+
   void _assertHasReturn(bool expectedResult, Source source, int n) {
     LibraryElement element = resolve2(source);
     CompilationUnit unit = resolveCompilationUnit(source, element);
@@ -4025,14 +4108,14 @@ void f() sync* {
 
   // Assert that the [n]th statement in the last function declaration of
   // [source] exits.
-  void _assertNthStatementExits(Source source, int n) {
-    _assertHasReturn(true, source, n);
+  void _assertNthStatementDoesNotExit(Source source, int n) {
+    _assertHasReturn(false, source, n);
   }
 
   // Assert that the [n]th statement in the last function declaration of
   // [source] does not exit.
-  void _assertNthStatementDoesNotExit(Source source, int n) {
-    _assertHasReturn(false, source, n);
+  void _assertNthStatementExits(Source source, int n) {
+    _assertHasReturn(true, source, n);
   }
 }
 

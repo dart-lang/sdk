@@ -14,6 +14,7 @@
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
+#include "vm/dev_fs.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/message.h"
@@ -413,6 +414,10 @@ class MethodParameter {
     return true;
   }
 
+  virtual bool ValidateObject(const Object& value) const {
+    return true;
+  }
+
   const char* name() const {
     return name_;
   }
@@ -427,9 +432,39 @@ class MethodParameter {
     PrintInvalidParamError(js, name);
   }
 
+  virtual void PrintErrorObject(const char* name,
+                                const Object& value,
+                                JSONStream* js) const {
+    PrintInvalidParamError(js, name);
+  }
+
  private:
   const char* name_;
   bool required_;
+};
+
+
+class DartStringParameter : public MethodParameter {
+ public:
+  DartStringParameter(const char* name, bool required)
+      : MethodParameter(name, required) {
+  }
+
+  virtual bool ValidateObject(const Object& value) const {
+    return value.IsString();
+  }
+};
+
+
+class DartListParameter : public MethodParameter {
+ public:
+  DartListParameter(const char* name, bool required)
+      : MethodParameter(name, required) {
+  }
+
+  virtual bool ValidateObject(const Object& value) const {
+    return value.IsArray() || value.IsGrowableObjectArray();
+  }
 };
 
 
@@ -441,6 +476,10 @@ class NoSuchParameter : public MethodParameter {
 
   virtual bool Validate(const char* value) const {
     return (value == NULL);
+  }
+
+  virtual bool ValidateObject(const Object& value) const {
+    return value.IsNull();
   }
 };
 
@@ -737,19 +776,38 @@ static bool ValidateParameters(const MethodParameter* const* parameters,
   if (parameters == NULL) {
     return true;
   }
-  for (intptr_t i = 0; parameters[i] != NULL; i++) {
-    const MethodParameter* parameter = parameters[i];
-    const char* name = parameter->name();
-    const bool required = parameter->required();
-    const char* value = js->LookupParam(name);
-    const bool has_parameter = (value != NULL);
-    if (required && !has_parameter) {
-      PrintMissingParamError(js, name);
-      return false;
+  if (js->NumObjectParameters() > 0) {
+    Object& value = Object::Handle();
+    for (intptr_t i = 0; parameters[i] != NULL; i++) {
+      const MethodParameter* parameter = parameters[i];
+      const char* name = parameter->name();
+      const bool required = parameter->required();
+      value = js->LookupObjectParam(name);
+      const bool has_parameter = !value.IsNull();
+      if (required && !has_parameter) {
+        PrintMissingParamError(js, name);
+        return false;
+      }
+      if (has_parameter && !parameter->ValidateObject(value)) {
+        parameter->PrintErrorObject(name, value, js);
+        return false;
+      }
     }
-    if (has_parameter && !parameter->Validate(value)) {
-      parameter->PrintError(name, value, js);
-      return false;
+  } else {
+    for (intptr_t i = 0; parameters[i] != NULL; i++) {
+      const MethodParameter* parameter = parameters[i];
+      const char* name = parameter->name();
+      const bool required = parameter->required();
+      const char* value = js->LookupParam(name);
+      const bool has_parameter = (value != NULL);
+      if (required && !has_parameter) {
+        PrintMissingParamError(js, name);
+        return false;
+      }
+      if (has_parameter && !parameter->Validate(value)) {
+        parameter->PrintError(name, value, js);
+        return false;
+      }
     }
   }
   return true;
@@ -775,7 +833,9 @@ void Service::PostError(const String& method_name,
 }
 
 
-void Service::InvokeMethod(Isolate* I, const Array& msg) {
+void Service::InvokeMethod(Isolate* I,
+                           const Array& msg,
+                           bool parameters_are_dart_objects) {
   Thread* T = Thread::Current();
   ASSERT(I == T->isolate());
   ASSERT(I != NULL);
@@ -809,7 +869,11 @@ void Service::InvokeMethod(Isolate* I, const Array& msg) {
 
     JSONStream js;
     js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(),
-             seq, method_name, param_keys, param_values);
+             seq,
+             method_name,
+             param_keys,
+             param_values,
+             parameters_are_dart_objects);
 
     // RPC came in with a custom service id zone.
     const char* id_zone_param = js.LookupParam("_idZone");
@@ -886,6 +950,12 @@ void Service::InvokeMethod(Isolate* I, const Array& msg) {
 void Service::HandleRootMessage(const Array& msg_instance) {
   Isolate* isolate = Isolate::Current();
   InvokeMethod(isolate, msg_instance);
+}
+
+
+void Service::HandleObjectRootMessage(const Array& msg_instance) {
+  Isolate* isolate = Isolate::Current();
+  InvokeMethod(isolate, msg_instance, true);
 }
 
 
@@ -3883,6 +3953,7 @@ static bool SetName(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* set_vm_name_params[] = {
+  NO_ISOLATE_PARAMETER,
   new MethodParameter("name", true),
   NULL,
 };
@@ -3928,6 +3999,127 @@ static bool SetTraceClassAllocation(Thread* thread, JSONStream* js) {
   ASSERT(!cls.IsNull());
   cls.SetTraceAllocation(enable);
   PrintSuccess(js);
+  return true;
+}
+
+
+static const MethodParameter* create_dev_fs_params[] = {
+  NO_ISOLATE_PARAMETER,
+  new DartStringParameter("fsName", true),
+  NULL,
+};
+
+
+static bool CreateDevFS(Thread* thread, JSONStream* js) {
+  const String& fs_name =
+      String::Handle(String::RawCast(js->LookupObjectParam("fsName")));
+  DevFS::CreateFileSystem(js, fs_name);
+  return true;
+}
+
+
+static const MethodParameter* delete_dev_fs_params[] = {
+  NO_ISOLATE_PARAMETER,
+  new DartStringParameter("fsName", true),
+  NULL,
+};
+
+
+static bool DeleteDevFS(Thread* thread, JSONStream* js) {
+  const String& fs_name =
+      String::Handle(String::RawCast(js->LookupObjectParam("fsName")));
+  DevFS::DeleteFileSystem(js, fs_name);
+  return true;
+}
+
+
+static const MethodParameter* list_dev_fs_params[] = {
+  NO_ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool ListDevFS(Thread* thread, JSONStream* js) {
+  DevFS::ListFileSystems(js);
+  return true;
+}
+
+
+static const MethodParameter* write_dev_fs_file_params[] = {
+  NO_ISOLATE_PARAMETER,
+  new DartStringParameter("fsName", true),
+  new DartStringParameter("path", true),
+  new DartStringParameter("fileContents", true),
+  NULL,
+};
+
+
+static bool WriteDevFSFile(Thread* thread, JSONStream* js) {
+  const String& fs_name =
+      String::Handle(String::RawCast(js->LookupObjectParam("fsName")));
+  const String& path =
+      String::Handle(String::RawCast(js->LookupObjectParam("path")));
+  const String& file_contents =
+      String::Handle(String::RawCast(js->LookupObjectParam("fileContents")));
+  DevFS::WriteFile(js, fs_name, path, file_contents);
+  return true;
+}
+
+
+static const MethodParameter* write_dev_fs_files_params[] = {
+  NO_ISOLATE_PARAMETER,
+  new DartStringParameter("fsName", true),
+  new DartListParameter("files", true),
+  NULL,
+};
+
+
+static bool WriteDevFSFiles(Thread* thread, JSONStream* js) {
+  const String& fs_name =
+      String::Handle(String::RawCast(js->LookupObjectParam("fsName")));
+  Array& files = Array::Handle();
+  const Object& files_param = Object::Handle(js->LookupObjectParam("files"));
+  if (files_param.IsArray()) {
+    files ^= files_param.raw();
+  } else {
+    ASSERT(files_param.IsGrowableObjectArray());
+    files ^= GrowableObjectArray::Cast(files_param).data();
+  }
+  ASSERT(!files.IsNull());
+  DevFS::WriteFiles(js, fs_name, files);
+  return true;
+}
+
+
+static const MethodParameter* read_dev_fs_file_params[] = {
+  NO_ISOLATE_PARAMETER,
+  new DartStringParameter("fsName", true),
+  new DartStringParameter("path", true),
+  NULL,
+};
+
+
+static bool ReadDevFSFile(Thread* thread, JSONStream* js) {
+  const String& fs_name =
+      String::Handle(String::RawCast(js->LookupObjectParam("fsName")));
+  const String& path =
+      String::Handle(String::RawCast(js->LookupObjectParam("path")));
+  DevFS::ReadFile(js, fs_name, path);
+  return true;
+}
+
+
+static const MethodParameter* list_dev_fs_files_params[] = {
+  NO_ISOLATE_PARAMETER,
+  new DartStringParameter("fsName", true),
+  NULL,
+};
+
+
+static bool ListDevFSFiles(Thread* thread, JSONStream* js) {
+  const String& fs_name =
+      String::Handle(String::RawCast(js->LookupObjectParam("fsName")));
+  DevFS::ListFiles(js, fs_name);
   return true;
 }
 
@@ -4044,6 +4236,20 @@ static const ServiceMethodDescriptor service_methods_[] = {
     set_vm_name_params },
   { "_setVMTimelineFlags", SetVMTimelineFlags,
     set_vm_timeline_flags_params },
+  { "_createDevFS", CreateDevFS,
+    create_dev_fs_params },
+  { "_deleteDevFS", DeleteDevFS,
+    delete_dev_fs_params },
+  { "_listDevFS", ListDevFS,
+    list_dev_fs_params },
+  { "_writeDevFSFile", WriteDevFSFile,
+    write_dev_fs_file_params },
+  { "_writeDevFSFiles", WriteDevFSFiles,
+    write_dev_fs_files_params },
+  { "_readDevFSFile", ReadDevFSFile,
+    read_dev_fs_file_params },
+  { "_listDevFSFiles", ListDevFSFiles,
+    list_dev_fs_files_params },
 };
 
 

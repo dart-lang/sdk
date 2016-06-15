@@ -1,4 +1,22 @@
-## 1.17.0 - 2016-06-06
+## 1.18.0
+
+### Core library changes
+
+* `dart:io`
+  * Adds file locking modes `FileLock.BLOCKING_SHARED` and
+    `FileLock.BLOCKING_EXCLUSIVE`.
+
+## 1.17.1 - 2016-06-10
+
+Patch release, resolves two issues:
+
+* VM: Fixes a bug that caused crashes in async functions.
+(SDK issue [26668](https://github.com/dart-lang/sdk/issues/26668))
+
+* VM: Fixes a bug that caused garbage collection of reachable weak properties.
+(https://codereview.chromium.org/2041413005)
+
+## 1.17.0 - 2016-06-08
 
 ### Core library changes
 * `dart:convert`

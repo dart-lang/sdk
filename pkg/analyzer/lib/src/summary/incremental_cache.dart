@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:core' hide Resource;
 
@@ -17,9 +18,51 @@ import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 
 /**
+ * The version of the incremental cache.  It should be incremented every time
+ * when any cache data structure is changed.
+ */
+const int _VERSION = 1;
+
+/**
+ * Compare the given file paths [a] and [b].  Because paths usually have long
+ * equal prefix, comparison is done not as comparision of two generic [String]s.
+ * Instead it starts from the ends of each strings.
+ *
+ * Return `-1` if [a] is ordered before [b], `1` if `this` is ordered after [b],
+ * and zero if [a] and [b] are ordered together.
+ */
+int comparePaths(String a, String b) {
+  int thisLength = a.length;
+  int otherLength = b.length;
+  int len = (thisLength < otherLength) ? thisLength : otherLength;
+  for (int i = 0; i < len; i++) {
+    int thisCodeUnit = a.codeUnitAt(thisLength - 1 - i);
+    int otherCodeUnit = b.codeUnitAt(otherLength - 1 - i);
+    if (thisCodeUnit < otherCodeUnit) {
+      return -1;
+    }
+    if (thisCodeUnit > otherCodeUnit) {
+      return 1;
+    }
+  }
+  if (thisLength < otherLength) {
+    return -1;
+  }
+  if (thisLength > otherLength) {
+    return 1;
+  }
+  return 0;
+}
+
+/**
  * Storage for cache data.
  */
 abstract class CacheStorage {
+  /**
+   * Compact the storage, e.g. remove unused entries.
+   */
+  void compact();
+
   /**
    * Return bytes for the given [key], `null` if [key] is not in the storage.
    */
@@ -43,6 +86,11 @@ abstract class CacheStorage {
  */
 class FolderCacheStorage implements CacheStorage {
   /**
+   * The maximum number of entries to keep in the cache.
+   */
+  static const MAX_ENTRIES = 20000;
+
+  /**
    * The folder to read and write files.
    */
   final Folder folder;
@@ -54,14 +102,46 @@ class FolderCacheStorage implements CacheStorage {
    */
   final String tempFileName;
 
-  FolderCacheStorage(this.folder, this.tempFileName);
+  /**
+   * The set of recently used entries, with the most recently used entries
+   * on the bottom.
+   */
+  final LinkedHashSet<String> _recentEntries = new LinkedHashSet<String>();
+
+  FolderCacheStorage(this.folder, this.tempFileName) {
+    try {
+      File file = folder.getChildAssumingFile('.entries');
+      if (file.exists) {
+        String entriesString = file.readAsStringSync();
+        List<String> entriesLists = entriesString.split('\n');
+        _recentEntries.addAll(entriesLists);
+      }
+    } catch (_) {}
+  }
+
+  @override
+  void compact() {
+    while (_recentEntries.length > MAX_ENTRIES) {
+      String key = _recentEntries.first;
+      _recentEntries.remove(key);
+      try {
+        folder.getChildAssumingFile(key).delete();
+      } catch (_) {}
+    }
+    try {
+      List<int> bytes = UTF8.encode(_recentEntries.join('\n'));
+      folder.getChildAssumingFile('.entries').writeAsBytesSync(bytes);
+    } catch (_) {}
+  }
 
   @override
   List<int> get(String key) {
     Resource file = folder.getChild(key);
     if (file is File) {
       try {
-        return file.readAsBytesSync();
+        List<int> bytes = file.readAsBytesSync();
+        _accessedKey(key);
+        return bytes;
       } on FileSystemException {}
     }
     return null;
@@ -74,7 +154,16 @@ class FolderCacheStorage implements CacheStorage {
     tempFile.writeAsBytesSync(bytes);
     try {
       tempFile.renameSync(absPath);
+      _accessedKey(key);
     } catch (e) {}
+  }
+
+  /**
+   * The given [key] was accessed, update recently used entries.
+   */
+  void _accessedKey(String key) {
+    _recentEntries.remove(key);
+    _recentEntries.add(key);
   }
 }
 
@@ -269,7 +358,17 @@ class IncrementalCache {
         if (refSource == null) {
           throw new StateError('Unable to resolve $refUri in $librarySource');
         }
-        _appendLibraryClosure(closure, refSource);
+        // If we have already the closure for the 'refSource', use it.
+        // Otherwise, continue computing recursively.
+        // It's not the most efficient algorithm, but in practice we might
+        // visit each library multiple times only for the first top-level
+        // bundle requested in `getLibraryClosureBundles`.
+        List<Source> refClosure = _libraryClosureMap[refSource];
+        if (refClosure != null) {
+          closure.addAll(refClosure);
+        } else {
+          _appendLibraryClosure(closure, refSource);
+        }
       }
       contentSource.importedUris.forEach(appendLibrarySources);
       contentSource.exportedUris.forEach(appendLibrarySources);
@@ -285,6 +384,7 @@ class IncrementalCache {
     ByteConversionSink byteSink = md5.startChunkedConversion(digestSink);
     // Add data.
     addData(byteSink);
+    byteSink.add(const <int>[_VERSION]);
     byteSink.add(configSalt);
     // Done.
     byteSink.close();
@@ -368,6 +468,10 @@ class IncrementalCache {
         return null;
       }
       bundle = new PackageBundle.fromBuffer(bytes);
+      if (bundle.majorVersion != PackageBundleAssembler.currentMajorVersion ||
+          bundle.minorVersion != PackageBundleAssembler.currentMinorVersion) {
+        return null;
+      }
       _bundleMap[key] = bundle;
     }
     return bundle;
@@ -389,9 +493,11 @@ class IncrementalCache {
    */
   List<Source> _getLibraryClosure(Source librarySource) {
     return _libraryClosureMap.putIfAbsent(librarySource, () {
-      Set<Source> closure = new Set<Source>();
-      _appendLibraryClosure(closure, librarySource);
-      return closure.toList();
+      Set<Source> closureSet = new Set<Source>();
+      _appendLibraryClosure(closureSet, librarySource);
+      List<Source> closureList = closureSet.toList();
+      closureList.sort((a, b) => comparePaths(a.fullName, b.fullName));
+      return closureList;
     });
   }
 
@@ -407,6 +513,15 @@ class IncrementalCache {
           List<int> sourceHash = _getSourceContentHash(source);
           byteSink.add(sourceHash);
         }
+        // When we sort closure sources for two libraries (A, B) we get exactly
+        // the same list of sources for both A and B. So, their hash is exactly
+        // the same. But we use it to store separate summary bundles for
+        // separate libraries. Ideally would be nice to group these libraries
+        // into a single summary bundle. But this would require delaying
+        // saving bundles until we know all of them.
+        // So, for now we make hashes for separate libraries unique be mixing
+        // in the library source again.
+        byteSink.add(_getSourceContentHash(librarySource));
       });
     });
   }

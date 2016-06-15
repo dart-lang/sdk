@@ -323,6 +323,10 @@ namespace dart {
 //
 //    Assert that TOS is a boolean (A = 1) or that TOS is not null (A = 0).
 //
+//  - CheckSmi rA
+//
+//    If FP[rA] is a Smi, then skip the next instruction.
+//
 //  - CheckStack
 //
 //    Compare SP against isolate stack limit and call StackOverflow handler if
@@ -359,7 +363,7 @@ namespace dart {
 //    e.g. in bytecode sequences like
 //
 //    InstanceCall ... <- lazy deopt inside first call
-//    InstanceCall ... <- patches seconds call with Deopt
+//    InstanceCall ... <- patches second call with Deopt
 //
 // BYTECODE LIST FORMAT
 //
@@ -453,6 +457,7 @@ namespace dart {
   V(InstantiateTypeArgumentsTOS,   A_D, num, lit, ___) \
   V(AssertAssignable,                D, num, lit, ___) \
   V(AssertBoolean,                   A, num, ___, ___) \
+  V(CheckSmi,                        A, reg, ___, ___) \
   V(CheckStack,                      0, ___, ___, ___) \
   V(DebugStep,                       0, ___, ___, ___) \
   V(DebugBreak,                      A, num, ___, ___) \

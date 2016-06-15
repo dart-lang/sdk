@@ -51,6 +51,17 @@ const ResultCachingPolicy<CompilationUnit> AST_CACHING_POLICY =
     const SimpleResultCachingPolicy(16384, 16384);
 
 /**
+ * The [ResultCachingPolicy] for ASTs that can be reused when a library
+ * on which the source depends is changed.  It is worth to keep some number
+ * of these ASTs in memory in order to avoid parsing sources.  In contrast,
+ * none of [AST_CACHING_POLICY] managed ASTs can be reused after a change, so
+ * it is worth to keep them in memory while analysis is being performed, but
+ * once analysis is done, they can be flushed.
+ */
+const ResultCachingPolicy<CompilationUnit> AST_REUSABLE_CACHING_POLICY =
+    const SimpleResultCachingPolicy(1024, 1024);
+
+/**
  * The [ResultCachingPolicy] for lists of [ConstantEvaluationTarget]s.
  */
 const ResultCachingPolicy<List<ConstantEvaluationTarget>>
@@ -518,6 +529,23 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT9 =
         cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
+ * List of all `LIBRARY_ELEMENT` results.
+ */
+final List<ResultDescriptor<LibraryElement>> LIBRARY_ELEMENT_RESULTS =
+    <ResultDescriptor<LibraryElement>>[
+  LIBRARY_ELEMENT1,
+  LIBRARY_ELEMENT2,
+  LIBRARY_ELEMENT3,
+  LIBRARY_ELEMENT4,
+  LIBRARY_ELEMENT5,
+  LIBRARY_ELEMENT6,
+  LIBRARY_ELEMENT7,
+  LIBRARY_ELEMENT8,
+  LIBRARY_ELEMENT9,
+  LIBRARY_ELEMENT
+];
+
+/**
  * The flag specifying whether all analysis errors are computed in a specific
  * library.
  *
@@ -717,7 +745,7 @@ final ListResultDescriptor<AnalysisError> RESOLVE_UNIT_ERRORS =
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT1 =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT1', null,
-        cachingPolicy: AST_CACHING_POLICY);
+        cachingPolicy: AST_REUSABLE_CACHING_POLICY);
 
 /**
  * The partially resolved [CompilationUnit] associated with a compilation unit.
@@ -866,6 +894,27 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT8 =
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT9 =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT9', null,
         cachingPolicy: AST_CACHING_POLICY);
+
+/**
+ * List of all `RESOLVED_UNITx` results.
+ */
+final List<ResultDescriptor<CompilationUnit>> RESOLVED_UNIT_RESULTS =
+    <ResultDescriptor<CompilationUnit>>[
+  RESOLVED_UNIT1,
+  RESOLVED_UNIT2,
+  RESOLVED_UNIT3,
+  RESOLVED_UNIT4,
+  RESOLVED_UNIT5,
+  RESOLVED_UNIT6,
+  RESOLVED_UNIT7,
+  RESOLVED_UNIT8,
+  RESOLVED_UNIT9,
+  RESOLVED_UNIT10,
+  RESOLVED_UNIT11,
+  RESOLVED_UNIT12,
+  RESOLVED_UNIT13,
+  RESOLVED_UNIT
+];
 
 /**
  * The errors produced while scanning a compilation unit.
@@ -1804,8 +1853,9 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
     LibraryElement coreLibrary = getRequiredInput(CORE_INPUT);
     LibraryElement asyncLibrary = getOptionalInput(ASYNC_INPUT);
     if (asyncLibrary == null) {
-      asyncLibrary =
-          (context as AnalysisContextImpl).createMockAsyncLib(coreLibrary);
+      Source asyncSource = context.sourceFactory.forUri(DartSdk.DART_ASYNC);
+      asyncLibrary = (context as AnalysisContextImpl)
+          .createMockAsyncLib(coreLibrary, asyncSource);
     }
     Namespace coreNamespace = coreLibrary.publicNamespace;
     Namespace asyncNamespace = asyncLibrary.publicNamespace;
@@ -1814,7 +1864,8 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
     //
     if (!context.analysisOptions.enableAsync) {
       AnalysisContextImpl contextImpl = context;
-      asyncLibrary = contextImpl.createMockAsyncLib(coreLibrary);
+      Source asyncSource = context.sourceFactory.forUri(DartSdk.DART_ASYNC);
+      asyncLibrary = contextImpl.createMockAsyncLib(coreLibrary, asyncSource);
       asyncNamespace = asyncLibrary.publicNamespace;
     }
     TypeProvider typeProvider =
@@ -3135,8 +3186,10 @@ class IgnoreInfo {
     IgnoreInfo ignoreInfo = new IgnoreInfo();
     for (Match match in matches) {
       // See _IGNORE_MATCHER for format --- note the possibility of error lists.
-      Iterable<String> codes =
-          match.group(1).split(',').map((String code) => code.trim());
+      Iterable<String> codes = match
+          .group(1)
+          .split(',')
+          .map((String code) => code.trim().toLowerCase());
       ignoreInfo.addAll(info.getLocation(match.start).lineNumber, codes);
     }
     return ignoreInfo;
@@ -3257,19 +3310,20 @@ abstract class InferStaticVariableTask extends ConstantEvaluationAnalysisTask {
    */
   VariableDeclaration getDeclaration(CompilationUnit unit) {
     VariableElement variable = target;
-    AstNode node = new NodeLocator2(variable.nameOffset).searchWithin(unit);
+    int offset = variable.nameOffset;
+    AstNode node = new NodeLocator2(offset).searchWithin(unit);
     if (node == null) {
       Source variableSource = variable.source;
       Source unitSource = unit.element.source;
       if (variableSource != unitSource) {
         throw new AnalysisException(
             "Failed to find the AST node for the variable "
-            "${variable.displayName} in $variableSource "
+            "${variable.displayName} at $offset in $variableSource "
             "because we were looking in $unitSource");
       }
       throw new AnalysisException(
           "Failed to find the AST node for the variable "
-          "${variable.displayName} in $variableSource");
+          "${variable.displayName} at $offset in $variableSource");
     }
     VariableDeclaration declaration =
         node.getAncestor((AstNode ancestor) => ancestor is VariableDeclaration);
@@ -3277,14 +3331,28 @@ abstract class InferStaticVariableTask extends ConstantEvaluationAnalysisTask {
       Source variableSource = variable.source;
       Source unitSource = unit.element.source;
       if (variableSource != unitSource) {
+        if (declaration == null) {
+          throw new AnalysisException(
+              "Failed to find the declaration of the variable "
+              "${variable.displayName} at $offset in $variableSource "
+              "because the node was not in a variable declaration "
+              "possibly because we were looking in $unitSource");
+        }
         throw new AnalysisException(
             "Failed to find the declaration of the variable "
-            "${variable.displayName} in $variableSource"
+            "${variable.displayName} at $offset in $variableSource "
             "because we were looking in $unitSource");
+      }
+      if (declaration == null) {
+        throw new AnalysisException(
+            "Failed to find the declaration of the variable "
+            "${variable.displayName} at $offset in $variableSource "
+            "because the node was not in a variable declaration");
       }
       throw new AnalysisException(
           "Failed to find the declaration of the variable "
-          "${variable.displayName} in $variableSource");
+          "${variable.displayName} at $offset in $variableSource "
+          "because the node was not the name in a variable declaration");
     }
     return declaration;
   }
@@ -4500,11 +4568,12 @@ class ReferencedNames {
 
 /**
  * A builder for creating [ReferencedNames].
- *
- * TODO(scheglov) Record dependencies for all other top-level declarations.
  */
-class ReferencedNamesBuilder extends RecursiveAstVisitor {
+class ReferencedNamesBuilder extends GeneralizingAstVisitor {
   final ReferencedNames names;
+
+  ReferencedNamesScope scope = new ReferencedNamesScope(null);
+
   int bodyLevel = 0;
   Set<String> dependsOn;
 
@@ -4516,41 +4585,205 @@ class ReferencedNamesBuilder extends RecursiveAstVisitor {
   }
 
   @override
-  visitBlockFunctionBody(BlockFunctionBody node) {
+  visitBlock(Block node) {
+    ReferencedNamesScope outerScope = scope;
     try {
-      bodyLevel++;
-      super.visitBlockFunctionBody(node);
+      scope = new ReferencedNamesScope.forBlock(scope, node);
+      super.visitBlock(node);
     } finally {
-      bodyLevel--;
+      scope = outerScope;
     }
   }
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
-    dependsOn = new Set<String>();
-    super.visitClassDeclaration(node);
-    names.userToDependsOn[node.name.name] = dependsOn;
-    dependsOn = null;
+    ReferencedNamesScope outerScope = scope;
+    try {
+      scope = new ReferencedNamesScope.forClass(scope, node);
+      dependsOn = new Set<String>();
+      super.visitClassDeclaration(node);
+      names.userToDependsOn[node.name.name] = dependsOn;
+    } finally {
+      dependsOn = null;
+      scope = outerScope;
+    }
   }
 
   @override
-  visitExpressionFunctionBody(ExpressionFunctionBody node) {
+  visitConstructorName(ConstructorName node) {
+    if (node.parent is! ConstructorDeclaration) {
+      super.visitConstructorName(node);
+    }
+  }
+
+  @override
+  visitFunctionBody(FunctionBody node) {
     try {
       bodyLevel++;
-      super.visitExpressionFunctionBody(node);
+      super.visitFunctionBody(node);
     } finally {
       bodyLevel--;
     }
   }
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
-    if (!node.inDeclarationContext()) {
-      String name = node.name;
-      names.names.add(name);
-      if (dependsOn != null && bodyLevel == 0) {
-        dependsOn.add(name);
+  visitFunctionDeclaration(FunctionDeclaration node) {
+    if (bodyLevel == 0) {
+      ReferencedNamesScope outerScope = scope;
+      try {
+        scope = new ReferencedNamesScope.forFunction(scope, node);
+        dependsOn = new Set<String>();
+        super.visitFunctionDeclaration(node);
+        names.userToDependsOn[node.name.name] = dependsOn;
+      } finally {
+        dependsOn = null;
+        scope = outerScope;
       }
+    } else {
+      super.visitFunctionDeclaration(node);
+    }
+  }
+
+  @override
+  visitFunctionTypeAlias(FunctionTypeAlias node) {
+    if (bodyLevel == 0) {
+      ReferencedNamesScope outerScope = scope;
+      try {
+        scope = new ReferencedNamesScope.forFunctionTypeAlias(scope, node);
+        dependsOn = new Set<String>();
+        super.visitFunctionTypeAlias(node);
+        names.userToDependsOn[node.name.name] = dependsOn;
+      } finally {
+        dependsOn = null;
+        scope = outerScope;
+      }
+    } else {
+      super.visitFunctionTypeAlias(node);
+    }
+  }
+
+  @override
+  visitMethodDeclaration(MethodDeclaration node) {
+    ReferencedNamesScope outerScope = scope;
+    try {
+      scope = new ReferencedNamesScope.forMethod(scope, node);
+      super.visitMethodDeclaration(node);
+    } finally {
+      scope = outerScope;
+    }
+  }
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    // Ignore all declarations.
+    if (node.inDeclarationContext()) {
+      return;
+    }
+    // Ignore class names references from constructors.
+    AstNode parent = node.parent;
+    if (parent is ConstructorDeclaration && parent.returnType == node) {
+      return;
+    }
+    // Prepare name.
+    String name = node.name;
+    // Ignore unqualified names shadowed by local elements.
+    if (!node.isQualified && scope.contains(name)) {
+      return;
+    }
+    // Do add the dependency.
+    names.names.add(name);
+    if (dependsOn != null && bodyLevel == 0) {
+      dependsOn.add(name);
+    }
+  }
+}
+
+class ReferencedNamesScope {
+  final ReferencedNamesScope enclosing;
+  Set<String> names;
+
+  ReferencedNamesScope(this.enclosing);
+
+  factory ReferencedNamesScope.forBlock(
+      ReferencedNamesScope enclosing, Block node) {
+    ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
+    for (Statement statement in node.statements) {
+      if (statement is FunctionDeclarationStatement) {
+        scope.add(statement.functionDeclaration.name.name);
+      } else if (statement is VariableDeclarationStatement) {
+        for (VariableDeclaration variable in statement.variables.variables) {
+          scope.add(variable.name.name);
+        }
+      }
+    }
+    return scope;
+  }
+
+  factory ReferencedNamesScope.forClass(
+      ReferencedNamesScope enclosing, ClassDeclaration node) {
+    ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
+    scope._addTypeParameters(node.typeParameters);
+    for (ClassMember member in node.members) {
+      if (member is FieldDeclaration) {
+        for (VariableDeclaration variable in member.fields.variables) {
+          scope.add(variable.name.name);
+        }
+      } else if (member is MethodDeclaration) {
+        scope.add(member.name.name);
+      }
+    }
+    return scope;
+  }
+
+  factory ReferencedNamesScope.forFunction(
+      ReferencedNamesScope enclosing, FunctionDeclaration node) {
+    ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
+    scope._addTypeParameters(node.functionExpression.typeParameters);
+    scope._addFormalParameters(node.functionExpression.parameters);
+    return scope;
+  }
+
+  factory ReferencedNamesScope.forFunctionTypeAlias(
+      ReferencedNamesScope enclosing, FunctionTypeAlias node) {
+    ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
+    scope._addTypeParameters(node.typeParameters);
+    return scope;
+  }
+
+  factory ReferencedNamesScope.forMethod(
+      ReferencedNamesScope enclosing, MethodDeclaration node) {
+    ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
+    scope._addTypeParameters(node.typeParameters);
+    scope._addFormalParameters(node.parameters);
+    return scope;
+  }
+
+  void add(String name) {
+    names ??= new Set<String>();
+    names.add(name);
+  }
+
+  bool contains(String name) {
+    if (names != null && names.contains(name)) {
+      return true;
+    }
+    if (enclosing != null) {
+      return enclosing.contains(name);
+    }
+    return false;
+  }
+
+  void _addFormalParameters(FormalParameterList parameterList) {
+    if (parameterList != null) {
+      parameterList.parameters
+          .map((p) => p is NormalFormalParameter ? p.identifier.name : '')
+          .forEach(add);
+    }
+  }
+
+  void _addTypeParameters(TypeParameterList typeParameterList) {
+    if (typeParameterList != null) {
+      typeParameterList.typeParameters.map((p) => p.name.name).forEach(add);
     }
   }
 }
@@ -5561,7 +5794,7 @@ class ScanDartTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     if (target is Source) {
       return <String, TaskInput>{
-        CONTENT_INPUT_NAME: CONTENT.of(target),
+        CONTENT_INPUT_NAME: CONTENT.of(target, flushOnAccess: true),
         MODIFICATION_TIME_INPUT: MODIFICATION_TIME.of(target)
       };
     } else if (target is DartScript) {
@@ -5644,9 +5877,12 @@ class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     AnalysisOptionsImpl options = context.analysisOptions;
     if (options.strongMode) {
-      unit.accept(new CodeChecker(
-          typeProvider, new StrongTypeSystemImpl(), errorListener,
-          hints: options.strongModeHints));
+      CodeChecker checker = new CodeChecker(
+          typeProvider,
+          new StrongTypeSystemImpl(implicitCasts: options.implicitCasts),
+          errorListener,
+          options);
+      checker.visitCompilationUnit(unit);
     }
     //
     // Record outputs.

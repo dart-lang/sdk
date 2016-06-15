@@ -335,6 +335,8 @@ abstract class AnalysisTask {
 //      }
     } on AnalysisException {
       rethrow;
+    } on ModificationTimeMismatchError {
+      rethrow;
     } catch (exception, stackTrace) {
       throw new AnalysisException(
           'Unexpected exception while performing $description',
@@ -420,6 +422,18 @@ abstract class MapTaskInput<K, V> implements TaskInput<Map<K, V>> {
    */
   TaskInput<List/*<E>*/ > toFlattenList/*<E>*/(
       BinaryFunction<K, dynamic /*element of V*/, dynamic/*=E*/ > mapper);
+}
+
+/**
+ * Instances of this class are thrown when a task detects that the modification
+ * time of a cache entry is not the same as the actual modification time.  This
+ * means that any analysis results based on the content of the target cannot be
+ * used anymore and must be invalidated.
+ */
+class ModificationTimeMismatchError {
+  final Source source;
+
+  ModificationTimeMismatchError(this.source);
 }
 
 /**

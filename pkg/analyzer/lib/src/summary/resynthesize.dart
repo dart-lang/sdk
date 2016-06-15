@@ -950,6 +950,7 @@ class _LibraryResynthesizer {
         // and they always refer to defined top-level entities.
         throw new StateError('Unexpected export name kind: ${exportName.kind}');
     }
+    return null;
   }
 
   /**

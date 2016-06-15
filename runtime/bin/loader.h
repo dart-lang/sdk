@@ -38,7 +38,6 @@ class Loader {
   IsolateData* isolate_data_;
   // Remember the first error that occurs during loading.
   Dart_Handle error_;
-
   // This monitor is used to protect the pending operations count and the
   // I/O result queue.
   Monitor* monitor_;

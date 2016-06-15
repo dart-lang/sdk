@@ -69,7 +69,7 @@ Future testConfigurations(List<Map> configurations) async {
   var recordingPath = firstConf['record_to_file'];
   var recordingOutputPath = firstConf['replay_from_file'];
 
-  Browser.deleteCache = firstConf['clear_browser_cache'];
+  Browser.resetBrowserConfiguration = firstConf['reset_browser_configuration'];
 
   if (recordingPath != null && recordingOutputPath != null) {
     print("Fatal: Can't have the '--record_to_file' and '--replay_from_file'"
@@ -183,6 +183,13 @@ Future testConfigurations(List<Map> configurations) async {
       var suite_path = new Path(conf['suite_dir']);
       testSuites.add(new PKGTestSuite(conf, suite_path));
     } else {
+      for (final testSuiteDir in TEST_SUITE_DIRECTORIES) {
+        final name = testSuiteDir.filename;
+        if (selectors.containsKey(name)) {
+          testSuites
+              .add(new StandardTestSuite.forDirectory(conf, testSuiteDir));
+        }
+      }
       for (String key in selectors.keys) {
         if (key == 'co19') {
           testSuites.add(new Co19TestSuite(conf));
@@ -212,14 +219,6 @@ Future testConfigurations(List<Map> configurations) async {
           }
           testSuites.add(
               new PkgBuildTestSuite(conf, 'pkgbuild', 'pkg/pkgbuild.status'));
-        }
-      }
-
-      for (final testSuiteDir in TEST_SUITE_DIRECTORIES) {
-        final name = testSuiteDir.filename;
-        if (selectors.containsKey(name)) {
-          testSuites
-              .add(new StandardTestSuite.forDirectory(conf, testSuiteDir));
         }
       }
     }

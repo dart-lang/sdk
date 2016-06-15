@@ -285,6 +285,8 @@ class ResolverTask extends CompilerTask {
         reporter.reportErrorMessage(tree, MessageKind.NO_SUCH_METHOD_IN_NATIVE);
       }
 
+      resolution.target.resolveNativeElement(element, registry.worldImpact);
+
       return registry.worldImpact;
     });
   }
@@ -413,6 +415,8 @@ class ResolverTask extends CompilerTask {
 
     // Perform various checks as side effect of "computing" the type.
     element.computeType(resolution);
+
+    resolution.target.resolveNativeElement(element, registry.worldImpact);
 
     return registry.worldImpact;
   }

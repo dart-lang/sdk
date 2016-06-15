@@ -30,7 +30,8 @@ import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/src/task/strong/info.dart' show StaticInfo;
+import 'package:analyzer/src/task/strong/checker.dart' as checker
+    show isKnownFunction;
 
 /**
  * A visitor used to traverse an AST structure looking for additional errors and
@@ -5743,8 +5744,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   bool _expressionIsAssignableAtType(Expression expression,
       DartType actualStaticType, DartType expectedStaticType) {
-    bool concrete =
-        _options.strongMode && StaticInfo.isKnownFunction(expression);
+    bool concrete = _options.strongMode && checker.isKnownFunction(expression);
     if (concrete) {
       actualStaticType =
           _typeSystem.typeToConcreteType(_typeProvider, actualStaticType);
@@ -6222,6 +6222,13 @@ class RequiredConstantsComputer extends RecursiveAstVisitor {
   RequiredConstantsComputer(this.source);
 
   @override
+  Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    _checkForMissingRequiredParam(
+        node.staticInvokeType, node.argumentList, node);
+    return super.visitFunctionExpressionInvocation(node);
+  }
+
+  @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
     DartType type = node.constructorName.type.type;
     if (type is InterfaceType) {
@@ -6236,6 +6243,25 @@ class RequiredConstantsComputer extends RecursiveAstVisitor {
     _checkForMissingRequiredParam(
         node.staticInvokeType, node.argumentList, node.methodName);
     return super.visitMethodInvocation(node);
+  }
+
+  @override
+  Object visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
+    DartType type = node.staticElement?.type;
+    if (type != null) {
+      _checkForMissingRequiredParam(type, node.argumentList, node);
+    }
+    return super.visitRedirectingConstructorInvocation(node);
+  }
+
+  @override
+  Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    DartType type = node.staticElement?.type;
+    if (type != null) {
+      _checkForMissingRequiredParam(type, node.argumentList, node);
+    }
+    return super.visitSuperConstructorInvocation(node);
   }
 
   void _checkForMissingRequiredParam(

@@ -217,7 +217,8 @@ const ICData& JitOptimizer::TrySpecializeICData(const ICData& ic_data,
         String::Handle(Z, ic_data.target_name()),
         Object::empty_array(),  // Dummy argument descriptor.
         ic_data.deopt_id(),
-        ic_data.NumArgsTested()));
+        ic_data.NumArgsTested(),
+        false));
     new_ic_data.SetDeoptReasons(ic_data.DeoptReasons());
     new_ic_data.AddReceiverCheck(cid, function);
     return new_ic_data;

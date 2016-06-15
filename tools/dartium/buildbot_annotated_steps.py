@@ -34,7 +34,7 @@ def RunDartTests(mode, component, suite, arch, checked, test_filter=None,
   """
   cmd = []
   if sys.platform.startswith('linux'):
-    cmd = ['xvfb-run', '-a']
+    cmd = ['xvfb-run', '--server-args=-screen 0 1024x768x24','-a']
   cmd.append(sys.executable)
   script = os.path.join(DART_PATH, 'tools', 'dartium', 'test.py')
   cmd.append(script)

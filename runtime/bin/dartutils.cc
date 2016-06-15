@@ -408,11 +408,12 @@ static Dart_Handle LoadDataAsync_Invoke(Dart_Handle tag,
 Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
                                          Dart_Handle library,
                                          Dart_Handle url) {
-  if (tag == Dart_kCanonicalizeUrl) {
-    return Dart_DefaultCanonicalizeUrl(library, url);
+  Dart_Handle library_url = Dart_LibraryUrl(library);
+  if (Dart_IsError(library_url)) {
+    return library_url;
   }
-  if (!Dart_IsLibrary(library)) {
-    return Dart_NewApiError("not a library");
+  if (tag == Dart_kCanonicalizeUrl) {
+    return Dart_DefaultCanonicalizeUrl(library_url, url);
   }
   if (!Dart_IsString(url)) {
     return Dart_NewApiError("url is not a string");
@@ -422,7 +423,6 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
   if (Dart_IsError(result)) {
     return result;
   }
-  Dart_Handle library_url = Dart_LibraryUrl(library);
   const char* library_url_string = NULL;
   result = Dart_StringToCString(library_url, &library_url_string);
   if (Dart_IsError(result)) {

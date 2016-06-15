@@ -994,7 +994,7 @@ class PrefixedNamespace implements Namespace {
 
   @override
   Element get(String name) {
-    if (name.startsWith(_prefix)) {
+    if (name.length > _length && name.startsWith(_prefix)) {
       if (name.codeUnitAt(_length) == '.'.codeUnitAt(0)) {
         return _definedNames[name.substring(_length + 1)];
       }

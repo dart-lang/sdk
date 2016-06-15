@@ -155,6 +155,8 @@
     'deferred_objects.h',
     'deopt_instructions.cc',
     'deopt_instructions.h',
+    'dev_fs.cc',
+    'dev_fs.h',
     'disassembler.cc',
     'disassembler.h',
     'disassembler_arm.cc',

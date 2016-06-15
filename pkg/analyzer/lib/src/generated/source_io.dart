@@ -239,8 +239,14 @@ class FileBasedSource extends Source {
   }
 
   @override
-  bool operator ==(Object object) =>
-      object is FileBasedSource && id == object.id;
+  bool operator ==(Object object) {
+    if (object is FileBasedSource) {
+      return id == object.id;
+    } else if (object is Source) {
+      return uri == object.uri;
+    }
+    return false;
+  }
 
   @override
   bool exists() => file.isFile();

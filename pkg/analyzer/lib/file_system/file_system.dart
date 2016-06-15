@@ -106,6 +106,14 @@ abstract class Folder implements Resource {
   Resource getChild(String relPath);
 
   /**
+   * Return a [File] representing a child [Resource] with the given
+   * [relPath].  This call does not check whether a file with the given name
+   * exists on the filesystem - client must call the [File]'s `exists` getter
+   * to determine whether the folder actually exists.
+   */
+  File getChildAssumingFile(String relPath);
+
+  /**
    * Return a [Folder] representing a child [Resource] with the given
    * [relPath].  This call does not check whether a folder with the given name
    * exists on the filesystem--client must call the [Folder]'s `exists` getter
@@ -145,6 +153,13 @@ abstract class Resource {
    * denote this resource.
    */
   String get shortName;
+
+  /**
+   * Synchronously deletes this resource and its children.
+   *
+   * Throws an exception if the resource cannot be deleted.
+   */
+  void delete();
 
   /**
    * Return `true` if absolute [path] references this resource or a resource in

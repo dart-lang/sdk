@@ -68,6 +68,10 @@ class IsolateReloadContext {
 
   void RegisterClass(const Class& new_cls);
 
+  // Finds the library private key for |replacement_or_new| or return null
+  // if |replacement_or_new| is new.
+  RawString* FindLibraryPrivateKey(const Library& replacement_or_new);
+
   int64_t start_time_micros() const { return start_time_micros_; }
 
  private:

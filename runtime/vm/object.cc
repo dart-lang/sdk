@@ -10364,6 +10364,8 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(thread->IsMutatorThread());
+  // Force the url to have a hash code.
+  url.Hash();
   const Library& result = Library::Handle(zone, Library::New());
   result.StorePointer(&result.raw_ptr()->name_, Symbols::Empty().raw());
   result.StorePointer(&result.raw_ptr()->url_, url.raw());
@@ -10550,6 +10552,18 @@ void Library::AllocatePrivateKey() const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
+
+  if (FLAG_support_reload && isolate->IsReloading()) {
+    // When reloading, we need to make sure we use the original private key
+    // if this library previously existed.
+    IsolateReloadContext* reload_context = isolate->reload_context();
+    const String& original_key =
+        String::Handle(reload_context->FindLibraryPrivateKey(*this));
+    if (!original_key.IsNull()) {
+      StorePointer(&raw_ptr()->private_key_, original_key.raw());
+      return;
+    }
+  }
 
   // Format of the private key is: "@<sequence number><6 digits of hash>
   const intptr_t hash_mask = 0x7FFFF;
@@ -10936,12 +10950,17 @@ bool LibraryPrefix::LoadLibrary() const {
     pending_deferred_loads.Add(deferred_lib);
     const String& lib_url = String::Handle(zone, deferred_lib.url());
     Dart_LibraryTagHandler handler = isolate->library_tag_handler();
+    Object& obj = Object::Handle(zone);
     {
       TransitionVMToNative transition(thread);
       Api::Scope api_scope(thread);
-      handler(Dart_kImportTag,
-              Api::NewHandle(thread, importer()),
-              Api::NewHandle(thread, lib_url.raw()));
+      obj = Api::UnwrapHandle(
+              handler(Dart_kImportTag,
+                      Api::NewHandle(thread, importer()),
+                      Api::NewHandle(thread, lib_url.raw())));
+    }
+    if (obj.IsError()) {
+      Exceptions::PropagateError(Error::Cast(obj));
     }
   } else {
     // Another load request is in flight.
@@ -12553,6 +12572,17 @@ void ICData::AddDeoptReason(DeoptReasonId reason) const {
 }
 
 
+void ICData::SetIsStaticCall(bool static_call) const {
+  StoreNonPointer(&raw_ptr()->state_bits_,
+                  StaticCallBit::update(static_call, raw_ptr()->state_bits_));
+}
+
+
+bool ICData::is_static_call() const {
+  return StaticCallBit::decode(raw_ptr()->state_bits_);
+}
+
+
 void ICData::set_state_bits(uint32_t bits) const {
   StoreNonPointer(&raw_ptr()->state_bits_, bits);
 }
@@ -13365,7 +13395,8 @@ RawICData* ICData::NewDescriptor(Zone* zone,
                                  const String& target_name,
                                  const Array& arguments_descriptor,
                                  intptr_t deopt_id,
-                                 intptr_t num_args_tested) {
+                                 intptr_t num_args_tested,
+                                 bool is_static_call) {
   ASSERT(!owner.IsNull());
   ASSERT(!target_name.IsNull());
   ASSERT(!arguments_descriptor.IsNull());
@@ -13388,6 +13419,7 @@ RawICData* ICData::NewDescriptor(Zone* zone,
 #if defined(TAG_IC_DATA)
   result.set_tag(-1);
 #endif
+  result.SetIsStaticCall(is_static_call);
   result.SetNumArgsTested(num_args_tested);
   return result.raw();
 }
@@ -13432,7 +13464,8 @@ RawICData* ICData::New(const Function& owner,
                        const String& target_name,
                        const Array& arguments_descriptor,
                        intptr_t deopt_id,
-                       intptr_t num_args_tested) {
+                       intptr_t num_args_tested,
+                       bool is_static_call) {
   Zone* zone = Thread::Current()->zone();
   const ICData& result = ICData::Handle(zone,
                                         NewDescriptor(zone,
@@ -13440,7 +13473,8 @@ RawICData* ICData::New(const Function& owner,
                                                       target_name,
                                                       arguments_descriptor,
                                                       deopt_id,
-                                                      num_args_tested));
+                                                      num_args_tested,
+                                                      is_static_call));
   result.set_ic_data_array(
       Array::Handle(zone, NewEmptyICDataArray(num_args_tested)));
   return result.raw();
@@ -13453,7 +13487,8 @@ RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
       String::Handle(from.target_name()),
       Array::Handle(from.arguments_descriptor()),
       from.deopt_id(),
-      num_args_tested));
+      num_args_tested,
+      from.is_static_call()));
   // Copy deoptimization reasons.
   result.SetDeoptReasons(from.DeoptReasons());
   return result.raw();
@@ -13468,7 +13503,8 @@ RawICData* ICData::Clone(const ICData& from) {
       String::Handle(zone, from.target_name()),
       Array::Handle(zone, from.arguments_descriptor()),
       from.deopt_id(),
-      from.NumArgsTested()));
+      from.NumArgsTested(),
+      from.is_static_call()));
   // Clone entry array.
   const Array& from_array = Array::Handle(zone, from.ic_data());
   const intptr_t len = from_array.Length();
@@ -18039,7 +18075,7 @@ RawMixinAppType* MixinAppType::New() {
   // on new heap.
   RawObject* raw = Object::Allocate(MixinAppType::kClassId,
                                     MixinAppType::InstanceSize(),
-                                    Heap::kNew);
+                                    Heap::kOld);
   return reinterpret_cast<RawMixinAppType*>(raw);
 }
 

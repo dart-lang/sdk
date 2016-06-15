@@ -156,6 +156,8 @@ R(support_disassembler, false, bool, true,                                     \
   "Support the disassembler.")                                                 \
 R(support_il_printer, false, bool, true,                                       \
   "Support the IL printer.")                                                   \
+R(support_reload, false, bool, true,                                           \
+  "Support isolate reload.")                                                   \
 R(support_service, false, bool, true,                                          \
   "Support the service protocol.")                                             \
 R(support_timeline, false, bool, true,                                         \

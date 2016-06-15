@@ -114,6 +114,7 @@ issue14236_test: Skip # dart2js does not deal with Script snapshots.
 unboxed_int_converter_test: Skip
 pair_location_remapping_test: Skip
 regress_25335_test: Skip # Int64List not supported.
+deferred_transitive_import_error_test: Skip # Contains intentional errors.
 
 [ $compiler == dart2js && $cps_ir && $checked ]
 *: Skip # `assert` not implemented
@@ -170,6 +171,7 @@ package/scenarios/both_dir_and_file/prefers_packages_file_test: StaticWarning
 package/scenarios/packages_file_in_parent/sub/packages_file_in_parent_test: StaticWarning
 typed_data_test: StaticWarning
 typed_data_view_test: StaticWarning
+deferred_transitive_import_error_test: Skip # Contains intentional errors.
 
 [ $compiler == dart2analyzer ]
 package/package1_test: CompileTimeError
@@ -260,7 +262,7 @@ io/socket_cross_process_test: Skip # Platform.executable
 io/test_runner_test: Skip # Platform.executable
 io/file_lock_test: Skip # Platform.executable
 io/code_collection_test: Skip # Platform.executable
-io/file_lock_test: Skip # Platform.executable
+io/file_blocking_lock_test: Skip # Platform.executable
 io/raw_socket_cross_process_test: Skip # Platform.executable
 io/test_extension_test: Skip # Platform.executable
 io/named_pipe_script_test: Skip # Platform.executable
@@ -317,3 +319,6 @@ typed_array_int64_uint64_test: Skip # Issue #26376
 
 oom_error_stacktrace_test: Skip # Issue #26377
 out_of_memory_test: Skip # Issue #26377
+
+[ $runtime == dart_precompiled ]
+deferred_transitive_import_error_test: Skip # Contains intentional errors.

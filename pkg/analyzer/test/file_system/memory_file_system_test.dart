@@ -48,6 +48,14 @@ class FileSystemExceptionTest {
 class FileTest {
   MemoryResourceProvider provider = new MemoryResourceProvider();
 
+  void test_delete() {
+    File file = provider.newFile('/foo/file.txt', 'content');
+    expect(file.exists, isTrue);
+    // delete
+    file.delete();
+    expect(file.exists, isFalse);
+  }
+
   void test_equals_beforeAndAfterCreate() {
     String path = '/file.txt';
     File file1 = provider.getResource(path);
@@ -241,6 +249,23 @@ class FolderTest {
     expect(folder.contains('/foo/bar'), isFalse);
   }
 
+  void test_delete() {
+    Folder folder = provider.newFolder('/foo');
+    Folder barFolder = provider.newFolder('/foo/bar');
+    File aFile = provider.newFile('/foo/bar/a.txt', '');
+    File bFile = provider.newFile('/foo/b.txt', '');
+    expect(folder.exists, isTrue);
+    expect(barFolder.exists, isTrue);
+    expect(aFile.exists, isTrue);
+    expect(bFile.exists, isTrue);
+    // delete 'folder'
+    folder.delete();
+    expect(folder.exists, isFalse);
+    expect(barFolder.exists, isFalse);
+    expect(aFile.exists, isFalse);
+    expect(bFile.exists, isFalse);
+  }
+
   void test_equal_false() {
     String path2 = '/foo/baz';
     Folder folder2 = provider.newFolder(path2);
@@ -270,6 +295,26 @@ class FolderTest {
     Folder child = folder.getChild('baz');
     expect(child, isNotNull);
     expect(child.exists, isTrue);
+  }
+
+  void test_getChildAssumingFile_doesNotExist() {
+    File child = folder.getChildAssumingFile('name');
+    expect(child, isNotNull);
+    expect(child.exists, isFalse);
+  }
+
+  void test_getChildAssumingFile_file() {
+    provider.newFile('/foo/bar/name', 'content');
+    File child = folder.getChildAssumingFile('name');
+    expect(child, isNotNull);
+    expect(child.exists, isTrue);
+  }
+
+  void test_getChildAssumingFile_folder() {
+    provider.newFolder('/foo/bar/name');
+    File child = folder.getChildAssumingFile('name');
+    expect(child, isNotNull);
+    expect(child.exists, isFalse);
   }
 
   void test_getChildAssumingFolder_doesNotExist() {

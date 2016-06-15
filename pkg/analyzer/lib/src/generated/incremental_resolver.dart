@@ -1806,10 +1806,7 @@ class PoorMansIncrementalResolver {
   }
 
   static _TokenPair _findFirstDifferentToken(Token oldToken, Token newToken) {
-    while (true) {
-      if (oldToken.type == TokenType.EOF && newToken.type == TokenType.EOF) {
-        return null;
-      }
+    while (oldToken.type != TokenType.EOF || newToken.type != TokenType.EOF) {
       if (oldToken.type == TokenType.EOF || newToken.type == TokenType.EOF) {
         return new _TokenPair(_TokenDifferenceKind.CONTENT, oldToken, newToken);
       }
@@ -2109,8 +2106,7 @@ class _ElementOffsetUpdater extends GeneralizingElementVisitor {
         (element as ElementImpl).nameOffset = nameOffset + updateDelta;
       }
       if (element is ConstVariableElement) {
-        ConstVariableElement constVariable = element as ConstVariableElement;
-        Expression initializer = constVariable.constantInitializer;
+        Expression initializer = element.constantInitializer;
         if (initializer != null) {
           _shiftTokens(initializer.beginToken);
         }

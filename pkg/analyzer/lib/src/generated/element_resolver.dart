@@ -1768,36 +1768,33 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * [operator].
    */
   TokenType _operatorFromCompoundAssignment(TokenType operator) {
-    while (true) {
-      if (operator == TokenType.AMPERSAND_EQ) {
-        return TokenType.AMPERSAND;
-      } else if (operator == TokenType.BAR_EQ) {
-        return TokenType.BAR;
-      } else if (operator == TokenType.CARET_EQ) {
-        return TokenType.CARET;
-      } else if (operator == TokenType.GT_GT_EQ) {
-        return TokenType.GT_GT;
-      } else if (operator == TokenType.LT_LT_EQ) {
-        return TokenType.LT_LT;
-      } else if (operator == TokenType.MINUS_EQ) {
-        return TokenType.MINUS;
-      } else if (operator == TokenType.PERCENT_EQ) {
-        return TokenType.PERCENT;
-      } else if (operator == TokenType.PLUS_EQ) {
-        return TokenType.PLUS;
-      } else if (operator == TokenType.SLASH_EQ) {
-        return TokenType.SLASH;
-      } else if (operator == TokenType.STAR_EQ) {
-        return TokenType.STAR;
-      } else if (operator == TokenType.TILDE_SLASH_EQ) {
-        return TokenType.TILDE_SLASH;
-      } else {
-        // Internal error: Unmapped assignment operator.
-        AnalysisEngine.instance.logger.logError(
-            "Failed to map ${operator.lexeme} to it's corresponding operator");
-        return operator;
-      }
-      break;
+    if (operator == TokenType.AMPERSAND_EQ) {
+      return TokenType.AMPERSAND;
+    } else if (operator == TokenType.BAR_EQ) {
+      return TokenType.BAR;
+    } else if (operator == TokenType.CARET_EQ) {
+      return TokenType.CARET;
+    } else if (operator == TokenType.GT_GT_EQ) {
+      return TokenType.GT_GT;
+    } else if (operator == TokenType.LT_LT_EQ) {
+      return TokenType.LT_LT;
+    } else if (operator == TokenType.MINUS_EQ) {
+      return TokenType.MINUS;
+    } else if (operator == TokenType.PERCENT_EQ) {
+      return TokenType.PERCENT;
+    } else if (operator == TokenType.PLUS_EQ) {
+      return TokenType.PLUS;
+    } else if (operator == TokenType.SLASH_EQ) {
+      return TokenType.SLASH;
+    } else if (operator == TokenType.STAR_EQ) {
+      return TokenType.STAR;
+    } else if (operator == TokenType.TILDE_SLASH_EQ) {
+      return TokenType.TILDE_SLASH;
+    } else {
+      // Internal error: Unmapped assignment operator.
+      AnalysisEngine.instance.logger.logError(
+          "Failed to map ${operator.lexeme} to it's corresponding operator");
+      return operator;
     }
   }
 

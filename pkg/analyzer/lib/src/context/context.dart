@@ -271,6 +271,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         ((options is AnalysisOptionsImpl)
             ? this._options.strongModeHints != options.strongModeHints
             : false) ||
+        ((options is AnalysisOptionsImpl)
+            ? this._options.implicitCasts != options.implicitCasts
+            : false) ||
         this._options.enableStrictCallChecks !=
             options.enableStrictCallChecks ||
         this._options.enableGenericMethods != options.enableGenericMethods ||
@@ -298,8 +301,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.lint = options.lint;
     this._options.preserveComments = options.preserveComments;
     this._options.strongMode = options.strongMode;
+    this._options.trackCacheDependencies = options.trackCacheDependencies;
     if (options is AnalysisOptionsImpl) {
       this._options.strongModeHints = options.strongModeHints;
+      this._options.implicitCasts = options.implicitCasts;
     }
     if (needsRecompute) {
       for (WorkManager workManager in workManagers) {
@@ -487,6 +492,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (coreElement == null) {
       throw new AnalysisException("Could not create an element for dart:core");
     }
+
     LibraryElement asyncElement;
     if (analysisOptions.enableAsync) {
       Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
@@ -499,8 +505,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             "Could not create an element for dart:async");
       }
     } else {
-      asyncElement = createMockAsyncLib(coreElement);
+      Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
+      asyncElement = createMockAsyncLib(coreElement, asyncSource);
     }
+
     _typeProvider = new TypeProviderImpl(coreElement, asyncElement);
     return _typeProvider;
   }
@@ -678,6 +686,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     CacheState state = entry.getState(descriptor);
     if (state == CacheState.FLUSHED || state == CacheState.INVALID) {
       driver.computeResult(target, descriptor);
+      entry = getCacheEntry(target);
     }
     state = entry.getState(descriptor);
     if (state == CacheState.ERROR) {
@@ -725,7 +734,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * to stand in for a real one if one does not exist
    * facilitating creation a type provider without dart:async.
    */
-  LibraryElement createMockAsyncLib(LibraryElement coreLibrary) {
+  LibraryElement createMockAsyncLib(
+      LibraryElement coreLibrary, Source asyncSource) {
     InterfaceType objType = coreLibrary.getType('Object').type;
 
     ClassElement _classElement(String typeName, [List<String> parameterNames]) {
@@ -760,6 +770,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     asyncUnit.types = <ClassElement>[futureType.element, streamType.element];
     LibraryElementImpl mockLib = new LibraryElementImpl.forNode(
         this, AstFactory.libraryIdentifier2(["dart.async"]));
+    asyncUnit.librarySource = asyncSource;
+    asyncUnit.source = asyncSource;
     mockLib.definingCompilationUnit = asyncUnit;
     mockLib.publicNamespace =
         new NamespaceBuilder().createPublicNamespaceForLibrary(mockLib);
@@ -1051,13 +1063,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     bool changed = newContents != originalContents;
     if (newContents != null) {
       if (changed) {
+        entry.modificationTime = _contentCache.getModificationStamp(source);
         if (!analysisOptions.incremental ||
             !_tryPoorMansIncrementalResolution(source, newContents)) {
           // Don't compare with old contents because the cache has already been
           // updated, and we know at this point that it changed.
           _sourceChanged(source, compareWithOld: false);
         }
-        entry.modificationTime = _contentCache.getModificationStamp(source);
         entry.setValue(CONTENT, newContents, TargetedResult.EMPTY_LIST);
       } else {
         entry.modificationTime = _contentCache.getModificationStamp(source);

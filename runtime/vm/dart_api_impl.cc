@@ -16,6 +16,7 @@
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
+#include "vm/dev_fs.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
@@ -5170,24 +5171,23 @@ DART_EXPORT Dart_Handle Dart_SetLibraryTagHandler(
 }
 
 
-DART_EXPORT Dart_Handle Dart_DefaultCanonicalizeUrl(Dart_Handle library,
+DART_EXPORT Dart_Handle Dart_DefaultCanonicalizeUrl(Dart_Handle base_url,
                                                     Dart_Handle url) {
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   CHECK_CALLBACK_STATE(T);
 
-  const Library& lib = Api::UnwrapLibraryHandle(Z, library);
-  if (lib.IsNull()) {
-    RETURN_TYPE_ERROR(Z, library, Library);
+  const String& base_uri = Api::UnwrapStringHandle(Z, base_url);
+  if (base_uri.IsNull()) {
+    RETURN_TYPE_ERROR(Z, base_url, String);
   }
   const String& uri = Api::UnwrapStringHandle(Z, url);
   if (uri.IsNull()) {
     RETURN_TYPE_ERROR(Z, url, String);
   }
 
-  const String& lib_uri = String::Handle(Z, lib.url());
   const char* resolved_uri;
-  if (!ResolveUri(uri.ToCString(), lib_uri.ToCString(), &resolved_uri)) {
+  if (!ResolveUri(uri.ToCString(), base_uri.ToCString(), &resolved_uri)) {
     return Api::NewError("%s: Unable to canonicalize uri '%s'.",
                          CURRENT_FUNC, uri.ToCString());
   }

@@ -8,7 +8,7 @@ import "dart:isolate";
 // This type corresponds to the VM-internal class LibraryPrefix.
 class _LibraryPrefix {
   bool _load() native "LibraryPrefix_load";
-  Error _loadError() native "LibraryPrefix_loadError";
+  Object _loadError() native "LibraryPrefix_loadError";
   bool isLoaded() native "LibraryPrefix_isLoaded";
   bool _invalidateDependentCode()
       native "LibraryPrefix_invalidateDependentCode";
@@ -32,7 +32,7 @@ class _LibraryPrefix {
       // prefix. If that is the case, we must invalidate the dependent
       // code and complete the future now since there will be no callback
       // from the VM.
-      if (hasCompleted) {
+      if (hasCompleted && !completer.isCompleted) {
         _invalidateDependentCode();
         completer.complete(true);
         _outstandingLoadRequests.remove(pair);
@@ -53,19 +53,27 @@ _completeDeferredLoads() {
   // which have not completed, remember them for next time in
   // stillOutstandingLoadRequests.
   var stillOutstandingLoadRequests = new List<List>();
-  for (int i = 0; i < _outstandingLoadRequests.length; i++) {
-    var prefix = _outstandingLoadRequests[i][0];
-    if (prefix._load()) {
-      var completer = _outstandingLoadRequests[i][1];
-      var error = prefix._loadError();
-      if (error != null) {
-        completer.completeError(error);
-      } else {
-        prefix._invalidateDependentCode();
-        completer.complete(true);
-      }
+  var completedLoadRequests = new List<List>();
+
+  // Make a copy of the outstandingRequests because the call to _load below
+  // may recursively trigger another call to |_completeDeferredLoads|, which
+  // can cause |_outstandingLoadRequests| to be modified.
+  var outstandingRequests = _outstandingLoadRequests.toList();
+  for (int i = 0; i < outstandingRequests.length; i++) {
+    var prefix = outstandingRequests[i][0];
+    var completer = outstandingRequests[i][1];
+    var error = prefix._loadError();
+    if (completer.isCompleted) {
+      // Already completed. Skip.
+      continue;
+    }
+    if (error != null) {
+      completer.completeError(error);
+    } else if (prefix._load()) {
+      prefix._invalidateDependentCode();
+      completer.complete(true);
     } else {
-      stillOutstandingLoadRequests.add(_outstandingLoadRequests[i]);
+      stillOutstandingLoadRequests.add(outstandingRequests[i]);
     }
   }
   _outstandingLoadRequests = stillOutstandingLoadRequests;

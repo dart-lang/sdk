@@ -14,8 +14,9 @@ LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Pass, RuntimeEr
 
 [ $compiler == none && $runtime == dartium && $system == windows ]
 LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Pass, RuntimeError # Issue 21605
-WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: RuntimeError # Please triage this failure.
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t01: Skip # Timesout Issue 26134
+WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: Skip # Timesout sporadically
+WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-003_t01: Skip # Timesout sporadically
 LayoutTests/fast/css/MarqueeLayoutTest_t01: Pass, RuntimeError # Please triage this failure
 
 [ $compiler == none && $runtime == dartium && $system != windows ]
@@ -116,6 +117,7 @@ LayoutTests/fast/shapes/parsing/parsing-shape-image-threshold_t01: RuntimeError 
 LayoutTests/fast/shapes/parsing/parsing-shape-margin_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/table/absolute-table-percent-lengths_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/css-table-width_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/table/css-table-width-with-border-padding_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/table/fixed-table-layout-width-change_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/html-table-width-max-width-constrained_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/margins-flipped-text-direction_t01: RuntimeError # co19-roll r786: Please triage this failure.
@@ -130,6 +132,7 @@ LayoutTests/fast/table/table-width-exceeding-max-width_t01: RuntimeError # co19-
 LayoutTests/fast/text/line-break-after-inline-latin1_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/url/trivial-segments_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/url/trivial_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/writing-mode/auto-sizing-orthogonal-flows_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/xpath/xpath-result-eventlistener-crash_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LibTest/html/Node/ownerDocument_A01_t01: RuntimeError # co19-roll r722: Issue 18251
 WebPlatformTest/DOMEvents/approved/Propagation.path.target.removed_t01: RuntimeError # co19-roll r738: Please triage this failure.
@@ -657,7 +660,6 @@ LayoutTests/fast/forms/formmethod-attribute-button-html_t01: Skip # Test reloads
 LayoutTests/fast/forms/formmethod-attribute-input-2_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/formmethod-attribute-input-html_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/formmethod-attribute-input-html_t01: Skip # Test reloads itself. Issue 18558.
-LayoutTests/fast/forms/input-appearance-elementFromPoint_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/input-hit-test-border_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/input-inputmode_t01: RuntimeError # Experimental feature not exposed in Chrome yet
 LayoutTests/fast/forms/input-width-height-attributes-without-renderer-loaded-image_t01: RuntimeError # co19-roll r801: Please triage this failure.
@@ -697,8 +699,6 @@ LayoutTests/fast/inline/inline-with-empty-inline-children_t01: RuntimeError # co
 LayoutTests/fast/inline/out-of-flow-objects-and-whitespace-after-empty-inline_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/inline/parent-inline-element-padding-contributes-width_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/inline/positioned-element-padding-contributes-width_t01: RuntimeError # co19-roll r801: Please triage this failure.
-LayoutTests/fast/layers/normal-flow-hit-test_t01: RuntimeError # co19 issue 11.
-LayoutTests/fast/layers/normal-flow-hit-test_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/layers/zindex-hit-test_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/layers/zindex-hit-test_t01: RuntimeError # co19 issue 11.
 LayoutTests/fast/lists/list-style-position-inside_t01: Pass, RuntimeError # co19 issue 11.
@@ -730,7 +730,6 @@ LayoutTests/fast/multicol/hit-test-above-or-below_t01: RuntimeError # co19-roll 
 LayoutTests/fast/multicol/hit-test-end-of-column-with-line-height_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/hit-test-end-of-column_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/hit-test-float_t01: RuntimeError # co19-roll r801: Please triage this failure.
-LayoutTests/fast/multicol/hit-test-gap-between-pages-flipped_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/hit-test-gap-between-pages_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/newmulticol/balance-images_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/newmulticol/balance-maxheight_t01: RuntimeError # co19-roll r801: Please triage this failure.
@@ -812,7 +811,6 @@ LayoutTests/fast/table/col-width-span-expand_t01: Skip # co19 issue 732.
 LayoutTests/fast/table/computeLogicalWidth-table-needsSectionRecalc_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/css-table-max-height_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/css-table-max-width_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/table/css-table-width-with-border-padding_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/fixed-table-layout-width-change_t01: Pass, RuntimeError # False passes on Firefox # co19 issue 11.
 LayoutTests/fast/table/hittest-tablecell-bottom-edge_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/hittest-tablecell-bottom-edge_t01: Skip # co19 issue 11.
@@ -893,7 +891,6 @@ LayoutTests/fast/url/relative_t01: RuntimeError # co19-roll r786: Please triage 
 LayoutTests/fast/url/segments-from-data-url_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/url/segments_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/url/standard-url_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/writing-mode/auto-sizing-orthogonal-flows_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/writing-mode/percentage-margins-absolute-replaced_t01: Pass, RuntimeError # co19 issue 11.
 LayoutTests/fast/writing-mode/positionForPoint_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/writing-mode/positionForPoint_t01: Skip # co19 issue 732.

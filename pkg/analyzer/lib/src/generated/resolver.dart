@@ -30,8 +30,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/task/strong/info.dart'
-    show InferredType, StaticInfo;
 
 export 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 export 'package:analyzer/src/dart/resolver/scope.dart';
@@ -1915,13 +1913,13 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitSwitchCase(SwitchCase node) {
-    _checkForDeadStatementsInNodeList(node.statements);
+    _checkForDeadStatementsInNodeList(node.statements, allowMandated: true);
     return super.visitSwitchCase(node);
   }
 
   @override
   Object visitSwitchDefault(SwitchDefault node) {
-    _checkForDeadStatementsInNodeList(node.statements);
+    _checkForDeadStatementsInNodeList(node.statements, allowMandated: true);
     return super.visitSwitchDefault(node);
   }
 
@@ -2047,8 +2045,12 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
    * [SwitchMember], this loops through the list searching for dead statements.
    *
    * @param statements some ordered list of statements in a [Block] or [SwitchMember]
+   * @param allowMandated allow dead statements mandated by the language spec.
+   *            This allows for a final break, continue, return, or throw statement
+   *            at the end of a switch case, that are mandated by the language spec.
    */
-  void _checkForDeadStatementsInNodeList(NodeList<Statement> statements) {
+  void _checkForDeadStatementsInNodeList(
+      NodeList<Statement> statements, {bool allowMandated: false}) {
     bool statementExits(Statement statement) {
       if (statement is BreakStatement) {
         return statement.label == null;
@@ -2065,6 +2067,13 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
       if (statementExits(currentStatement) && i != size - 1) {
         Statement nextStatement = statements[i + 1];
         Statement lastStatement = statements[size - 1];
+        // If mandated statements are allowed, and only the last statement is
+        // dead, and it's a BreakStatement, then assume it is a statement
+        // mandated by the language spec, there to avoid a
+        // CASE_BLOCK_NOT_TERMINATED error.
+        if (allowMandated && i == size - 2 && nextStatement is BreakStatement) {
+          return;
+        }
         int offset = nextStatement.offset;
         int length = lastStatement.end - offset;
         _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE, offset, length);
@@ -3757,23 +3766,28 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     _enclosingBlockContainsBreak = false;
     try {
       bool hasDefault = false;
+      bool hasNonExitingCase = false;
       List<SwitchMember> members = node.members;
       for (int i = 0; i < members.length; i++) {
         SwitchMember switchMember = members[i];
         if (switchMember is SwitchDefault) {
           hasDefault = true;
-          // If this is the last member and there are no statements, return
-          // false
+          // If this is the last member and there are no statements, then it
+          // does not exit.
           if (switchMember.statements.isEmpty && i + 1 == members.length) {
-            return false;
+            hasNonExitingCase = true;
+            continue;
           }
         }
-        // For switch members with no statements, don't visit the children,
-        // otherwise, return false if no return is found in the children
-        // statements.
+        // For switch members with no statements, don't visit the children.
+        // Otherwise, if there children statements don't exit, mark this as a
+        // non-exiting case.
         if (!switchMember.statements.isEmpty && !switchMember.accept(this)) {
-          return false;
+          hasNonExitingCase = true;
         }
+      }
+      if (hasNonExitingCase) {
+        return false;
       }
       // As all cases exit, return whether that list includes `default`.
       return hasDefault;
@@ -3790,14 +3804,18 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitTryStatement(TryStatement node) {
-    if (_nodeExits(node.body)) {
+    if (_nodeExits(node.finallyBlock)) {
       return true;
     }
-    Block finallyBlock = node.finallyBlock;
-    if (_nodeExits(finallyBlock)) {
-      return true;
+    if (!_nodeExits(node.body)) {
+      return false;
     }
-    return false;
+    for (CatchClause c in node.catchClauses) {
+      if (!_nodeExits(c.body)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @override
@@ -4642,7 +4660,7 @@ class InferenceContext {
   /**
    * The error listener on which to record inference information.
    */
-  final AnalysisErrorListener _errorListener;
+  final ErrorReporter _errorReporter;
 
   /**
    * If true, emit hints when types are inferred
@@ -4675,7 +4693,7 @@ class InferenceContext {
   // https://github.com/dart-lang/sdk/issues/25322
   final List<DartType> _returnStack = <DartType>[];
 
-  InferenceContext._(this._errorListener, TypeProvider typeProvider,
+  InferenceContext._(this._errorReporter, TypeProvider typeProvider,
       this._typeSystem, this._inferenceHints)
       : _typeProvider = typeProvider;
 
@@ -4754,12 +4772,22 @@ class InferenceContext {
    * [type] has been inferred as the type of [node].
    */
   void recordInference(Expression node, DartType type) {
-    StaticInfo info = InferredType.create(_typeSystem, node, type);
-    if (!_inferenceHints || info == null) {
+    if (!_inferenceHints) {
       return;
     }
-    AnalysisError error = info.toAnalysisError();
-    _errorListener.onError(error);
+
+    ErrorCode error;
+    if (node is Literal) {
+      error = StrongModeCode.INFERRED_TYPE_LITERAL;
+    } else if (node is InstanceCreationExpression) {
+      error = StrongModeCode.INFERRED_TYPE_ALLOCATION;
+    } else if (node is FunctionExpression) {
+      error = StrongModeCode.INFERRED_TYPE_CLOSURE;
+    } else {
+      error = StrongModeCode.INFERRED_TYPE;
+    }
+
+    _errorReporter.reportErrorForNode(error, node, [node, type]);
   }
 
   List<DartType> _matchTypes(InterfaceType t1, InterfaceType t2) {
@@ -5573,7 +5601,7 @@ class ResolverVisitor extends ScopedVisitor {
       strongModeHints = options.strongModeHints;
     }
     this.inferenceContext = new InferenceContext._(
-        errorListener, typeProvider, typeSystem, strongModeHints);
+        errorReporter, typeProvider, typeSystem, strongModeHints);
     this.typeAnalyzer = new StaticTypeAnalyzer(this);
   }
 
@@ -9992,18 +10020,15 @@ class TypeResolverVisitor extends ScopedVisitor {
         TypeName typeName = node.type;
         if (typeName == null) {
           element.hasImplicitType = true;
-          type = _dynamicType;
           if (element is FieldFormalParameterElement) {
             FieldElement fieldElement =
                 (element as FieldFormalParameterElement).field;
-            if (fieldElement != null) {
-              type = fieldElement.type;
-            }
+            type = fieldElement?.type;
           }
         } else {
           type = _typeNameResolver._getType(typeName);
         }
-        element.type = type;
+        element.type = type ?? _dynamicType;
       } else {
         _setFunctionTypedParameterType(element, node.type, node.parameters);
       }
