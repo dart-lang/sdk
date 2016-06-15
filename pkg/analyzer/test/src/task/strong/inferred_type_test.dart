@@ -3701,7 +3701,7 @@ class D {
     // Check that type inference dependencies are properly checked when a top
     // level variable appears at the beginning of a string of identifiers
     // separated by '.'.
-    var mainUnit = checkFile('''
+    checkFile('''
 final a = /*info:DYNAMIC_INVOKE*/c.i;
 final c = new C(a);
 class C {

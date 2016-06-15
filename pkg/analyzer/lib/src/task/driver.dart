@@ -772,7 +772,6 @@ class WorkItem {
             throw new AnalysisException(
                 'Cannot create work order to build $inputResult for $inputTarget',
                 this.exception);
-            return null;
           }
         }
       } else {
