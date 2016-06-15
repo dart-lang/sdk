@@ -23,6 +23,7 @@ import 'package:linter/src/rules/comment_references.dart';
 import 'package:linter/src/rules/constant_identifier_names.dart';
 import 'package:linter/src/rules/control_flow_in_finally.dart';
 import 'package:linter/src/rules/empty_constructor_bodies.dart';
+import 'package:linter/src/rules/empty_statements.dart';
 import 'package:linter/src/rules/hash_and_equals.dart';
 import 'package:linter/src/rules/implementation_imports.dart';
 import 'package:linter/src/rules/iterable_contains_unrelated_type.dart';
@@ -65,6 +66,7 @@ final Registry ruleRegistry = new Registry()
   ..register(new ConstantIdentifierNames())
   ..register(new UnrelatedTypeEqualityChecks())
   ..register(new EmptyConstructorBodies())
+  ..register(new EmptyStatements())
   ..register(new TestTypesInEquals())
   ..register(new OverriddenFields())
   ..register(new HashAndEquals())
