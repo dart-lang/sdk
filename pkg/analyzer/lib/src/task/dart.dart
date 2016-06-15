@@ -4676,9 +4676,11 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
     }
     // Prepare name.
     String name = node.name;
-    if (scope.contains(name)) {
+    // Ignore unqualified names shadowed by local elements.
+    if (!node.isQualified && scope.contains(name)) {
       return;
     }
+    // Do add the dependency.
     names.names.add(name);
     if (dependsOn != null && bodyLevel == 0) {
       dependsOn.add(name);

@@ -4114,6 +4114,19 @@ A f() {
     expect(info.userToDependsOn['f'], unorderedEquals(['A']));
   }
 
+  test_referencedNames_unit_function_localsDontHideQualified() {
+    ReferencedNames info = _computeReferencedNames('''
+f(A a, B b) {
+  var v = 0;
+  a.v;
+  a.b;
+}
+''');
+    expect(info.names, unorderedEquals(['A', 'B', 'v', 'b']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['f']));
+    expect(info.userToDependsOn['f'], unorderedEquals(['A', 'B']));
+  }
+
   test_referencedNames_unit_function_localVariables() {
     ReferencedNames info = _computeReferencedNames('''
 A f() {
