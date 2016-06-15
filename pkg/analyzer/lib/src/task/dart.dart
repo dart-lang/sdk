@@ -3169,8 +3169,10 @@ class IgnoreInfo {
     IgnoreInfo ignoreInfo = new IgnoreInfo();
     for (Match match in matches) {
       // See _IGNORE_MATCHER for format --- note the possibility of error lists.
-      Iterable<String> codes =
-          match.group(1).split(',').map((String code) => code.trim());
+      Iterable<String> codes = match
+          .group(1)
+          .split(',')
+          .map((String code) => code.trim().toLowerCase());
       ignoreInfo.addAll(info.getLocation(match.start).lineNumber, codes);
     }
     return ignoreInfo;
