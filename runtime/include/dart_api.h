@@ -2692,15 +2692,15 @@ DART_EXPORT Dart_Handle Dart_SetLibraryTagHandler(
  * This canonicalization function should be sufficient for most
  * embedders to implement the Dart_kCanonicalizeUrl tag.
  *
- * \param library The library relative to which the url is being
- *                resolved.
+ * \param base_url The base url relative to which the url is
+ *                being resolved.
  * \param url The url being resolved and canonicalized.  This
  *            parameter is a string handle.
  *
  * \return If no error occurs, a String object is returned.  Otherwise
  *   an error handle is returned.
  */
-DART_EXPORT Dart_Handle Dart_DefaultCanonicalizeUrl(Dart_Handle library,
+DART_EXPORT Dart_Handle Dart_DefaultCanonicalizeUrl(Dart_Handle base_url,
                                                     Dart_Handle url);
 
 /**

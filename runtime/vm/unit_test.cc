@@ -140,7 +140,11 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                      Dart_Handle library,
                                      Dart_Handle url) {
   if (tag == Dart_kCanonicalizeUrl) {
-    return Dart_DefaultCanonicalizeUrl(library, url);
+    Dart_Handle library_url = Dart_LibraryUrl(library);
+    if (Dart_IsError(library_url)) {
+      return library_url;
+    }
+    return Dart_DefaultCanonicalizeUrl(library_url, url);
   }
   if (tag == Dart_kScriptTag) {
     // Reload request.

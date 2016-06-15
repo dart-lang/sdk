@@ -362,7 +362,11 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
                                       Dart_Handle library,
                                       Dart_Handle url) {
   if (tag == Dart_kCanonicalizeUrl) {
-    return Dart_DefaultCanonicalizeUrl(library, url);
+    Dart_Handle library_url = Dart_LibraryUrl(library);
+    if (Dart_IsError(library_url)) {
+      return library_url;
+    }
+    return Dart_DefaultCanonicalizeUrl(library_url, url);
   }
   const char* url_string = NULL;
   Dart_Handle result = Dart_StringToCString(url, &url_string);
@@ -374,6 +378,9 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   if (tag != Dart_kScriptTag) {
     // Grab the library's url.
     Dart_Handle library_url = Dart_LibraryUrl(library);
+    if (Dart_IsError(library_url)) {
+      return library_url;
+    }
     const char* library_url_string = NULL;
     result = Dart_StringToCString(library_url, &library_url_string);
     if (Dart_IsError(result)) {
@@ -399,6 +406,9 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
                                  url_string);
     }
     Dart_Handle library_url = Dart_LibraryUrl(library);
+    if (Dart_IsError(library_url)) {
+      return library_url;
+    }
     Dart_Handle library_file_path = DartUtils::LibraryFilePath(library_url);
     const char* lib_path_str = NULL;
     Dart_StringToCString(library_file_path, &lib_path_str);
