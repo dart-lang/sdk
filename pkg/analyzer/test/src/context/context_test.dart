@@ -2671,7 +2671,7 @@ class B {
       expect(unitA.element, same(unitElementA));
       expect(unitElementA.library, same(libraryElementA));
     }
-    // Add method to a.dart. This invalidates b.dart, so
+    // Add a new method to a.dart. This invalidates b.dart, so
     // we know that the previous update did not damage dependencies.
     context.setContents(
         sourceA,
@@ -2735,7 +2735,7 @@ class C {}
     _assertValid(sourceB, LIBRARY_ERRORS_READY);
   }
 
-  void test_usedName_directUser() {
+  void test_usedName_directUser_addUnresolvedClass() {
     Source sourceA = addSource(
         "/a.dart",
         r'''

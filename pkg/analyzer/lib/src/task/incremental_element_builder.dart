@@ -242,7 +242,7 @@ class IncrementalCompilationUnitElementBuilder {
   }
 
   /**
-   * Replaces contents of the [to] unit with the contenxts of the [from] unit.
+   * Replaces contents of the [to] unit with the contexts of the [from] unit.
    */
   static void _replaceUnitContents(CompilationUnit to, CompilationUnit from) {
     to.directives.clear();
@@ -317,7 +317,7 @@ class TokenUtils {
   }
 
   /**
-   * Returns all tokends (including comments) of the given [node].
+   * Returns all tokens (including comments) of the given [node].
    */
   static List<Token> getTokens(AstNode node) {
     List<Token> tokens = <Token>[];

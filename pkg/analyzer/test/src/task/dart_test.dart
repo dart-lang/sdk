@@ -68,6 +68,7 @@ main() {
   runReflectiveTests(PropagateVariableTypeTaskTest);
   runReflectiveTests(ResolveDirectiveElementsTaskTest);
   runReflectiveTests(ResolveInstanceFieldsInUnitTaskTest);
+  runReflectiveTests(ResolveLibraryReferencesTaskTest);
   runReflectiveTests(ResolveLibraryTaskTest);
   runReflectiveTests(ResolveLibraryTypeNamesTaskTest);
   runReflectiveTests(ResolveTopLevelUnitTypeBoundsTaskTest);
@@ -134,6 +135,8 @@ isInstanceOf isPropagateVariableTypeTask =
     new isInstanceOf<PropagateVariableTypeTask>();
 isInstanceOf isResolveDirectiveElementsTask =
     new isInstanceOf<ResolveDirectiveElementsTask>();
+isInstanceOf isResolveLibraryReferencesTask =
+    new isInstanceOf<ResolveLibraryReferencesTask>();
 isInstanceOf isResolveLibraryTask = new isInstanceOf<ResolveLibraryTask>();
 isInstanceOf isResolveLibraryTypeNamesTask =
     new isInstanceOf<ResolveLibraryTypeNamesTask>();
@@ -3992,6 +3995,211 @@ class A {}
     // B.b2 should now be fully resolved and inferred.
     assertVariableDeclarationTypes(
         AstFinder.getFieldInClass(unit0, "B", "b2"), intType, intType);
+  }
+}
+
+@reflectiveTest
+class ResolveLibraryReferencesTaskTest extends _AbstractDartTaskTest {
+  void setUp() {
+    super.setUp();
+    context.analysisOptions = new AnalysisOptionsImpl()
+      ..enableGenericMethods = true
+      ..strongMode = true;
+  }
+
+  test_referencedNames_class_constructor() {
+    ReferencedNames info = _computeReferencedNames('''
+class U {
+  U.named(A a, B b) {
+    C c = null;
+  }
+}
+''');
+    expect(info.names, unorderedEquals(['A', 'B', 'C']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['U']));
+    expect(info.userToDependsOn['U'], unorderedEquals(['A', 'B']));
+  }
+
+  test_referencedNames_class_field() {
+    ReferencedNames info = _computeReferencedNames('''
+class U {
+  A f = new B();
+}
+''');
+    expect(info.names, unorderedEquals(['A', 'B']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['U']));
+    expect(info.userToDependsOn['U'], unorderedEquals(['A', 'B']));
+  }
+
+  test_referencedNames_class_getter() {
+    ReferencedNames info = _computeReferencedNames('''
+class U {
+  A get a => new B();
+}
+''');
+    expect(info.names, unorderedEquals(['A', 'B']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['U']));
+    expect(info.userToDependsOn['U'], unorderedEquals(['A']));
+  }
+
+  test_referencedNames_class_method() {
+    ReferencedNames info = _computeReferencedNames('''
+class U {
+  A m(B p) {
+    C v = 0;
+  }
+}
+''');
+    expect(info.names, unorderedEquals(['A', 'B', 'C']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['U']));
+    expect(info.userToDependsOn['U'], unorderedEquals(['A', 'B']));
+  }
+
+  test_referencedNames_class_setter() {
+    ReferencedNames info = _computeReferencedNames('''
+class U {
+  set a(A a) {
+    B b = null;
+  }
+}
+''');
+    expect(info.names, unorderedEquals(['A', 'B']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['U']));
+    expect(info.userToDependsOn['U'], unorderedEquals(['A']));
+  }
+
+  test_referencedNames_class_typeParameters() {
+    ReferencedNames info = _computeReferencedNames('''
+class U<T> {
+  T f = new A<T>();
+}
+''');
+    expect(info.names, unorderedEquals(['A']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['U']));
+    expect(info.userToDependsOn['U'], unorderedEquals(['A']));
+  }
+
+  test_referencedNames_localFunction() {
+    ReferencedNames info = _computeReferencedNames('''
+f(A a) {
+  g(B b) {}
+}
+''');
+    expect(info.names, unorderedEquals(['A', 'B']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['f']));
+    expect(info.userToDependsOn['f'], unorderedEquals(['A']));
+  }
+
+  test_referencedNames_unit_function() {
+    ReferencedNames info = _computeReferencedNames('''
+A f(B b) {
+  C c = 0;
+}
+''');
+    expect(info.names, unorderedEquals(['A', 'B', 'C']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['f']));
+    expect(info.userToDependsOn['f'], unorderedEquals(['A', 'B']));
+  }
+
+  test_referencedNames_unit_function_localFunctions() {
+    ReferencedNames info = _computeReferencedNames('''
+A f() {
+  B b = null;
+  C g() {}
+  g();
+}
+''');
+    expect(info.names, unorderedEquals(['A', 'B', 'C']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['f']));
+    expect(info.userToDependsOn['f'], unorderedEquals(['A']));
+  }
+
+  test_referencedNames_unit_function_localVariables() {
+    ReferencedNames info = _computeReferencedNames('''
+A f() {
+  B b = null;
+  b;
+  {
+    C c = null;
+    b;
+    c;
+  }
+  d;
+}
+''');
+    expect(info.names, unorderedEquals(['A', 'B', 'C', 'd']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['f']));
+    expect(info.userToDependsOn['f'], unorderedEquals(['A']));
+  }
+
+  test_referencedNames_unit_function_parameters() {
+    ReferencedNames info = _computeReferencedNames('''
+A f(B b) {
+  C c = 0;
+  b;
+}
+''');
+    expect(info.names, unorderedEquals(['A', 'B', 'C']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['f']));
+    expect(info.userToDependsOn['f'], unorderedEquals(['A', 'B']));
+  }
+
+  test_referencedNames_unit_function_typeParameters() {
+    ReferencedNames info = _computeReferencedNames('''
+A f<T>(B b, T t) {
+  C c = 0;
+}
+''');
+    expect(info.names, unorderedEquals(['A', 'B', 'C']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['f']));
+    expect(info.userToDependsOn['f'], unorderedEquals(['A', 'B']));
+  }
+
+  test_referencedNames_unit_functionTypeAlias() {
+    ReferencedNames info = _computeReferencedNames('''
+typedef A F(B B, C c(D d));
+''');
+    expect(info.names, unorderedEquals(['A', 'B', 'C', 'D']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['F']));
+    expect(info.userToDependsOn['F'], unorderedEquals(['A', 'B', 'C', 'D']));
+  }
+
+  test_referencedNames_unit_functionTypeAlias_typeParameters() {
+    ReferencedNames info = _computeReferencedNames('''
+typedef A F<T>(B b, T t);
+''');
+    expect(info.names, unorderedEquals(['A', 'B']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['F']));
+    expect(info.userToDependsOn['F'], unorderedEquals(['A', 'B']));
+  }
+
+  test_referencedNames_unit_getter() {
+    ReferencedNames info = _computeReferencedNames('''
+A get aaa {
+  return new B();
+}
+''');
+    expect(info.names, unorderedEquals(['A', 'B']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['aaa']));
+    expect(info.userToDependsOn['aaa'], unorderedEquals(['A']));
+  }
+
+  test_referencedNames_unit_setter() {
+    ReferencedNames info = _computeReferencedNames('''
+set aaa(A a) {
+  B b = null;
+}
+''');
+    expect(info.names, unorderedEquals(['A', 'B']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['aaa']));
+    expect(info.userToDependsOn['aaa'], unorderedEquals(['A']));
+  }
+
+  ReferencedNames _computeReferencedNames(String code) {
+    Source source = newSource('/test.dart', code);
+    computeResult(source, REFERENCED_NAMES,
+        matcher: isResolveLibraryReferencesTask);
+    return outputs[REFERENCED_NAMES];
   }
 }
 

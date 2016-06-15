@@ -4526,6 +4526,7 @@ class ReferencedNames {
           if (delta.isNameAffected(dependency)) {
             if (delta.nameChanged(user)) {
               hasProgress = true;
+              break;
             }
           }
         }
@@ -4549,11 +4550,12 @@ class ReferencedNames {
 
 /**
  * A builder for creating [ReferencedNames].
- *
- * TODO(scheglov) Record dependencies for all other top-level declarations.
  */
-class ReferencedNamesBuilder extends RecursiveAstVisitor {
+class ReferencedNamesBuilder extends GeneralizingAstVisitor {
   final ReferencedNames names;
+
+  ReferencedNamesScope scope = new ReferencedNamesScope(null);
+
   int bodyLevel = 0;
   Set<String> dependsOn;
 
@@ -4565,42 +4567,173 @@ class ReferencedNamesBuilder extends RecursiveAstVisitor {
   }
 
   @override
-  visitBlockFunctionBody(BlockFunctionBody node) {
+  visitBlock(Block node) {
+    ReferencedNamesScope outerScope = scope;
     try {
-      bodyLevel++;
-      super.visitBlockFunctionBody(node);
+      scope = new ReferencedNamesScope.forBlock(scope, node);
+      super.visitBlock(node);
     } finally {
-      bodyLevel--;
+      scope = outerScope;
     }
   }
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
-    dependsOn = new Set<String>();
-    super.visitClassDeclaration(node);
-    names.userToDependsOn[node.name.name] = dependsOn;
-    dependsOn = null;
+    ReferencedNamesScope outerScope = scope;
+    try {
+      scope = new ReferencedNamesScope.forClass(scope, node);
+      dependsOn = new Set<String>();
+      super.visitClassDeclaration(node);
+      names.userToDependsOn[node.name.name] = dependsOn;
+    } finally {
+      dependsOn = null;
+      scope = outerScope;
+    }
   }
 
   @override
-  visitExpressionFunctionBody(ExpressionFunctionBody node) {
+  visitConstructorName(ConstructorName node) {
+    if (node.parent is! ConstructorDeclaration) {
+      super.visitConstructorName(node);
+    }
+  }
+
+  @override
+  visitFunctionBody(FunctionBody node) {
     try {
       bodyLevel++;
-      super.visitExpressionFunctionBody(node);
+      super.visitFunctionBody(node);
     } finally {
       bodyLevel--;
     }
   }
 
   @override
+  visitFunctionDeclaration(FunctionDeclaration node) {
+    if (bodyLevel == 0) {
+      ReferencedNamesScope outerScope = scope;
+      try {
+        scope = new ReferencedNamesScope.forFunction(scope, node);
+        dependsOn = new Set<String>();
+        super.visitFunctionDeclaration(node);
+        names.userToDependsOn[node.name.name] = dependsOn;
+      } finally {
+        dependsOn = null;
+        scope = outerScope;
+      }
+    } else {
+      super.visitFunctionDeclaration(node);
+    }
+  }
+
+  @override
+  visitFunctionTypeAlias(FunctionTypeAlias node) {
+    if (bodyLevel == 0) {
+      ReferencedNamesScope outerScope = scope;
+      try {
+        scope = new ReferencedNamesScope.forFunctionTypeAlias(scope, node);
+        dependsOn = new Set<String>();
+        super.visitFunctionTypeAlias(node);
+        names.userToDependsOn[node.name.name] = dependsOn;
+      } finally {
+        dependsOn = null;
+        scope = outerScope;
+      }
+    } else {
+      super.visitFunctionTypeAlias(node);
+    }
+  }
+
+  @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    if (!node.inDeclarationContext()) {
-      String name = node.name;
-      names.names.add(name);
-      if (dependsOn != null && bodyLevel == 0) {
-        dependsOn.add(name);
+    // Ignore all declarations.
+    if (node.inDeclarationContext()) {
+      return;
+    }
+    // Ignore class names references from constructors.
+    AstNode parent = node.parent;
+    if (parent is ConstructorDeclaration && parent.returnType == node) {
+      return;
+    }
+    // Prepare name.
+    String name = node.name;
+    if (scope.contains(name)) {
+      return;
+    }
+    names.names.add(name);
+    if (dependsOn != null && bodyLevel == 0) {
+      dependsOn.add(name);
+    }
+  }
+}
+
+class ReferencedNamesScope {
+  final ReferencedNamesScope enclosing;
+  Set<String> names;
+
+  ReferencedNamesScope(this.enclosing);
+
+  factory ReferencedNamesScope.forBlock(
+      ReferencedNamesScope enclosing, Block node) {
+    ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
+    for (Statement statement in node.statements) {
+      if (statement is FunctionDeclarationStatement) {
+        scope.add(statement.functionDeclaration.name.name);
+      } else if (statement is VariableDeclarationStatement) {
+        for (VariableDeclaration variable in statement.variables.variables) {
+          scope.add(variable.name.name);
+        }
       }
     }
+    return scope;
+  }
+
+  factory ReferencedNamesScope.forClass(
+      ReferencedNamesScope enclosing, ClassDeclaration node) {
+    ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
+    scope._addTypeParameters(node.typeParameters);
+    for (ClassMember member in node.members) {
+      if (member is MethodDeclaration) {
+        scope.add(member.name.name);
+      }
+    }
+    return scope;
+  }
+
+  factory ReferencedNamesScope.forFunction(
+      ReferencedNamesScope enclosing, FunctionDeclaration node) {
+    ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
+    scope._addTypeParameters(node.functionExpression.typeParameters);
+    node.functionExpression.parameters?.parameters
+        ?.map((p) => p is NormalFormalParameter ? p.identifier.name : '')
+        ?.forEach(scope.add);
+    return scope;
+  }
+
+  factory ReferencedNamesScope.forFunctionTypeAlias(
+      ReferencedNamesScope enclosing, FunctionTypeAlias node) {
+    ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
+    scope._addTypeParameters(node.typeParameters);
+    return scope;
+  }
+
+  void add(String name) {
+    names ??= new Set<String>();
+    names.add(name);
+  }
+
+  bool contains(String name) {
+    if (names != null && names.contains(name)) {
+      return true;
+    }
+    if (enclosing != null) {
+      return enclosing.contains(name);
+    }
+    return false;
+  }
+
+  void _addTypeParameters(TypeParameterList typeParameterList) {
+    typeParameterList?.typeParameters?.map((p) => p.name.name)?.forEach(add);
   }
 }
 
