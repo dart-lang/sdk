@@ -14,16 +14,21 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:linter/src/linter.dart';
 
 String getLineContents(int lineNumber, AnalysisError error) {
-  var path = error.source.fullName;
-  var file = new File(path);
-  if (file.existsSync()) {
+  String path = error.source.fullName;
+  File file = new File(path);
+  String failureDetails;
+  if (!file.existsSync()) {
+    failureDetails = 'file at $path does not exist';
+  } else {
     var lines = file.readAsLinesSync();
     var lineIndex = lineNumber - 1;
     if (lines.length > lineIndex) {
       return lines[lineIndex];
     }
+    failureDetails =
+        'line index ($lineIndex), outside of file line range (${lines.length})';
   }
-  return null;
+  throw new StateError('Unable to get contents for line: $failureDetails');
 }
 
 String pluralize(String word, int count) =>
