@@ -237,9 +237,9 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id, token_pos);
   if (is_optimizing()) {
     // Assert assignable keeps the instance on the stack as the result,
-    // all other arguments are popped. Since there may have been a GC during
-    // the runtime call, we have to reload the instance.
-    __ PopLocal(locs->out(0).reg());
+    // all other arguments are popped.
+    ASSERT(locs->out(0).reg() == locs->in(0).reg());
+    __ Drop1();
   }
 }
 

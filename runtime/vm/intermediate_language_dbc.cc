@@ -183,7 +183,7 @@ DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(EqualityCompare)
 
 
 DEFINE_MAKE_LOCATION_SUMMARY(AssertAssignable, 2,
-                             Location::RequiresRegister(),
+                             Location::SameAsFirstInput(),
                              LocationSummary::kCall);
 
 
