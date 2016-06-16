@@ -449,6 +449,7 @@ abstract class Enqueuer {
     bool includeLibrary =
         shouldIncludeElementDueToMirrors(lib, includedEnclosing: false);
     lib.forEachLocalMember((Element member) {
+      if (member.isInjected) return;
       if (member.isClass) {
         enqueueReflectiveElementsInClass(member, recents, includeLibrary);
       } else {

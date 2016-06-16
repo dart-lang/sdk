@@ -28,6 +28,7 @@ abstract class ConstantValueVisitor<R, A> {
   R visitInterceptor(InterceptorConstantValue constant, A arg);
   R visitSynthetic(SyntheticConstantValue constant, A arg);
   R visitDeferred(DeferredConstantValue constant, A arg);
+  R visitNonConstant(NonConstantValue constant, A arg);
 }
 
 abstract class ConstantValue {
@@ -764,7 +765,7 @@ class NonConstantValue extends ConstantValue {
 
   @override
   accept(ConstantValueVisitor visitor, arg) {
-    // TODO(johnniwinther): Should this be part of the visiting?
+    return visitor.visitNonConstant(this, arg);
   }
 
   @override

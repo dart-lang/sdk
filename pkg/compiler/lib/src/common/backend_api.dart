@@ -273,23 +273,25 @@ abstract class Backend extends Target {
   /// been scanned.
   Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
     // TODO(johnniwinther): Move this to [JavaScriptBackend].
-    if (canLibraryUseNative(library)) {
+    if (!compiler.serialization.isDeserialized(library)) {
+      if (canLibraryUseNative(library)) {
+        library.forEachLocalMember((Element element) {
+          if (element.isClass) {
+            checkNativeAnnotation(compiler, element);
+          }
+        });
+      }
+      checkJsInteropAnnotation(compiler, library);
       library.forEachLocalMember((Element element) {
-        if (element.isClass) {
-          checkNativeAnnotation(compiler, element);
+        checkJsInteropAnnotation(compiler, element);
+        if (element.isClass && isJsInterop(element)) {
+          ClassElement classElement = element;
+          classElement.forEachMember((_, memberElement) {
+            checkJsInteropAnnotation(compiler, memberElement);
+          });
         }
       });
     }
-    checkJsInteropAnnotation(compiler, library);
-    library.forEachLocalMember((Element element) {
-      checkJsInteropAnnotation(compiler, element);
-      if (element.isClass && isJsInterop(element)) {
-        ClassElement classElement = element;
-        classElement.forEachMember((_, memberElement) {
-          checkJsInteropAnnotation(compiler, memberElement);
-        });
-      }
-    });
     return new Future.value();
   }
 

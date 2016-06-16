@@ -76,6 +76,10 @@ class _CompareVisitor implements ConstantValueVisitor<int, ConstantValue> {
     return 0;
   }
 
+  int visitNonConstant(NonConstantValue a, NonConstantValue b) {
+    return 0;
+  }
+
   int visitInt(IntConstantValue a, IntConstantValue b) {
     return a.primitiveValue.compareTo(b.primitiveValue);
   }
@@ -189,12 +193,14 @@ class _KindVisitor implements ConstantValueVisitor<int, Null> {
   static const int INTERCEPTOR = 11;
   static const int SYNTHETIC = 12;
   static const int DEFERRED = 13;
+  static const int NONCONSTANT = 13;
 
   static int kind(ConstantValue constant) =>
       constant.accept(const _KindVisitor(), null);
 
   int visitFunction(FunctionConstantValue a, _) => FUNCTION;
   int visitNull(NullConstantValue a, _) => NULL;
+  int visitNonConstant(NonConstantValue a, _) => NONCONSTANT;
   int visitInt(IntConstantValue a, _) => INT;
   int visitDouble(DoubleConstantValue a, _) => DOUBLE;
   int visitBool(BoolConstantValue a, _) => BOOL;

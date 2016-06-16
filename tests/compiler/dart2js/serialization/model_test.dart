@@ -32,7 +32,7 @@ main(List<String> args) {
           resolutionInputs: serializedData.toUris());
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
-      arguments.forEachTest(serializedData, TESTS, checkModels);
+      await arguments.forEachTest(serializedData, TESTS, checkModels);
     }
   });
 }
@@ -44,11 +44,6 @@ Future checkModels(
      int index,
      Test test,
      bool verbose: false}) async {
-  if (test != null && test.name == 'Disable tree shaking through reflection') {
-    // TODO(johnniwinther): Support serialization of metadata.
-    return;
-  }
-
   String testDescription = test != null ? test.name : '${entryPoint}';
   String id = index != null ? '$index: ' : '';
   print('------------------------------------------------------------------');
