@@ -115,6 +115,12 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
   final Map<Node, ConstantExpression> nodeConstantMap =
       new Map<Node, ConstantExpression>();
 
+  // Constants computed for metadata.
+  // TODO(johnniwinther): Remove this when no longer used by
+  // poi/forget_element_test.
+  final Map<MetadataAnnotation, ConstantExpression> metadataConstantMap =
+      new Map<MetadataAnnotation, ConstantExpression>();
+
   JavaScriptConstantCompiler(Compiler compiler)
       : super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM);
 
@@ -211,6 +217,15 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     return getConstantValue(metadata.constant);
   }
 
+  @override
+  ConstantExpression compileMetadata(
+      MetadataAnnotation metadata, Node node, TreeElements elements) {
+      ConstantExpression constant =
+          super.compileMetadata(metadata, node, elements);
+      metadataConstantMap[metadata] = constant;
+      return constant;
+  }
+
   void forgetElement(Element element) {
     super.forgetElement(element);
     const ForgetConstantElementVisitor().visit(element, this);
@@ -226,6 +241,7 @@ class ForgetConstantElementVisitor
 
   void visitElement(Element e, JavaScriptConstantCompiler constants) {
     for (MetadataAnnotation data in e.implementation.metadata) {
+      constants.metadataConstantMap.remove(data);
       if (data.hasNode) {
         data.node.accept(new ForgetConstantNodeVisitor(constants));
       }
