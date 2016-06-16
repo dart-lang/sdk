@@ -10236,8 +10236,13 @@ AstNode* Parser::ParseStatement() {
     // Rethrow of current exception.
     ConsumeToken();
     ExpectSemicolon();
-    // Check if it is ok to do a rethrow.
-    if ((try_stack_ == NULL) || !try_stack_->inside_catch()) {
+    // Check if it is ok to do a rethrow. Find the inntermost enclosing
+    // catch block.
+    TryStack* try_statement = try_stack_;
+    while ((try_statement != NULL) && !try_statement->inside_catch()) {
+      try_statement = try_statement->outer_try();
+    }
+    if (try_statement == NULL) {
       ReportError(statement_pos, "rethrow of an exception is not valid here");
     }
 
@@ -10245,7 +10250,7 @@ AstNode* Parser::ParseStatement() {
     // instead of :exception_var and :stack_trace_var.
     // These variables are bound in the block containing the try.
     // Look in the try scope directly.
-    LocalScope* scope = try_stack_->try_block()->scope->parent();
+    LocalScope* scope = try_statement->try_block()->scope->parent();
     ASSERT(scope != NULL);
     LocalVariable* excp_var;
     LocalVariable* trace_var;
