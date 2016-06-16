@@ -10,7 +10,6 @@ import 'dart:io';
 
 import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/plugin/embedded_resolver_provider.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
@@ -88,9 +87,6 @@ class Driver implements CommandLineStarter {
   CommandLineOptions _previousOptions;
 
   IncrementalAnalysisSession incrementalSession;
-
-  @override
-  EmbeddedResolverProvider embeddedUriResolverProvider;
 
   @override
   ResolverProvider packageResolverProvider;
@@ -346,19 +342,7 @@ class Driver implements CommandLineStarter {
           PhysicalResourceProvider.INSTANCE.getResource('.');
       UriResolver resolver = packageResolverProvider(folder);
       if (resolver != null) {
-        UriResolver sdkResolver;
-
-        // Check for a resolver provider.
-        if (embeddedUriResolverProvider != null) {
-          EmbedderUriResolver embedderUriResolver =
-              embeddedUriResolverProvider(folder);
-          if (embedderUriResolver != null && embedderUriResolver.length != 0) {
-            sdkResolver = embedderUriResolver;
-          }
-        }
-
-        // Default to a Dart URI resolver if no embedder is found.
-        sdkResolver ??= new DartUriResolver(sdk);
+        UriResolver sdkResolver = new DartUriResolver(sdk);
 
         // TODO(brianwilkerson) This doesn't handle sdk extensions.
         List<UriResolver> resolvers = <UriResolver>[
@@ -627,8 +611,8 @@ class Driver implements CommandLineStarter {
   /// Analyze a single source.
   ErrorSeverity _runAnalyzer(Source source, CommandLineOptions options) {
     int startTime = currentTimeMillis();
-    AnalyzerImpl analyzer =
-        new AnalyzerImpl(_context, incrementalSession, source, options, stats, startTime);
+    AnalyzerImpl analyzer = new AnalyzerImpl(
+        _context, incrementalSession, source, options, stats, startTime);
     var errorSeverity = analyzer.analyzeSync();
     if (errorSeverity == ErrorSeverity.ERROR) {
       exitCode = errorSeverity.ordinal;

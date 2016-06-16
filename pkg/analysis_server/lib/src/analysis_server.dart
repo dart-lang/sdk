@@ -27,7 +27,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/plugin/embedded_resolver_provider.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
@@ -313,8 +312,7 @@ class AnalysisServer {
       this.options,
       this.defaultSdkCreator,
       this.instrumentationService,
-      {EmbeddedResolverProvider embeddedResolverProvider: null,
-      ResolverProvider packageResolverProvider: null,
+      {ResolverProvider packageResolverProvider: null,
       bool useSingleContextManager: false,
       this.rethrowExceptions: true})
       : index = _index,
@@ -336,7 +334,6 @@ class AnalysisServer {
           resourceProvider,
           sdkManager,
           packageResolverProvider,
-          embeddedResolverProvider,
           packageMapProvider,
           analyzedFilesGlobs,
           instrumentationService,
@@ -1626,21 +1623,9 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     List<UriResolver> packageUriResolvers =
         disposition.createPackageUriResolvers(resourceProvider);
 
-    EmbedderUriResolver embedderUriResolver;
-
-    // First check for a resolver provider.
-    ContextManager contextManager = analysisServer.contextManager;
-    if (contextManager is ContextManagerImpl) {
-      EmbeddedResolverProvider resolverProvider =
-          contextManager.embeddedUriResolverProvider;
-      if (resolverProvider != null) {
-        embedderUriResolver = resolverProvider(folder);
-      }
-    }
-
     // If no embedded URI resolver was provided, defer to a locator-backed one.
-    embedderUriResolver ??= new EmbedderUriResolver(
-        context.embedderYamlLocator.embedderYamls);
+    EmbedderUriResolver embedderUriResolver =
+        new EmbedderUriResolver(context.embedderYamlLocator.embedderYamls);
     if (embedderUriResolver.length == 0) {
       // The embedder uri resolver has no mappings. Use the default Dart SDK
       // uri resolver.

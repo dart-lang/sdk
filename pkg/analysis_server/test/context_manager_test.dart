@@ -1738,8 +1738,6 @@ abstract class ContextManagerTest {
 
   UriResolver packageResolver = null;
 
-  UriResolver embeddedUriResolver = null;
-
   String projPath = '/my/proj';
 
   AnalysisError missing_required_param = new AnalysisError(
@@ -1815,9 +1813,6 @@ abstract class ContextManagerTest {
     manager.processPlugins(plugins);
   }
 
-  EmbedderUriResolver provideEmbeddedUriResolver(Folder folder) =>
-      embeddedUriResolver;
-
   UriResolver providePackageResolver(Folder folder) => packageResolver;
 
   void setUp() {
@@ -1831,7 +1826,6 @@ abstract class ContextManagerTest {
         resourceProvider,
         sdkManager,
         providePackageResolver,
-        provideEmbeddedUriResolver,
         packageMapProvider,
         analysisFilesGlobs,
         InstrumentationService.NULL_SERVICE,

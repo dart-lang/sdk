@@ -121,7 +121,6 @@ class SocketServerTest {
         InstrumentationService.NULL_SERVICE,
         serverPlugin,
         null,
-        null,
         false);
   }
 }

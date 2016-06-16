@@ -12,7 +12,6 @@ import 'dart:core' hide Resource;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/plugin/embedded_resolver_provider.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
@@ -408,13 +407,6 @@ class ContextManagerImpl implements ContextManager {
   pathos.Context pathContext;
 
   /**
-   * A function that will return a [UriResolver] that can be used to resolve
-   * URI's for embedded libraries within a given folder, or `null` if we should
-   * fall back to the standard URI resolver.
-   */
-  final EmbeddedResolverProvider embeddedUriResolverProvider;
-
-  /**
    * The list of excluded paths (folders and files) most recently passed to
    * [setRoots].
    */
@@ -496,7 +488,6 @@ class ContextManagerImpl implements ContextManager {
       this.resourceProvider,
       this.sdkManager,
       this.packageResolverProvider,
-      this.embeddedUriResolverProvider,
       this._packageMapProvider,
       this.analyzedFilesGlobs,
       this._instrumentationService,
@@ -1166,15 +1157,7 @@ class ContextManagerImpl implements ContextManager {
     List<UriResolver> packageUriResolvers =
         disposition.createPackageUriResolvers(resourceProvider);
 
-    EmbedderUriResolver embedderUriResolver;
-
-    // First check for a resolver provider.
-    if (embeddedUriResolverProvider != null) {
-      embedderUriResolver = embeddedUriResolverProvider(folder);
-    }
-
-    // If no embedded URI resolver was provided, defer to a locator-backed one.
-    embedderUriResolver ??=
+    EmbedderUriResolver embedderUriResolver =
         new EmbedderUriResolver(context.embedderYamlLocator.embedderYamls);
     if (embedderUriResolver.length == 0) {
       // The embedder uri resolver has no mappings. Use the default Dart SDK

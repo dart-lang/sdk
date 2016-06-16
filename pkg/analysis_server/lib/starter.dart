@@ -6,7 +6,6 @@ library analysis_server.starter;
 
 import 'package:analysis_server/src/server/driver.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/plugin/embedded_resolver_provider.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:plugin/plugin.dart';
 
@@ -21,14 +20,6 @@ abstract class ServerStarter {
    * Initialize a newly created starter to start up an analysis server.
    */
   factory ServerStarter() = Driver;
-
-  /**
-   * Set the embedded resolver provider used to override the way embedded
-   * library URI's are resolved in some contexts. The provider should return
-   * `null` if the embedded library URI resolution scheme should be used
-   * instead.
-   */
-  void set embeddedUriResolverProvider(EmbeddedResolverProvider provider);
 
   /**
    * Set the instrumentation [server] that is to be used by the analysis server.
