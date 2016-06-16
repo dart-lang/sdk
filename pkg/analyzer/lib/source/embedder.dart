@@ -10,14 +10,13 @@ import 'dart:core' hide Resource;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart'
     show PackageMapProvider;
-import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart' show FileBasedSource;
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:yaml/yaml.dart';
 
 const String _DART_COLON_PREFIX = 'dart:';
@@ -27,104 +26,28 @@ const String _EMBEDDED_LIB_MAP_KEY = 'embedded_libs';
 bool definesEmbeddedLibs(Map map) => map[_EMBEDDED_LIB_MAP_KEY] != null;
 
 /// An SDK backed by URI mappings derived from an `_embedder.yaml` file.
-class EmbedderSdk implements DartSdk {
-  /// The resolver associated with this SDK.
-  EmbedderUriResolver _resolver;
-
-  /// The [AnalysisContext] used for this SDK's sources.
-  InternalAnalysisContext _analysisContext;
-
-  final LibraryMap _librariesMap = new LibraryMap();
-
+class EmbedderSdk extends AbstractDartSdk {
   final Map<String, String> _urlMappings = new HashMap<String, String>();
-
-  /// Analysis options for this SDK.
-  AnalysisOptions analysisOptions;
 
   EmbedderSdk([Map<Folder, YamlMap> embedderYamls]) {
     embedderYamls?.forEach(_processEmbedderYaml);
-    _resolver = new EmbedderUriResolver._forSdk(this);
   }
-
-  @override
-  AnalysisContext get context {
-    if (_analysisContext == null) {
-      _analysisContext = new SdkAnalysisContext(analysisOptions);
-      SourceFactory factory = new SourceFactory([_resolver]);
-      _analysisContext.sourceFactory = factory;
-
-      ChangeSet changeSet = new ChangeSet();
-      for (String uri in uris) {
-        changeSet.addedSource(factory.forUri(uri));
-      }
-      _analysisContext.applyChanges(changeSet);
-    }
-    return _analysisContext;
-  }
-
-  @override
-  List<SdkLibrary> get sdkLibraries => _librariesMap.sdkLibraries;
 
   // TODO(danrubel) Determine SDK version
   @override
   String get sdkVersion => '0';
 
-  @override
-  List<String> get uris => _librariesMap.uris;
-
   /// The url mappings for this SDK.
   Map<String, String> get urlMappings => _urlMappings;
 
   @override
-  Source fromFileUri(Uri uri) {
-    JavaFile file = new JavaFile.fromUri(uri);
-    String filePath = file.getAbsolutePath();
-
-    String path;
-    for (SdkLibrary library in _librariesMap.sdkLibraries) {
-      String libraryPath = library.path.replaceAll('/', JavaFile.separator);
-      if (filePath == libraryPath) {
-        path = library.shortName;
-        break;
-      }
-    }
-    if (path == null) {
-      for (SdkLibrary library in _librariesMap.sdkLibraries) {
-        String libraryPath = library.path.replaceAll('/', JavaFile.separator);
-        int index = libraryPath.lastIndexOf(JavaFile.separator);
-        if (index == -1) {
-          continue;
-        }
-        String prefix = libraryPath.substring(0, index + 1);
-        if (!filePath.startsWith(prefix)) {
-          continue;
-        }
-        var relPath = filePath
-            .substring(prefix.length)
-            .replaceAll(JavaFile.separator, '/');
-        path = '${library.shortName}/$relPath';
-        break;
-      }
-    }
-
-    if (path != null) {
-      try {
-        return new FileBasedSource(file, parseUriWithException(path));
-      } on URISyntaxException catch (exception, stackTrace) {
-        AnalysisEngine.instance.logger.logInformation(
-            "Failed to create URI: $path",
-            new CaughtException(exception, stackTrace));
-        return null;
-      }
-    }
-    return null;
-  }
+  String getRelativePathFromFile(JavaFile file) => file.getAbsolutePath();
 
   @override
-  SdkLibrary getSdkLibrary(String dartUri) => _librariesMap.getLibrary(dartUri);
+  PackageBundle getSummarySdkBundle(bool strongMode) => null;
 
   @override
-  Source mapDartUri(String dartUri) {
+  FileBasedSource internalMapDartUri(String dartUri) {
     String libraryName;
     String relativePath;
     int index = dartUri.indexOf('/');
@@ -173,7 +96,7 @@ class EmbedderSdk implements DartSdk {
     _urlMappings[name] = libPath;
     SdkLibraryImpl library = new SdkLibraryImpl(name);
     library.path = libPath;
-    _librariesMap.setLibrary(name, library);
+    libraryMap.setLibrary(name, library);
   }
 
   /// Given the 'embedderYamls' from [EmbedderYamlLocator] check each one for the
@@ -211,8 +134,8 @@ class EmbedderUriResolver implements DartUriResolver {
 
   /// Construct a [EmbedderUriResolver] from a package map
   /// (see [PackageMapProvider]).
-  EmbedderUriResolver(Map<Folder, YamlMap> embedderMap) :
-      this._forSdk(new EmbedderSdk(embedderMap));
+  EmbedderUriResolver(Map<Folder, YamlMap> embedderMap)
+      : this._forSdk(new EmbedderSdk(embedderMap));
 
   /// (Provisional API.)
   EmbedderUriResolver._forSdk(this._embedderSdk) {
