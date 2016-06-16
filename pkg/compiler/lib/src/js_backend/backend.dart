@@ -3076,6 +3076,8 @@ class Dependency {
   final Element annotatedElement;
 
   const Dependency(this.constant, this.annotatedElement);
+
+  String toString() => '$annotatedElement:${constant.toStructuredText()}';
 }
 
 class JavaScriptImpactStrategy extends ImpactStrategy {

@@ -64,6 +64,11 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     return new jsAst.LiteralNull();
   }
 
+  @override
+  jsAst.Expression visitNonConstant(NonConstantValue constant, [_]) {
+    return new jsAst.LiteralNull();
+  }
+
   static final _exponentialRE = new RegExp('^'
       '\([-+]?\)' // 1: sign
       '\([0-9]+\)' // 2: leading digit(s)

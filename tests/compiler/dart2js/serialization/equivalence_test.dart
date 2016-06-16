@@ -248,6 +248,16 @@ checkElementLists(Object object1, Object object2, String property,
                   list1, list2, checkElementProperties);
 }
 
+/// Check the equivalence of the two metadata annotations, [metadata1] and
+/// [metadata2].
+///
+/// Uses [object1], [object2] and [property] to provide context for failures.
+checkMetadata(Object object1, Object object2, String property,
+    MetadataAnnotation metadata1, MetadataAnnotation metadata2) {
+  check(object1, object2, property,
+      metadata1, metadata2, areMetadataAnnotationsEquivalent);
+}
+
 /// Visitor that checks for equivalence of [Element] properties.
 class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
   const ElementPropertyEquivalence();
@@ -277,6 +287,8 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1.isClassMember, element2.isClassMember);
     check(element1, element2, 'isInstanceMember',
         element1.isInstanceMember, element2.isInstanceMember);
+    checkListEquivalence(element1, element2, 'metadata',
+        element1.metadata, element2.metadata, checkMetadata);
   }
 
   @override
@@ -430,6 +442,10 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1.isAbstract, element2.isAbstract);
     check(element1, element2, 'isUnnamedMixinApplication',
         element1.isUnnamedMixinApplication, element2.isUnnamedMixinApplication);
+    check(element1, element2, 'isProxy',
+        element1.isProxy, element2.isProxy);
+    check(element1, element2, 'isInjected',
+        element1.isInjected, element2.isInjected);
     check(element1, element2, 'isEnumClass',
         element1.isEnumClass, element2.isEnumClass);
     if (element1.isEnumClass) {
@@ -515,6 +531,8 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
           element1.isStatic, element2.isStatic);
     check(element1, element2, 'isInstanceMember',
           element1.isInstanceMember, element2.isInstanceMember);
+    check(element1, element2, 'isInjected',
+        element1.isInjected, element2.isInjected);
 
     checkElementIdentities(
         element1, element2, 'library',
@@ -548,6 +566,8 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1, element2, 'asyncMarker',
         element1.asyncMarker,
         element2.asyncMarker);
+    check(element1, element2, 'isInjected',
+        element1.isInjected, element2.isInjected);
 
     checkElementIdentities(
         element1, element2, 'library',
@@ -652,6 +672,8 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element2.immediateRedirectionTarget);
     checkElementIdentities(element1, element2, 'redirectionDeferredPrefix',
         element1.redirectionDeferredPrefix, element2.redirectionDeferredPrefix);
+    check(element1, element2, 'isInjected',
+        element1.isInjected, element2.isInjected);
   }
 
   @override
