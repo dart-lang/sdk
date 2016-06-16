@@ -837,8 +837,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.defineNamedConstructor = function(clazz, name) {
     let proto = clazz.prototype;
     let initMethod = proto[name];
-    let ctor = function() {
-      return initMethod.apply(this, arguments);
+    let ctor = function(...args) {
+      initMethod.apply(this, args);
     };
     ctor.prototype = proto;
     dart.defineProperty(clazz, name, {value: ctor, configurable: true});
@@ -933,6 +933,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setExtensionBaseClass = function(derived, base) {
     derived.prototype[dart._extensionType] = derived;
     derived.prototype.__proto__ = base.prototype;
+  };
+  dart.callableClass = function(callableCtor, classExpr) {
+    callableCtor.prototype = classExpr.prototype;
+    callableCtor.prototype.constructor = callableCtor;
+    callableCtor.__proto__ = classExpr.__proto__;
+    return callableCtor;
+  };
+  dart.defineNamedConstructorCallable = function(clazz, name, ctor) {
+    ctor.prototype = clazz.prototype;
+    dart.defineProperty(clazz, name, {value: ctor, configurable: true});
   };
   dart.throwCastError = function(object, actual, type) {
     dart.throw(new _js_helper.CastErrorImplementation(object, dart.typeName(actual), dart.typeName(type)));

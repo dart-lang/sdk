@@ -701,6 +701,10 @@ class CodeGenerator extends GeneralizingAstVisitor
     var fields = <FieldDeclaration>[];
     var staticFields = <FieldDeclaration>[];
     var methods = <MethodDeclaration>[];
+
+    // True if a "call" method or getter exists. This can also be
+    // "noSuchMethod" method, because nSM could implement "call".
+    bool isCallable = false;
     for (var member in node.members) {
       if (member is ConstructorDeclaration) {
         ctors.add(member);
@@ -708,6 +712,16 @@ class CodeGenerator extends GeneralizingAstVisitor
         (member.isStatic ? staticFields : fields).add(member);
       } else if (member is MethodDeclaration) {
         methods.add(member);
+        var name = member.name.name;
+        if (name == 'call' && !member.isSetter) {
+          isCallable = true;
+        } else if (name == 'noSuchMethod' &&
+            !member.isGetter &&
+            !member.isSetter &&
+            // Exclude SDK because we know they don't use nSM to implement call.
+            !classElem.library.source.isInSystemLibrary) {
+          isCallable = true;
+        }
       }
     }
 
@@ -738,7 +752,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     _emitSuperHelperSymbols(_superHelperSymbols, body);
 
     // Emit the class, e.g. `core.Object = class Object { ... }`
-    _defineClass(classElem, className, classExpr, body);
+    _defineClass(classElem, className, classExpr, isCallable, body);
 
     // Emit things that come after the ES6 `class ... { ... }`.
     var jsPeerName = _getJSPeerName(classElem);
@@ -746,7 +760,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     _emitClassTypeTests(classElem, className, body);
 
-    _defineNamedConstructors(ctors, body, className);
+    _defineNamedConstructors(ctors, body, className, isCallable);
     _emitVirtualFieldSymbols(virtualFieldSymbols, body);
     _emitClassSignature(methods, classElem, ctors, extensions, className, body);
     _defineExtensionMembers(extensions, className, body);
@@ -762,6 +776,36 @@ class CodeGenerator extends GeneralizingAstVisitor
     _emitStaticFields(staticFields, staticFieldOverrides, classElem, body);
     _registerExtensionType(classElem, jsPeerName, body);
     return _statement(body);
+  }
+
+  /// Emits code to support a class with a "call" method and an unnamed
+  /// constructor.
+  ///
+  /// This ensures instances created by the unnamed constructor are functions.
+  /// Named constructors are handled elsewhere, see [_defineNamedConstructors].
+  JS.Expression _emitCallableClass(JS.ClassExpression classExpr,
+      ConstructorElement unnamedCtor) {
+    var ctor = new JS.NamedFunction(
+        classExpr.name, _emitCallableClassConstructor(unnamedCtor));
+
+    // Name the constructor function the same as the class.
+    return js.call('dart.callableClass(#, #)', [ctor, classExpr]);
+  }
+
+  JS.Fun _emitCallableClassConstructor(
+      ConstructorElement ctor) {
+
+    return js.call(
+        r'''function (...args) {
+          const self = this;
+          function call(...args) {
+            return self.call.apply(self, args);
+          }
+          call.__proto__ = this.__proto__;
+          call.#.apply(call, args);
+          return call;
+        }''',
+        [_constructorName(ctor)]);
   }
 
   void _emitClassTypeTests(ClassElement classElem, JS.Expression className,
@@ -978,12 +1022,26 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
   }
 
-  void _defineClass(ClassElement classElem, JS.Expression className,
-      JS.ClassExpression classExpr, List<JS.Statement> body) {
+  void _defineClass(
+      ClassElement classElem,
+      JS.Expression className,
+      JS.ClassExpression classExpr,
+      bool isCallable,
+      List<JS.Statement> body) {
+    JS.Expression callableClass;
+    if (isCallable && classElem.unnamedConstructor != null) {
+      callableClass = _emitCallableClass(
+          classExpr, classElem.unnamedConstructor);
+    }
+
     if (classElem.typeParameters.isNotEmpty) {
-      body.add(new JS.ClassDeclaration(classExpr));
+      if (callableClass != null) {
+        body.add(js.statement('const # = #;', [classExpr.name, callableClass]));
+      } else {
+        body.add(new JS.ClassDeclaration(classExpr));
+      }
     } else {
-      body.add(js.statement('# = #;', [className, classExpr]));
+      body.add(js.statement('# = #;', [className, callableClass ?? classExpr]));
     }
   }
 
@@ -1400,12 +1458,23 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
   }
 
-  void _defineNamedConstructors(List<ConstructorDeclaration> ctors,
-      List<JS.Statement> body, JS.Expression className) {
+  void _defineNamedConstructors(
+      List<ConstructorDeclaration> ctors,
+      List<JS.Statement> body,
+      JS.Expression className,
+      bool isCallable) {
+    var code = isCallable
+        ? 'dart.defineNamedConstructorCallable(#, #, #);'
+        : 'dart.defineNamedConstructor(#, #)';
+
     for (ConstructorDeclaration member in ctors) {
       if (member.name != null && member.factoryKeyword == null) {
-        body.add(js.statement('dart.defineNamedConstructor(#, #);',
-            [className, _constructorName(member.element)]));
+        var args = [className, _constructorName(member.element)];
+        if (isCallable) {
+          args.add(_emitCallableClassConstructor(member.element));
+        }
+
+        body.add(js.statement(code, args));
       }
     }
   }

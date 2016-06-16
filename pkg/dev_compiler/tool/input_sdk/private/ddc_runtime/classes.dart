@@ -256,19 +256,21 @@ setSignature(f, signature) => JS('', '''(() => {
 
 hasMethod(obj, name) => JS('', '$getMethodType($obj, $name) !== void 0');
 
-///
 /// Given a class and an initializer method name, creates a constructor
-/// function with the same name. For example `new SomeClass.name(args)`.
+/// function with the same name.
 ///
+/// After we define the named constructor, the class can be constructed with
+/// `new SomeClass.name(args)`.
 defineNamedConstructor(clazz, name) => JS('', '''(() => {
   let proto = $clazz.prototype;
   let initMethod = proto[$name];
-  let ctor = function() { return initMethod.apply(this, arguments); };
+  let ctor = function(...args) { initMethod.apply(this, args); };
   ctor.prototype = proto;
   // Use defineProperty so we don't hit a property defined on Function,
   // like `caller` and `arguments`.
   $defineProperty($clazz, $name, { value: ctor, configurable: true });
 })()''');
+
 
 final _extensionType = JS('', 'Symbol("extensionType")');
 
@@ -438,3 +440,37 @@ setExtensionBaseClass(derived, base) {
   // Link the prototype objects
   JS('', '#.prototype.__proto__ = #.prototype', derived, base);
 }
+
+/// Given a special constructor function that creates a function instances,
+/// and a class with a `call` method, merge them so the constructor function
+/// will have the correct methods and prototype.
+///
+/// For example:
+///
+///     lib.Foo = dart.callableClass(
+///         function Foo { function call(...args) { ... } ... return call; },
+///         class Foo { call(x) { ... } });
+///     ...
+///       let f = new lib.Foo();
+///       f(42);
+callableClass(callableCtor, classExpr) {
+  JS('', '#.prototype = #.prototype', callableCtor, classExpr);
+  // We're not going to use the original class, so we can safely replace it to
+  // point at this constructor for the runtime type information.
+  JS('', '#.prototype.constructor = #', callableCtor, callableCtor);
+  JS('', '#.__proto__ = #.__proto__', callableCtor, classExpr);
+  return callableCtor;
+}
+
+/// Given a class and an initializer method name and a call method, creates a
+/// constructor function with the same name.
+///
+/// For example it can be called with `new SomeClass.name(args)`.
+///
+/// The constructor
+defineNamedConstructorCallable(clazz, name, ctor) => JS('', '''(() => {
+  ctor.prototype = $clazz.prototype;
+  // Use defineProperty so we don't hit a property defined on Function,
+  // like `caller` and `arguments`.
+  $defineProperty($clazz, $name, { value: ctor, configurable: true });
+})()''');

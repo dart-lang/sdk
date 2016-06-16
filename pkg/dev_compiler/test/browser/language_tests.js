@@ -60,14 +60,11 @@
       'bool_test': skip_fail,
       'bound_closure_equality_test': skip_fail,
       'branch_canonicalization_test': skip_fail,  // JS bit operations truncate to 32 bits.
-      'call_closurization_test': skip_fail,
-      'call_function_apply_test': skip_fail,
-      'call_operator_test': skip_fail,
-      'call_property_test': skip_fail,
-      'call_test': skip_fail,
-      'call_this_test': skip_fail,
-      'call_through_null_getter_test': skip_fail,
-      'call_with_no_such_method_test': skip_fail,
+      'call_closurization_test': fail, // Functions do not expose a "call" method.
+      'call_function_apply_test': fail, // Function.apply not really implemented.
+      'call_test': fail, // Functions do not expose a "call" method.
+      'call_through_null_getter_test': fail, // null errors are not converted to NoSuchMethodErrors.
+      'call_with_no_such_method_test': fail, // Function.apply not really implemented.
       'canonical_const2_test': skip_fail,
       'canonical_const_test': skip_fail,
       'cascade_precedence_test': skip_fail,
@@ -164,13 +161,13 @@
       'function_subtype_bound_closure5_test': skip_fail,
       'function_subtype_bound_closure5a_test': skip_fail,
       'function_subtype_bound_closure6_test': skip_fail,
-      'function_subtype_call0_test': skip_fail,
-      'function_subtype_call1_test': skip_fail,
-      'function_subtype_call2_test': skip_fail,
-      'function_subtype_cast0_test': skip_fail,
-      'function_subtype_cast1_test': skip_fail,
-      'function_subtype_cast2_test': skip_fail,
-      'function_subtype_cast3_test': skip_fail,
+      'function_subtype_call0_test': fail, // Strong mode "is" rejects some type tests.
+      'function_subtype_call1_test': fail,
+      'function_subtype_call2_test': fail,
+      'function_subtype_cast0_test': fail,
+      'function_subtype_cast1_test': fail,
+      'function_subtype_cast2_test': fail,
+      'function_subtype_cast3_test': fail,
       'function_subtype_factory0_test': skip_fail,
       'function_subtype_inline0_test': skip_fail,
       'function_subtype_local0_test': skip_fail,
@@ -197,7 +194,6 @@
       'function_type_alias4_test': skip_fail,
       'function_type_alias6_test_none_multi': skip_fail,
       'function_type_alias_test': skip_fail,
-      'function_type_call_getter_test': skip_fail,
       'gc_test': skip_fail,
       'generic_field_mixin2_test': skip_fail,
       'generic_field_mixin3_test': skip_fail,
