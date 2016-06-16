@@ -146,6 +146,8 @@ static const char* GetJSONRpcErrorMessage(intptr_t code) {
       return "File system does not exist";
     case kFileDoesNotExist:
       return "File does not exist";
+    case kIsolateReloadFailed:
+      return "Isolate reload failed";
     default:
       return "Extension error";
   }

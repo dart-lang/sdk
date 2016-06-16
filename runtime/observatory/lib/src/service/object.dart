@@ -46,6 +46,7 @@ class ServerRpcException extends RpcException {
   static const kFileSystemAlreadyExists = 1001;
   static const kFileSystemDoesNotExist  = 1002;
   static const kFileDoesNotExist        = 1003;
+  static const kIsolateReloadFailed     = 1004;
 
   int code;
   Map data;

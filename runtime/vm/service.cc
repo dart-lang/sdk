@@ -2484,19 +2484,24 @@ static bool ReloadSources(Thread* thread, JSONStream* js) {
                    "This isolate is being reloaded.");
     return true;
   }
-  DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
-  ASSERT(isolate->CanReload());
-
-  if (stack->Length() > 0) {
-    // TODO(turnidge): We need to support this case.
+  if (!isolate->CanReload()) {
     js->PrintError(kFeatureDisabled,
-                   "Source can only be reloaded when stack is empty.");
+                   "This isolate cannot reload sources right now.");
     return true;
-  } else {
-    isolate->ReloadSources();
   }
 
-  PrintSuccess(js);
+  isolate->ReloadSources();
+
+  const Error& error = Error::Handle(isolate->sticky_reload_error());
+
+  if (error.IsNull()) {
+    PrintSuccess(js);
+  } else {
+    // Clear the sticky error.
+    isolate->clear_sticky_reload_error();
+    js->PrintError(kIsolateReloadFailed,
+                   "Isolate reload failed: %s", error.ToErrorCString());
+  }
   return true;
 }
 

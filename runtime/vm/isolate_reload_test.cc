@@ -228,6 +228,38 @@ TEST_CASE(IsolateReload_ClassFieldAdded) {
 }
 
 
+TEST_CASE(IsolateReload_ClassFieldAdded2) {
+  const char* kScript =
+      "class Foo {\n"
+      "  var x;\n"
+      "  var y;\n"
+      "}\n"
+      "main() {\n"
+      "  new Foo();\n"
+      "  return 44;\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+
+  EXPECT_EQ(44, SimpleInvoke(lib, "main"));
+
+  const char* kReloadScript =
+      "class Foo {\n"
+      "  var x;\n"
+      "  var y;\n"
+      "  var z;\n"
+      "}\n"
+      "main() {\n"
+      "  new Foo();\n"
+      "  return 44;\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_ERROR(lib, "Number of instance fields changed");
+}
+
+
 TEST_CASE(IsolateReload_ClassFieldRemoved) {
   const char* kScript =
       "class Foo {\n"
