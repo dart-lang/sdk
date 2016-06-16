@@ -36,6 +36,185 @@ class IncrementalCompilationUnitElementBuilderTest extends AbstractContextTest {
     return newCode.substring(node.offset, node.end);
   }
 
+  test_classDelta_constructor_0to1() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+class A {
+}
+''');
+    helper.initOld(oldUnit);
+    ConstructorElement oldConstructorElement =
+        helper.element.unnamedConstructor;
+    _buildNewUnit(r'''
+class A {
+  A.a();
+}
+''');
+    helper.initNew(newUnit, unitDelta);
+    // nodes
+    ClassMember newConstructorNode = helper.newMembers[0];
+    // elements
+    ConstructorElement newConstructorElement = newConstructorNode.element;
+    expect(newConstructorElement, isNotNull);
+    expect(newConstructorElement.name, 'a');
+    // classElement.constructors
+    ClassElement classElement = helper.element;
+    expect(classElement.constructors, unorderedEquals([newConstructorElement]));
+    // verify delta
+    expect(helper.delta.addedConstructors,
+        unorderedEquals([newConstructorElement]));
+    expect(helper.delta.removedConstructors,
+        unorderedEquals([oldConstructorElement]));
+    expect(helper.delta.addedAccessors, isEmpty);
+    expect(helper.delta.removedAccessors, isEmpty);
+    expect(helper.delta.addedMethods, isEmpty);
+    expect(helper.delta.removedMethods, isEmpty);
+  }
+
+  test_classDelta_constructor_1to0() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+class A {
+  A.a();
+}
+''');
+    helper.initOld(oldUnit);
+    ConstructorElement oldElementA = helper.element.getNamedConstructor('a');
+    _buildNewUnit(r'''
+class A {
+}
+''');
+    helper.initNew(newUnit, unitDelta);
+    // classElement.constructors
+    ClassElement classElement = helper.element;
+    {
+      List<ConstructorElement> constructors = classElement.constructors;
+      expect(constructors, hasLength(1));
+      expect(constructors[0].isDefaultConstructor, isTrue);
+      expect(constructors[0].isSynthetic, isTrue);
+    }
+    // verify delta
+    expect(helper.delta.addedConstructors, unorderedEquals([]));
+    expect(helper.delta.removedConstructors, unorderedEquals([oldElementA]));
+    expect(helper.delta.addedAccessors, isEmpty);
+    expect(helper.delta.removedAccessors, isEmpty);
+    expect(helper.delta.addedMethods, isEmpty);
+    expect(helper.delta.removedMethods, isEmpty);
+  }
+
+  test_classDelta_constructor_1to2() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+class A {
+  A.a();
+}
+''');
+    helper.initOld(oldUnit);
+    _buildNewUnit(r'''
+class A {
+  A.a();
+  A.b();
+}
+''');
+    helper.initNew(newUnit, unitDelta);
+    // nodes
+    ClassMember nodeA = helper.newMembers[0];
+    ClassMember nodeB = helper.newMembers[1];
+    expect(nodeA, same(helper.oldMembers[0]));
+    // elements
+    ConstructorElement elementA = nodeA.element;
+    ConstructorElement elementB = nodeB.element;
+    expect(elementA, isNotNull);
+    expect(elementB, isNotNull);
+    expect(elementA.name, 'a');
+    expect(elementB.name, 'b');
+    // classElement.constructors
+    ClassElement classElement = helper.element;
+    expect(classElement.constructors, unorderedEquals([elementA, elementB]));
+    // verify delta
+    expect(helper.delta.addedConstructors, unorderedEquals([elementB]));
+    expect(helper.delta.removedConstructors, unorderedEquals([]));
+    expect(helper.delta.addedAccessors, isEmpty);
+    expect(helper.delta.removedAccessors, isEmpty);
+    expect(helper.delta.addedMethods, isEmpty);
+    expect(helper.delta.removedMethods, isEmpty);
+  }
+
+  test_classDelta_constructor_2to1() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+class A {
+  A.a();
+  A.b();
+}
+''');
+    helper.initOld(oldUnit);
+    ConstructorElement oldElementA = helper.element.getNamedConstructor('a');
+    _buildNewUnit(r'''
+class A {
+  A.b();
+}
+''');
+    helper.initNew(newUnit, unitDelta);
+    // nodes
+    ClassMember nodeB = helper.newMembers[0];
+    expect(nodeB, same(helper.oldMembers[1]));
+    // elements
+    ConstructorElement elementB = nodeB.element;
+    expect(elementB, isNotNull);
+    expect(elementB.name, 'b');
+    // classElement.constructors
+    ClassElement classElement = helper.element;
+    expect(classElement.constructors, unorderedEquals([elementB]));
+    // verify delta
+    expect(helper.delta.addedConstructors, unorderedEquals([]));
+    expect(helper.delta.removedConstructors, unorderedEquals([oldElementA]));
+    expect(helper.delta.addedAccessors, isEmpty);
+    expect(helper.delta.removedAccessors, isEmpty);
+    expect(helper.delta.addedMethods, isEmpty);
+    expect(helper.delta.removedMethods, isEmpty);
+  }
+
+  test_classDelta_constructor_2to2_reorder() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+class A {
+  A.a();
+  A.b();
+}
+''');
+    helper.initOld(oldUnit);
+    _buildNewUnit(r'''
+class A {
+  A.b();
+  A.a();
+}
+''');
+    helper.initNew(newUnit, unitDelta);
+    // nodes
+    ClassMember nodeB = helper.newMembers[0];
+    ClassMember nodeA = helper.newMembers[1];
+    expect(nodeB, same(helper.oldMembers[1]));
+    expect(nodeA, same(helper.oldMembers[0]));
+    // elements
+    ConstructorElement elementB = nodeB.element;
+    ConstructorElement elementA = nodeA.element;
+    expect(elementB, isNotNull);
+    expect(elementA, isNotNull);
+    expect(elementB.name, 'b');
+    expect(elementA.name, 'a');
+    // classElement.constructors
+    ClassElement classElement = helper.element;
+    expect(classElement.constructors, unorderedEquals([elementB, elementA]));
+    // verify delta
+    expect(helper.delta.addedConstructors, isEmpty);
+    expect(helper.delta.removedConstructors, isEmpty);
+    expect(helper.delta.addedAccessors, isEmpty);
+    expect(helper.delta.removedAccessors, isEmpty);
+    expect(helper.delta.addedMethods, isEmpty);
+    expect(helper.delta.removedMethods, isEmpty);
+  }
+
   test_directives_add() {
     _buildOldUnit(r'''
 library test;
@@ -691,4 +870,38 @@ final int a =  1;
     unitElement = oldUnit.element;
     expect(unitElement, isNotNull);
   }
+}
+
+class _ClassDeltaHelper {
+  final String name;
+
+  ClassElementDelta delta;
+  ClassElement element;
+  List<ClassMember> oldMembers;
+  List<ClassMember> newMembers;
+
+  _ClassDeltaHelper(this.name);
+
+  void initNew(CompilationUnit newUnit, CompilationUnitElementDelta unitDelta) {
+    ClassDeclaration newClass = _findClassNode(newUnit, name);
+    expect(newClass, isNotNull);
+    newMembers = newClass.members.toList();
+    for (ClassElementDelta delta in unitDelta.classDeltas) {
+      if (delta.element.name == name) {
+        this.delta = delta;
+      }
+    }
+    expect(this.delta, isNotNull, reason: 'No delta for class: $name');
+  }
+
+  void initOld(CompilationUnit oldUnit) {
+    ClassDeclaration oldClass = _findClassNode(oldUnit, name);
+    expect(oldClass, isNotNull);
+    element = oldClass.element;
+    oldMembers = oldClass.members.toList();
+  }
+
+  ClassDeclaration _findClassNode(CompilationUnit unit, String name) =>
+      unit.declarations.singleWhere((unitMember) =>
+          unitMember is ClassDeclaration && unitMember.name.name == name);
 }

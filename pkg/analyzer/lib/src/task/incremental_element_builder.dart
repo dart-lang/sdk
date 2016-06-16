@@ -18,6 +18,26 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
+ * The change of a single [ClassElement].
+ */
+class ClassElementDelta {
+  final ClassElement element;
+
+  final List<PropertyAccessorElement> addedAccessors =
+      <PropertyAccessorElement>[];
+  final List<PropertyAccessorElement> removedAccessors =
+      <PropertyAccessorElement>[];
+
+  final List<ConstructorElement> addedConstructors = <ConstructorElement>[];
+  final List<ConstructorElement> removedConstructors = <ConstructorElement>[];
+
+  final List<MethodElement> addedMethods = <MethodElement>[];
+  final List<MethodElement> removedMethods = <MethodElement>[];
+
+  ClassElementDelta(this.element);
+}
+
+/**
  * The change of a single [CompilationUnitElement].
  */
 class CompilationUnitElementDelta {
@@ -35,6 +55,11 @@ class CompilationUnitElementDelta {
    * The list of removed top-level elements.
    */
   final List<Element> removedDeclarations = <Element>[];
+
+  /**
+   * The list of changed class elements.
+   */
+  final List<ClassElementDelta> classDeltas = <ClassElementDelta>[];
 }
 
 /**
@@ -47,7 +72,7 @@ class IncrementalCompilationUnitElementBuilder {
   final CompilationUnit oldUnit;
   final CompilationUnitElementImpl unitElement;
   final CompilationUnit newUnit;
-  final ElementHolder holder = new ElementHolder();
+  final ElementHolder unitElementHolder = new ElementHolder();
 
   /**
    * The change between element models of [oldUnit] and [newUnit].
@@ -82,22 +107,86 @@ class IncrementalCompilationUnitElementBuilder {
     _replaceUnitContents(oldUnit, newUnit);
   }
 
-  void _addElementToHolder(Element element) {
-    if (element is PropertyAccessorElement) {
-      holder.addAccessor(element);
-    } else if (element is ClassElement) {
+  void _addElementToUnitHolder(Element element) {
+    if (element is ClassElement) {
       if (element.isEnum) {
-        holder.addEnum(element);
+        unitElementHolder.addEnum(element);
       } else {
-        holder.addType(element);
+        unitElementHolder.addType(element);
       }
     } else if (element is FunctionElement) {
-      holder.addFunction(element);
+      unitElementHolder.addFunction(element);
     } else if (element is FunctionTypeAliasElement) {
-      holder.addTypeAlias(element);
+      unitElementHolder.addTypeAlias(element);
+    } else if (element is PropertyAccessorElement) {
+      unitElementHolder.addAccessor(element);
     } else if (element is TopLevelVariableElement) {
-      holder.addTopLevelVariable(element);
+      unitElementHolder.addTopLevelVariable(element);
     }
+  }
+
+  ClassElementDelta _processClassMembers(
+      ClassDeclaration oldClass, ClassDeclaration newClass) {
+    Map<String, ClassMember> oldNodeMap = new HashMap<String, ClassMember>();
+    for (ClassMember oldNode in oldClass.members) {
+      String code = TokenUtils.getFullCode(oldNode);
+      oldNodeMap[code] = oldNode;
+    }
+    // Prepare delta.
+    ClassElementImpl classElement = oldClass.element;
+    ElementHolder classElementHolder = new ElementHolder();
+    ClassElementDelta classDelta = new ClassElementDelta(classElement);
+    // Prepare all old member elements.
+    var removedAccessors = new Set<PropertyAccessorElement>();
+    var removedConstructors = new Set<ConstructorElement>();
+    var removedMethods = new Set<MethodElement>();
+    removedAccessors.addAll(classElement.accessors);
+    removedConstructors.addAll(classElement.constructors);
+    removedMethods.addAll(classElement.methods);
+    // Replace new nodes with the identical old nodes.
+    for (ClassMember newNode in newClass.members) {
+      String code = TokenUtils.getFullCode(newNode);
+      ClassMember oldNode = oldNodeMap[code];
+      // Add the new element.
+      if (oldNode == null) {
+        if (newNode is ConstructorDeclaration) {
+          ConstructorElement element = newNode.element;
+          if (element != null) {
+            classElementHolder.addConstructor(element);
+            classDelta.addedConstructors.add(element);
+          }
+        }
+        // TODO(scheglov) other elements
+        continue;
+      }
+      // Do replacement.
+      _replaceNode(newNode, oldNode);
+      if (oldNode is ConstructorDeclaration) {
+        ConstructorElement element = oldNode.element;
+        if (element != null) {
+          classElementHolder.addConstructor(element);
+          removedConstructors.remove(element);
+        }
+      }
+      // TODO(scheglov) other elements
+    }
+    classDelta.removedAccessors.addAll(removedAccessors);
+    classDelta.removedConstructors.addAll(removedConstructors);
+    classDelta.removedMethods.addAll(removedMethods);
+    // Update ClassElement.
+    classElement.accessors = classElementHolder.accessors;
+    classElement.constructors = classElementHolder.constructors;
+    classElement.methods = classElementHolder.methods;
+    classElementHolder.validate();
+    // Ensure at least a default synthetic constructor.
+    if (classElement.constructors.isEmpty) {
+      ConstructorElementImpl constructor =
+          new ConstructorElementImpl.forNode(null);
+      constructor.synthetic = true;
+      classElement.constructors = <ConstructorElement>[constructor];
+    }
+    // OK
+    return classDelta;
   }
 
   void _processDirectives() {
@@ -136,9 +225,14 @@ class IncrementalCompilationUnitElementBuilder {
   void _processUnitMembers() {
     Map<String, CompilationUnitMember> oldNodeMap =
         new HashMap<String, CompilationUnitMember>();
+    Map<String, ClassDeclaration> nameToOldClassMap =
+        new HashMap<String, ClassDeclaration>();
     for (CompilationUnitMember oldNode in oldUnit.declarations) {
       String code = TokenUtils.getFullCode(oldNode);
       oldNodeMap[code] = oldNode;
+      if (oldNode is ClassDeclaration) {
+        nameToOldClassMap[oldNode.name.name] = oldNode;
+      }
     }
     // Prepare all old top-level elements.
     Set<Element> removedElements = new Set<Element>();
@@ -151,29 +245,37 @@ class IncrementalCompilationUnitElementBuilder {
     // Replace new nodes with the identical old nodes.
     for (CompilationUnitMember newNode in newUnit.declarations) {
       String code = TokenUtils.getFullCode(newNode);
-      // Prepare an old node.
       CompilationUnitMember oldNode = oldNodeMap[code];
+      // Add the new element.
       if (oldNode == null) {
         List<Element> elements = _getElements(newNode);
-        elements.forEach(_addElementToHolder);
+        elements.forEach(_addElementToUnitHolder);
         elements.forEach(unitDelta.addedDeclarations.add);
+        // Compute a delta for the class.
+        if (newNode is ClassDeclaration) {
+          ClassDeclaration oldClass = nameToOldClassMap[newNode.name.name];
+          if (oldClass != null) {
+            ClassElementDelta delta = _processClassMembers(oldClass, newNode);
+            unitDelta.classDeltas.add(delta);
+          }
+        }
         continue;
       }
       // Do replacement.
       _replaceNode(newNode, oldNode);
       List<Element> elements = _getElements(oldNode);
-      elements.forEach(_addElementToHolder);
+      elements.forEach(_addElementToUnitHolder);
       elements.forEach(removedElements.remove);
     }
     unitDelta.removedDeclarations.addAll(removedElements);
     // Update CompilationUnitElement.
-    unitElement.accessors = holder.accessors;
-    unitElement.enums = holder.enums;
-    unitElement.functions = holder.functions;
-    unitElement.typeAliases = holder.typeAliases;
-    unitElement.types = holder.types;
-    unitElement.topLevelVariables = holder.topLevelVariables;
-    holder.validate();
+    unitElement.accessors = unitElementHolder.accessors;
+    unitElement.enums = unitElementHolder.enums;
+    unitElement.functions = unitElementHolder.functions;
+    unitElement.typeAliases = unitElementHolder.typeAliases;
+    unitElement.types = unitElementHolder.types;
+    unitElement.topLevelVariables = unitElementHolder.topLevelVariables;
+    unitElementHolder.validate();
   }
 
   /**
