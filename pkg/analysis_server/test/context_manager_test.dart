@@ -8,6 +8,7 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/embedder.dart';
@@ -2661,7 +2662,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
       }
     }
     resolvers.addAll(disposition.createPackageUriResolvers(resourceProvider));
-    resolvers.add(new FileUriResolver());
+    resolvers.add(new ResourceUriResolver(PhysicalResourceProvider.INSTANCE));
     currentContext.analysisOptions = options;
     currentContext.sourceFactory =
         new SourceFactory(resolvers, disposition.packages);

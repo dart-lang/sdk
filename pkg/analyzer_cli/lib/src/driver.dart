@@ -348,7 +348,7 @@ class Driver implements CommandLineStarter {
         List<UriResolver> resolvers = <UriResolver>[
           sdkResolver,
           resolver,
-          new FileUriResolver()
+          new file_system.ResourceUriResolver(PhysicalResourceProvider.INSTANCE)
         ];
         return new SourceFactory(resolvers);
       }
@@ -411,7 +411,8 @@ class Driver implements CommandLineStarter {
     }
 
     // Finally files.
-    resolvers.add(new FileUriResolver());
+    resolvers.add(
+        new file_system.ResourceUriResolver(PhysicalResourceProvider.INSTANCE));
 
     return new SourceFactory(resolvers, packageInfo.packages);
   }

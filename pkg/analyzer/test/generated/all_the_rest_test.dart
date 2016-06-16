@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart' hide ConstantEvaluator;
@@ -53,7 +54,6 @@ main() {
   runReflectiveTests(ExitDetectorTest);
   runReflectiveTests(ExitDetectorTest2);
   runReflectiveTests(FileBasedSourceTest);
-  runReflectiveTests(FileUriResolverTest);
   runReflectiveTests(ResolveRelativeUriTest);
   runReflectiveTests(SDKLibrariesReaderTest);
   runReflectiveTests(UriKindTest);
@@ -4186,7 +4186,8 @@ class FileBasedSourceTest {
   }
 
   void test_getEncoding() {
-    SourceFactory factory = new SourceFactory([new FileUriResolver()]);
+    SourceFactory factory = new SourceFactory(
+        [new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)]);
     String fullPath = "/does/not/exist.dart";
     JavaFile file = FileUtilities2.createFile(fullPath);
     FileBasedSource source = new FileBasedSource(file);
@@ -4301,41 +4302,6 @@ class FileBasedSourceTest {
     expect(source, isNotNull);
     expect(source.fullName, file.getAbsolutePath());
     expect(source.isInSystemLibrary, isTrue);
-  }
-}
-
-@reflectiveTest
-class FileUriResolverTest {
-  void test_creation() {
-    expect(new FileUriResolver(), isNotNull);
-  }
-
-  void test_resolve_file() {
-    UriResolver resolver = new FileUriResolver();
-    Source result = resolver
-        .resolveAbsolute(parseUriWithException("file:/does/not/exist.dart"));
-    expect(result, isNotNull);
-    expect(result.fullName,
-        FileUtilities2.createFile("/does/not/exist.dart").getAbsolutePath());
-  }
-
-  void test_resolve_nonFile() {
-    UriResolver resolver = new FileUriResolver();
-    Source result =
-        resolver.resolveAbsolute(parseUriWithException("dart:core"));
-    expect(result, isNull);
-  }
-
-  void test_restore() {
-    UriResolver resolver = new FileUriResolver();
-    Uri uri = parseUriWithException('file:///foo/bar.dart');
-    Source source = resolver.resolveAbsolute(uri);
-    expect(source, isNotNull);
-    expect(resolver.restoreAbsolute(source), uri);
-    expect(
-        resolver.restoreAbsolute(
-            new NonExistingSource(source.fullName, null, null)),
-        uri);
   }
 }
 

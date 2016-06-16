@@ -263,6 +263,7 @@ class FileBasedSource extends Source {
 /**
  * Instances of the class `FileUriResolver` resolve `file` URI's.
  */
+@deprecated
 class FileUriResolver extends UriResolver {
   /**
    * The name of the `file` scheme.
@@ -517,6 +518,7 @@ class PackageUriResolver extends UriResolver {
 /**
  * Instances of the class `RelativeFileUriResolver` resolve `file` URI's.
  */
+@deprecated
 class RelativeFileUriResolver extends UriResolver {
   /**
    * The name of the `file` scheme.

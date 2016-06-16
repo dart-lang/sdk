@@ -451,7 +451,7 @@ class _MemoryFileSource extends Source {
       return UriKind.PACKAGE_URI;
     } else if (scheme == DartUriResolver.DART_SCHEME) {
       return UriKind.DART_URI;
-    } else if (scheme == FileUriResolver.FILE_SCHEME) {
+    } else if (scheme == ResourceUriResolver.FILE_SCHEME) {
       return UriKind.FILE_URI;
     }
     return UriKind.FILE_URI;

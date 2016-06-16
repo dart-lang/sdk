@@ -15,7 +15,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source_io.dart'
-    show FileBasedSource, FileUriResolver, PackageUriResolver;
+    show FileBasedSource, PackageUriResolver;
 import 'package:analyzer/task/model.dart';
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
@@ -905,7 +905,7 @@ class UriKind extends Enum<UriKind> {
       return UriKind.PACKAGE_URI;
     } else if (scheme == DartUriResolver.DART_SCHEME) {
       return UriKind.DART_URI;
-    } else if (scheme == FileUriResolver.FILE_SCHEME) {
+    } else if (scheme == ResourceUriResolver.FILE_SCHEME) {
       return UriKind.FILE_URI;
     }
     return UriKind.FILE_URI;

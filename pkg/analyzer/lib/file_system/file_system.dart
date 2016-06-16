@@ -219,7 +219,7 @@ class ResourceUriResolver extends UriResolver {
   /**
    * The name of the `file` scheme.
    */
-  static String _FILE_SCHEME = "file";
+  static final String FILE_SCHEME = "file";
 
   final ResourceProvider _provider;
 
@@ -227,7 +227,7 @@ class ResourceUriResolver extends UriResolver {
 
   @override
   Source resolveAbsolute(Uri uri, [Uri actualUri]) {
-    if (!_isFileUri(uri)) {
+    if (!isFileUri(uri)) {
       return null;
     }
     Resource resource =
@@ -245,5 +245,5 @@ class ResourceUriResolver extends UriResolver {
   /**
    * Return `true` if the given [uri] is a `file` URI.
    */
-  static bool _isFileUri(Uri uri) => uri.scheme == _FILE_SCHEME;
+  static bool isFileUri(Uri uri) => uri.scheme == FILE_SCHEME;
 }
