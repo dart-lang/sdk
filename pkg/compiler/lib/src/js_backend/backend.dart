@@ -449,6 +449,9 @@ class JavaScriptBackend extends Backend {
   /// these constants must be registered.
   final List<Dependency> metadataConstants = <Dependency>[];
 
+  /// Set of elements for which metadata has been registered as dependencies.
+  final Set<Element> _registeredMetadata = new Set<Element>();
+
   /// List of elements that the user has requested for reflection.
   final Set<Element> targetsUsed = new Set<Element>();
 
@@ -1047,19 +1050,10 @@ class JavaScriptBackend extends Backend {
         // helper so we register a use of that.
         registry.registerStaticUse(new StaticUse.staticInvoke(
             // TODO(johnniwinther): Find the right [CallStructure].
-
             helpers.createRuntimeType,
             null));
       }
     }
-  }
-
-  void registerMetadataConstant(MetadataAnnotation metadata,
-      Element annotatedElement, Registry registry) {
-    assert(registry.isForResolution);
-    ConstantValue constant = constants.getConstantValueForMetadata(metadata);
-    registerCompileTimeConstant(constant, registry);
-    metadataConstants.add(new Dependency(constant, annotatedElement));
   }
 
   void registerInstantiatedClass(
@@ -1272,6 +1266,7 @@ class JavaScriptBackend extends Backend {
     super.onResolutionComplete();
     computeMembersNeededForReflection();
     rti.computeClassesNeedingRti();
+    _registeredMetadata.clear();
   }
 
   onTypeInferenceComplete() {
@@ -2304,15 +2299,65 @@ class JavaScriptBackend extends Backend {
       reporter.log('Retaining metadata.');
 
       compiler.libraryLoader.libraries.forEach(retainMetadataOf);
-      for (Dependency dependency in metadataConstants) {
-        registerCompileTimeConstant(dependency.constant,
-            new EagerRegistry('EagerRegistry for ${dependency}', enqueuer));
-      }
-      if (!enqueuer.isResolutionQueue) {
+
+      if (enqueuer.isResolutionQueue && !enqueuer.queueIsClosed) {
+        /// Register the constant value of [metadata] as live in resolution.
+        void registerMetadataConstant(MetadataAnnotation metadata) {
+          ConstantValue constant =
+              constants.getConstantValueForMetadata(metadata);
+          Dependency dependency =
+              new Dependency(constant, metadata.annotatedElement);
+          metadataConstants.add(dependency);
+          registerCompileTimeConstant(dependency.constant,
+              new EagerRegistry('EagerRegistry for ${dependency}', enqueuer));
+        }
+
+        // TODO(johnniwinther): We should have access to all recently processed
+        // elements and process these instead.
+        processMetadata(compiler.enqueuer.resolution.processedElements,
+            registerMetadataConstant);
+      } else {
+        for (Dependency dependency in metadataConstants) {
+          registerCompileTimeConstant(dependency.constant,
+              new EagerRegistry('EagerRegistry for ${dependency}', enqueuer));
+        }
         metadataConstants.clear();
       }
     }
     return true;
+  }
+
+  /// Call [registerMetadataConstant] on all metadata from [elements].
+  void processMetadata(Iterable<Element> elements,
+      void onMetadata(MetadataAnnotation metadata)) {
+    void processLibraryMetadata(LibraryElement library) {
+      if (_registeredMetadata.add(library)) {
+        library.metadata.forEach(onMetadata);
+        library.entryCompilationUnit.metadata.forEach(onMetadata);
+        for (ImportElement import in library.imports) {
+          import.metadata.forEach(onMetadata);
+        }
+      }
+    }
+
+    void processElementMetadata(Element element) {
+      if (_registeredMetadata.add(element)) {
+        element.metadata.forEach(onMetadata);
+        if (element.isFunction) {
+          FunctionElement function = element;
+          for (ParameterElement parameter in function.parameters) {
+            parameter.metadata.forEach(onMetadata);
+          }
+        }
+        if (element.enclosingClass != null) {
+          processElementMetadata(element.enclosingClass);
+        } else {
+          processLibraryMetadata(element.library);
+        }
+      }
+    }
+
+    elements.forEach(processElementMetadata);
   }
 
   void onQueueClosed() {
@@ -3037,6 +3082,8 @@ class Dependency {
   final Element annotatedElement;
 
   const Dependency(this.constant, this.annotatedElement);
+
+  String toString() => '$annotatedElement:${constant.toStructuredText()}';
 }
 
 class JavaScriptImpactStrategy extends ImpactStrategy {

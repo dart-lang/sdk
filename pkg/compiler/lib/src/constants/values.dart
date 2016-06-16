@@ -751,7 +751,9 @@ class DeferredConstantValue extends ConstantValue {
 
   String toDartText() => 'deferred(${referenced.toDartText()})';
 
-  String toStructuredText() => 'DeferredConstant($referenced)';
+  String toStructuredText() {
+    return 'DeferredConstant(${referenced.toStructuredText()})';
+  }
 }
 
 /// A constant value resulting from a non constant or erroneous constant
