@@ -14,9 +14,15 @@ import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary/flat_buffers.dart' as fb;
 import 'package:analyzer/src/summary/index_unit.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:path/path.dart';
+
+const int FIELD_SPEC_INDEX = 1;
+const int FIELD_SPEC_SUM = 0;
+const int FIELD_STRONG_INDEX = 3;
+const int FIELD_STRONG_SUM = 2;
 
 class BuilderOutput {
   final List<int> sum;
@@ -74,6 +80,35 @@ class SummaryBuilder {
   }
 
   BuilderOutput build() => new _Builder(_context, _librarySources).build();
+}
+
+/**
+ * Intermediary summary output result.
+ */
+class SummaryOutput {
+  final BuilderOutput spec;
+  final BuilderOutput strong;
+  SummaryOutput(this.spec, this.strong);
+
+  /**
+   * Write this summary output to the given [outputPath] and return the
+   * created file.
+   */
+  File write(String outputPath) {
+    fb.Builder builder = new fb.Builder();
+    fb.Offset specSumOffset = builder.writeListUint8(spec.sum);
+    fb.Offset specIndexOffset = builder.writeListUint8(spec.index);
+    fb.Offset strongSumOffset = builder.writeListUint8(strong.sum);
+    fb.Offset strongIndexOffset = builder.writeListUint8(strong.index);
+    builder.startTable();
+    builder.addOffset(FIELD_SPEC_SUM, specSumOffset);
+    builder.addOffset(FIELD_SPEC_INDEX, specIndexOffset);
+    builder.addOffset(FIELD_STRONG_SUM, strongSumOffset);
+    builder.addOffset(FIELD_STRONG_INDEX, strongIndexOffset);
+    fb.Offset offset = builder.endTable();
+    return new File(outputPath)
+      ..writeAsBytesSync(builder.finish(offset), mode: FileMode.WRITE_ONLY);
+  }
 }
 
 class _Builder {

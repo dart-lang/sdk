@@ -29,7 +29,7 @@ main(List<String> args) {
     // Prepare results.
     //
     String sdkPath = args.length > 2 ? args[2] : null;
-    _Output output = _buildMultipleOutputs(sdkPath, includeSpec);
+    SummaryOutput output = _buildMultipleOutputs(sdkPath, includeSpec);
     if (output == null) {
       exitCode = 1;
       return;
@@ -49,43 +49,32 @@ main(List<String> args) {
     //
     // Prepare results.
     //
-    _Output output = _buildMultipleOutputs(sdkPath, true);
+    SummaryOutput output = _buildMultipleOutputs(sdkPath, true);
     if (output == null) {
       exitCode = 1;
       return;
     }
+
     //
     // Write results.
     //
-    fb.Builder builder = new fb.Builder();
-    fb.Offset specSumOffset = builder.writeListUint8(output.spec.sum);
-    fb.Offset specIndexOffset = builder.writeListUint8(output.spec.index);
-    fb.Offset strongSumOffset = builder.writeListUint8(output.strong.sum);
-    fb.Offset strongIndexOffset = builder.writeListUint8(output.strong.index);
-    builder.startTable();
-    builder.addOffset(_FIELD_SPEC_SUM, specSumOffset);
-    builder.addOffset(_FIELD_SPEC_INDEX, specIndexOffset);
-    builder.addOffset(_FIELD_STRONG_SUM, strongSumOffset);
-    builder.addOffset(_FIELD_STRONG_INDEX, strongIndexOffset);
-    fb.Offset offset = builder.endTable();
-    new File(outputPath)
-        .writeAsBytesSync(builder.finish(offset), mode: FileMode.WRITE_ONLY);
+    output.write(outputPath);
   } else if (command == 'extract-spec-sum' && args.length == 3) {
     String inputPath = args[1];
     String outputPath = args[2];
-    _extractSingleOutput(inputPath, _FIELD_SPEC_SUM, outputPath);
+    _extractSingleOutput(inputPath, FIELD_SPEC_SUM, outputPath);
   } else if (command == 'extract-spec-index' && args.length == 3) {
     String inputPath = args[1];
     String outputPath = args[2];
-    _extractSingleOutput(inputPath, _FIELD_SPEC_INDEX, outputPath);
+    _extractSingleOutput(inputPath, FIELD_SPEC_INDEX, outputPath);
   } else if (command == 'extract-strong-sum' && args.length == 3) {
     String inputPath = args[1];
     String outputPath = args[2];
-    _extractSingleOutput(inputPath, _FIELD_STRONG_SUM, outputPath);
+    _extractSingleOutput(inputPath, FIELD_STRONG_SUM, outputPath);
   } else if (command == 'extract-strong-index' && args.length == 3) {
     String inputPath = args[1];
     String outputPath = args[2];
-    _extractSingleOutput(inputPath, _FIELD_STRONG_INDEX, outputPath);
+    _extractSingleOutput(inputPath, FIELD_STRONG_INDEX, outputPath);
   } else {
     _printUsage();
     exitCode = 1;
@@ -98,12 +87,7 @@ main(List<String> args) {
  */
 const BINARY_NAME = "build_sdk_summaries";
 
-const int _FIELD_SPEC_INDEX = 1;
-const int _FIELD_SPEC_SUM = 0;
-const int _FIELD_STRONG_INDEX = 3;
-const int _FIELD_STRONG_SUM = 2;
-
-_Output _buildMultipleOutputs(String sdkPath, bool includeSpec) {
+SummaryOutput _buildMultipleOutputs(String sdkPath, bool includeSpec) {
   //
   // Validate the SDK path.
   //
@@ -122,7 +106,7 @@ _Output _buildMultipleOutputs(String sdkPath, bool includeSpec) {
   //
   BuilderOutput spec = includeSpec ? _buildOutput(sdkPath, false) : null;
   BuilderOutput strong = _buildOutput(sdkPath, true);
-  return new _Output(spec, strong);
+  return new SummaryOutput(spec, strong);
 }
 
 BuilderOutput _buildOutput(String sdkPath, bool strongMode) {
@@ -168,11 +152,4 @@ void _printUsage() {
   print('    Extract the spec-mode index file.');
   print('  extract-strong-index input_file output_file');
   print('    Extract the strong-mode index file.');
-}
-
-class _Output {
-  final BuilderOutput spec;
-  final BuilderOutput strong;
-
-  _Output(this.spec, this.strong);
 }
