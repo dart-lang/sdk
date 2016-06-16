@@ -26,6 +26,7 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
 
   DartFrameIterator iterator;
   iterator.NextFrame();  // Skip native call.
+  iterator.NextFrame();  // Skip _AssertionError._checkAssertion frame
   const Script& script = Script::Handle(Exceptions::GetCallerScript(&iterator));
 
   // Initialize argument 'failed_assertion' with source snippet.

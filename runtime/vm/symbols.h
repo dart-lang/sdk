@@ -71,7 +71,7 @@ class ObjectPointerVisitor;
   V(CyclicInitializationError, "CyclicInitializationError")                    \
   V(ThrowNew, "_throwNew")                                                     \
   V(ThrowNewIfNotLoaded, "_throwNewIfNotLoaded")                               \
-  V(HandleCondition, "_handleCondition")                                       \
+  V(CheckAssertion, "_checkAssertion")                                         \
   V(Symbol, "Symbol")                                                          \
   V(SymbolCtor, "Symbol.")                                                     \
   V(List, "List")                                                              \

@@ -9175,28 +9175,6 @@ AstNode* Parser::MakeStaticCall(const String& cls_name,
 }
 
 
-AstNode* Parser::MakeAssertCall(TokenPosition begin, TokenPosition end) {
-  ArgumentListNode* arguments = new(Z) ArgumentListNode(begin);
-  arguments->Add(new(Z) LiteralNode(begin,
-      Integer::ZoneHandle(Z, Integer::New(begin.value(), Heap::kOld))));
-  arguments->Add(new(Z) LiteralNode(end,
-      Integer::ZoneHandle(Z, Integer::New(end.value(), Heap::kOld))));
-  return MakeStaticCall(Symbols::AssertionError(),
-                        Library::PrivateCoreLibName(Symbols::ThrowNew()),
-                        arguments);
-}
-
-
-AstNode* Parser::HandleAssertCondition(AstNode* condition) {
-  const TokenPosition pos = condition->token_pos();
-  ArgumentListNode* arguments = new(Z) ArgumentListNode(pos);
-  arguments->Add(condition);
-  return MakeStaticCall(Symbols::AssertionError(),
-                        Library::PrivateCoreLibName(Symbols::HandleCondition()),
-                        arguments);
-}
-
-
 AstNode* Parser::ParseAssertStatement() {
   TRACE_PARSER("ParseAssertStatement");
   ConsumeToken();  // Consume assert keyword.
@@ -9210,14 +9188,16 @@ AstNode* Parser::ParseAssertStatement() {
   AstNode* condition = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
   const TokenPosition condition_end = TokenPos();
   ExpectToken(Token::kRPAREN);
-  condition = HandleAssertCondition(condition);
-  condition = new(Z) UnaryOpNode(condition_pos, Token::kNOT, condition);
-  AstNode* assert_throw = MakeAssertCall(condition_pos, condition_end);
-  return new(Z) IfNode(
-      condition_pos,
-      condition,
-      NodeAsSequenceNode(condition_pos, assert_throw, NULL),
-      NULL);
+
+  ArgumentListNode* arguments = new(Z) ArgumentListNode(condition_pos);
+  arguments->Add(condition);
+  arguments->Add(new(Z) LiteralNode(condition_pos,
+      Integer::ZoneHandle(Z, Integer::New(condition_pos.value(), Heap::kOld))));
+  arguments->Add(new(Z) LiteralNode(condition_end,
+      Integer::ZoneHandle(Z, Integer::New(condition_end.value(), Heap::kOld))));
+  return MakeStaticCall(Symbols::AssertionError(),
+                        Library::PrivateCoreLibName(Symbols::CheckAssertion()),
+                        arguments);
 }
 
 
