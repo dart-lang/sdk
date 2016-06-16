@@ -2281,10 +2281,7 @@ inline bool RawObject::IsTwoByteStringClassId(intptr_t index) {
                  kTwoByteStringCid == kStringCid + 2 &&
                  kExternalOneByteStringCid == kStringCid + 3 &&
                  kExternalTwoByteStringCid == kStringCid + 4);
-  return (index == kOneByteStringCid ||
-          index == kTwoByteStringCid ||
-          index == kExternalOneByteStringCid ||
-          index == kExternalTwoByteStringCid);
+  return (index == kTwoByteStringCid || index == kExternalTwoByteStringCid);
 }
 
 

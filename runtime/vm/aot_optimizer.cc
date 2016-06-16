@@ -1949,7 +1949,8 @@ bool AotOptimizer::TryInlineInt32x4Method(
 // If type tests specified by 'ic_data' do not depend on type arguments,
 // return mapping cid->result in 'results' (i : cid; i + 1: result).
 // If all tests yield the same result, return it otherwise return Bool::null.
-// If no mapping is possible, 'results' is empty.
+// If no mapping is possible, 'results' has less than
+// (ic_data.NumberOfChecks() * 2) entries
 // An instance-of test returning all same results can be converted to a class
 // check.
 RawBool* AotOptimizer::InstanceOfAsBool(
@@ -2078,7 +2079,7 @@ static void TryAddTest(ZoneGrowableArray<intptr_t>* results,
 // TODO(srdjan): Do also for other than 'int' type.
 static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
                                     const AbstractType& type) {
-  ASSERT(results->length() >= 2);  // At least on eentry.
+  ASSERT(results->length() >= 2);  // At least on entry.
   const ClassTable& class_table = *Isolate::Current()->class_table();
   if ((*results)[0] != kSmiCid) {
     const Class& cls = Class::Handle(class_table.At(kSmiCid));
@@ -2100,14 +2101,26 @@ static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
 
   ASSERT(type.IsInstantiated() && !type.IsMalformedOrMalbounded());
   ASSERT(results->length() >= 2);
-  if (type.IsIntType()) {
+  if (type.IsSmiType()) {
+    ASSERT((*results)[0] == kSmiCid);
+    return false;
+  } else if (type.IsIntType()) {
     ASSERT((*results)[0] == kSmiCid);
     TryAddTest(results, kMintCid, true);
     TryAddTest(results, kBigintCid, true);
     // Cannot deoptimize since all tests returning true have been added.
     return false;
+  } else if (type.IsNumberType()) {
+    ASSERT((*results)[0] == kSmiCid);
+    TryAddTest(results, kMintCid, true);
+    TryAddTest(results, kBigintCid, true);
+    TryAddTest(results, kDoubleCid, true);
+    return false;
+  } else if (type.IsDoubleType()) {
+    ASSERT((*results)[0] == kSmiCid);
+    TryAddTest(results, kDoubleCid, true);
+    return false;
   }
-
   return true;  // May deoptimize since we have not identified all 'true' tests.
 }
 
@@ -2115,11 +2128,6 @@ static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
 // TODO(srdjan): Use ICData to check if always true or false.
 void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
-  // Guard against repeated speculative inlining.
-  if (!use_speculative_inlining_ ||
-      IsBlackListedForInlining(call->deopt_id())) {
-    return;
-  }
   Definition* left = call->ArgumentAt(0);
   Definition* type_args = NULL;
   AbstractType& type = AbstractType::ZoneHandle(Z);
@@ -2152,46 +2160,6 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     negate = Bool::Cast(call->ArgumentAt(3)->OriginalDefinition()
         ->AsConstant()->value()).value();
   }
-  const ICData& unary_checks =
-      ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks());
-  if ((unary_checks.NumberOfChecks() > 0) &&
-      (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks)) {
-    ZoneGrowableArray<intptr_t>* results =
-        new(Z) ZoneGrowableArray<intptr_t>(unary_checks.NumberOfChecks() * 2);
-    Bool& as_bool =
-        Bool::ZoneHandle(Z, InstanceOfAsBool(unary_checks, type, results));
-    if (as_bool.IsNull()) {
-      if (results->length() == unary_checks.NumberOfChecks() * 2) {
-        const bool can_deopt = TryExpandTestCidsResult(results, type);
-        TestCidsInstr* test_cids = new(Z) TestCidsInstr(
-            call->token_pos(),
-            negate ? Token::kISNOT : Token::kIS,
-            new(Z) Value(left),
-            *results,
-            can_deopt ? call->deopt_id() : Thread::kNoDeoptId);
-        // Remove type.
-        ReplaceCall(call, test_cids);
-        return;
-      }
-    } else {
-      // TODO(srdjan): Use TestCidsInstr also for this case.
-      // One result only.
-      AddReceiverCheck(call);
-      if (negate) {
-        as_bool = Bool::Get(!as_bool.value()).raw();
-      }
-      ConstantInstr* bool_const = flow_graph()->GetConstant(as_bool);
-      for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-        PushArgumentInstr* push = call->PushArgumentAt(i);
-        push->ReplaceUsesWith(push->value()->definition());
-        push->RemoveFromGraph();
-      }
-      call->ReplaceUsesWith(bool_const);
-      ASSERT(current_iterator()->Current() == call);
-      current_iterator()->RemoveCurrentFromGraph();
-      return;
-    }
-  }
 
   if (TypeCheckAsClassEquality(type)) {
     LoadClassIdInstr* left_cid = new(Z) LoadClassIdInstr(new(Z) Value(left));
@@ -2214,6 +2182,31 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     return;
   }
 
+  const ICData& unary_checks =
+      ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks());
+  if ((unary_checks.NumberOfChecks() > 0) &&
+      (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks)) {
+    ZoneGrowableArray<intptr_t>* results =
+        new(Z) ZoneGrowableArray<intptr_t>(unary_checks.NumberOfChecks() * 2);
+    InstanceOfAsBool(unary_checks, type, results);
+    if (results->length() == unary_checks.NumberOfChecks() * 2) {
+      const bool can_deopt = TryExpandTestCidsResult(results, type);
+      if (can_deopt && !IsAllowedForInlining(call->deopt_id())) {
+        // Guard against repeated speculative inlining.
+        return;
+      }
+      TestCidsInstr* test_cids = new(Z) TestCidsInstr(
+          call->token_pos(),
+          negate ? Token::kISNOT : Token::kIS,
+          new(Z) Value(left),
+          *results,
+          can_deopt ? call->deopt_id() : Thread::kNoDeoptId);
+      // Remove type.
+      ReplaceCall(call, test_cids);
+      return;
+    }
+  }
+
   InstanceOfInstr* instance_of =
       new(Z) InstanceOfInstr(call->token_pos(),
                              new(Z) Value(left),
@@ -2228,11 +2221,6 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
 // TODO(srdjan): Apply optimizations as in ReplaceWithInstanceOf (TestCids).
 void AotOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeCastOperator(call->token_kind()));
-  // Guard against repeated speculative inlining.
-  if (!use_speculative_inlining_ ||
-      IsBlackListedForInlining(call->deopt_id())) {
-    return;
-  }
   Definition* left = call->ArgumentAt(0);
   Definition* type_args = call->ArgumentAt(1);
   const AbstractType& type =
@@ -2247,6 +2235,10 @@ void AotOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
     const Bool& as_bool = Bool::ZoneHandle(Z,
         InstanceOfAsBool(unary_checks, type, results));
     if (as_bool.raw() == Bool::True().raw()) {
+      // Guard against repeated speculative inlining.
+      if (!IsAllowedForInlining(call->deopt_id())) {
+        return;
+      }
       AddReceiverCheck(call);
       // Remove the original push arguments.
       for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
@@ -2272,11 +2264,12 @@ void AotOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
 }
 
 
-bool AotOptimizer::IsBlackListedForInlining(intptr_t call_deopt_id) {
+bool AotOptimizer::IsAllowedForInlining(intptr_t call_deopt_id) {
+  if (!use_speculative_inlining_) return false;
   for (intptr_t i = 0; i < inlining_black_list_->length(); ++i) {
-    if ((*inlining_black_list_)[i] == call_deopt_id) return true;
+    if ((*inlining_black_list_)[i] == call_deopt_id) return false;
   }
-  return false;
+  return true;
 }
 
 
@@ -2329,8 +2322,7 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     return;
   }
 
-  if (use_speculative_inlining_ &&
-      !IsBlackListedForInlining(instr->deopt_id()) &&
+  if (IsAllowedForInlining(instr->deopt_id()) &&
       (unary_checks.NumberOfChecks() > 0)) {
     if ((op_kind == Token::kINDEX) && TryReplaceWithIndexedOp(instr)) {
       return;

@@ -863,7 +863,7 @@ class CallSiteInliner : public ValueObject {
           }
         }
 
-        if (FLAG_support_il_printer && FLAG_trace_inlining &&
+        if (FLAG_support_il_printer && trace_inlining() &&
             (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized)) {
           THR_Print("Callee graph for inlining %s\n",
                     function.ToFullyQualifiedCString());
