@@ -4174,6 +4174,43 @@ f(A a) {
     expect(info.userToDependsOn['f'], unorderedEquals(['A']));
   }
 
+  test_referencedNames_topLevelVariable() {
+    ReferencedNames info = _computeReferencedNames('''
+A v = new B(c);
+''');
+    expect(info.names, unorderedEquals(['A', 'B', 'c']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['v']));
+    expect(info.userToDependsOn['v'], unorderedEquals(['A', 'B', 'c']));
+  }
+
+  test_referencedNames_topLevelVariable_multiple() {
+    ReferencedNames info = _computeReferencedNames('''
+A v1 = new B(c), v2 = new D<E>(f);
+''');
+    expect(info.names, unorderedEquals(['A', 'B', 'c', 'D', 'E', 'f']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['v1', 'v2']));
+    expect(info.userToDependsOn['v1'], unorderedEquals(['A', 'B', 'c']));
+    expect(info.userToDependsOn['v2'], unorderedEquals(['A', 'D', 'E', 'f']));
+  }
+
+  test_referencedNames_unit_classTypeAlias() {
+    ReferencedNames info = _computeReferencedNames('''
+class U = A with B implements C;
+''');
+    expect(info.names, unorderedEquals(['A', 'B', 'C']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['U']));
+    expect(info.userToDependsOn['U'], unorderedEquals(['A', 'B', 'C']));
+  }
+
+  test_referencedNames_unit_classTypeAlias_typeParameters() {
+    ReferencedNames info = _computeReferencedNames('''
+class U<T1, T2 extends D> = A<T1> with B<T2> implements C<T1, T2>;
+''');
+    expect(info.names, unorderedEquals(['A', 'B', 'C', 'D']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['U']));
+    expect(info.userToDependsOn['U'], unorderedEquals(['A', 'B', 'C', 'D']));
+  }
+
   test_referencedNames_unit_function() {
     ReferencedNames info = _computeReferencedNames('''
 A f(B b) {

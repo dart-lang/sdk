@@ -4610,6 +4610,20 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
   }
 
   @override
+  visitClassTypeAlias(ClassTypeAlias node) {
+    ReferencedNamesScope outerScope = scope;
+    try {
+      scope = new ReferencedNamesScope.forClassTypeAlias(scope, node);
+      dependsOn = new Set<String>();
+      super.visitClassTypeAlias(node);
+      names.userToDependsOn[node.name.name] = dependsOn;
+    } finally {
+      dependsOn = null;
+      scope = outerScope;
+    }
+  }
+
+  @override
   visitConstructorName(ConstructorName node) {
     if (node.parent is! ConstructorDeclaration) {
       super.visitConstructorName(node);
@@ -4696,6 +4710,23 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
       dependsOn.add(name);
     }
   }
+
+  @override
+  visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    VariableDeclarationList variableList = node.variables;
+    // Prepare type dependencies.
+    Set<String> typeDependencies = new Set<String>();
+    dependsOn = typeDependencies;
+    variableList.type?.accept(this);
+    // Combine individual variable dependencies with the type dependencies.
+    for (VariableDeclaration variable in variableList.variables) {
+      dependsOn = new Set<String>();
+      variable.accept(this);
+      dependsOn.addAll(typeDependencies);
+      names.userToDependsOn[variable.name.name] = dependsOn;
+    }
+    dependsOn = null;
+  }
 }
 
 class ReferencedNamesScope {
@@ -4732,6 +4763,13 @@ class ReferencedNamesScope {
         scope.add(member.name.name);
       }
     }
+    return scope;
+  }
+
+  factory ReferencedNamesScope.forClassTypeAlias(
+      ReferencedNamesScope enclosing, ClassTypeAlias node) {
+    ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
+    scope._addTypeParameters(node.typeParameters);
     return scope;
   }
 
