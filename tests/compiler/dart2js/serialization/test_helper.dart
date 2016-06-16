@@ -12,6 +12,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/tree/nodes.dart';
+import 'package:expect/expect.dart';
 
 Check currentCheck;
 
@@ -185,7 +186,7 @@ bool checkListEquivalence(
 Set computeSetDifference(
     Iterable set1,
     Iterable set2,
-    List common,
+    List<List> common,
     List unfound,
     {bool sameElement(a, b): equality,
      void checkElements(a, b)}) {
@@ -197,19 +198,19 @@ Set computeSetDifference(
   // set.difference would work)
   Set remaining = set2.toSet();
   for (var element1 in set1) {
-    bool found = false;
+    var correspondingElement;
     for (var element2 in remaining) {
       if (sameElement(element1, element2)) {
         if (checkElements != null) {
           checkElements(element1, element2);
         }
-        found = true;
+        correspondingElement = element2;
         remaining.remove(element2);
         break;
       }
     }
-    if (found) {
-      common.add(element1);
+    if (correspondingElement != null) {
+      common.add([element1, correspondingElement]);
     } else {
       unfound.add(element1);
     }
@@ -229,7 +230,7 @@ bool checkSetEquivalence(
     Iterable set2,
     bool sameElement(a, b),
     {void onSameElement(a, b)}) {
-  List common = [];
+  List<List> common = <List>[];
   List unfound = [];
   Set remaining =
       computeSetDifference(set1, set2, common, unfound,
@@ -427,4 +428,126 @@ void checkImpacts(Compiler compiler1, Element member1,
   }
 
   testResolutionImpactEquivalence(impact1, impact2, const CheckStrategy());
+}
+
+void checkSets(
+    Iterable set1,
+    Iterable set2,
+    String messagePrefix,
+    bool sameElement(a, b),
+    {bool failOnUnfound: true,
+    bool verbose: false,
+    void onSameElement(a, b)}) {
+  List<List> common = <List>[];
+  List unfound = [];
+  Set remaining = computeSetDifference(
+      set1, set2, common, unfound,
+      sameElement: sameElement,
+      checkElements: onSameElement);
+  StringBuffer sb = new StringBuffer();
+  sb.write("$messagePrefix:");
+  if (verbose) {
+    sb.write("\n Common:\n  ${common.join('\n  ')}");
+  }
+  if (unfound.isNotEmpty || verbose) {
+    sb.write("\n Unfound:\n  ${unfound.join('\n  ')}");
+  }
+  if (remaining.isNotEmpty || verbose) {
+    sb.write("\n Extra: \n  ${remaining.join('\n  ')}");
+  }
+  String message = sb.toString();
+  if (unfound.isNotEmpty || remaining.isNotEmpty) {
+
+    if (failOnUnfound || remaining.isNotEmpty) {
+      Expect.fail(message);
+    } else {
+      print(message);
+    }
+  } else if (verbose) {
+    print(message);
+  }
+}
+
+String defaultToString(obj) => '$obj';
+
+void checkMaps(
+    Map map1,
+    Map map2,
+    String messagePrefix,
+    bool sameKey(a, b),
+    bool sameValue(a, b),
+    {bool failOnUnfound: true,
+    bool failOnMismatch: true,
+    bool verbose: false,
+    String keyToString(key): defaultToString,
+    String valueToString(key): defaultToString}) {
+  List<List> common = <List>[];
+  List unfound = [];
+  List<List> mismatch = <List>[];
+  Set remaining = computeSetDifference(
+      map1.keys, map2.keys, common, unfound,
+      sameElement: sameKey,
+      checkElements: (k1, k2) {
+        var v1 = map1[k1];
+        var v2 = map2[k2];
+        if (!sameValue(v1, v2)) {
+          mismatch.add([k1, k2]);
+        }
+      });
+  StringBuffer sb = new StringBuffer();
+  sb.write("$messagePrefix:");
+  if (verbose) {
+    sb.write("\n Common: \n");
+    for (List pair in common) {
+      var k1 = pair[0];
+      var k2 = pair[1];
+      var v1 = map1[k1];
+      var v2 = map2[k2];
+      sb.write(" key1   =${keyToString(k1)}\n");
+      sb.write(" key2   =${keyToString(k2)}\n");
+      sb.write("  value1=${valueToString(v1)}\n");
+      sb.write("  value2=${valueToString(v2)}\n");
+    }
+  }
+  if (unfound.isNotEmpty || verbose) {
+    sb.write("\n Unfound: \n");
+    for (var k1 in unfound) {
+      var v1 = map1[k1];
+      sb.write(" key1   =${keyToString(k1)}\n");
+      sb.write("  value1=${valueToString(v1)}\n");
+    }
+  }
+  if (remaining.isNotEmpty || verbose) {
+    sb.write("\n Extra: \n");
+    for (var k2 in remaining) {
+      var v2 = map2[k2];
+      sb.write(" key2   =${keyToString(k2)}\n");
+      sb.write("  value2=${valueToString(v2)}\n");
+    }
+  }
+  if (mismatch.isNotEmpty || verbose) {
+    sb.write("\n Mismatch: \n");
+    for (List pair in mismatch) {
+      var k1 = pair[0];
+      var k2 = pair[1];
+      var v1 = map1[k1];
+      var v2 = map2[k2];
+      sb.write(" key1   =${keyToString(k1)}\n");
+      sb.write(" key2   =${keyToString(k2)}\n");
+      sb.write("  value1=${valueToString(v1)}\n");
+      sb.write("  value2=${valueToString(v2)}\n");
+    }
+  }
+  String message = sb.toString();
+  if (unfound.isNotEmpty || mismatch.isNotEmpty || remaining.isNotEmpty) {
+    if ((unfound.isNotEmpty && failOnUnfound) ||
+        (mismatch.isNotEmpty && failOnMismatch) ||
+        remaining.isNotEmpty) {
+      Expect.fail(message);
+    } else {
+      print(message);
+    }
+  } else if (verbose) {
+    print(message);
+  }
 }

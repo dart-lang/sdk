@@ -23,7 +23,6 @@ class NativeData {
   /// [setNativeClassTagInfo].
   Map<ClassElement, String> nativeClassTagInfo = <ClassElement, String>{};
 
-  // TODO(johnniwinther): Serialize these.
   /// Cache for [NativeBehavior]s for calling native methods.
   Map<FunctionElement, NativeBehavior> nativeMethodBehavior =
       <FunctionElement, NativeBehavior>{};
