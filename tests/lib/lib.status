@@ -229,6 +229,9 @@ async/multiple_timer_test: Pass, Fail # Probably issue 14734
 # TODO(efortuna): Investigate.
 async/timer_test: Fail, Pass
 
+[ $runtime == vm ]
+convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
+
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
 async/timer_not_available_test: Fail, OK
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
