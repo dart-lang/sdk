@@ -697,8 +697,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
 
+    bool inCommentReference(SimpleIdentifier identifier) =>
+        identifier.getAncestor((AstNode node) => node is CommentReference) !=
+        null;
+
     Element element = identifier.bestElement;
-    if (isProtected(element)) {
+    if (isProtected(element) && !inCommentReference(identifier)) {
       ClassElement definingClass = element.enclosingElement;
       ClassDeclaration accessingClass =
           identifier.getAncestor((AstNode node) => node is ClassDeclaration);
@@ -2049,8 +2053,8 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
    *            This allows for a final break, continue, return, or throw statement
    *            at the end of a switch case, that are mandated by the language spec.
    */
-  void _checkForDeadStatementsInNodeList(
-      NodeList<Statement> statements, {bool allowMandated: false}) {
+  void _checkForDeadStatementsInNodeList(NodeList<Statement> statements,
+      {bool allowMandated: false}) {
     bool statementExits(Statement statement) {
       if (statement is BreakStatement) {
         return statement.label == null;
