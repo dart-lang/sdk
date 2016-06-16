@@ -131,11 +131,6 @@ abstract class Backend extends Target {
   /// Called during codegen when [constant] has been used.
   void registerCompileTimeConstant(ConstantValue constant, Registry registry) {}
 
-  /// Called during resolution when a constant value for [metadata] on
-  /// [annotatedElement] has been evaluated.
-  void registerMetadataConstant(MetadataAnnotation metadata,
-      Element annotatedElement, Registry registry) {}
-
   /// Called to notify to the backend that a class is being instantiated.
   // TODO(johnniwinther): Remove this. It's only called once for each [cls] and
   // only with [Compiler.globalDependencies] as [registry].
