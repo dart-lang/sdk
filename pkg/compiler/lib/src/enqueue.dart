@@ -716,6 +716,7 @@ class ResolutionEnqueuer extends Enqueuer {
   /// Registers [element] as processed by the resolution enqueuer.
   void registerProcessedElement(AstElement element) {
     processedElements.add(element);
+    compiler.backend.onElementResolved(element);
   }
 
   /**

@@ -12,6 +12,7 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/filenames.dart';
+import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/tree/nodes.dart';
 import 'package:compiler/src/universe/class_set.dart';
@@ -115,6 +116,19 @@ Future checkModels(
       compilerDeserialized.world.getClassHierarchyNode(
           compilerDeserialized.coreClasses.objectClass),
       verbose: verbose);
+
+  Expect.equals(compilerNormal.enabledInvokeOn,
+      compilerDeserialized.enabledInvokeOn,
+      "Compiler.enabledInvokeOn mismatch");
+  Expect.equals(compilerNormal.enabledFunctionApply,
+      compilerDeserialized.enabledFunctionApply,
+      "Compiler.enabledFunctionApply mismatch");
+  Expect.equals(compilerNormal.enabledRuntimeType,
+      compilerDeserialized.enabledRuntimeType,
+      "Compiler.enabledRuntimeType mismatch");
+  Expect.equals(compilerNormal.hasIsolateSupport,
+      compilerDeserialized.hasIsolateSupport,
+      "Compiler.hasIsolateSupport mismatch");
 }
 
 void checkElements(
@@ -127,11 +141,11 @@ void checkElements(
     AstElement astElement1 = element1;
     AstElement astElement2 = element2;
     ClosureClassMap closureData1 =
-    compiler1.closureToClassMapper.computeClosureToClassMapping(
-        astElement1.resolvedAst);
+        compiler1.closureToClassMapper.computeClosureToClassMapping(
+            astElement1.resolvedAst);
     ClosureClassMap closureData2 =
-    compiler2.closureToClassMapper.computeClosureToClassMapping(
-        astElement2.resolvedAst);
+        compiler2.closureToClassMapper.computeClosureToClassMapping(
+            astElement2.resolvedAst);
 
     checkElementIdentities(closureData1, closureData2,
         '$element1.closureElement',
@@ -168,6 +182,12 @@ void checkElements(
         areLocalsEquivalent,
         verbose: verbose);
   }
+  JavaScriptBackend backend1 = compiler1.backend;
+  JavaScriptBackend backend2 = compiler2.backend;
+  Expect.equals(
+      backend1.inlineCache.getCurrentCacheDecisionForTesting(element1),
+      backend2.inlineCache.getCurrentCacheDecisionForTesting(element2),
+      "Inline cache decision mismatch for $element1 vs $element2");
 }
 
 void checkMixinUses(

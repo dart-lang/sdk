@@ -287,8 +287,18 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1.isClassMember, element2.isClassMember);
     check(element1, element2, 'isInstanceMember',
         element1.isInstanceMember, element2.isInstanceMember);
+    List<MetadataAnnotation> metadata1 = <MetadataAnnotation>[];
+    metadata1.addAll(element1.metadata);
+    if (element1.isPatched) {
+      metadata1.addAll(element1.implementation.metadata);
+    }
+    List<MetadataAnnotation> metadata2 = <MetadataAnnotation>[];
+    metadata2.addAll(element2.metadata);
+    if (element2.isPatched) {
+      metadata2.addAll(element2.implementation.metadata);
+    }
     checkListEquivalence(element1, element2, 'metadata',
-        element1.metadata, element2.metadata, checkMetadata);
+        metadata1, metadata2, checkMetadata);
   }
 
   @override
@@ -394,7 +404,7 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
           throw message;
         }
       }
-      currentCheck = new Check(currentCheck, element1, element1,
+      currentCheck = new Check(currentCheck, element1, element2,
           'member:$name', member1, member2);
       visit(member1, member2);
       currentCheck = currentCheck.parent;

@@ -122,18 +122,26 @@ class SerializerUtil {
 
   /// Serialize the metadata of [element] into [encoder].
   static void serializeMetadata(Element element, ObjectEncoder encoder) {
+    ListEncoder list;
+
+    void encodeAnnotation(MetadataAnnotation metadata) {
+      ObjectEncoder object = list.createObject();
+      object.setElement(Key.ELEMENT, metadata.annotatedElement);
+      SourceSpan sourcePosition = metadata.sourcePosition;
+      // TODO(johnniwinther): What is the base URI here?
+      object.setUri(Key.URI, sourcePosition.uri, sourcePosition.uri);
+      object.setInt(Key.OFFSET, sourcePosition.begin);
+      object.setInt(Key.LENGTH, sourcePosition.end - sourcePosition.begin);
+      object.setConstant(Key.CONSTANT, metadata.constant);
+    }
+
     if (element.metadata.isNotEmpty) {
-      ListEncoder list = encoder.createList(Key.METADATA);
-      for (MetadataAnnotation metadata in element.metadata) {
-        ObjectEncoder object = list.createObject();
-        object.setElement(Key.ELEMENT, metadata.annotatedElement);
-        SourceSpan sourcePosition = metadata.sourcePosition;
-        // TODO(johnniwinther): What is the base URI here?
-        object.setUri(Key.URI, sourcePosition.uri, sourcePosition.uri);
-        object.setInt(Key.OFFSET, sourcePosition.begin);
-        object.setInt(Key.LENGTH, sourcePosition.end - sourcePosition.begin);
-        object.setConstant(Key.CONSTANT, metadata.constant);
-      }
+      list = encoder.createList(Key.METADATA);
+      element.metadata.forEach(encodeAnnotation);
+    }
+    if (element.isPatched && element.implementation.metadata.isNotEmpty) {
+      list ??= encoder.createList(Key.METADATA);
+      element.implementation.metadata.forEach(encodeAnnotation);
     }
   }
 

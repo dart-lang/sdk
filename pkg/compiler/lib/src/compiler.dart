@@ -1064,7 +1064,6 @@ abstract class Compiler implements LibraryLoaderListener {
           return const WorldImpact();
         }
         WorldImpact worldImpact = analyzeElement(element);
-        backend.onElementResolved(element);
         world.registerProcessedElement(element);
         return worldImpact;
       });
@@ -1658,8 +1657,12 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
           if (astElement.hasNode) {
             Token from = astElement.node.getBeginToken();
             Token to = astElement.node.getEndToken();
-            if (astElement.metadata.isNotEmpty &&
-                astElement.metadata.first.hasNode) {
+            if (astElement.metadata.isNotEmpty) {
+              if (!astElement.metadata.first.hasNode) {
+                // We might try to report an error while parsing the metadata
+                // itself.
+                return true;
+              }
               from = astElement.metadata.first.node.getBeginToken();
             }
             return validateToken(from, to);

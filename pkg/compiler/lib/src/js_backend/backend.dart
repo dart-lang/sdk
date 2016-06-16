@@ -40,6 +40,11 @@ class FunctionInlineCache {
   final Map<FunctionElement, int> _cachedDecisions =
       new Map<FunctionElement, int>();
 
+  /// Returns the current cache decision. This should only be used for testing.
+  int getCurrentCacheDecisionForTesting(Element element) {
+    return _cachedDecisions[element];
+  }
+
   // Returns `true`/`false` if we have a cached decision.
   // Returns `null` otherwise.
   bool canInline(FunctionElement element, {bool insideLoop}) {
