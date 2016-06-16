@@ -353,7 +353,7 @@ class ReadOnlyAccessor extends Accessor {
 
   _makeWrite(Expression value, bool voidContext) => new InvalidExpression();
 
-  finish(Expression body) => makeLet(value, body);
+  Expression _finish(Expression body) => makeLet(value, body);
 }
 
 Expression makeLet(VariableDeclaration variable, Expression body) {
