@@ -7,7 +7,7 @@
 # listed in tests/lib/analyzer/analyze_tests.status without the "standalone"
 # prefix.
 
-packages_file_test: Pass, Slow
+packages_file_test: Skip # Issue 26715
 packages_file_test/none: Skip   # contains no tests.
 
 package/invalid_uri_test: Fail, OK # CompileTimeErrors intentionally
