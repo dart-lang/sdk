@@ -1658,9 +1658,8 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
           if (astElement.hasNode) {
             Token from = astElement.node.getBeginToken();
             Token to = astElement.node.getEndToken();
-            if (astElement.metadata.isNotEmpty &&
-                astElement.metadata.first.hasNode) {
-              from = astElement.metadata.first.node.getBeginToken();
+            if (astElement.metadata.isNotEmpty) {
+              from = astElement.metadata.first.beginToken;
             }
             return validateToken(from, to);
           }
@@ -1741,7 +1740,8 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     } else if (node is Element) {
       return spanFromElement(node);
     } else if (node is MetadataAnnotation) {
-      return node.sourcePosition;
+      Uri uri = node.annotatedElement.compilationUnit.script.resourceUri;
+      return spanFromTokens(node.beginToken, node.endToken, uri);
     } else if (node is Local) {
       Local local = node;
       return spanFromElement(local.executableContext);

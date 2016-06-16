@@ -3193,8 +3193,6 @@ abstract class MetadataAnnotationX implements MetadataAnnotation {
    */
   Token get beginToken;
 
-  Token get endToken;
-
   MetadataAnnotationX([this.resolutionState = STATE_NOT_STARTED]);
 
   MetadataAnnotation ensureResolved(Resolution resolution) {
@@ -3209,11 +3207,6 @@ abstract class MetadataAnnotationX implements MetadataAnnotation {
   }
 
   Node parseNode(ParsingContext parsing);
-
-  SourceSpan get sourcePosition {
-    Uri uri = annotatedElement.compilationUnit.script.resourceUri;
-    return new SourceSpan.fromTokens(uri, beginToken, endToken);
-  }
 
   String toString() => 'MetadataAnnotation($constant, $resolutionState)';
 }

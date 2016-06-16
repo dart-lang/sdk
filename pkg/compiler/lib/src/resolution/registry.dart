@@ -334,6 +334,10 @@ class ResolutionRegistry extends Registry {
     worldImpact.registerStaticUse(staticUse);
   }
 
+  void registerMetadataConstant(MetadataAnnotation metadata) {
+    backend.registerMetadataConstant(metadata, metadata.annotatedElement, this);
+  }
+
   /// Register the use of a type.
   void registerTypeUse(TypeUse typeUse) {
     worldImpact.registerTypeUse(typeUse);

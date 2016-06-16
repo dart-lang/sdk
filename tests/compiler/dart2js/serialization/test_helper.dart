@@ -436,7 +436,6 @@ void checkSets(
     String messagePrefix,
     bool sameElement(a, b),
     {bool failOnUnfound: true,
-    bool failOnExtra: true,
     bool verbose: false,
     void onSameElement(a, b)}) {
   List<List> common = <List>[];
@@ -459,8 +458,7 @@ void checkSets(
   String message = sb.toString();
   if (unfound.isNotEmpty || remaining.isNotEmpty) {
 
-    if ((failOnUnfound && unfound.isNotEmpty) ||
-        (failOnExtra && remaining.isNotEmpty)) {
+    if (failOnUnfound || remaining.isNotEmpty) {
       Expect.fail(message);
     } else {
       print(message);

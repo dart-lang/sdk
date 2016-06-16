@@ -128,7 +128,6 @@ import 'elements/modelx.dart'
         ClassElementX,
         GetterElementX,
         LibraryElementX,
-        MetadataAnnotationX,
         SetterElementX;
 import 'id_generator.dart';
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
@@ -404,7 +403,7 @@ abstract class EagerAnnotationHandler<T> {
 class NativeAnnotationHandler implements EagerAnnotationHandler<String> {
   const NativeAnnotationHandler();
 
-  String getNativeAnnotation(MetadataAnnotationX annotation) {
+  String getNativeAnnotation(MetadataAnnotation annotation) {
     if (annotation.beginToken != null &&
         annotation.beginToken.next.value == 'Native') {
       // Skipping '@', 'Native', and '('.
@@ -444,7 +443,7 @@ class NativeAnnotationHandler implements EagerAnnotationHandler<String> {
 class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
   const JsInteropAnnotationHandler();
 
-  bool hasJsNameAnnotation(MetadataAnnotationX annotation) =>
+  bool hasJsNameAnnotation(MetadataAnnotation annotation) =>
       annotation.beginToken != null && annotation.beginToken.next.value == 'JS';
 
   bool apply(
@@ -475,7 +474,7 @@ class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
 class PatchAnnotationHandler implements EagerAnnotationHandler<PatchVersion> {
   const PatchAnnotationHandler();
 
-  PatchVersion getPatchVersion(MetadataAnnotationX annotation) {
+  PatchVersion getPatchVersion(MetadataAnnotation annotation) {
     if (annotation.beginToken != null) {
       if (annotation.beginToken.next.value == 'patch') {
         return const PatchVersion(null);

@@ -127,22 +127,18 @@ void main() {
       });
     }
 
-    int metadataCount = 0;
+    // There should at least be one metadata constant:
+    // 1. The constructed constant for 'MirrorsUsed'.
+    Expect.isTrue(backend.metadataConstants.length >= 1);
+
     Set<ConstantValue> compiledConstants = backend.constants.compiledConstants;
     // Make sure that most of the metadata constants aren't included in the
     // generated code.
-    backend.processMetadata(
-        compiler.enqueuer.resolution.processedElements, (metadata) {
-      ConstantValue constant =
-          backend.constants.getConstantValueForMetadata(metadata);
+    for (var dependency in backend.metadataConstants) {
+      ConstantValue constant = dependency.constant;
       Expect.isFalse(compiledConstants.contains(constant),
                      constant.toStructuredText());
-      metadataCount++;
-    });
-
-    // There should at least be one metadata constant:
-    // 1. The constructed constant for 'MirrorsUsed'.
-    Expect.isTrue(metadataCount >= 1);
+    }
 
     // The type literal 'Foo' is both used as metadata, and as a plain value in
     // the program. Make sure that it isn't duplicated.

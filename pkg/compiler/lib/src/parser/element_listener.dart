@@ -17,7 +17,6 @@ import '../elements/modelx.dart'
         EnumClassElementX,
         FieldElementX,
         LibraryElementX,
-        MetadataAnnotationX,
         NamedMixinApplicationElementX,
         VariableList;
 import '../id_generator.dart';
@@ -234,8 +233,8 @@ class ElementListener extends Listener {
 
   void endTopLevelDeclaration(Token token) {
     if (!metadata.isEmpty) {
-      MetadataAnnotationX first = metadata.first;
-      recoverableError(first.beginToken, 'Metadata not supported here.');
+      recoverableError(
+          metadata.first.beginToken, 'Metadata not supported here.');
       metadata.clear();
     }
   }

@@ -5,7 +5,6 @@
 /// Analysis to determine how to generate code for typed JavaScript interop.
 library compiler.src.js_backend.js_interop_analysis;
 
-import '../common.dart';
 import '../constants/values.dart'
     show ConstantValue, ConstructedConstantValue, StringConstantValue;
 import '../diagnostics/messages.dart' show MessageKind;
@@ -55,8 +54,6 @@ class JsInteropAnalysis {
 
   void processJsInteropAnnotation(Element e) {
     for (MetadataAnnotation annotation in e.implementation.metadata) {
-      // TODO(johnniwinther): Avoid processing unresolved elements.
-      if (annotation.constant == null) continue;
       ConstantValue constant =
           backend.compiler.constants.getConstantValue(annotation.constant);
       if (constant == null || constant is! ConstructedConstantValue) continue;

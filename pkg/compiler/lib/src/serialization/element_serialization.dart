@@ -120,23 +120,6 @@ class SerializerUtil {
     }
   }
 
-  /// Serialize the metadata of [element] into [encoder].
-  static void serializeMetadata(Element element, ObjectEncoder encoder) {
-    if (element.metadata.isNotEmpty) {
-      ListEncoder list = encoder.createList(Key.METADATA);
-      for (MetadataAnnotation metadata in element.metadata) {
-        ObjectEncoder object = list.createObject();
-        object.setElement(Key.ELEMENT, metadata.annotatedElement);
-        SourceSpan sourcePosition = metadata.sourcePosition;
-        // TODO(johnniwinther): What is the base URI here?
-        object.setUri(Key.URI, sourcePosition.uri, sourcePosition.uri);
-        object.setInt(Key.OFFSET, sourcePosition.begin);
-        object.setInt(Key.LENGTH, sourcePosition.end - sourcePosition.begin);
-        object.setConstant(Key.CONSTANT, metadata.constant);
-      }
-    }
-  }
-
   /// Serialize the parent relation for [element] into [encoder], i.e library,
   /// enclosing class, and compilation unit references.
   static void serializeParentRelation(Element element, ObjectEncoder encoder) {
@@ -242,7 +225,6 @@ class LibrarySerializer implements ElementSerializer {
 
   void serialize(LibraryElement element, ObjectEncoder encoder,
       SerializedElementKind kind) {
-    SerializerUtil.serializeMetadata(element, encoder);
     encoder.setUri(
         Key.CANONICAL_URI, element.canonicalUri, element.canonicalUri);
     encoder.setString(Key.LIBRARY_NAME, element.libraryName);
@@ -270,7 +252,6 @@ class CompilationUnitSerializer implements ElementSerializer {
 
   void serialize(CompilationUnitElement element, ObjectEncoder encoder,
       SerializedElementKind kind) {
-    SerializerUtil.serializeMetadata(element, encoder);
     encoder.setElement(Key.LIBRARY, element.library);
     encoder.setUri(
         Key.URI, element.library.canonicalUri, element.script.resourceUri);
@@ -318,7 +299,6 @@ class ClassSerializer implements ElementSerializer {
 
   void serialize(
       ClassElement element, ObjectEncoder encoder, SerializedElementKind kind) {
-    SerializerUtil.serializeMetadata(element, encoder);
     encoder.setElement(Key.LIBRARY, element.library);
     encoder.setElement(Key.COMPILATION_UNIT, element.compilationUnit);
     encoder.setString(Key.NAME, element.name);
@@ -327,7 +307,6 @@ class ClassSerializer implements ElementSerializer {
     encoder.setBool(Key.IS_ABSTRACT, element.isAbstract);
     SerializerUtil.serializeMembers(getMembers(element), encoder);
     encoder.setBool(Key.IS_PROXY, element.isProxy);
-    encoder.setBool(Key.IS_INJECTED, element.isInjected);
     if (kind == SerializedElementKind.ENUM) {
       EnumClassElement enumClass = element;
       encoder.setElements(Key.FIELDS, enumClass.enumValues);
@@ -389,14 +368,12 @@ class ConstructorSerializer implements ElementSerializer {
     if (kind == SerializedElementKind.FORWARDING_CONSTRUCTOR) {
       encoder.setElement(Key.ELEMENT, element.definingConstructor);
     } else {
-      SerializerUtil.serializeMetadata(element, encoder);
       encoder.setType(Key.TYPE, element.type);
       encoder.setString(Key.NAME, element.name);
       SerializerUtil.serializePosition(element, encoder);
       SerializerUtil.serializeParameters(element, encoder);
       encoder.setBool(Key.IS_CONST, element.isConst);
       encoder.setBool(Key.IS_EXTERNAL, element.isExternal);
-      encoder.setBool(Key.IS_INJECTED, element.isInjected);
       if (element.isConst && !element.isFromEnvironmentConstructor) {
         ConstantConstructor constantConstructor = element.constantConstructor;
         ObjectEncoder constantEncoder = encoder.createObject(Key.CONSTRUCTOR);
@@ -442,12 +419,10 @@ class FieldSerializer implements ElementSerializer {
   void serialize(
       FieldElement element, ObjectEncoder encoder, SerializedElementKind kind) {
     encoder.setString(Key.NAME, element.name);
-    SerializerUtil.serializeMetadata(element, encoder);
     SerializerUtil.serializePosition(element, encoder);
     encoder.setType(Key.TYPE, element.type);
     encoder.setBool(Key.IS_FINAL, element.isFinal);
     encoder.setBool(Key.IS_CONST, element.isConst);
-    encoder.setBool(Key.IS_INJECTED, element.isInjected);
     ConstantExpression constant = element.constant;
     if (constant != null) {
       encoder.setConstant(Key.CONSTANT, constant);
@@ -494,7 +469,6 @@ class FunctionSerializer implements ElementSerializer {
   void serialize(FunctionElement element, ObjectEncoder encoder,
       SerializedElementKind kind) {
     encoder.setString(Key.NAME, element.name);
-    SerializerUtil.serializeMetadata(element, encoder);
     SerializerUtil.serializePosition(element, encoder);
     SerializerUtil.serializeParameters(element, encoder);
     encoder.setType(Key.TYPE, element.type);
@@ -505,7 +479,6 @@ class FunctionSerializer implements ElementSerializer {
     SerializerUtil.serializeParentRelation(element, encoder);
     encoder.setBool(Key.IS_EXTERNAL, element.isExternal);
     encoder.setBool(Key.IS_ABSTRACT, element.isAbstract);
-    encoder.setBool(Key.IS_INJECTED, element.isInjected);
     if (element.isLocal) {
       LocalFunctionElement localFunction = element;
       encoder.setElement(
@@ -527,7 +500,6 @@ class TypedefSerializer implements ElementSerializer {
   void serialize(TypedefElement element, ObjectEncoder encoder,
       SerializedElementKind kind) {
     encoder.setString(Key.NAME, element.name);
-    SerializerUtil.serializeMetadata(element, encoder);
     SerializerUtil.serializePosition(element, encoder);
     encoder.setType(Key.ALIAS, element.alias);
     encoder.setElement(Key.LIBRARY, element.library);
@@ -550,7 +522,6 @@ class TypeVariableSerializer implements ElementSerializer {
       SerializedElementKind kind) {
     encoder.setElement(Key.TYPE_DECLARATION, element.typeDeclaration);
     encoder.setString(Key.NAME, element.name);
-    SerializerUtil.serializeMetadata(element, encoder);
     SerializerUtil.serializePosition(element, encoder);
     encoder.setType(Key.TYPE, element.type);
     encoder.setInt(Key.INDEX, element.index);
@@ -574,7 +545,6 @@ class ParameterSerializer implements ElementSerializer {
       SerializedElementKind kind) {
     encoder.setElement(Key.FUNCTION, element.functionDeclaration);
     encoder.setString(Key.NAME, element.name);
-    SerializerUtil.serializeMetadata(element, encoder);
     SerializerUtil.serializePosition(element, encoder);
     encoder.setType(Key.TYPE, element.type);
     encoder.setBool(Key.IS_OPTIONAL, element.isOptional);
@@ -603,7 +573,6 @@ class LocalVariableSerializer implements ElementSerializer {
   void serialize(LocalVariableElement element, ObjectEncoder encoder,
       SerializedElementKind kind) {
     encoder.setString(Key.NAME, element.name);
-    SerializerUtil.serializeMetadata(element, encoder);
     SerializerUtil.serializePosition(element, encoder);
     encoder.setType(Key.TYPE, element.type);
     encoder.setBool(Key.IS_FINAL, element.isFinal);
@@ -628,7 +597,6 @@ class ImportSerializer implements ElementSerializer {
 
   void serialize(ImportElement element, ObjectEncoder encoder,
       SerializedElementKind kind) {
-    SerializerUtil.serializeMetadata(element, encoder);
     encoder.setElement(Key.LIBRARY, element.library);
     encoder.setElement(Key.COMPILATION_UNIT, element.compilationUnit);
     encoder.setElement(Key.LIBRARY_DEPENDENCY, element.importedLibrary);
@@ -653,7 +621,6 @@ class ExportSerializer implements ElementSerializer {
 
   void serialize(ExportElement element, ObjectEncoder encoder,
       SerializedElementKind kind) {
-    SerializerUtil.serializeMetadata(element, encoder);
     encoder.setElement(Key.LIBRARY, element.library);
     encoder.setElement(Key.COMPILATION_UNIT, element.compilationUnit);
     encoder.setElement(Key.LIBRARY_DEPENDENCY, element.exportedLibrary);

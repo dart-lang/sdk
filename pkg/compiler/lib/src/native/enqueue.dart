@@ -318,7 +318,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       // TODO(sra): Better validation of the constant.
       if (fields.length != 1 || fields.single is! StringConstantValue) {
         reporter.internalError(
-            annotation, 'Annotations needs one string: ${annotation}');
+            annotation, 'Annotations needs one string: ${annotation.node}');
       }
       StringConstantValue specStringConstant = fields.single;
       String specString = specStringConstant.toDartString().slowToString();
@@ -326,7 +326,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
         name = specString;
       } else {
         reporter.internalError(
-            annotation, 'Too many JSName annotations: ${annotation}');
+            annotation, 'Too many JSName annotations: ${annotation.node}');
       }
     }
     return name;

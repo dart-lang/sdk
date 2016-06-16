@@ -1832,12 +1832,3 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
     throw new UnsupportedError('Unexpected nodes: $node1 <> $node2');
   }
 }
-
-bool areMetadataAnnotationsEquivalent(
-    MetadataAnnotation metadata1, MetadataAnnotation metadata2) {
-  if (metadata1 == metadata2) return true;
-  if (metadata1 == null || metadata2 == null) return false;
-  return areElementsEquivalent(
-          metadata1.annotatedElement, metadata2.annotatedElement) &&
-      areConstantsEquivalent(metadata1.constant, metadata2.constant);
-}

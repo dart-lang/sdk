@@ -475,10 +475,6 @@ class ConstantStringifier extends ConstantValueVisitor<String, Null> {
     return '(Null)';
   }
 
-  String visitNonConstant(NonConstantValue constant, _) {
-    return '(NonConstant)';
-  }
-
   String visitInt(IntConstantValue constant, _) {
     return '(Int ${constant.toDartText()})';
   }

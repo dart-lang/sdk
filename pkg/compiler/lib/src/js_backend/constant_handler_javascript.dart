@@ -115,6 +115,10 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
   final Map<Node, ConstantExpression> nodeConstantMap =
       new Map<Node, ConstantExpression>();
 
+  // Constants computed for metadata.
+  final Map<MetadataAnnotation, ConstantExpression> metadataConstantMap =
+      new Map<MetadataAnnotation, ConstantExpression>();
+
   JavaScriptConstantCompiler(Compiler compiler)
       : super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM);
 
@@ -208,7 +212,15 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
   }
 
   ConstantValue getConstantValueForMetadata(MetadataAnnotation metadata) {
-    return getConstantValue(metadata.constant);
+    return getConstantValue(metadataConstantMap[metadata]);
+  }
+
+  ConstantExpression compileMetadata(
+      MetadataAnnotation metadata, Node node, TreeElements elements) {
+    ConstantExpression constant =
+        super.compileMetadata(metadata, node, elements);
+    metadataConstantMap[metadata] = constant;
+    return constant;
   }
 
   void forgetElement(Element element) {
@@ -218,6 +230,29 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
       element.node.accept(new ForgetConstantNodeVisitor(this));
     }
   }
+
+  @override
+  ConstantValue getConstantValue(ConstantExpression expression) {
+    assert(invariant(CURRENT_ELEMENT_SPANNABLE, expression != null,
+        message: "ConstantExpression is null in getConstantValue."));
+    // TODO(johhniwinther): ensure expressions have been evaluated at this
+    // point. This can't be enabled today due to dartbug.com/26406.
+    if (compiler.serialization.supportsDeserialization) {
+      evaluate(expression);
+    }
+    ConstantValue value = super.getConstantValue(expression);
+    if (value == null &&
+        expression != null &&
+        expression.kind == ConstantExpressionKind.ERRONEOUS) {
+      // TODO(johnniwinther): When the Dart constant system sees a constant
+      // expression as erroneous but the JavaScript constant system finds it ok
+      // we have store a constant value for the erroneous constant expression.
+      // Ensure the computed constant expressions are always the same; that only
+      // the constant values may be different.
+      value = new NullConstantValue();
+    }
+    return value;
+  }
 }
 
 class ForgetConstantElementVisitor
@@ -226,6 +261,7 @@ class ForgetConstantElementVisitor
 
   void visitElement(Element e, JavaScriptConstantCompiler constants) {
     for (MetadataAnnotation data in e.implementation.metadata) {
+      constants.metadataConstantMap.remove(data);
       if (data.hasNode) {
         data.node.accept(new ForgetConstantNodeVisitor(constants));
       }

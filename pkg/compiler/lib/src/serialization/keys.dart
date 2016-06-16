@@ -59,7 +59,6 @@ class Key {
   static const Key IS_EMPTY = const Key('isEmpty');
   static const Key IS_EXTERNAL = const Key('isExternal');
   static const Key IS_FINAL = const Key('isFinal');
-  static const Key IS_INJECTED = const Key('isInjected');
   static const Key IS_NAMED = const Key('isNamed');
   static const Key IS_OPERATOR = const Key('isOperator');
   static const Key IS_OPTIONAL = const Key('isOptional');
@@ -84,7 +83,6 @@ class Key {
   static const Key LISTS = const Key('lists');
   static const Key MAPS = const Key('maps');
   static const Key MEMBERS = const Key('members');
-  static const Key METADATA = const Key('metadata');
   static const Key MIXIN = const Key('mixin');
   static const Key MIXINS = const Key('mixins');
   static const Key NAME = const Key('name');

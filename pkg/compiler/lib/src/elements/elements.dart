@@ -1620,7 +1620,9 @@ abstract class MetadataAnnotation implements Spannable {
   /// The front-end constant of this metadata annotation.
   ConstantExpression get constant;
   Element get annotatedElement;
-  SourceSpan get sourcePosition;
+  int get resolutionState;
+  Token get beginToken;
+  Token get endToken;
 
   bool get hasNode;
   Node get node;
