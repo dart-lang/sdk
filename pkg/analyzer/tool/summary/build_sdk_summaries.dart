@@ -113,7 +113,8 @@ BuilderOutput _buildOutput(String sdkPath, bool strongMode) {
   String modeName = strongMode ? 'strong' : 'spec';
   print('Generating $modeName mode summary and index.');
   Stopwatch sw = new Stopwatch()..start();
-  BuilderOutput output = new SummaryBuilder.forSdk(sdkPath, strongMode).build();
+  SummaryBuildConfig config = new SummaryBuildConfig(strongMode: strongMode);
+  BuilderOutput output = new SummaryBuilder.forSdk(sdkPath, config).build();
   print('\tDone in ${sw.elapsedMilliseconds} ms.');
   return output;
 }

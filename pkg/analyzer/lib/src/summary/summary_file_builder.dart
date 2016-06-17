@@ -46,13 +46,72 @@ class BuilderOutput {
   }
 }
 
+/**
+ * Summary build configuration.
+ */
+class SummaryBuildConfig {
+
+  /**
+   * Whether to use exclude informative data from created summaries.
+   */
+  final bool buildSummaryExcludeInformative;
+
+  /**
+   * Whether to output a summary in "fallback mode".
+   */
+  final bool buildSummaryFallback;
+
+  /**
+   * Whether to create summaries directly from ASTs, i.e. don't create a
+   * full element model.
+   */
+  final bool buildSummaryOnlyAst;
+
+  /**
+   * Path to the dart SDK summary file.
+   */
+  final String dartSdkSummaryPath;
+
+  /**
+   * Whether to use strong static checking.
+   */
+  final bool strongMode;
+
+  /**
+   * List of summary input file paths.
+   */
+  final Iterable<String> summaryInputs;
+
+  /**
+   * Create a build configuration with the given set options.
+   */
+  SummaryBuildConfig(
+      {this.strongMode: false,
+      this.summaryInputs,
+      this.dartSdkSummaryPath,
+      this.buildSummaryExcludeInformative: false,
+      this.buildSummaryFallback: false,
+      this.buildSummaryOnlyAst: false});
+}
+
 class SummaryBuilder {
-  final AnalysisContext _context;
-  final Iterable<Source> _librarySources;
+  final AnalysisContext context;
+  final Iterable<Source> librarySources;
+  final SummaryBuildConfig config;
 
-  SummaryBuilder(this._librarySources, this._context);
+  /**
+   * Create a summary builder for these [librarySources] and [context] using the
+   * given [config].
+   */
+  SummaryBuilder(this.librarySources, this.context, this.config);
 
-  factory SummaryBuilder.forSdk(String sdkPath, bool strongMode) {
+  /**
+   * Create an SDK summary builder for the dart SDK at the given [sdkPath],
+   * using this [config].
+   */
+  factory SummaryBuilder.forSdk(String sdkPath, SummaryBuildConfig config) {
+    bool strongMode = config.strongMode;
+
     //
     // Prepare SDK.
     //
@@ -76,10 +135,10 @@ class SummaryBuilder {
       librarySources.add(sdk.mapDartUri(uri));
     }
 
-    return new SummaryBuilder(librarySources, sdk.context);
+    return new SummaryBuilder(librarySources, sdk.context, config);
   }
 
-  BuilderOutput build() => new _Builder(_context, _librarySources).build();
+  BuilderOutput build() => new _Builder(context, librarySources).build();
 }
 
 /**
@@ -123,7 +182,7 @@ class _Builder {
   _Builder(this.context, this.librarySources);
 
   /**
-   * Build a strong or spec mode summary for the Dart SDK at [sdkPath].
+   * Build summary output.
    */
   BuilderOutput build() {
     //
