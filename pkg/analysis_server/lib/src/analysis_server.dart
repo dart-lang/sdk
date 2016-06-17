@@ -295,6 +295,12 @@ class AnalysisServer {
       new StreamController<ContextsChangedEvent>.broadcast();
 
   /**
+   * The file resolver provider used to override the way file URI's are
+   * resolved in some contexts.
+   */
+  ResolverProvider fileResolverProvider;
+
+  /**
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    *
@@ -312,7 +318,8 @@ class AnalysisServer {
       this.options,
       this.defaultSdkCreator,
       this.instrumentationService,
-      {ResolverProvider packageResolverProvider: null,
+      {ResolverProvider fileResolverProvider: null,
+      ResolverProvider packageResolverProvider: null,
       bool useSingleContextManager: false,
       this.rethrowExceptions: true})
       : index = _index,
@@ -339,6 +346,7 @@ class AnalysisServer {
           instrumentationService,
           defaultContextOptions);
     }
+    this.fileResolverProvider = fileResolverProvider;
     ServerContextManagerCallbacks contextManagerCallbacks =
         new ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
@@ -1556,12 +1564,14 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         AnalysisEngine.instance.createAnalysisContext();
     context.contentCache = analysisServer.overlayState;
     analysisServer.folderMap[folder] = context;
+    context.fileResolverProvider = analysisServer.fileResolverProvider;
     context.sourceFactory =
         _createSourceFactory(context, options, disposition, folder);
     context.analysisOptions = options;
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(added: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
+
     return context;
   }
 
@@ -1637,7 +1647,11 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     }
 
     resolvers.addAll(packageUriResolvers);
-    resolvers.add(new ResourceUriResolver(resourceProvider));
+    if (context.fileResolverProvider == null) {
+      resolvers.add(new ResourceUriResolver(resourceProvider));
+    } else {
+      resolvers.add(context.fileResolverProvider(folder));
+    }
     return new SourceFactory(resolvers, disposition.packages);
   }
 }

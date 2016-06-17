@@ -34,6 +34,7 @@ class SocketServer {
   final DirectoryBasedDartSdk defaultSdk;
   final InstrumentationService instrumentationService;
   final ServerPlugin serverPlugin;
+  final ResolverProvider fileResolverProvider;
   final ResolverProvider packageResolverProvider;
   final bool useSingleContextManager;
 
@@ -54,6 +55,7 @@ class SocketServer {
       this.defaultSdk,
       this.instrumentationService,
       this.serverPlugin,
+      this.fileResolverProvider,
       this.packageResolverProvider,
       this.useSingleContextManager);
 
@@ -97,6 +99,7 @@ class SocketServer {
         analysisServerOptions,
         defaultSdkCreator,
         instrumentationService,
+        fileResolverProvider: fileResolverProvider,
         packageResolverProvider: packageResolverProvider,
         useSingleContextManager: useSingleContextManager,
         rethrowExceptions: false);

@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/plugin/task.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/cancelable_future.dart';
@@ -227,6 +228,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * [incrementalResolutionValidation_lastUnitSource].
    */
   CompilationUnit incrementalResolutionValidation_lastUnit;
+
+  @override
+  ResolverProvider fileResolverProvider;
 
   /**
    * Initialize a newly created analysis context.

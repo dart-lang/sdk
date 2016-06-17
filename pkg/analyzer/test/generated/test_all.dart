@@ -8,6 +8,7 @@ import 'package:unittest/unittest.dart';
 
 import '../utils.dart';
 import 'all_the_rest_test.dart' as all_the_rest;
+import 'bazel_test.dart' as bazel_test;
 import 'checked_mode_compile_time_error_code_test.dart'
     as checked_mode_compile_time_error_code_test;
 import 'compile_time_error_code_test.dart' as compile_time_error_code_test;
@@ -41,6 +42,7 @@ main() {
   initializeTestEnvironment();
   group('generated tests', () {
     all_the_rest.main();
+    bazel_test.main();
     checked_mode_compile_time_error_code_test.main();
     compile_time_error_code_test.main();
     constant_test.main();

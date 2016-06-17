@@ -27,6 +27,13 @@ abstract class ServerStarter {
   void set instrumentationServer(InstrumentationServer server);
 
   /**
+   * Set the file resolver provider used to override the way file URI's
+   * are resolved in some contexts. The provider should return `null` if the
+   * default file resolution scheme should be used instead.
+   */
+  void set fileResolverProvider(ResolverProvider provider);
+
+  /**
    * Set the package resolver provider used to override the way package URI's
    * are resolved in some contexts. The provider should return `null` if the
    * default package resolution scheme should be used instead.

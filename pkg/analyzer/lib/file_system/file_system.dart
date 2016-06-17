@@ -242,6 +242,8 @@ class ResourceUriResolver extends UriResolver {
   Uri restoreAbsolute(Source source) =>
       _provider.pathContext.toUri(source.fullName);
 
+  ResourceProvider get provider => _provider;
+
   /**
    * Return `true` if the given [uri] is a `file` URI.
    */

@@ -297,6 +297,12 @@ class Driver implements ServerStarter {
   InstrumentationServer instrumentationServer;
 
   /**
+   * The file resolver provider used to override the way file URI's are
+   * resolved in some contexts.
+   */
+  ResolverProvider fileResolverProvider;
+
+  /**
    * The package resolver provider used to override the way package URI's are
    * resolved in some contexts.
    */
@@ -439,6 +445,7 @@ class Driver implements ServerStarter {
         defaultSdk,
         service,
         serverPlugin,
+        fileResolverProvider,
         packageResolverProvider,
         useSingleContextManager);
     httpServer = new HttpAnalysisServer(socketServer);
