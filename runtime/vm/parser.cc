@@ -6062,6 +6062,9 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
 void Parser::ParseLibraryPart() {
   const TokenPosition source_pos = TokenPos();
   ConsumeToken();  // Consume "part".
+  if (IsSymbol(Symbols::Of())) {
+    ReportError("part of declarations are not allowed in script files");
+  }
   CheckToken(Token::kSTRING, "url expected");
   AstNode* url_literal = ParseStringLiteral(false);
   ASSERT(url_literal->IsLiteralNode());
