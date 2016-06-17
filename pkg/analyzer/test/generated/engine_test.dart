@@ -234,6 +234,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
 
+  @deprecated
   @override
   EmbedderYamlLocator get embedderYamlLocator {
     fail("Unexpected invocation of get embedderYamlLocator");

@@ -2648,11 +2648,10 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     currentContextFilePaths[path] = <String, int>{};
     currentContextSources[path] = new HashSet<Source>();
     currentContext = AnalysisEngine.instance.createAnalysisContext();
-    _locateEmbedderYamls(currentContext, disposition);
     List<UriResolver> resolvers = [];
     if (currentContext is InternalAnalysisContext) {
       EmbedderYamlLocator embedderYamlLocator =
-          (currentContext as InternalAnalysisContext).embedderYamlLocator;
+          disposition.getEmbedderLocator(resourceProvider);
       EmbedderSdk sdk = new EmbedderSdk(embedderYamlLocator.embedderYamls);
       if (sdk.libraryMap.size() > 0) {
         // We have some embedder dart: uri mappings, add the resolver
@@ -2733,19 +2732,6 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   void updateContextPackageUriResolver(AnalysisContext context) {
     // Nothing to do.
-  }
-
-  /// If [disposition] has a package map, attempt to locate `_embedder.yaml`
-  /// files.
-  void _locateEmbedderYamls(
-      InternalAnalysisContext context, FolderDisposition disposition) {
-    Map<String, List<Folder>> packageMap;
-    if (disposition is PackageMapDisposition) {
-      packageMap = disposition.packageMap;
-    } else if (disposition is PackagesFileDisposition) {
-      packageMap = disposition.buildPackageMap(resourceProvider);
-    }
-    context.embedderYamlLocator.refresh(packageMap);
   }
 }
 

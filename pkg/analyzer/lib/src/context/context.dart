@@ -80,7 +80,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   AnalysisOptionsImpl _options = new AnalysisOptionsImpl();
 
-  /// The embedder yaml locator for this context.
+  /**
+   * The embedder yaml locator for this context.
+   */
+  @deprecated
   EmbedderYamlLocator _embedderYamlLocator = new EmbedderYamlLocator(null);
 
   /**
@@ -341,6 +344,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   DeclaredVariables get declaredVariables => _declaredVariables;
 
+  @deprecated
   @override
   EmbedderYamlLocator get embedderYamlLocator => _embedderYamlLocator;
 

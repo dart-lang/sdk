@@ -1556,7 +1556,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         AnalysisEngine.instance.createAnalysisContext();
     context.contentCache = analysisServer.overlayState;
     analysisServer.folderMap[folder] = context;
-    _locateEmbedderYamls(context, disposition);
     context.sourceFactory =
         _createSourceFactory(context, options, disposition, folder);
     context.analysisOptions = options;
@@ -1624,8 +1623,9 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         disposition.createPackageUriResolvers(resourceProvider);
 
     // If no embedded URI resolver was provided, defer to a locator-backed one.
-    EmbedderSdk sdk =
-        new EmbedderSdk(context.embedderYamlLocator.embedderYamls);
+    EmbedderYamlLocator locator =
+        disposition.getEmbedderLocator(resourceProvider);
+    EmbedderSdk sdk = new EmbedderSdk(locator.embedderYamls);
     if (sdk.libraryMap.size() == 0) {
       // The embedder file has no mappings, so use the default Dart SDK.
       resolvers.add(new DartUriResolver(
@@ -1639,19 +1639,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     resolvers.addAll(packageUriResolvers);
     resolvers.add(new ResourceUriResolver(resourceProvider));
     return new SourceFactory(resolvers, disposition.packages);
-  }
-
-  /// If [disposition] has a package map, attempt to locate `_embedder.yaml`
-  /// files.
-  void _locateEmbedderYamls(
-      InternalAnalysisContext context, FolderDisposition disposition) {
-    Map<String, List<Folder>> packageMap;
-    if (disposition is PackageMapDisposition) {
-      packageMap = disposition.packageMap;
-    } else if (disposition is PackagesFileDisposition) {
-      packageMap = disposition.buildPackageMap(resourceProvider);
-    }
-    context.embedderYamlLocator.refresh(packageMap);
   }
 }
 

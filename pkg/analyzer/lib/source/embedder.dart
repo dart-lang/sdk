@@ -187,7 +187,7 @@ class EmbedderYamlLocator {
 
   EmbedderYamlLocator(Map<String, List<Folder>> packageMap) {
     if (packageMap != null) {
-      refresh(packageMap);
+      _processPackageMap(packageMap);
     }
   }
 
@@ -199,10 +199,9 @@ class EmbedderYamlLocator {
   void refresh(Map<String, List<Folder>> packageMap) {
     // Clear existing.
     embedderYamls.clear();
-    if (packageMap == null) {
-      return;
+    if (packageMap != null) {
+      _processPackageMap(packageMap);
     }
-    packageMap.forEach(_processPackage);
   }
 
   /// Given the yaml for an embedder ([embedderYaml]) and a folder
@@ -229,6 +228,10 @@ class EmbedderYamlLocator {
         _processEmbedderYaml(libDir, embedderYaml);
       }
     }
+  }
+
+  void _processPackageMap(Map<String, List<Folder>> packageMap) {
+    packageMap.forEach(_processPackage);
   }
 
   /// Read the contents of [libDir]/[EMBEDDER_FILE_NAME] as a string.

@@ -1965,7 +1965,10 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    */
   set contentCache(ContentCache value);
 
-  /// Get the [EmbedderYamlLocator] for this context.
+  /**
+   * Get the [EmbedderYamlLocator] for this context.
+   */
+  @deprecated
   EmbedderYamlLocator get embedderYamlLocator;
 
   /**

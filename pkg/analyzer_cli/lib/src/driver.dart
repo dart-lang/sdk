@@ -485,7 +485,7 @@ class Driver implements CommandLineStarter {
 
     // Process embedders.
     Map<file_system.Folder, YamlMap> embedderMap =
-        _findEmbedders(packageInfo.packageMap);
+        new EmbedderYamlLocator(packageInfo.packageMap).embedderYamls;
 
     // Scan for SDK extenders.
     bool hasSdkExt = _hasSdkExt(packageInfo.packageMap?.values);
@@ -518,14 +518,6 @@ class Driver implements CommandLineStarter {
     }
 
     return null;
-  }
-
-  Map<file_system.Folder, YamlMap> _findEmbedders(
-      Map<String, List<file_system.Folder>> packageMap) {
-    EmbedderYamlLocator locator =
-        (_context as InternalAnalysisContext).embedderYamlLocator;
-    locator.refresh(packageMap);
-    return locator.embedderYamls;
   }
 
   _PackageInfo _findPackages(CommandLineOptions options) {
