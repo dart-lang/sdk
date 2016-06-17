@@ -2456,8 +2456,9 @@ abstract class Closure implements Function {
    *
    * V8 will share the underlying function code objects when the same string is
    * passed to "new Function".  Shared function code objects can lead to
-   * sub-optimal performance due to polymorhism, and can be prevented by
-   * ensuring the strings are different.
+   * sub-optimal performance due to polymorphism, and can be prevented by
+   * ensuring the strings are different, for example, by generating a local
+   * variable with a name dependent on [functionCounter].
    */
   static int functionCounter = 0;
 
@@ -2559,8 +2560,9 @@ abstract class Closure implements Function {
         : isCsp
             ? JS('', 'function(a,b,c,d) {this.\$initialize(a,b,c,d)}')
             : JS('',
-                 'new Function("a,b,c,d", "this.\$initialize(a,b,c,d);" + #)',
-                 functionCounter++);
+                 'new Function("a,b,c,d" + #,'
+                 ' "this.\$initialize(a,b,c,d" + # + ")")',
+                 functionCounter, functionCounter++);
 
     // It is necessary to set the constructor property, otherwise it will be
     // "Object".
@@ -2722,12 +2724,14 @@ abstract class Closure implements Function {
     }
 
     if (arity == 0) {
+      // Incorporate functionCounter into a local.
+      String selfName = 'self${functionCounter++}';
       return JS(
           '',
           '(new Function(#))()',
           'return function(){'
-            'return this.${BoundClosure.selfFieldName()}.$stubName();'
-            '${functionCounter++}'
+            'var $selfName = this.${BoundClosure.selfFieldName()};'
+            'return $selfName.$stubName();'
           '}');
     }
     assert (1 <= arity && arity < 27);
@@ -2735,12 +2739,12 @@ abstract class Closure implements Function {
         'String',
         '"abcdefghijklmnopqrstuvwxyz".split("").splice(0,#).join(",")',
         arity);
+    arguments += '${functionCounter++}';
     return JS(
         '',
         '(new Function(#))()',
         'return function($arguments){'
           'return this.${BoundClosure.selfFieldName()}.$stubName($arguments);'
-          '${functionCounter++}'
         '}');
   }
 
