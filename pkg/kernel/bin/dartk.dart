@@ -164,7 +164,7 @@ main(List<String> args) {
   String format = options['format'] ?? defaultFormat();
   String outputFile = options['out'] ?? defaultOutput();
 
-  var repository = new Repository(
+  var repository = new AnalyzerRepository(
       sdk: options['sdk'],
       packageRoot: options['package-root'],
       strongMode: options['strong']);

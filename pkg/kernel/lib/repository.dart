@@ -6,7 +6,6 @@ library kernel.repository;
 import 'ast.dart';
 import 'package:path/path.dart' as pathlib;
 import 'dart:io';
-import 'analyzer/loader.dart';
 
 /// Resolves import paths and keeps track of which [Library] objects have been
 /// created for a given URI.
@@ -19,22 +18,12 @@ class Repository {
   final String workingDirectory;
   final Map<Uri, Library> _uriToLibrary = <Uri, Library>{};
   final List<Library> libraries = <Library>[];
-  AnalyzerLoader _analyzerLoader;
-
-  /// Whether strong mode should be enabled for this repository.
-  ///
-  /// This is a flag on the repository itself because strong mode and non-strong
-  /// mode code should not be mixed.
-  final bool strongMode;
 
   Repository(
       {this.sdk,
       this.packageRoot,
-      String workingDirectory,
-      AnalyzerLoader analyzerLoader,
-      this.strongMode: false})
-      : this.workingDirectory = workingDirectory ?? Directory.current.path,
-        _analyzerLoader = analyzerLoader;
+      String workingDirectory})
+      : this.workingDirectory = workingDirectory ?? Directory.current.path;
 
   /// Get the [Library] object for the library addresesd by [path]; possibly
   /// unloaded.
@@ -112,11 +101,5 @@ class Repository {
     var library = new Library(uri)..isLoaded = false;
     libraries.add(library);
     return library;
-  }
-
-  /// Gets the repository state that keeps track of how the analyzer's element
-  /// model relates to the kernel IR.
-  AnalyzerLoader getAnalyzerLoader() {
-    return _analyzerLoader ??= new AnalyzerLoader(this, strongMode: strongMode);
   }
 }

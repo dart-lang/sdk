@@ -88,7 +88,7 @@ class InsertWrappers extends Transformer {
   }
 }
 
-class CheckTransformers extends Visitor with FakeNodeVisitor {
+class CheckTransformers extends FakeNodeVisitor {
   static void transformAndCheck(TreeNode node) {
     var transformed = node.accept(new InsertWrappers());
     CheckParentPointers.check(transformed);

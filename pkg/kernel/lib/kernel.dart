@@ -20,9 +20,11 @@ import 'binary/loader.dart';
 import 'text/ast_to_text.dart';
 import 'dart:async';
 import 'dart:io';
+import 'analyzer/analyzer_repository.dart';
 
 export 'ast.dart';
 export 'repository.dart';
+export 'analyzer/analyzer_repository.dart';
 
 Program loadProgramFromBinary(String path) {
   Repository repository = new Repository();
@@ -55,7 +57,7 @@ TreeNode loadProgramOrLibraryFromBinary(String path, [Repository repository]) {
 ///
 /// Loading from both .dart and .bart files will not not be supported until we
 /// get a dedicated frontend.
-void loadEverythingFromDart(Repository repository) {
+void loadEverythingFromDart(AnalyzerRepository repository) {
   repository.getAnalyzerLoader().loadEverything();
 }
 
@@ -75,8 +77,8 @@ void loadEverythingFromBinary(Repository repository) {
 
 /// Loads a .dart library from [path], unless [repository] already has
 /// a loaded version of that library.
-Library loadLibraryFromDart(String path, [Repository repository]) {
-  repository ??= new Repository();
+Library loadLibraryFromDart(String path, [AnalyzerRepository repository]) {
+  repository ??= new AnalyzerRepository();
   var library = repository.getLibrary(path);
   repository.getAnalyzerLoader().ensureLibraryIsLoaded(library);
   return library;
@@ -87,8 +89,8 @@ Library loadLibraryFromDart(String path, [Repository repository]) {
 /// The resulting [Program] will have a main method if the library at [path]
 /// contains a top-level method named "main", otherwise its main reference will
 /// be `null`.
-Program loadProgramFromDart(String path, [Repository repository]) {
-  repository ??= new Repository();
+Program loadProgramFromDart(String path, [AnalyzerRepository repository]) {
+  repository ??= new AnalyzerRepository();
   var library = repository.getLibrary(path);
   repository.getAnalyzerLoader().ensureLibraryIsLoaded(library);
   loadEverythingFromDart(repository);
