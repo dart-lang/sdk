@@ -128,6 +128,19 @@ class EmbedderSdk extends AbstractDartSdk {
 ///
 /// If a key doesn't begin with `dart:` it is ignored.
 ///
+/// This class is deprecated; use DartUriResolver directly. In particular, if
+/// there used to be an instance creation of the form:
+///
+/// ```
+/// new EmbedderUriResolver(embedderMap)
+/// ```
+///
+/// This should be replaced by
+///
+/// ```
+/// new DartUriResolver(new EmbedderSdk(embedderMap))
+/// ```
+@deprecated
 class EmbedderUriResolver implements DartUriResolver {
   EmbedderSdk _embedderSdk;
   DartUriResolver _dartUriResolver;

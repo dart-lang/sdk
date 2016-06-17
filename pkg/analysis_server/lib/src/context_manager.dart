@@ -901,22 +901,19 @@ class ContextManagerImpl implements ContextManager {
           // If there is no embedded URI resolver, a new source factory needs to
           // be recreated.
           if (sourceFactory is SourceFactoryImpl) {
-            if (!sourceFactory.resolvers
-                .any((UriResolver r) => r is EmbedderUriResolver)) {
-              // Get all but the dart: Uri resolver.
-              List<UriResolver> resolvers = sourceFactory.resolvers
-                  .where((r) => r is! DartUriResolver)
-                  .toList();
-              // Add an embedded URI resolver in its place.
-              resolvers.add(new EmbedderUriResolver(embedderYamls));
+            // Get all but the dart: Uri resolver.
+            List<UriResolver> resolvers = sourceFactory.resolvers
+                .where((r) => r is! DartUriResolver)
+                .toList();
+            // Add an embedded URI resolver in its place.
+            resolvers.add(new DartUriResolver(new EmbedderSdk(embedderYamls)));
 
-              // Set a new source factory.
-              SourceFactoryImpl newFactory = sourceFactory.clone();
-              newFactory.resolvers.clear();
-              newFactory.resolvers.addAll(resolvers);
-              info.context.sourceFactory = newFactory;
-              return;
-            }
+            // Set a new source factory.
+            SourceFactoryImpl newFactory = sourceFactory.clone();
+            newFactory.resolvers.clear();
+            newFactory.resolvers.addAll(resolvers);
+            info.context.sourceFactory = newFactory;
+            return;
           }
         }
 
@@ -1157,16 +1154,16 @@ class ContextManagerImpl implements ContextManager {
     List<UriResolver> packageUriResolvers =
         disposition.createPackageUriResolvers(resourceProvider);
 
-    EmbedderUriResolver embedderUriResolver =
-        new EmbedderUriResolver(context.embedderYamlLocator.embedderYamls);
-    if (embedderUriResolver.length == 0) {
+    EmbedderSdk sdk =
+        new EmbedderSdk(context.embedderYamlLocator.embedderYamls);
+    if (sdk.libraryMap.size() == 0) {
       // The embedder uri resolver has no mappings. Use the default Dart SDK
       // uri resolver.
       resolvers.add(new DartUriResolver(sdkManager.getSdkForOptions(options)));
     } else {
       // The embedder uri resolver has mappings, use it instead of the default
       // Dart SDK uri resolver.
-      resolvers.add(embedderUriResolver);
+      resolvers.add(new DartUriResolver(sdk));
     }
 
     resolvers.addAll(packageUriResolvers);
