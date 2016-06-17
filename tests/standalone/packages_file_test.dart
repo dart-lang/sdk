@@ -85,26 +85,11 @@ main() async {
 /// This should not change the expected results compared to running it
 /// directly.
 Configuration spawn(Configuration conf) {
-  // TODO(26555): Clean up when fixed.
-  // TEMPORARY FIX FOR ISSUE #26555 (http://dartbug.com/26555)
-  if (conf.expect["iroot"] == null &&
-      conf.expect["iconf"] == null &&
-      conf.expect["pconf"] != null) {
-    // The spawned isolate will do a search for a package file or root,
-    // which is not what the original did. Skip test for now.
-    return null;
-  }
-  // REMOVE WHEN ISSUE FIXED!
   return conf.update(
     description: conf.description + "/spawn",
     main: "spawnMain",
     newArgs: [conf.mainType],
-    // TEMPORARY FIX FOR ISSUE #26555 (http://dartbug.com/26555)
-    expect: {
-      "proot": conf.expect["iroot"],
-      "pconf": conf.expect["iconf"],
-    }
-    // REMOVE WHEN ISSUE FIXED!
+    expect: null
   );
 }
 

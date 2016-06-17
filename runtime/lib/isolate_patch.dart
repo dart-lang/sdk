@@ -312,13 +312,12 @@ patch class Isolate {
     try {
       // The VM will invoke [_startIsolate] with entryPoint as argument.
       readyPort = new RawReceivePort();
-      var packageRoot = null;
-      var packageConfig = null;
-      if (Isolate._packageSupported()) {
-        packageRoot = (await Isolate.packageRoot)?.toString();
-        packageConfig = (await Isolate.packageConfig)?.toString();
-      }
 
+      // We do not inherit the package root or package config settings
+      // from the parent isolate, instead we use the values that were
+      // set on the command line.
+      var packageRoot = VMLibraryHooks.packageRootString;
+      var packageConfig = VMLibraryHooks.packageConfigString;
       var script = VMLibraryHooks.platformScript;
       if (script == null) {
         // We do not have enough information to support spawning the new
