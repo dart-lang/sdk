@@ -104,6 +104,7 @@ touchevent_test/supported: Fail # Touch events are only supported on touch devic
 element_types_test/supported_object: RuntimeError # Issue 25155
 element_types_test/supported_embed: RuntimeError # Issue 25155
 svgelement_test/PathElement: RuntimeError # Issue 25665
+element_animate_test: RuntimeError # Issue 26730
 
 [ $runtime == chrome && $system == macos ]
 canvasrenderingcontext2d_test/drawImage_video_element: Skip # Times out. Please triage this failure.
@@ -300,43 +301,6 @@ indexeddb_5_test: RuntimeError # Issue 21433
 
 js_test/JsArray: RuntimeError # Fails 10 out of 10.
 indexeddb_3_test: Skip # Times out 1 out of 10.
-
-[ $runtime == opera ]
-blob_constructor_test: Fail
-canvas_test: Fail
-canvas_test: Pass,Fail
-cssstyledeclaration_test: Fail
-document_test/document: Fail # Issue: 7413
-element_add_test: Fail
-element_constructor_1_test: Fail
-element_test/children: Fail # Issue: 7413
-element_test/constructors: Fail
-element_test/elements: Fail
-element_test/eventListening: Crash
-element_test/eventListening: Fail # Issue: 7413
-element_test/queryAll: Fail
-fileapi_test: Skip # Timeout.
-form_data_test: Fail # Issue: 7413
-htmlelement_test: Fail
-isolates_test: Skip # Timeout.
-keyboard_event_test: Fail # Issue: 7413
-serialized_script_value_test: Fail
-typed_arrays_arraybuffer_test: Fail
-url_test: Fail
-
-# Opera Feature support statuses-
-# All changes should be accompanied by platform support annotation changes.
-audiobuffersourcenode_test/supported: Fail
-audiocontext_test/supported: Fail
-crypto_test/supported: Fail
-css_test/supportsPointConversions: Fail
-element_types_test/supported_template: Fail
-indexeddb_1_test/supported: Fail
-indexeddb_1_test/supportsDatabaseNames: Fail
-mutationobserver_test/supported: Fail
-performance_api_test/supported: Fail
-speechrecognition_test/supported: Fail
-websql_test/supported: Fail
 
 [  $compiler == dart2js && $runtime == ff ]
 history_test/history: Skip # Issue 22050
