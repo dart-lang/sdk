@@ -3556,9 +3556,12 @@ class B {
   }
 
   static void _shiftTokens(Token token, int afterOffset, int delta) {
-    while (token.type != TokenType.EOF) {
-      if (token.offset >= afterOffset) {
+    while (true) {
+      if (token.offset > afterOffset) {
         token.applyDelta(delta);
+      }
+      if (token.type == TokenType.EOF) {
+        break;
       }
       token = token.next;
     }
