@@ -8,11 +8,13 @@ import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 import 'service_test_common.dart';
 
-var x;
+// Non tailable recursive function that should trigger a Stack Overflow.
+num factorialGrowth([num n = 1]) {
+  return factorialGrowth(n + 1) * n;
+}
 
-doThrow() {
-  if (x) while {
-  };
+void nonTailableRecursion() {
+  factorialGrowth();
 }
 
 var tests = [
@@ -21,11 +23,11 @@ var tests = [
   (Isolate isolate) async {
     await isolate.reload();
     expect(isolate.error, isNotNull);
-    expect(isolate.error.message.contains("'(' expected"), isTrue);
+    expect(isolate.error.message.contains('Stack Overflow'), isTrue);
   }
 ];
 
-main(args) => runIsolateTestsSynchronous(args,
-                                         tests,
-                                         pause_on_exit: true,
-                                         testeeConcurrent: doThrow);
+main(args) async => runIsolateTests(args,
+                              tests,
+                              pause_on_exit: true,
+                              testeeConcurrent: nonTailableRecursion);

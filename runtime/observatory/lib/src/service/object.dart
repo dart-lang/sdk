@@ -1641,7 +1641,7 @@ class Isolate extends ServiceObjectOwner {
   }
 
   Future<ObjectStore> getObjectStore() {
-    return invokeRpc('_getObjectStore', {}).then((map) {
+    return invokeRpcNoUpgrade('_getObjectStore', {}).then((map) {
       ObjectStore objectStore = new ObjectStore._empty(this);
       objectStore._update(map, false);
       return objectStore;

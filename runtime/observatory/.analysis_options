@@ -1,9 +1,6 @@
 analyzer:
   exclude:
-# Remove once Dart 1.13-dev is released
+    - tests/service/get_isolate_after_language_error_test.dart
     - tests/service/developer_extension_test.dart
-# Remove once Dart 1.13-dev is released
-    - tests/service/logging_test.dart
-    - tests/ui/log.dart
-# Remove once Dart 1.13-dev is released
-    - tests/service/get_stack_rpc_test.dart
+    - tests/service/address_mapper_test.dart
+    - tests/service/pause_on_unhandled_exceptions_test.dart

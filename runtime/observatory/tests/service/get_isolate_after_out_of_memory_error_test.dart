@@ -7,12 +7,10 @@ import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 import 'service_test_common.dart';
+import 'dart:math';
 
-var x;
-
-doThrow() {
-  if (x) while {
-  };
+void goOutOfMemory() {
+  new List(pow(2, 53));
 }
 
 var tests = [
@@ -21,11 +19,11 @@ var tests = [
   (Isolate isolate) async {
     await isolate.reload();
     expect(isolate.error, isNotNull);
-    expect(isolate.error.message.contains("'(' expected"), isTrue);
+    expect(isolate.error.message.contains('Out of Memory'), isTrue);
   }
 ];
 
-main(args) => runIsolateTestsSynchronous(args,
-                                         tests,
-                                         pause_on_exit: true,
-                                         testeeConcurrent: doThrow);
+main(args) async => runIsolateTests(args,
+                              tests,
+                              pause_on_exit: true,
+                              testeeConcurrent: goOutOfMemory);

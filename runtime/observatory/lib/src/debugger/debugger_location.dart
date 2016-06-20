@@ -256,7 +256,6 @@ class DebuggerLocation {
         return new DebuggerLocation.error(
             "Function '${match.group(0)}' is ambiguous");
       }
-      return new DebuggerLocation.error('foo');
     });
   }
 
