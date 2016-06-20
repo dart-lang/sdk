@@ -480,7 +480,7 @@ _handleResourceRequest(IsolateLoaderState loaderState,
                        Uri uri,
                        Uri resolvedUri,
                        String libraryUrl) {
-  if (resolvedUri.scheme == 'file') {
+  if (resolvedUri.scheme == '' || resolvedUri.scheme == 'file') {
     _loadFile(sp, tag, uri, resolvedUri, libraryUrl);
   } else if ((resolvedUri.scheme == 'http') ||
              (resolvedUri.scheme == 'https')) {
@@ -805,7 +805,7 @@ _handlePackagesRequest(SendPort sp,
                        Uri resource) async {
   try {
     if (tag == -1) {
-      if (resource.scheme == 'file') {
+      if (resource.scheme == '' || resource.scheme == 'file') {
         _findPackagesFile(sp, traceLoading, resource);
       } else if ((resource.scheme == 'http') || (resource.scheme == 'https')) {
         // Try to load the .packages file next to the resource.
@@ -825,7 +825,7 @@ _handlePackagesRequest(SendPort sp,
       if (traceLoading) {
         _log("Handling load of packages map: '$resource'.");
       }
-      if (resource.scheme == 'file') {
+      if (resource.scheme == '' || resource.scheme == 'file') {
         var exists = await new File.fromUri(resource).exists();
         if (exists) {
           _loadPackagesFile(sp, traceLoading, resource);

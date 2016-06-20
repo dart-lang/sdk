@@ -32,6 +32,7 @@ namespace dart {
 namespace bin {
 
 const char* DartUtils::original_working_directory = NULL;
+CommandLineOptions* DartUtils::url_mapping = NULL;
 const char* const DartUtils::kDartScheme = "dart:";
 const char* const DartUtils::kDartExtensionScheme = "dart-ext:";
 const char* const DartUtils::kAsyncLibURL = "dart:async";
@@ -47,6 +48,7 @@ const char* const DartUtils::kVMServiceLibURL = "dart:vmservice";
 
 const uint8_t DartUtils::magic_number[] = { 0xf5, 0xf5, 0xdc, 0xdc };
 
+
 static bool IsWindowsHost() {
 #if defined(TARGET_OS_WINDOWS)
   return true;
@@ -56,8 +58,7 @@ static bool IsWindowsHost() {
 }
 
 
-const char* DartUtils::MapLibraryUrl(CommandLineOptions* url_mapping,
-                                     const char* url_string) {
+const char* DartUtils::MapLibraryUrl(const char* url_string) {
   ASSERT(url_mapping != NULL);
   // We need to check if the passed in url is found in the url_mapping array,
   // in that case use the mapped entry.
@@ -334,46 +335,12 @@ Dart_Handle DartUtils::SetWorkingDirectory() {
 }
 
 
-Dart_Handle DartUtils::ResolveUriInWorkingDirectory(Dart_Handle script_uri) {
-  const int kNumArgs = 1;
-  Dart_Handle dart_args[kNumArgs];
-  dart_args[0] = script_uri;
-  return Dart_Invoke(DartUtils::BuiltinLib(),
-                     NewString("_resolveInWorkingDirectory"),
-                     kNumArgs,
-                     dart_args);
-}
-
-
-Dart_Handle DartUtils::FilePathFromUri(Dart_Handle script_uri) {
-  const int kNumArgs = 1;
-  Dart_Handle dart_args[kNumArgs];
-  dart_args[0] = script_uri;
-  return Dart_Invoke(DartUtils::BuiltinLib(),
-                     NewString("_filePathFromUri"),
-                     kNumArgs,
-                     dart_args);
-}
-
-
 Dart_Handle DartUtils::LibraryFilePath(Dart_Handle library_uri) {
   const int kNumArgs = 1;
   Dart_Handle dart_args[kNumArgs];
   dart_args[0] = library_uri;
   return Dart_Invoke(DartUtils::BuiltinLib(),
                      NewString("_libraryFilePath"),
-                     kNumArgs,
-                     dart_args);
-}
-
-
-Dart_Handle DartUtils::ResolveUri(Dart_Handle library_url, Dart_Handle url) {
-  const int kNumArgs = 2;
-  Dart_Handle dart_args[kNumArgs];
-  dart_args[0] = library_url;
-  dart_args[1] = url;
-  return Dart_Invoke(DartUtils::BuiltinLib(),
-                     NewString("_resolveUri"),
                      kNumArgs,
                      dart_args);
 }
