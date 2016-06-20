@@ -632,6 +632,7 @@ LayoutTests/fast/dom/css-cached-import-rule_t01: Skip # Test reloads itself. Iss
 LayoutTests/fast/dom/cssTarget-crash_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/dom/empty-hash-and-search_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/dom/shadow/form-in-shadow_t01: Skip # Test reloads itself. Issue 18558.
+LayoutTests/fast/forms/date/date-interactive-validation-required_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/datetimelocal/datetimelocal-interactive-validation-required_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/form-submission-create-crash_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/formmethod-attribute-button-html_t01: Skip # Test reloads itself. Issue 18558.
@@ -1870,6 +1871,7 @@ LayoutTests/fast/canvas/webgl/context-lost-restored_t01: RuntimeError # Please t
 LayoutTests/fast/canvas/webgl/context-lost_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/oes-vertex-array-object_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/renderer-and-vendor-strings_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-array-buffer-view_t01: Skip # Times out.
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgb565_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba4444_t01: RuntimeError # Please triage this failure
@@ -1953,7 +1955,6 @@ LayoutTests/fast/css/border-width-large_t01: RuntimeError # Please triage this f
 LayoutTests/fast/css/box-sizing-backwards-compat-prefix_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/checked-pseudo-selector_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/child-selector-implicit-tbody_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/computed-offset-with-zoom_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/content/content-none_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/content/content-normal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/content/content-quotes-01_t01: RuntimeError # co19 issue 61
@@ -2297,6 +2298,7 @@ LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: Runti
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-return-value_t01: RuntimeError # Dartium JSInterop failure
+LayoutTests/fast/dom/icon-size-property_t01: RuntimeError # Issue 26714
 LayoutTests/fast/dom/importNode-unsupported-node-type_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/insert-span-into-long-text-bug-28245_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/insertBefore-refChild-crash_t01: RuntimeError # Please triage this failure
@@ -2514,7 +2516,6 @@ LayoutTests/fast/forms/date/ValidityState-rangeUnderflow-date_t01: RuntimeError 
 LayoutTests/fast/forms/date/ValidityState-stepMismatch-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/ValidityState-typeMismatch-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/date-input-type_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/date/date-interactive-validation-required_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/date-pseudo-classes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/input-date-validation-message_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/input-valueasdate-date_t01: RuntimeError # Please triage this failure
@@ -3279,6 +3280,7 @@ LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInt
 LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JSInterop failure
 
 [ $compiler == dart2js && $runtime == ff && $system == linux]
+LayoutTests/fast/canvas/webgl/*: Timeout, Pass # Issue 26725
 LayoutTests/fast/canvas/canvas-composite-text-alpha_t01: RuntimeError # co19 issue 16
 LayoutTests/fast/text/whitespace/nowrap-line-break-after-white-space_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/oes-element-index-uint_t01: Skip # Times out always
@@ -3823,7 +3825,6 @@ LayoutTests/fast/forms/date/ValidityState-rangeUnderflow-date_t01: RuntimeError 
 LayoutTests/fast/forms/date/ValidityState-stepMismatch-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/ValidityState-typeMismatch-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/date-input-type_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/date/date-interactive-validation-required_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/date-pseudo-classes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/date-setrangetext_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/input-date-validation-message_t01: RuntimeError # Please triage this failure
@@ -5125,7 +5126,6 @@ LayoutTests/fast/forms/datalist/datalist_t01: RuntimeError # Please triage this 
 LayoutTests/fast/forms/datalist/input-list_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date-multiple-fields/date-multiple-fields-change-layout-by-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date-multiple-fields/date-multiple-fields-onblur-setvalue-onfocusremoved_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/date/date-interactive-validation-required_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/input-date-validation-message_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/input-valueasdate-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/input-valueasnumber-date_t01: RuntimeError # Please triage this failure
@@ -6792,7 +6792,6 @@ LayoutTests/fast/forms/date/ValidityState-rangeUnderflow-date_t01: RuntimeError 
 LayoutTests/fast/forms/date/ValidityState-stepMismatch-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/ValidityState-typeMismatch-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/date-input-type_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/date/date-interactive-validation-required_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/date-pseudo-classes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/input-date-validation-message_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/input-valueasdate-date_t01: RuntimeError # Please triage this failure
@@ -8743,7 +8742,6 @@ LayoutTests/fast/forms/date/ValidityState-rangeUnderflow-date_t01: RuntimeError 
 LayoutTests/fast/forms/date/ValidityState-stepMismatch-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/ValidityState-typeMismatch-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/date-input-type_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/date/date-interactive-validation-required_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/date-pseudo-classes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/input-date-validation-message_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/input-valueasdate-date_t01: RuntimeError # Please triage this failure
