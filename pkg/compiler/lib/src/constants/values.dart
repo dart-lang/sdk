@@ -658,6 +658,8 @@ class SyntheticConstantValue extends ConstantValue {
 }
 
 class ConstructedConstantValue extends ObjectConstantValue {
+  // TODO(johnniwinther): Make [fields] private to avoid misuse of the map
+  // ordering and mutability.
   final Map<FieldElement, ConstantValue> fields;
   final int hashCode;
 

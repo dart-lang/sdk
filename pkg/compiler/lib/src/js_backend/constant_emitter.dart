@@ -285,7 +285,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
 
   @override
   jsAst.Expression visitConstructed(ConstructedConstantValue constant, [_]) {
-    Element element = constant.type.element;
+    ClassElement element = constant.type.element;
     if (backend.isForeign(element) && element.name == 'JS_CONST') {
       StringConstantValue str = constant.fields.values.single;
       String value = str.primitiveValue.slowToString();
@@ -293,9 +293,10 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     }
     jsAst.Expression constructor =
         backend.emitter.constructorAccess(constant.type.element);
-    List<jsAst.Expression> fields = constant.fields.values
-        .map(constantReferenceGenerator)
-        .toList(growable: false);
+    List<jsAst.Expression> fields = <jsAst.Expression>[];
+    element.forEachInstanceField((_, FieldElement field) {
+      fields.add(constantReferenceGenerator(constant.fields[field]));
+    });
     jsAst.New instantiation = new jsAst.New(constructor, fields);
     return maybeAddTypeArguments(constant.type, instantiation);
   }
