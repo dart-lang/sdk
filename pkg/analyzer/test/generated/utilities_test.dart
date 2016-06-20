@@ -59,6 +59,12 @@ class AstCloneComparator extends AstComparator {
       fail('Failed to copy token: ${first.lexeme} (${first.offset})');
       return false;
     }
+    if (first is TokenWithComment) {
+      CommentToken comment = first.precedingComments;
+      if (comment.parent != first) {
+        fail('Failed to link the comment "$comment" with the token "$first".');
+      }
+    }
     return super.isEqualTokens(first, second);
   }
 }
@@ -75,6 +81,13 @@ class AstClonerTest extends EngineTestCase {
 
   void test_visitAnnotation_constructor() {
     _assertCloneUnitMember('@A.c() main() {}');
+  }
+
+  void test_visitAnnotation_withComment() {
+    CompilationUnitMember clazz =
+        _parseUnitMember('/** comment */ @deprecated class A {}');
+    Annotation annotation = clazz.metadata.single;
+    _assertClone(annotation);
   }
 
   void test_visitArgumentList() {
