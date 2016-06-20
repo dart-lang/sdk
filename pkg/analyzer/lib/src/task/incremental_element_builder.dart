@@ -155,16 +155,25 @@ class IncrementalCompilationUnitElementBuilder {
     removedConstructors.addAll(classElement.constructors);
     removedMethods.addAll(classElement.methods);
     // Replace new nodes with the identical old nodes.
+    bool newHasConstructor = false;
     for (ClassMember newNode in newClass.members) {
       String code = TokenUtils.getFullCode(newNode);
       ClassMember oldNode = oldNodeMap[code];
       // Add the new element.
       if (oldNode == null) {
         if (newNode is ConstructorDeclaration) {
+          newHasConstructor = true;
           ConstructorElement element = newNode.element;
           if (element != null) {
             classElementHolder.addConstructor(element);
             classDelta.addedConstructors.add(element);
+          }
+        }
+        if (newNode is MethodDeclaration) {
+          MethodElement element = newNode.element;
+          if (element != null) {
+            classElementHolder.addMethod(element);
+            classDelta.addedMethods.add(element);
           }
         }
         // TODO(scheglov) other elements
@@ -179,8 +188,28 @@ class IncrementalCompilationUnitElementBuilder {
           removedConstructors.remove(element);
         }
       }
+      if (oldNode is MethodDeclaration) {
+        MethodElement element = oldNode.element;
+        if (element != null) {
+          classElementHolder.addMethod(element);
+          removedMethods.remove(element);
+        }
+      }
       // TODO(scheglov) other elements
     }
+    // If the class had only a default synthetic constructor, and there are
+    // no explicit constructors in the new AST, keep the constructor.
+    if (!newHasConstructor) {
+      List<ConstructorElement> constructors = classElement.constructors;
+      if (constructors.length == 1) {
+        ConstructorElement constructor = constructors[0];
+        if (constructor.isSynthetic && constructor.isDefaultConstructor) {
+          classElementHolder.addConstructor(constructor);
+          removedConstructors.remove(constructor);
+        }
+      }
+    }
+    // Update the delta.
     classDelta.removedAccessors.addAll(removedAccessors);
     classDelta.removedConstructors.addAll(removedConstructors);
     classDelta.removedMethods.addAll(removedMethods);
@@ -515,6 +544,29 @@ class _UpdateElementOffsetsVisitor extends GeneralizingElementVisitor {
           assert(newEnd != null);
           int newLength = newEnd - newOffset;
           element.setCodeRange(newOffset, newLength);
+        }
+      }
+      // visible range
+      if (element is LocalElement) {
+        SourceRange oldVisibleRange = (element as LocalElement).visibleRange;
+        if (oldVisibleRange != null) {
+          int oldOffset = oldVisibleRange.offset;
+          int oldLength = oldVisibleRange.length;
+          int oldEnd = oldOffset + oldLength;
+          int newOffset = map[oldOffset];
+          int newEnd = map[oldEnd];
+          assert(newOffset != null);
+          assert(newEnd != null);
+          int newLength = newEnd - newOffset;
+          if (newOffset != oldOffset || newLength != oldLength) {
+            if (element is FunctionElementImpl) {
+              element.setVisibleRange(newOffset, newLength);
+            } else if (element is LocalVariableElementImpl) {
+              element.setVisibleRange(newOffset, newLength);
+            } else if (element is ParameterElementImpl) {
+              element.setVisibleRange(newOffset, newLength);
+            }
+          }
         }
       }
     }
