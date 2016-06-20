@@ -61,13 +61,11 @@ abstract class AbstractAnalysisServerPerformanceTest
   Future shutdown() async => await shutdownIfNeeded();
 
   /**
-   * Enable [SERVER_STATUS] notifications so that [analysisFinished]
+   * Enable [ServerService.STATUS] notifications so that [analysisFinished]
    * can be used.
    */
-  Future subscribeToStatusNotifications() {
-    List<Future> futures = <Future>[];
-    futures.add(sendServerSetSubscriptions([ServerService.STATUS]));
-    return Future.wait(futures);
+  Future subscribeToStatusNotifications() async {
+    await sendServerSetSubscriptions([ServerService.STATUS]);
   }
 }
 
