@@ -1735,10 +1735,10 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   @override
   void visitConstructed(ConstructedConstantValue constant, [_]) {
     addRoot(constant.type.element.name);
-    for (ConstantValue value in constant.fields.values) {
-      _visit(value);
+    constant.type.element.forEachInstanceField((_, FieldElement field) {
       if (failed) return;
-    }
+      _visit(constant.fields[field]);
+    }, includeSuperAndInjectedMembers: true);
   }
 
   @override
@@ -1862,9 +1862,9 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   @override
   int visitConstructed(ConstructedConstantValue constant, [_]) {
     int hash = _hashString(3, constant.type.element.name);
-    for (ConstantValue value in constant.fields.values) {
-      hash = _combine(hash, _visit(value));
-    }
+    constant.type.element.forEachInstanceField((_, FieldElement field) {
+      hash = _combine(hash, _visit(constant.fields[field]));
+    }, includeSuperAndInjectedMembers: true);
     return hash;
   }
 

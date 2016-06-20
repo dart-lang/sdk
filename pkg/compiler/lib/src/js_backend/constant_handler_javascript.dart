@@ -220,10 +220,10 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
   @override
   ConstantExpression compileMetadata(
       MetadataAnnotation metadata, Node node, TreeElements elements) {
-      ConstantExpression constant =
-          super.compileMetadata(metadata, node, elements);
-      metadataConstantMap[metadata] = constant;
-      return constant;
+    ConstantExpression constant =
+        super.compileMetadata(metadata, node, elements);
+    metadataConstantMap[metadata] = constant;
+    return constant;
   }
 
   void forgetElement(Element element) {
