@@ -219,6 +219,114 @@ class A {
     expect(helper.delta.removedMethods, isEmpty);
   }
 
+  test_classDelta_field_add() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+class A {
+  int aaa;
+}
+''');
+    helper.initOld(oldUnit);
+    _buildNewUnit(r'''
+class A {
+  int aaa;
+  int bbb;
+}
+''');
+    helper.initNew(newUnit, unitDelta);
+    // nodes
+    FieldDeclaration nodeA = helper.newMembers[0];
+    FieldDeclaration newNodeB = helper.newMembers[1];
+    List<VariableDeclaration> newFieldsB = newNodeB.fields.variables;
+    expect(nodeA, same(helper.oldMembers[0]));
+    expect(newFieldsB, hasLength(1));
+    // elements
+    FieldElement newFieldElementB = newFieldsB[0].name.staticElement;
+    expect(newFieldElementB.name, 'bbb');
+    // verify delta
+    expect(helper.delta.addedConstructors, isEmpty);
+    expect(helper.delta.removedConstructors, isEmpty);
+    expect(helper.delta.addedAccessors,
+        unorderedEquals([newFieldElementB.getter, newFieldElementB.setter]));
+    expect(helper.delta.removedAccessors, isEmpty);
+    expect(helper.delta.addedMethods, isEmpty);
+    expect(helper.delta.removedMethods, isEmpty);
+  }
+
+  test_classDelta_field_changeName() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+class A {
+  int aaa;
+  int bbb;
+}
+''');
+    helper.initOld(oldUnit);
+    _buildNewUnit(r'''
+class A {
+  int aaa2;
+  int bbb;
+}
+''');
+    helper.initNew(newUnit, unitDelta);
+    // nodes
+    FieldDeclaration oldNodeA = helper.oldMembers[0];
+    FieldDeclaration newNodeA = helper.newMembers[0];
+    List<VariableDeclaration> oldFieldsA = oldNodeA.fields.variables;
+    List<VariableDeclaration> newFieldsA = newNodeA.fields.variables;
+    expect(oldFieldsA, hasLength(1));
+    expect(newFieldsA, hasLength(1));
+    FieldDeclaration nodeB = helper.newMembers[1];
+    expect(nodeB, same(helper.oldMembers[1]));
+    // elements
+    FieldElement oldFieldElementA = oldFieldsA[0].name.staticElement;
+    FieldElement newFieldElementA = newFieldsA[0].name.staticElement;
+    expect(oldFieldElementA.name, 'aaa');
+    expect(newFieldElementA.name, 'aaa2');
+    // verify delta
+    expect(helper.delta.addedConstructors, isEmpty);
+    expect(helper.delta.removedConstructors, isEmpty);
+    expect(helper.delta.addedAccessors,
+        unorderedEquals([newFieldElementA.getter, newFieldElementA.setter]));
+    expect(helper.delta.removedAccessors,
+        unorderedEquals([oldFieldElementA.getter, oldFieldElementA.setter]));
+    expect(helper.delta.addedMethods, isEmpty);
+    expect(helper.delta.removedMethods, isEmpty);
+  }
+
+  test_classDelta_field_remove() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+class A {
+  int aaa;
+  int bbb;
+}
+''');
+    helper.initOld(oldUnit);
+    _buildNewUnit(r'''
+class A {
+  int aaa;
+}
+''');
+    helper.initNew(newUnit, unitDelta);
+    // nodes
+    FieldDeclaration nodeA = helper.newMembers[0];
+    FieldDeclaration oldNodeB = helper.oldMembers[1];
+    List<VariableDeclaration> oldFieldsB = oldNodeB.fields.variables;
+    expect(nodeA, same(helper.oldMembers[0]));
+    // elements
+    FieldElement oldFieldElementB = oldFieldsB[0].name.staticElement;
+    expect(oldFieldElementB.name, 'bbb');
+    // verify delta
+    expect(helper.delta.addedConstructors, isEmpty);
+    expect(helper.delta.removedConstructors, isEmpty);
+    expect(helper.delta.addedAccessors, isEmpty);
+    expect(helper.delta.removedAccessors,
+        unorderedEquals([oldFieldElementB.getter, oldFieldElementB.setter]));
+    expect(helper.delta.addedMethods, isEmpty);
+    expect(helper.delta.removedMethods, isEmpty);
+  }
+
   test_classDelta_method_add() {
     var helper = new _ClassDeltaHelper('A');
     _buildOldUnit(r'''

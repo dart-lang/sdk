@@ -169,6 +169,23 @@ class IncrementalCompilationUnitElementBuilder {
             classDelta.addedConstructors.add(element);
           }
         }
+        if (newNode is FieldDeclaration) {
+          for (VariableDeclaration field in newNode.fields.variables) {
+            PropertyInducingElement element = field.element;
+            if (element != null) {
+              PropertyAccessorElement getter = element.getter;
+              PropertyAccessorElement setter = element.setter;
+              if (getter != null) {
+                classElementHolder.addAccessor(getter);
+                classDelta.addedAccessors.add(getter);
+              }
+              if (setter != null) {
+                classElementHolder.addAccessor(setter);
+                classDelta.addedAccessors.add(setter);
+              }
+            }
+          }
+        }
         if (newNode is MethodDeclaration) {
           MethodElement element = newNode.element;
           if (element != null) {
@@ -186,6 +203,21 @@ class IncrementalCompilationUnitElementBuilder {
         if (element != null) {
           classElementHolder.addConstructor(element);
           removedConstructors.remove(element);
+        }
+      }
+      if (oldNode is FieldDeclaration) {
+        for (VariableDeclaration field in oldNode.fields.variables) {
+          PropertyInducingElement element = field.element;
+          if (element != null) {
+            if (element.getter != null) {
+              classElementHolder.addAccessor(element.getter);
+              removedAccessors.remove(element.getter);
+            }
+            if (element.setter != null) {
+              classElementHolder.addAccessor(element.setter);
+              removedAccessors.remove(element.setter);
+            }
+          }
         }
       }
       if (oldNode is MethodDeclaration) {
@@ -359,23 +391,29 @@ class IncrementalCompilationUnitElementBuilder {
    */
   static List<Element> _getElements(AstNode node) {
     List<Element> elements = <Element>[];
-    if (node is TopLevelVariableDeclaration) {
-      VariableDeclarationList variableList = node.variables;
+    void addPropertyAccessors(VariableDeclarationList variableList) {
       if (variableList != null) {
         for (VariableDeclaration variable in variableList.variables) {
-          TopLevelVariableElement element = variable.element;
-          elements.add(element);
-          if (element.getter != null) {
-            elements.add(element.getter);
-          }
-          if (element.setter != null) {
-            elements.add(element.setter);
+          PropertyInducingElement element = variable.element;
+          if (element != null) {
+            elements.add(element);
+            if (element.getter != null) {
+              elements.add(element.getter);
+            }
+            if (element.setter != null) {
+              elements.add(element.setter);
+            }
           }
         }
       }
-    } else if (node is PartDirective || node is PartOfDirective) {} else if (node
-        is Directive &&
-        node.element != null) {
+    }
+    if (node is FieldDeclaration) {
+      addPropertyAccessors(node.fields);
+    } else if (node is TopLevelVariableDeclaration) {
+      addPropertyAccessors(node.variables);
+    } else if (node is PartDirective || node is PartOfDirective) {
+      // Ignore.
+    } else if (node is Directive && node.element != null) {
       elements.add(node.element);
     } else if (node is Declaration && node.element != null) {
       Element element = node.element;
