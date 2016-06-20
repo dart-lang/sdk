@@ -15,11 +15,11 @@ import '../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(ResourceUriResolverTest);
+  runReflectiveTests(BazelFileUriResolverTest);
 }
 
 @reflectiveTest
-class ResourceUriResolverTest {
+class BazelFileUriResolverTest {
   MemoryResourceProvider provider;
   Folder workspace;
   List<Folder> buildDirs;
