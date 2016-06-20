@@ -103,8 +103,9 @@ class IncrementalCompilationUnitElementBuilder {
         .buildCompilationUnit(unitSource, newUnit, librarySource);
     _processDirectives();
     _processUnitMembers();
-    newUnit.element = unitElement;
     _replaceUnitContents(oldUnit, newUnit);
+    newUnit.element = unitElement;
+    unitElement.setCodeRange(0, newUnit.endToken.end);
   }
 
   void _addElementToUnitHolder(Element element) {
@@ -127,10 +128,20 @@ class IncrementalCompilationUnitElementBuilder {
 
   ClassElementDelta _processClassMembers(
       ClassDeclaration oldClass, ClassDeclaration newClass) {
+    // TODO(scheglov) Compare class structure: type parameters, supertype,
+    // mixins and interfaces.
     Map<String, ClassMember> oldNodeMap = new HashMap<String, ClassMember>();
     for (ClassMember oldNode in oldClass.members) {
       String code = TokenUtils.getFullCode(oldNode);
       oldNodeMap[code] = oldNode;
+    }
+    // Prepare elements.
+    ClassElement newElement = newClass.element;
+    ClassElement oldElement = oldClass.element;
+    // Use the old element for the new node.
+    newClass.name.staticElement = oldElement;
+    if (newElement is ClassElementImpl && oldElement is ClassElementImpl) {
+      oldElement.setCodeRange(newElement.codeOffset, newElement.codeLength);
     }
     // Prepare delta.
     ClassElementImpl classElement = oldClass.element;
@@ -248,17 +259,21 @@ class IncrementalCompilationUnitElementBuilder {
       CompilationUnitMember oldNode = oldNodeMap[code];
       // Add the new element.
       if (oldNode == null) {
-        List<Element> elements = _getElements(newNode);
-        elements.forEach(_addElementToUnitHolder);
-        elements.forEach(unitDelta.addedDeclarations.add);
         // Compute a delta for the class.
         if (newNode is ClassDeclaration) {
           ClassDeclaration oldClass = nameToOldClassMap[newNode.name.name];
           if (oldClass != null) {
             ClassElementDelta delta = _processClassMembers(oldClass, newNode);
             unitDelta.classDeltas.add(delta);
+            _addElementToUnitHolder(delta.element);
+            removedElements.remove(delta.element);
+            continue;
           }
         }
+        // Add the new node elements.
+        List<Element> elements = _getElements(newNode);
+        elements.forEach(_addElementToUnitHolder);
+        elements.forEach(unitDelta.addedDeclarations.add);
         continue;
       }
       // Do replacement.
@@ -375,8 +390,21 @@ class TokenUtils {
         copyTokenOffsets(offsetMap, (oldToken as CommentToken).parent,
             (newToken as CommentToken).parent, oldEndToken, newEndToken);
       }
+      // Update (otherwise unlinked) reference tokens in documentation.
+      if (oldToken is DocumentationCommentToken &&
+          newToken is DocumentationCommentToken) {
+        List<Token> oldReferences = oldToken.references;
+        List<Token> newReferences = newToken.references;
+        assert(oldReferences.length == newReferences.length);
+        for (int i = 0; i < oldReferences.length; i++) {
+          copyTokenOffsets(offsetMap, oldReferences[i], newReferences[i],
+              oldEndToken, newEndToken);
+        }
+      }
+      // Update documentation tokens.
       while (oldToken != null) {
         offsetMap[oldToken.offset] = newToken.offset;
+        offsetMap[oldToken.end] = newToken.end;
         oldToken.offset = newToken.offset;
         oldToken = oldToken.next;
         newToken = newToken.next;
@@ -392,7 +420,12 @@ class TokenUtils {
             newToken.precedingComments, oldEndToken, newEndToken);
       }
       offsetMap[oldToken.offset] = newToken.offset;
+      offsetMap[oldToken.end] = newToken.end;
       oldToken.offset = newToken.offset;
+      if (oldToken.type == TokenType.EOF) {
+        assert(newToken.type == TokenType.EOF);
+        break;
+      }
       if (oldToken == oldEndToken) {
         assert(newToken == newEndToken);
         break;
@@ -457,18 +490,34 @@ class _UpdateElementOffsetsVisitor extends GeneralizingElementVisitor {
   _UpdateElementOffsetsVisitor(this.map);
 
   void visitElement(Element element) {
-    if (element is CompilationUnitElement) {
+    if (element is LibraryElement) {
       return;
     }
     if (element.isSynthetic) {
       return;
     }
-    int oldOffset = element.nameOffset;
-    int newOffset = map[oldOffset];
-    assert(newOffset != null);
-    (element as ElementImpl).nameOffset = newOffset;
-    if (element is! LibraryElement) {
-      super.visitElement(element);
+    if (element is ElementImpl) {
+      // name offset
+      {
+        int oldOffset = element.nameOffset;
+        int newOffset = map[oldOffset];
+        assert(newOffset != null);
+        element.nameOffset = newOffset;
+      }
+      // code range
+      {
+        int oldOffset = element.codeOffset;
+        if (oldOffset != null) {
+          int oldEnd = oldOffset + element.codeLength;
+          int newOffset = map[oldOffset];
+          int newEnd = map[oldEnd];
+          assert(newOffset != null);
+          assert(newEnd != null);
+          int newLength = newEnd - newOffset;
+          element.setCodeRange(newOffset, newLength);
+        }
+      }
     }
+    super.visitElement(element);
   }
 }

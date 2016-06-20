@@ -6,8 +6,12 @@ library analyzer.test.src.task.incremental_element_builder_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/incremental_element_builder.dart';
+import 'package:analyzer/task/dart.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
@@ -858,6 +862,18 @@ final int a =  1;
     builder.build();
     unitDelta = builder.unitDelta;
     expect(newUnit.element, unitElement);
+    // Flush all tokens, ASTs and elements.
+    context.analysisCache.flush((target, result) {
+      return result == TOKEN_STREAM ||
+          result == PARSED_UNIT ||
+          RESOLVED_UNIT_RESULTS.contains(result) ||
+          LIBRARY_ELEMENT_RESULTS.contains(result);
+    });
+    // Compute a new AST with built elements.
+    CompilationUnit newUnitFull = context.computeResult(
+        new LibrarySpecificUnit(source, source), RESOLVED_UNIT1);
+    expect(newUnitFull, isNot(same(newUnit)));
+    new _BuiltElementsValidator().isEqualNodes(newUnitFull, newUnit);
   }
 
   void _buildOldUnit(String oldCode, [Source libSource]) {
@@ -869,6 +885,76 @@ final int a =  1;
     oldUnit = context.resolveCompilationUnit2(source, libSource);
     unitElement = oldUnit.element;
     expect(unitElement, isNotNull);
+  }
+}
+
+/**
+ * Compares tokens and ASTs, and built elements of declared identifiers.
+ */
+class _BuiltElementsValidator extends AstComparator {
+  @override
+  bool isEqualNodes(AstNode expected, AstNode actual) {
+    // Elements of constructors must be linked to the elements of the
+    // corresponding enclosing classes.
+    if (actual is ConstructorDeclaration) {
+      ConstructorElement actualConstructorElement = actual.element;
+      ClassDeclaration actualClassNode = actual.parent;
+      expect(actualConstructorElement.enclosingElement,
+          same(actualClassNode.element));
+    }
+    // Compare nodes.
+    bool result = super.isEqualNodes(expected, actual);
+    if (!result) {
+      fail('|$actual| != expected |$expected|');
+    }
+    // Verify that declared identifiers have equal elements.
+    if (expected is SimpleIdentifier && actual is SimpleIdentifier) {
+      if (expected.inDeclarationContext()) {
+        expect(actual.inDeclarationContext(), isTrue);
+        Element expectedElement = expected.staticElement;
+        Element actualElement = actual.staticElement;
+        _verifyElement(expectedElement, actualElement, 'staticElement');
+      }
+    }
+    return true;
+  }
+
+  void _verifyElement(Element expected, Element actual, String desc) {
+    if (expected == null && actual == null) {
+      return;
+    }
+    // Prefixes are built later.
+    if (actual is PrefixElement) {
+      return;
+    }
+    // Compare properties.
+    _verifyEqual('$desc name', expected.name, actual.name);
+    _verifyEqual('$desc nameOffset', expected.nameOffset, actual.nameOffset);
+    if (expected is ElementImpl && actual is ElementImpl) {
+      _verifyEqual('$desc codeOffset', expected.codeOffset, actual.codeOffset);
+      _verifyEqual('$desc codeLength', expected.codeLength, actual.codeLength);
+    }
+    if (expected is LocalElement && actual is LocalElement) {
+      _verifyEqual(
+          '$desc visibleRange', expected.visibleRange, actual.visibleRange);
+    }
+    _verifyEqual('$desc documentationComment', expected.documentationComment,
+        actual.documentationComment);
+    {
+      var expectedEnclosing = expected.enclosingElement;
+      var actualEnclosing = actual.enclosingElement;
+      if (expectedEnclosing != null) {
+        expect(actualEnclosing, isNotNull, reason: '$desc enclosingElement');
+        _verifyElement(expectedEnclosing, actualEnclosing,
+            '${expectedEnclosing.name}.$desc');
+      }
+    }
+  }
+
+  void _verifyEqual(String name, expected, actual) {
+    if (actual != expected) {
+      fail('$name\nExpected: $expected\n  Actual: $actual');
+    }
   }
 }
 

@@ -1893,6 +1893,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               dartDelta.hasDirectiveChange = unitDelta.hasDirectiveChange;
               unitDelta.addedDeclarations.forEach(dartDelta.elementAdded);
               unitDelta.removedDeclarations.forEach(dartDelta.elementRemoved);
+              for (ClassElementDelta classDelta in unitDelta.classDeltas) {
+                dartDelta.elementChanged(classDelta.element);
+              }
 //              print(
 //                  'dartDelta: add=${dartDelta.addedNames} remove=${dartDelta.removedNames}');
               delta = dartDelta;
