@@ -72,8 +72,6 @@ Language/Expressions/Identifier_Reference/built_in_not_dynamic_t14: MissingCompi
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t15: MissingCompileTimeError # Issue 26581
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t19: MissingCompileTimeError # Issue 25732
 Language/Expressions/Identifier_Reference/syntax_built_in_t01: fail # Issue 21154
-Language/Expressions/Instance_Creation/Const/abstract_class_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Instance_Creation/Const/abstract_class_t03: CompileTimeError # Please triage this failure
 Language/Expressions/Instance_Creation/New/evaluation_t19: RuntimeError # Please triage this failure
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError # Please triage this failure
 Language/Expressions/Maps/key_value_equals_operator_t02: CompileTimeError # Please triage this failure

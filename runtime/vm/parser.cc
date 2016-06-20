@@ -13627,6 +13627,12 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   }
   ASSERT(!constructor.IsNull());
 
+  // It is a compile time error to instantiate a const instance of an
+  // abstract class. Factory methods are ok.
+  if (is_const && type_class.is_abstract() && !constructor.IsFactory()) {
+    ReportError(new_pos, "cannot instantiate abstract class");
+  }
+
   // It is ok to call a factory method of an abstract class, but it is
   // a dynamic error to instantiate an abstract class.
   if (type_class.is_abstract() && !constructor.IsFactory()) {

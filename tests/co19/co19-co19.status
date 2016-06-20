@@ -28,6 +28,9 @@ LibTest/core/Symbol/Symbol_A01_t04: RuntimeError # Issue 25804
 Language/Classes/same_name_type_variable_t04: Pass, MissingCompileTimeError, Fail # Issue 14513,25525
 Language/Classes/same_name_type_variable_t07: Pass, MissingCompileTimeError, Fail # Issue 14513,25525
 
+Language/Expressions/Instance_Creation/Const/abstract_class_t01: Pass, Fail # co19 issue 66
+Language/Expressions/Instance_Creation/Const/abstract_class_t03: Pass, Fail # co19 issue 66
+
 LibTest/math/acos_A01_t01: PASS, FAIL, OK  # Issue 26261
 LibTest/math/asin_A01_t01: PASS, FAIL, OK  # Issue 26261
 LibTest/math/atan_A01_t01: PASS, FAIL, OK  # Issue 26261
