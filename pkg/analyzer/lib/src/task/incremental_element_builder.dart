@@ -154,6 +154,62 @@ class IncrementalCompilationUnitElementBuilder {
     removedAccessors.addAll(classElement.accessors);
     removedConstructors.addAll(classElement.constructors);
     removedMethods.addAll(classElement.methods);
+    // Utilities.
+    void processConstructorDeclaration(
+        ConstructorDeclaration node, bool isNew) {
+      ConstructorElement element = node.element;
+      if (element != null) {
+        classElementHolder.addConstructor(element);
+        if (isNew) {
+          classDelta.addedConstructors.add(element);
+        } else {
+          removedConstructors.remove(element);
+        }
+      }
+    }
+    void processFieldDeclaration(FieldDeclaration node, bool isNew) {
+      for (VariableDeclaration field in node.fields.variables) {
+        PropertyInducingElement element = field.element;
+        if (element != null) {
+          PropertyAccessorElement getter = element.getter;
+          PropertyAccessorElement setter = element.setter;
+          if (getter != null) {
+            classElementHolder.addAccessor(getter);
+            if (isNew) {
+              classDelta.addedAccessors.add(getter);
+            } else {
+              removedAccessors.remove(getter);
+            }
+          }
+          if (setter != null) {
+            classElementHolder.addAccessor(setter);
+            if (isNew) {
+              classDelta.addedAccessors.add(setter);
+            } else {
+              removedAccessors.remove(setter);
+            }
+          }
+        }
+      }
+    }
+    void processMethodDeclaration(MethodDeclaration node, bool isNew) {
+      Element element = node.element;
+      if (element is MethodElement) {
+        classElementHolder.addMethod(element);
+        if (isNew) {
+          classDelta.addedMethods.add(element);
+        } else {
+          removedMethods.remove(element);
+        }
+      } else if (element is PropertyAccessorElement) {
+        classElementHolder.addAccessor(element);
+        if (isNew) {
+          classDelta.addedAccessors.add(element);
+        } else {
+          removedAccessors.remove(element);
+        }
+      }
+    }
     // Replace new nodes with the identical old nodes.
     bool newHasConstructor = false;
     for (ClassMember newNode in newClass.members) {
@@ -163,71 +219,27 @@ class IncrementalCompilationUnitElementBuilder {
       if (oldNode == null) {
         if (newNode is ConstructorDeclaration) {
           newHasConstructor = true;
-          ConstructorElement element = newNode.element;
-          if (element != null) {
-            classElementHolder.addConstructor(element);
-            classDelta.addedConstructors.add(element);
-          }
+          processConstructorDeclaration(newNode, true);
         }
         if (newNode is FieldDeclaration) {
-          for (VariableDeclaration field in newNode.fields.variables) {
-            PropertyInducingElement element = field.element;
-            if (element != null) {
-              PropertyAccessorElement getter = element.getter;
-              PropertyAccessorElement setter = element.setter;
-              if (getter != null) {
-                classElementHolder.addAccessor(getter);
-                classDelta.addedAccessors.add(getter);
-              }
-              if (setter != null) {
-                classElementHolder.addAccessor(setter);
-                classDelta.addedAccessors.add(setter);
-              }
-            }
-          }
+          processFieldDeclaration(newNode, true);
         }
         if (newNode is MethodDeclaration) {
-          MethodElement element = newNode.element;
-          if (element != null) {
-            classElementHolder.addMethod(element);
-            classDelta.addedMethods.add(element);
-          }
+          processMethodDeclaration(newNode, true);
         }
-        // TODO(scheglov) other elements
         continue;
       }
       // Do replacement.
       _replaceNode(newNode, oldNode);
       if (oldNode is ConstructorDeclaration) {
-        ConstructorElement element = oldNode.element;
-        if (element != null) {
-          classElementHolder.addConstructor(element);
-          removedConstructors.remove(element);
-        }
+        processConstructorDeclaration(oldNode, false);
       }
       if (oldNode is FieldDeclaration) {
-        for (VariableDeclaration field in oldNode.fields.variables) {
-          PropertyInducingElement element = field.element;
-          if (element != null) {
-            if (element.getter != null) {
-              classElementHolder.addAccessor(element.getter);
-              removedAccessors.remove(element.getter);
-            }
-            if (element.setter != null) {
-              classElementHolder.addAccessor(element.setter);
-              removedAccessors.remove(element.setter);
-            }
-          }
-        }
+        processFieldDeclaration(oldNode, false);
       }
       if (oldNode is MethodDeclaration) {
-        MethodElement element = oldNode.element;
-        if (element != null) {
-          classElementHolder.addMethod(element);
-          removedMethods.remove(element);
-        }
+        processMethodDeclaration(oldNode, false);
       }
-      // TODO(scheglov) other elements
     }
     // If the class had only a default synthetic constructor, and there are
     // no explicit constructors in the new AST, keep the constructor.
