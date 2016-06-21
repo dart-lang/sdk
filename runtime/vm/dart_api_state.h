@@ -15,14 +15,34 @@
 #include "vm/handles.h"
 #include "vm/object.h"
 #include "vm/os.h"
-#include "vm/raw_object.h"
 #include "vm/os_thread.h"
+#include "vm/raw_object.h"
+#include "vm/thread_pool.h"
 #include "vm/visitor.h"
 #include "vm/weak_table.h"
 
 #include "vm/handles_impl.h"
 
 namespace dart {
+
+class FinalizablePersistentHandle;
+typedef MallocGrowableArray<FinalizablePersistentHandle*> FinalizationQueue;
+
+
+class BackgroundFinalizer : public ThreadPool::Task {
+ public:
+  BackgroundFinalizer(Isolate* isolate, FinalizationQueue* queue);
+  virtual ~BackgroundFinalizer() { }
+
+  void Run();
+
+ private:
+  Isolate* isolate_;
+  FinalizationQueue* queue_;
+
+  DISALLOW_IMPLICIT_CONSTRUCTORS(BackgroundFinalizer);
+};
+
 
 // Implementation of Zone support for very fast allocation of small chunks
 // of memory. The chunks cannot be deallocated individually, but instead
@@ -227,9 +247,14 @@ class FinalizablePersistentHandle {
   }
 
   // Called when the referent becomes unreachable.
-  void UpdateUnreachable(Isolate* isolate) {
+  void UpdateUnreachable(Isolate* isolate, FinalizationQueue* queue) {
     EnsureFreeExternal(isolate);
-    Finalize(isolate, this);
+    if (queue == NULL) {
+      Finalize(isolate, this);
+    } else {
+      MarkForFinalization();
+      queue->Add(this);
+    }
   }
 
   // Called when the referent has moved, potentially between generations.
@@ -299,6 +324,11 @@ class FinalizablePersistentHandle {
     callback_ = NULL;
   }
 
+  void MarkForFinalization() {
+    raw_ = Object::null();
+    ASSERT(callback_ != NULL);
+  }
+
   void set_raw(RawObject* raw) { raw_ = raw; }
   void set_raw(const LocalHandle& ref) { raw_ = ref.raw(); }
   void set_raw(const Object& object) { raw_ = object.raw(); }
@@ -333,10 +363,13 @@ class FinalizablePersistentHandle {
            Heap::kNew : Heap::kOld;
   }
 
+  friend class BackgroundFinalizer;
+
   RawObject* raw_;
   void* peer_;
   uword external_data_;
   Dart_WeakPersistentHandleFinalizer callback_;
+
   DISALLOW_ALLOCATION();  // Allocated through AllocateHandle methods.
   DISALLOW_COPY_AND_ASSIGN(FinalizablePersistentHandle);
 };
@@ -501,9 +534,11 @@ class FinalizablePersistentHandles
       : Handles<kFinalizablePersistentHandleSizeInWords,
                 kFinalizablePersistentHandlesPerChunk,
                 kOffsetOfRawPtrInFinalizablePersistentHandle>(),
-        free_list_(NULL) { }
+      free_list_(NULL), mutex_(new Mutex()) { }
   ~FinalizablePersistentHandles() {
     free_list_ = NULL;
+    delete mutex_;
+    mutex_ = NULL;
   }
 
   // Accessors.
@@ -530,25 +565,31 @@ class FinalizablePersistentHandles
   // by calling FreeHandle.
   FinalizablePersistentHandle* AllocateHandle() {
     FinalizablePersistentHandle* handle;
-    if (free_list_ != NULL) {
-      handle = free_list_;
-      free_list_ = handle->Next();
-      handle->set_raw(Object::null());
-    } else {
-      handle = reinterpret_cast<FinalizablePersistentHandle*>(
-          AllocateScopedHandle());
-      handle->Clear();
+    {
+      MutexLocker ml(mutex_);
+      if (free_list_ != NULL) {
+        handle = free_list_;
+        free_list_ = handle->Next();
+        handle->set_raw(Object::null());
+        return handle;
+      }
     }
+
+    handle = reinterpret_cast<FinalizablePersistentHandle*>(
+          AllocateScopedHandle());
+    handle->Clear();
     return handle;
   }
 
   void FreeHandle(FinalizablePersistentHandle* handle) {
+    MutexLocker ml(mutex_);
     handle->FreeHandle(free_list());
     set_free_list(handle);
   }
 
   // Validate if passed in handle is a Persistent Handle.
   bool IsValidHandle(Dart_WeakPersistentHandle object) const {
+    MutexLocker ml(mutex_);
     return IsValidScopedHandle(reinterpret_cast<uword>(object));
   }
 
@@ -559,6 +600,7 @@ class FinalizablePersistentHandles
 
  private:
   FinalizablePersistentHandle* free_list_;
+  Mutex* mutex_;
   DISALLOW_COPY_AND_ASSIGN(FinalizablePersistentHandles);
 };
 
