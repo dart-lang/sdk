@@ -331,6 +331,7 @@ class Namer {
   final String callPrefix = 'call';
   final String callCatchAllName = r'call*';
   final String callNameField = r'$callName';
+  final String stubNameField = r'$stubName';
   final String reflectableField = r'$reflectable';
   final String reflectionInfoField = r'$reflectionInfo';
   final String reflectionNameField = r'$reflectionName';
