@@ -197,6 +197,7 @@ class DartUtils {
 
   static const char* MapLibraryUrl(const char* url_string);
 
+  static Dart_Handle ResolveUriInWorkingDirectory(Dart_Handle script_uri);
   static Dart_Handle ResolveScript(Dart_Handle url);
 
   // Sniffs the specified text_buffer to see if it contains the magic number

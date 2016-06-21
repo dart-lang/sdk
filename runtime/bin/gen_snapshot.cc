@@ -451,12 +451,36 @@ static Dart_Handle LoadUrlContents(const char* uri_string) {
 }
 
 
+static Dart_Handle ResolveUriInWorkingDirectory(const char* script_uri) {
+  bool failed = false;
+  char* result_string = NULL;
+
+  {
+    UriResolverIsolateScope scope;
+
+    // Run DartUtils::ResolveUriInWorkingDirectory in context of uri resolver
+    // isolate.
+    Dart_Handle result = DartUtils::ResolveUriInWorkingDirectory(
+        DartUtils::NewString(script_uri));
+    if (Dart_IsError(result)) {
+      failed = true;
+      result_string = strdup(Dart_GetError(result));
+    } else {
+      result_string = strdup(DartUtils::GetStringValue(result));
+    }
+  }
+
+  Dart_Handle result = failed ? Dart_NewApiError(result_string) :
+                                DartUtils::NewString(result_string);
+  free(result_string);
+  return result;
+}
+
+
 static Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
   // First resolve the specified script uri with respect to the original
   // working directory.
-  Dart_Handle resolved_uri = Dart_DefaultCanonicalizeUrl(
-      DartUtils::GetCanonicalizableWorkingDirectory(),
-      Dart_NewStringFromCString(script_name));
+  Dart_Handle resolved_uri = ResolveUriInWorkingDirectory(script_name);
   if (Dart_IsError(resolved_uri)) {
     return resolved_uri;
   }
@@ -499,9 +523,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
   const char* mapped_library_url_string = DartUtils::MapLibraryUrl(
       library_url_string);
   if (mapped_library_url_string != NULL) {
-    library_url = Dart_DefaultCanonicalizeUrl(
-        DartUtils::GetCanonicalizableWorkingDirectory(),
-        Dart_NewStringFromCString(mapped_library_url_string));
+    library_url = ResolveUriInWorkingDirectory(mapped_library_url_string);
     library_url_string = DartUtils::GetStringValue(library_url);
   }
 
@@ -546,9 +568,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
   Dart_Handle resolved_url = url;
   if (mapped_url_string != NULL) {
     // Mapped urls are relative to working directory.
-    resolved_url = Dart_DefaultCanonicalizeUrl(
-        DartUtils::GetCanonicalizableWorkingDirectory(),
-        Dart_NewStringFromCString(mapped_url_string));
+    resolved_url = ResolveUriInWorkingDirectory(mapped_url_string);
     if (Dart_IsError(resolved_url)) {
       return resolved_url;
     }

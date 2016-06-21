@@ -335,6 +335,17 @@ Dart_Handle DartUtils::SetWorkingDirectory() {
 }
 
 
+Dart_Handle DartUtils::ResolveUriInWorkingDirectory(Dart_Handle script_uri) {
+  const int kNumArgs = 1;
+  Dart_Handle dart_args[kNumArgs];
+  dart_args[0] = script_uri;
+  return Dart_Invoke(DartUtils::BuiltinLib(),
+                     NewString("_resolveInWorkingDirectory"),
+                     kNumArgs,
+                     dart_args);
+}
+
+
 Dart_Handle DartUtils::LibraryFilePath(Dart_Handle library_uri) {
   const int kNumArgs = 1;
   Dart_Handle dart_args[kNumArgs];
