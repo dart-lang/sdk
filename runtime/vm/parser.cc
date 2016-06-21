@@ -2648,17 +2648,18 @@ void Parser::CheckFieldsInitialized(const Class& cls) {
 
 AstNode* Parser::ParseExternalInitializedField(const Field& field) {
   // Only use this function if the initialized field originates
-  // from a different class. We need to save and restore current
-  // class, library, and token stream (script).
+  // from a different class. We need to save and restore the
+  // library and token stream (script).
+  // The current_class remains unchanged, so that type arguments
+  // are resolved in the correct scope class.
   ASSERT(current_class().raw() != field.Origin());
-  const Class& saved_class = Class::Handle(Z, current_class().raw());
   const Library& saved_library = Library::Handle(Z, library().raw());
   const Script& saved_script = Script::Handle(Z, script().raw());
   const TokenPosition saved_token_pos = TokenPos();
 
-  set_current_class(Class::Handle(Z, field.Origin()));
-  set_library(Library::Handle(Z, current_class().library()));
-  SetScript(Script::Handle(Z, current_class().script()), field.token_pos());
+  const Class& origin_class = Class::Handle(Z, field.Origin());
+  set_library(Library::Handle(Z, origin_class.library()));
+  SetScript(Script::Handle(Z, origin_class.script()), field.token_pos());
 
   ASSERT(IsIdentifier());
   ConsumeToken();
@@ -2678,7 +2679,6 @@ AstNode* Parser::ParseExternalInitializedField(const Field& field) {
       init_expr = new(Z) LiteralNode(field.token_pos(), expr_value);
     }
   }
-  set_current_class(saved_class);
   set_library(saved_library);
   SetScript(saved_script, saved_token_pos);
   return init_expr;
