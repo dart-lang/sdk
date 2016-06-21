@@ -5958,7 +5958,6 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitAsExpression(AsExpression node) {
-    InferenceContext.setType(node.expression, node.type.type);
     super.visitAsExpression(node);
     // Since an as-statement doesn't actually change the type, we don't
     // let it affect the propagated type when it would result in a loss
