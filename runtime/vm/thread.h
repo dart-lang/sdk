@@ -145,7 +145,6 @@ class Thread : public BaseThread {
     kCompilerTask = 0x2,
     kSweeperTask = 0x4,
     kMarkerTask = 0x8,
-    kFinalizerTask = 0x10,
   };
   ~Thread();
 
