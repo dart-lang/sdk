@@ -227,6 +227,9 @@ round_test: Fail, OK # Common JavaScript engine Math.round bug.
 [ $compiler == dart2js && $runtime == ff ]
 round_test: Pass, Fail, OK # Fixed in ff 35. Common JavaScript engine Math.round bug.
 
+[ $compiler == dart2js && $runtime == chrome && $system == macos ]
+await_future_test: Pass, Timeout # Issue 26735
+
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim)]
 # Safari codegen bug, fixed on some versions of Safari 7.1 (Version 7.1 (9537.85.10.17.1))
 call_through_getter_test: Fail, OK

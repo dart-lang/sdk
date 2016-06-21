@@ -104,7 +104,7 @@ touchevent_test/supported: Fail # Touch events are only supported on touch devic
 element_types_test/supported_object: RuntimeError # Issue 25155
 element_types_test/supported_embed: RuntimeError # Issue 25155
 svgelement_test/PathElement: RuntimeError # Issue 25665
-element_animate_test: RuntimeError # Issue 26730
+element_animate_test/timing_dict: RuntimeError # Issue 26730
 
 [ $runtime == chrome && $system == macos ]
 canvasrenderingcontext2d_test/drawImage_video_element: Skip # Times out. Please triage this failure.
