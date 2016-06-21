@@ -455,7 +455,7 @@ static Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
   // First resolve the specified script uri with respect to the original
   // working directory.
   Dart_Handle resolved_uri = Dart_DefaultCanonicalizeUrl(
-      Dart_NewStringFromCString(DartUtils::original_working_directory),
+      DartUtils::GetCanonicalizableWorkingDirectory(),
       Dart_NewStringFromCString(script_name));
   if (Dart_IsError(resolved_uri)) {
     return resolved_uri;
@@ -500,7 +500,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
       library_url_string);
   if (mapped_library_url_string != NULL) {
     library_url = Dart_DefaultCanonicalizeUrl(
-        Dart_NewStringFromCString(DartUtils::original_working_directory),
+        DartUtils::GetCanonicalizableWorkingDirectory(),
         Dart_NewStringFromCString(mapped_library_url_string));
     library_url_string = DartUtils::GetStringValue(library_url);
   }
@@ -547,7 +547,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
   if (mapped_url_string != NULL) {
     // Mapped urls are relative to working directory.
     resolved_url = Dart_DefaultCanonicalizeUrl(
-        Dart_NewStringFromCString(DartUtils::original_working_directory),
+        DartUtils::GetCanonicalizableWorkingDirectory(),
         Dart_NewStringFromCString(mapped_url_string));
     if (Dart_IsError(resolved_url)) {
       return resolved_url;

@@ -193,6 +193,7 @@ class DartUtils {
   }
 
   static bool SetOriginalWorkingDirectory();
+  static Dart_Handle GetCanonicalizableWorkingDirectory();
 
   static const char* MapLibraryUrl(const char* url_string);
 

@@ -933,6 +933,18 @@ bool DartUtils::SetOriginalWorkingDirectory() {
 }
 
 
+Dart_Handle DartUtils::GetCanonicalizableWorkingDirectory() {
+  const char* str = DartUtils::original_working_directory;
+  intptr_t len = strlen(str);
+  if ((str[len] == '/') || (IsWindowsHost() && str[len] == '\\')) {
+    return Dart_NewStringFromCString(str);
+  }
+  char* new_str = reinterpret_cast<char*>(Dart_ScopeAllocate(len + 2));
+  snprintf(new_str, (len + 2), "%s%s", str, File::PathSeparator());
+  return Dart_NewStringFromCString(new_str);
+}
+
+
 // Statically allocated Dart_CObject instances for immutable
 // objects. As these will be used by different threads the use of
 // these depends on the fact that the marking internally in the
