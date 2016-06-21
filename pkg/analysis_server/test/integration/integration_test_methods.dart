@@ -94,6 +94,10 @@ abstract class IntegrationTestMixin {
    * version ( String )
    *
    *   The version number of the analysis server.
+   *
+   * pid ( int )
+   *
+   *   The process id of the analysis server process.
    */
   Stream<ServerConnectedParams> onServerConnected;
 

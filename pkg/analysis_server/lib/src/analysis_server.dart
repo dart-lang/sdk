@@ -7,6 +7,7 @@ library analysis.server;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:core' hide Resource;
+import 'dart:io' as io;
 import 'dart:math' show max;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart'
@@ -365,7 +366,7 @@ class AnalysisServer {
     });
     _setupIndexInvalidation();
     Notification notification =
-        new ServerConnectedParams(VERSION).toNotification();
+        new ServerConnectedParams(VERSION, io.pid).toNotification();
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
     handlers = serverPlugin.createDomains(this);
