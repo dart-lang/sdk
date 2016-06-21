@@ -10,7 +10,18 @@ import 'service_test_common.dart';
 import 'dart:math';
 
 void goOutOfMemory() {
-  new List(pow(2, 53));
+  // Trying to allocate an array larger than Array::kMaxElements
+  // results in a RangeError instead of an OutOfMemoryError.
+  // To always obtain an OutOfMemoryError we create more than one List.
+  List<List> out = <List>[];
+  // This generates an exception on 32 bit machines.
+  for (var i = 0; i < 8; i++) {
+    out.add(new List(pow(2, 28) - 1));
+  }
+  // This generates an exception on 64 bit machines.
+  for (var i = 0; i < 64; i++) {
+    out.add(new List(pow(2, 58) - 1));
+  }
 }
 
 var tests = [
