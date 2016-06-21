@@ -4,6 +4,8 @@
 
 library server.performance.local;
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
+
 import 'benchmark_scenario.dart';
 
 main(List<String> args) async {
@@ -165,6 +167,28 @@ main(List<String> args) async {
                 afterStrBack: 3,
                 insertStr: 'NewName'),
             completeAfterStr: 'if (hasDirectiveChange) {',
+            numOfRepeats: 5);
+    printBenchmarkResults(id, description, times);
+  }
+
+  {
+    String id = 'local-refactoring-1';
+    String description = r'''
+1. Open 'analyzer'.
+2. Change the name of a public method in src/context/cache.dart.
+3. Request rename refactoring for `getSourcesWithFullName` and measure time to get results.
+4. Rollback changes to the file and wait for analysis.
+5. Go to (2).
+''';
+    List<int> times = await new BenchmarkScenario()
+        .waitAnalyze_change_getRefactoring(
+            roots: [pathAnalyzer],
+            file: '$pathAnalyzer/lib/src/context/cache.dart',
+            fileChange: new FileChange(
+                afterStr: 'getState(An', afterStrBack: 3, insertStr: 'NewName'),
+            refactoringAtStr: 'getSourcesWithFullName(String path)',
+            refactoringKind: RefactoringKind.RENAME,
+            refactoringOptions: new RenameOptions('getSourcesWithFullName2'),
             numOfRepeats: 5);
     printBenchmarkResults(id, description, times);
   }

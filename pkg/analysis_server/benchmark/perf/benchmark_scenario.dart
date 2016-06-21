@@ -125,6 +125,61 @@ class BenchmarkScenario extends AbstractTimingTest {
   }
 
   /**
+   * Init.
+   * 1. Start Analysis Server.
+   * 2. Set the analysis [roots].
+   * 3. Wait for analysis to complete.
+   * 4. Make [file] the priority file.
+   *
+   * Measurement.
+   * 5. Change the [file] according to the [fileChange].
+   * 6. Request [refactoringAtStr] in the updated file content.
+   * 7. Record the time to get refactoring.
+   * 8. Undo changes to the [file] and analyze.
+   * 9. Go to (5).
+   */
+  Future<List<int>> waitAnalyze_change_getRefactoring(
+      {List<String> roots,
+      String file,
+      FileChange fileChange,
+      String refactoringAtStr,
+      RefactoringKind refactoringKind,
+      RefactoringOptions refactoringOptions,
+      int numOfRepeats}) async {
+    expect(roots, isNotNull, reason: 'roots');
+    expect(file, isNotNull, reason: 'file');
+    expect(fileChange, isNotNull, reason: 'fileChange');
+    expect(refactoringAtStr, isNotNull, reason: 'refactoringAtStr');
+    expect(refactoringKind, isNotNull, reason: 'refactoringKind');
+    expect(refactoringOptions, isNotNull, reason: 'refactoringOptions');
+    expect(numOfRepeats, isNotNull, reason: 'numOfRepeats');
+    // Initialize Analysis Server.
+    await super.setUp();
+    await subscribeToStatusNotifications();
+    // Set roots and analyze.
+    await sendAnalysisSetAnalysisRoots(roots, []);
+    await analysisFinished;
+    // Make the file priority.
+    await sendAnalysisSetPriorityFiles([file]);
+    // Repeat.
+    List<int> times = <int>[];
+    for (int i = 0; i < numOfRepeats; i++) {
+      String updatedContent = await _applyFileChange(file, fileChange);
+      // Measure time to get refactoring.
+      int refactoringOffset = _indexOf(file, updatedContent, refactoringAtStr);
+      Duration refactoringDuration = await _measureRefactoringTime(
+          file, refactoringOffset, refactoringKind, refactoringOptions);
+      times.add(refactoringDuration.inMilliseconds);
+      // Remove the overlay and analyze.
+      await sendAnalysisUpdateContent({file: new RemoveContentOverlay()});
+      await analysisFinished;
+    }
+    // Done.
+    await shutdown();
+    return times;
+  }
+
+  /**
    * Compute updated content of the [file] as described by [desc], add overlay
    * for the [file], and return the updated content.
    */
@@ -153,6 +208,18 @@ class BenchmarkScenario extends AbstractTimingTest {
     } finally {
       completionSubscription.cancel();
     }
+  }
+
+  Future<Duration> _measureRefactoringTime(
+      String file,
+      int offset,
+      RefactoringKind refactoringKind,
+      RefactoringOptions refactoringOptions) async {
+    Stopwatch stopwatch = new Stopwatch();
+    stopwatch.start();
+    await sendEditGetRefactoring(refactoringKind, file, offset, 0, false,
+        options: refactoringOptions);
+    return stopwatch.elapsed;
   }
 
   /**
