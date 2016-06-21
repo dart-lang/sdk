@@ -13,6 +13,9 @@ cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash
 cc/ArrayNew_Overflow_Crash: Crash, Timeout
 cc/AllocGeneric_Overflow: Crash, Timeout
 cc/CodeImmutability: Crash
+cc/Fail0: Fail
+cc/Fail1: Fail
+cc/Fail2: Fail
 
 cc/SNPrint_BadArgs: Skip
 
