@@ -172,12 +172,21 @@ namespace dart {
 //    the immediately following instruction is skipped. These instructions
 //    expect their operands to be Smis, but don't check that they are.
 //
+//  - Neg rA , rD
+//
+//    FP[rA] <- -FP[rD]. Assumes FP[rD] is a Smi. If there is no overflow the
+//    immediately following instruction is skipped.
+//
 //  - BitOr, BitAnd, BitXor rA, rB, rC
 //
 //    FP[rA] <- FP[rB] op FP[rC]. These instructions expect their operands to be
 //    Smis, but don't check that they are.
 //
-//  - StoreStaticTOS D
+//  - BitNot rA, rD
+//
+//    FP[rA] <- ~FP[rD]. As above, assumes FP[rD] is a Smi.
+//
+//  - StoreStaticT`OS D
 //
 //    Stores TOS into the static field PP[D].
 //
@@ -344,6 +353,11 @@ namespace dart {
 //
 //    If FP[rA] is a Smi, then skip the next instruction.
 //
+//  - CheckClassId rA, D
+//
+//    If the object at FP[rA]'s class id matches hthe class id in PP[D], then
+//    skip the following instruction.
+//
 //  - CheckStack
 //
 //    Compare SP against isolate stack limit and call StackOverflow handler if
@@ -445,11 +459,13 @@ namespace dart {
   V(Mul,                         A_B_C, reg, reg, reg) \
   V(Div,                         A_B_C, reg, reg, reg) \
   V(Mod,                         A_B_C, reg, reg, reg) \
+  V(Shl,                         A_B_C, reg, reg, reg) \
+  V(Shr,                         A_B_C, reg, reg, reg) \
+  V(Neg,                           A_D, reg, reg, ___) \
   V(BitOr,                       A_B_C, reg, reg, reg) \
   V(BitAnd,                      A_B_C, reg, reg, reg) \
   V(BitXor,                      A_B_C, reg, reg, reg) \
-  V(Shl,                         A_B_C, reg, reg, reg) \
-  V(Shr,                         A_B_C, reg, reg, reg) \
+  V(BitNot,                        A_D, reg, reg, ___) \
   V(StoreStaticTOS,                  D, lit, ___, ___) \
   V(PushStatic,                      D, lit, ___, ___) \
   V(InitStaticTOS,                   0, ___, ___, ___) \
@@ -486,6 +502,7 @@ namespace dart {
   V(AssertAssignable,                D, num, lit, ___) \
   V(AssertBoolean,                   A, num, ___, ___) \
   V(CheckSmi,                        A, reg, ___, ___) \
+  V(CheckClassId,                  A_D, reg, lit, ___) \
   V(CheckStack,                      0, ___, ___, ___) \
   V(DebugStep,                       0, ___, ___, ___) \
   V(DebugBreak,                      A, num, ___, ___) \

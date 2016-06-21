@@ -1580,6 +1580,15 @@ RawObject* Simulator::Call(const Code& code,
     DISPATCH();
   }
   {
+    BYTECODE(Neg, A_D);
+    const intptr_t value = reinterpret_cast<intptr_t>(FP[rD]);
+    intptr_t* out = reinterpret_cast<intptr_t*>(&FP[rA]);
+    if (LIKELY(!SignedSubWithOverflow(0, value, out))) {
+      pc++;
+    }
+    DISPATCH();
+  }
+  {
     BYTECODE(BitOr, A_B_C);
     SMI_OP_NOCHECK(intptr_t, SMI_BITOR);
     DISPATCH();
@@ -1592,6 +1601,12 @@ RawObject* Simulator::Call(const Code& code,
   {
     BYTECODE(BitXor, A_B_C);
     SMI_OP_NOCHECK(intptr_t, SMI_BITXOR);
+    DISPATCH();
+  }
+  {
+    BYTECODE(BitNot, A_D);
+    const intptr_t value = reinterpret_cast<intptr_t>(FP[rD]);
+    *reinterpret_cast<intptr_t*>(&FP[rA]) = ~value & (~kSmiTagMask);
     DISPATCH();
   }
 
@@ -1849,8 +1864,8 @@ RawObject* Simulator::Call(const Code& code,
         SP[2] = args[3];  // name.
         SP[3] = args[2];  // type.
         Exit(thread, FP, SP + 4, pc);
-        NativeArguments args(thread, 3, SP + 1, SP - 3);
-        INVOKE_RUNTIME(DRT_BadTypeError, args);
+        NativeArguments native_args(thread, 3, SP + 1, SP - 3);
+        INVOKE_RUNTIME(DRT_BadTypeError, native_args);
         UNREACHABLE();
       }
 
@@ -1910,8 +1925,8 @@ RawObject* Simulator::Call(const Code& code,
       SP[4] = args[3];  // name
       SP[5] = cache;
       Exit(thread, FP, SP + 6, pc);
-      NativeArguments args(thread, 5, SP + 1, SP - 3);
-      INVOKE_RUNTIME(DRT_TypeCheck, args);
+      NativeArguments native_args(thread, 5, SP + 1, SP - 3);
+      INVOKE_RUNTIME(DRT_TypeCheck, native_args);
     }
 
   AssertAssignableOk:
@@ -1946,6 +1961,17 @@ RawObject* Simulator::Call(const Code& code,
     BYTECODE(CheckSmi, 0);
     intptr_t obj = reinterpret_cast<intptr_t>(FP[rA]);
     if ((obj & kSmiTagMask) == kSmiTag) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CheckClassId, A_D);
+    const RawSmi* actual_cid =
+        SimulatorHelpers::GetClassIdAsSmi(static_cast<RawObject*>(FP[rA]));
+    const RawSmi* desired_cid = RAW_CAST(Smi, LOAD_CONSTANT(rD));
+    if (actual_cid == desired_cid) {
       pc++;
     }
     DISPATCH();
