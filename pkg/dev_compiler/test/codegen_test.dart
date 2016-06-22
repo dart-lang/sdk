@@ -164,7 +164,23 @@ void _writeModule(String outPath, JSModuleFile result) {
     }
   } else {
     // Also write the errors to a '.err' file for easy counting.
-    errorFile.writeAsStringSync(errors);
+    var moduleName = result.name;
+    var libraryName = path.split(moduleName).last;
+    var count = "[error]".allMatches(errors).length;
+    var text = '''
+dart_library.library('$moduleName', null, [
+  'dart_sdk',
+  'expect'
+], function(exports, dart_sdk, expect) {
+  const message = `DDC Compilation Error: $moduleName has $count errors`;
+  const error = new Error(message);
+  exports.$libraryName = Object.create(null);
+  exports.$libraryName.main = function() {
+    throw error;
+  }
+});
+    ''';
+    errorFile.writeAsStringSync(text);
 
     // There are errors, so delete any stale ".js" file.
     if (jsFile.existsSync()) {

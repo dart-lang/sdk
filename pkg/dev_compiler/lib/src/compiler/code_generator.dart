@@ -783,8 +783,8 @@ class CodeGenerator extends GeneralizingAstVisitor
   ///
   /// This ensures instances created by the unnamed constructor are functions.
   /// Named constructors are handled elsewhere, see [_defineNamedConstructors].
-  JS.Expression _emitCallableClass(JS.ClassExpression classExpr,
-      ConstructorElement unnamedCtor) {
+  JS.Expression _emitCallableClass(
+      JS.ClassExpression classExpr, ConstructorElement unnamedCtor) {
     var ctor = new JS.NamedFunction(
         classExpr.name, _emitCallableClassConstructor(unnamedCtor));
 
@@ -792,9 +792,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     return js.call('dart.callableClass(#, #)', [ctor, classExpr]);
   }
 
-  JS.Fun _emitCallableClassConstructor(
-      ConstructorElement ctor) {
-
+  JS.Fun _emitCallableClassConstructor(ConstructorElement ctor) {
     return js.call(
         r'''function (...args) {
           const self = this;
@@ -1022,16 +1020,12 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
   }
 
-  void _defineClass(
-      ClassElement classElem,
-      JS.Expression className,
-      JS.ClassExpression classExpr,
-      bool isCallable,
-      List<JS.Statement> body) {
+  void _defineClass(ClassElement classElem, JS.Expression className,
+      JS.ClassExpression classExpr, bool isCallable, List<JS.Statement> body) {
     JS.Expression callableClass;
     if (isCallable && classElem.unnamedConstructor != null) {
-      callableClass = _emitCallableClass(
-          classExpr, classElem.unnamedConstructor);
+      callableClass =
+          _emitCallableClass(classExpr, classElem.unnamedConstructor);
     }
 
     if (classElem.typeParameters.isNotEmpty) {
@@ -1458,11 +1452,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
   }
 
-  void _defineNamedConstructors(
-      List<ConstructorDeclaration> ctors,
-      List<JS.Statement> body,
-      JS.Expression className,
-      bool isCallable) {
+  void _defineNamedConstructors(List<ConstructorDeclaration> ctors,
+      List<JS.Statement> body, JS.Expression className, bool isCallable) {
     var code = isCallable
         ? 'dart.defineNamedConstructorCallable(#, #, #);'
         : 'dart.defineNamedConstructor(#, #)';

@@ -60,7 +60,7 @@ packages:
       name: convert
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.0"
+    version: "1.1.1"
   crypto:
     description:
       name: crypto
@@ -289,4 +289,4 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.9"
-sdk: ">=1.17.0-dev.6.2 <1.19.0"
+sdk: ">=1.16.0 <1.19.0"
