@@ -598,6 +598,154 @@ class A {
     expect(helper.delta.removedMethods, unorderedEquals([oldElementA]));
   }
 
+  test_classDelta_null_extendsClause_add() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+class A {}
+class B {}
+''',
+        r'''
+class A {}
+class B extends A {}
+''');
+  }
+
+  test_classDelta_null_extendsClause_change() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+class A1 {}
+class A2 {}
+class B extends A1 {}
+''',
+        r'''
+class A1 {}
+class A2 {}
+class B extends A2 {}
+''');
+  }
+
+  test_classDelta_null_extendsClause_remove() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+class A {}
+class B extends A {}
+''',
+        r'''
+class A {}
+class B {}
+''');
+  }
+
+  test_classDelta_null_implementsClause_add() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+class A {}
+class B {}
+''',
+        r'''
+class A {}
+class B implements A {}
+''');
+  }
+
+  test_classDelta_null_implementsClause_change() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+class A1 {}
+class A2 {}
+class B implements A1 {}
+''',
+        r'''
+class A1 {}
+class A2 {}
+class B implements A2 {}
+''');
+  }
+
+  test_classDelta_null_implementsClause_remove() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+class A {}
+class B implements A {}
+''',
+        r'''
+class A {}
+class B {}
+''');
+  }
+
+  test_classDelta_null_typeParameters_change() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+class A {}
+class B<T> {}
+''',
+        r'''
+class A {}
+class B<T extends A> {}
+''');
+  }
+
+  test_classDelta_null_withClause_add() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+class A {}
+class M {}
+class B extends A {}
+''',
+        r'''
+class A {}
+class M {}
+class B extends A with M {}
+''');
+  }
+
+  test_classDelta_null_withClause_change1() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+class A {}
+class M1 {}
+class M2 {}
+class B extends A with M1 {}
+''',
+        r'''
+class A {}
+class M1 {}
+class M2 {}
+class B extends A with M2 {}
+''');
+  }
+
+  test_classDelta_null_withClause_change2() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+class A {}
+class M1 {}
+class M2 {}
+class B extends A with M1, M2 {}
+''',
+        r'''
+class A {}
+class M1 {}
+class M2 {}
+class B extends A with M2, M1 {}
+''');
+  }
+
+  test_classDelta_null_withClause_remove() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+class A {}
+class M {}
+class B extends A with M {}
+''',
+        r'''
+class A {}
+class M {}
+class B extends A {}
+''');
+  }
+
   test_classDelta_setter_add() {
     var helper = new _ClassDeltaHelper('A');
     _buildOldUnit(r'''
@@ -1437,6 +1585,19 @@ main() {
     oldUnit = context.resolveCompilationUnit2(source, libSource);
     unitElement = oldUnit.element;
     expect(unitElement, isNotNull);
+  }
+
+  void _verifyNoClassDeltaForTheLast(String oldCode, String newCode) {
+    _buildOldUnit(oldCode);
+    List<CompilationUnitMember> oldMembers = oldUnit.declarations.toList();
+    Element oldElementLast = oldMembers.last.element;
+    _buildNewUnit(newCode);
+    List<CompilationUnitMember> newMembers = newUnit.declarations;
+    Element newElementLast = newMembers.last.element;
+    expect(newElementLast, isNot(same(oldElementLast)));
+    expect(unitDelta.classDeltas, isEmpty);
+    expect(unitDelta.removedDeclarations, unorderedEquals([oldElementLast]));
+    expect(unitDelta.addedDeclarations, unorderedEquals([newElementLast]));
   }
 }
 

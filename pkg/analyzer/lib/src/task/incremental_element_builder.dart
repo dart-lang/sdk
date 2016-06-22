@@ -128,8 +128,19 @@ class IncrementalCompilationUnitElementBuilder {
 
   ClassElementDelta _processClassMembers(
       ClassDeclaration oldClass, ClassDeclaration newClass) {
-    // TODO(scheglov) Compare class structure: type parameters, supertype,
-    // mixins and interfaces.
+    // If the class hierarchy or type parameters are changed,
+    // then the class changed too much - don't compute the delta.
+    if (TokenUtils.getFullCode(newClass.typeParameters) !=
+            TokenUtils.getFullCode(oldClass.typeParameters) ||
+        TokenUtils.getFullCode(newClass.extendsClause) !=
+            TokenUtils.getFullCode(oldClass.extendsClause) ||
+        TokenUtils.getFullCode(newClass.withClause) !=
+            TokenUtils.getFullCode(oldClass.withClause) ||
+        TokenUtils.getFullCode(newClass.implementsClause) !=
+            TokenUtils.getFullCode(oldClass.implementsClause)) {
+      return null;
+    }
+    // Build the old class members map.
     Map<String, ClassMember> oldNodeMap = new HashMap<String, ClassMember>();
     for (ClassMember oldNode in oldClass.members) {
       String code = TokenUtils.getFullCode(oldNode);
@@ -341,10 +352,12 @@ class IncrementalCompilationUnitElementBuilder {
           ClassDeclaration oldClass = nameToOldClassMap[newNode.name.name];
           if (oldClass != null) {
             ClassElementDelta delta = _processClassMembers(oldClass, newNode);
-            unitDelta.classDeltas.add(delta);
-            _addElementToUnitHolder(delta.element);
-            removedElements.remove(delta.element);
-            continue;
+            if (delta != null) {
+              unitDelta.classDeltas.add(delta);
+              _addElementToUnitHolder(delta.element);
+              removedElements.remove(delta.element);
+              continue;
+            }
           }
         }
         // Add the new node elements.
@@ -524,6 +537,9 @@ class TokenUtils {
    * Return the token string of all the [node] tokens.
    */
   static String getFullCode(AstNode node) {
+    if (node == null) {
+      return '';
+    }
     List<Token> tokens = getTokens(node);
     return joinTokens(tokens);
   }
