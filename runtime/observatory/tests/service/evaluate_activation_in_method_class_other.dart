@@ -11,6 +11,7 @@ class Superclass {
   var instVar = 'Superclass';
   method() => 'Superclass';
   static staticMethod() => 'Superclass';
+  suppress_warning() => _instVar;
 }
 
 class Klass extends Superclass {
@@ -22,5 +23,7 @@ class Klass extends Superclass {
   test() {
     var _local = 'Klass';
     debugger();
+    // Suppress unused variable warning.
+    print(_local);
   }
 }

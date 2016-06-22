@@ -165,7 +165,9 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
   @override
   @deprecated
   ConstantValue getConstantValueForVariable(VariableElement element) {
-    return getConstantValue(initialVariableValues[element.declaration]);
+    ConstantExpression constant = initialVariableValues[element.declaration];
+    // TODO(johnniwinther): Support eager evaluation of the constant.
+    return constant != null ? getConstantValue(constant) : null;
   }
 
   ConstantExpression compileConstant(VariableElement element) {
@@ -320,8 +322,27 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
     return constantValueMap.containsKey(expression);
   }
 
+  @override
   ConstantValue getConstantValue(ConstantExpression expression) {
-    return constantValueMap[expression];
+    assert(invariant(CURRENT_ELEMENT_SPANNABLE, expression != null,
+        message: "ConstantExpression is null in getConstantValue."));
+    // TODO(johnniwinther): ensure expressions have been evaluated at this
+    // point. This can't be enabled today due to dartbug.com/26406.
+    if (compiler.serialization.supportsDeserialization) {
+      evaluate(expression);
+    }
+    ConstantValue value = constantValueMap[expression];
+    if (value == null &&
+        expression != null &&
+        expression.kind == ConstantExpressionKind.ERRONEOUS) {
+      // TODO(johnniwinther): When the Dart constant system sees a constant
+      // expression as erroneous but the JavaScript constant system finds it ok
+      // we have store a constant value for the erroneous constant expression.
+      // Ensure the computed constant expressions are always the same; that only
+      // the constant values may be different.
+      value = new NullConstantValue();
+    }
+    return value;
   }
 
   ConstantExpression compileNode(Node node, TreeElements elements,
@@ -359,7 +380,7 @@ class DartConstantCompiler extends ConstantCompilerBase {
       Node node, TreeElements definitions,
       {bool isConst: true}) {
     ConstantExpression constant = definitions.getConstant(node);
-    if (constant != null && getConstantValue(constant) != null) {
+    if (constant != null && hasConstantValue(constant)) {
       return constant;
     }
     constant =

@@ -22,6 +22,12 @@ class Loader {
 
   static void InitForSnapshot(const char* snapshot_uri);
 
+  // Loads contents of the specified url.
+  static Dart_Handle LoadUrlContents(Dart_Handle url,
+                                     uint8_t** payload,
+                                     intptr_t* payload_length);
+
+
   // A static tag handler that hides all usage of a loader for an isolate.
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                        Dart_Handle library,
@@ -62,6 +68,9 @@ class Loader {
   IOResult* results_;
   intptr_t results_length_;
   intptr_t results_capacity_;
+  uint8_t* payload_;
+  intptr_t payload_length_;
+  typedef bool (*ProcessResult)(Loader* loader, IOResult* result);
 
   intptr_t results_length() {
     return *static_cast<volatile intptr_t*>(&results_length_);
@@ -82,13 +91,16 @@ class Loader {
   void QueueMessage(Dart_CObject* message);
 
   /// Blocks the caller until the loader is finished.
-  void BlockUntilComplete();
+  void BlockUntilComplete(ProcessResult process_result);
 
   /// Returns false if |result| is an error and the loader should quit.
-  bool ProcessResultLocked(IOResult* result);
+  static bool ProcessResultLocked(Loader* loader, IOResult* result);
+
+  /// Returns false if |result| is an error and the loader should quit.
+  static bool ProcessUrlLoadResultLocked(Loader* loader, IOResult* result);
 
   /// Returns false if an error occurred and the loader should quit.
-  bool ProcessQueueLocked();
+  bool ProcessQueueLocked(ProcessResult process_result);
 
   // Special inner tag handler for dart: uris.
   static Dart_Handle DartColonLibraryTagHandler(Dart_LibraryTag tag,

@@ -262,7 +262,11 @@ class FileBasedSource extends Source {
 
 /**
  * Instances of the class `FileUriResolver` resolve `file` URI's.
+ *
+ * This class is now deprecated, 'new FileUriResolver()' is equivalent to
+ * 'new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)'.
  */
+@deprecated
 class FileUriResolver extends UriResolver {
   /**
    * The name of the `file` scheme.
@@ -516,7 +520,12 @@ class PackageUriResolver extends UriResolver {
 
 /**
  * Instances of the class `RelativeFileUriResolver` resolve `file` URI's.
+ *
+ * This class is now deprecated, file URI resolution should be done with
+ * ResourceUriResolver, i.e.
+ * 'new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)'.
  */
+@deprecated
 class RelativeFileUriResolver extends UriResolver {
   /**
    * The name of the `file` scheme.

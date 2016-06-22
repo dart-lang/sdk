@@ -36,7 +36,7 @@ String _skyShellPath() {
   return Platform.environment[_SKY_SHELL_ENV_KEY];
 }
 
-class _SerivceTesteeRunner {
+class _ServiceTesteeRunner {
   Future run({testeeBefore(): null,
               testeeConcurrent(): null,
               bool pause_on_start: false,
@@ -335,7 +335,7 @@ Future runIsolateTests(List<String> mainArgs,
                         bool pause_on_unhandled_exceptions: false}) async {
   assert(!pause_on_start || testeeBefore == null);
   if (_isTestee()) {
-    new _SerivceTesteeRunner().run(testeeBefore: testeeBefore,
+    new _ServiceTesteeRunner().run(testeeBefore: testeeBefore,
                                    testeeConcurrent: testeeConcurrent,
                                    pause_on_start: pause_on_start,
                                    pause_on_exit: pause_on_exit);
@@ -373,7 +373,7 @@ void runIsolateTestsSynchronous(List<String> mainArgs,
                                  bool pause_on_unhandled_exceptions: false}) {
   assert(!pause_on_start || testeeBefore == null);
   if (_isTestee()) {
-    new _SerivceTesteeRunner().runSync(testeeBeforeSync: testeeBefore,
+    new _ServiceTesteeRunner().runSync(testeeBeforeSync: testeeBefore,
                                        testeeConcurrentSync: testeeConcurrent,
                                        pause_on_start: pause_on_start,
                                        pause_on_exit: pause_on_exit);
@@ -406,7 +406,7 @@ Future runVMTests(List<String> mainArgs,
                    bool verbose_vm: false,
                    bool pause_on_unhandled_exceptions: false}) async {
   if (_isTestee()) {
-    new _SerivceTesteeRunner().run(testeeBefore: testeeBefore,
+    new _ServiceTesteeRunner().run(testeeBefore: testeeBefore,
                                    testeeConcurrent: testeeConcurrent,
                                    pause_on_start: pause_on_start,
                                    pause_on_exit: pause_on_exit);

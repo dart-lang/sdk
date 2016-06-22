@@ -162,7 +162,7 @@ ${generateGraphData()}
     List<UriResolver> uriResolvers = [
       new DartUriResolver(sdk),
       new PackageUriResolver(<JavaFile>[packagesDir]),
-      new FileUriResolver()
+      new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)
     ];
     context.sourceFactory = new SourceFactory(uriResolvers);
     Source dartDartSource =

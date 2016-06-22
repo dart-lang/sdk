@@ -813,6 +813,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       tag_table_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
+      sticky_reload_error_(Error::null()),
       background_compiler_(NULL),
       background_compiler_disabled_depth_(0),
       pending_service_extension_calls_(GrowableObjectArray::null()),
@@ -1066,11 +1067,6 @@ void Isolate::ReportReloadError(const Error& error) {
 }
 
 
-void Isolate::OnStackReload() {
-  ReloadSources();
-}
-
-
 void Isolate::ReloadSources(bool test_mode) {
   ASSERT(!IsReloading());
   has_attempted_reload_ = true;
@@ -1089,6 +1085,10 @@ void Isolate::DoneFinalizing() {
         // If the reload has an error and we are in test mode keep the reload
         // context on the isolate so that it can be used by unit tests.
         return;
+      }
+      if (reload_context_->has_error()) {
+        // Remember the reload error.
+        sticky_reload_error_ = reload_context_->error();
       }
       if (!reload_context_->has_error()) {
         reload_context_->ReportSuccess();
@@ -1752,6 +1752,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(
         reinterpret_cast<RawObject**>(&sticky_error_));
 
+  visitor->VisitPointer(
+        reinterpret_cast<RawObject**>(&sticky_reload_error_));
+
   // Visit the pending service extension calls.
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&pending_service_extension_calls_));
@@ -2002,6 +2005,11 @@ void Isolate::TrackDeoptimizedCode(const Code& code) {
 
 void Isolate::clear_sticky_error() {
   sticky_error_ = Error::null();
+}
+
+
+void Isolate::clear_sticky_reload_error() {
+  sticky_reload_error_ = Error::null();
 }
 
 

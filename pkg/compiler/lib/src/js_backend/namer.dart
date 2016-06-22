@@ -331,6 +331,7 @@ class Namer {
   final String callPrefix = 'call';
   final String callCatchAllName = r'call*';
   final String callNameField = r'$callName';
+  final String stubNameField = r'$stubName';
   final String reflectableField = r'$reflectable';
   final String reflectionInfoField = r'$reflectionInfo';
   final String reflectionNameField = r'$reflectionName';
@@ -1672,6 +1673,11 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   }
 
   @override
+  void visitNonConstant(NonConstantValue constant, [_]) {
+    add('null');
+  }
+
+  @override
   void visitInt(IntConstantValue constant, [_]) {
     // No `addRoot` since IntConstants are always inlined.
     if (constant.primitiveValue < 0) {
@@ -1730,10 +1736,10 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   @override
   void visitConstructed(ConstructedConstantValue constant, [_]) {
     addRoot(constant.type.element.name);
-    for (ConstantValue value in constant.fields.values) {
-      _visit(value);
+    constant.type.element.forEachInstanceField((_, FieldElement field) {
       if (failed) return;
-    }
+      _visit(constant.fields[field]);
+    }, includeSuperAndInjectedMembers: true);
   }
 
   @override
@@ -1816,6 +1822,9 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   int visitNull(NullConstantValue constant, [_]) => 1;
 
   @override
+  int visitNonConstant(NonConstantValue constant, [_]) => 1;
+
+  @override
   int visitBool(BoolConstantValue constant, [_]) {
     return constant.isTrue ? 2 : 3;
   }
@@ -1854,9 +1863,9 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   @override
   int visitConstructed(ConstructedConstantValue constant, [_]) {
     int hash = _hashString(3, constant.type.element.name);
-    for (ConstantValue value in constant.fields.values) {
-      hash = _combine(hash, _visit(value));
-    }
+    constant.type.element.forEachInstanceField((_, FieldElement field) {
+      hash = _combine(hash, _visit(constant.fields[field]));
+    }, includeSuperAndInjectedMembers: true);
     return hash;
   }
 

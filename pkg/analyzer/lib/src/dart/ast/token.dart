@@ -569,5 +569,6 @@ class TokenWithComment extends SimpleToken {
   }
 
   @override
-  Token copy() => new TokenWithComment(type, offset, precedingComments);
+  Token copy() =>
+      new TokenWithComment(type, offset, copyComments(precedingComments));
 }

@@ -29,15 +29,13 @@ DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(int, optimization_counter_threshold);
 
 // List of instructions that are still unimplemented by DBC backend.
-#define FOR_EACH_UNIMPLEMENTED_INSTRUCTION(M) \
-  M(Stop)                                                                      \
+#define FOR_EACH_UNIMPLEMENTED_INSTRUCTION(M)                                  \
   M(IndirectGoto)                                                              \
   M(LoadCodeUnits)                                                             \
   M(InstanceOf)                                                                \
   M(LoadUntagged)                                                              \
   M(AllocateUninitializedContext)                                              \
   M(BinaryInt32Op)                                                             \
-  M(UnarySmiOp)                                                                \
   M(UnaryDoubleOp)                                                             \
   M(SmiToDouble)                                                               \
   M(Int32ToDouble)                                                             \
@@ -48,7 +46,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(DoubleToFloat)                                                             \
   M(FloatToDouble)                                                             \
   M(UnboxedConstant)                                                           \
-  M(CheckEitherNonSmi)                                                         \
   M(BinaryDoubleOp)                                                            \
   M(MathUnary)                                                                 \
   M(MathMinMax)                                                                \
@@ -108,9 +105,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(UnboxInteger32)                                                            \
   M(CheckedSmiOp)                                                              \
   M(CheckArrayBound)                                                           \
-  M(CheckClassId)                                                              \
   M(CheckClass)                                                                \
-  M(BinarySmiOp)                                                               \
   M(TestSmi)                                                                   \
   M(RelationalOp)                                                              \
   M(EqualityCompare)                                                           \
@@ -184,7 +179,9 @@ DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(RelationalOp)
 DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(EqualityCompare)
 
 
-DEFINE_MAKE_LOCATION_SUMMARY(AssertAssignable, 2, Location::SameAsFirstInput());
+DEFINE_MAKE_LOCATION_SUMMARY(AssertAssignable, 2,
+                             Location::SameAsFirstInput(),
+                             LocationSummary::kCall);
 
 
 EMIT_NATIVE_CODE(AssertBoolean,
@@ -216,6 +213,11 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #else  // defined(PRODUCT)
   compiler->Bailout(ToCString());
 #endif  // defined(PRODUCT)
+}
+
+
+EMIT_NATIVE_CODE(Stop, 0) {
+  __ Stop(message());
 }
 
 
@@ -911,6 +913,109 @@ EMIT_NATIVE_CODE(CheckSmi, 1) {
   compiler->EmitDeopt(deopt_id(),
                       ICData::kDeoptCheckSmi,
                       licm_hoisted_ ? ICData::kHoisted : 0);
+}
+
+
+EMIT_NATIVE_CODE(CheckEitherNonSmi, 2) {
+  intptr_t left_cid = left()->Type()->ToCid();
+  intptr_t right_cid = right()->Type()->ToCid();
+  const Register left = locs()->in(0).reg();
+  const Register right = locs()->in(1).reg();
+  if (this->left()->definition() == this->right()->definition()) {
+    __ CheckSmi(left);
+  } else if (left_cid == kSmiCid) {
+    __ CheckSmi(right);
+  } else if (right_cid == kSmiCid) {
+    __ CheckSmi(left);
+  } else {
+    __ CheckSmi(left);
+    compiler->EmitDeopt(deopt_id(), ICData::kDeoptBinaryDoubleOp,
+                        licm_hoisted_ ? ICData::kHoisted : 0);
+    __ CheckSmi(right);
+  }
+  compiler->EmitDeopt(deopt_id(), ICData::kDeoptBinaryDoubleOp,
+                      licm_hoisted_ ? ICData::kHoisted : 0);
+}
+
+
+EMIT_NATIVE_CODE(CheckClassId, 1) {
+  intptr_t cid = __ AddConstant(Smi::Handle(Smi::New(cid_)));
+  __ CheckClassId(locs()->in(0).reg(), cid);
+  compiler->EmitDeopt(deopt_id(), ICData::kDeoptCheckClass);
+}
+
+
+EMIT_NATIVE_CODE(BinarySmiOp, 2, Location::RequiresRegister()) {
+  const Register left = locs()->in(0).reg();
+  const Register right = locs()->in(1).reg();
+  const Register out = locs()->out(0).reg();
+  const bool can_deopt = CanDeoptimize();
+  bool needs_nop = false;
+  switch (op_kind()) {
+    case Token::kADD:
+      __ Add(out, left, right);
+      needs_nop = true;
+      break;
+    case Token::kSUB:
+      __ Sub(out, left, right);
+      needs_nop = true;
+      break;
+    case Token::kMUL:
+      __ Mul(out, left, right);
+      needs_nop = true;
+      break;
+    case Token::kTRUNCDIV:
+      ASSERT(can_deopt);
+      __ Div(out, left, right);
+      break;
+    case Token::kBIT_AND:
+      ASSERT(!can_deopt);
+      __ BitAnd(out, left, right);
+      break;
+    case Token::kBIT_OR:
+      ASSERT(!can_deopt);
+      __ BitOr(out, left, right);
+      break;
+    case Token::kBIT_XOR:
+      ASSERT(!can_deopt);
+      __ BitXor(out, left, right);
+      break;
+    case Token::kMOD:
+      __ Mod(out, left, right);
+      needs_nop = true;
+      break;
+    case Token::kSHR:
+      __ Shr(out, left, right);
+      needs_nop = true;
+      break;
+    case Token::kSHL:
+      __ Shl(out, left, right);
+      needs_nop = true;
+      break;
+    default:
+      UNREACHABLE();
+  }
+  if (can_deopt) {
+    compiler->EmitDeopt(deopt_id(), ICData::kDeoptBinarySmiOp);
+  } else if (needs_nop) {
+    __ Nop();
+  }
+}
+
+
+EMIT_NATIVE_CODE(UnarySmiOp, 1, Location::RequiresRegister()) {
+  switch (op_kind()) {
+    case Token::kNEGATE: {
+      __ Neg(locs()->out(0).reg(), locs()->in(0).reg());
+      compiler->EmitDeopt(deopt_id(), ICData::kDeoptUnaryOp);
+      break;
+    }
+    case Token::kBIT_NOT:
+      __ BitNot(locs()->out(0).reg(), locs()->in(0).reg());
+      break;
+    default:
+      UNREACHABLE();
+  }
 }
 
 }  // namespace dart

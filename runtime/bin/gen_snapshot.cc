@@ -15,6 +15,7 @@
 #include "bin/dartutils.h"
 #include "bin/eventhandler.h"
 #include "bin/file.h"
+#include "bin/loader.h"
 #include "bin/log.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
@@ -80,10 +81,6 @@ static const char* commandline_packages_file = NULL;
 // a snapshot needs to be created (NULL would result in the creation
 // of a generic snapshot that contains only the corelibs).
 static char* app_script_name = NULL;
-
-
-// Global state that captures the URL mappings specified on the command line.
-static CommandLineOptions* url_mapping = NULL;
 
 // Global state that captures the entry point manifest files specified on the
 // command line.
@@ -282,7 +279,7 @@ static bool ProcessURLmappingOption(const char* option) {
     mapping = ProcessOption(option, "--url-mapping=");
   }
   if (mapping != NULL) {
-    url_mapping->AddArgument(mapping);
+    DartUtils::url_mapping->AddArgument(mapping);
     return true;
   }
   return false;
@@ -418,7 +415,40 @@ class UriResolverIsolateScope {
   DISALLOW_COPY_AND_ASSIGN(UriResolverIsolateScope);
 };
 
+
 Dart_Isolate UriResolverIsolateScope::isolate = NULL;
+
+
+static Dart_Handle LoadUrlContents(const char* uri_string) {
+  bool failed = false;
+  char* result_string = NULL;
+  uint8_t* payload = NULL;
+  intptr_t payload_length = 0;
+  // Switch to the UriResolver Isolate and load the script.
+  {
+    UriResolverIsolateScope scope;
+
+    Dart_Handle resolved_uri = Dart_NewStringFromCString(uri_string);
+    Dart_Handle result =  Loader::LoadUrlContents(resolved_uri,
+                                                  &payload,
+                                                  &payload_length);
+    if (Dart_IsError(result)) {
+      failed = true;
+      result_string = strdup(Dart_GetError(result));
+    }
+  }
+  // Switch back to the isolate from which we generate the snapshot and
+  // create the source string for the specified uri.
+  Dart_Handle result;
+  if (!failed) {
+    result = Dart_NewStringFromUTF8(payload, payload_length);
+    free(payload);
+  } else {
+    result = DartUtils::NewString(result_string);
+    free(result_string);
+  }
+  return result;
+}
 
 
 static Dart_Handle ResolveUriInWorkingDirectory(const char* script_uri) {
@@ -447,55 +477,25 @@ static Dart_Handle ResolveUriInWorkingDirectory(const char* script_uri) {
 }
 
 
-static Dart_Handle FilePathFromUri(const char* script_uri) {
-  bool failed = false;
-  char* result_string = NULL;
-
-  {
-    UriResolverIsolateScope scope;
-
-    // Run DartUtils::FilePathFromUri in context of uri resolver isolate.
-    Dart_Handle result = DartUtils::FilePathFromUri(
-        DartUtils::NewString(script_uri));
-    if (Dart_IsError(result)) {
-      failed = true;
-      result_string = strdup(Dart_GetError(result));
-    } else {
-      result_string = strdup(DartUtils::GetStringValue(result));
-    }
+static Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
+  // First resolve the specified script uri with respect to the original
+  // working directory.
+  Dart_Handle resolved_uri = ResolveUriInWorkingDirectory(script_name);
+  if (Dart_IsError(resolved_uri)) {
+    return resolved_uri;
   }
-
-  Dart_Handle result = failed ? Dart_NewApiError(result_string) :
-                                DartUtils::NewString(result_string);
-  free(result_string);
-  return result;
-}
-
-
-static Dart_Handle ResolveUri(const char* library_uri, const char* uri) {
-  bool failed = false;
-  char* result_string = NULL;
-
-  {
-    UriResolverIsolateScope scope;
-
-    // Run DartUtils::ResolveUri in context of uri resolver isolate.
-    Dart_Handle result = DartUtils::ResolveUri(
-      DartUtils::NewString(library_uri), DartUtils::NewString(uri));
-    if (Dart_IsError(result)) {
-      failed = true;
-      result_string = strdup(Dart_GetError(result));
-    } else {
-      result_string = strdup(DartUtils::GetStringValue(result));
-    }
+  // Now load the contents of the specified uri.
+  const char* resolved_uri_string = DartUtils::GetStringValue(resolved_uri);
+  Dart_Handle source =  LoadUrlContents(resolved_uri_string);
+  if (Dart_IsError(source)) {
+    return source;
   }
-
-  Dart_Handle result = failed ? Dart_NewApiError(result_string) :
-                                DartUtils::NewString(result_string);
-  free(result_string);
-  return result;
+  if (IsSnapshottingForPrecompilation()) {
+    return Dart_LoadScript(resolved_uri, source, 0, 0);
+  } else {
+    return Dart_LoadLibrary(resolved_uri, source, 0, 0);
+  }
 }
-
 
 
 static Builtin::BuiltinLibraryId BuiltinId(const char* url) {
@@ -521,7 +521,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
   }
   const char* library_url_string = DartUtils::GetStringValue(library_url);
   const char* mapped_library_url_string = DartUtils::MapLibraryUrl(
-      url_mapping, library_url_string);
+      library_url_string);
   if (mapped_library_url_string != NULL) {
     library_url = ResolveUriInWorkingDirectory(mapped_library_url_string);
     library_url_string = DartUtils::GetStringValue(library_url);
@@ -531,8 +531,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
     return Dart_NewApiError("url is not a string");
   }
   const char* url_string = DartUtils::GetStringValue(url);
-  const char* mapped_url_string = DartUtils::MapLibraryUrl(url_mapping,
-                                                           url_string);
+  const char* mapped_url_string = DartUtils::MapLibraryUrl(url_string);
 
   Builtin::BuiltinLibraryId libraryBuiltinId = BuiltinId(library_url_string);
   if (tag == Dart_kCanonicalizeUrl) {
@@ -543,7 +542,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
     if (libraryBuiltinId != Builtin::kInvalidLibrary) {
       return url;
     }
-    return ResolveUri(library_url_string, url_string);
+    return Dart_DefaultCanonicalizeUrl(library_url, url);
   }
 
   Builtin::BuiltinLibraryId builtinId = BuiltinId(url_string);
@@ -574,15 +573,8 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
       return resolved_url;
     }
   }
-
-  // Get the file path out of the url.
-  Dart_Handle file_path = FilePathFromUri(
-      DartUtils::GetStringValue(resolved_url));
-  if (Dart_IsError(file_path)) {
-    return file_path;
-  }
-  const char* raw_path = DartUtils::GetStringValue(file_path);
-  Dart_Handle source = DartUtils::ReadStringFromFile(raw_path);
+  const char* resolved_uri_string = DartUtils::GetStringValue(resolved_url);
+  Dart_Handle source =  LoadUrlContents(resolved_uri_string);
   if (Dart_IsError(source)) {
     return source;
   }
@@ -591,29 +583,6 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
   } else {
     ASSERT(tag == Dart_kSourceTag);
     return Dart_LoadSource(library, url, source, 0, 0);
-  }
-}
-
-
-static Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
-  Dart_Handle resolved_script_uri = ResolveUriInWorkingDirectory(script_name);
-  if (Dart_IsError(resolved_script_uri)) {
-    return resolved_script_uri;
-  }
-  Dart_Handle script_path = FilePathFromUri(
-      DartUtils::GetStringValue(resolved_script_uri));
-  if (Dart_IsError(script_path)) {
-    return script_path;
-  }
-  Dart_Handle source = DartUtils::ReadStringFromFile(
-      DartUtils::GetStringValue(script_path));
-  if (Dart_IsError(source)) {
-    return source;
-  }
-  if (IsSnapshottingForPrecompilation()) {
-    return Dart_LoadScript(resolved_script_uri, source, 0, 0);
-  } else {
-    return Dart_LoadLibrary(resolved_script_uri, source, 0, 0);
   }
 }
 
@@ -1131,7 +1100,7 @@ static void CreateAndWritePrecompiledSnapshot(
 
 static void SetupForUriResolution() {
   // Set up the library tag handler for this isolate.
-  Dart_Handle result = Dart_SetLibraryTagHandler(DartUtils::LibraryTagHandler);
+  Dart_Handle result = Dart_SetLibraryTagHandler(Loader::LibraryTagHandler);
   if (Dart_IsError(result)) {
     Log::PrintErr("%s", Dart_GetError(result));
     Dart_ExitScope();
@@ -1189,7 +1158,7 @@ static Dart_Isolate CreateServiceIsolate(const char* script_uri,
     Log::PrintErr("Error: We only expect to create the service isolate");
     return NULL;
   }
-  Dart_Handle result = Dart_SetLibraryTagHandler(DartUtils::LibraryTagHandler);
+  Dart_Handle result = Dart_SetLibraryTagHandler(Loader::LibraryTagHandler);
   // Setup the native resolver.
   Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
   Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
@@ -1215,8 +1184,8 @@ int main(int argc, char** argv) {
   CommandLineOptions vm_options(argc + EXTRA_VM_ARGUMENTS);
 
   // Initialize the URL mapping array.
-  CommandLineOptions url_mapping_array(argc);
-  url_mapping = &url_mapping_array;
+  CommandLineOptions cmdline_url_mapping(argc);
+  DartUtils::url_mapping = &cmdline_url_mapping;
 
   // Initialize the entrypoints array.
   CommandLineOptions entry_points_files_array(argc);
@@ -1278,7 +1247,9 @@ int main(int argc, char** argv) {
     return 255;
   }
 
-  IsolateData* isolate_data = new IsolateData(NULL, NULL, NULL);
+  IsolateData* isolate_data = new IsolateData(NULL,
+                                              commandline_package_root,
+                                              commandline_packages_file);
   Dart_Isolate isolate = Dart_CreateIsolate(
       NULL, NULL, NULL, NULL, isolate_data, &error);
   if (isolate == NULL) {
@@ -1302,7 +1273,6 @@ int main(int argc, char** argv) {
     // create a full snapshot. The current isolate is set up so that we can
     // invoke the dart uri resolution code like _resolveURI. App script is
     // loaded into a separate isolate.
-
     SetupForUriResolution();
 
     // Prepare builtin and its dependent libraries for use to resolve URIs.
@@ -1321,10 +1291,9 @@ int main(int argc, char** argv) {
                                          commandline_packages_file);
     CHECK_RESULT(result);
 
+    UriResolverIsolateScope::isolate = isolate;
     Dart_ExitScope();
     Dart_ExitIsolate();
-
-    UriResolverIsolateScope::isolate = isolate;
 
     // Now we create an isolate into which we load all the code that needs to
     // be in the snapshot.

@@ -444,8 +444,17 @@ bool Class::CanReload(const Class& replacement) const {
     const Array& replacement_fields =
         Array::Handle(replacement.OffsetToFieldMap());
 
-    // Check that we have the same number of fields.
+    // Check that the size of the instance is the same.
     if (fields.Length() != replacement_fields.Length()) {
+      IRC->ReportError(String::Handle(String::NewFormatted(
+          "Number of instance fields changed in %s", ToCString())));
+      return false;
+    }
+
+    // Check that we have the same next field offset. This check is not
+    // redundant with the one above because the instance OffsetToFieldMap
+    // array length is based on the instance size (which may be aligned up).
+    if (next_field_offset() != replacement.next_field_offset()) {
       IRC->ReportError(String::Handle(String::NewFormatted(
           "Number of instance fields changed in %s", ToCString())));
       return false;
@@ -483,7 +492,8 @@ bool Class::CanReload(const Class& replacement) const {
   } else if (is_prefinalized()) {
     if (!replacement.is_prefinalized()) {
       IRC->ReportError(String::Handle(String::NewFormatted(
-          "Original class ('%s') is prefinalized and replacement class ('%s')",
+          "Original class ('%s') is prefinalized and replacement class "
+          "('%s') is not ",
           ToCString(), replacement.ToCString())));
       return false;
     }

@@ -11,7 +11,6 @@ import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/plugin/embedded_resolver_provider.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -35,7 +34,7 @@ class SocketServer {
   final DirectoryBasedDartSdk defaultSdk;
   final InstrumentationService instrumentationService;
   final ServerPlugin serverPlugin;
-  final EmbeddedResolverProvider embeddedResolverProvider;
+  final ResolverProvider fileResolverProvider;
   final ResolverProvider packageResolverProvider;
   final bool useSingleContextManager;
 
@@ -56,7 +55,7 @@ class SocketServer {
       this.defaultSdk,
       this.instrumentationService,
       this.serverPlugin,
-      this.embeddedResolverProvider,
+      this.fileResolverProvider,
       this.packageResolverProvider,
       this.useSingleContextManager);
 
@@ -100,7 +99,7 @@ class SocketServer {
         analysisServerOptions,
         defaultSdkCreator,
         instrumentationService,
-        embeddedResolverProvider: embeddedResolverProvider,
+        fileResolverProvider: fileResolverProvider,
         packageResolverProvider: packageResolverProvider,
         useSingleContextManager: useSingleContextManager,
         rethrowExceptions: false);

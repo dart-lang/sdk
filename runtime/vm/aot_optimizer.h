@@ -163,7 +163,7 @@ class AotOptimizer : public FlowGraphVisitor {
 
   const Function& function() const { return flow_graph_->function(); }
 
-  bool IsBlackListedForInlining(intptr_t deopt_id);
+  bool IsAllowedForInlining(intptr_t deopt_id);
 
   FlowGraph* flow_graph_;
 

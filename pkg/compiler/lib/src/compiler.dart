@@ -1064,7 +1064,6 @@ abstract class Compiler implements LibraryLoaderListener {
           return const WorldImpact();
         }
         WorldImpact worldImpact = analyzeElement(element);
-        backend.onElementResolved(element);
         world.registerProcessedElement(element);
         return worldImpact;
       });
@@ -1659,7 +1658,12 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
             Token from = astElement.node.getBeginToken();
             Token to = astElement.node.getEndToken();
             if (astElement.metadata.isNotEmpty) {
-              from = astElement.metadata.first.beginToken;
+              if (!astElement.metadata.first.hasNode) {
+                // We might try to report an error while parsing the metadata
+                // itself.
+                return true;
+              }
+              from = astElement.metadata.first.node.getBeginToken();
             }
             return validateToken(from, to);
           }
@@ -1740,8 +1744,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     } else if (node is Element) {
       return spanFromElement(node);
     } else if (node is MetadataAnnotation) {
-      Uri uri = node.annotatedElement.compilationUnit.script.resourceUri;
-      return spanFromTokens(node.beginToken, node.endToken, uri);
+      return node.sourcePosition;
     } else if (node is Local) {
       Local local = node;
       return spanFromElement(local.executableContext);

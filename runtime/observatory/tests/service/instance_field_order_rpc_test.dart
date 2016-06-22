@@ -5,7 +5,6 @@
 
 library get_object_rpc_test;
 
-import 'dart:typed_data';
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';

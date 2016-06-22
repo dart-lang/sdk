@@ -357,7 +357,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
     symbolClass.forEachInstanceField(
         (ClassElement enclosingClass, FieldElement field) {
       fields[field] = argument;
-    });
+    }, includeSuperAndInjectedMembers: true);
     assert(fields.length == 1);
     return new ConstructedConstantValue(type, fields);
   }

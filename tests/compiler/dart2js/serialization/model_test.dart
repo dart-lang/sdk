@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library dart2js.serialization_model_test;
-
 import 'dart:async';
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
@@ -13,6 +12,7 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/filenames.dart';
+import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/tree/nodes.dart';
 import 'package:compiler/src/universe/class_set.dart';
@@ -33,7 +33,7 @@ main(List<String> args) {
           resolutionInputs: serializedData.toUris());
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
-      arguments.forEachTest(serializedData, TESTS, checkModels);
+      await arguments.forEachTest(serializedData, TESTS, checkModels);
     }
   });
 }
@@ -45,11 +45,6 @@ Future checkModels(
      int index,
      Test test,
      bool verbose: false}) async {
-  if (test != null && test.name == 'Disable tree shaking through reflection') {
-    // TODO(johnniwinther): Support serialization of metadata.
-    return;
-  }
-
   String testDescription = test != null ? test.name : '${entryPoint}';
   String id = index != null ? '$index: ' : '';
   print('------------------------------------------------------------------');
@@ -121,6 +116,19 @@ Future checkModels(
       compilerDeserialized.world.getClassHierarchyNode(
           compilerDeserialized.coreClasses.objectClass),
       verbose: verbose);
+
+  Expect.equals(compilerNormal.enabledInvokeOn,
+      compilerDeserialized.enabledInvokeOn,
+      "Compiler.enabledInvokeOn mismatch");
+  Expect.equals(compilerNormal.enabledFunctionApply,
+      compilerDeserialized.enabledFunctionApply,
+      "Compiler.enabledFunctionApply mismatch");
+  Expect.equals(compilerNormal.enabledRuntimeType,
+      compilerDeserialized.enabledRuntimeType,
+      "Compiler.enabledRuntimeType mismatch");
+  Expect.equals(compilerNormal.hasIsolateSupport,
+      compilerDeserialized.hasIsolateSupport,
+      "Compiler.hasIsolateSupport mismatch");
 }
 
 void checkElements(
@@ -133,11 +141,11 @@ void checkElements(
     AstElement astElement1 = element1;
     AstElement astElement2 = element2;
     ClosureClassMap closureData1 =
-    compiler1.closureToClassMapper.computeClosureToClassMapping(
-        astElement1.resolvedAst);
+        compiler1.closureToClassMapper.computeClosureToClassMapping(
+            astElement1.resolvedAst);
     ClosureClassMap closureData2 =
-    compiler2.closureToClassMapper.computeClosureToClassMapping(
-        astElement2.resolvedAst);
+        compiler2.closureToClassMapper.computeClosureToClassMapping(
+            astElement2.resolvedAst);
 
     checkElementIdentities(closureData1, closureData2,
         '$element1.closureElement',
@@ -174,6 +182,12 @@ void checkElements(
         areLocalsEquivalent,
         verbose: verbose);
   }
+  JavaScriptBackend backend1 = compiler1.backend;
+  JavaScriptBackend backend2 = compiler2.backend;
+  Expect.equals(
+      backend1.inlineCache.getCurrentCacheDecisionForTesting(element1),
+      backend2.inlineCache.getCurrentCacheDecisionForTesting(element2),
+      "Inline cache decision mismatch for $element1 vs $element2");
 }
 
 void checkMixinUses(
@@ -238,128 +252,6 @@ void checkClassHierarchyNodes(
     }
   }
   checkMixinUses(compiler1, compiler2, node1.cls, node2.cls, verbose: verbose);
-}
-
-void checkSets(
-    Iterable set1,
-    Iterable set2,
-    String messagePrefix,
-    bool sameElement(a, b),
-    {bool failOnUnfound: true,
-     bool verbose: false,
-     void onSameElement(a, b)}) {
-  List common = [];
-  List unfound = [];
-  Set remaining = computeSetDifference(
-      set1, set2, common, unfound,
-      sameElement: sameElement,
-      checkElements: onSameElement);
-  StringBuffer sb = new StringBuffer();
-  sb.write("$messagePrefix:");
-  if (verbose) {
-    sb.write("\n Common:\n  ${common.join('\n  ')}");
-  }
-  if (unfound.isNotEmpty || verbose) {
-    sb.write("\n Unfound:\n  ${unfound.join('\n  ')}");
-  }
-  if (remaining.isNotEmpty || verbose) {
-    sb.write("\n Extra: \n  ${remaining.join('\n  ')}");
-  }
-  String message = sb.toString();
-  if (unfound.isNotEmpty || remaining.isNotEmpty) {
-
-    if (failOnUnfound || remaining.isNotEmpty) {
-      Expect.fail(message);
-    } else {
-      print(message);
-    }
-  } else if (verbose) {
-    print(message);
-  }
-}
-
-String defaultToString(obj) => '$obj';
-
-void checkMaps(
-    Map map1,
-    Map map2,
-    String messagePrefix,
-    bool sameKey(a, b),
-    bool sameValue(a, b),
-    {bool failOnUnfound: true,
-     bool failOnMismatch: true,
-     bool verbose: false,
-     String keyToString(key): defaultToString,
-     String valueToString(key): defaultToString}) {
-  List common = [];
-  List unfound = [];
-  List<List> mismatch = <List>[];
-  Set remaining = computeSetDifference(
-      map1.keys, map2.keys, common, unfound,
-      sameElement: sameKey,
-      checkElements: (k1, k2) {
-        var v1 = map1[k1];
-        var v2 = map2[k2];
-        if (!sameValue(v1, v2)) {
-          mismatch.add([k1, k2]);
-        }
-      });
-  StringBuffer sb = new StringBuffer();
-  sb.write("$messagePrefix:");
-  if (verbose) {
-    sb.write("\n Common: \n");
-    for (List pair in common) {
-      var k1 = pair[0];
-      var k2 = pair[1];
-      var v1 = map1[k1];
-      var v2 = map2[k2];
-      sb.write(" key1   =${keyToString(k1)}\n");
-      sb.write(" key2   =${keyToString(k2)}\n");
-      sb.write("  value1=${valueToString(v1)}\n");
-      sb.write("  value2=${valueToString(v2)}\n");
-    }
-  }
-  if (unfound.isNotEmpty || verbose) {
-    sb.write("\n Unfound: \n");
-    for (var k1 in unfound) {
-      var v1 = map1[k1];
-      sb.write(" key1   =${keyToString(k1)}\n");
-      sb.write("  value1=${valueToString(v1)}\n");
-    }
-  }
-  if (remaining.isNotEmpty || verbose) {
-    sb.write("\n Extra: \n");
-    for (var k2 in remaining) {
-      var v2 = map2[k2];
-      sb.write(" key2   =${keyToString(k2)}\n");
-      sb.write("  value2=${valueToString(v2)}\n");
-    }
-  }
-  if (mismatch.isNotEmpty || verbose) {
-    sb.write("\n Mismatch: \n");
-    for (List pair in mismatch) {
-      var k1 = pair[0];
-      var k2 = pair[1];
-      var v1 = map1[k1];
-      var v2 = map2[k2];
-      sb.write(" key1   =${keyToString(k1)}\n");
-      sb.write(" key2   =${keyToString(k2)}\n");
-      sb.write("  value1=${valueToString(v1)}\n");
-      sb.write("  value2=${valueToString(v2)}\n");
-    }
-  }
-  String message = sb.toString();
-  if (unfound.isNotEmpty || mismatch.isNotEmpty || remaining.isNotEmpty) {
-    if ((unfound.isNotEmpty && failOnUnfound) ||
-        (mismatch.isNotEmpty && failOnMismatch) ||
-        remaining.isNotEmpty) {
-      Expect.fail(message);
-    } else {
-      print(message);
-    }
-  } else if (verbose) {
-    print(message);
-  }
 }
 
 bool areLocalsEquivalent(Local a, Local b) {

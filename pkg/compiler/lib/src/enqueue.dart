@@ -449,6 +449,7 @@ abstract class Enqueuer {
     bool includeLibrary =
         shouldIncludeElementDueToMirrors(lib, includedEnclosing: false);
     lib.forEachLocalMember((Element member) {
+      if (member.isInjected) return;
       if (member.isClass) {
         enqueueReflectiveElementsInClass(member, recents, includeLibrary);
       } else {
@@ -715,6 +716,7 @@ class ResolutionEnqueuer extends Enqueuer {
   /// Registers [element] as processed by the resolution enqueuer.
   void registerProcessedElement(AstElement element) {
     processedElements.add(element);
+    compiler.backend.onElementResolved(element);
   }
 
   /**

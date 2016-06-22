@@ -84,6 +84,7 @@ analyzer/test/generated/static_warning_code_test: Pass, Slow # Issue 21628
 analyzer/test/generated/strong_mode_test: Pass, Slow # Issue 21628
 analyzer/test/generated/type_system_test: Pass, Slow # Issue 21628
 analyzer/test/generated/utilities_test: Pass, Slow # Issue 21628
+analyzer/test/source/embedder_test: Skip # Issue 21628
 analyzer/test/source/package_map_provider_test: Skip # Issue 21628
 analyzer/test/src/context/cache_test: Pass, Slow # Issue 21628
 analyzer/test/src/context/context_test: Pass, Timeout # dartbug.com/23658
@@ -117,6 +118,7 @@ analyzer/test/src/task/options_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/options_work_manager_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/strong/checker_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/strong/inferred_type_test: Pass, Slow # Issue 21628
+analyzer/test/src/task/strong_mode_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/yaml_test: Pass, Slow # Issue 21628
 analyzer/tool/task_dependency_graph/check_test: Skip # Issue 21628
 collection/test/equality_test/01: Fail # Issue 1533
@@ -165,8 +167,6 @@ typed_data/test/typed_buffers_test: RuntimeError
 
 [ $compiler == dart2analyzer ]
 compiler/samples/compile_loop/compile_loop: CompileTimeError  # Issue 16524
-lookup_map/test/version_check_test: StaticWarning # https://github.com/dart-lang/http_parser/issues/6
-lookup_map/test/lookup_map_test: StaticWarning # https://github.com/dart-lang/http_parser/issues/6
 
 [ $compiler == dart2js && $csp ]
 # This test cannot run under CSP because it is injecting a JavaScript polyfill

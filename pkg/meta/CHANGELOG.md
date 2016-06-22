@@ -1,3 +1,6 @@
+## 1.0.1
+* Updated `@factory` to allow statics and methods returning `null`.
+
 ## 1.0.0
 * First stable API release.
 

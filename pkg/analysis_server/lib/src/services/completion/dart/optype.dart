@@ -556,7 +556,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
         if (node.parent is VariableDeclaration) {
           VariableDeclaration varDeclaration =
               node.parent as VariableDeclaration;
-          localTypeAssertion = varDeclaration.element.type;
+          localTypeAssertion = varDeclaration.element?.type;
         } else if (node.parent is AssignmentExpression) {
           AssignmentExpression assignmentExpression =
               node.parent as AssignmentExpression;

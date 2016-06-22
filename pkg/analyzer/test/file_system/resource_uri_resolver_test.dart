@@ -29,6 +29,11 @@ class ResourceUriResolverTest {
     provider.newFolder('/folder');
   }
 
+  void test_creation() {
+    expect(provider, isNotNull);
+    expect(resolver, isNotNull);
+  }
+
   void test_resolveAbsolute_file() {
     var uri = new Uri(scheme: 'file', path: '/test.dart');
     Source source = resolver.resolveAbsolute(uri);
@@ -43,8 +48,14 @@ class ResourceUriResolverTest {
     expect(source, isNull);
   }
 
-  void test_resolveAbsolute_notFile() {
+  void test_resolveAbsolute_notFile_httpsUri() {
     var uri = new Uri(scheme: 'https', path: '127.0.0.1/test.dart');
+    Source source = resolver.resolveAbsolute(uri);
+    expect(source, isNull);
+  }
+
+  void test_resolveAbsolute_notFile_dartUri() {
+    var uri = new Uri(scheme: 'dart', path: 'core');
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNull);
   }

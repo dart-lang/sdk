@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/plugin/task.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/cancelable_future.dart';
@@ -80,7 +81,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   AnalysisOptionsImpl _options = new AnalysisOptionsImpl();
 
-  /// The embedder yaml locator for this context.
+  /**
+   * The embedder yaml locator for this context.
+   */
+  @deprecated
   EmbedderYamlLocator _embedderYamlLocator = new EmbedderYamlLocator(null);
 
   /**
@@ -225,6 +229,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   CompilationUnit incrementalResolutionValidation_lastUnit;
 
+  @override
+  ResolverProvider fileResolverProvider;
+
   /**
    * Initialize a newly created analysis context.
    */
@@ -341,6 +348,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   DeclaredVariables get declaredVariables => _declaredVariables;
 
+  @deprecated
   @override
   EmbedderYamlLocator get embedderYamlLocator => _embedderYamlLocator;
 
@@ -1885,6 +1893,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               dartDelta.hasDirectiveChange = unitDelta.hasDirectiveChange;
               unitDelta.addedDeclarations.forEach(dartDelta.elementAdded);
               unitDelta.removedDeclarations.forEach(dartDelta.elementRemoved);
+              for (ClassElementDelta classDelta in unitDelta.classDeltas) {
+                dartDelta.elementChanged(classDelta.element);
+              }
 //              print(
 //                  'dartDelta: add=${dartDelta.addedNames} remove=${dartDelta.removedNames}');
               delta = dartDelta;

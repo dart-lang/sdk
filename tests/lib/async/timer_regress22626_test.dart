@@ -12,7 +12,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:expect/expect.dart';
 
-int countdown = 10;
+int countdown = 5;
 var rng = new Random(1234);
 
 void test(int delay, int delta) {
@@ -31,5 +31,5 @@ void test(int delay, int delta) {
 }
 
 void main() {
-  test(50, 2);
+  test(200, 2);
 }

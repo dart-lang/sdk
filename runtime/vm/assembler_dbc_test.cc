@@ -119,6 +119,22 @@ ASSEMBLER_TEST_RUN(Simple, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Nop, assembler) {
+  __ PushConstant(Smi::Handle(Smi::New(42)));
+  __ Nop();
+  __ Nop();
+  __ Nop();
+  __ Nop();
+  __ Nop();
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(Nop, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
 // Called from assembler_test.cc.
 // FP[-kParamEndSlotFromFp - 1]: growable array
 // FP[-kParamEndSlotFromFp - 2]: value
@@ -483,6 +499,413 @@ ASSEMBLER_TEST_RUN(GreaterThanTOSNonSmi, test) {
   EXPECT(EXECUTE_TEST_CODE_BOOL(test->code()));
 }
 
+
+//  - Add, Sub, Mul, Div, Mod, Shl, Shr rA, rB, rC
+//
+//    Arithmetic operations on Smis. FP[rA] <- FP[rB] op FP[rC].
+//    If these instructions can trigger a deoptimization, the following
+//    instruction should be Deopt. If no deoptimization should be triggered,
+//    the immediately following instruction is skipped.
+ASSEMBLER_TEST_GENERATE(AddNoOverflow, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(20)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(22)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-1)));
+  __ Add(2, 0, 1);
+  __ LoadConstant(2, Smi::Handle(Smi::New(-42)));
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(AddNoOverflow, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(AddOverflow, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(Smi::kMaxValue)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(1)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-1)));
+  __ Add(2, 0, 1);
+  __ LoadConstant(2, Smi::Handle(Smi::New(42)));
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(AddOverflow, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(SubNoOverflow, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(64)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(22)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-1)));
+  __ Sub(2, 0, 1);
+  __ LoadConstant(2, Smi::Handle(Smi::New(-42)));
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(SubNoOverflow, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(SubOverflow, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(Smi::kMinValue)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(1)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-1)));
+  __ Sub(2, 0, 1);
+  __ LoadConstant(2, Smi::Handle(Smi::New(42)));
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(SubOverflow, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(MulNoOverflow, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-6)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(-7)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-1)));
+  __ Mul(2, 0, 1);
+  __ LoadConstant(2, Smi::Handle(Smi::New(-42)));
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(MulNoOverflow, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(MulOverflow, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(Smi::kMaxValue)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(-8)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-1)));
+  __ Mul(2, 0, 1);
+  __ LoadConstant(2, Smi::Handle(Smi::New(42)));
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(MulOverflow, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DivNoDeopt, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(27)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(3)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-1)));
+  __ Div(2, 0, 1);
+  __ LoadConstant(2, Smi::Handle(Smi::New(-42)));
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(DivNoDeopt, test) {
+  EXPECT_EQ(9, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DivZero, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(3)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(0)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-1)));
+  __ Div(2, 0, 1);
+  __ LoadConstant(2, Smi::Handle(Smi::New(42)));
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(DivZero, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DivCornerCase, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(Smi::kMinValue)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-1)));
+  __ Div(2, 0, 1);
+  __ LoadConstant(2, Smi::Handle(Smi::New(42)));
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(DivCornerCase, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(ModPosPos, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(4)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-1)));
+  __ Mod(2, 0, 1);
+  __ LoadConstant(2, Smi::Handle(Smi::New(-42)));
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(ModPosPos, test) {
+  EXPECT_EQ(2, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(ModNegPos, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-42)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(4)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-1)));
+  __ Mod(2, 0, 1);
+  __ LoadConstant(2, Smi::Handle(Smi::New(-42)));
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(ModNegPos, test) {
+  EXPECT_EQ(2, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(ModPosNeg, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(-4)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-1)));
+  __ Mod(2, 0, 1);
+  __ LoadConstant(2, Smi::Handle(Smi::New(-42)));
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(ModPosNeg, test) {
+  EXPECT_EQ(2, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(ModZero, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(3)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(0)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-1)));
+  __ Mod(2, 0, 1);
+  __ LoadConstant(2, Smi::Handle(Smi::New(42)));
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(ModZero, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(ShlNoDeopt, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(21)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(1)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-1)));
+  __ Shl(2, 0, 1);
+  __ LoadConstant(2, Smi::Handle(Smi::New(-42)));
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(ShlNoDeopt, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(ShlOverflow, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(Smi::kMaxValue)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(1)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-1)));
+  __ Shl(2, 0, 1);
+  __ LoadConstant(2, Smi::Handle(Smi::New(42)));
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(ShlOverflow, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(ShlNegShift, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(21)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-1)));
+  __ Shl(2, 0, 1);
+  __ LoadConstant(2, Smi::Handle(Smi::New(42)));
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(ShlNegShift, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(ShrNoDeopt, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(84)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(1)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-1)));
+  __ Shr(2, 0, 1);
+  __ LoadConstant(2, Smi::Handle(Smi::New(-42)));
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(ShrNoDeopt, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(ShrNegShift, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(21)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-1)));
+  __ Shr(2, 0, 1);
+  __ LoadConstant(2, Smi::Handle(Smi::New(42)));
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(ShrNegShift, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+//  - Neg rA , rD
+//
+//    FP[rA] <- -FP[rD]. Assumes FP[rD] is a Smi. If there is no overflow the
+//    immediately following instruction is skipped.
+ASSEMBLER_TEST_GENERATE(NegPos, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ Neg(1, 0);
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(NegPos, test) {
+  EXPECT_EQ(-42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(NegNeg, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-42)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ Neg(1, 0);
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(NegNeg, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(NegOverflow, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(Smi::kMinValue)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ Neg(1, 0);
+  __ LoadConstant(1, Smi::Handle(Smi::New(42)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(NegOverflow, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+//  - BitOr, BitAnd, BitXor rA, rB, rC
+//
+//    FP[rA] <- FP[rB] op FP[rC]
+ASSEMBLER_TEST_GENERATE(BitOr, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(0x2)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(0x28)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-1)));
+  __ BitOr(2, 0, 1);
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(BitOr, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(BitAnd, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(0x2b)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(0x6a)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-1)));
+  __ BitAnd(2, 0, 1);
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(BitAnd, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(BitXor, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(0x37)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(0x1d)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-1)));
+  __ BitXor(2, 0, 1);
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(BitXor, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+//  - BitNot rA, rD
+//
+//    FP[rA] <- ~FP[rD]. As above, assumes FP[rD] is a Smi.
+ASSEMBLER_TEST_GENERATE(BitNot, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(~42)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ BitNot(1, 0);
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(BitNot, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
 
 //  - IfNeStrictTOS; IfEqStrictTOS; IfNeStrictNumTOS; IfEqStrictNumTOS
 //
@@ -1163,6 +1586,52 @@ ASSEMBLER_TEST_GENERATE(CheckSmiFail, assembler) {
 
 
 ASSEMBLER_TEST_RUN(CheckSmiFail, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+//  - CheckClassId rA, D
+//
+//    If the object at FP[rA]'s class id matches hthe class id in PP[D], then
+//    skip the following instruction.
+ASSEMBLER_TEST_GENERATE(CheckClassIdSmiPass, assembler) {
+  __ Frame(1);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ CheckClassId(0, __ AddConstant(Smi::Handle(Smi::New(kSmiCid))));
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(CheckClassIdSmiPass, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CheckClassIdNonSmiPass, assembler) {
+  __ Frame(1);
+  __ LoadConstant(0, Bool::True());
+  __ CheckClassId(0, __ AddConstant(Smi::Handle(Smi::New(kBoolCid))));
+  __ LoadConstant(0, Bool::False());
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(CheckClassIdNonSmiPass, test) {
+  EXPECT(EXECUTE_TEST_CODE_BOOL(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CheckClassIdFail, assembler) {
+  __ Frame(1);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ CheckClassId(0, __ AddConstant(Smi::Handle(Smi::New(kBoolCid))));
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(CheckClassIdFail, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
 

@@ -25,7 +25,9 @@ Loader::Loader(IsolateData* isolate_data)
       pending_operations_(0),
       results_(NULL),
       results_length_(0),
-      results_capacity_(0) {
+      results_capacity_(0),
+      payload_(NULL),
+      payload_length_(0) {
   monitor_ = new Monitor();
   ASSERT(isolate_data_ != NULL);
   port_ = Dart_NewNativePort("Loader",
@@ -54,6 +56,8 @@ Loader::~Loader() {
   }
   free(results_);
   results_ = NULL;
+  payload_ = NULL;
+  payload_length_ = 0;
 }
 
 
@@ -191,13 +195,13 @@ void Loader::QueueMessage(Dart_CObject* message) {
 }
 
 
-void Loader::BlockUntilComplete() {
+void Loader::BlockUntilComplete(ProcessResult process_result) {
   MonitorLocker ml(monitor_);
 
   while (true) {
     // If |ProcessQueueLocked| returns false, we've hit an error and should
     // stop loading.
-    if (!ProcessQueueLocked()) {
+    if (!ProcessQueueLocked(process_result)) {
       break;
     }
 
@@ -225,7 +229,7 @@ static bool LibraryHandleError(Dart_Handle library, Dart_Handle error) {
 }
 
 
-bool Loader::ProcessResultLocked(Loader::IOResult* result) {
+bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
   // We have to copy everything we care about out of |result| because after
   // dropping the lock below |result| may no longer valid.
   Dart_Handle uri =
@@ -249,7 +253,7 @@ bool Loader::ProcessResultLocked(Loader::IOResult* result) {
       return true;
     }
     // Fall through
-    error_ = Dart_NewUnhandledExceptionError(error);
+    loader->error_ = Dart_NewUnhandledExceptionError(error);
     return false;
   }
 
@@ -267,8 +271,9 @@ bool Loader::ProcessResultLocked(Loader::IOResult* result) {
     source = Dart_NewStringFromUTF8(result->payload,
                                     result->payload_length);
     if (Dart_IsError(source)) {
-      error_  = DartUtils::NewError("%s is not a valid UTF-8 script",
-                                    reinterpret_cast<char*>(result->uri));
+      loader->error_ = DartUtils::NewError(
+          "%s is not a valid UTF-8 script",
+          reinterpret_cast<char*>(result->uri));
       return false;
     }
   }
@@ -279,7 +284,7 @@ bool Loader::ProcessResultLocked(Loader::IOResult* result) {
 
   // We must drop the lock here because the tag handler may be recursively
   // invoked and it will attempt to acquire the lock to queue more work.
-  monitor_->Exit();
+  loader->monitor_->Exit();
 
   Dart_Handle dart_result = Dart_Null();
 
@@ -306,10 +311,10 @@ bool Loader::ProcessResultLocked(Loader::IOResult* result) {
   }
 
   // Re-acquire the lock before exiting the function (it was held before entry),
-  monitor_->Enter();
+  loader->monitor_->Enter();
   if (Dart_IsError(dart_result)) {
     // Remember the error if we encountered one.
-    error_ = dart_result;
+    loader->error_ = dart_result;
     return false;
   }
 
@@ -317,11 +322,29 @@ bool Loader::ProcessResultLocked(Loader::IOResult* result) {
 }
 
 
-bool Loader::ProcessQueueLocked() {
+bool Loader::ProcessUrlLoadResultLocked(Loader* loader,
+                                        Loader::IOResult* result) {
+  // A negative result tag indicates a loading error occurred in the service
+  // isolate. The payload is a C string of the error message.
+  if (result->tag < 0) {
+    Dart_Handle error = Dart_NewStringFromUTF8(result->payload,
+                                               result->payload_length);
+    loader->error_ = Dart_NewUnhandledExceptionError(error);
+    return false;
+  }
+  loader->payload_length_ = result->payload_length;
+  loader->payload_ =
+      reinterpret_cast<uint8_t*>(::malloc(loader->payload_length_));
+  memmove(loader->payload_, result->payload, loader->payload_length_);
+  return true;
+}
+
+
+bool Loader::ProcessQueueLocked(ProcessResult process_result) {
   bool hit_error = false;
   for (intptr_t i = 0; i < results_length(); i++) {
     if (!hit_error) {
-      hit_error = !ProcessResultLocked(&results_[i]);
+      hit_error = !(*process_result)(this, &results_[i]);
     }
     pending_operations_--;
     ASSERT(hit_error || (pending_operations_ >= 0));
@@ -355,6 +378,48 @@ void Loader::InitForSnapshot(const char* snapshot_uri) {
                snapshot_uri);
   // Destroy the loader. The destructor does a bunch of leg work.
   delete loader;
+}
+
+
+Dart_Handle Loader::LoadUrlContents(Dart_Handle url,
+                                    uint8_t** payload,
+                                    intptr_t* payload_length) {
+  IsolateData* isolate_data =
+      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
+  ASSERT(isolate_data != NULL);
+  ASSERT(!isolate_data->HasLoader());
+  Loader* loader = NULL;
+
+  // Setup the loader. The constructor does a bunch of leg work.
+  loader = new Loader(isolate_data);
+  loader->Init(isolate_data->package_root,
+               isolate_data->packages_file,
+               DartUtils::original_working_directory,
+               NULL);
+  ASSERT(loader != NULL);
+  ASSERT(isolate_data->HasLoader());
+
+  // Now send a load request to the service isolate.
+  loader->SendRequest(Dart_kScriptTag, url, Dart_Null());
+
+  // Wait for a reply to the load request.
+  loader->BlockUntilComplete(ProcessUrlLoadResultLocked);
+
+  // Copy fields from the loader before deleting it.
+  // The payload array itself which was malloced above is freed by
+  // the caller of LoadUrlContents.
+  Dart_Handle error = loader->error();
+  *payload = loader->payload_;
+  *payload_length = loader->payload_length_;
+
+  // Destroy the loader. The destructor does a bunch of leg work.
+  delete loader;
+
+  // An error occurred during loading.
+  if (!Dart_IsNull(error)) {
+    return error;
+  }
+  return Dart_Null();
 }
 
 
@@ -466,7 +531,7 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   if (blocking_call) {
     // The outer invocation of the tag handler will block here until all nested
     // invocations complete.
-    loader->BlockUntilComplete();
+    loader->BlockUntilComplete(ProcessResultLocked);
 
     // Remember the error (if any).
     Dart_Handle error = loader->error();

@@ -105,6 +105,11 @@ class ConstantValueTypeMasks extends ConstantValueVisitor<TypeMask, Compiler> {
   }
 
   @override
+  TypeMask visitNonConstant(NonConstantValue constant, Compiler compiler) {
+    return compiler.typesTask.nullType;
+  }
+
+  @override
   TypeMask visitString(StringConstantValue constant, Compiler compiler) {
     return compiler.typesTask.stringType;
   }

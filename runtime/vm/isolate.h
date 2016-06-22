@@ -255,7 +255,6 @@ class Isolate : public BaseIsolate {
   void DoneLoading();
   void DoneFinalizing();
 
-  void OnStackReload();
   void ReloadSources(bool test_mode = false);
 
   bool MakeRunnable();
@@ -532,6 +531,9 @@ class Isolate : public BaseIsolate {
   RawError* sticky_error() const { return sticky_error_; }
   void clear_sticky_error();
 
+  RawError* sticky_reload_error() const { return sticky_reload_error_; }
+  void clear_sticky_reload_error();
+
   bool compilation_allowed() const { return compilation_allowed_; }
   void set_compilation_allowed(bool allowed) {
     compilation_allowed_ = allowed;
@@ -750,6 +752,8 @@ class Isolate : public BaseIsolate {
   RawGrowableObjectArray* deoptimized_code_array_;
 
   RawError* sticky_error_;
+
+  RawError* sticky_reload_error_;
 
   // Background compilation.
   BackgroundCompiler* background_compiler_;

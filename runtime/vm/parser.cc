@@ -2648,17 +2648,18 @@ void Parser::CheckFieldsInitialized(const Class& cls) {
 
 AstNode* Parser::ParseExternalInitializedField(const Field& field) {
   // Only use this function if the initialized field originates
-  // from a different class. We need to save and restore current
-  // class, library, and token stream (script).
+  // from a different class. We need to save and restore the
+  // library and token stream (script).
+  // The current_class remains unchanged, so that type arguments
+  // are resolved in the correct scope class.
   ASSERT(current_class().raw() != field.Origin());
-  const Class& saved_class = Class::Handle(Z, current_class().raw());
   const Library& saved_library = Library::Handle(Z, library().raw());
   const Script& saved_script = Script::Handle(Z, script().raw());
   const TokenPosition saved_token_pos = TokenPos();
 
-  set_current_class(Class::Handle(Z, field.Origin()));
-  set_library(Library::Handle(Z, current_class().library()));
-  SetScript(Script::Handle(Z, current_class().script()), field.token_pos());
+  const Class& origin_class = Class::Handle(Z, field.Origin());
+  set_library(Library::Handle(Z, origin_class.library()));
+  SetScript(Script::Handle(Z, origin_class.script()), field.token_pos());
 
   ASSERT(IsIdentifier());
   ConsumeToken();
@@ -2678,7 +2679,6 @@ AstNode* Parser::ParseExternalInitializedField(const Field& field) {
       init_expr = new(Z) LiteralNode(field.token_pos(), expr_value);
     }
   }
-  set_current_class(saved_class);
   set_library(saved_library);
   SetScript(saved_script, saved_token_pos);
   return init_expr;
@@ -6062,6 +6062,9 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
 void Parser::ParseLibraryPart() {
   const TokenPosition source_pos = TokenPos();
   ConsumeToken();  // Consume "part".
+  if (IsSymbol(Symbols::Of())) {
+    ReportError("part of declarations are not allowed in script files");
+  }
   CheckToken(Token::kSTRING, "url expected");
   AstNode* url_literal = ParseStringLiteral(false);
   ASSERT(url_literal->IsLiteralNode());
@@ -9175,28 +9178,6 @@ AstNode* Parser::MakeStaticCall(const String& cls_name,
 }
 
 
-AstNode* Parser::MakeAssertCall(TokenPosition begin, TokenPosition end) {
-  ArgumentListNode* arguments = new(Z) ArgumentListNode(begin);
-  arguments->Add(new(Z) LiteralNode(begin,
-      Integer::ZoneHandle(Z, Integer::New(begin.value(), Heap::kOld))));
-  arguments->Add(new(Z) LiteralNode(end,
-      Integer::ZoneHandle(Z, Integer::New(end.value(), Heap::kOld))));
-  return MakeStaticCall(Symbols::AssertionError(),
-                        Library::PrivateCoreLibName(Symbols::ThrowNew()),
-                        arguments);
-}
-
-
-AstNode* Parser::HandleAssertCondition(AstNode* condition) {
-  const TokenPosition pos = condition->token_pos();
-  ArgumentListNode* arguments = new(Z) ArgumentListNode(pos);
-  arguments->Add(condition);
-  return MakeStaticCall(Symbols::AssertionError(),
-                        Library::PrivateCoreLibName(Symbols::HandleCondition()),
-                        arguments);
-}
-
-
 AstNode* Parser::ParseAssertStatement() {
   TRACE_PARSER("ParseAssertStatement");
   ConsumeToken();  // Consume assert keyword.
@@ -9210,14 +9191,16 @@ AstNode* Parser::ParseAssertStatement() {
   AstNode* condition = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
   const TokenPosition condition_end = TokenPos();
   ExpectToken(Token::kRPAREN);
-  condition = HandleAssertCondition(condition);
-  condition = new(Z) UnaryOpNode(condition_pos, Token::kNOT, condition);
-  AstNode* assert_throw = MakeAssertCall(condition_pos, condition_end);
-  return new(Z) IfNode(
-      condition_pos,
-      condition,
-      NodeAsSequenceNode(condition_pos, assert_throw, NULL),
-      NULL);
+
+  ArgumentListNode* arguments = new(Z) ArgumentListNode(condition_pos);
+  arguments->Add(condition);
+  arguments->Add(new(Z) LiteralNode(condition_pos,
+      Integer::ZoneHandle(Z, Integer::New(condition_pos.value(), Heap::kOld))));
+  arguments->Add(new(Z) LiteralNode(condition_end,
+      Integer::ZoneHandle(Z, Integer::New(condition_end.value(), Heap::kOld))));
+  return MakeStaticCall(Symbols::AssertionError(),
+                        Library::PrivateCoreLibName(Symbols::CheckAssertion()),
+                        arguments);
 }
 
 
@@ -10256,8 +10239,13 @@ AstNode* Parser::ParseStatement() {
     // Rethrow of current exception.
     ConsumeToken();
     ExpectSemicolon();
-    // Check if it is ok to do a rethrow.
-    if ((try_stack_ == NULL) || !try_stack_->inside_catch()) {
+    // Check if it is ok to do a rethrow. Find the inntermost enclosing
+    // catch block.
+    TryStack* try_statement = try_stack_;
+    while ((try_statement != NULL) && !try_statement->inside_catch()) {
+      try_statement = try_statement->outer_try();
+    }
+    if (try_statement == NULL) {
       ReportError(statement_pos, "rethrow of an exception is not valid here");
     }
 
@@ -10265,7 +10253,7 @@ AstNode* Parser::ParseStatement() {
     // instead of :exception_var and :stack_trace_var.
     // These variables are bound in the block containing the try.
     // Look in the try scope directly.
-    LocalScope* scope = try_stack_->try_block()->scope->parent();
+    LocalScope* scope = try_statement->try_block()->scope->parent();
     ASSERT(scope != NULL);
     LocalVariable* excp_var;
     LocalVariable* trace_var;
@@ -13638,6 +13626,12 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
     }
   }
   ASSERT(!constructor.IsNull());
+
+  // It is a compile time error to instantiate a const instance of an
+  // abstract class. Factory methods are ok.
+  if (is_const && type_class.is_abstract() && !constructor.IsFactory()) {
+    ReportError(new_pos, "cannot instantiate abstract class");
+  }
 
   // It is ok to call a factory method of an abstract class, but it is
   // a dynamic error to instantiate an abstract class.

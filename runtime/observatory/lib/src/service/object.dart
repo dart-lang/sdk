@@ -46,6 +46,7 @@ class ServerRpcException extends RpcException {
   static const kFileSystemAlreadyExists = 1001;
   static const kFileSystemDoesNotExist  = 1002;
   static const kFileDoesNotExist        = 1003;
+  static const kIsolateReloadFailed     = 1004;
 
   int code;
   Map data;
@@ -1640,7 +1641,7 @@ class Isolate extends ServiceObjectOwner {
   }
 
   Future<ObjectStore> getObjectStore() {
-    return invokeRpc('_getObjectStore', {}).then((map) {
+    return invokeRpcNoUpgrade('_getObjectStore', {}).then((map) {
       ObjectStore objectStore = new ObjectStore._empty(this);
       objectStore._update(map, false);
       return objectStore;

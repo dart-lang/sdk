@@ -193,13 +193,11 @@ class DartUtils {
   }
 
   static bool SetOriginalWorkingDirectory();
+  static Dart_Handle GetCanonicalizableWorkingDirectory();
 
-  static const char* MapLibraryUrl(CommandLineOptions* url_mapping,
-                                   const char* url_string);
+  static const char* MapLibraryUrl(const char* url_string);
 
   static Dart_Handle ResolveUriInWorkingDirectory(Dart_Handle script_uri);
-  static Dart_Handle FilePathFromUri(Dart_Handle script_uri);
-  static Dart_Handle ResolveUri(Dart_Handle library_url, Dart_Handle url);
   static Dart_Handle ResolveScript(Dart_Handle url);
 
   // Sniffs the specified text_buffer to see if it contains the magic number
@@ -216,6 +214,9 @@ class DartUtils {
 
   // Global state that stores the original working directory..
   static const char* original_working_directory;
+
+  // Global state that captures the URL mappings specified on the command line.
+  static CommandLineOptions* url_mapping;
 
   static const char* const kDartScheme;
   static const char* const kDartExtensionScheme;

@@ -233,6 +233,7 @@ function installTearOff(
     reflectionInfo = reflectionInfo + typesOffset;
   }
   var name = funsOrNames[0];
+  fun.#stubName = name;
   var getterFunction =
       tearOff(funs, reflectionInfo, isStatic, name, isIntercepted);
   container[getterName] = getterFunction;
@@ -455,6 +456,7 @@ class FragmentEmitter {
       'constantHolderReference': buildConstantHolderReference(program),
       'holders': emitHolders(program.holders, fragment),
       'callName': js.string(namer.callNameField),
+      'stubName': js.string(namer.stubNameField),
       'argumentCount': js.string(namer.requiredParameterField),
       'defaultArgumentValues': js.string(namer.defaultValuesField),
       'prototypes': emitPrototypes(fragment),

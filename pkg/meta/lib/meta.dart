@@ -18,17 +18,16 @@
 /// in the language tour.
 library meta;
 
-/// Used to annotate an instance method `m`. Indicates that `m` must either be
-/// abstract or must return a newly allocated object. In addition, every method
-/// that either implements or overrides `m` is implicitly annotated with this
-/// same annotation.
+/// Used to annotate an instance or static method `m`. Indicates that `m` must
+/// either be abstract or must return a newly allocated object or `null`. In
+/// addition, every method that either implements or overrides `m` is implicitly
+/// annotated with this same annotation.
 ///
 /// Tools, such as the analyzer, can provide feedback if
 ///
-/// * the annotation is associated with anything other than an instance method,
-///   or
-/// * a method that has this annotation that can return anything other than a
-///   newly allocated object.
+/// * the annotation is associated with anything other than a method, or
+/// * the annotation is associated with a method that has this annotation that
+///   can return anything other than a newly allocated object or `null`.
 const _Factory factory = const _Factory();
 
 /// Used to annotate a const constructor `c`. Indicates that any invocation of

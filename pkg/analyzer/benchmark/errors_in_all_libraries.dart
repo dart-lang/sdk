@@ -15,6 +15,8 @@ import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:path/path.dart' as p;
 
 void main(List<String> args) {
@@ -36,7 +38,7 @@ void main(List<String> args) {
     var context = AnalysisEngine.instance.createAnalysisContext();
     context.sourceFactory = new SourceFactory([
       new DartUriResolver(DirectoryBasedDartSdk.defaultSdk),
-      new FileUriResolver(),
+      new ResourceUriResolver(PhysicalResourceProvider.INSTANCE),
       new PackageUriResolver([new JavaFile(packageRoot)])
     ]);
 

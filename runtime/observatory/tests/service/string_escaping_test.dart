@@ -48,44 +48,47 @@ void script() {
   malformedWithTrailSurrogate = "before" + "𝄞"[1] + "after";
 }
 
+testStrings(Isolate isolate) async {
+  Library lib = isolate.rootLibrary;
+  await lib.load();
+  for (var variable in lib.variables) {
+    await variable.load();
+  }
+
+  expectFullString(String varName, String varValueAsString) {
+    Field field = lib.variables.singleWhere((v) => v.name == varName);
+    Instance value = field.staticValue;
+    expect(value.valueAsString, equals(varValueAsString));
+    expect(value.valueAsStringIsTruncated, isFalse);
+  }
+
+  expectTruncatedString(String varName, String varValueAsString) {
+    Field field = lib.variables.singleWhere((v) => v.name == varName);
+    Instance value = field.staticValue;
+    print(value.valueAsString);
+    expect(varValueAsString, startsWith(value.valueAsString));
+    expect(value.valueAsStringIsTruncated, isTrue);
+  }
+
+  script();  // Need to initialize variables in the testing isolate.
+  expectFullString('ascii', ascii);
+  expectFullString('latin1', latin1);
+  expectFullString('unicode', unicode);
+  expectFullString('hebrew', hebrew);
+  expectFullString('singleQuotes', singleQuotes);
+  expectFullString('doubleQuotes', doubleQuotes);
+  expectFullString('newLines', newLines);
+  expectFullString('tabs', tabs);
+  expectFullString('suggrogatePairs', suggrogatePairs);
+  expectFullString('nullInTheMiddle', nullInTheMiddle);
+  expectTruncatedString('longStringEven', longStringEven);
+  expectTruncatedString('longStringOdd', longStringOdd);
+  expectFullString('malformedWithLeadSurrogate', malformedWithLeadSurrogate);
+  expectFullString('malformedWithTrailSurrogate', malformedWithTrailSurrogate);
+}
+
 var tests = [
-
-(Isolate isolate) =>
-  isolate.rootLibrary.load().then((Library lib) {
-    expectFullString(String varName, String varValueAsString) {
-      Field field = lib.variables.singleWhere((v) => v.name == varName);
-      field.load().then((_) {
-        Instance value = field.staticValue;
-        expect(value.valueAsString, equals(varValueAsString));
-        expect(value.valueAsStringIsTruncated, isFalse);
-      });
-    }
-    expectTruncatedString(String varName, String varValueAsString) {
-      Field field = lib.variables.singleWhere((v) => v.name == varName);
-      field.load().then((_) {
-        Instance value = field.staticValue;
-        expect(varValueAsString, startsWith(value.valueAsString));
-        expect(value.valueAsStringIsTruncated, isTrue);
-      });
-    }
-
-    script();  // Need to initialize variables in the testing isolate.
-    expectFullString('ascii', ascii);
-    expectFullString('latin1', latin1);
-    expectFullString('unicode', unicode);
-    expectFullString('hebrew', hebrew);
-    expectFullString('singleQuotes', singleQuotes);
-    expectFullString('doubleQuotes', doubleQuotes);
-    expectFullString('newLines', newLines);
-    expectFullString('tabs', tabs);
-    expectFullString('suggrogatePairs', suggrogatePairs);
-    expectFullString('nullInTheMiddle', nullInTheMiddle);
-    expectTruncatedString('longStringEven', longStringEven);
-    expectTruncatedString('longStringOdd', longStringOdd);
-    expectFullString('malformedWithLeadSurrogate', malformedWithLeadSurrogate);
-    expectFullString('malformedWithTrailSurrogate', malformedWithTrailSurrogate);
-  }),
-
+  testStrings,
 ];
 
 main(args) => runIsolateTests(args, tests, testeeBefore: script);

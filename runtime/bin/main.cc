@@ -207,7 +207,7 @@ static bool ProcessVerboseOption(const char* arg,
 static bool ProcessPackageRootOption(const char* arg,
                                      CommandLineOptions* vm_options) {
   ASSERT(arg != NULL);
-  if (*arg == '\0' || *arg == '-') {
+  if (*arg == '-') {
     return false;
   }
   commandline_package_root = arg;
@@ -216,9 +216,9 @@ static bool ProcessPackageRootOption(const char* arg,
 
 
 static bool ProcessPackagesOption(const char* arg,
-                                     CommandLineOptions* vm_options) {
+                                  CommandLineOptions* vm_options) {
   ASSERT(arg != NULL);
-  if ((*arg == '\0') || (*arg == '-')) {
+  if (*arg == '-') {
     return false;
   }
   commandline_packages_file = arg;
@@ -590,6 +590,16 @@ static int ParseArguments(int argc,
       (commandline_packages_file != NULL)) {
     Log::PrintErr("Specifying both a packages directory and a packages "
                   "file is invalid.\n");
+    return -1;
+  }
+  if ((commandline_package_root != NULL) &&
+      (strlen(commandline_package_root) == 0)) {
+    Log::PrintErr("Empty package root specified.\n");
+    return -1;
+  }
+  if ((commandline_packages_file != NULL) &&
+      (strlen(commandline_packages_file) == 0)) {
+    Log::PrintErr("Empty package file name specified.\n");
     return -1;
   }
   if (is_noopt && gen_snapshot_kind != kNone) {

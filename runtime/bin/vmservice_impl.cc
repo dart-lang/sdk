@@ -342,8 +342,8 @@ Dart_Handle VmService::LibraryTagHandler(Dart_LibraryTag tag,
     return result;
   }
   if (tag == Dart_kImportTag) {
-    // Embedder handles all requests for external libraries.
-    return DartUtils::LibraryTagHandler(tag, library, url);
+    UNREACHABLE();
+    return Dart_Null();
   }
   ASSERT((tag == Dart_kSourceTag) || (tag == Dart_kCanonicalizeUrl));
   if (tag == Dart_kCanonicalizeUrl) {

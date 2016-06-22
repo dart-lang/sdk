@@ -131,11 +131,6 @@ abstract class Backend extends Target {
   /// Called during codegen when [constant] has been used.
   void registerCompileTimeConstant(ConstantValue constant, Registry registry) {}
 
-  /// Called during resolution when a constant value for [metadata] on
-  /// [annotatedElement] has been evaluated.
-  void registerMetadataConstant(MetadataAnnotation metadata,
-      Element annotatedElement, Registry registry) {}
-
   /// Called to notify to the backend that a class is being instantiated.
   // TODO(johnniwinther): Remove this. It's only called once for each [cls] and
   // only with [Compiler.globalDependencies] as [registry].
@@ -278,23 +273,25 @@ abstract class Backend extends Target {
   /// been scanned.
   Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
     // TODO(johnniwinther): Move this to [JavaScriptBackend].
-    if (canLibraryUseNative(library)) {
+    if (!compiler.serialization.isDeserialized(library)) {
+      if (canLibraryUseNative(library)) {
+        library.forEachLocalMember((Element element) {
+          if (element.isClass) {
+            checkNativeAnnotation(compiler, element);
+          }
+        });
+      }
+      checkJsInteropAnnotation(compiler, library);
       library.forEachLocalMember((Element element) {
-        if (element.isClass) {
-          checkNativeAnnotation(compiler, element);
+        checkJsInteropAnnotation(compiler, element);
+        if (element.isClass && isJsInterop(element)) {
+          ClassElement classElement = element;
+          classElement.forEachMember((_, memberElement) {
+            checkJsInteropAnnotation(compiler, memberElement);
+          });
         }
       });
     }
-    checkJsInteropAnnotation(compiler, library);
-    library.forEachLocalMember((Element element) {
-      checkJsInteropAnnotation(compiler, element);
-      if (element.isClass && isJsInterop(element)) {
-        ClassElement classElement = element;
-        classElement.forEachMember((_, memberElement) {
-          checkJsInteropAnnotation(compiler, memberElement);
-        });
-      }
-    });
     return new Future.value();
   }
 

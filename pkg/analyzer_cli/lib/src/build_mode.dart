@@ -257,7 +257,7 @@ class BuildMode {
           Driver.createAnalysisOptionsForCommandLineOptions(options);
       directorySdk.useSummary = !options.buildSummaryOnlyAst;
       sdk = directorySdk;
-      sdkBundle = directorySdk.getSummarySdkBundle();
+      sdkBundle = directorySdk.getSummarySdkBundle(options.strongMode);
     }
 
     // In AST mode include SDK bundle to avoid parsing SDK sources.

@@ -377,6 +377,49 @@ f() {
     verify([source]);
   }
 
+  void test_deadCode_deadFinalReturnInCase() {
+    Source source = addSource(r'''
+f() {
+  switch (true) {
+  case true:
+    try {
+      int a = 1;
+    } finally {
+      return;
+    }
+    return;
+  default:
+    break;
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
+  void test_deadCode_deadFinalStatementInCase() {
+    Source source = addSource(r'''
+f() {
+  switch (true) {
+  case true:
+    try {
+      int a = 1;
+    } finally {
+      return;
+    }
+    int b = 1;
+  default:
+    break;
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    // A single dead statement at the end of a switch case that is not a
+    // terminating statement will yield two errors.
+    assertErrors(source,
+        [HintCode.DEAD_CODE, StaticWarningCode.CASE_BLOCK_NOT_TERMINATED]);
+    verify([source]);
+  }
+
   void test_deadCode_deadOperandLHS_and() {
     Source source = addSource(r'''
 f() {
@@ -470,49 +513,6 @@ f(v) {
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
-    verify([source]);
-  }
-
-  void test_deadCode_deadFinalReturnInCase() {
-    Source source = addSource(r'''
-f() {
-  switch (true) {
-  case true:
-    try {
-      int a = 1;
-    } finally {
-      return;
-    }
-    return;
-  default:
-    break;
-  }
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.DEAD_CODE]);
-    verify([source]);
-  }
-
-  void test_deadCode_deadFinalStatementInCase() {
-    Source source = addSource(r'''
-f() {
-  switch (true) {
-  case true:
-    try {
-      int a = 1;
-    } finally {
-      return;
-    }
-    int b = 1;
-  default:
-    break;
-  }
-}''');
-    computeLibrarySourceErrors(source);
-    // A single dead statement at the end of a switch case that is not a
-    // terminating statement will yield two errors.
-    assertErrors(source,
-        [HintCode.DEAD_CODE, StaticWarningCode.CASE_BLOCK_NOT_TERMINATED]);
     verify([source]);
   }
 
@@ -1191,6 +1191,27 @@ class A {
 abstract class B implements A {
   int b() => a;
 }''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_in_docs_OK() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @protected
+  int a() => c;
+  @protected
+  int get b => a();
+  @protected
+  int c = 42;
+}
+
+/// OK: [A.a], [A.b], [A.c].
+f() {}
+''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);

@@ -233,14 +233,22 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   __ PushConstant(dst_type);
   __ PushConstant(dst_name);
   __ AssertAssignable(__ AddConstant(test_cache));
+  if (is_optimizing()) {
+    // Register allocator does not think that our first input (also used as
+    // output) needs to be kept alive across the call because that is how code
+    // is written on other platforms (where registers are always spilled across
+    // the call): inputs are consumed by operation and output is produced so
+    // neither are alive at the safepoint.
+    // We have to mark the slot alive manually to ensure that GC
+    // visits it.
+    locs->SetStackBit(locs->out(0).reg());
+  }
   RecordSafepoint(locs);
   AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id, token_pos);
   if (is_optimizing()) {
     // Assert assignable keeps the instance on the stack as the result,
     // all other arguments are popped.
-    // In optimized code we need to drop it because optimized code
-    // expects the result in the register and it is already there
-    // because locs()->in(0).reg() == locs()->out(0).reg().
+    ASSERT(locs->out(0).reg() == locs->in(0).reg());
     __ Drop1();
   }
 }

@@ -112,7 +112,6 @@ abstract class ElementZ extends Element with ElementCommon {
   @override
   bool get isTopLevel => false;
 
-  // TODO(johnniwinther): Support metadata.
   @override
   Iterable<MetadataAnnotation> get metadata => const <MetadataAnnotation>[];
 
@@ -122,6 +121,7 @@ abstract class ElementZ extends Element with ElementCommon {
 
 abstract class DeserializedElementZ extends ElementZ {
   ObjectDecoder _decoder;
+  List<MetadataAnnotation> _metadata;
 
   DeserializedElementZ(this._decoder);
 
@@ -146,6 +146,27 @@ abstract class DeserializedElementZ extends ElementZ {
       length = name.length;
     }
     return new SourceSpan(uri, offset, offset + length);
+  }
+
+  @override
+  Iterable<MetadataAnnotation> get metadata {
+    if (_metadata == null) {
+      _metadata = <MetadataAnnotation>[];
+      ListDecoder list = _decoder.getList(Key.METADATA, isOptional: true);
+      if (list != null) {
+        for (int index = 0; index < list.length; index++) {
+          ObjectDecoder object = list.getObject(index);
+          Element element = object.getElement(Key.ELEMENT);
+          Uri uri = object.getUri(Key.URI);
+          int offset = object.getInt(Key.OFFSET);
+          int length = object.getInt(Key.LENGTH);
+          ConstantExpression constant = object.getConstant(Key.CONSTANT);
+          _metadata.add(new MetadataAnnotationZ(
+              element, new SourceSpan(uri, offset, offset + length), constant));
+        }
+      }
+    }
+    return _metadata;
   }
 }
 
@@ -946,6 +967,9 @@ class ClassElementZ extends DeserializedElementZ
   bool get isProxy => _decoder.getBool(Key.IS_PROXY);
 
   @override
+  bool get isInjected => _decoder.getBool(Key.IS_INJECTED);
+
+  @override
   bool get isUnnamedMixinApplication => false;
 
   @override
@@ -1480,6 +1504,9 @@ abstract class MemberElementMixin
 
   @override
   List<FunctionElement> get nestedClosures => <FunctionElement>[];
+
+  @override
+  bool get isInjected => _decoder.getBool(Key.IS_INJECTED);
 }
 
 abstract class FieldElementZ extends DeserializedElementZ
@@ -2262,4 +2289,26 @@ class PrefixElementZ extends DeserializedElementZ
   Element lookupLocalMember(String memberName) {
     return _unsupported('lookupLocalMember');
   }
+}
+
+class MetadataAnnotationZ implements MetadataAnnotation {
+  final Element annotatedElement;
+  final SourceSpan sourcePosition;
+  final ConstantExpression constant;
+
+  MetadataAnnotationZ(
+      this.annotatedElement, this.sourcePosition, this.constant);
+
+  @override
+  MetadataAnnotation ensureResolved(Resolution resolution) {
+    // Do nothing.
+  }
+
+  @override
+  Node get node => throw new UnsupportedError('${this}.node');
+
+  @override
+  bool get hasNode => false;
+
+  String toString() => 'MetadataAnnotationZ(${constant.toDartText()})';
 }

@@ -9,6 +9,7 @@ import 'dart:collection';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/error_processor.dart';
@@ -1738,8 +1739,6 @@ abstract class ContextManagerTest {
 
   UriResolver packageResolver = null;
 
-  UriResolver embeddedUriResolver = null;
-
   String projPath = '/my/proj';
 
   AnalysisError missing_required_param = new AnalysisError(
@@ -1815,9 +1814,6 @@ abstract class ContextManagerTest {
     manager.processPlugins(plugins);
   }
 
-  EmbedderUriResolver provideEmbeddedUriResolver(Folder folder) =>
-      embeddedUriResolver;
-
   UriResolver providePackageResolver(Folder folder) => packageResolver;
 
   void setUp() {
@@ -1831,7 +1827,6 @@ abstract class ContextManagerTest {
         resourceProvider,
         sdkManager,
         providePackageResolver,
-        provideEmbeddedUriResolver,
         packageMapProvider,
         analysisFilesGlobs,
         InstrumentationService.NULL_SERVICE,
@@ -2653,21 +2648,19 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     currentContextFilePaths[path] = <String, int>{};
     currentContextSources[path] = new HashSet<Source>();
     currentContext = AnalysisEngine.instance.createAnalysisContext();
-    _locateEmbedderYamls(currentContext, disposition);
     List<UriResolver> resolvers = [];
     if (currentContext is InternalAnalysisContext) {
       EmbedderYamlLocator embedderYamlLocator =
-          (currentContext as InternalAnalysisContext).embedderYamlLocator;
-      EmbedderUriResolver embedderUriResolver =
-          new EmbedderUriResolver(embedderYamlLocator.embedderYamls);
-      if (embedderUriResolver.length > 0) {
+          disposition.getEmbedderLocator(resourceProvider);
+      EmbedderSdk sdk = new EmbedderSdk(embedderYamlLocator.embedderYamls);
+      if (sdk.libraryMap.size() > 0) {
         // We have some embedder dart: uri mappings, add the resolver
         // to the list.
-        resolvers.add(embedderUriResolver);
+        resolvers.add(new DartUriResolver(sdk));
       }
     }
     resolvers.addAll(disposition.createPackageUriResolvers(resourceProvider));
-    resolvers.add(new FileUriResolver());
+    resolvers.add(new ResourceUriResolver(PhysicalResourceProvider.INSTANCE));
     currentContext.analysisOptions = options;
     currentContext.sourceFactory =
         new SourceFactory(resolvers, disposition.packages);
@@ -2739,19 +2732,6 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   void updateContextPackageUriResolver(AnalysisContext context) {
     // Nothing to do.
-  }
-
-  /// If [disposition] has a package map, attempt to locate `_embedder.yaml`
-  /// files.
-  void _locateEmbedderYamls(
-      InternalAnalysisContext context, FolderDisposition disposition) {
-    Map<String, List<Folder>> packageMap;
-    if (disposition is PackageMapDisposition) {
-      packageMap = disposition.packageMap;
-    } else if (disposition is PackagesFileDisposition) {
-      packageMap = disposition.buildPackageMap(resourceProvider);
-    }
-    context.embedderYamlLocator.refresh(packageMap);
   }
 }
 

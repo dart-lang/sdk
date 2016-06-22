@@ -874,7 +874,6 @@ class Parser : public ValueObject {
                           const String& func_name,
                           ArgumentListNode* arguments);
   String& Interpolate(const GrowableArray<AstNode*>& values);
-  AstNode* MakeAssertCall(TokenPosition begin, TokenPosition end);
   AstNode* ThrowTypeError(TokenPosition type_pos,
                           const AbstractType& type,
                           LibraryPrefix* prefix = NULL);
@@ -898,7 +897,6 @@ class Parser : public ValueObject {
                                 const String* left_ident,
                                 TokenPosition left_pos,
                                 bool is_compound = false);
-  AstNode* HandleAssertCondition(AstNode* condition);
 
   ConstructorCallNode* CreateConstructorCallNode(
       TokenPosition token_pos,
