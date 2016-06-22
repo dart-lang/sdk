@@ -318,7 +318,7 @@ var f = () sync* { yield null; };
 main() {
   String f() => null;
   var g = f;
-  g = /*info:INFERRED_TYPE_CLOSURE*/() { return /*severe:RETURN_OF_INVALID_TYPE*/1; };
+  g = /*info:INFERRED_TYPE_CLOSURE*/() { return /*error:RETURN_OF_INVALID_TYPE*/1; };
 }
 ''');
     var f = mainUnit.functions[0].localVariables[0];
@@ -546,12 +546,12 @@ class B {
 }
 
 class C1 implements A, B {
-  /*severe:INVALID_METHOD_OVERRIDE*/get a => null;
+  /*error:INVALID_METHOD_OVERRIDE*/get a => null;
 }
 
 // Still ambiguous
 class C2 implements B, A {
-  /*severe:INVALID_METHOD_OVERRIDE*/get a => null;
+  /*error:INVALID_METHOD_OVERRIDE*/get a => null;
 }
 ''');
   }
@@ -583,7 +583,7 @@ class C1 implements A, B {
 }
 
 class C2 implements A, B {
-  /*severe:INVALID_METHOD_OVERRIDE*/get a => null;
+  /*error:INVALID_METHOD_OVERRIDE*/get a => null;
 }
 ''');
   }
@@ -595,7 +595,7 @@ class A {
 }
 
 class B implements A {
-  /*severe:INVALID_METHOD_OVERRIDE*/dynamic get x => 3;
+  /*error:INVALID_METHOD_OVERRIDE*/dynamic get x => 3;
 }
 
 foo() {
@@ -619,11 +619,11 @@ class A {
 
 test() {
   x = "hi";
-  y = /*severe:INVALID_ASSIGNMENT*/"hi";
+  y = /*error:INVALID_ASSIGNMENT*/"hi";
   A.x = "hi";
-  A.y = /*severe:INVALID_ASSIGNMENT*/"hi";
+  A.y = /*error:INVALID_ASSIGNMENT*/"hi";
   new A().x2 = "hi";
-  new A().y2 = /*severe:INVALID_ASSIGNMENT*/"hi";
+  new A().y2 = /*error:INVALID_ASSIGNMENT*/"hi";
 }
 ''');
   }
@@ -820,28 +820,28 @@ void main () {
   {
     Function2<int, String> l0 = /*info:INFERRED_TYPE_CLOSURE*/(int x) => null;
     Function2<int, String> l1 = (int x) => "hello";
-    Function2<int, String> l2 = /*severe:INVALID_ASSIGNMENT*/(String x) => "hello";
-    Function2<int, String> l3 = /*severe:INVALID_ASSIGNMENT*/(int x) => 3;
-    Function2<int, String> l4 = /*info:INFERRED_TYPE_CLOSURE*/(int x) {return /*severe:RETURN_OF_INVALID_TYPE*/3;};
+    Function2<int, String> l2 = /*error:INVALID_ASSIGNMENT*/(String x) => "hello";
+    Function2<int, String> l3 = /*error:INVALID_ASSIGNMENT*/(int x) => 3;
+    Function2<int, String> l4 = /*info:INFERRED_TYPE_CLOSURE*/(int x) {return /*error:RETURN_OF_INVALID_TYPE*/3;};
   }
   {
     Function2<int, String> l0 = /*info:INFERRED_TYPE_CLOSURE*/(x) => null;
     Function2<int, String> l1 = /*info:INFERRED_TYPE_CLOSURE*/(x) => "hello";
-    Function2<int, String> l2 = /*info:INFERRED_TYPE_CLOSURE, severe:INVALID_ASSIGNMENT*/(x) => 3;
-    Function2<int, String> l3 = /*info:INFERRED_TYPE_CLOSURE*/(x) {return /*severe:RETURN_OF_INVALID_TYPE*/3;};
-    Function2<int, String> l4 = /*info:INFERRED_TYPE_CLOSURE*/(x) {return /*severe:RETURN_OF_INVALID_TYPE*/x;};
+    Function2<int, String> l2 = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/(x) => 3;
+    Function2<int, String> l3 = /*info:INFERRED_TYPE_CLOSURE*/(x) {return /*error:RETURN_OF_INVALID_TYPE*/3;};
+    Function2<int, String> l4 = /*info:INFERRED_TYPE_CLOSURE*/(x) {return /*error:RETURN_OF_INVALID_TYPE*/x;};
   }
   {
     Function2<int, List<String>> l0 = /*info:INFERRED_TYPE_CLOSURE*/(int x) => null;
     Function2<int, List<String>> l1 = (int x) => /*info:INFERRED_TYPE_LITERAL*/["hello"];
-    Function2<int, List<String>> l2 = /*severe:INVALID_ASSIGNMENT*/(String x) => /*info:INFERRED_TYPE_LITERAL*/["hello"];
+    Function2<int, List<String>> l2 = /*error:INVALID_ASSIGNMENT*/(String x) => /*info:INFERRED_TYPE_LITERAL*/["hello"];
     Function2<int, List<String>> l3 = (int x) => /*info:INFERRED_TYPE_LITERAL*/[/*warning:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/3];
     Function2<int, List<String>> l4 = /*info:INFERRED_TYPE_CLOSURE*/(int x) {return /*info:INFERRED_TYPE_LITERAL*/[/*warning:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/3];};
   }
   {
     Function2<int, int> l0 = /*info:INFERRED_TYPE_CLOSURE*/(x) => x;
     Function2<int, int> l1 = /*info:INFERRED_TYPE_CLOSURE*/(x) => x+1;
-    Function2<int, String> l2 = /*info:INFERRED_TYPE_CLOSURE, severe:INVALID_ASSIGNMENT*/(x) => x;
+    Function2<int, String> l2 = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/(x) => x;
     Function2<int, String> l3 = /*info:INFERRED_TYPE_CLOSURE*/(x) => /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/x.substring(3);
     Function2<String, String> l4 = /*info:INFERRED_TYPE_CLOSURE*/(x) => x.substring(3);
   }
@@ -940,25 +940,25 @@ void main () {
     var v = f;
     v = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(int x) => null;
     v = /*<T>*/(int x) => "hello";
-    v = /*severe:INVALID_ASSIGNMENT*//*<T>*/(String x) => "hello";
-    v = /*severe:INVALID_ASSIGNMENT*//*<T>*/(int x) => 3;
-    v = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(int x) {return /*severe:RETURN_OF_INVALID_TYPE*/3;};
+    v = /*error:INVALID_ASSIGNMENT*//*<T>*/(String x) => "hello";
+    v = /*error:INVALID_ASSIGNMENT*//*<T>*/(int x) => 3;
+    v = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(int x) {return /*error:RETURN_OF_INVALID_TYPE*/3;};
   }
   {
     String f/*<S>*/(int x) => null;
     var v = f;
     v = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) => null;
     v = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) => "hello";
-    v = /*info:INFERRED_TYPE_CLOSURE, severe:INVALID_ASSIGNMENT*//*<T>*/(x) => 3;
-    v = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) {return /*severe:RETURN_OF_INVALID_TYPE*/3;};
-    v = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) {return /*severe:RETURN_OF_INVALID_TYPE*/x;};
+    v = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*//*<T>*/(x) => 3;
+    v = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) {return /*error:RETURN_OF_INVALID_TYPE*/3;};
+    v = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) {return /*error:RETURN_OF_INVALID_TYPE*/x;};
   }
   {
     List<String> f/*<S>*/(int x) => null;
     var v = f;
     v = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(int x) => null;
     v = /*<T>*/(int x) => /*info:INFERRED_TYPE_LITERAL*/["hello"];
-    v = /*severe:INVALID_ASSIGNMENT*//*<T>*/(String x) => /*info:INFERRED_TYPE_LITERAL*/["hello"];
+    v = /*error:INVALID_ASSIGNMENT*//*<T>*/(String x) => /*info:INFERRED_TYPE_LITERAL*/["hello"];
     v = /*<T>*/(int x) => /*info:INFERRED_TYPE_LITERAL*/[/*warning:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/3];
     v = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(int x) {return /*info:INFERRED_TYPE_LITERAL*/[/*warning:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/3];};
   }
@@ -970,7 +970,7 @@ void main () {
     x = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) => x;
     x = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) => x+1;
     var y = int2String;
-    y = /*info:INFERRED_TYPE_CLOSURE, severe:INVALID_ASSIGNMENT*//*<T>*/(x) => x;
+    y = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*//*<T>*/(x) => x;
     y = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) => /*info:DYNAMIC_INVOKE, info:DYNAMIC_CAST*/x.substring(3);
     var z = string2String;
     z = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) => x.substring(3);
@@ -1018,8 +1018,8 @@ void main() {
     A<int, String> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new A.named(3, "hello");
     A<int, String> a2 = new A<int, String>(3, "hello");
     A<int, String> a3 = new A<int, String>.named(3, "hello");
-    A<int, String> a4 = /*severe:STATIC_TYPE_ERROR*/new A<int, dynamic>(3, "hello");
-    A<int, String> a5 = /*severe:STATIC_TYPE_ERROR*/new A<dynamic, dynamic>.named(3, "hello");
+    A<int, String> a4 = /*error:STATIC_TYPE_ERROR*/new A<int, dynamic>(3, "hello");
+    A<int, String> a5 = /*error:STATIC_TYPE_ERROR*/new A<dynamic, dynamic>.named(3, "hello");
   }
   {
     A<int, String> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new A(
@@ -1034,8 +1034,8 @@ void main() {
     A<int, String> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new B.named("hello", 3);
     A<int, String> a2 = new B<String, int>("hello", 3);
     A<int, String> a3 = new B<String, int>.named("hello", 3);
-    A<int, String> a4 = /*severe:STATIC_TYPE_ERROR*/new B<String, dynamic>("hello", 3);
-    A<int, String> a5 = /*severe:STATIC_TYPE_ERROR*/new B<dynamic, dynamic>.named("hello", 3);
+    A<int, String> a4 = /*error:STATIC_TYPE_ERROR*/new B<String, dynamic>("hello", 3);
+    A<int, String> a5 = /*error:STATIC_TYPE_ERROR*/new B<dynamic, dynamic>.named("hello", 3);
   }
   {
     A<int, String> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new B(
@@ -1050,8 +1050,8 @@ void main() {
     A<int, int> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new C.named(3);
     A<int, int> a2 = new C<int>(3);
     A<int, int> a3 = new C<int>.named(3);
-    A<int, int> a4 = /*severe:STATIC_TYPE_ERROR*/new C<dynamic>(3);
-    A<int, int> a5 = /*severe:STATIC_TYPE_ERROR*/new C<dynamic>.named(3);
+    A<int, int> a4 = /*error:STATIC_TYPE_ERROR*/new C<dynamic>(3);
+    A<int, int> a5 = /*error:STATIC_TYPE_ERROR*/new C<dynamic>.named(3);
   }
   {
     A<int, int> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new C(
@@ -1064,8 +1064,8 @@ void main() {
     A<int, String> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new D.named("hello");
     A<int, String> a2 = new D<int, String>("hello");
     A<int, String> a3 = new D<String, String>.named("hello");
-    A<int, String> a4 = /*severe:STATIC_TYPE_ERROR*/new D<num, dynamic>("hello");
-    A<int, String> a5 = /*severe:STATIC_TYPE_ERROR*/new D<dynamic, dynamic>.named("hello");
+    A<int, String> a4 = /*error:STATIC_TYPE_ERROR*/new D<num, dynamic>("hello");
+    A<int, String> a5 = /*error:STATIC_TYPE_ERROR*/new D<dynamic, dynamic>.named("hello");
   }
   {
     A<int, String> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new D(
@@ -1074,7 +1074,7 @@ void main() {
         /*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3);
   }
   { // Currently we only allow variable constraints.  Test that we reject.
-    A<C<int>, String> a0 = /*severe:STATIC_TYPE_ERROR*/new E("hello");
+    A<C<int>, String> a0 = /*error:STATIC_TYPE_ERROR*/new E("hello");
   }
   { // Check named and optional arguments
     A<int, String> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new F(3, "hello",
@@ -1097,7 +1097,7 @@ void main() {
   void test_downwardsInferenceOnListLiterals_inferDownwards() {
     checkFile('''
 void foo([List<String> list1 = /*info:INFERRED_TYPE_LITERAL*/const [],
-          List<String> list2 = /*info:INFERRED_TYPE_LITERAL*/const [/*severe:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,warning:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/42]]) {
+          List<String> list2 = /*info:INFERRED_TYPE_LITERAL*/const [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,warning:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/42]]) {
 }
 
 void main() {
@@ -1114,10 +1114,10 @@ void main() {
     List<dynamic> l3 = /*info:INFERRED_TYPE_LITERAL*/["hello", 3];
   }
   {
-    List<int> l0 = /*severe:STATIC_TYPE_ERROR*/<num>[];
-    List<int> l1 = /*severe:STATIC_TYPE_ERROR*/<num>[3];
-    List<int> l2 = /*severe:STATIC_TYPE_ERROR*/<num>[/*warning:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"];
-    List<int> l3 = /*severe:STATIC_TYPE_ERROR*/<num>[/*warning:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello", 3];
+    List<int> l0 = /*error:STATIC_TYPE_ERROR*/<num>[];
+    List<int> l1 = /*error:STATIC_TYPE_ERROR*/<num>[3];
+    List<int> l2 = /*error:STATIC_TYPE_ERROR*/<num>[/*warning:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"];
+    List<int> l3 = /*error:STATIC_TYPE_ERROR*/<num>[/*warning:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello", 3];
   }
   {
     Iterable<int> i0 = /*info:INFERRED_TYPE_LITERAL*/[];
@@ -1128,8 +1128,8 @@ void main() {
   {
     const List<int> c0 = /*info:INFERRED_TYPE_LITERAL*/const [];
     const List<int> c1 = /*info:INFERRED_TYPE_LITERAL*/const [3];
-    const List<int> c2 = /*info:INFERRED_TYPE_LITERAL*/const [/*severe:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,warning:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"];
-    const List<int> c3 = /*info:INFERRED_TYPE_LITERAL*/const [/*severe:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,warning:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello", 3];
+    const List<int> c2 = /*info:INFERRED_TYPE_LITERAL*/const [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,warning:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"];
+    const List<int> c3 = /*info:INFERRED_TYPE_LITERAL*/const [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,warning:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello", 3];
   }
 }
 ''');
@@ -1200,7 +1200,7 @@ void foo([Map<int, String> m1 = /*info:INFERRED_TYPE_LITERAL*/const {1: "hello"}
     Map<int, String> m2 = /*info:INFERRED_TYPE_LITERAL*/const {
       // The warning is the type error, and the severe is the compile time
       // error from const evaluation.
-      /*severe:MAP_KEY_TYPE_NOT_ASSIGNABLE,warning:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello":
+      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE,warning:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello":
           "world"
     }]) {
 }
@@ -1252,24 +1252,24 @@ void main() {
     };
   }
   {
-    Map<int, String> l0 = /*severe:STATIC_TYPE_ERROR*/<num, dynamic>{};
-    Map<int, String> l1 = /*severe:STATIC_TYPE_ERROR*/<num, dynamic>{3: "hello"};
-    Map<int, String> l3 = /*severe:STATIC_TYPE_ERROR*/<num, dynamic>{3: 3};
+    Map<int, String> l0 = /*error:STATIC_TYPE_ERROR*/<num, dynamic>{};
+    Map<int, String> l1 = /*error:STATIC_TYPE_ERROR*/<num, dynamic>{3: "hello"};
+    Map<int, String> l3 = /*error:STATIC_TYPE_ERROR*/<num, dynamic>{3: 3};
   }
   {
     const Map<int, String> l0 = /*info:INFERRED_TYPE_LITERAL*/const {};
     const Map<int, String> l1 = /*info:INFERRED_TYPE_LITERAL*/const {3: "hello"};
     const Map<int, String> l2 = /*info:INFERRED_TYPE_LITERAL*/const {
-      /*severe:MAP_KEY_TYPE_NOT_ASSIGNABLE,warning:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello":
+      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE,warning:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello":
           "hello"
     };
     const Map<int, String> l3 = /*info:INFERRED_TYPE_LITERAL*/const {
-      3: /*severe:MAP_VALUE_TYPE_NOT_ASSIGNABLE,warning:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/3
+      3: /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE,warning:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/3
     };
     const Map<int, String> l4 = /*info:INFERRED_TYPE_LITERAL*/const {
       3:"hello",
-      /*severe:MAP_KEY_TYPE_NOT_ASSIGNABLE,warning:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello":
-          /*severe:MAP_VALUE_TYPE_NOT_ASSIGNABLE,warning:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/3
+      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE,warning:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello":
+          /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE,warning:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/3
     };
   }
 }
@@ -1281,15 +1281,15 @@ void main() {
 import 'dart:async';
 Stream<List<int>> foo() async* {
   yield /*info:INFERRED_TYPE_LITERAL*/[];
-  yield /*severe:YIELD_OF_INVALID_TYPE*/new Stream();
-  yield* /*severe:YIELD_OF_INVALID_TYPE*/[];
+  yield /*error:YIELD_OF_INVALID_TYPE*/new Stream();
+  yield* /*error:YIELD_OF_INVALID_TYPE*/[];
   yield* /*info:INFERRED_TYPE_ALLOCATION*/new Stream();
 }
 
 Iterable<Map<int, int>> bar() sync* {
   yield /*info:INFERRED_TYPE_LITERAL*/{};
-  yield /*severe:YIELD_OF_INVALID_TYPE*/new List();
-  yield* /*severe:YIELD_OF_INVALID_TYPE*/{};
+  yield /*error:YIELD_OF_INVALID_TYPE*/new List();
+  yield* /*error:YIELD_OF_INVALID_TYPE*/{};
   yield* /*info:INFERRED_TYPE_ALLOCATION*/new List();
 }
   ''');
@@ -1394,10 +1394,10 @@ class C {
 /*=T*/ m/*<T>*/(/*=T*/ x) => x;
 }
 class D extends C {
-/*severe:INVALID_METHOD_OVERRIDE*/m(x) => x;
+/*error:INVALID_METHOD_OVERRIDE*/m(x) => x;
 }
 main() {
-  int y = /*info:DYNAMIC_CAST*/new D()./*severe:WRONG_NUMBER_OF_TYPE_ARGUMENTS*/m/*<int>*/(42);
+  int y = /*info:DYNAMIC_CAST*/new D()./*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS*/m/*<int>*/(42);
   print(y);
 }
 ''');
@@ -1513,11 +1513,11 @@ takeDDN(math.max);
 takeIIO(math.max);
 takeDDO(math.max);
 
-takeOOI(/*severe:STATIC_TYPE_ERROR,warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
-takeIDI(/*severe:STATIC_TYPE_ERROR,warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
-takeDID(/*severe:STATIC_TYPE_ERROR,warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
-takeOON(/*severe:STATIC_TYPE_ERROR,warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
-takeOOO(/*severe:STATIC_TYPE_ERROR,warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
+takeOOI(/*error:STATIC_TYPE_ERROR,warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
+takeIDI(/*error:STATIC_TYPE_ERROR,warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
+takeDID(/*error:STATIC_TYPE_ERROR,warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
+takeOON(/*error:STATIC_TYPE_ERROR,warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
+takeOOO(/*error:STATIC_TYPE_ERROR,warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
 
 // Also test SimpleIdentifier
 takeIII(min);
@@ -1530,11 +1530,11 @@ takeDDN(min);
 takeIIO(min);
 takeDDO(min);
 
-takeOOI(/*severe:STATIC_TYPE_ERROR,warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
-takeIDI(/*severe:STATIC_TYPE_ERROR,warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
-takeDID(/*severe:STATIC_TYPE_ERROR,warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
-takeOON(/*severe:STATIC_TYPE_ERROR,warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
-takeOOO(/*severe:STATIC_TYPE_ERROR,warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
+takeOOI(/*error:STATIC_TYPE_ERROR,warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
+takeIDI(/*error:STATIC_TYPE_ERROR,warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
+takeDID(/*error:STATIC_TYPE_ERROR,warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
+takeOON(/*error:STATIC_TYPE_ERROR,warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
+takeOOO(/*error:STATIC_TYPE_ERROR,warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
 
 // Also PropertyAccess
 takeIII(new C().m);
@@ -1605,10 +1605,10 @@ main() {
     checkFile('''
 import 'dart:_foreign_helper' show JS;
 main() {
-  String x = /*severe:INVALID_ASSIGNMENT*/JS('int', '42');
+  String x = /*error:INVALID_ASSIGNMENT*/JS('int', '42');
   var y = JS('String', '"hello"');
   y = "world";
-  y = /*severe:INVALID_ASSIGNMENT*/42;
+  y = /*error:INVALID_ASSIGNMENT*/42;
 }
 ''');
   }
@@ -1901,13 +1901,13 @@ foo() {
   int i;
 
   s = /*info:DYNAMIC_CAST*/new B().x;
-  s = /*severe:INVALID_ASSIGNMENT*/new B().y;
+  s = /*error:INVALID_ASSIGNMENT*/new B().y;
   s = new B().z;
-  s = /*severe:INVALID_ASSIGNMENT*/new B().w;
+  s = /*error:INVALID_ASSIGNMENT*/new B().w;
 
   i = /*info:DYNAMIC_CAST*/new B().x;
   i = new B().y;
-  i = /*severe:INVALID_ASSIGNMENT*/new B().z;
+  i = /*error:INVALID_ASSIGNMENT*/new B().z;
   i = new B().w;
 }
 ''');
@@ -2078,32 +2078,32 @@ var f = 2 + 3;          // binary expressions are OK if the left operand
                         // conected component.
 var g = -3;
 var h = new A() + 3;
-var i = /*severe:UNDEFINED_OPERATOR*/- new A();
+var i = /*error:UNDEFINED_OPERATOR*/- new A();
 var j = null as B;
 
 test1() {
-  a = /*severe:INVALID_ASSIGNMENT*/"hi";
+  a = /*error:INVALID_ASSIGNMENT*/"hi";
   a = new B(3);
-  b = /*severe:INVALID_ASSIGNMENT*/"hi";
+  b = /*error:INVALID_ASSIGNMENT*/"hi";
   b = new B(3);
   c1 = [];
-  c1 = /*severe:INVALID_ASSIGNMENT*/{};
+  c1 = /*error:INVALID_ASSIGNMENT*/{};
   c2 = [];
-  c2 = /*severe:INVALID_ASSIGNMENT*/{};
+  c2 = /*error:INVALID_ASSIGNMENT*/{};
   d = {};
-  d = /*severe:INVALID_ASSIGNMENT*/3;
+  d = /*error:INVALID_ASSIGNMENT*/3;
   e = new A();
-  e = /*severe:INVALID_ASSIGNMENT*/{};
+  e = /*error:INVALID_ASSIGNMENT*/{};
   f = 3;
-  f = /*severe:INVALID_ASSIGNMENT*/false;
+  f = /*error:INVALID_ASSIGNMENT*/false;
   g = 1;
-  g = /*severe:INVALID_ASSIGNMENT*/false;
-  h = /*severe:INVALID_ASSIGNMENT*/false;
+  g = /*error:INVALID_ASSIGNMENT*/false;
+  h = /*error:INVALID_ASSIGNMENT*/false;
   h = new B('b');
   i = false;
   j = new B('b');
-  j = /*severe:INVALID_ASSIGNMENT*/false;
-  j = /*severe:INVALID_ASSIGNMENT*/[];
+  j = /*error:INVALID_ASSIGNMENT*/false;
+  j = /*error:INVALID_ASSIGNMENT*/[];
 }
 ''');
   }
@@ -2136,7 +2136,7 @@ class B implements A {
 }
 
 foo() {
-  String y = /*severe:INVALID_ASSIGNMENT*/new B().x;
+  String y = /*error:INVALID_ASSIGNMENT*/new B().x;
   int z = new B().x;
 }
 ''');
@@ -2191,8 +2191,8 @@ import 'a.dart';
 var y = x;
 
 test1() {
-  x = /*severe:INVALID_ASSIGNMENT*/"hi";
-  y = /*severe:INVALID_ASSIGNMENT*/"hi";
+  x = /*error:INVALID_ASSIGNMENT*/"hi";
+  y = /*error:INVALID_ASSIGNMENT*/"hi";
 }
 ''');
   }
@@ -2208,8 +2208,8 @@ import 'a.dart';
 class B { static var y = A.x; }
 
 test1() {
-  A.x = /*severe:INVALID_ASSIGNMENT*/"hi";
-  B.y = /*severe:INVALID_ASSIGNMENT*/"hi";
+  A.x = /*error:INVALID_ASSIGNMENT*/"hi";
+  B.y = /*error:INVALID_ASSIGNMENT*/"hi";
 }
 ''');
   }
@@ -2353,7 +2353,7 @@ class C {
     checkFile('''
 class Foo {
   var x = 1;
-  Foo([this.x = /*severe:INVALID_ASSIGNMENT*/"1"]);
+  Foo([this.x = /*error:INVALID_ASSIGNMENT*/"1"]);
 }''');
   }
 
@@ -2794,11 +2794,11 @@ class A {
 }
 
 class B extends A {
-  /*severe:INVALID_FIELD_OVERRIDE*/get x => 3;
+  /*error:INVALID_FIELD_OVERRIDE*/get x => 3;
 }
 
 foo() {
-  String y = /*severe:INVALID_ASSIGNMENT*/new B().x;
+  String y = /*error:INVALID_ASSIGNMENT*/new B().x;
   int z = new B().x;
 }
 ''');
@@ -2815,7 +2815,7 @@ class B implements A {
 }
 
 foo() {
-  String y = /*severe:INVALID_ASSIGNMENT*/new B().x;
+  String y = /*error:INVALID_ASSIGNMENT*/new B().x;
   int z = new B().x;
 }
 ''');
@@ -2826,7 +2826,7 @@ foo() {
     checkFile('''
 test1() {
   int x = 3;
-  x = /*severe:INVALID_ASSIGNMENT*/"hi";
+  x = /*error:INVALID_ASSIGNMENT*/"hi";
 }
 ''');
   }
@@ -2835,7 +2835,7 @@ test1() {
     checkFile('''
 test2() {
   var x = 3;
-  x = /*severe:INVALID_ASSIGNMENT*/"hi";
+  x = /*error:INVALID_ASSIGNMENT*/"hi";
 }
 ''');
   }
@@ -2847,13 +2847,13 @@ class A {
 
   test1() {
     var a = x;
-    a = /*severe:INVALID_ASSIGNMENT*/"hi";
+    a = /*error:INVALID_ASSIGNMENT*/"hi";
     a = 3;
     var b = y;
-    b = /*severe:INVALID_ASSIGNMENT*/"hi";
+    b = /*error:INVALID_ASSIGNMENT*/"hi";
     b = 4;
     var c = z;
-    c = /*severe:INVALID_ASSIGNMENT*/"hi";
+    c = /*error:INVALID_ASSIGNMENT*/"hi";
     c = 4;
   }
 
@@ -2869,13 +2869,13 @@ int x = 0;
 
 test1() {
   var a = x;
-  a = /*severe:INVALID_ASSIGNMENT*/"hi";
+  a = /*error:INVALID_ASSIGNMENT*/"hi";
   a = 3;
   var b = y;
-  b = /*severe:INVALID_ASSIGNMENT*/"hi";
+  b = /*error:INVALID_ASSIGNMENT*/"hi";
   b = 4;
   var c = z;
-  c = /*severe:INVALID_ASSIGNMENT*/"hi";
+  c = /*error:INVALID_ASSIGNMENT*/"hi";
   c = 4;
 }
 
@@ -2902,7 +2902,7 @@ class A {
 }
 foo() {
   int y = new C().x;
-  String z = /*severe:INVALID_ASSIGNMENT*/new C().x;
+  String z = /*error:INVALID_ASSIGNMENT*/new C().x;
 }
 ''');
   }
@@ -2916,11 +2916,11 @@ class A<T> {
 
 class B implements A<int> {
   get x => 3;
-  get w => /*severe:RETURN_OF_INVALID_TYPE*/"hello";
+  get w => /*error:RETURN_OF_INVALID_TYPE*/"hello";
 }
 
 foo() {
-  String y = /*severe:INVALID_ASSIGNMENT*/new B().x;
+  String y = /*error:INVALID_ASSIGNMENT*/new B().x;
   int z = new B().x;
 }
 ''');
@@ -2934,11 +2934,11 @@ class A<T> {
 
 class B<E> extends A<E> {
   E y;
-  /*severe:INVALID_FIELD_OVERRIDE*/get x => y;
+  /*error:INVALID_FIELD_OVERRIDE*/get x => y;
 }
 
 foo() {
-  int y = /*severe:INVALID_ASSIGNMENT*/new B<String>().x;
+  int y = /*error:INVALID_ASSIGNMENT*/new B<String>().x;
   String z = new B<String>().x;
 }
 ''');
@@ -2967,7 +2967,7 @@ class B<E> extends A<E> implements M {
 }
 
 foo () {
-  int y = /*severe:INVALID_ASSIGNMENT*/new B().m(null, null);
+  int y = /*error:INVALID_ASSIGNMENT*/new B().m(null, null);
   String z = new B().m(null, null);
 }
 ''');
@@ -2980,7 +2980,7 @@ class A<T> {
 }
 
 class B implements A<int> {
-  /*severe:INVALID_METHOD_OVERRIDE*/dynamic get x => 3;
+  /*error:INVALID_METHOD_OVERRIDE*/dynamic get x => 3;
 }
 
 foo() {
@@ -3023,7 +3023,7 @@ class B<E> extends A<E> implements M {
 }
 
 foo () {
-  int y = /*severe:INVALID_ASSIGNMENT*/new B<String>().m(null, null).value;
+  int y = /*error:INVALID_ASSIGNMENT*/new B<String>().m(null, null).value;
   String z = new B<String>().m(null, null).value;
 }
 ''');
@@ -3038,7 +3038,7 @@ class Foo {
 class Bar<T extends Iterable<String>> {
   void foo(T t) {
     for (var i in t) {
-      int x = /*severe:INVALID_ASSIGNMENT*/i;
+      int x = /*error:INVALID_ASSIGNMENT*/i;
     }
   }
 }
@@ -3046,7 +3046,7 @@ class Bar<T extends Iterable<String>> {
 class Baz<T, E extends Iterable<T>, S extends E> {
   void foo(S t) {
     for (var i in t) {
-      int x = /*severe:INVALID_ASSIGNMENT*/i;
+      int x = /*error:INVALID_ASSIGNMENT*/i;
       T y = i;
     }
   }
@@ -3055,7 +3055,7 @@ class Baz<T, E extends Iterable<T>, S extends E> {
 test() {
   var list = <Foo>[];
   for (var x in list) {
-    String y = /*severe:INVALID_ASSIGNMENT*/x;
+    String y = /*error:INVALID_ASSIGNMENT*/x;
   }
 
   for (dynamic x in list) {
@@ -3064,7 +3064,7 @@ test() {
     String y = /*info:DYNAMIC_CAST,info:INVALID_ASSIGNMENT*/x;
   }
 
-  for (String x in /*severe:FOR_IN_OF_INVALID_ELEMENT_TYPE*/list) {
+  for (String x in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/list) {
     String y = x;
   }
 
@@ -3085,7 +3085,7 @@ test() {
 
   var map = <String, Foo>{};
   // Error: map must be an Iterable.
-  for (var x in /*severe:FOR_IN_OF_INVALID_TYPE*/map) {
+  for (var x in /*error:FOR_IN_OF_INVALID_TYPE*/map) {
     String y = /*info:DYNAMIC_CAST*/x;
   }
 
@@ -3132,7 +3132,7 @@ class B {
 import 'a.dart';
 import 'b.dart';
 main() {
-  new A().x = /*severe:INVALID_ASSIGNMENT*/'foo';
+  new A().x = /*error:INVALID_ASSIGNMENT*/'foo';
   new B().x = 'foo';
 }
 ''');
@@ -3304,7 +3304,7 @@ test1() {
   x[3] = 'z';
   x[/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi'] = 'w';
   x[/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/4.0] = 'u';
-  x[3] = /*severe:INVALID_ASSIGNMENT*/42;
+  x[3] = /*error:INVALID_ASSIGNMENT*/42;
   Map<num, String> y = x;
 }
 
@@ -3313,7 +3313,7 @@ test2() {
   x[3] = 'z';
   x[/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi'] = 'w';
   x[4.0] = 'u';
-  x[3] = /*severe:INVALID_ASSIGNMENT*/42;
+  x[3] = /*error:INVALID_ASSIGNMENT*/42;
   Pattern p = null;
   x[2] = p;
   Map<int, String> y = /*info:ASSIGNMENT_CAST*/x;
@@ -3328,7 +3328,7 @@ test1() {
   x1[3] = 'z';
   x1[/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi'] = 'w';
   x1[/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/4.0] = 'u';
-  x1[3] = /*severe:INVALID_ASSIGNMENT*/42;
+  x1[3] = /*error:INVALID_ASSIGNMENT*/42;
   Map<num, String> y = x1;
 }
 
@@ -3337,7 +3337,7 @@ test2() {
   x2[3] = 'z';
   x2[/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi'] = 'w';
   x2[4.0] = 'u';
-  x2[3] = /*severe:INVALID_ASSIGNMENT*/42;
+  x2[3] = /*error:INVALID_ASSIGNMENT*/42;
   Pattern p = null;
   x2[2] = p;
   Map<int, String> y = /*info:ASSIGNMENT_CAST*/x2;
@@ -3487,10 +3487,10 @@ class A {
 
 test5() {
   var a1 = new A();
-  a1.x = /*severe:INVALID_ASSIGNMENT*/"hi";
+  a1.x = /*error:INVALID_ASSIGNMENT*/"hi";
 
   A a2 = new A();
-  a2.x = /*severe:INVALID_ASSIGNMENT*/"hi";
+  a2.x = /*error:INVALID_ASSIGNMENT*/"hi";
 }
 ''');
   }
@@ -3643,7 +3643,7 @@ class C {
     checkFile('''
 import 'a.dart';
 test() {
-  x = /*severe:INVALID_ASSIGNMENT*/"hi";
+  x = /*error:INVALID_ASSIGNMENT*/"hi";
 }
 ''');
   }
@@ -3732,7 +3732,7 @@ class InferredTypeTest extends InferredTypeMixin {
   /// create a file like:
   ///
   ///     addFile('''
-  ///       String x = /*severe:STATIC_TYPE_ERROR*/3;
+  ///       String x = /*error:STATIC_TYPE_ERROR*/3;
   ///     ''');
   ///     check();
   ///
