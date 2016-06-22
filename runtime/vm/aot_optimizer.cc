@@ -2404,9 +2404,7 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
       break;
   }
 
-  // No IC data checks. Try resolve target using the propagated type.
-  // If the propagated type has a method with the target name and there are
-  // no overrides with that name according to CHA, call the method directly.
+  // No IC data checks. Try resolve target using the propagated cid.
   const intptr_t receiver_cid =
       instr->PushArgumentAt(0)->value()->Type()->ToCid();
   if (receiver_cid != kDynamicCid) {
@@ -2423,32 +2421,20 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
             instr->function_name(),
             args_desc));
     if (!function.IsNull()) {
-      intptr_t subclasses = 0;
-      if (!thread()->cha()->HasOverride(receiver_class,
-                                        instr->function_name(),
-                                        &subclasses)) {
-        if (FLAG_trace_cha) {
-          THR_Print("  **(CHA) Instance call needs no check, "
-              "no overrides of '%s' '%s'\n",
-              instr->function_name().ToCString(), receiver_class.ToCString());
-        }
-
-        // Create fake IC data with the resolved target.
-        const ICData& ic_data = ICData::Handle(
-            ICData::New(flow_graph_->function(),
-                        instr->function_name(),
-                        args_desc_array,
-                        Thread::kNoDeoptId,
-                        /* args_tested = */ 1,
-                        false));
-        ic_data.AddReceiverCheck(receiver_class.id(), function);
-        PolymorphicInstanceCallInstr* call =
-            new(Z) PolymorphicInstanceCallInstr(instr, ic_data,
-                                                /* with_checks = */ false,
-                                                /* complete = */ true);
-        instr->ReplaceWith(call, current_iterator());
-        return;
-      }
+      const ICData& ic_data = ICData::Handle(
+          ICData::New(flow_graph_->function(),
+                      instr->function_name(),
+                      args_desc_array,
+                      Thread::kNoDeoptId,
+                      /* args_tested = */ 1,
+                      false));
+      ic_data.AddReceiverCheck(receiver_class.id(), function);
+      PolymorphicInstanceCallInstr* call =
+          new(Z) PolymorphicInstanceCallInstr(instr, ic_data,
+                                              /* with_checks = */ false,
+                                              /* complete = */ true);
+      instr->ReplaceWith(call, current_iterator());
+      return;
     }
   }
 
