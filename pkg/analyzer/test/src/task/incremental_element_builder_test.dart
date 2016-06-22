@@ -666,6 +666,19 @@ class A {
     expect(helper.delta.removedMethods, isEmpty);
   }
 
+  test_classDelta_typeParameter_same() {
+    _buildOldUnit(r'''
+class A<T> {
+  m() {}
+}
+''');
+    _buildNewUnit(r'''
+class A<T> {
+  m2() {}
+}
+''');
+  }
+
   test_directives_add() {
     _buildOldUnit(r'''
 library test;
@@ -1300,6 +1313,23 @@ final int a =  1;
     expect(unitDelta.removedDeclarations, unorderedEquals([]));
   }
 
+  test_update_beforeClassWithDelta_nameOffset() {
+    _buildOldUnit(r'''
+class A {}
+
+class B {
+  A a;
+}
+''');
+    _buildNewUnit(r'''
+class A2 {}
+
+class B {
+  A2 a;
+}
+''');
+  }
+
   test_update_changeDuplicatingOffsetsMapping() {
     _buildOldUnit(r'''
 class A {
@@ -1416,13 +1446,22 @@ main() {
 class _BuiltElementsValidator extends AstComparator {
   @override
   bool isEqualNodes(AstNode expected, AstNode actual) {
-    // Elements of constructors must be linked to the elements of the
-    // corresponding enclosing classes.
-    if (actual is ConstructorDeclaration) {
-      ConstructorElement actualConstructorElement = actual.element;
-      ClassDeclaration actualClassNode = actual.parent;
-      expect(actualConstructorElement.enclosingElement,
-          same(actualClassNode.element));
+    // Elements of nodes which are children of ClassDeclaration(s) must be
+    // linked to the corresponding ClassElement(s).
+    if (actual is TypeParameter) {
+      TypeParameterElement element = actual.element;
+      ClassDeclaration classNode = actual.parent.parent;
+      expect(element.enclosingElement, same(classNode.element));
+    } else if (actual is FieldDeclaration) {
+      for (VariableDeclaration field in actual.fields.variables) {
+        Element element = field.element;
+        ClassDeclaration classNode = actual.parent;
+        expect(element.enclosingElement, same(classNode.element));
+      }
+    } else if (actual is ClassMember) {
+      Element element = actual.element;
+      ClassDeclaration classNode = actual.parent;
+      expect(element.enclosingElement, same(classNode.element));
     }
     // Identifiers like 'a.b' in 'new a.b()' might be rewritten if resolver
     // sees that 'a' is actually a class name, so 'b' is a constructor name.

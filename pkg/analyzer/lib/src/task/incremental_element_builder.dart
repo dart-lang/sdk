@@ -141,7 +141,9 @@ class IncrementalCompilationUnitElementBuilder {
     // Use the old element for the new node.
     newClass.name.staticElement = oldElement;
     if (newElement is ClassElementImpl && oldElement is ClassElementImpl) {
+      oldElement.nameOffset = newElement.nameOffset;
       oldElement.setCodeRange(newElement.codeOffset, newElement.codeLength);
+      oldElement.typeParameters = newElement.typeParameters;
     }
     // Prepare delta.
     ClassElementImpl classElement = oldClass.element;
@@ -260,6 +262,8 @@ class IncrementalCompilationUnitElementBuilder {
     // Update ClassElement.
     classElement.accessors = classElementHolder.accessors;
     classElement.constructors = classElementHolder.constructors;
+    classElement.fields =
+        classElement.accessors.map((a) => a.variable).toSet().toList();
     classElement.methods = classElementHolder.methods;
     classElementHolder.validate();
     // Ensure at least a default synthetic constructor.
