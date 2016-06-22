@@ -374,16 +374,14 @@ class IncrementalCompilationUnitElementBuilder {
     // Replace node.
     NodeReplacer.replace(newNode, oldNode);
     // Replace tokens.
-    {
-      Token oldBeginToken = TokenUtils.getBeginTokenNotComment(newNode);
-      Token newBeginToken = TokenUtils.getBeginTokenNotComment(oldNode);
-      oldBeginToken.previous.setNext(newBeginToken);
-      oldNode.endToken.setNext(newNode.endToken.next);
-    }
+    Token oldBeginToken = TokenUtils.getBeginTokenNotComment(oldNode);
+    Token newBeginToken = TokenUtils.getBeginTokenNotComment(newNode);
+    newBeginToken.previous.setNext(oldBeginToken);
+    oldNode.endToken.setNext(newNode.endToken.next);
     // Change tokens offsets.
     Map<int, int> offsetMap = new HashMap<int, int>();
-    TokenUtils.copyTokenOffsets(offsetMap, oldNode.beginToken,
-        newNode.beginToken, oldNode.endToken, newNode.endToken, true);
+    TokenUtils.copyTokenOffsets(offsetMap, oldBeginToken, newBeginToken,
+        oldNode.endToken, newNode.endToken);
     // Change elements offsets.
     {
       var visitor = new _UpdateElementOffsetsVisitor(offsetMap);
@@ -449,6 +447,7 @@ class IncrementalCompilationUnitElementBuilder {
     to.declarations.addAll(from.declarations);
     to.element = to.element;
     to.lineInfo = from.lineInfo;
+    to.endToken = from.endToken;
   }
 }
 
@@ -462,13 +461,8 @@ class TokenUtils {
    * Copy offsets from [newToken]s to [oldToken]s.
    */
   static void copyTokenOffsets(Map<int, int> offsetMap, Token oldToken,
-      Token newToken, Token oldEndToken, Token newEndToken,
-      [bool goUpComment = false]) {
+      Token newToken, Token oldEndToken, Token newEndToken) {
     if (oldToken is CommentToken && newToken is CommentToken) {
-      if (goUpComment) {
-        copyTokenOffsets(offsetMap, (oldToken as CommentToken).parent,
-            (newToken as CommentToken).parent, oldEndToken, newEndToken);
-      }
       // Update (otherwise unlinked) reference tokens in documentation.
       if (oldToken is DocumentationCommentToken &&
           newToken is DocumentationCommentToken) {
@@ -572,7 +566,7 @@ class _UpdateElementOffsetsVisitor extends GeneralizingElementVisitor {
     if (element is LibraryElement) {
       return;
     }
-    if (element.isSynthetic) {
+    if (element.isSynthetic && !_isVariableInitializer(element)) {
       return;
     }
     if (element is ElementImpl) {
@@ -621,5 +615,10 @@ class _UpdateElementOffsetsVisitor extends GeneralizingElementVisitor {
       }
     }
     super.visitElement(element);
+  }
+
+  static bool _isVariableInitializer(Element element) {
+    return element is FunctionElement &&
+        element.enclosingElement is VariableElement;
   }
 }

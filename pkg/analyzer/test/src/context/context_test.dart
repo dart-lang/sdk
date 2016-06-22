@@ -26,6 +26,7 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart' show Document;
 import 'package:unittest/unittest.dart';
@@ -2768,6 +2769,7 @@ main() {
 }
 ''');
     _performPendingAnalysisTasks();
+    _assertValid(a, LINE_INFO);
     // The class B is not referenced.
     //   a.dart is invalid.
     //   b.dart is valid.
@@ -2779,6 +2781,7 @@ class B2 {}
 class C {}
 ''');
     _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValid(a, LINE_INFO);
     _assertUnitValid(a, RESOLVED_UNIT1);
     _assertUnitInvalid(a, RESOLVED_UNIT);
     _assertValid(b, LIBRARY_ERRORS_READY);

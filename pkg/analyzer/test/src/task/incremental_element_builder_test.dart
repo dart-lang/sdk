@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/incremental_element_builder.dart';
@@ -1299,27 +1300,102 @@ final int a =  1;
     expect(unitDelta.removedDeclarations, unorderedEquals([]));
   }
 
+  test_update_changeDuplicatingOffsetsMapping() {
+    _buildOldUnit(r'''
+class A {
+  m() {
+  }
+}
+
+/// X
+class C {}
+''');
+    _buildNewUnit(r'''
+class A {
+  m2() {
+    b
+  }
+}
+
+/// X
+class C {}
+''');
+  }
+
+  test_update_closuresOfSyntheticInitializer() {
+    _buildOldUnit(r'''
+f1() {
+  print(1);
+}
+f2() {
+  B b = new B((C c) {});
+}
+''');
+    _buildNewUnit(r'''
+f1() {
+  print(12);
+}
+f2() {
+  B b = new B((C c) {});
+}
+''');
+  }
+
+  test_update_rewrittenConstructorName() {
+    _buildOldUnit(r'''
+class A {
+  A();
+  A.named();
+}
+
+foo() {}
+
+main() {
+  new A();
+  new A.named();
+}
+''');
+    _buildNewUnit(r'''
+class A {
+  A();
+  A.named();
+}
+
+bar() {}
+
+main() {
+  new A();
+  new A.named();
+}
+''');
+  }
+
   void _buildNewUnit(String newCode) {
     this.newCode = newCode;
-    context.setContents(source, newCode);
-    newUnit = context.parseCompilationUnit(source);
-    IncrementalCompilationUnitElementBuilder builder =
-        new IncrementalCompilationUnitElementBuilder(oldUnit, newUnit);
-    builder.build();
-    unitDelta = builder.unitDelta;
-    expect(newUnit.element, unitElement);
-    // Flush all tokens, ASTs and elements.
-    context.analysisCache.flush((target, result) {
-      return result == TOKEN_STREAM ||
-          result == PARSED_UNIT ||
-          RESOLVED_UNIT_RESULTS.contains(result) ||
-          LIBRARY_ELEMENT_RESULTS.contains(result);
-    });
-    // Compute a new AST with built elements.
-    CompilationUnit newUnitFull = context.computeResult(
-        new LibrarySpecificUnit(source, source), RESOLVED_UNIT1);
-    expect(newUnitFull, isNot(same(newUnit)));
-    new _BuiltElementsValidator().isEqualNodes(newUnitFull, newUnit);
+    AnalysisEngine.instance.limitInvalidationInTaskModel = false;
+    try {
+      context.setContents(source, newCode);
+      newUnit = context.parseCompilationUnit(source);
+      IncrementalCompilationUnitElementBuilder builder =
+          new IncrementalCompilationUnitElementBuilder(oldUnit, newUnit);
+      builder.build();
+      unitDelta = builder.unitDelta;
+      expect(newUnit.element, unitElement);
+      // Flush all tokens, ASTs and elements.
+      context.analysisCache.flush((target, result) {
+        return result == TOKEN_STREAM ||
+            result == PARSED_UNIT ||
+            RESOLVED_UNIT_RESULTS.contains(result) ||
+            LIBRARY_ELEMENT_RESULTS.contains(result);
+      });
+      // Compute a new AST with built elements.
+      CompilationUnit newUnitFull = context.computeResult(
+          new LibrarySpecificUnit(source, source), RESOLVED_UNIT1);
+      expect(newUnitFull, isNot(same(newUnit)));
+      new _BuiltElementsValidator().isEqualNodes(newUnitFull, newUnit);
+    } finally {
+      AnalysisEngine.instance.limitInvalidationInTaskModel = true;
+    }
   }
 
   void _buildOldUnit(String oldCode, [Source libSource]) {
@@ -1347,6 +1423,18 @@ class _BuiltElementsValidator extends AstComparator {
       ClassDeclaration actualClassNode = actual.parent;
       expect(actualConstructorElement.enclosingElement,
           same(actualClassNode.element));
+    }
+    // Identifiers like 'a.b' in 'new a.b()' might be rewritten if resolver
+    // sees that 'a' is actually a class name, so 'b' is a constructor name.
+    //
+    if (expected is ConstructorName && actual is ConstructorName) {
+      Identifier expectedTypeName = expected.type.name;
+      Identifier actualTypeName = actual.type.name;
+      if (expectedTypeName is PrefixedIdentifier &&
+          actualTypeName is SimpleIdentifier) {
+        return isEqualNodes(expectedTypeName.prefix, actualTypeName) &&
+            isEqualNodes(expectedTypeName.identifier, actual.name);
+      }
     }
     // Compare nodes.
     bool result = super.isEqualNodes(expected, actual);

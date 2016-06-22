@@ -2530,6 +2530,9 @@ class DartDelta extends Delta {
     // we need to keep the same instances of CompilationUnitElement and
     // LibraryElement.
     if (targetSource == source) {
+      if (ScanDartTask.DESCRIPTOR.results.contains(descriptor)) {
+        return DeltaResult.KEEP_CONTINUE;
+      }
       if (ParseDartTask.DESCRIPTOR.results.contains(descriptor)) {
         return DeltaResult.KEEP_CONTINUE;
       }
