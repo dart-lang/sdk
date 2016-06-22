@@ -1908,7 +1908,7 @@ void Precompiler::DedupStackmaps() {
 
     RawStackmap* DedupStackmap(const Stackmap& stackmap) {
       const Stackmap* canonical_stackmap =
-          canonical_stackmaps_.Lookup(&stackmap);
+          canonical_stackmaps_.LookupValue(&stackmap);
       if (canonical_stackmap == NULL) {
         canonical_stackmaps_.Insert(
             &Stackmap::ZoneHandle(zone_, stackmap.raw()));
@@ -1956,7 +1956,7 @@ void Precompiler::DedupStackmapLists() {
 
     RawArray* DedupStackmapList(const Array& stackmaps) {
       const Array* canonical_stackmap_list =
-          canonical_stackmap_lists_.Lookup(&stackmaps);
+          canonical_stackmap_lists_.LookupValue(&stackmaps);
       if (canonical_stackmap_list == NULL) {
         canonical_stackmap_lists_.Insert(
             &Array::ZoneHandle(zone_, stackmaps.raw()));
@@ -2004,7 +2004,7 @@ void Precompiler::DedupInstructions() {
 
     RawInstructions* DedupOneInstructions(const Instructions& instructions) {
       const Instructions* canonical_instructions =
-          canonical_instructions_set_.Lookup(&instructions);
+          canonical_instructions_set_.LookupValue(&instructions);
       if (canonical_instructions == NULL) {
         canonical_instructions_set_.Insert(
             &Instructions::ZoneHandle(zone_, instructions.raw()));

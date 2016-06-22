@@ -542,7 +542,7 @@ class ProfileFunctionTable : public ZoneAllocated {
 
   ProfileFunction* Lookup(const Function& function) {
     ASSERT(!function.IsNull());
-    return function_hash_.Lookup(&function);
+    return function_hash_.LookupValue(&function);
   }
 
   ProfileFunction* GetUnknown() {
