@@ -3556,7 +3556,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     bool outerBreakValue = _enclosingBlockContainsBreak;
     _enclosingBlockContainsBreak = false;
     try {
-      if (_nodeExits(node.body)) {
+      if (_nodeExits(node.body) && !_enclosingBlockContainsBreak) {
         return true;
       }
       Expression conditionExpression = node.condition;
@@ -3858,13 +3858,21 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       if (conditionExpression.accept(this)) {
         return true;
       }
-      bool blockReturns = node.body.accept(this);
+      node.body.accept(this);
       // TODO(jwren) Do we want to take all constant expressions into account?
       if (conditionExpression is BooleanLiteral) {
-        // If while(true), and the body doesn't return or the body doesn't have
-        // a break, then return true.
-        if (conditionExpression.value &&
-            (blockReturns || !_enclosingBlockContainsBreak)) {
+        // If while(true), and the body doesn't have a break, then return true.
+        // The body might be found to exit, but if there are any break
+        // statements, then it is a faulty finding. In other words:
+        //
+        // * If the body exits, and does not contain a break statement, then
+        //   it exits.
+        // * If the body does not exit, and does not contain a break statement,
+        //   then it loops infinitely (also an exit).
+        //
+        // As both conditions forbid any break statements to be found, the logic
+        // just boils down to checking [_enclosingBlockContainsBreak].
+        if (conditionExpression.value && !_enclosingBlockContainsBreak) {
           return true;
         }
       }
