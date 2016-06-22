@@ -21,12 +21,18 @@ vars = {
   "github_mirror":
       "https://chromium.googlesource.com/external/github.com/dart-lang/%s.git",
 
+  # Chromium git
+  "chromium_git": "https://chromium.googlesource.com",
+
   # Only use this temporarily while waiting for a mirror for a new package.
   "github_dartlang": "https://github.com/dart-lang/%s.git",
 
   "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
   "co19_rev": "@3f0a4bc9a080a792cdf5f093147a900f99ea301f",
-  "chromium_git": "https://chromium.googlesource.com",
+
+  # Revisions of GN/Mojo/Flutter related dependencies.
+  "base_revision": "@672b04e54b937ec899429a6bd5409c5a6300d151",
+  "buildtools_revision": "@565d04e8741429fb1b4f26d102f2c6c3b849edeb",
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "@0.13.4",
@@ -118,6 +124,14 @@ deps = {
   # Stuff needed for GYP to run.
   Var("dart_root") + "/third_party/gyp":
       Var('chromium_git') + '/external/gyp.git' + Var("gyp_rev"),
+
+  # Stuff needed for GN/Mojo/Flutter.
+  Var("dart_root") + "/base":
+     Var('chromium_git') + '/external/github.com/domokit/base' +  Var('base_revision'),
+
+  Var("dart_root") + "/buildtools":
+     Var('chromium_git') + '/chromium/buildtools.git' +
+     Var('buildtools_revision'),
 
   Var("dart_root") + "/tests/co19/src":
       (Var("github_mirror") % "co19") + Var("co19_rev"),
