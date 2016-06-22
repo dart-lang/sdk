@@ -167,8 +167,6 @@ typed_data/test/typed_buffers_test: RuntimeError
 
 [ $compiler == dart2analyzer ]
 compiler/samples/compile_loop/compile_loop: CompileTimeError  # Issue 16524
-lookup_map/test/version_check_test: StaticWarning # https://github.com/dart-lang/http_parser/issues/6
-lookup_map/test/lookup_map_test: StaticWarning # https://github.com/dart-lang/http_parser/issues/6
 
 [ $compiler == dart2js && $csp ]
 # This test cannot run under CSP because it is injecting a JavaScript polyfill
