@@ -643,6 +643,14 @@ NOT_IN_PRODUCT(
       (*prefixes)[i]->RegisterDependentCode(code);
     }
   }
+
+  if (FLAG_disassemble && FlowGraphPrinter::ShouldPrint(function)) {
+    Disassembler::DisassembleCode(function, optimized());
+  } else if (FLAG_disassemble_optimized &&
+             optimized() &&
+             FlowGraphPrinter::ShouldPrint(function)) {
+    Disassembler::DisassembleCode(function, true);
+  }
 }
 
 
@@ -1315,13 +1323,6 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
       isolate->debugger()->NotifyCompilation(function);
     }
 
-    if (FLAG_disassemble && FlowGraphPrinter::ShouldPrint(function)) {
-      Disassembler::DisassembleCode(function, optimized);
-    } else if (FLAG_disassemble_optimized &&
-               optimized &&
-               FlowGraphPrinter::ShouldPrint(function)) {
-      Disassembler::DisassembleCode(function, true);
-    }
     DEBUG_ONLY(CheckInliningIntervals(function));
     return Error::null();
   } else {
