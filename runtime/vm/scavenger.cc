@@ -816,13 +816,18 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
     int64_t middle = OS::GetCurrentTimeMicros();
     {
       TIMELINE_FUNCTION_GC_DURATION(thread, "WeakHandleProcessing");
-      FinalizationQueue* queue = new FinalizationQueue();
-      ScavengerWeakVisitor weak_visitor(thread, this, queue);
-      IterateWeakRoots(isolate, &weak_visitor);
-      if (queue->length() > 0) {
-        Dart::thread_pool()->Run(new BackgroundFinalizer(isolate, queue));
+      if (FLAG_background_finalization) {
+        FinalizationQueue* queue = new FinalizationQueue();
+        ScavengerWeakVisitor weak_visitor(thread, this, queue);
+        IterateWeakRoots(isolate, &weak_visitor);
+        if (queue->length() > 0) {
+          Dart::thread_pool()->Run(new BackgroundFinalizer(isolate, queue));
+        } else {
+          delete queue;
+        }
       } else {
-        delete queue;
+        ScavengerWeakVisitor weak_visitor(thread, this, NULL);
+        IterateWeakRoots(isolate, &weak_visitor);
       }
     }
     ProcessWeakReferences();

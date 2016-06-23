@@ -708,13 +708,18 @@ void GCMarker::MarkObjects(Isolate* isolate,
       mark.DrainMarkingStack();
       {
         TIMELINE_FUNCTION_GC_DURATION(thread, "WeakHandleProcessing");
-        FinalizationQueue* queue = new FinalizationQueue();
-        MarkingWeakVisitor mark_weak(thread, queue);
-        IterateWeakRoots(isolate, &mark_weak);
-        if (queue->length() > 0) {
-          Dart::thread_pool()->Run(new BackgroundFinalizer(isolate, queue));
+        if (FLAG_background_finalization) {
+          FinalizationQueue* queue = new FinalizationQueue();
+          MarkingWeakVisitor mark_weak(thread, queue);
+          IterateWeakRoots(isolate, &mark_weak);
+          if (queue->length() > 0) {
+            Dart::thread_pool()->Run(new BackgroundFinalizer(isolate, queue));
+          } else {
+            delete queue;
+          }
         } else {
-          delete queue;
+          MarkingWeakVisitor mark_weak(thread, NULL);
+          IterateWeakRoots(isolate, &mark_weak);
         }
       }
       // All marking done; detach code, etc.
@@ -751,13 +756,18 @@ void GCMarker::MarkObjects(Isolate* isolate,
       // Phase 2: Weak processing on main thread.
       {
         TIMELINE_FUNCTION_GC_DURATION(thread, "WeakHandleProcessing");
-        FinalizationQueue* queue = new FinalizationQueue();
-        MarkingWeakVisitor mark_weak(thread, queue);
-        IterateWeakRoots(isolate, &mark_weak);
-        if (queue->length() > 0) {
-          Dart::thread_pool()->Run(new BackgroundFinalizer(isolate, queue));
+        if (FLAG_background_finalization) {
+          FinalizationQueue* queue = new FinalizationQueue();
+          MarkingWeakVisitor mark_weak(thread, queue);
+          IterateWeakRoots(isolate, &mark_weak);
+          if (queue->length() > 0) {
+            Dart::thread_pool()->Run(new BackgroundFinalizer(isolate, queue));
+          } else {
+            delete queue;
+          }
         } else {
-          delete queue;
+          MarkingWeakVisitor mark_weak(thread, NULL);
+          IterateWeakRoots(isolate, &mark_weak);
         }
       }
       barrier.Sync();

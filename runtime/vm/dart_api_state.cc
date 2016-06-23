@@ -18,6 +18,7 @@ BackgroundFinalizer::BackgroundFinalizer(Isolate* isolate,
                                          FinalizationQueue* queue) :
     isolate_(isolate),
     queue_(queue) {
+  ASSERT(FLAG_background_finalization);
   MonitorLocker ml(isolate->heap()->finalization_tasks_lock());
   isolate->heap()->set_finalization_tasks(
       isolate->heap()->finalization_tasks() + 1);

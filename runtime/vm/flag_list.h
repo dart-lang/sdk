@@ -41,6 +41,8 @@ P(background_compilation, bool, USING_MULTICORE,                               \
   "Run optimizing compilation in background")                                  \
 R(background_compilation_stop_alot, false, bool, false,                        \
   "Stress test system: stop background compiler often.")                       \
+P(background_finalization, bool, USING_MULTICORE,                              \
+  "Run weak handle finalizers in background")                                  \
 R(break_at_isolate_spawn, false, bool, false,                                  \
   "Insert a one-time breakpoint at the entrypoint for all spawned isolates")   \
 C(collect_code, false, true, bool, true,                                       \
