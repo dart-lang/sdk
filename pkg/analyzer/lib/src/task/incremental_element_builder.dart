@@ -227,7 +227,7 @@ class IncrementalCompilationUnitElementBuilder {
     bool newHasConstructor = false;
     for (ClassMember newNode in newClass.members) {
       String code = TokenUtils.getFullCode(newNode);
-      ClassMember oldNode = oldNodeMap[code];
+      ClassMember oldNode = oldNodeMap.remove(code);
       // When we type a name before a constructor with a documentation
       // comment, this makes the comment disappear from AST. So, even though
       // tokens are the same, the nodes are not the same.
