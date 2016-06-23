@@ -1384,6 +1384,7 @@ class BuildExportNamespaceTask extends SourceBasedAnalysisTask {
     //
     // Compute export namespace.
     //
+    library.exportNamespace = null;
     NamespaceBuilder builder = new NamespaceBuilder();
     Namespace namespace = builder.createExportNamespaceForLibrary(library);
     library.exportNamespace = namespace;

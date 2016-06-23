@@ -301,6 +301,39 @@ int b = aa;''';
     expect(context.sourcesNeedingProcessing, hasLength(0));
   }
 
+  void test_applyChanges_recompute_exportNamespace() {
+    Source libSource = addSource(
+        "/lib.dart",
+        r'''
+class A {}
+''');
+    Source exporterSource = addSource(
+        "/exporter.dart",
+        r'''
+export 'lib.dart';
+''');
+    _performPendingAnalysisTasks();
+    // initially: A
+    {
+      LibraryElement libraryElement =
+          context.getResult(exporterSource, LIBRARY_ELEMENT1) as LibraryElement;
+      expect(libraryElement.exportNamespace.definedNames.keys,
+          unorderedEquals(['A']));
+    }
+    // after update: B
+    context.setContents(
+        libSource,
+        r'''
+class B {}''');
+    _performPendingAnalysisTasks();
+    {
+      LibraryElement libraryElement =
+          context.getResult(exporterSource, LIBRARY_ELEMENT1) as LibraryElement;
+      expect(libraryElement.exportNamespace.definedNames.keys,
+          unorderedEquals(['B']));
+    }
+  }
+
   Future test_applyChanges_remove() {
     SourcesChangedListener listener = new SourcesChangedListener();
     context.onSourcesChanged.listen(listener.onData);
