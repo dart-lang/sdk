@@ -309,6 +309,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.preserveComments = options.preserveComments;
     this._options.strongMode = options.strongMode;
     this._options.trackCacheDependencies = options.trackCacheDependencies;
+    this._options.finerGrainedInvalidation = options.finerGrainedInvalidation;
     if (options is AnalysisOptionsImpl) {
       this._options.strongModeHints = options.strongModeHints;
       this._options.implicitCasts = options.implicitCasts;
@@ -1872,7 +1873,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     // We need to invalidate the cache.
     {
       Object delta = null;
-      if (AnalysisEngine.instance.limitInvalidationInTaskModel &&
+      if (analysisOptions.finerGrainedInvalidation &&
           AnalysisEngine.isDartFileName(source.fullName)) {
         // TODO(scheglov) Incorrect implementation in general.
         entry.setState(TOKEN_STREAM, CacheState.FLUSHED);

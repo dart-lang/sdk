@@ -787,12 +787,6 @@ class AnalysisEngine {
   final PartitionManager partitionManager = new PartitionManager();
 
   /**
-   * A flag indicating whether the task model should attempt to limit
-   * invalidation after a change.
-   */
-  bool limitInvalidationInTaskModel = false;
-
-  /**
    * The task manager used to manage the tasks used to analyze code.
    */
   TaskManager _taskManager;
@@ -1159,6 +1153,14 @@ abstract class AnalysisOptions {
   bool get trackCacheDependencies;
 
   /**
+   * A flag indicating whether finer grained dependencies should be used
+   * instead of just source level dependencies.
+   *
+   * This option is experimental and subject to change.
+   */
+  bool get finerGrainedInvalidation;
+
+  /**
    * Return an integer encoding of the values of the options that need to be the
    * same across all of the contexts associated with partitions that are to be
    * shared by a single analysis context.
@@ -1309,6 +1311,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   bool implicitCasts = true;
 
+  @override
+  bool finerGrainedInvalidation = false;
+
   /**
    * Initialize a newly created set of analysis options to have their default
    * values.
@@ -1343,6 +1348,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       implicitCasts = options.implicitCasts;
     }
     trackCacheDependencies = options.trackCacheDependencies;
+    finerGrainedInvalidation = options.finerGrainedInvalidation;
   }
 
   bool get analyzeFunctionBodies {

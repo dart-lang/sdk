@@ -1860,7 +1860,7 @@ void g() { f(null); }''');
         reason: "part resolved 1");
     // update and analyze #1
     context.setContents(partSource, "part of lib; // 1");
-    if (AnalysisEngine.instance.limitInvalidationInTaskModel) {
+    if (context.analysisOptions.finerGrainedInvalidation) {
       expect(
           context.getResolvedCompilationUnit2(libSource, libSource), isNotNull,
           reason: "library changed 2");
@@ -1882,7 +1882,7 @@ void g() { f(null); }''');
     }
     // update and analyze #2
     context.setContents(partSource, "part of lib; // 12");
-    if (AnalysisEngine.instance.limitInvalidationInTaskModel) {
+    if (context.analysisOptions.finerGrainedInvalidation) {
       expect(
           context.getResolvedCompilationUnit2(libSource, libSource), isNotNull,
           reason: "library changed 3");
@@ -2038,7 +2038,7 @@ library expectedToFindSemicolon
     _changeSource(source, "");
     source.generateExceptionOnRead = true;
     _analyzeAll_assertFinished();
-    if (AnalysisEngine.instance.limitInvalidationInTaskModel) {
+    if (context.analysisOptions.finerGrainedInvalidation) {
       expect(source.readCount, 7);
     } else {
       expect(source.readCount, 4);
@@ -2634,18 +2634,12 @@ int a = 0;''');
 class LimitedInvalidateTest extends AbstractContextTest {
   @override
   void setUp() {
-    AnalysisEngine.instance.limitInvalidationInTaskModel = true;
     super.setUp();
     AnalysisOptionsImpl options =
         new AnalysisOptionsImpl.from(context.analysisOptions);
     options.incremental = true;
+    options.finerGrainedInvalidation = true;
     context.analysisOptions = options;
-  }
-
-  @override
-  void tearDown() {
-    AnalysisEngine.instance.limitInvalidationInTaskModel = false;
-    super.tearDown();
   }
 
   void test_sequence_class_give_take() {

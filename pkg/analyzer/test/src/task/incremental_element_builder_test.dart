@@ -1600,7 +1600,8 @@ main() {
 
   void _buildNewUnit(String newCode) {
     this.newCode = newCode;
-    AnalysisEngine.instance.limitInvalidationInTaskModel = false;
+    AnalysisOptionsImpl analysisOptions = context.analysisOptions;
+    analysisOptions.finerGrainedInvalidation = false;
     try {
       context.setContents(source, newCode);
       newUnit = context.parseCompilationUnit(source);
@@ -1622,7 +1623,7 @@ main() {
       expect(newUnitFull, isNot(same(newUnit)));
       new _BuiltElementsValidator().isEqualNodes(newUnitFull, newUnit);
     } finally {
-      AnalysisEngine.instance.limitInvalidationInTaskModel = true;
+      analysisOptions.finerGrainedInvalidation = true;
     }
   }
 
