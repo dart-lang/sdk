@@ -835,55 +835,134 @@ void batchMain(List<String> batchArguments) {
   });
 }
 
+// TODO(johnniwinther): Add corresponding options to the test script and change
+// these to use 'bool.fromEnvironment'.
 final bool USE_SERIALIZED_DART_CORE =
     Platform.environment['USE_SERIALIZED_DART_CORE'] == 'true';
 
-/// Mock URI used only in testing when [USE_SERIALIZED_DART_CORE] is enabled.
+final bool SERIALIZED_COMPILATION =
+    Platform.environment['SERIALIZED_COMPILATION'] == 'true';
+
+/// Mock URI used only in testing when [USE_SERIALIZED_DART_CORE] or
+/// [SERIALIZED_COMPILATION] is enabled.
 final Uri _SERIALIZED_URI = Uri.parse('file:fake.data');
 
 void _useSerializedDataForDartCore(CompileFunc oldCompileFunc) {
-  String serializedData;
-
+  /// Run the [oldCompileFunc] with [serializedData] added as resolution input.
   Future<api.CompilationResult> compileWithSerializedData(
       CompilerOptions compilerOptions,
       api.CompilerInput compilerInput,
       api.CompilerDiagnostics compilerDiagnostics,
-      api.CompilerOutput compilerOutput) async {
-    CompilerImpl compiler = new CompilerImpl(
-        compilerInput, compilerOutput, compilerDiagnostics, compilerOptions);
-    compiler.serialization.deserializeFromText(_SERIALIZED_URI, serializedData);
-    return compiler.run(compilerOptions.entryPoint).then((bool success) {
-      return new api.CompilationResult(compiler, isSuccess: success);
-    });
+      api.CompilerOutput compilerOutput,
+      String serializedData) {
+    api.CompilerInput input = compilerInput;
+    CompilerOptions options = compilerOptions;
+    if (serializedData != null) {
+      input = new _CompilerInput(input, serializedData);
+      List<Uri> resolutionInputs = compilerOptions.resolutionInputs;
+      if (resolutionInputs == null) {
+        resolutionInputs = <Uri>[_SERIALIZED_URI];
+      } else if (!resolutionInputs.contains(_SERIALIZED_URI)) {
+        resolutionInputs = new List<Uri>.from(resolutionInputs)
+          ..add(_SERIALIZED_URI);
+      }
+      options = options.copy(resolutionInputs: resolutionInputs);
+    }
+    return oldCompileFunc(options, input, compilerDiagnostics, compilerOutput);
   }
 
+  /// Serialize [entryPoint] using [serializedData] if provided.
+  Future<api.CompilationResult> serialize(
+      Uri entryPoint,
+      CompilerOptions compilerOptions,
+      api.CompilerInput compilerInput,
+      api.CompilerDiagnostics compilerDiagnostics,
+      api.CompilerOutput compilerOutput,
+      [String serializedData]) {
+    CompilerOptions options = new CompilerOptions.parse(
+        entryPoint: entryPoint,
+        libraryRoot: compilerOptions.libraryRoot,
+        packageRoot: compilerOptions.packageRoot,
+        packageConfig: compilerOptions.packageConfig,
+        packagesDiscoveryProvider: compilerOptions.packagesDiscoveryProvider,
+        environment: compilerOptions.environment,
+        resolutionOutput: _SERIALIZED_URI,
+        options: [Flags.resolveOnly]);
+    return compileWithSerializedData(options, compilerInput,
+        compilerDiagnostics, compilerOutput, serializedData);
+  }
+
+  // Local cache for the serialized data for dart:core.
+  String serializedDartCore;
+
+  /// Serialize the entry point using serialized data from dart:core and run
+  /// [oldCompileFunc] using serialized data for whole program.
+  Future<api.CompilationResult> compileFromSerializedData(
+      CompilerOptions compilerOptions,
+      api.CompilerInput compilerInput,
+      api.CompilerDiagnostics compilerDiagnostics,
+      api.CompilerOutput compilerOutput) async {
+    _CompilerOutput output = new _CompilerOutput();
+    api.CompilationResult result = await serialize(
+        compilerOptions.entryPoint,
+        compilerOptions,
+        compilerInput,
+        compilerDiagnostics,
+        output,
+        serializedDartCore);
+    if (!result.isSuccess) {
+      return result;
+    }
+    return compileWithSerializedData(compilerOptions, compilerInput,
+        compilerDiagnostics, compilerOutput, output.serializedData);
+  }
+
+  /// Compiles the entry point using the serialized data from dart:core.
+  Future<api.CompilationResult> compileWithSerializedDartCoreData(
+      CompilerOptions compilerOptions,
+      api.CompilerInput compilerInput,
+      api.CompilerDiagnostics compilerDiagnostics,
+      api.CompilerOutput compilerOutput) async {
+    return compileWithSerializedData(compilerOptions, compilerInput,
+        compilerDiagnostics, compilerOutput, serializedDartCore);
+  }
+
+  /// Serialize dart:core data into [serializedDartCore] and setup the
+  /// [compileFunc] to run the compiler using this data.
   Future<api.CompilationResult> generateSerializedDataForDartCore(
       CompilerOptions compilerOptions,
       api.CompilerInput compilerInput,
       api.CompilerDiagnostics compilerDiagnostics,
       api.CompilerOutput compilerOutput) async {
     _CompilerOutput output = new _CompilerOutput();
-    api.CompilationResult result = await oldCompileFunc(
-        new CompilerOptions.parse(
-            entryPoint: Uris.dart_core,
-            libraryRoot: compilerOptions.libraryRoot,
-            packageRoot: compilerOptions.packageRoot,
-            packageConfig: compilerOptions.packageConfig,
-            packagesDiscoveryProvider:
-                compilerOptions.packagesDiscoveryProvider,
-            environment: compilerOptions.environment,
-            resolutionOutput: _SERIALIZED_URI,
-            options: [Flags.resolveOnly]),
-        compilerInput,
-        compilerDiagnostics,
-        output);
-    serializedData = output.serializedData;
-    compileFunc = compileWithSerializedData;
-    return compileWithSerializedData(
+    await serialize(Uris.dart_core, compilerOptions, compilerInput,
+        compilerDiagnostics, output);
+    serializedDartCore = output.serializedData;
+    if (SERIALIZED_COMPILATION) {
+      compileFunc = compileFromSerializedData;
+    } else {
+      compileFunc = compileWithSerializedDartCoreData;
+    }
+    return compileFunc(
         compilerOptions, compilerInput, compilerDiagnostics, compilerOutput);
   }
 
   compileFunc = generateSerializedDataForDartCore;
+}
+
+class _CompilerInput implements api.CompilerInput {
+  final api.CompilerInput _input;
+  final String _data;
+
+  _CompilerInput(this._input, this._data);
+
+  @override
+  Future readFromUri(Uri uri) {
+    if (uri == _SERIALIZED_URI) {
+      return new Future.value(_data);
+    }
+    return _input.readFromUri(uri);
+  }
 }
 
 class _CompilerOutput extends NullCompilerOutput {
