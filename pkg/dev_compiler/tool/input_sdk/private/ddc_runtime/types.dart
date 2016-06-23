@@ -53,9 +53,8 @@ final _typeObject = JS('', 'Symbol("typeObject")');
 /// name 'is_X', 'as_X' and 'check_X' for various X to indicate the type or the
 /// implementation strategy for the test (e.g 'is_String', 'is_G' for generic
 /// types, etc.)
-
-/// TODO(sra): Why implement [Type]?  Other types that are represented by class
-/// constructors can't implement [Type].
+// TODO(jmesserly): we shouldn't implement Type here. It should be moved down
+// to AbstractFunctionType.
 class TypeRep implements Type {
   TypeRep() { _initialize; }
   String get name => this.toString();
@@ -112,12 +111,10 @@ class JSObject extends TypeRep {
 
 final jsobject = new JSObject();
 
-// TODO(sra): Wrapped types and TypeReps are incompatible. TypeRep should not
-// implement Type and WrappedType should implement Type but not TypeRep.
-class WrappedType extends TypeRep {
-  final _runtimeType;
-  WrappedType(this._runtimeType);
-  toString() => typeName(_runtimeType);
+class WrappedType extends Type {
+  final _wrappedType;
+  WrappedType(this._wrappedType);
+  toString() => typeName(_wrappedType);
 }
 
 final AbstractFunctionType = JS('', '''
@@ -429,8 +426,6 @@ definiteFunctionType(returnType, args, extra) =>
     _functionType(true, returnType, args, extra);
 
 typedef(name, closure) => JS('', 'new #(#, #)', Typedef, name, closure);
-
-bool isDartType(type) => JS('bool', '#(#) === #', _getRuntimeType, type, Type);
 
 typeName(type) => JS('', '''(() => {
   if ($type === void 0) return "undefined type";

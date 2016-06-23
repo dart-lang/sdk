@@ -161,7 +161,7 @@ wrapType(type) {
 }
 
 /// Given a WrappedType, return the internal runtime type object.
-unwrapType(obj) => obj._runtimeType;
+unwrapType(obj) => obj._wrappedType;
 
 _getRuntimeType(value) => JS('', '#[#]', value, _runtimeType);
 

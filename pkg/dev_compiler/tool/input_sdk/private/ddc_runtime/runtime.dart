@@ -12,14 +12,14 @@ import 'dart:_interceptors' show JSArray;
 import 'dart:_js_helper' show SyncIterable, BooleanConversionAssertionError,
   CastErrorImplementation, TypeErrorImplementation, 
   StrongModeCastError, StrongModeTypeError, StrongModeErrorImplementation,
-  getTraceFromException;
+  getTraceFromException, Primitives;
 
 part 'classes.dart';
+part 'rtti.dart';
+part 'types.dart';
 part 'errors.dart';
 part 'generators.dart';
 part 'operations.dart';
-part 'rtti.dart';
-part 'types.dart';
 part 'utils.dart';
 
 @JSExportName('global')

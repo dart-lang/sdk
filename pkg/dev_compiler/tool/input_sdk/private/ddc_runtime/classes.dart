@@ -337,12 +337,9 @@ void _installPropertiesForObject(jsProto, coreObjProto) {
   return;
 }
 
-
-///
 /// Copy symbols from the prototype of the source to destination.
 /// These are the only properties safe to copy onto an existing public
 /// JavaScript class.
-///
 registerExtension(jsType, dartExtType) => JS('', '''(() => {
   // TODO(vsm): Not all registered js types are real.
   if (!jsType) return;
@@ -402,18 +399,6 @@ defineExtensionMembers(type, methodNames) => JS('', '''(() => {
     }
     return sig;
   });
-})()''');
-
-canonicalMember(obj, name) => JS('', '''(() => {
-  // Private names are symbols and are already canonical.
-  if (typeof name === 'symbol') return name;
-
-  if ($obj != null && $obj[$_extensionType]) return $dartx[$name];
-  // Check for certain names that we can't use in JS
-  if ($name == 'constructor' || $name == 'prototype') {
-    $name = '+' + $name;
-  }
-  return $name;
 })()''');
 
 /// Sets the type of `obj` to be `type`

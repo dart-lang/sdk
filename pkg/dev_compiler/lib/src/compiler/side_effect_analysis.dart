@@ -107,11 +107,12 @@ class _AssignmentFinder extends RecursiveAstVisitor {
 class ConstFieldVisitor {
   final ConstantVisitor _constantVisitor;
 
-  ConstFieldVisitor(TypeProvider types, Source source)
+  ConstFieldVisitor(TypeProvider types, {Source dummySource})
       // TODO(jmesserly): support -D variables on the command line
       : _constantVisitor = new ConstantVisitor(
             new ConstantEvaluationEngine(types, new DeclaredVariables()),
-            new ErrorReporter(AnalysisErrorListener.NULL_LISTENER, source));
+            new ErrorReporter(
+                AnalysisErrorListener.NULL_LISTENER, dummySource));
 
   // TODO(jmesserly): this is used to determine if the field initialization is
   // side effect free. We should make the check more general, as things like

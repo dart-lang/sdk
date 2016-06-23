@@ -6,39 +6,51 @@
 /// generator.
 part of dart._runtime;
 
-_canonicalFieldName(obj, name, args, displayName) => JS('', '''(() => {
-  $name = $canonicalMember($obj, $name);
-  if ($name) return $name;
-  // TODO(jmesserly): in the future we might have types that "overlay" Dart
-  // methods while also exposing the full native API, e.g. dart:html vs
-  // dart:dom. To support that we'd need to fall back to the normal name
-  // if an extension method wasn't found.
-  $throwNoSuchMethodFunc($obj, $displayName, $args);
-})()''');
+class _Invocation extends Invocation {
+  final Symbol memberName;
+  final List positionalArguments;
+  final Map<Symbol, dynamic> namedArguments;
+  final bool isMethod;
+  final bool isGetter;
+  final bool isSetter;
 
-dload(obj, field) => JS('', '''(() => {
-  $field = $_canonicalFieldName($obj, $field, [], $field);
-  $_trackCall($obj, $field);
-  if ($hasMethod($obj, $field)) {
-    return $bind($obj, $field);
+  _Invocation(String memberName, this.positionalArguments,
+      {namedArguments,
+      this.isMethod: false,
+      this.isGetter: false,
+      this.isSetter: false})
+    : memberName = _dartSymbol(memberName),
+      namedArguments = _namedArgsToSymbols(namedArguments);
+
+  static Map<Symbol, dynamic> _namedArgsToSymbols(namedArgs) {
+    if (namedArgs == null) return {};
+    return new Map.fromIterable(
+        getOwnPropertyNames(namedArgs),
+        key: _dartSymbol,
+        value: (k) => JS('', '#[#]', namedArgs, k));
   }
-  // TODO(vsm): Implement NSM robustly.  An 'in' check breaks on certain
-  // types.  hasOwnProperty doesn't chase the proto chain.
-  // Also, do we want an NSM on regular JS objects?
-  // See: https://github.com/dart-lang/dev_compiler/issues/169
-  let result = $obj[$field];
-  return result;
-})()''');
+}
 
-dput(obj, field, value) => JS('', '''(() => {
-  $field = $_canonicalFieldName($obj, $field, [$value], $field);
-  $_trackCall($obj, $field);
+dload(obj, field) {
+  var f = _canonicalMember(obj, field);
+  _trackCall(obj, f);
+  if (f != null) {
+    if (hasMethod(obj, f)) return bind(obj, f, JS('', 'void 0'));
+    return JS('', '#[#]', obj, f);
+  }
+  return noSuchMethod(obj,
+      new _Invocation(field, JS('', '[]'), isGetter: true));
+}
 
-  // TODO(vsm): Implement NSM and type checks.
-  // See: https://github.com/dart-lang/dev_compiler/issues/170
-  $obj[$field] = $value;
-  return $value;
-})()''');
+dput(obj, field, value) {
+  var f = _canonicalMember(obj, field);
+  _trackCall(obj, f);
+  if (f != null) {
+    return JS('', '#[#] = #', obj, f, value);
+  }
+  return noSuchMethod(obj,
+      new _Invocation(field, JS('', '[#]', value), isSetter: true));
+}
 
 /// Check that a function of a given type can be applied to
 /// actuals.
@@ -77,23 +89,24 @@ _checkApply(type, actuals) => JS('', '''(() => {
   return true;
 })()''');
 
-_dartSymbol(name) => JS('', '''
-  $const_($Symbol.new($name.toString()))
-''');
+Symbol _dartSymbol(name) =>
+    JS('', '#(#.new(#.toString()))', const_, Symbol, name);
 
-throwNoSuchMethod(obj, name, pArgs, nArgs, extras) => JS('', '''(() => {
-  $throw_(new $NoSuchMethodError($obj, $_dartSymbol($name), $pArgs, $nArgs, $extras));
-})()''');
-
-throwNoSuchMethodFunc(obj, name, pArgs, opt_func) => JS('', '''(() => {
-  if ($obj === void 0) $obj = $opt_func;
-  $throwNoSuchMethod($obj, $name, $pArgs);
-})()''');
-
+// TODO(jmesserly): we need to handle named arguments better.
 _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
   $_trackCall($obj, $name);
 
-  let originalFunction = $f;
+  let originalTarget = obj === void 0 ? f : obj;
+
+  function callNSM() {
+    let namedArgs = null;
+    if (args.length > 0 &&
+        args[args.length - 1].__proto__ == Object.prototype) {
+      namedArgs = args.pop();
+    }
+    return $noSuchMethod(originalTarget, new $_Invocation(
+        $name, $args, {namedArguments: namedArgs, isMethod: true}));
+  }
   if (!($f instanceof Function)) {
     // We're not a function (and hence not a method either)
     // Grab the `call` method if it's not a function.
@@ -102,7 +115,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
       $f = $f.call;
     }
     if (!($f instanceof Function)) {
-      $throwNoSuchMethodFunc($obj, $name, $args, originalFunction);
+      return callNSM();
     }
   }
   // If f is a function, but not a method (no method type)
@@ -152,12 +165,11 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
   // TODO(leafp): throw a type error (rather than NSM)
   // if the arity matches but the types are wrong.
   // TODO(jmesserly): nSM should include type args?
-  $throwNoSuchMethodFunc($obj, $name, $args, originalFunction);
+  return callNSM();
 })()''');
 
 dcall(f, @rest args) => _checkAndCall(
     f, _getRuntimeType(f), JS('', 'void 0'), null, args, 'call');
-
 
 dgcall(f, typeArgs, @rest args) => _checkAndCall(
     f, _getRuntimeType(f), JS('', 'void 0'), typeArgs, args, 'call');
@@ -209,7 +221,11 @@ _trackCall(obj, name) {
 
 /// Shared code for dsend, dindex, and dsetindex.
 _callMethod(obj, name, typeArgs, args, displayName) {
-  var symbol = _canonicalFieldName(obj, name, args, displayName);
+  var symbol = _canonicalMember(obj, name);
+  if (symbol == null) {
+    return noSuchMethod(obj,
+        new _Invocation(displayName, args, isMethod: true));
+  }
   var f = obj != null ? JS('', '#[#]', obj, symbol) : null;
   var ftype = getMethodType(obj, symbol);
   return _checkAndCall(f, ftype, obj, typeArgs, args, displayName);
@@ -611,6 +627,9 @@ hashCode(obj) {
     case "boolean":
       // From JSBool.hashCode, see comment there.
       return JS('', '# ? (2 * 3 * 23 * 3761) : (269 * 811)', obj);
+    case "function":
+      // TODO(jmesserly): this doesn't work for method tear-offs.
+      return Primitives.objectHashCode(obj);
   }
 
   var extension = getExtensionType(obj);
@@ -628,6 +647,10 @@ String _toString(obj) {
   if (extension != null) {
     return JS('String', '#[dartx.toString]()', obj);
   }
+  if (JS('bool', 'typeof # == "function"', obj)) {
+    return JS('String', r'"Closure: " + # + " from: " + #',
+        getReifiedType(obj), obj);
+  }
   // TODO(jmesserly): restore this faster path once ES Symbol is treated as
   // an extension type (and thus hits the above code path).
   // See https://github.com/dart-lang/dev_compiler/issues/578.
@@ -637,9 +660,9 @@ String _toString(obj) {
 
 // TODO(jmesserly): is the argument type verified statically?
 noSuchMethod(obj, Invocation invocation) {
-  if (obj == null) {
+  if (obj == null || JS('bool', 'typeof # == "function"', obj)) {
     throw new NoSuchMethodError(
-        null,
+        obj,
         invocation.memberName,
         invocation.positionalArguments,
         invocation.namedArguments);
@@ -663,6 +686,9 @@ runtimeType(obj) {
   var extension = getExtensionType(obj);
   if (extension != null) {
     return JS('', '#[dartx.runtimeType]', obj);
+  }
+  if (JS('bool', 'typeof # == "function"', obj)) {
+    return wrapType(getReifiedType(obj));
   }
   return JS('', '#.runtimeType', obj);
 }
@@ -691,3 +717,18 @@ final JsIterator = JS('', '''
     }
   }
 ''');
+
+_canonicalMember(obj, name) {
+  // Private names are symbols and are already canonical.
+  if (JS('bool', 'typeof # === "symbol"', name)) return name;
+
+  if (obj != null && getExtensionType(obj) != null) {
+    return JS('', 'dartx.#', name);
+  }
+
+  // Check for certain names that we can't use in JS
+  if (name == 'constructor' || name == 'prototype') {
+    name = '+' + name;
+  }
+  return name;
+}

@@ -255,6 +255,10 @@ class CodeGenerator extends GeneralizingAstVisitor
       _collectElements(unit, nodes);
     }
     _loader = new ElementLoader(nodes);
+    if (compilationUnits.isNotEmpty) {
+      _constField = new ConstFieldVisitor(types,
+          dummySource: compilationUnits.first.element.source);
+    }
 
     // Add implicit dart:core dependency so it is first.
     emitLibraryName(dartCoreLibrary);
@@ -267,7 +271,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     // NOTE: declarations are not necessarily emitted in this order.
     // Order will be changed as needed so the resulting code can execute.
     // This is done by forward declaring items.
-    compilationUnits.forEach(visitCompilationUnit);
+    compilationUnits.forEach(_finishDeclarationsInUnit);
 
     // Declare imports
     _finishImports(items);
@@ -439,10 +443,12 @@ class CodeGenerator extends GeneralizingAstVisitor
     _loader.declareBeforeUse(e, _emitDeclaration);
   }
 
-  @override
-  void visitCompilationUnit(CompilationUnit unit) {
-    _constField = new ConstFieldVisitor(types, unit.element.source);
-
+  void _finishDeclarationsInUnit(CompilationUnit unit) {
+    // NOTE: this method isn't the right place to initialize
+    // per-compilation-unit state. Declarations can be visited out of order,
+    // this is only to catch things that haven't been emitted yet.
+    //
+    // See _emitDeclaration.
     for (var declaration in unit.declarations) {
       var element = declaration.element;
       if (element != null) {
@@ -702,8 +708,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var staticFields = <FieldDeclaration>[];
     var methods = <MethodDeclaration>[];
 
-    // True if a "call" method or getter exists. This can also be
-    // "noSuchMethod" method, because nSM could implement "call".
+    // True if a "call" method or getter exists.
     bool isCallable = false;
     for (var member in node.members) {
       if (member is ConstructorDeclaration) {
@@ -712,15 +717,21 @@ class CodeGenerator extends GeneralizingAstVisitor
         (member.isStatic ? staticFields : fields).add(member);
       } else if (member is MethodDeclaration) {
         methods.add(member);
-        var name = member.name.name;
-        if (name == 'call' && !member.isSetter) {
-          isCallable = true;
-        } else if (name == 'noSuchMethod' &&
-            !member.isGetter &&
-            !member.isSetter &&
-            // Exclude SDK because we know they don't use nSM to implement call.
-            !classElem.library.source.isInSystemLibrary) {
-          isCallable = true;
+        if (member.name.name == 'call' && !member.isSetter) {
+          //
+          // Make sure "call" has a statically known function type:
+          //
+          // - if it's a method, then it does because all methods do,
+          // - if it's a getter, check the return type.
+          //
+          // Other cases like a getter returning dynamic/Object/Function will be
+          // handled at runtime by the dynamic call mechanism. So we only
+          // concern ourselves with statically known function types.
+          //
+          // For the same reason, we can ignore "noSuchMethod".
+          // call-implemented-by-nSM will be dispatched by dcall at runtime.
+          //
+          isCallable = !member.isGetter || member.returnType is FunctionType;
         }
       }
     }
@@ -792,6 +803,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     return js.call('dart.callableClass(#, #)', [ctor, classExpr]);
   }
 
+  /// Emits a constructor that ensures instances of this class are callable as
+  /// functions in JavaScript.
   JS.Fun _emitCallableClassConstructor(ConstructorElement ctor) {
     return js.call(
         r'''function (...args) {
@@ -4302,7 +4315,9 @@ class CodeGenerator extends GeneralizingAstVisitor
     // Check if the target could be `null`, is dynamic, or may be an extension
     // native type. In all of those cases we need defensive code generation.
     var type = getStaticType(target);
+
     return isNullable(target) ||
+        type is FunctionType ||
         type.isDynamic ||
         (_extensionTypes.hasNativeSubtype(type) && target is! SuperExpression);
   }
