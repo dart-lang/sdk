@@ -228,6 +228,17 @@ class IncrementalCompilationUnitElementBuilder {
     for (ClassMember newNode in newClass.members) {
       String code = TokenUtils.getFullCode(newNode);
       ClassMember oldNode = oldNodeMap[code];
+      // When we type a name before a constructor with a documentation
+      // comment, this makes the comment disappear from AST. So, even though
+      // tokens are the same, the nodes are not the same.
+      if (oldNode != null) {
+        if (oldNode.documentationComment == null &&
+                newNode.documentationComment != null ||
+            oldNode.documentationComment != null &&
+                newNode.documentationComment == null) {
+          oldNode = null;
+        }
+      }
       // Add the new element.
       if (oldNode == null) {
         if (newNode is ConstructorDeclaration) {

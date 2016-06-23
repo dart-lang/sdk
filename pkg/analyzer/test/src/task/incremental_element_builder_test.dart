@@ -1461,6 +1461,23 @@ final int a =  1;
     expect(unitDelta.removedDeclarations, unorderedEquals([]));
   }
 
+  test_update_addIdentifier_beforeConstructorWithComment() {
+    _buildOldUnit(r'''
+class A {
+  /// CCC
+  A();
+}
+''');
+    _buildNewUnit(r'''
+class A {
+  b
+
+  /// CCC
+  A();
+}
+''');
+  }
+
   test_update_beforeClassWithDelta_nameOffset() {
     _buildOldUnit(r'''
 class A {}
