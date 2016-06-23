@@ -1762,6 +1762,48 @@ Definition* BinaryIntegerOpInstr::CreateConstantResult(FlowGraph* flow_graph,
 }
 
 
+Definition* CheckedSmiOpInstr::Canonicalize(FlowGraph* flow_graph) {
+  if ((left()->Type()->ToCid() == kSmiCid) &&
+      (right()->Type()->ToCid() == kSmiCid)) {
+    Definition* replacement = NULL;
+    // Operations that can't deoptimize are specialized here: These include
+    // bit-wise operators and comparisons. Other arithmetic operations can
+    // overflow or divide by 0 and can't be specialized unless we have extra
+    // range information.
+    switch (op_kind()) {
+      case Token::kBIT_AND:
+      case Token::kBIT_OR:
+      case Token::kBIT_XOR:
+        replacement =
+            new BinarySmiOpInstr(op_kind(),
+                                 new Value(left()->definition()),
+                                 new Value(right()->definition()),
+                                 Thread::kNoDeoptId);
+      default:
+        break;
+    }
+    if (Token::IsRelationalOperator(op_kind())) {
+      replacement = new RelationalOpInstr(token_pos(), op_kind(),
+                                          new Value(left()->definition()),
+                                          new Value(right()->definition()),
+                                          kSmiCid,
+                                          Thread::kNoDeoptId);
+    } else if (Token::IsEqualityOperator(op_kind())) {
+      replacement = new EqualityCompareInstr(token_pos(), op_kind(),
+                                             new Value(left()->definition()),
+                                             new Value(right()->definition()),
+                                             kSmiCid,
+                                             Thread::kNoDeoptId);
+    }
+    if (replacement != NULL) {
+      flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
+      return replacement;
+    }
+  }
+  return this;
+}
+
+
 Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
   // If both operands are constants evaluate this expression. Might
   // occur due to load forwarding after constant propagation pass
