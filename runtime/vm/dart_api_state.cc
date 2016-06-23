@@ -27,8 +27,7 @@ BackgroundFinalizer::BackgroundFinalizer(Isolate* isolate,
 
 void BackgroundFinalizer::Run() {
   bool result = Thread::EnterIsolateAsHelper(isolate_,
-                                             Thread::kFinalizerTask,
-                                             true /* bypass_safepoint */);
+                                             Thread::kFinalizerTask);
   ASSERT(result);
 
   {
