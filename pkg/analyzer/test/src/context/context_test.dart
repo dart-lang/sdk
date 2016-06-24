@@ -2778,6 +2778,39 @@ class B {
     expect(context.getErrors(b).errors, hasLength(0));
   }
 
+  void test_sequence_useAnyResolvedUnit() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {}
+class B {}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main() {
+  new A();
+}
+''');
+    _performPendingAnalysisTasks();
+    _assertValid(a, LIBRARY_ERRORS_READY);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+    // Invalidate RESOLVED_UNIT
+    CacheEntry entryA = context.getCacheEntry(new LibrarySpecificUnit(a, a));
+    entryA.setState(RESOLVED_UNIT, CacheState.FLUSHED);
+    entryA.setState(RESOLVED_UNIT1, CacheState.FLUSHED);
+    entryA.setState(RESOLVED_UNIT2, CacheState.FLUSHED);
+    entryA.setState(RESOLVED_UNIT3, CacheState.FLUSHED);
+    context.setContents(
+        a,
+        r'''
+class A {}
+class B2 {}
+''');
+    _assertValid(b, LIBRARY_ERRORS_READY);
+  }
+
   void test_unusedName_class_add() {
     Source a = addSource(
         '/a.dart',

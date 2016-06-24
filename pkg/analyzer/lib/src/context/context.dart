@@ -1881,8 +1881,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         List<Source> librarySources = getLibrariesContaining(source);
         if (librarySources.length == 1) {
           Source librarySource = librarySources[0];
-          CompilationUnit oldUnit =
-              getResolvedCompilationUnit2(source, librarySource);
+          // Try to find an old unit which has element model.
+          CacheEntry unitEntry =
+              getCacheEntry(new LibrarySpecificUnit(librarySource, source));
+          CompilationUnit oldUnit = RESOLVED_UNIT_RESULTS
+              .map(unitEntry.getValue)
+              .firstWhere((unit) => unit != null, orElse: () => null);
+          // If we have the old unit, we can try to update it.
           if (oldUnit != null) {
             CompilationUnit newUnit = parseCompilationUnit(source);
             IncrementalCompilationUnitElementBuilder builder =
