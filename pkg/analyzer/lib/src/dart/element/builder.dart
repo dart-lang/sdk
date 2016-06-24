@@ -350,6 +350,13 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     _currentHolder = initialHolder;
   }
 
+  /**
+   * Prepares for incremental resolution of a function body.
+   */
+  void initForFunctionBodyIncrementalResolution() {
+    _inFunction = true;
+  }
+
   @override
   Object visitAnnotation(Annotation node) {
     // Although it isn't valid to do so because closures are not constant
@@ -443,19 +450,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     _fieldMap = null;
     holder.validate();
     return null;
-  }
-
-  /**
-   * Implementation of this method should be synchronized with
-   * [visitClassDeclaration].
-   */
-  void visitClassDeclarationIncrementally(ClassDeclaration node) {
-    //
-    // Process field declarations before constructors and methods so that field
-    // formal parameters can be correctly resolved to their fields.
-    //
-    ClassElement classElement = node.element;
-    _buildFieldMap(classElement.fields);
   }
 
   @override
