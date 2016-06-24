@@ -4840,7 +4840,7 @@ class InferenceContext {
    * Place an info node into the error stream indicating that a
    * [type] has been inferred as the type of [node].
    */
-  void recordInference(Expression node, DartType type) {
+  void recordInference(AstNode node, DartType type) {
     if (!_inferenceHints) {
       return;
     }
@@ -5636,6 +5636,11 @@ class ResolverVisitor extends ScopedVisitor {
   bool resolveOnlyCommentInFunctionBody = false;
 
   /**
+   * True if we're analyzing in strong mode.
+   */
+  bool _strongMode;
+
+  /**
    * Body of the function currently being analyzed, if any.
    */
   FunctionBody _currentFunctionBody;
@@ -5666,6 +5671,7 @@ class ResolverVisitor extends ScopedVisitor {
     this.typeSystem = definingLibrary.context.typeSystem;
     bool strongModeHints = false;
     AnalysisOptions options = definingLibrary.context.analysisOptions;
+    _strongMode = options.strongMode;
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
     }
@@ -6356,12 +6362,23 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
-    InferenceContext.setType(node.defaultValue, node.parameter.element?.type);
-    super.visitDefaultFormalParameter(node);
     ParameterElement element = node.element;
+    InferenceContext.setType(node.defaultValue, element.type);
+    super.visitDefaultFormalParameter(node);
     if (element.initializer != null && node.defaultValue != null) {
       (element.initializer as FunctionElementImpl).returnType =
           node.defaultValue.staticType;
+    }
+    if (_strongMode &&
+        node.defaultValue != null &&
+        element.hasImplicitType &&
+        element is! FieldFormalParameterElement) {
+
+      DartType type = node.defaultValue.staticType;
+      if (!type.isBottom && !type.isDynamic) {
+        (element as ParameterElementImpl).type = type;
+        inferenceContext.recordInference(node, type);
+      }
     }
     // Clone the ASTs for default formal parameters, so that we can use them
     // during constant evaluation.
