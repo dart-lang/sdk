@@ -154,7 +154,6 @@ class IncrementalResolverTest extends ResolverTestCase {
 
   void setUp() {
     super.setUp();
-    test_resolveApiChanges = true;
     logging.logger = logging.NULL_LOGGER;
   }
 
@@ -433,8 +432,7 @@ class B {
     BlockFunctionBody body = newNode.getAncestor((n) => n is BlockFunctionBody);
     expect(body, isNotNull);
 
-    bool success = resolver.resolve(body);
-    expect(success, isTrue);
+    resolver.resolve(body);
     _checkCacheEntries(cache);
 
     List<AnalysisError> newErrors = analysisContext.computeErrors(source);
@@ -521,23 +519,6 @@ class PoorMansIncrementalResolutionTest extends ResolverTestCase {
   LibraryElement oldLibrary;
   CompilationUnit oldUnit;
   CompilationUnitElement oldUnitElement;
-
-  void fail_updateErrors_removeExisting_duplicateMethodDeclaration() {
-    // TODO(scheglov) We fail to remove the second "foo" declaration.
-    // So, we still have the same duplicate declaration problem.
-    _resolveUnit(r'''
-class A {
-  void foo() {}
-  void foo() {}
-}
-''');
-    _updateAndValidate(r'''
-class A {
-  void foo() {}
-  void foo2() {}
-}
-''');
-  }
 
   @override
   void setUp() {

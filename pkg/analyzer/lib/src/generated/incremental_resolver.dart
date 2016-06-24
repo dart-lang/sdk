@@ -36,18 +36,6 @@ import 'package:analyzer/task/general.dart' show CONTENT, LINE_INFO;
 import 'package:analyzer/task/model.dart';
 
 /**
- * If `true`, an attempt to resolve API-changing modifications is made.
- */
-bool _resolveApiChanges = false;
-
-/**
- * This method is used to enable/disable API-changing modifications resolution.
- */
-void set test_resolveApiChanges(bool value) {
-  _resolveApiChanges = value;
-}
-
-/**
  * The [Delta] implementation used by incremental resolver.
  * It keeps Dart results that are either don't change or are updated.
  */
@@ -257,10 +245,8 @@ class IncrementalResolver {
    * Resolve [body], reporting any errors or warnings to the given listener.
    *
    * [body] - the root of the AST structure to be resolved.
-   *
-   * Returns `true` if resolution was successful.
    */
-  bool resolve(BlockFunctionBody body) {
+  void resolve(BlockFunctionBody body) {
     logger.enter('resolve: $_definingUnit');
     try {
       Declaration executable = _findResolutionRoot(body);
@@ -278,8 +264,6 @@ class IncrementalResolver {
       _context.invalidateLibraryHints(_librarySource);
       // update entry errors
       _updateEntry();
-      // OK
-      return true;
     } finally {
       logger.exit();
     }
@@ -547,9 +531,7 @@ class PoorMansIncrementalResolver {
       this._sourceEntry,
       this._unitEntry,
       this._oldUnit,
-      bool resolveApiChanges) {
-    _resolveApiChanges = resolveApiChanges;
-  }
+      bool resolveApiChanges);
 
   /**
    * Attempts to update [_oldUnit] to the state corresponding to [newCode].
@@ -732,12 +714,7 @@ class PoorMansIncrementalResolver {
             _updateOffset,
             _updateEndOld,
             _updateEndNew);
-        bool success = incrementalResolver.resolve(newNode);
-        // check if success
-        if (!success) {
-          logger.log('Failure: element model changed.');
-          return false;
-        }
+        incrementalResolver.resolve(newNode);
         // update DartEntry
         _updateEntry();
         logger.log('Success.');
