@@ -220,6 +220,60 @@ class A {
     expect(helper.delta.removedMethods, isEmpty);
   }
 
+  test_classDelta_constructor_fieldReference_initializer() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+class A {
+  final int f;
+  A() : f = 1 {}
+}
+''');
+    helper.initOld(oldUnit);
+    _buildNewUnit(r'''
+class A {
+  final int f;
+  A() : f = 1;
+}
+''');
+    helper.initNew(newUnit, unitDelta);
+  }
+
+  test_classDelta_constructor_fieldReference_parameter() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+class A {
+  final int f;
+  A(this.f) {}
+}
+''');
+    helper.initOld(oldUnit);
+    _buildNewUnit(r'''
+class A {
+  final int f;
+  A(this.f);
+}
+''');
+    helper.initNew(newUnit, unitDelta);
+  }
+
+  test_classDelta_constructor_fieldReference_parameter_default() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+class A {
+  final int f;
+  A([this.f = 1]) {}
+}
+''');
+    helper.initOld(oldUnit);
+    _buildNewUnit(r'''
+class A {
+  final int f;
+  A([this.f = 1]);
+}
+''');
+    helper.initNew(newUnit, unitDelta);
+  }
+
   test_classDelta_duplicate_constructor() {
     var helper = new _ClassDeltaHelper('A');
     _buildOldUnit(r'''
@@ -1673,6 +1727,15 @@ class _BuiltElementsValidator extends AstComparator {
     } else if (actual is ClassMember) {
       Element element = actual.element;
       ClassDeclaration classNode = actual.parent;
+      expect(element.enclosingElement, same(classNode.element));
+    }
+    // Field elements referenced by field formal parameters of constructors
+    // must by fields of the enclosing class element.
+    if (actual is FieldFormalParameter) {
+      FieldFormalParameterElement parameterElement = actual.element;
+      FieldElement element = parameterElement.field;
+      ClassDeclaration classNode =
+          actual.getAncestor((n) => n is ClassDeclaration);
       expect(element.enclosingElement, same(classNode.element));
     }
     // Identifiers like 'a.b' in 'new a.b()' might be rewritten if resolver

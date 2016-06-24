@@ -281,11 +281,32 @@ class IncrementalCompilationUnitElementBuilder {
     classDelta.removedAccessors.addAll(removedAccessors);
     classDelta.removedConstructors.addAll(removedConstructors);
     classDelta.removedMethods.addAll(removedMethods);
+    // Prepare fields.
+    List<PropertyAccessorElement> newAccessors = classElementHolder.accessors;
+    Map<String, FieldElement> newFields = <String, FieldElement>{};
+    for (PropertyAccessorElement accessor in newAccessors) {
+      newFields[accessor.displayName] = accessor.variable;
+    }
+    // Update references to fields from constructors.
+    for (ClassMember member in newClass.members) {
+      if (member is ConstructorDeclaration) {
+        for (FormalParameter parameter in member.parameters.parameters) {
+          FormalParameter normalParameter = parameter;
+          if (parameter is DefaultFormalParameter) {
+            normalParameter = parameter.parameter;
+          }
+          if (normalParameter is FieldFormalParameter) {
+            FieldFormalParameterElementImpl parameterElement =
+                normalParameter.element as FieldFormalParameterElementImpl;
+            parameterElement.field = newFields[parameterElement.name];
+          }
+        }
+      }
+    }
     // Update ClassElement.
-    classElement.accessors = classElementHolder.accessors;
+    classElement.accessors = newAccessors;
     classElement.constructors = classElementHolder.constructors;
-    classElement.fields =
-        classElement.accessors.map((a) => a.variable).toSet().toList();
+    classElement.fields = newFields.values.toList();
     classElement.methods = classElementHolder.methods;
     classElementHolder.validate();
     // Ensure at least a default synthetic constructor.
