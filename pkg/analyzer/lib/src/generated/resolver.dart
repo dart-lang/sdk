@@ -91,6 +91,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         _typeSystem = typeSystem ?? new TypeSystemImpl();
 
   @override
+  Object visitAnnotation(Annotation node) {
+    if (node.elementAnnotation?.isFactory == true) {
+      AstNode parent = node.parent;
+      if (parent is MethodDeclaration) {
+        _checkForInvalidFactory(parent);
+      } else {
+        _errorReporter
+            .reportErrorForNode(HintCode.INVALID_FACTORY_ANNOTATION, node, []);
+      }
+    }
+    return super.visitAnnotation(node);
+  }
+
+  @override
   Object visitArgumentList(ArgumentList node) {
     for (Expression argument in node.arguments) {
       ParameterElement parameter = argument.bestParameterElement;
@@ -672,6 +686,44 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     return false;
+  }
+
+  void _checkForInvalidFactory(MethodDeclaration decl) {
+    // Check declaration.
+    // Note that null return types are expected to be flagged by other analyses.
+    DartType returnType = decl.returnType?.type;
+    if (returnType is VoidType) {
+      _errorReporter.reportErrorForNode(HintCode.INVALID_FACTORY_METHOD_DECL,
+          decl.name, [decl.name.toString()]);
+      return;
+    }
+
+    // Check implementation.
+
+    FunctionBody body = decl.body;
+    if (body is EmptyFunctionBody) {
+      // Abstract methods are OK.
+      return;
+    }
+
+    // `new Foo()` or `null`.
+    bool factoryExpression(Expression expression) =>
+        expression is InstanceCreationExpression || expression is NullLiteral;
+
+    if (body is ExpressionFunctionBody && factoryExpression(body.expression)) {
+      return;
+    } else if (body is BlockFunctionBody) {
+      NodeList<Statement> statements = body.block.statements;
+      if (statements.isNotEmpty) {
+        Statement last = statements.last;
+        if (last is ReturnStatement && factoryExpression(last.expression)) {
+          return;
+        }
+      }
+    }
+
+    _errorReporter.reportErrorForNode(HintCode.INVALID_FACTORY_METHOD_IMPL,
+        decl.name, [decl.name.toString()]);
   }
 
   /**

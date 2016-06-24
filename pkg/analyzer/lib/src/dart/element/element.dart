@@ -2462,6 +2462,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
   static String _DEPRECATED_VARIABLE_NAME = "deprecated";
 
   /**
+   * The name of the top-level variable used to mark a method as being a
+   * factory.
+   */
+  static String _FACTORY_VARIABLE_NAME = "factory";
+
+  /**
    * The name of the class used to JS annotate an element.
    */
   static String _JS_CLASS_NAME = "JS";
@@ -2558,6 +2564,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
     }
     return false;
   }
+
+  @override
+  bool get isFactory =>
+      element is PropertyAccessorElement &&
+          element.name == _FACTORY_VARIABLE_NAME &&
+          element.library?.name == _META_LIB_NAME;
 
   @override
   bool get isJS =>
@@ -2796,6 +2808,16 @@ abstract class ElementImpl implements Element {
   bool get isDeprecated {
     for (ElementAnnotation annotation in metadata) {
       if (annotation.isDeprecated) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get isFactory {
+    for (ElementAnnotation annotation in metadata) {
+      if (annotation.isFactory) {
         return true;
       }
     }
@@ -6480,6 +6502,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get isDeprecated => false;
+
+  @override
+  bool get isFactory => false;
 
   @override
   bool get isJS => false;

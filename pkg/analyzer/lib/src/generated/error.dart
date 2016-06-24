@@ -2682,6 +2682,9 @@ abstract class ErrorCode {
     HintCode.DEPRECATED_MEMBER_USE,
     HintCode.DUPLICATE_IMPORT,
     HintCode.DIVISION_OPTIMIZATION,
+    HintCode.INVALID_FACTORY_ANNOTATION,
+    HintCode.INVALID_FACTORY_METHOD_DECL,
+    HintCode.INVALID_FACTORY_METHOD_IMPL,
     HintCode.IS_DOUBLE,
     HintCode.IS_INT,
     HintCode.IS_NOT_DOUBLE,
@@ -3607,6 +3610,34 @@ class HintCode extends ErrorCode {
   static const HintCode INVALID_ASSIGNMENT = const HintCode(
       'INVALID_ASSIGNMENT',
       "A value of type '{0}' cannot be assigned to a variable of type '{1}'");
+
+  /**
+   * This hint is generated anywhere a @factory annotation is associated with
+   * anything other than a method.
+   */
+  static const HintCode INVALID_FACTORY_ANNOTATION = const HintCode(
+      'INVALID_FACTORY_ANNOTATION',
+      "Only methods can be annotated as factories.");
+
+  /**
+   * This hint is generated anywhere a @factory annotation is associated with
+   * a method that does not declare a return type.
+   */
+  static const HintCode INVALID_FACTORY_METHOD_DECL = const HintCode(
+      'INVALID_FACTORY_METHOD_DECL',
+      "Factory method '{0}' must have a return type.");
+
+  /**
+   * This hint is generated anywhere a @factory annotation is associated with
+   * a non-abstract method that can return anything other than a newly allocated
+   * object.
+   *
+   * Parameters:
+   * 0: the name of the method
+   */
+  static const HintCode INVALID_FACTORY_METHOD_IMPL = const HintCode(
+      'INVALID_FACTORY_METHOD_IMPL',
+      "Factory method '{0}' does not return a newly allocated object.");
 
   /**
    * This hint is generated anywhere where a member annotated with `@protected`

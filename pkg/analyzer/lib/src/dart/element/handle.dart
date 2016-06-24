@@ -357,6 +357,9 @@ abstract class ElementHandle implements Element {
   bool get isDeprecated => actualElement.isDeprecated;
 
   @override
+  bool get isFactory => actualElement.isFactory;
+
+  @override
   bool get isJS => actualElement.isJS;
 
   @override

@@ -461,6 +461,9 @@ abstract class Member implements Element {
   bool get isDeprecated => _baseElement.isDeprecated;
 
   @override
+  bool get isFactory => _baseElement.isFactory;
+
+  @override
   bool get isJS => _baseElement.isJS;
 
   @override

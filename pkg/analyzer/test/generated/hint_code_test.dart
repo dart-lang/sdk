@@ -707,10 +707,10 @@ class A {
     verify([source]);
   }
 
-  void test_deprecatedAnnotationUse_Deprecated() {
+  void test_deprecatedAnnotationUse_deprecated() {
     Source source = addSource(r'''
 class A {
-  @Deprecated('0.9')
+  @deprecated
   m() {}
   n() {m();}
 }''');
@@ -719,10 +719,10 @@ class A {
     verify([source]);
   }
 
-  void test_deprecatedAnnotationUse_deprecated() {
+  void test_deprecatedAnnotationUse_Deprecated() {
     Source source = addSource(r'''
 class A {
-  @deprecated
+  @Deprecated('0.9')
   m() {}
   n() {m();}
 }''');
@@ -999,6 +999,186 @@ class A {}
 class B {}''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DUPLICATE_IMPORT]);
+    verify([source]);
+  }
+
+  void test_factory__expr_return_null_OK() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class Stateful {
+  @factory
+  State createState() => null;
+}
+
+class State { }
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_factory_abstract_OK() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+abstract class Stateful {
+  @factory
+  State createState();
+}
+
+class State { }
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_factory_bad_return() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class Stateful {
+  State _s = new State();
+
+  @factory
+  State createState() => _s;
+}
+
+class State { }
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_FACTORY_METHOD_IMPL]);
+    verify([source]);
+  }
+
+  void test_factory_block_OK() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class Stateful {
+  @factory
+  State createState() {
+    return new State();
+  }
+}
+
+class State { }
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_factory_block_return_null_OK() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class Stateful {
+  @factory
+  State createState() {
+    return null;
+  }
+}
+
+class State { }
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_factory_expr_OK() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class Stateful {
+  @factory
+  State createState() => new State();
+}
+
+class State { }
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_factory_misplaced_annotation() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+@factory
+class X {
+  @factory
+  int x;
+}
+
+@factory
+main() { }
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      HintCode.INVALID_FACTORY_ANNOTATION,
+      HintCode.INVALID_FACTORY_ANNOTATION,
+      HintCode.INVALID_FACTORY_ANNOTATION
+    ]);
+    verify([source]);
+  }
+
+  void test_factory_no_return_type_OK() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class Stateful {
+  @factory
+  createState() {
+    return new Stateful();
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    // Null return types will get flagged elsewhere, no need to pile-on here.
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_factory_subclass_OK() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+abstract class Stateful {
+  @factory
+  State createState();
+}
+
+class MyThing extends Stateful {
+  @override
+  State createState() {
+    print('my state');
+    return new MyState();
+  }
+}
+
+class State { }
+class MyState extends State { }
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_factory_void_return() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class Stateful {
+  @factory
+  void createState() {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_FACTORY_METHOD_DECL]);
     verify([source]);
   }
 
