@@ -1188,5 +1188,8 @@ class _KeepContinueDelta implements Delta {
 
 class _TestAnalysisTarget implements AnalysisTarget {
   @override
+  Source get librarySource => null;
+
+  @override
   Source get source => null;
 }

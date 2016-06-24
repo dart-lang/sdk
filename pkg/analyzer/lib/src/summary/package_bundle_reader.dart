@@ -140,7 +140,7 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
     }
     AnalysisTarget target = entry.target;
     // Check whether there are results for the source.
-    if (!hasResultsForSource(target.source)) {
+    if (!hasResultsForSource(target.librarySource ?? target.source)) {
       return false;
     }
     // Constant expressions are always resolved in summaries.
@@ -184,9 +184,6 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
         return false;
       }
     } else if (target is LibrarySpecificUnit) {
-      if (!hasResultsForSource(target.library)) {
-        return false;
-      }
       if (result == CREATED_RESOLVED_UNIT1 ||
           result == CREATED_RESOLVED_UNIT2 ||
           result == CREATED_RESOLVED_UNIT3 ||
@@ -213,9 +210,6 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
         }
       }
     } else if (target is VariableElement) {
-      if (!hasResultsForSource(target.library.source)) {
-        return false;
-      }
       if (result == PROPAGATED_VARIABLE || result == INFERRED_STATIC_VARIABLE) {
         entry.setValue(result, target, TargetedResult.EMPTY_LIST);
         return true;

@@ -2889,6 +2889,9 @@ abstract class ElementImpl implements Element {
       getAncestor((element) => element is LibraryElement);
 
   @override
+  Source get librarySource => library?.source;
+
+  @override
   ElementLocation get location {
     if (_cachedLocation == null) {
       if (library == null) {
@@ -6556,6 +6559,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   Source get source => null;
+
+  @override
+  Source get librarySource => null;
 
   @override
   DartType get type => DynamicTypeImpl.instance;

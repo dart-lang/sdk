@@ -491,6 +491,9 @@ abstract class Member implements Element {
   LibraryElement get library => _baseElement.library;
 
   @override
+  Source get librarySource => _baseElement.librarySource;
+
+  @override
   ElementLocation get location => _baseElement.location;
 
   @override
@@ -518,7 +521,8 @@ abstract class Member implements Element {
   AstNode computeNode() => _baseElement.computeNode();
 
   @override
-  Element/*=E*/ getAncestor/*<E extends Element >*/(Predicate<Element> predicate) =>
+  Element/*=E*/ getAncestor/*<E extends Element >*/(
+          Predicate<Element> predicate) =>
       baseElement.getAncestor(predicate);
 
   @override
@@ -703,7 +707,8 @@ class ParameterMember extends VariableMember
   FormalParameter computeNode() => baseElement.computeNode();
 
   @override
-  Element/*=E*/ getAncestor/*<E extends Element>*/(Predicate<Element> predicate) {
+  Element/*=E*/ getAncestor/*<E extends Element>*/(
+      Predicate<Element> predicate) {
     Element element = baseElement.getAncestor(predicate);
     ParameterizedType definingType = this.definingType;
     if (definingType is InterfaceType) {
@@ -712,7 +717,8 @@ class ParameterMember extends VariableMember
       } else if (element is MethodElement) {
         return MethodMember.from(element, definingType) as Element/*=E*/;
       } else if (element is PropertyAccessorElement) {
-        return PropertyAccessorMember.from(element, definingType) as Element/*=E*/;
+        return PropertyAccessorMember.from(element, definingType)
+            as Element/*=E*/;
       }
     }
     return element as Element/*=E*/;

@@ -385,6 +385,9 @@ abstract class ElementHandle implements Element {
       getAncestor((element) => element is LibraryElement);
 
   @override
+  Source get librarySource => actualElement.librarySource;
+
+  @override
   ElementLocation get location => _location;
 
   @override
