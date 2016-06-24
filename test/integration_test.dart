@@ -238,6 +238,39 @@ defineTests() {
       });
     });
 
+    group('only_throw_error', () {
+      IOSink currentOut = outSink;
+      CollectingSink collectingOut = new CollectingSink();
+      setUp(() {
+        exitCode = 0;
+        outSink = collectingOut;
+      });
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+        exitCode = 0;
+      });
+
+      test('only throw error', () {
+        dartlint.main([
+          'test/_data/only_throw_error',
+          '--rules=only_throw_error'
+        ]);
+        expect(exitCode, 1);
+        expect(
+            collectingOut.trim(),
+            stringContainsInOrder(
+                [
+                  "throw 'hello world!'; // LINT",
+                  'throw null; // LINT',
+                  'throw 7; // LINT',
+                  'throw new Object(); // LINT',
+                  'throw returnString(); // LINT',
+                  '1 file analyzed, 5 issues found, in'
+                ]));
+      });
+    });
+
     group('examples', () {
       test('lintconfig.yaml', () {
         var src = readFile('example/lintconfig.yaml');
