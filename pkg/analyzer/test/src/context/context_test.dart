@@ -2680,6 +2680,62 @@ class LimitedInvalidateTest extends AbstractContextTest {
     context.analysisOptions = options;
   }
 
+  void test_private_class() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class _A {}
+class _B2 {}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main() {
+  new _A();
+  new _B();
+}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: change _A and _B2
+    //   b.dart is valid, because _A, _B, _A2 and _B2 are all private,
+    //   so b.dart cannot see them.
+    context.setContents(
+        a,
+        r'''
+class _A2 {}
+class _B {}
+''');
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+  }
+
+  void test_private_topLevelVariable() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+int _V = 1;
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main() {
+  print(_V);
+}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: change _V
+    //   b.dart is valid, because _V is private and b.dart cannot see it.
+    context.setContents(
+        a,
+        r'''
+int _V = 2;
+''');
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+  }
+
   void test_sequence_class_give_take() {
     Source a = addSource(
         '/a.dart',

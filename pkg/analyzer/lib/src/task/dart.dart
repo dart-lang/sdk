@@ -2477,9 +2477,8 @@ class ContainingLibrariesTask extends SourceBasedAnalysisTask {
 class DartDelta extends Delta {
   bool hasDirectiveChange = false;
 
-  final Set<String> addedNames = new Set<String>();
   final Set<String> changedNames = new Set<String>();
-  final Set<String> removedNames = new Set<String>();
+  final Map<Source, Set<String>> changedPrivateNames = <Source, Set<String>>{};
 
   final Set<Source> invalidatedSources = new Set<Source>();
 
@@ -2487,26 +2486,34 @@ class DartDelta extends Delta {
     invalidatedSources.add(source);
   }
 
-  void elementAdded(Element element) {
-    addedNames.add(element.name);
-  }
-
   void elementChanged(Element element) {
-    changedNames.add(element.name);
+    Source librarySource = element.library.source;
+    nameChanged(librarySource, element.name);
   }
 
-  void elementRemoved(Element element) {
-    removedNames.add(element.name);
+  /**
+   * Return `true` if the given [name], used in a unit of the [librarySource]
+   * is affected by this delta.
+   */
+  bool isNameAffected(Source librarySource, String name) {
+    if (_isPrivateName(name)) {
+      return changedPrivateNames[librarySource]?.contains(name) ?? false;
+    }
+    return changedNames.contains(name);
   }
 
-  bool isNameAffected(String name) {
-    return addedNames.contains(name) ||
-        changedNames.contains(name) ||
-        removedNames.contains(name);
-  }
-
-  bool nameChanged(String name) {
-    return changedNames.add(name);
+  /**
+   * Register the fact that the given [name], defined in the [librarySource]
+   * is changed.  Return `true` if the [name] is a new name, not yet registered.
+   */
+  bool nameChanged(Source librarySource, String name) {
+    if (_isPrivateName(name)) {
+      return changedPrivateNames
+          .putIfAbsent(librarySource, () => new Set<String>())
+          .add(name);
+    } else {
+      return changedNames.add(name);
+    }
   }
 
   @override
@@ -2542,10 +2549,6 @@ class DartDelta extends Delta {
         return DeltaResult.KEEP_CONTINUE;
       }
       if (BuildLibraryElementTask.DESCRIPTOR.results.contains(descriptor)) {
-        // Invalidate cached results.
-        if (value is LibraryElementImpl) {
-          value.exportNamespace = null;
-        }
         return DeltaResult.KEEP_CONTINUE;
       }
       return DeltaResult.INVALIDATE;
@@ -2574,6 +2577,8 @@ class DartDelta extends Delta {
     // We don't know what to do with the given target, invalidate it.
     return DeltaResult.INVALIDATE;
   }
+
+  static bool _isPrivateName(String name) => name.startsWith('_');
 }
 
 /**
@@ -4534,8 +4539,11 @@ class ReadyResolvedUnitTask extends SourceBasedAnalysisTask {
  * with their externally visible dependencies.
  */
 class ReferencedNames {
+  final Source librarySource;
   final Set<String> names = new Set<String>();
   final Map<String, Set<String>> userToDependsOn = <String, Set<String>>{};
+
+  ReferencedNames(this.librarySource);
 
   /**
    * Updates [delta] by adding names that are changed in this library.
@@ -4546,8 +4554,8 @@ class ReferencedNames {
       hasProgress = false;
       userToDependsOn.forEach((user, dependencies) {
         for (String dependency in dependencies) {
-          if (delta.isNameAffected(dependency)) {
-            if (delta.nameChanged(user)) {
+          if (delta.isNameAffected(librarySource, dependency)) {
+            if (delta.nameChanged(librarySource, user)) {
               hasProgress = true;
             }
           }
@@ -4562,7 +4570,7 @@ class ReferencedNames {
    */
   bool isAffectedBy(DartDelta delta) {
     for (String name in names) {
-      if (delta.isNameAffected(name)) {
+      if (delta.isNameAffected(librarySource, name)) {
         return true;
       }
     }
@@ -5106,13 +5114,14 @@ class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {
 
   @override
   void internalPerform() {
+    Source source = getRequiredSource();
     //
     // Prepare inputs.
     //
     LibraryElement library = getRequiredInput(LIBRARY_INPUT);
     List<CompilationUnit> units = getRequiredInput(UNITS_INPUT);
     // Compute referenced names.
-    ReferencedNames referencedNames = new ReferencedNames();
+    ReferencedNames referencedNames = new ReferencedNames(source);
     int length = units.length;
     for (int i = 0; i < length; i++) {
       new ReferencedNamesBuilder(referencedNames).build(units[i]);
