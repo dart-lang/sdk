@@ -1,4 +1,5 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -40,6 +41,24 @@ class DartTypeUtilities {
         element.allSupertypes.any(predicate);
   }
 
+  static bool implementsAnyInterface(DartType type,
+      Iterable<InterfaceTypeDefinition> definitions) {
+    bool predicate(InterfaceType i) =>
+        definitions.any((d) => i.name == d.name &&
+            i.element.library.name == d.library);
+    ClassElement element = type.element;
+    return predicate(type) ||
+        !element.isSynthetic &&
+            type is InterfaceType &&
+            element.allSupertypes.any(predicate);
+  }
+
+  static bool extendsClass(DartType type, String className, String library) =>
+      type != null && type.name == className &&
+          type.element.library.name == library ||
+          (type is InterfaceType &&
+              extendsClass(type.superclass, className, library));
+
   /// Builds the list resulting from traversing the node in DFS and does not
   /// include the node itself.
   static List<AstNode> traverseNodesInDFS(AstNode node) {
@@ -51,5 +70,27 @@ class DartTypeUtilities {
       nodes.addAll(traverseNodesInDFS(c));
     });
     return nodes;
+  }
+}
+
+class InterfaceTypeDefinition {
+  final String name;
+  final String library;
+
+  InterfaceTypeDefinition(this.name, this.library);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    return other is InterfaceTypeDefinition &&
+        this.name == other.name &&
+        this.library == other.library;
+  }
+
+  @override
+  int get hashCode {
+    return name.hashCode ^ library.hashCode;
   }
 }
