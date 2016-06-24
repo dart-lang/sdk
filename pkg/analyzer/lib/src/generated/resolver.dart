@@ -753,8 +753,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         identifier.getAncestor((AstNode node) => node is CommentReference) !=
         null;
 
+    bool inCurrentLibrary(Element element) =>
+        element.library == _currentLibrary;
+
     Element element = identifier.bestElement;
-    if (isProtected(element) && !inCommentReference(identifier)) {
+    if (isProtected(element) &&
+        !inCurrentLibrary(element) &&
+        !inCommentReference(identifier)) {
       ClassElement definingClass = element.enclosingElement;
       ClassDeclaration accessingClass =
           identifier.getAncestor((AstNode node) => node is ClassDeclaration);

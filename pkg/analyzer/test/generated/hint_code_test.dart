@@ -1268,35 +1268,55 @@ main() {
   }
 
   void test_invalidUseOfProtectedMember_closure() {
-    Source source = addSource(r'''
+    Source source = addNamedSource(
+        '/lib1.dart',
+        r'''
 import 'package:meta/meta.dart';
 
 class A {
   @protected
   int a() => 42;
 }
+''');
+    Source source2 = addNamedSource(
+        '/lib2.dart',
+        r'''
+import 'lib1.dart';
+
 void main() {
   var leak = new A().a;
   print(leak);
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
-    verify([source]);
+}
+''');
+    computeLibrarySourceErrors(source2);
+    assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertNoErrors(source);
+    verify([source, source2]);
   }
 
   void test_invalidUseOfProtectedMember_field() {
-    Source source = addSource(r'''
+    Source source = addNamedSource(
+        '/lib1.dart',
+        r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   int a;
 }
+''');
+    Source source2 = addNamedSource(
+        '/lib2.dart',
+        r'''
+import 'lib1.dart';
+
 abstract class B {
   int b() => new A().a;
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
-    verify([source]);
+}
+''');
+    computeLibrarySourceErrors(source2);
+    assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertNoErrors(source);
+    verify([source, source2]);
   }
 
   void test_invalidUseOfProtectedMember_field_OK() {
@@ -1315,6 +1335,31 @@ abstract class B implements A {
   }
 
   void test_invalidUseOfProtectedMember_function() {
+    Source source = addNamedSource(
+        '/lib1.dart',
+        r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+''');
+    Source source2 = addNamedSource(
+        '/lib2.dart',
+        r'''
+import 'lib1.dart';
+
+main() {
+  new A().a();
+}
+''');
+    computeLibrarySourceErrors(source2);
+    assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertNoErrors(source);
+    verify([source, source2]);
+  }
+
+  void test_invalidUseOfProtectedMember_function_OK2() {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
 class A {
@@ -1325,7 +1370,7 @@ main() {
   new A().a();
 }''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1346,19 +1391,29 @@ abstract class B implements A {
   }
 
   void test_invalidUseOfProtectedMember_getter() {
-    Source source = addSource(r'''
+    Source source = addNamedSource(
+        '/lib1.dart',
+        r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   int get a => 42;
 }
+''');
+    Source source2 = addNamedSource(
+        '/lib2.dart',
+        r'''
+import 'lib1.dart';
+
 class B {
   A a;
   int b() => a.a;
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
-    verify([source]);
+}
+''');
+    computeLibrarySourceErrors(source2);
+    assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertNoErrors(source);
+    verify([source, source2]);
   }
 
   void test_invalidUseOfProtectedMember_getter_OK() {
@@ -1398,34 +1453,55 @@ f() {}
   }
 
   void test_invalidUseOfProtectedMember_message() {
-    Source source = addSource(r'''
+    Source source = addNamedSource(
+        '/lib1.dart',
+        r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   void a(){ }
 }
+''');
+    Source source2 = addNamedSource(
+        '/lib2.dart',
+        r'''
+import 'lib1.dart';
+
 class B {
   void b() => new A().a();
-}''');
-    List<AnalysisError> errors = analysisContext2.computeErrors(source);
+}
+''');
+    List<AnalysisError> errors = analysisContext2.computeErrors(source2);
     expect(errors, hasLength(1));
     expect(errors[0].message,
         "The member 'a' can only be used within instance members of subclasses of 'A'");
+    verify([source, source2]);
   }
 
   void test_invalidUseOfProtectedMember_method_1() {
-    Source source = addSource(r'''
+    Source source = addNamedSource(
+        '/lib1.dart',
+        r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   void a(){ }
 }
+''');
+    Source source2 = addNamedSource(
+        '/lib2.dart',
+        r'''
+import 'lib1.dart';
+
 class B {
   void b() => new A().a();
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
-    verify([source]);
+}
+''');
+
+    computeLibrarySourceErrors(source2);
+    assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertNoErrors(source);
+    verify([source, source2]);
   }
 
   void test_invalidUseOfProtectedMember_method_OK() {
@@ -1581,21 +1657,31 @@ class A {
   }
 
   void test_invalidUseOfProtectedMember_setter() {
-    Source source = addSource(r'''
+    Source source = addNamedSource(
+        '/lib1.dart',
+        r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   void set a(int i) { }
 }
+''');
+    Source source2 = addNamedSource(
+        '/lib2.dart',
+        r'''
+import 'lib1.dart';
+
 class B{
   A a;
   b(int i) {
     a.a = i;
   }
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
-    verify([source]);
+}
+''');
+    computeLibrarySourceErrors(source2);
+    assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertNoErrors(source);
+    verify([source, source2]);
   }
 
   void test_invalidUseOfProtectedMember_setter_OK() {
