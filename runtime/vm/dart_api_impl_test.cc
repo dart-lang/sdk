@@ -5986,6 +5986,11 @@ TEST_CASE(RootLibrary) {
   lib_uri = Dart_LibraryUrl(root_lib);
   EXPECT_VALID(Dart_StringToCString(lib_uri, &uri_cstr));
   EXPECT_STREQ("dart:core", uri_cstr);  // Root library did change.
+
+  result = Dart_SetRootLibrary(Dart_Null());
+  EXPECT_VALID(result);
+  root_lib = Dart_RootLibrary();
+  EXPECT(Dart_IsNull(root_lib));  // Root library did change.
 }
 
 
