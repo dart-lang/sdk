@@ -9,6 +9,7 @@ import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
+import '../elements/modelx.dart' show ErroneousElementX;
 import 'constant_serialization.dart';
 import 'keys.dart';
 import 'modelz.dart';
@@ -17,6 +18,7 @@ import 'serialization_util.dart';
 
 /// Enum kinds used for encoding [Element]s.
 enum SerializedElementKind {
+  ERROR,
   LIBRARY,
   COMPILATION_UNIT,
   CLASS,
@@ -63,6 +65,7 @@ enum SerializedElementKind {
 /// and [ConstantExpression] that the serialized [Element] depends upon are also
 /// serialized.
 const List<ElementSerializer> ELEMENT_SERIALIZERS = const [
+  const ErrorSerializer(),
   const LibrarySerializer(),
   const CompilationUnitSerializer(),
   const ClassSerializer(),
@@ -190,6 +193,30 @@ class SerializerUtil {
         set.add(element);
       }
     };
+  }
+}
+
+class ErrorSerializer implements ElementSerializer {
+  const ErrorSerializer();
+
+  SerializedElementKind getSerializedKind(Element element) {
+    if (element.isError) {
+      return SerializedElementKind.ERROR;
+    }
+    return null;
+  }
+
+  void serialize(ErroneousElement element, ObjectEncoder encoder,
+      SerializedElementKind kind) {
+    encoder.setElement(Key.ENCLOSING, element.enclosingElement);
+    encoder.setString(Key.NAME, element.name);
+    encoder.setEnum(Key.MESSAGE_KIND, element.messageKind);
+    if (element.messageArguments.isNotEmpty) {
+      MapEncoder mapEncoder = encoder.createMap(Key.ARGUMENTS);
+      element.messageArguments.forEach((String key, String value) {
+        mapEncoder.setString(key, value);
+      });
+    }
   }
 }
 
@@ -705,6 +732,19 @@ class ElementDeserializer {
   static Element deserialize(
       ObjectDecoder decoder, SerializedElementKind elementKind) {
     switch (elementKind) {
+      case SerializedElementKind.ERROR:
+        Element enclosing = decoder.getElement(Key.ENCLOSING);
+        String name = decoder.getString(Key.NAME);
+        MessageKind messageKind =
+            decoder.getEnum(Key.MESSAGE_KIND, MessageKind.values);
+        Map<String, String> arguments = <String, String>{};
+        MapDecoder mapDecoder = decoder.getMap(Key.ARGUMENTS, isOptional: true);
+        if (mapDecoder != null) {
+          mapDecoder.forEachKey((String key) {
+            arguments[key] = mapDecoder.getString(key);
+          });
+        }
+        return new ErroneousElementX(messageKind, arguments, name, enclosing);
       case SerializedElementKind.LIBRARY:
         return new LibraryElementZ(decoder);
       case SerializedElementKind.COMPILATION_UNIT:

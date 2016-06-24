@@ -649,10 +649,16 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
     handler.registerNewLibrary(library);
     return listener.onLibraryScanned(library, handler).then((_) {
       return Future.forEach(library.imports, (ImportElement import) {
-        return createLibrary(handler, library, import.uri);
+        Uri resolvedUri = library.canonicalUri.resolveUri(import.uri);
+        return createLibrary(handler, library, resolvedUri);
       }).then((_) {
         return Future.forEach(library.exports, (ExportElement export) {
-          return createLibrary(handler, library, export.uri);
+          Uri resolvedUri = library.canonicalUri.resolveUri(export.uri);
+          return createLibrary(handler, library, resolvedUri);
+        }).then((_) {
+          // TODO(johnniwinther): Shouldn't there be an [ImportElement] for the
+          // implicit import of dart:core?
+          return createLibrary(handler, library, Uris.dart_core);
         }).then((_) => library);
       });
     });

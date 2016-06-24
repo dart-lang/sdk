@@ -31,6 +31,7 @@ class Key {
   static const Key EFFECTIVE_TARGET_TYPE = const Key('effectiveTargetType');
   static const Key ELEMENT = const Key('element');
   static const Key ELEMENTS = const Key('elements');
+  static const Key ENCLOSING = const Key('enclosing');
   static const Key EXECUTABLE_CONTEXT = const Key('executable-context');
   static const Key EXPORTS = const Key('exports');
   static const Key EXPORT_SCOPE = const Key('export-scope');
@@ -84,6 +85,7 @@ class Key {
   static const Key LISTS = const Key('lists');
   static const Key MAPS = const Key('maps');
   static const Key MEMBERS = const Key('members');
+  static const Key MESSAGE_KIND = const Key('messageKind');
   static const Key METADATA = const Key('metadata');
   static const Key MIXIN = const Key('mixin');
   static const Key MIXINS = const Key('mixins');

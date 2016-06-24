@@ -128,7 +128,7 @@ Future<SerializedData> serializeDartCore(
       serializedData = new SerializedData(uri, file.readAsStringSync());
     }
   } else {
-    SerializationResult result = await serialize(Uris.dart_core, uri);
+    SerializationResult result = await serialize(Uris.dart_core, dataUri: uri);
     serializedData = result.serializedData;
   }
   if (arguments.saveSerializedData) {
@@ -146,11 +146,17 @@ class SerializationResult {
   SerializationResult(this.compiler, this.serializedData);
 }
 
-Future<SerializationResult> serialize(Uri entryPoint, [Uri dataUri]) async {
+Future<SerializationResult> serialize(Uri entryPoint,
+    {Map<String, String> memorySourceFiles: const <String, String>{},
+     List<Uri> resolutionInputs: const <Uri>[],
+     Uri dataUri}) async {
   if (dataUri == null) {
     dataUri = Uri.parse('memory:${DEFAULT_DATA_FILE_NAME}');
   }
-  Compiler compiler = compilerFor(options: [Flags.analyzeAll]);
+  Compiler compiler = compilerFor(
+      options: [Flags.analyzeAll],
+      memorySourceFiles: memorySourceFiles,
+      resolutionInputs: resolutionInputs);
   compiler.serialization.supportSerialization = true;
   await compiler.run(entryPoint);
   BufferedEventSink sink = new BufferedEventSink();

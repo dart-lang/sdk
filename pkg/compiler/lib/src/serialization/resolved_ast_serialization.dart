@@ -108,10 +108,7 @@ class ResolvedAstSerializer extends Visitor {
   /// Serialize [ResolvedAst] that is defined in terms of an AST together with
   /// [TreeElements].
   void serializeParsed() {
-    objectEncoder.setUri(
-        Key.URI,
-        elements.analyzedElement.compilationUnit.script.resourceUri,
-        elements.analyzedElement.compilationUnit.script.resourceUri);
+    objectEncoder.setUri(Key.URI, resolvedAst.sourceUri, resolvedAst.sourceUri);
     AstKind kind;
     if (element.enclosingClass is EnumClassElement) {
       if (element.name == 'index') {
@@ -515,7 +512,7 @@ class ResolvedAstDeserializer {
               reporter.internalError(
                   element,
                   "No token found for $element in "
-                  "${objectDecoder.getUri(Key.URI)} @ $getOrSetOffset");
+                  "${uri} @ $getOrSetOffset");
             }
           }
           return doParse((parser) {

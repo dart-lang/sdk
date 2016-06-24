@@ -55,39 +55,3 @@ Future check(
 
   checkAllResolvedAsts(compilerNormal, compilerDeserialized, verbose: true);
 }
-
-void checkAllResolvedAsts(
-    Compiler compiler1,
-    Compiler compiler2,
-    {bool verbose: false}) {
-  checkLoadedLibraryMembers(
-      compiler1,
-      compiler2,
-      (Element member1) {
-        return member1 is ExecutableElement &&
-            compiler1.resolution.hasResolvedAst(member1);
-      },
-      checkResolvedAsts,
-      verbose: verbose);
-}
-
-
-/// Check equivalence of [impact1] and [impact2].
-void checkResolvedAsts(Compiler compiler1, Element member1,
-                       Compiler compiler2, Element member2,
-                       {bool verbose: false}) {
-  if (!compiler2.serialization.isDeserialized(member2)) {
-    return;
-  }
-  ResolvedAst resolvedAst1 = compiler1.resolution.getResolvedAst(member1);
-  ResolvedAst resolvedAst2 = compiler2.serialization.getResolvedAst(member2);
-
-  if (resolvedAst1 == null || resolvedAst2 == null) return;
-
-  if (verbose) {
-    print('Checking resolved asts for $member1 vs $member2');
-  }
-
-  testResolvedAstEquivalence(
-      resolvedAst1, resolvedAst2, const CheckStrategy());
-}
