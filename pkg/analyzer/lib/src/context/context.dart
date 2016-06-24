@@ -1069,6 +1069,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (entry == null) {
       return false;
     }
+    // If there were no "originalContents" in the content cache,
+    // use the contents of the file instead.
+    if (originalContents == null) {
+      try {
+        TimestampedData<String> fileContents = source.contents;
+        if (fileContents.modificationTime == entry.modificationTime) {
+          originalContents = fileContents.data;
+        }
+      } catch (e) {}
+    }
     bool changed = newContents != originalContents;
     if (newContents != null) {
       if (changed) {

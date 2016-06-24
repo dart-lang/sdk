@@ -1498,6 +1498,44 @@ main() {}''');
     expect(context.getLibraryElement(source), isNull);
   }
 
+  void test_handleContentsChanged_noOriginal_sameAsFile() {
+    ContentCache contentCache = new ContentCache();
+    context.contentCache = contentCache;
+    // Add the source.
+    String code = 'foo() {}';
+    Source source = addSource("/test.dart", code);
+    _analyzeAll_assertFinished();
+    expect(context.getResolvedCompilationUnit2(source, source), isNotNull);
+    // Update the content cache, and notify that we updated the source.
+    // We pass "null" as "originalContents" because the was no one.
+    contentCache.setContents(source, code);
+    context.handleContentsChanged(source, null, code, true);
+    expect(context.getResolvedCompilationUnit2(source, source), isNotNull);
+  }
+
+  void test_handleContentsChanged_noOriginal_sameAsFile_butFileUpdated() {
+    ContentCache contentCache = new ContentCache();
+    context.contentCache = contentCache;
+    // Add the source.
+    String oldCode = 'foo() {}';
+    String newCode = 'bar() {}';
+    var file = resourceProvider.newFile('/test.dart', oldCode);
+    Source source = file.createSource();
+    context.applyChanges(new ChangeSet()..addedSource(source));
+    _analyzeAll_assertFinished();
+    expect(context.getResolvedCompilationUnit2(source, source), isNotNull);
+    // Test for the race condition.
+    // 1. Update the file.
+    // 2. Update the content cache.
+    // 3. Notify the context, and because this is the first time when we
+    //    update the content cache, we don't know "originalContents".
+    // The source must be invalidated, because it has different contents now.
+    resourceProvider.updateFile('/test.dart', newCode);
+    contentCache.setContents(source, newCode);
+    context.handleContentsChanged(source, null, newCode, true);
+    expect(context.getResolvedCompilationUnit2(source, source), isNull);
+  }
+
   Future test_implicitAnalysisEvents_added() async {
     AnalyzedSourcesListener listener = new AnalyzedSourcesListener();
     context.implicitAnalysisEvents.listen(listener.onData);
@@ -2699,6 +2737,7 @@ class C {}
 class A {
   A();
 }
+
 class B {
   B();
 }
