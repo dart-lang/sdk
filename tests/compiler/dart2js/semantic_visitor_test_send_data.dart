@@ -2702,8 +2702,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_SUPER_FIELD_SETTER_COMPOUND,
             getter: 'field(A#a)', setter: 'setter(B#a)',
             operator: '+=', rhs: '42')),
-    // TODO(johnniwinther): Enable this when dart2js supports shadow setters.
-    /*const Test.clazz(
+    const Test.clazz(
         '''
         class A {
           var a;
@@ -2716,9 +2715,12 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => super.a += 42;
         }
         ''',
-        const Visit(VisitKind.VISIT_SUPER_FIELD_FIELD_COMPOUND,
-            getter: 'field(B#a)', setter: 'field(A#a)',
-            operator: '+=', rhs: '42')),*/
+        // TODO(johnniwinther): Change this to
+        // [VISIT_SUPER_FIELD_FIELD_COMPOUND] when dart2js supports shadow
+        // setters.
+        const Visit(VisitKind.VISIT_SUPER_FINAL_FIELD_COMPOUND,
+            element: 'field(B#a)',
+            operator: '+=', rhs: '42')),
     const Test.clazz(
         '''
         class B {
@@ -4437,8 +4439,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_SUPER_FIELD_SETTER_SET_IF_NULL,
             getter: 'field(A#a)', setter: 'setter(B#a)',
             rhs: '42')),
-    // TODO(johnniwinther): Enable this when dart2js supports shadow setters.
-    /*const Test.clazz(
+    const Test.clazz(
         '''
         class A {
           var a;
@@ -4451,9 +4452,12 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => super.a ??= 42;
         }
         ''',
-        const Visit(VisitKind.VISIT_SUPER_FIELD_FIELD_SET_IF_NULL,
-            getter: 'field(B#a)', setter: 'field(A#a)',
-            rhs: '42')),*/
+        // TODO(johnniwinther): Change this to
+        // [VISIT_SUPER_FIELD_FIELD_SET_IF_NULL] when dart2js supports shadow
+        // setters.
+        const Visit(VisitKind.VISIT_SUPER_FINAL_FIELD_SET_IF_NULL,
+            element: 'field(B#a)',
+            rhs: '42')),
     const Test.clazz(
         '''
         class B {
