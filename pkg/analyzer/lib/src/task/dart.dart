@@ -36,6 +36,7 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/task/html.dart';
+import 'package:analyzer/src/task/incremental_element_builder.dart';
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
@@ -2480,10 +2481,17 @@ class DartDelta extends Delta {
   final Set<String> changedNames = new Set<String>();
   final Map<Source, Set<String>> changedPrivateNames = <Source, Set<String>>{};
 
+  final Map<String, ClassElementDelta> changedClasses =
+      <String, ClassElementDelta>{};
+
   final Set<Source> invalidatedSources = new Set<Source>();
 
   DartDelta(Source source) : super(source) {
     invalidatedSources.add(source);
+  }
+
+  void classChanged(ClassElementDelta classDelta) {
+    changedClasses[classDelta.element.name] = classDelta;
   }
 
   void elementChanged(Element element) {
@@ -2499,7 +2507,14 @@ class DartDelta extends Delta {
     if (_isPrivateName(name)) {
       return changedPrivateNames[librarySource]?.contains(name) ?? false;
     }
-    return changedNames.contains(name);
+    if (changedNames.contains(name)) {
+      return true;
+    }
+    ClassElementDelta classDelta = changedClasses[name];
+    if (classDelta != null) {
+      return classDelta.hasPublicChanges;
+    }
+    return false;
   }
 
   /**

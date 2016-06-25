@@ -1831,12 +1831,8 @@ class _ClassDeltaHelper {
     ClassDeclaration newClass = _findClassNode(newUnit, name);
     expect(newClass, isNotNull);
     newMembers = newClass.members.toList();
-    for (ClassElementDelta delta in unitDelta.classDeltas) {
-      if (delta.element.name == name) {
-        this.delta = delta;
-      }
-    }
-    expect(this.delta, isNotNull, reason: 'No delta for class: $name');
+    delta = unitDelta.classDeltas[name];
+    expect(delta, isNotNull, reason: 'No delta for class: $name');
   }
 
   void initOld(CompilationUnit oldUnit) {

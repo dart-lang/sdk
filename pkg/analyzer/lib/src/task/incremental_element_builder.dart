@@ -35,6 +35,20 @@ class ClassElementDelta {
   final List<MethodElement> removedMethods = <MethodElement>[];
 
   ClassElementDelta(this.element);
+
+  bool get hasPublicChanges {
+    return _hasPublicElements(addedAccessors) ||
+        _hasPublicElements(removedAccessors) ||
+        _hasPublicElements(addedConstructors) ||
+        _hasPublicElements(removedConstructors) ||
+        _hasPublicElements(addedMethods) ||
+        _hasPublicElements(removedMethods) ||
+        false;
+  }
+
+  static bool _hasPublicElements(Iterable<Element> elements) {
+    return elements.any((e) => e.isPublic);
+  }
 }
 
 /**
@@ -57,9 +71,10 @@ class CompilationUnitElementDelta {
   final List<Element> removedDeclarations = <Element>[];
 
   /**
-   * The list of changed class elements.
+   * The map from names of changed classes to the change deltas.
    */
-  final List<ClassElementDelta> classDeltas = <ClassElementDelta>[];
+  final Map<String, ClassElementDelta> classDeltas =
+      <String, ClassElementDelta>{};
 }
 
 /**
@@ -385,7 +400,7 @@ class IncrementalCompilationUnitElementBuilder {
           if (oldClass != null) {
             ClassElementDelta delta = _processClassMembers(oldClass, newNode);
             if (delta != null) {
-              unitDelta.classDeltas.add(delta);
+              unitDelta.classDeltas[delta.element.name] = delta;
               _addElementToUnitHolder(delta.element);
               removedElements.remove(delta.element);
               continue;

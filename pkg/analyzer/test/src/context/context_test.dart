@@ -2713,6 +2713,52 @@ class B extends A {}
     _assertInvalid(b, LIBRARY_ERRORS_READY);
   }
 
+  void test_class_private_member() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {
+  A();
+  A._privateConstructor();
+
+  foo() {}
+
+  int _privateField;
+  _privateMethod() {}
+  int get _privateGetter => null;
+  void set _privateSetter(_) {}
+}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main(A a) {
+  a.foo();
+}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: rename private members of A
+    //   b.dart is valid, it cannot see these private members.
+    context.setContents(
+        a,
+        r'''
+class A {
+  A();
+  A._privateConstructor2();
+
+  foo() {}
+
+  int _privateField2;
+  _privateMethod2() {}
+  int get _privateGetter2 => null;
+  void set _privateSetter2(_) {}
+}
+''');
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+  }
+
   void test_private_class() {
     Source a = addSource(
         '/a.dart',
