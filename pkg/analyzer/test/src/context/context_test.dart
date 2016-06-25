@@ -2680,6 +2680,39 @@ class LimitedInvalidateTest extends AbstractContextTest {
     context.analysisOptions = options;
   }
 
+  void test_class_method_definedInSuper_sameLibrary() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {
+  m() {}
+}
+class B extends A {}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main(B b) {
+  b.m();
+}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: change A.m
+    //   This makes B changed.
+    //   b.dart is invalid, because it references B.
+    context.setContents(
+        a,
+        r'''
+class A {
+  m2() {}
+}
+class B extends A {}
+''');
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+  }
+
   void test_private_class() {
     Source a = addSource(
         '/a.dart',

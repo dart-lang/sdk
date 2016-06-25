@@ -1882,7 +1882,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     // We need to invalidate the cache.
     {
-      Object delta = null;
       if (analysisOptions.finerGrainedInvalidation &&
           AnalysisEngine.isDartFileName(source.fullName)) {
         // TODO(scheglov) Incorrect implementation in general.
@@ -1912,10 +1911,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               for (ClassElementDelta classDelta in unitDelta.classDeltas) {
                 dartDelta.elementChanged(classDelta.element);
               }
-//              print(
-//                  'dartDelta: add=${dartDelta.addedNames} remove=${dartDelta.removedNames}');
-              delta = dartDelta;
-              entry.setState(CONTENT, CacheState.INVALID, delta: delta);
+              // Add other names in the library that are changed transitively.
+              {
+                ReferencedNames referencedNames = new ReferencedNames(source);
+                new ReferencedNamesBuilder(referencedNames).build(oldUnit);
+                referencedNames.addChangedElements(dartDelta);
+              }
+              // Invalidate using the prepared DartDelta.
+              entry.setState(CONTENT, CacheState.INVALID, delta: dartDelta);
               return;
             }
           }
