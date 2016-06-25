@@ -6263,6 +6263,10 @@ void''');
     expect(identifier.token, isNotNull);
     expect(identifier.name, "");
     expect(identifier.offset, 5);
+    // Should end with EOF token.
+    Token nextToken = identifier.token.next;
+    expect(nextToken, isNotNull);
+    expect(nextToken.type, TokenType.EOF);
   }
 
   void test_parseCommentReferences_multiLine() {

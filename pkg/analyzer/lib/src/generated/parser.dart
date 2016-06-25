@@ -5033,11 +5033,6 @@ class Parser {
       String referenceSource, int sourceOffset) {
     // TODO(brianwilkerson) The errors are not getting the right offset/length
     // and are being duplicated.
-    if (referenceSource.length == 0) {
-      Token syntheticToken =
-          new SyntheticStringToken(TokenType.IDENTIFIER, "", sourceOffset);
-      return new CommentReference(null, new SimpleIdentifier(syntheticToken));
-    }
     try {
       BooleanErrorListener listener = new BooleanErrorListener();
       Scanner scanner = new Scanner(
@@ -5046,6 +5041,12 @@ class Parser {
       Token firstToken = scanner.tokenize();
       if (listener.errorReported) {
         return null;
+      }
+      if (firstToken.type == TokenType.EOF) {
+        Token syntheticToken =
+            new SyntheticStringToken(TokenType.IDENTIFIER, "", sourceOffset);
+        syntheticToken.setNext(firstToken);
+        return new CommentReference(null, new SimpleIdentifier(syntheticToken));
       }
       Token newKeyword = null;
       if (_tokenMatchesKeyword(firstToken, Keyword.NEW)) {

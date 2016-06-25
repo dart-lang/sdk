@@ -1623,6 +1623,17 @@ f2() {
 ''');
   }
 
+  test_update_emptyCommentReference() {
+    _buildOldUnit(r'''
+/// Empty [] reference.
+class A {}
+''');
+    _buildNewUnit(r'''
+/// Empty [] reference.
+class A {}
+''');
+  }
+
   test_update_rewrittenConstructorName() {
     _buildOldUnit(r'''
 class A {
