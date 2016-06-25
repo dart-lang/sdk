@@ -1720,12 +1720,26 @@ void Precompiler::DropLibraries() {
       it.GetNext();
       entries++;
     }
-    // The root library might have no surviving members if it only exports main
-    // from another library. It will still be referenced from the object store,
-    // so retain it.
-    bool retain = (entries > 0) ||
-                  lib.is_dart_scheme() ||
-                  (lib.raw() == root_lib.raw());
+    bool retain = false;
+    if (entries > 0) {
+      retain = true;
+    } else if (lib.is_dart_scheme()) {
+      // The core libraries are referenced from the object store.
+      retain = true;
+    } else if (lib.raw() == root_lib.raw()) {
+      // The root library might have no surviving members if it only exports
+      // main from another library. It will still be referenced from the object
+      // store, so retain it.
+      retain = true;
+    } else {
+      // A type for a top-level class may be referenced from an object pool as
+      // part of an error message.
+      const Class& top = Class::Handle(Z, lib.toplevel_class());
+      if (classes_to_retain_.Lookup(&top) != NULL) {
+        retain = true;
+      }
+    }
+
     if (retain) {
       lib.set_index(retained_libraries.Length());
       retained_libraries.Add(lib);
