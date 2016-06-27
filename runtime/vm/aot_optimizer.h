@@ -70,6 +70,7 @@ class AotOptimizer : public FlowGraphVisitor {
   bool TryReplaceWithEqualityOp(InstanceCallInstr* call, Token::Kind op_kind);
   bool TryReplaceWithRelationalOp(InstanceCallInstr* call, Token::Kind op_kind);
 
+  bool TryInlineFieldAccess(InstanceCallInstr* call);
   bool TryInlineInstanceGetter(InstanceCallInstr* call);
   bool TryInlineInstanceSetter(InstanceCallInstr* call,
                                const ICData& unary_ic_data);

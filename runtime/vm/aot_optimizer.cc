@@ -2292,6 +2292,24 @@ static bool HasLikelySmiOperand(InstanceCallInstr* instr) {
 }
 
 
+bool AotOptimizer::TryInlineFieldAccess(InstanceCallInstr* call) {
+  const Token::Kind op_kind = call->token_kind();
+  if ((op_kind == Token::kGET) && TryInlineInstanceGetter(call)) {
+    return true;
+  }
+
+  const ICData& unary_checks =
+      ICData::Handle(Z, call->ic_data()->AsUnaryClassChecks());
+  if ((unary_checks.NumberOfChecks() > 0) &&
+      (op_kind == Token::kSET) &&
+      TryInlineInstanceSetter(call, unary_checks)) {
+    return true;
+  }
+
+  return false;
+}
+
+
 // Tries to optimize instance call by replacing it with a faster instruction
 // (e.g, binary op, field load, ..).
 void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
@@ -2310,18 +2328,12 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     return;
   }
 
-  if ((op_kind == Token::kGET) &&
-      TryInlineInstanceGetter(instr)) {
-    return;
-  }
-  const ICData& unary_checks =
-      ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
-  if ((unary_checks.NumberOfChecks() > 0) &&
-      (op_kind == Token::kSET) &&
-      TryInlineInstanceSetter(instr, unary_checks)) {
+  if (TryInlineFieldAccess(instr)) {
     return;
   }
 
+  const ICData& unary_checks =
+      ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
   if (IsAllowedForInlining(instr->deopt_id()) &&
       (unary_checks.NumberOfChecks() > 0)) {
     if ((op_kind == Token::kINDEX) && TryReplaceWithIndexedOp(instr)) {
@@ -2513,6 +2525,26 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
       }
 
       if (single_target.raw() != Function::null()) {
+        // If this is a getter or setter invocation try inlining it right away
+        // instead of replacing it with a static call.
+        if ((op_kind == Token::kGET) || (op_kind == Token::kSET)) {
+          // Create fake IC data with the resolved target.
+          const ICData& ic_data = ICData::Handle(
+              ICData::New(flow_graph_->function(),
+                          instr->function_name(),
+                          args_desc_array,
+                          Thread::kNoDeoptId,
+                          /* args_tested = */ 1,
+                          false));
+          cls = single_target.Owner();
+          ic_data.AddReceiverCheck(cls.id(), single_target);
+          instr->set_ic_data(&ic_data);
+
+          if (TryInlineFieldAccess(instr)) {
+            return;
+          }
+        }
+
         // We have computed that there is only a single target for this call
         // within the whole hierarchy. Replace InstanceCall with StaticCall.
         ZoneGrowableArray<PushArgumentInstr*>* args =
