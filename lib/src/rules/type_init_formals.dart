@@ -36,11 +36,12 @@ class Point {
 ''';
 
 class TypeInitFormals extends LintRule {
-  TypeInitFormals() : super(
-          name: 'type_init_formals',
-          description: desc,
-          details: details,
-          group: Group.style);
+  TypeInitFormals()
+      : super(
+            name: 'type_init_formals',
+            description: desc,
+            details: details,
+            group: Group.style);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);

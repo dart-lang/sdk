@@ -27,11 +27,12 @@ bool isValidPackageName(String id) =>
     isLowerCaseUnderScore(id) && isValidDartIdentifier(id);
 
 class PubPackageNames extends LintRule {
-  PubPackageNames() : super(
-          name: 'package_names',
-          description: desc,
-          details: details,
-          group: Group.pub);
+  PubPackageNames()
+      : super(
+            name: 'package_names',
+            description: desc,
+            details: details,
+            group: Group.pub);
 
   @override
   PubspecVisitor getPubspecVisitor() => new Visitor(this);

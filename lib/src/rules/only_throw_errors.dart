@@ -51,6 +51,7 @@ bool _isThrowable(DartType type) {
   return type.isDynamic ||
       DartTypeUtilities.implementsAnyInterface(type, _interfaceDefinitions);
 }
+
 class OnlyThrowErrors extends LintRule {
   _Visitor _visitor;
 

@@ -94,7 +94,8 @@ class _Visitor extends SimpleAstVisitor {
     }
 
     SimpleIdentifier identifier = node.expression;
-    String parameterName = declaration.parameters?.parameterElements?.first?.name;
+    String parameterName =
+        declaration.parameters?.parameterElements?.first?.name;
     if (identifier.name == parameterName) {
       rule.reportLint(node);
     }
@@ -102,7 +103,7 @@ class _Visitor extends SimpleAstVisitor {
 
   bool _isEqualsOverride(MethodDeclaration declaration) =>
       declaration != null &&
-          declaration.isOperator &&
-          declaration.name.name == '==' &&
-          declaration.parameters?.parameterElements?.length == 1;
+      declaration.isOperator &&
+      declaration.name.name == '==' &&
+      declaration.parameters?.parameterElements?.length == 1;
 }

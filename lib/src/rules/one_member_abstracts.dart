@@ -36,11 +36,12 @@ abstract class Predicate {
 ''';
 
 class OneMemberAbstracts extends LintRule {
-  OneMemberAbstracts() : super(
-          name: 'one_member_abstracts',
-          description: desc,
-          details: details,
-          group: Group.style);
+  OneMemberAbstracts()
+      : super(
+            name: 'one_member_abstracts',
+            description: desc,
+            details: details,
+            group: Group.style);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);

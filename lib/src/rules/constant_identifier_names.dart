@@ -44,11 +44,12 @@ class Dice {
 ''';
 
 class ConstantIdentifierNames extends LintRule {
-  ConstantIdentifierNames() : super(
-          name: 'constant_identifier_names',
-          description: desc,
-          details: details,
-          group: Group.style);
+  ConstantIdentifierNames()
+      : super(
+            name: 'constant_identifier_names',
+            description: desc,
+            details: details,
+            group: Group.style);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);

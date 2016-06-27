@@ -35,11 +35,12 @@ supports symbolic imports.
 ''';
 
 class LibraryNames extends LintRule {
-  LibraryNames() : super(
-          name: 'library_names',
-          description: desc,
-          details: details,
-          group: Group.style);
+  LibraryNames()
+      : super(
+            name: 'library_names',
+            description: desc,
+            details: details,
+            group: Group.style);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);

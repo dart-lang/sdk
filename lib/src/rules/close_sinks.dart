@@ -10,8 +10,6 @@ import 'package:linter/src/linter.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 import 'package:linter/src/util/leak_detector_visitor.dart';
 
-
-
 const _desc = r'Close instances of `dart.core.Sink`.';
 
 const _details = r'''
@@ -62,12 +60,13 @@ void someFunctionOK() {
 class CloseSinks extends LintRule {
   _Visitor _visitor;
 
-  CloseSinks() : super(
-      name: 'close_sinks',
-      description: _desc,
-      details: _details,
-      group: Group.errors,
-      maturity: Maturity.experimental) {
+  CloseSinks()
+      : super(
+            name: 'close_sinks',
+            description: _desc,
+            details: _details,
+            group: Group.errors,
+            maturity: Maturity.experimental) {
     _visitor = new _Visitor(this);
   }
 

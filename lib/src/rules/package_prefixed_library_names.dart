@@ -52,14 +52,14 @@ bool matchesOrIsPrefixedBy(String name, String prefix) =>
     name == prefix || name.startsWith('$prefix.');
 
 class PackagePrefixedLibraryNames extends LintRule implements ProjectVisitor {
-
   DartProject project;
 
-  PackagePrefixedLibraryNames() : super(
-          name: 'package_prefixed_library_names',
-          description: desc,
-          details: details,
-          group: Group.style);
+  PackagePrefixedLibraryNames()
+      : super(
+            name: 'package_prefixed_library_names',
+            description: desc,
+            details: details,
+            group: Group.style);
 
   @override
   ProjectVisitor getProjectVisitor() => this;

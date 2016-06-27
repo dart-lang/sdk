@@ -36,11 +36,12 @@ typedef num Adder(num x, num y);
 bool isUpperCamelCase(String s) => CamelCaseString.isCamelCase(s);
 
 class CamelCaseTypes extends LintRule {
-  CamelCaseTypes() : super(
-          name: 'camel_case_types',
-          description: desc,
-          details: details,
-          group: Group.style);
+  CamelCaseTypes()
+      : super(
+            name: 'camel_case_types',
+            description: desc,
+            details: details,
+            group: Group.style);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);

@@ -47,11 +47,12 @@ View(Style style, List children)
 ''';
 
 class SuperGoesLast extends LintRule {
-  SuperGoesLast() : super(
-          name: 'super_goes_last',
-          description: desc,
-          details: details,
-          group: Group.style);
+  SuperGoesLast()
+      : super(
+            name: 'super_goes_last',
+            description: desc,
+            details: details,
+            group: Group.style);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);

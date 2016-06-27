@@ -42,11 +42,12 @@ bool isJavaStyle(Comment comment) {
 }
 
 class SlashForDocComments extends LintRule {
-  SlashForDocComments() : super(
-          name: 'slash_for_doc_comments',
-          description: desc,
-          details: details,
-          group: Group.style);
+  SlashForDocComments()
+      : super(
+            name: 'slash_for_doc_comments',
+            description: desc,
+            details: details,
+            group: Group.style);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);

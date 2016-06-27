@@ -128,12 +128,13 @@ class DerivedClass2 extends ClassBase with Mixin {}
 class UnrelatedTypeEqualityChecks extends LintRule {
   _Visitor _visitor;
 
-  UnrelatedTypeEqualityChecks() : super(
-      name: 'unrelated_type_equality_checks',
-      description: _desc,
-      details: _details,
-      group: Group.errors,
-      maturity: Maturity.experimental) {
+  UnrelatedTypeEqualityChecks()
+      : super(
+            name: 'unrelated_type_equality_checks',
+            description: _desc,
+            details: _details,
+            group: Group.errors,
+            maturity: Maturity.experimental) {
     _visitor = new _Visitor(this);
   }
 
@@ -153,8 +154,9 @@ class _Visitor extends SimpleAstVisitor {
   void visitBinaryExpression(BinaryExpression node) {
     bool isDartCoreBoolean = node.bestType.name == _boolClassName &&
         node.bestType.element?.library?.name == _dartCoreLibraryName;
-    if (!isDartCoreBoolean || (node.operator.type != TokenType.EQ_EQ &&
-        node.operator.type != TokenType.BANG_EQ)) {
+    if (!isDartCoreBoolean ||
+        (node.operator.type != TokenType.EQ_EQ &&
+            node.operator.type != TokenType.BANG_EQ)) {
       return;
     }
 
@@ -166,5 +168,6 @@ class _Visitor extends SimpleAstVisitor {
 
 bool _hasNonComparableOperands(BinaryExpression node) =>
     node.leftOperand is! NullLiteral &&
-        node.rightOperand is! NullLiteral &&
-        DartTypeUtilities.unrelatedTypes(node.leftOperand.bestType, node.rightOperand.bestType);
+    node.rightOperand is! NullLiteral &&
+    DartTypeUtilities.unrelatedTypes(
+        node.leftOperand.bestType, node.rightOperand.bestType);

@@ -64,11 +64,12 @@ Advice for writing good doc comments can be found in the
 class PackageApiDocs extends LintRule implements ProjectVisitor {
   DartProject project;
 
-  PackageApiDocs() : super(
-          name: 'package_api_docs',
-          description: desc,
-          details: details,
-          group: Group.style);
+  PackageApiDocs()
+      : super(
+            name: 'package_api_docs',
+            description: desc,
+            details: details,
+            group: Group.style);
 
   @override
   ProjectVisitor getProjectVisitor() => this;

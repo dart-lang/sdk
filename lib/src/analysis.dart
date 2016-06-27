@@ -223,9 +223,6 @@ class DriverOptions {
   /// The path to the dart SDK.
   String dartSdkPath;
 
-  /// Whether to use Dart's Strong Mode analyzer.
-  bool strongMode = true;
-
   /// Whether to show lint warnings.
   bool enableLints = true;
 
@@ -245,6 +242,9 @@ class DriverOptions {
   /// Whether to show SDK warnings.
   bool showSdkWarnings = false;
 
+  /// Whether to use Dart's Strong Mode analyzer.
+  bool strongMode = true;
+
   /// Whether to use a mock SDK (to speed up testing).
   bool useMockSdk = false;
 
@@ -258,7 +258,6 @@ class DriverOptions {
 class StdLogger extends Logger {
   @override
   void logError(String message, [exception]) => errorSink.writeln(message);
-  @override
   @override
   void logInformation(String message, [exception]) => outSink.writeln(message);
 }

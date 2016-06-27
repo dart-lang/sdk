@@ -60,12 +60,13 @@ void someFunctionOK() {
 class CancelSubscriptions extends LintRule {
   _Visitor _visitor;
 
-  CancelSubscriptions() : super(
-      name: 'cancel_subscriptions',
-      description: _desc,
-      details: _details,
-      group: Group.errors,
-      maturity: Maturity.experimental) {
+  CancelSubscriptions()
+      : super(
+            name: 'cancel_subscriptions',
+            description: _desc,
+            details: _details,
+            group: Group.errors,
+            maturity: Maturity.experimental) {
     _visitor = new _Visitor(this);
   }
 
@@ -85,5 +86,5 @@ class _Visitor extends LeakDetectorVisitor {
   DartTypePredicate get predicate => _isSubscription;
 }
 
-bool _isSubscription(DartType type) =>
-    DartTypeUtilities.implementsInterface(type, 'StreamSubscription', 'dart.async');
+bool _isSubscription(DartType type) => DartTypeUtilities.implementsInterface(
+    type, 'StreamSubscription', 'dart.async');
