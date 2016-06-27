@@ -513,6 +513,12 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
   }
 
   void buildBlockMember(Statement node, List<ast.Statement> output) {
+    if (node is LabeledStatement &&
+        node.statement is VariableDeclarationStatement) {
+      // If a variable is labeled, its scope is part of the enclosing block.
+      LabeledStatement labeled = node;
+      node = labeled.statement;
+    }
     if (node is VariableDeclarationStatement) {
       VariableDeclarationList list = node.variables;
       ast.DartType type = scope.buildOptionalTypeAnnotation(list.type);
@@ -1903,8 +1909,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
   void buildDefaultConstructor(ConstructorElement element) {
     ast.Constructor constructor = currentMember;
     constructor.function = new ast.FunctionNode(new ast.EmptyStatement(),
-        returnType: const ast.VoidType())
-      ..parent = constructor;
+        returnType: const ast.VoidType())..parent = constructor;
     var class_ = element.enclosingElement;
     if (class_.supertype != null) {
       // DESIGN TODO: If the super class is a mixin application, we will link to
@@ -1981,8 +1986,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
   void buildGenerativeConstructor(ConstructorDeclaration node) {
     ast.Constructor constructor = currentMember;
     constructor.function = scope.buildFunctionNode(node.parameters, node.body,
-        inferredReturnType: const ast.VoidType())
-      ..parent = constructor;
+        inferredReturnType: const ast.VoidType())..parent = constructor;
     for (var parameter in node.parameters.parameterElements) {
       if (parameter is FieldFormalParameterElement) {
         var initializer = new ast.FieldInitializer(

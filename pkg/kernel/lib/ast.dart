@@ -2237,7 +2237,7 @@ class YieldStatement extends Statement {
 /// This may occur as a statement, but is also used in several non-statement
 /// contexts, such as in [ForStatement], [Catch], and [FunctionNode].
 ///
-/// When this occurs as a statement, it be a direct child of a [Block].
+/// When this occurs as a statement, it must be a direct child of a [Block].
 //
 // DESIGN TODO: Should we remove the 'final' modifier from variables?
 class VariableDeclaration extends Statement {
