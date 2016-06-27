@@ -6302,35 +6302,50 @@ void''');
   }
 
   void test_parseCommentReferences_notClosed_noIdentifier() {
-    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
-      new DocumentationCommentToken(
-          TokenType.MULTI_LINE_COMMENT, "/** [ some text", 5)
-    ];
-    List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "")
-        as List<CommentReference>;
+    DocumentationCommentToken docToken = new DocumentationCommentToken(
+        TokenType.MULTI_LINE_COMMENT, "/** [ some text", 5);
+    List<CommentReference> references = parse(
+        "parseCommentReferences",
+        <Object>[
+          <DocumentationCommentToken>[docToken]
+        ],
+        "") as List<CommentReference>;
+    expect(docToken.references, hasLength(1));
     expect(references, hasLength(1));
+    Token referenceToken = docToken.references[0];
     CommentReference reference = references[0];
     expect(reference, isNotNull);
+    expect(docToken.references[0], same(reference.beginToken));
     expect(reference.identifier, isNotNull);
     expect(reference.identifier.isSynthetic, isTrue);
     expect(reference.identifier.name, "");
+    // Should end with EOF token.
+    Token nextToken = referenceToken.next;
+    expect(nextToken, isNotNull);
+    expect(nextToken.type, TokenType.EOF);
   }
 
   void test_parseCommentReferences_notClosed_withIdentifier() {
-    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
-      new DocumentationCommentToken(
-          TokenType.MULTI_LINE_COMMENT, "/** [namePrefix some text", 5)
-    ];
+    DocumentationCommentToken docToken = new DocumentationCommentToken(
+          TokenType.MULTI_LINE_COMMENT, "/** [namePrefix some text", 5);
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "")
+        parse("parseCommentReferences", <Object>[<DocumentationCommentToken>[
+      docToken
+    ]], "")
         as List<CommentReference>;
+    expect(docToken.references, hasLength(1));
     expect(references, hasLength(1));
+    Token referenceToken = docToken.references[0];
     CommentReference reference = references[0];
     expect(reference, isNotNull);
+    expect(referenceToken, same(reference.beginToken));
     expect(reference.identifier, isNotNull);
     expect(reference.identifier.isSynthetic, isFalse);
     expect(reference.identifier.name, "namePrefix");
+    // Should end with EOF token.
+    Token nextToken = referenceToken.next;
+    expect(nextToken, isNotNull);
+    expect(nextToken.type, TokenType.EOF);
   }
 
   void test_parseCommentReferences_singleLine() {

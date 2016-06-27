@@ -5135,20 +5135,21 @@ class Parser {
           } else {
             // terminating ']' is not typed yet
             int charAfterLeft = comment.codeUnitAt(leftIndex + 1);
+            Token nameToken;
             if (Character.isLetterOrDigit(charAfterLeft)) {
               int nameEnd = StringUtilities.indexOfFirstNotLetterDigit(
                   comment, leftIndex + 1);
               String name = comment.substring(leftIndex + 1, nameEnd);
-              Token nameToken =
+              nameToken =
                   new StringToken(TokenType.IDENTIFIER, name, nameOffset);
-              references.add(
-                  new CommentReference(null, new SimpleIdentifier(nameToken)));
             } else {
-              Token nameToken = new SyntheticStringToken(
-                  TokenType.IDENTIFIER, "", nameOffset);
-              references.add(
-                  new CommentReference(null, new SimpleIdentifier(nameToken)));
+              nameToken = new SyntheticStringToken(
+                  TokenType.IDENTIFIER, '', nameOffset);
             }
+            nameToken.setNext(new SimpleToken(TokenType.EOF, nameToken.end));
+            references.add(
+                new CommentReference(null, new SimpleIdentifier(nameToken)));
+            token.references.add(nameToken);
             // next character
             rightIndex = leftIndex + 1;
           }

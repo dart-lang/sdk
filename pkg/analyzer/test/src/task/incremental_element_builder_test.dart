@@ -1623,13 +1623,25 @@ f2() {
 ''');
   }
 
-  test_update_emptyCommentReference() {
+  test_update_commentReference_empty() {
     _buildOldUnit(r'''
 /// Empty [] reference.
 class A {}
 ''');
     _buildNewUnit(r'''
 /// Empty [] reference.
+class A {}
+''');
+  }
+
+  test_update_commentReference_notClosed() {
+    _buildOldUnit(r'''
+/// [c)
+class A {}
+''');
+    _buildNewUnit(r'''
+int a;
+/// [c)
 class A {}
 ''');
   }
