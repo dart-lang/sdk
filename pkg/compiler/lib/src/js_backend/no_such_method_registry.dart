@@ -193,8 +193,16 @@ class NoSuchMethodRegistry {
     // At this point we know that this is signature-compatible with
     // Object.noSuchMethod, but it may have more than one argument as long as
     // it only has one required argument.
+    if (!element.hasResolvedAst) {
+      // TODO(johnniwinther): Why do we see unresolved elements here?
+      return false;
+    }
+    ResolvedAst resolvedAst = element.resolvedAst;
+    if (resolvedAst.kind != ResolvedAstKind.PARSED) {
+      return false;
+    }
     String param = element.parameters.first.name;
-    Statement body = element.node.body;
+    Statement body = resolvedAst.body;
     Expression expr;
     if (body is Return && body.isArrowBody) {
       expr = body.expression;
@@ -231,7 +239,15 @@ class NoSuchMethodRegistry {
   }
 
   bool _hasThrowingSyntax(FunctionElement element) {
-    Statement body = element.node.body;
+    if (!element.hasResolvedAst) {
+      // TODO(johnniwinther): Why do we see unresolved elements here?
+      return false;
+    }
+    ResolvedAst resolvedAst = element.resolvedAst;
+    if (resolvedAst.kind != ResolvedAstKind.PARSED) {
+      return false;
+    }
+    Statement body = resolvedAst.body;
     if (body is Return && body.isArrowBody) {
       if (body.expression is Throw) {
         return true;

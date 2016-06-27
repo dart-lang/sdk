@@ -385,6 +385,23 @@ main() {
 }
 ''',
   }, expectedWarningCount: 1),
+
+  const Test('Unused noSuchMethod', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  new A().m();
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+class A {
+  noSuchMethod(_) => null;
+  m();
+}
+''',
+  }),
 ];
 
 class Test {
