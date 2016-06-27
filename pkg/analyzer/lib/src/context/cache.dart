@@ -625,6 +625,11 @@ class CacheEntry {
         return;
       }
     }
+//    if (deltaResult != null && deltaResult != DeltaResult.KEEP_CONTINUE) {
+//      String indent = '  ' * level;
+//      String deltaResultName = deltaResult.toString().split('.').last;
+//      print('[$id]$indent$deltaResultName $descriptor for $target');
+//    }
     if (deltaResult == DeltaResult.INVALIDATE_NO_DELTA) {
       delta = null;
     }

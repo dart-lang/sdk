@@ -4567,7 +4567,38 @@ class ReadyResolvedUnitTask extends SourceBasedAnalysisTask {
  */
 class ReferencedNames {
   final Source librarySource;
+
+  /**
+   * The mapping from the name of a class to the set of names of other classes
+   * that extend, mix-in, or implement it.
+   *
+   * If the set of member of a class is changed, these changes might change
+   * the list of unimplemented inherited members in the class and classes that
+   * extend, mix-in, or implement it. So, we might need to report (or stop
+   * reporting) the corresponding warning.
+   */
+  final Map<String, Set<String>> superToSubs = <String, Set<String>>{};
+
+  /**
+   * The names of instantiated classes.
+   *
+   * If one of these classes changes its set of members, it might change
+   * its list of unimplemented inherited members. So, we might need to report
+   * (or stop reporting) the corresponding warning.
+   */
+  final Set<String> instantiatedNames = new Set<String>();
+
+  /**
+   * The set of names that are referenced by the library, both inside and
+   * outside of method bodies.
+   */
   final Set<String> names = new Set<String>();
+
+  /**
+   * The mapping from the name of a top-level element to the set of names that
+   * the element uses in a way that is visible outside of the element, e.g.
+   * the return type, or a parameter type.
+   */
   final Map<String, Set<String>> userToDependsOn = <String, Set<String>>{};
 
   ReferencedNames(this.librarySource);
@@ -4591,6 +4622,10 @@ class ReferencedNames {
     }
   }
 
+  void addSubclass(String subName, String superName) {
+    superToSubs.putIfAbsent(superName, () => new Set<String>()).add(subName);
+  }
+
   /**
    * Returns `true` if the library described by this object is affected by
    * the given [delta].
@@ -4609,6 +4644,7 @@ class ReferencedNames {
  * A builder for creating [ReferencedNames].
  */
 class ReferencedNamesBuilder extends GeneralizingAstVisitor {
+  final Set<String> importPrefixNames = new Set<String>();
   final ReferencedNames names;
 
   ReferencedNamesScope scope = new ReferencedNamesScope(null);
@@ -4641,7 +4677,11 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
       scope = new ReferencedNamesScope.forClass(scope, node);
       dependsOn = new Set<String>();
       super.visitClassDeclaration(node);
-      names.userToDependsOn[node.name.name] = dependsOn;
+      String className = node.name.name;
+      names.userToDependsOn[className] = dependsOn;
+      _addSuperName(className, node.extendsClause?.superclass);
+      _addSuperNames(className, node.withClause?.mixinTypes);
+      _addSuperNames(className, node.implementsClause?.interfaces);
     } finally {
       dependsOn = null;
       scope = outerScope;
@@ -4655,7 +4695,11 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
       scope = new ReferencedNamesScope.forClassTypeAlias(scope, node);
       dependsOn = new Set<String>();
       super.visitClassTypeAlias(node);
-      names.userToDependsOn[node.name.name] = dependsOn;
+      String className = node.name.name;
+      names.userToDependsOn[className] = dependsOn;
+      _addSuperName(className, node.superclass);
+      _addSuperNames(className, node.withClause?.mixinTypes);
+      _addSuperNames(className, node.implementsClause?.interfaces);
     } finally {
       dependsOn = null;
       scope = outerScope;
@@ -4716,6 +4760,32 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
   }
 
   @override
+  visitImportDirective(ImportDirective node) {
+    if (node.prefix != null) {
+      importPrefixNames.add(node.prefix.name);
+    }
+    super.visitImportDirective(node);
+  }
+
+  @override
+  visitInstanceCreationExpression(InstanceCreationExpression node) {
+    ConstructorName constructorName = node.constructorName;
+    Identifier typeName = constructorName.type.name;
+    if (typeName is SimpleIdentifier) {
+      names.instantiatedNames.add(typeName.name);
+    }
+    if (typeName is PrefixedIdentifier) {
+      String prefixName = typeName.prefix.name;
+      if (importPrefixNames.contains(prefixName)) {
+        names.instantiatedNames.add(typeName.identifier.name);
+      } else {
+        names.instantiatedNames.add(prefixName);
+      }
+    }
+    super.visitInstanceCreationExpression(node);
+  }
+
+  @override
   visitMethodDeclaration(MethodDeclaration node) {
     ReferencedNamesScope outerScope = scope;
     try {
@@ -4740,8 +4810,13 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
     // Prepare name.
     String name = node.name;
     // Ignore unqualified names shadowed by local elements.
-    if (!node.isQualified && scope.contains(name)) {
-      return;
+    if (!node.isQualified) {
+      if (scope.contains(name)) {
+        return;
+      }
+      if (importPrefixNames.contains(name)) {
+        return;
+      }
     }
     // Do add the dependency.
     names.names.add(name);
@@ -4765,6 +4840,22 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
       names.userToDependsOn[variable.name.name] = dependsOn;
     }
     dependsOn = null;
+  }
+
+  void _addSuperName(String className, TypeName type) {
+    if (type != null) {
+      Identifier typeName = type.name;
+      if (typeName is SimpleIdentifier) {
+        names.addSubclass(className, typeName.name);
+      }
+      if (typeName is PrefixedIdentifier) {
+        names.addSubclass(className, typeName.identifier.name);
+      }
+    }
+  }
+
+  void _addSuperNames(String className, List<TypeName> types) {
+    types?.forEach((type) => _addSuperName(className, type));
   }
 }
 

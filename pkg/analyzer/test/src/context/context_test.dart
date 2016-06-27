@@ -3228,7 +3228,7 @@ main() {
 }
 ''');
     _performPendingAnalysisTasks();
-    // Update a.dart: remove C.m, add C.m2.
+    // Update a.dart: remove A.m, add A.m2.
     //   b.dart is invalid, because B extends A.
     //   c.dart is invalid, because 'main' references B.
     context.setContents(

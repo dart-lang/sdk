@@ -3970,6 +3970,8 @@ class U {
 }
 ''');
     expect(info.names, unorderedEquals(['A', 'B', 'C']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, isEmpty);
     expect(info.userToDependsOn.keys, unorderedEquals(['U']));
     expect(info.userToDependsOn['U'], unorderedEquals(['A', 'B']));
   }
@@ -3981,6 +3983,8 @@ class U {
 }
 ''');
     expect(info.names, unorderedEquals(['A', 'B']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, unorderedEquals(['B']));
     expect(info.userToDependsOn.keys, unorderedEquals(['U']));
     expect(info.userToDependsOn['U'], unorderedEquals(['A', 'B']));
   }
@@ -3992,6 +3996,8 @@ class U {
 }
 ''');
     expect(info.names, unorderedEquals(['A', 'B']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, unorderedEquals(['B']));
     expect(info.userToDependsOn.keys, unorderedEquals(['U']));
     expect(info.userToDependsOn['U'], unorderedEquals(['A']));
   }
@@ -4011,6 +4017,8 @@ class U {
 }
 ''');
     expect(info.names, unorderedEquals(['int', 'D']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, isEmpty);
     expect(info.userToDependsOn.keys, unorderedEquals(['U']));
     expect(info.userToDependsOn['U'], unorderedEquals(['int', 'D']));
   }
@@ -4029,6 +4037,8 @@ class U {
 }
 ''');
     expect(info.names, unorderedEquals(['int', 'D', 'a', 'b', 'c']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, isEmpty);
     expect(info.userToDependsOn.keys, unorderedEquals(['U']));
     expect(info.userToDependsOn['U'], unorderedEquals(['int', 'D']));
   }
@@ -4042,6 +4052,8 @@ class U {
 }
 ''');
     expect(info.names, unorderedEquals(['A', 'B', 'C']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, isEmpty);
     expect(info.userToDependsOn.keys, unorderedEquals(['U']));
     expect(info.userToDependsOn['U'], unorderedEquals(['A', 'B']));
   }
@@ -4062,6 +4074,8 @@ class U {
 }
 ''');
     expect(info.names, unorderedEquals(['A', 'B', 'C', 'd']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, isEmpty);
     expect(info.userToDependsOn.keys, unorderedEquals(['U']));
     expect(info.userToDependsOn['U'], unorderedEquals(['A']));
   }
@@ -4076,6 +4090,8 @@ class U {
 }
 ''');
     expect(info.names, unorderedEquals(['A', 'b']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, isEmpty);
     expect(info.userToDependsOn.keys, unorderedEquals(['U']));
     expect(info.userToDependsOn['U'], unorderedEquals(['A']));
   }
@@ -4089,6 +4105,8 @@ class U {
 }
 ''');
     expect(info.names, unorderedEquals(['A', 'B', 'C']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, isEmpty);
     expect(info.userToDependsOn.keys, unorderedEquals(['U']));
     expect(info.userToDependsOn['U'], unorderedEquals(['A', 'B']));
   }
@@ -4102,6 +4120,8 @@ class U {
 }
 ''');
     expect(info.names, unorderedEquals(['A', 'B']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, isEmpty);
     expect(info.userToDependsOn.keys, unorderedEquals(['U']));
     expect(info.userToDependsOn['U'], unorderedEquals(['A']));
   }
@@ -4113,8 +4133,30 @@ class U<T> {
 }
 ''');
     expect(info.names, unorderedEquals(['A']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, unorderedEquals(['A']));
     expect(info.userToDependsOn.keys, unorderedEquals(['U']));
     expect(info.userToDependsOn['U'], unorderedEquals(['A']));
+  }
+
+  test_referencedNames_instantiatedNames_importPrefix() {
+    ReferencedNames info = _computeReferencedNames('''
+import 'a.dart' as p1;
+import 'b.dart' as p2;
+main() {
+  new p1.A();
+  new p1.A.c1();
+  new p1.B();
+  new p2.C();
+  new D();
+  new D.c2();
+}
+''');
+    expect(info.names, unorderedEquals(['A', 'B', 'C', 'D', 'c1', 'c2']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, unorderedEquals(['A', 'B', 'C', 'D']));
+    expect(info.userToDependsOn.keys, unorderedEquals(['main']));
+    expect(info.userToDependsOn['main'], isEmpty);
   }
 
   test_referencedNames_localFunction() {
@@ -4124,8 +4166,26 @@ f(A a) {
 }
 ''');
     expect(info.names, unorderedEquals(['A', 'B']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, isEmpty);
     expect(info.userToDependsOn.keys, unorderedEquals(['f']));
     expect(info.userToDependsOn['f'], unorderedEquals(['A']));
+  }
+
+  test_referencedNames_superToSubs_importPrefix() {
+    ReferencedNames info = _computeReferencedNames('''
+import 'a.dart' as p1;
+import 'b.dart' as p2;
+class U extends p1.A with p2.B implements p2.C {}
+''');
+    expect(info.names, unorderedEquals(['A', 'B', 'C']));
+    expect(info.superToSubs.keys, unorderedEquals(['A', 'B', 'C']));
+    expect(info.superToSubs['A'], unorderedEquals(['U']));
+    expect(info.superToSubs['B'], unorderedEquals(['U']));
+    expect(info.superToSubs['C'], unorderedEquals(['U']));
+    expect(info.instantiatedNames, isEmpty);
+    expect(info.userToDependsOn.keys, unorderedEquals(['U']));
+    expect(info.userToDependsOn['U'], unorderedEquals(['A', 'B', 'C']));
   }
 
   test_referencedNames_topLevelVariable() {
@@ -4133,6 +4193,8 @@ f(A a) {
 A v = new B(c);
 ''');
     expect(info.names, unorderedEquals(['A', 'B', 'c']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, unorderedEquals(['B']));
     expect(info.userToDependsOn.keys, unorderedEquals(['v']));
     expect(info.userToDependsOn['v'], unorderedEquals(['A', 'B', 'c']));
   }
@@ -4142,6 +4204,8 @@ A v = new B(c);
 A v1 = new B(c), v2 = new D<E>(f);
 ''');
     expect(info.names, unorderedEquals(['A', 'B', 'c', 'D', 'E', 'f']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, unorderedEquals(['B', 'D']));
     expect(info.userToDependsOn.keys, unorderedEquals(['v1', 'v2']));
     expect(info.userToDependsOn['v1'], unorderedEquals(['A', 'B', 'c']));
     expect(info.userToDependsOn['v2'], unorderedEquals(['A', 'D', 'E', 'f']));
@@ -4152,6 +4216,11 @@ A v1 = new B(c), v2 = new D<E>(f);
 class U = A with B implements C;
 ''');
     expect(info.names, unorderedEquals(['A', 'B', 'C']));
+    expect(info.superToSubs.keys, unorderedEquals(['A', 'B', 'C']));
+    expect(info.superToSubs['A'], unorderedEquals(['U']));
+    expect(info.superToSubs['B'], unorderedEquals(['U']));
+    expect(info.superToSubs['C'], unorderedEquals(['U']));
+    expect(info.instantiatedNames, isEmpty);
     expect(info.userToDependsOn.keys, unorderedEquals(['U']));
     expect(info.userToDependsOn['U'], unorderedEquals(['A', 'B', 'C']));
   }
@@ -4161,6 +4230,11 @@ class U = A with B implements C;
 class U<T1, T2 extends D> = A<T1> with B<T2> implements C<T1, T2>;
 ''');
     expect(info.names, unorderedEquals(['A', 'B', 'C', 'D']));
+    expect(info.superToSubs.keys, unorderedEquals(['A', 'B', 'C']));
+    expect(info.superToSubs['A'], unorderedEquals(['U']));
+    expect(info.superToSubs['B'], unorderedEquals(['U']));
+    expect(info.superToSubs['C'], unorderedEquals(['U']));
+    expect(info.instantiatedNames, isEmpty);
     expect(info.userToDependsOn.keys, unorderedEquals(['U']));
     expect(info.userToDependsOn['U'], unorderedEquals(['A', 'B', 'C', 'D']));
   }
@@ -4172,6 +4246,8 @@ A f(B b) {
 }
 ''');
     expect(info.names, unorderedEquals(['A', 'B', 'C']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, isEmpty);
     expect(info.userToDependsOn.keys, unorderedEquals(['f']));
     expect(info.userToDependsOn['f'], unorderedEquals(['A', 'B']));
   }
@@ -4185,6 +4261,8 @@ A f() {
 }
 ''');
     expect(info.names, unorderedEquals(['A', 'B', 'C']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, isEmpty);
     expect(info.userToDependsOn.keys, unorderedEquals(['f']));
     expect(info.userToDependsOn['f'], unorderedEquals(['A']));
   }
@@ -4198,6 +4276,8 @@ f(A a, B b) {
 }
 ''');
     expect(info.names, unorderedEquals(['A', 'B', 'v', 'b']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, isEmpty);
     expect(info.userToDependsOn.keys, unorderedEquals(['f']));
     expect(info.userToDependsOn['f'], unorderedEquals(['A', 'B']));
   }
@@ -4216,6 +4296,8 @@ A f() {
 }
 ''');
     expect(info.names, unorderedEquals(['A', 'B', 'C', 'd']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, isEmpty);
     expect(info.userToDependsOn.keys, unorderedEquals(['f']));
     expect(info.userToDependsOn['f'], unorderedEquals(['A']));
   }
@@ -4228,6 +4310,8 @@ A f(B b) {
 }
 ''');
     expect(info.names, unorderedEquals(['A', 'B', 'C']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, isEmpty);
     expect(info.userToDependsOn.keys, unorderedEquals(['f']));
     expect(info.userToDependsOn['f'], unorderedEquals(['A', 'B']));
   }
@@ -4239,6 +4323,8 @@ A f<T>(B b, T t) {
 }
 ''');
     expect(info.names, unorderedEquals(['A', 'B', 'C']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, isEmpty);
     expect(info.userToDependsOn.keys, unorderedEquals(['f']));
     expect(info.userToDependsOn['f'], unorderedEquals(['A', 'B']));
   }
@@ -4248,6 +4334,8 @@ A f<T>(B b, T t) {
 typedef A F(B B, C c(D d));
 ''');
     expect(info.names, unorderedEquals(['A', 'B', 'C', 'D']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, isEmpty);
     expect(info.userToDependsOn.keys, unorderedEquals(['F']));
     expect(info.userToDependsOn['F'], unorderedEquals(['A', 'B', 'C', 'D']));
   }
@@ -4257,6 +4345,8 @@ typedef A F(B B, C c(D d));
 typedef A F<T>(B b, T t);
 ''');
     expect(info.names, unorderedEquals(['A', 'B']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, isEmpty);
     expect(info.userToDependsOn.keys, unorderedEquals(['F']));
     expect(info.userToDependsOn['F'], unorderedEquals(['A', 'B']));
   }
@@ -4268,6 +4358,8 @@ A get aaa {
 }
 ''');
     expect(info.names, unorderedEquals(['A', 'B']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, unorderedEquals(['B']));
     expect(info.userToDependsOn.keys, unorderedEquals(['aaa']));
     expect(info.userToDependsOn['aaa'], unorderedEquals(['A']));
   }
@@ -4279,6 +4371,8 @@ set aaa(A a) {
 }
 ''');
     expect(info.names, unorderedEquals(['A', 'B']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, isEmpty);
     expect(info.userToDependsOn.keys, unorderedEquals(['aaa']));
     expect(info.userToDependsOn['aaa'], unorderedEquals(['A']));
   }
