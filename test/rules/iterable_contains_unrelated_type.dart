@@ -24,7 +24,7 @@ void someFunction4() {
   if (list.contains(1)) print('someFunction4'); // OK
 }
 
-void someFucntion4_1() {
+void someFunction4_1() {
   List list;
   if(list.contains(null)) print('someFucntion4_1');
 }
@@ -96,6 +96,9 @@ void someFunction12() {
   if (list.contains(instance)) print('someFunction12'); // LINT
 }
 
+void bug_267(list) {
+  if (list.contains('1')) print('someFunction'); // https://github.com/dart-lang/linter/issues/267
+}
 
 abstract class ClassBase {}
 

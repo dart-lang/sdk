@@ -134,7 +134,9 @@ List<InterfaceType> _findImplementedInterfaces(InterfaceType type,
 
 DartType _findIterableTypeArgument(InterfaceType type,
     {List<InterfaceType> accumulator: const []}) {
-  if (type == null || type.isObject || type.isDynamic ||
+  if (type == null ||
+      type.isObject ||
+      type.isDynamic ||
       accumulator.contains(type)) {
     return null;
   }
@@ -189,14 +191,15 @@ class _Visitor extends SimpleAstVisitor {
       return;
     }
 
-    ParameterizedType type = node.target != null
+    DartType type = node.target != null
         ? node.target.bestType
         : (node.getAncestor((a) => a is ClassDeclaration) as ClassDeclaration)
             ?.element
             ?.type;
     Expression argument = node.argumentList.arguments.first;
-    if (DartTypeUtilities.unrelatedTypes(
-        argument.bestType, _findIterableTypeArgument(type))) {
+    if (type is InterfaceType &&
+        DartTypeUtilities.unrelatedTypes(
+            argument.bestType, _findIterableTypeArgument(type))) {
       rule.reportLint(node);
     }
   }
