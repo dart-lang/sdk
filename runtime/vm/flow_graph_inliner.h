@@ -52,6 +52,8 @@ class FlowGraphInliner : ValueObject {
                                         TargetEntryInstr** entry,
                                         Definition** last);
 
+  bool use_speculative_inlining() const { return use_speculative_inlining_; }
+
  private:
   friend class CallSiteInliner;
 

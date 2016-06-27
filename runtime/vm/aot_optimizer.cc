@@ -1631,6 +1631,7 @@ bool AotOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
 
 bool AotOptimizer::TryReplaceInstanceCallWithInline(
     InstanceCallInstr* call) {
+  if (!IsAllowedForInlining(call->deopt_id())) return false;
   Function& target = Function::Handle(Z);
   GrowableArray<intptr_t> class_ids;
   call->ic_data()->GetCheckAt(0, &class_ids, &target);
@@ -2357,6 +2358,10 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     }
     if (Token::IsUnaryOperator(op_kind) &&
         TryReplaceWithUnaryOp(instr, op_kind)) {
+      return;
+    }
+
+    if (TryInlineInstanceMethod(instr)) {
       return;
     }
   }

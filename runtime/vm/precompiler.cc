@@ -2724,8 +2724,11 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // The return value of setjmp is the deopt id of the check instruction
         // that caused the bailout.
         done = false;
+        if (!use_speculative_inlining) {
+          // Assert that we don't repeatedly retry speculation.
+          UNREACHABLE();
+        }
 #if defined(DEBUG)
-        ASSERT(use_speculative_inlining);
         for (intptr_t i = 0; i < inlining_black_list.length(); ++i) {
           ASSERT(inlining_black_list[i] != val);
         }

@@ -1001,7 +1001,6 @@ class CallSiteInliner : public ValueObject {
  private:
   friend class PolymorphicInliner;
 
-
   static bool Contains(const GrowableArray<intptr_t>& a, intptr_t deopt_id) {
     for (intptr_t i = 0; i < a.length(); i++) {
       if (a[i] == deopt_id) return true;
@@ -1470,7 +1469,8 @@ bool PolymorphicInliner::CheckNonInlinedDuplicate(const Function& target) {
 
 bool PolymorphicInliner::TryInliningPoly(intptr_t receiver_cid,
                                         const Function& target) {
-  if (TryInlineRecognizedMethod(receiver_cid, target)) {
+  if (owner_->inliner_->use_speculative_inlining() &&
+      TryInlineRecognizedMethod(receiver_cid, target)) {
     owner_->inlined_ = true;
     return true;
   }
@@ -2898,11 +2898,6 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
                                                  const ICData& ic_data,
                                                  TargetEntryInstr** entry,
                                                  Definition** last) {
-  if (FLAG_precompiled_mode) {
-    // The graphs generated below include deopts.
-    return false;
-  }
-
   ICData& value_check = ICData::ZoneHandle(Z);
   MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(target);
   switch (kind) {
