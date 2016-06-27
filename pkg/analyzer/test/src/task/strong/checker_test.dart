@@ -315,6 +315,16 @@ test() {
 ''');
   }
 
+  void test_constructorInvalid() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26695
+    checkFile('''
+class A {
+  B({ /*error:FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR*/this.test: 1.0 }) {}
+  final double test = 0.0;
+}
+''');
+  }
+
   void test_constructors() {
     checkFile('''
 const num z = 25;
@@ -345,16 +355,6 @@ class B extends A {
 void main() {
    A a = new A.c2(/*info:DOWN_CAST_IMPLICIT*/z, /*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/z);
    var b = new B.c2(/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/"hello", /*info:DOWN_CAST_IMPLICIT*/obj);
-}
-''');
-  }
-
-  void test_constructorInvalid() {
-    // Regression test for https://github.com/dart-lang/sdk/issues/26695
-    checkFile('''
-class A {
-  B({ /*error:FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR*/this.test: 1.0 }) {}
-  final double test = 0.0;
 }
 ''');
   }
@@ -1911,9 +1911,231 @@ main() {
     addFile('num n; int i = /*info:ASSIGNMENT_CAST*/n;');
     check();
     // TODO(jmesserly): should not be emitting the hint as well as the error.
+    // It is a "strong mode hint" however, so it will not be user visible.
     addFile(
         'num n; int i = /*info:ASSIGNMENT_CAST,error:INVALID_ASSIGNMENT*/n;');
     check(implicitCasts: false);
+  }
+
+  void test_implicitDynamic_field() {
+    addFile(r'''
+class C {
+  var /*error:IMPLICIT_DYNAMIC_FIELD*/x0;
+  var /*error:IMPLICIT_DYNAMIC_FIELD*/x1 = (<dynamic>[])[0];
+  var /*error:IMPLICIT_DYNAMIC_FIELD*/x2,
+      x3 = 42,
+      /*error:IMPLICIT_DYNAMIC_FIELD*/x4;
+  dynamic y0;
+  dynamic y1 = (<dynamic>[])[0];
+}
+    ''');
+    check(implicitDynamic: false);
+  }
+
+  void test_implicitDynamic_function() {
+    addFile(r'''
+/*=T*/ a/*<T>*/(/*=T*/ t) => t;
+/*=T*/ b/*<T>*/() => null;
+
+void main/*<S>*/() {
+  dynamic d;
+  int i;
+  /*error:IMPLICIT_DYNAMIC_FUNCTION*/a(d);
+  a(42);
+  /*error:IMPLICIT_DYNAMIC_FUNCTION*/b();
+  d = /*error:IMPLICIT_DYNAMIC_FUNCTION*/b();
+  i = b();
+
+  void f/*<T>*/(/*=T*/ t) {};
+  /*=T*/ g/*<T>*/() => null;
+
+  /*error:IMPLICIT_DYNAMIC_FUNCTION*/f(d);
+  f(42);
+  /*error:IMPLICIT_DYNAMIC_FUNCTION*/g();
+  d = /*error:IMPLICIT_DYNAMIC_FUNCTION*/g();
+  i = g();
+
+  /*error:IMPLICIT_DYNAMIC_INVOKE*/(/*<T>*/(/*=T*/ t) => t)(d);
+  (/*<T>*/(/*=T*/ t) => t)(42);
+  (/*<T>*/() => null as dynamic/*=T*/)/*<int>*/();
+}
+    ''');
+    check(implicitDynamic: false);
+  }
+  void test_implicitDynamic_listLiteral() {
+    addFile(r'''
+
+var l0 = /*error:IMPLICIT_DYNAMIC_LIST_LITERAL*/[];
+List l1 = /*error:IMPLICIT_DYNAMIC_LIST_LITERAL*/[];
+List<dynamic> l2 = /*error:IMPLICIT_DYNAMIC_LIST_LITERAL*/[];
+dynamic d = 42;
+var l3 = /*error:IMPLICIT_DYNAMIC_LIST_LITERAL*/[d, d];
+
+var l4 = <dynamic>[];
+var l5 = <int>[];
+List<int> l6 = /*info:INFERRED_TYPE_LITERAL*/[];
+var l7 = /*info:INFERRED_TYPE_LITERAL*/[42];
+    ''');
+    check(implicitDynamic: false);
+  }
+
+  void test_implicitDynamic_mapLiteral() {
+    addFile(r'''
+var m0 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
+Map m1 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
+Map<dynamic, dynamic> m2 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
+dynamic d = 42;
+var m3 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{d: d};
+var m4 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{'x': d, 'y': d};
+var m5 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{d: 'x'};
+
+var m6 = <dynamic, dynamic>{};
+var m7 = <String, String>{};
+Map<String, String> m8 = /*info:INFERRED_TYPE_LITERAL*/{};
+var m9 = /*info:INFERRED_TYPE_LITERAL*/{'hi': 'there'};
+    ''');
+    check(implicitDynamic: false);
+  }
+
+  void test_implicitDynamic_method() {
+    addFile(r'''
+class C {
+  /*=T*/ m/*<T>*/(/*=T*/ s) => s;
+  /*=T*/ n/*<T>*/() => null;
+}
+class D<E> {
+  /*=T*/ m/*<T>*/(/*=T*/ s) => s;
+  /*=T*/ n/*<T>*/() => null;
+}
+void f() {
+  dynamic d;
+  int i;
+  new C()./*error:IMPLICIT_DYNAMIC_METHOD*/m(d);
+  new C().m(42);
+  new C()./*error:IMPLICIT_DYNAMIC_METHOD*/n();
+  d = new C()./*error:IMPLICIT_DYNAMIC_METHOD*/n();
+  i = new C().n();
+
+  new D<int>()./*error:IMPLICIT_DYNAMIC_METHOD*/m(d);
+  new D<int>().m(42);
+  new D<int>()./*error:IMPLICIT_DYNAMIC_METHOD*/n();
+  d = new D<int>()./*error:IMPLICIT_DYNAMIC_METHOD*/n();
+  i = new D<int>().n();
+}
+    ''');
+    check(implicitDynamic: false);
+  }
+
+  void test_implicitDynamic_parameter() {
+    addFile(r'''
+const dynamic DYNAMIC_VALUE = 42;
+
+// simple formal
+void f0(/*error:IMPLICIT_DYNAMIC_PARAMETER*/x) {}
+void f1(dynamic x) {}
+
+// default formal
+void df0([/*error:IMPLICIT_DYNAMIC_PARAMETER*/x = DYNAMIC_VALUE]) {}
+void df1([dynamic x = DYNAMIC_VALUE]) {}
+void df2([/*info:INFERRED_TYPE*/x = 42]) {}
+
+// default formal (named)
+void nf0({/*error:IMPLICIT_DYNAMIC_PARAMETER*/x: DYNAMIC_VALUE}) {}
+void nf1({dynamic x: DYNAMIC_VALUE}) {}
+void nf2({/*info:INFERRED_TYPE*/x: 42}) {}
+
+// field formal
+class C {
+  var /*error:IMPLICIT_DYNAMIC_FIELD*/x;
+  C(this.x);
+}
+
+// function typed formal
+void ftf0(void x(/*error:IMPLICIT_DYNAMIC_PARAMETER*/y)) {}
+void ftf1(void x(int y)) {}
+    ''');
+    check(implicitDynamic: false);
+  }
+
+  void test_implicitDynamic_return() {
+    addFile(r'''
+// function
+/*error:IMPLICIT_DYNAMIC_RETURN*/f0() {}
+dynamic f1() { return 42; }
+
+// nested function
+void main() {
+  /*error:IMPLICIT_DYNAMIC_RETURN*/g0() {}
+  dynamic g1() { return 42; }
+}
+
+// methods
+class B {
+  int m1() => 42;
+}
+class C extends B {
+  /*error:IMPLICIT_DYNAMIC_RETURN*/m0() => 123;
+  m1() => 123;
+  dynamic m2() => 'hi';
+}
+
+// accessors
+set x(int value) {}
+/*error:IMPLICIT_DYNAMIC_RETURN*/get y0 => 42;
+dynamic get y1 => 42;
+
+// function typed formals
+void ftf0(/*error:IMPLICIT_DYNAMIC_RETURN*/f(int x)) {}
+void ftf1(dynamic f(int x)) {}
+
+// function expressions
+var fe0 = (int x) => x as dynamic;
+var fe1 = (int x) => x;
+    ''');
+    check(implicitDynamic: false);
+  }
+
+  void test_implicitDynamic_type() {
+    addFile(r'''
+class C<T> {}
+class M1<T extends /*error:IMPLICIT_DYNAMIC_TYPE*/List> {}
+class M2<T> {}
+class I<T> {}
+class D<T, S> extends /*error:IMPLICIT_DYNAMIC_TYPE*/C
+    with M1, /*error:IMPLICIT_DYNAMIC_TYPE*/M2
+    implements /*error:IMPLICIT_DYNAMIC_TYPE*/I {}
+
+C f(D d) {
+  D x = new /*error:IMPLICIT_DYNAMIC_TYPE*/D();
+  D<int, dynamic> y = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:IMPLICIT_DYNAMIC_TYPE*/D();
+  D<dynamic, int> z = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:IMPLICIT_DYNAMIC_TYPE*/D();
+  return new /*error:IMPLICIT_DYNAMIC_TYPE*/C();
+}
+
+class A<T extends num> {}
+class N1<T extends List<int>> {}
+class N2<T extends Object> {}
+class J<T extends Object> {}
+class B<T extends Object> extends A with N1, N2 implements J {}
+A g(B b) {
+  B y = /*info:INFERRED_TYPE_ALLOCATION*/new B();
+  return /*info:INFERRED_TYPE_ALLOCATION*/new A();
+}
+    ''');
+    check(implicitDynamic: false);
+  }
+
+  void test_implicitDynamic_variable() {
+    addFile(r'''
+var /*error:IMPLICIT_DYNAMIC_VARIABLE*/x0;
+var /*error:IMPLICIT_DYNAMIC_VARIABLE*/x1 = (<dynamic>[])[0];
+var /*error:IMPLICIT_DYNAMIC_VARIABLE*/x2,
+    x3 = 42,
+    /*error:IMPLICIT_DYNAMIC_VARIABLE*/x4;
+dynamic y0;
+dynamic y1 = (<dynamic>[])[0];
+    ''');
+    check(implicitDynamic: false);
   }
 
   void test_invalidOverrides_baseClassOverrideToChildInterface() {

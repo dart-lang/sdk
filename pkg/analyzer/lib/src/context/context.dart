@@ -281,6 +281,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         ((options is AnalysisOptionsImpl)
             ? this._options.implicitCasts != options.implicitCasts
             : false) ||
+        ((options is AnalysisOptionsImpl)
+            ? this._options.implicitDynamic != options.implicitDynamic
+            : false) ||
         this._options.enableStrictCallChecks !=
             options.enableStrictCallChecks ||
         this._options.enableGenericMethods != options.enableGenericMethods ||
@@ -313,6 +316,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (options is AnalysisOptionsImpl) {
       this._options.strongModeHints = options.strongModeHints;
       this._options.implicitCasts = options.implicitCasts;
+      this._options.implicitDynamic = options.implicitDynamic;
     }
     if (needsRecompute) {
       for (WorkManager workManager in workManagers) {

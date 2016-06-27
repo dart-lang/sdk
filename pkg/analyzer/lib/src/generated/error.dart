@@ -2859,6 +2859,16 @@ abstract class ErrorCode {
     StrongModeCode.DOWN_CAST_IMPLICIT,
     StrongModeCode.DYNAMIC_CAST,
     StrongModeCode.DYNAMIC_INVOKE,
+    StrongModeCode.IMPLICIT_DYNAMIC_FIELD,
+    StrongModeCode.IMPLICIT_DYNAMIC_FUNCTION,
+    StrongModeCode.IMPLICIT_DYNAMIC_INVOKE,
+    StrongModeCode.IMPLICIT_DYNAMIC_LIST_LITERAL,
+    StrongModeCode.IMPLICIT_DYNAMIC_MAP_LITERAL,
+    StrongModeCode.IMPLICIT_DYNAMIC_METHOD,
+    StrongModeCode.IMPLICIT_DYNAMIC_PARAMETER,
+    StrongModeCode.IMPLICIT_DYNAMIC_RETURN,
+    StrongModeCode.IMPLICIT_DYNAMIC_TYPE,
+    StrongModeCode.IMPLICIT_DYNAMIC_VARIABLE,
     StrongModeCode.INFERRED_TYPE,
     StrongModeCode.INFERRED_TYPE_ALLOCATION,
     StrongModeCode.INFERRED_TYPE_CLOSURE,
@@ -5874,6 +5884,17 @@ class StrongModeCode extends ErrorCode {
       'The type of {0}.{1} ({2}) is not a '
       'subtype of {3}.{1} ({4}).';
 
+  /**
+   * This is appended to the end of an error message about implicit dynamic.
+   *
+   * The idea is to make sure the user is aware that this error message is the
+   * result of turning on a particular option, and they are free to turn it
+   * back off.
+   */
+  static const String _implicitDynamicTip =
+      ". Either add an explicit type like 'dynamic'"
+      ", or enable implicit-dynamic in your Analyzer options.";
+
   static const String _inferredTypeMessage = '{0} has inferred type {1}';
 
   static const StrongModeCode DOWN_CAST_COMPOSITE = const StrongModeCode(
@@ -5946,6 +5967,63 @@ class StrongModeCode extends ErrorCode {
       'INVALID_FIELD_OVERRIDE',
       'Field declaration {3}.{1} cannot be '
       'overridden in {0}.');
+
+  static const StrongModeCode IMPLICIT_DYNAMIC_PARAMETER = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'IMPLICIT_DYNAMIC_PARAMETER',
+      "Missing parameter type for '{0}'$_implicitDynamicTip");
+
+  static const StrongModeCode IMPLICIT_DYNAMIC_RETURN = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'IMPLICIT_DYNAMIC_RETURN',
+      "Missing return type for '{0}'$_implicitDynamicTip");
+
+  static const StrongModeCode IMPLICIT_DYNAMIC_VARIABLE = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'IMPLICIT_DYNAMIC_VARIABLE',
+      "Missing variable type for '{0}'$_implicitDynamicTip");
+
+  static const StrongModeCode IMPLICIT_DYNAMIC_FIELD = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'IMPLICIT_DYNAMIC_FIELD',
+      "Missing field type for '{0}'$_implicitDynamicTip");
+
+  static const StrongModeCode IMPLICIT_DYNAMIC_TYPE =
+      const StrongModeCode(
+          ErrorType.COMPILE_TIME_ERROR,
+          'IMPLICIT_DYNAMIC_TYPE',
+          "Missing type arguments for generic type '{0}'"
+          "$_implicitDynamicTip");
+
+  static const StrongModeCode IMPLICIT_DYNAMIC_LIST_LITERAL =
+      const StrongModeCode(
+          ErrorType.COMPILE_TIME_ERROR,
+          'IMPLICIT_DYNAMIC_LIST_LITERAL',
+          "Missing type argument for list literal$_implicitDynamicTip");
+
+  static const StrongModeCode IMPLICIT_DYNAMIC_MAP_LITERAL =
+      const StrongModeCode(
+          ErrorType.COMPILE_TIME_ERROR,
+          'IMPLICIT_DYNAMIC_MAP_LITERAL',
+          'Missing type arguments for map literal$_implicitDynamicTip');
+
+  static const StrongModeCode IMPLICIT_DYNAMIC_FUNCTION = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'IMPLICIT_DYNAMIC_FUNCTION',
+      "Missing type arguments for generic function '{0}<{1}>'"
+      "$_implicitDynamicTip");
+
+  static const StrongModeCode IMPLICIT_DYNAMIC_METHOD = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'IMPLICIT_DYNAMIC_METHOD',
+      "Missing type arguments for generic method '{0}<{1}>'"
+      "$_implicitDynamicTip");
+
+  static const StrongModeCode IMPLICIT_DYNAMIC_INVOKE = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'IMPLICIT_DYNAMIC_INVOKE',
+      "Missing type arguments for calling generic function type '{0}'"
+          "$_implicitDynamicTip");
 
   @override
   final ErrorType type;

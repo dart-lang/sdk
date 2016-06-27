@@ -1315,6 +1315,18 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool finerGrainedInvalidation = false;
 
   /**
+   * A flag indicating whether implicit dynamic type is allowed, on by default.
+   *
+   * This flag can be used without necessarily enabling [strongMode], but it is
+   * designed with strong mode's type inference in mind. Without type inference,
+   * it will raise many errors. Also it does not provide type safety without
+   * strong mode.
+   *
+   * This option is experimental and subject to change.
+   */
+  bool implicitDynamic = true;
+
+  /**
    * Initialize a newly created set of analysis options to have their default
    * values.
    */
@@ -1346,6 +1358,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
       implicitCasts = options.implicitCasts;
+      implicitDynamic = options.implicitDynamic;
     }
     trackCacheDependencies = options.trackCacheDependencies;
     finerGrainedInvalidation = options.finerGrainedInvalidation;

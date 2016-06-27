@@ -54,7 +54,7 @@ void addFile(String content, {String name: '/main.dart'}) {
 /// the file text.
 ///
 /// Returns the main resolved library. This can be used for further checks.
-CompilationUnit check({bool implicitCasts: true}) {
+CompilationUnit check({bool implicitCasts: true, bool implicitDynamic: true}) {
   _checkCalled = true;
 
   expect(files.getFile('/main.dart').exists, true,
@@ -67,6 +67,7 @@ CompilationUnit check({bool implicitCasts: true}) {
   options.strongMode = true;
   options.strongModeHints = true;
   options.implicitCasts = implicitCasts;
+  options.implicitDynamic = implicitDynamic;
   var mockSdk = new MockSdk();
   mockSdk.context.analysisOptions.strongMode = true;
   context.sourceFactory =
