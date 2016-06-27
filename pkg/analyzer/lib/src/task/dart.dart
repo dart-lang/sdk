@@ -1450,7 +1450,8 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
       'BuildLibraryElementTask', createTask, buildInputs, <ResultDescriptor>[
     BUILD_LIBRARY_ERRORS,
     LIBRARY_ELEMENT1,
-    IS_LAUNCHABLE
+    IS_LAUNCHABLE,
+    REFERENCED_NAMES
   ]);
 
   /**
@@ -1622,12 +1623,19 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
       Directive directive = directivesToResolve[i];
       directive.element = libraryElement;
     }
+    // Compute referenced names.
+    ReferencedNames referencedNames = new ReferencedNames(librarySource);
+    new ReferencedNamesBuilder(referencedNames).build(definingCompilationUnit);
+    for (CompilationUnit partUnit in partUnits) {
+      new ReferencedNamesBuilder(referencedNames).build(partUnit);
+    }
     //
     // Record outputs.
     //
     outputs[BUILD_LIBRARY_ERRORS] = errors;
     outputs[LIBRARY_ELEMENT1] = libraryElement;
     outputs[IS_LAUNCHABLE] = entryPoint != null;
+    outputs[REFERENCED_NAMES] = referencedNames;
   }
 
   /**
@@ -5210,18 +5218,13 @@ class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {
   static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
 
   /**
-   * The name of the list of [RESOLVED_UNIT12] input.
-   */
-  static const String UNITS_INPUT = 'UNITS_INPUT';
-
-  /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'ResolveLibraryReferencesTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[LIBRARY_ELEMENT9, REFERENCED_NAMES]);
+      <ResultDescriptor>[LIBRARY_ELEMENT9]);
 
   ResolveLibraryReferencesTask(
       InternalAnalysisContext context, AnalysisTarget target)
@@ -5232,23 +5235,8 @@ class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {
 
   @override
   void internalPerform() {
-    Source source = getRequiredSource();
-    //
-    // Prepare inputs.
-    //
     LibraryElement library = getRequiredInput(LIBRARY_INPUT);
-    List<CompilationUnit> units = getRequiredInput(UNITS_INPUT);
-    // Compute referenced names.
-    ReferencedNames referencedNames = new ReferencedNames(source);
-    int length = units.length;
-    for (int i = 0; i < length; i++) {
-      new ReferencedNamesBuilder(referencedNames).build(units[i]);
-    }
-    //
-    // Record outputs.
-    //
     outputs[LIBRARY_ELEMENT9] = library;
-    outputs[REFERENCED_NAMES] = referencedNames;
   }
 
   /**
@@ -5260,7 +5248,8 @@ class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {
     Source source = target;
     return <String, TaskInput>{
       LIBRARY_INPUT: LIBRARY_ELEMENT8.of(source),
-      UNITS_INPUT: LIBRARY_SPECIFIC_UNITS.of(source).toListOf(RESOLVED_UNIT12),
+      'resolvedUnits':
+          LIBRARY_SPECIFIC_UNITS.of(source).toListOf(RESOLVED_UNIT12),
     };
   }
 
