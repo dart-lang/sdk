@@ -471,6 +471,11 @@ Future<api.CompilationResult> compile(List<String> argv) {
         api.Diagnostic.INFO);
   }
   if (resolveOnly) {
+    if (resolutionInputs.contains(resolutionOutput)) {
+      helpAndFail("Resolution input '${resolutionOutput}' can't be used as "
+      "resolution output. Use the '--out' option to specify another resolution "
+      "output.");
+    }
     analyzeOnly = analyzeAll = true;
   } else if (analyzeAll) {
     analyzeOnly = true;
@@ -845,7 +850,8 @@ final bool SERIALIZED_COMPILATION =
 
 /// Mock URI used only in testing when [USE_SERIALIZED_DART_CORE] or
 /// [SERIALIZED_COMPILATION] is enabled.
-final Uri _SERIALIZED_URI = Uri.parse('file:fake.data');
+final Uri _SERIALIZED_DART_CORE_URI = Uri.parse('file:core.data');
+final Uri _SERIALIZED_TEST_URI = Uri.parse('file:test.data');
 
 void _useSerializedDataForDartCore(CompileFunc oldCompileFunc) {
   /// Run the [oldCompileFunc] with [serializedData] added as resolution input.
@@ -854,17 +860,22 @@ void _useSerializedDataForDartCore(CompileFunc oldCompileFunc) {
       api.CompilerInput compilerInput,
       api.CompilerDiagnostics compilerDiagnostics,
       api.CompilerOutput compilerOutput,
-      String serializedData) {
+      List<_SerializedData> serializedData) {
     api.CompilerInput input = compilerInput;
     CompilerOptions options = compilerOptions;
-    if (serializedData != null) {
-      input = new _CompilerInput(input, serializedData);
-      List<Uri> resolutionInputs = compilerOptions.resolutionInputs;
-      if (resolutionInputs == null) {
-        resolutionInputs = <Uri>[_SERIALIZED_URI];
-      } else if (!resolutionInputs.contains(_SERIALIZED_URI)) {
-        resolutionInputs = new List<Uri>.from(resolutionInputs)
-          ..add(_SERIALIZED_URI);
+    if (serializedData != null && serializedData.isNotEmpty) {
+      Map<Uri, String> dataMap = <Uri, String>{};
+      for (_SerializedData data in serializedData) {
+        dataMap[data.uri] = data.data;
+      }
+      input = new _CompilerInput(input, dataMap);
+      List<Uri> resolutionInputs = dataMap.keys.toList();
+      if (compilerOptions.resolutionInputs != null) {
+        for (Uri uri in compilerOptions.resolutionInputs) {
+          if (!dataMap.containsKey(uri)) {
+            resolutionInputs.add(uri);
+          }
+        }
       }
       options = options.copy(resolutionInputs: resolutionInputs);
     }
@@ -874,11 +885,12 @@ void _useSerializedDataForDartCore(CompileFunc oldCompileFunc) {
   /// Serialize [entryPoint] using [serializedData] if provided.
   Future<api.CompilationResult> serialize(
       Uri entryPoint,
+      Uri serializedUri,
       CompilerOptions compilerOptions,
       api.CompilerInput compilerInput,
       api.CompilerDiagnostics compilerDiagnostics,
       api.CompilerOutput compilerOutput,
-      [String serializedData]) {
+      [List<_SerializedData> serializedData]) {
     CompilerOptions options = new CompilerOptions.parse(
         entryPoint: entryPoint,
         libraryRoot: compilerOptions.libraryRoot,
@@ -886,14 +898,14 @@ void _useSerializedDataForDartCore(CompileFunc oldCompileFunc) {
         packageConfig: compilerOptions.packageConfig,
         packagesDiscoveryProvider: compilerOptions.packagesDiscoveryProvider,
         environment: compilerOptions.environment,
-        resolutionOutput: _SERIALIZED_URI,
+        resolutionOutput: serializedUri,
         options: [Flags.resolveOnly]);
     return compileWithSerializedData(options, compilerInput,
         compilerDiagnostics, compilerOutput, serializedData);
   }
 
   // Local cache for the serialized data for dart:core.
-  String serializedDartCore;
+  _SerializedData serializedDartCore;
 
   /// Serialize the entry point using serialized data from dart:core and run
   /// [oldCompileFunc] using serialized data for whole program.
@@ -902,19 +914,24 @@ void _useSerializedDataForDartCore(CompileFunc oldCompileFunc) {
       api.CompilerInput compilerInput,
       api.CompilerDiagnostics compilerDiagnostics,
       api.CompilerOutput compilerOutput) async {
-    _CompilerOutput output = new _CompilerOutput();
+    _CompilerOutput output = new _CompilerOutput(_SERIALIZED_TEST_URI);
     api.CompilationResult result = await serialize(
         compilerOptions.entryPoint,
+        output.uri,
         compilerOptions,
         compilerInput,
         compilerDiagnostics,
         output,
-        serializedDartCore);
+        [serializedDartCore]);
     if (!result.isSuccess) {
       return result;
     }
-    return compileWithSerializedData(compilerOptions, compilerInput,
-        compilerDiagnostics, compilerOutput, output.serializedData);
+    return compileWithSerializedData(
+        compilerOptions,
+        compilerInput,
+        compilerDiagnostics,
+        compilerOutput,
+        [serializedDartCore, output.serializedData]);
   }
 
   /// Compiles the entry point using the serialized data from dart:core.
@@ -924,7 +941,7 @@ void _useSerializedDataForDartCore(CompileFunc oldCompileFunc) {
       api.CompilerDiagnostics compilerDiagnostics,
       api.CompilerOutput compilerOutput) async {
     return compileWithSerializedData(compilerOptions, compilerInput,
-        compilerDiagnostics, compilerOutput, serializedDartCore);
+        compilerDiagnostics, compilerOutput, [serializedDartCore]);
   }
 
   /// Serialize dart:core data into [serializedDartCore] and setup the
@@ -934,8 +951,8 @@ void _useSerializedDataForDartCore(CompileFunc oldCompileFunc) {
       api.CompilerInput compilerInput,
       api.CompilerDiagnostics compilerDiagnostics,
       api.CompilerOutput compilerOutput) async {
-    _CompilerOutput output = new _CompilerOutput();
-    await serialize(Uris.dart_core, compilerOptions, compilerInput,
+    _CompilerOutput output = new _CompilerOutput(_SERIALIZED_DART_CORE_URI);
+    await serialize(Uris.dart_core, output.uri, compilerOptions, compilerInput,
         compilerDiagnostics, output);
     serializedDartCore = output.serializedData;
     if (SERIALIZED_COMPILATION) {
@@ -952,21 +969,32 @@ void _useSerializedDataForDartCore(CompileFunc oldCompileFunc) {
 
 class _CompilerInput implements api.CompilerInput {
   final api.CompilerInput _input;
-  final String _data;
+  final Map<Uri, String> _data;
 
   _CompilerInput(this._input, this._data);
 
   @override
   Future readFromUri(Uri uri) {
-    if (uri == _SERIALIZED_URI) {
-      return new Future.value(_data);
+    String data = _data[uri];
+    if (data != null) {
+      return new Future.value(data);
     }
     return _input.readFromUri(uri);
   }
 }
 
+class _SerializedData {
+  final Uri uri;
+  final String data;
+
+  _SerializedData(this.uri, this.data);
+}
+
 class _CompilerOutput extends NullCompilerOutput {
+  final Uri uri;
   _BufferedEventSink sink;
+
+  _CompilerOutput(this.uri);
 
   @override
   EventSink<String> createEventSink(String name, String extension) {
@@ -976,7 +1004,9 @@ class _CompilerOutput extends NullCompilerOutput {
     return super.createEventSink(name, extension);
   }
 
-  String get serializedData => sink.sb.toString();
+  _SerializedData get serializedData {
+    return new _SerializedData(uri, sink.sb.toString());
+  }
 }
 
 class _BufferedEventSink implements EventSink<String> {
