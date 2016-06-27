@@ -192,19 +192,15 @@ defineTests() {
       });
 
       test('close sinks', () {
-        dartlint.main([
-          'test/_data/close_sinks',
-          '--rules=close_sinks'
-        ]);
+        dartlint.main(['test/_data/close_sinks', '--rules=close_sinks']);
         expect(exitCode, 1);
         expect(
             collectingOut.trim(),
-            stringContainsInOrder(
-                [
-                  'IOSink _sinkA; // LINT',
-                  'IOSink _sinkF; // LINT',
-                  '1 file analyzed, 2 issues found, in'
-                ]));
+            stringContainsInOrder([
+              'IOSink _sinkA; // LINT',
+              'IOSink _sinkF; // LINT',
+              '1 file analyzed, 2 issues found, in'
+            ]));
       });
     });
 
@@ -229,16 +225,15 @@ defineTests() {
         expect(exitCode, 1);
         expect(
             collectingOut.trim(),
-            stringContainsInOrder(
-                [
-                  'StreamSubscription _subscriptionA; // LINT',
-                  'StreamSubscription _subscriptionF; // LINT',
-                  '1 file analyzed, 2 issues found, in'
-                ]));
+            stringContainsInOrder([
+              'StreamSubscription _subscriptionA; // LINT',
+              'StreamSubscription _subscriptionF; // LINT',
+              '1 file analyzed, 2 issues found, in'
+            ]));
       });
     });
 
-    group('only_throw_error', () {
+    group('only_throw_errors', () {
       IOSink currentOut = outSink;
       CollectingSink collectingOut = new CollectingSink();
       setUp(() {
@@ -251,23 +246,20 @@ defineTests() {
         exitCode = 0;
       });
 
-      test('only throw error', () {
-        dartlint.main([
-          'test/_data/only_throw_error',
-          '--rules=only_throw_error'
-        ]);
+      test('only throw errors', () {
+        dartlint.main(
+            ['test/_data/only_throw_errors', '--rules=only_throw_errors']);
         expect(exitCode, 1);
         expect(
             collectingOut.trim(),
-            stringContainsInOrder(
-                [
-                  "throw 'hello world!'; // LINT",
-                  'throw null; // LINT',
-                  'throw 7; // LINT',
-                  'throw new Object(); // LINT',
-                  'throw returnString(); // LINT',
-                  '1 file analyzed, 5 issues found, in'
-                ]));
+            stringContainsInOrder([
+              "throw 'hello world!'; // LINT",
+              'throw null; // LINT',
+              'throw 7; // LINT',
+              'throw new Object(); // LINT',
+              'throw returnString(); // LINT',
+              '1 file analyzed, 5 issues found, in'
+            ]));
       });
     });
 

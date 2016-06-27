@@ -1,3 +1,10 @@
+# 0.1.21
+
+* New `only_throw_errors` lint.
+* New lint to check for `empty_statements` (#259).
+* Fixed NSME when file contents cannot be read (#260).
+* Fixed unsafe cast in `iterable_contains_unrelated_type` (#267).
+
 # 0.1.20
 
 * New `cancel_subscriptions` lint.

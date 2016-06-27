@@ -31,7 +31,7 @@ import 'package:linter/src/rules/library_names.dart';
 import 'package:linter/src/rules/library_prefixes.dart';
 import 'package:linter/src/rules/non_constant_identifier_names.dart';
 import 'package:linter/src/rules/one_member_abstracts.dart';
-import 'package:linter/src/rules/only_throw_error.dart';
+import 'package:linter/src/rules/only_throw_errors.dart';
 import 'package:linter/src/rules/overridden_fields.dart';
 import 'package:linter/src/rules/package_api_docs.dart';
 import 'package:linter/src/rules/package_prefixed_library_names.dart';
@@ -69,7 +69,7 @@ final Registry ruleRegistry = new Registry()
   ..register(new EmptyConstructorBodies())
   ..register(new EmptyStatements())
   ..register(new TestTypesInEquals())
-  ..register(new OnlyThrowError())
+  ..register(new OnlyThrowErrors())
   ..register(new OverriddenFields())
   ..register(new HashAndEquals())
   ..register(new ImplementationImports())
