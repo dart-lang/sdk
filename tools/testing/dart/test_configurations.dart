@@ -56,9 +56,6 @@ Future testConfigurations(List<Map> configurations) async {
   var firstConf = configurations[0];
   var maxProcesses = firstConf['tasks'];
   var progressIndicator = firstConf['progress'];
-  // TODO(kustermann): Remove this option once the buildbots don't use it
-  // anymore.
-  var failureSummary = firstConf['failure-summary'];
   BuildbotProgressIndicator.stepName = firstConf['step_name'];
   var verbose = firstConf['verbose'];
   var printTiming = firstConf['time'];
@@ -279,6 +276,7 @@ Future testConfigurations(List<Map> configurations) async {
     eventListener.add(new SummaryPrinter(jsonOnly: reportInJson));
   } else {
     eventListener.add(new ExitCodeSetter());
+    eventListener.add(new IgnoredTestMonitor());
   }
 
   // If any of the configurations need to access android devices we'll first

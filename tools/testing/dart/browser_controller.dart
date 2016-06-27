@@ -4,10 +4,10 @@
 library browser;
 
 import "dart:async";
-import "dart:convert" show LineSplitter, UTF8, JSON;
+import "dart:convert" show UTF8, JSON;
 import "dart:core";
 import "dart:io";
-import "dart:math" show max, min;
+import "dart:math" show min;
 
 import 'android.dart';
 import 'http_server.dart';

@@ -921,8 +921,9 @@ class UnittestSuiteMessagesMixin {
 /**
  * CommandOutput records the output of a completed command: the process's exit
  * code, the standard output and standard error, whether the process timed out,
- * and the time the process took to run.  It also contains a pointer to the
- * [TestCase] this is the output of.
+ * and the time the process took to run.  It does not contain a pointer to the
+ * [TestCase] this is the output of, so some functions require the test case
+ * to be passed as an argument.
  */
 abstract class CommandOutput {
   Command get command;
@@ -974,7 +975,6 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
    */
   bool alreadyPrintedWarning = false;
 
-  // TODO(kustermann): Remove testCase from this class.
   CommandOutputImpl(
       Command this.command,
       int this.exitCode,
@@ -1054,26 +1054,48 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
   // See: http://dartbug.com/15139.
   static int WHITELISTED_CONTENTSHELL_EXITCODE = -1073740022;
   static bool isWindows = io.Platform.operatingSystem == 'windows';
+  static bool _failedBecauseOfFlakyInfrastructure(List<int> stderrBytes) {
+    // If the browser test failed, it may have been because content shell
+    // and the virtual framebuffer X server didn't hook up, or it crashed with
+    // a core dump. Sometimes content shell crashes after it has set the stdout
+    // to PASS, so we have to do this check first.
+    // Content shell also fails with a broken pipe message: Issue 26739
+    var zygoteCrash = new RegExp(
+        r"ERROR:zygote_linux\.cc\(\d+\)] write: Broken pipe");
+    var stderr = decodeUtf8(stderrBytes);
+    // TODO(whesse): Issue: 7564
+    // This may not be happening anymore.  Test by removing this suppression.
+    if (stderr.contains(MESSAGE_CANNOT_OPEN_DISPLAY) ||
+        stderr.contains(MESSAGE_FAILED_TO_RUN_COMMAND)) {
+      DebugLogger.warning(
+          "Warning: Failure because of missing XDisplay. Test ignored");
+      return true;
+    }
+    // Issue 26739
+    if (zygoteCrash.hasMatch(stderr)) {
+      DebugLogger.warning("Warning: Failure because of content_shell "
+                           "zygote crash. Test ignored");
+      return true;
+    }
+    return false;
+  }
 
-  bool _failedBecauseOfMissingXDisplay;
+  bool _infraFailure;
 
   BrowserCommandOutputImpl(
       command, exitCode, timedOut, stdout, stderr, time, compilationSkipped)
       : super(command, exitCode, timedOut, stdout, stderr, time,
-            compilationSkipped, 0) {
-    _failedBecauseOfMissingXDisplay = _didFailBecauseOfMissingXDisplay();
-    if (_failedBecauseOfMissingXDisplay) {
-      DebugLogger.warning("Warning: Test failure because of missing XDisplay");
-      // If we get the X server error, or DRT crashes with a core dump, retry
-      // the test.
-    }
-  }
+          compilationSkipped, 0),
+        _infraFailure = _failedBecauseOfFlakyInfrastructure(stderr);
 
   Expectation result(TestCase testCase) {
     // Handle crashes and timeouts first
     if (hasCrashed) return Expectation.CRASH;
     if (hasTimedOut) return Expectation.TIMEOUT;
 
+    if (_infraFailure) {
+      return Expectation.IGNORE;
+    }
     var outcome = _getOutcome();
 
     if (testCase.hasRuntimeError) {
@@ -1091,8 +1113,8 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
   bool get successful => canRunDependendCommands;
 
   bool get canRunDependendCommands {
-    // We cannot rely on the exit code of content_shell as a method to determine
-    // if we were successful or not.
+    // We cannot rely on the exit code of content_shell as a method to
+    // determine if we were successful or not.
     return super.canRunDependendCommands && !didFail(null);
   }
 
@@ -1101,32 +1123,10 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
   }
 
   Expectation _getOutcome() {
-    if (_failedBecauseOfMissingXDisplay) {
-      return Expectation.FAIL;
-    }
-
     if (_browserTestFailure) {
       return Expectation.RUNTIME_ERROR;
     }
     return Expectation.PASS;
-  }
-
-  bool _didFailBecauseOfMissingXDisplay() {
-    // Browser case:
-    // If the browser test failed, it may have been because content shell
-    // and the virtual framebuffer X server didn't hook up, or it crashed with
-    // a core dump. Sometimes content shell crashes after it has set the stdout
-    // to PASS, so we have to do this check first.
-    var stderrLines = decodeUtf8(super.stderr).split("\n");
-    for (String line in stderrLines) {
-      // TODO(kustermann,ricow): Issue: 7564
-      // This seems to happen quite frequently, we need to figure out why.
-      if (line.contains(MESSAGE_CANNOT_OPEN_DISPLAY) ||
-          line.contains(MESSAGE_FAILED_TO_RUN_COMMAND)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   bool get _rendererCrashed =>
@@ -1334,13 +1334,6 @@ class BrowserControllerTestOutcome extends CommandOutputImpl
 
   factory BrowserControllerTestOutcome(
       Command command, BrowserTestOutput result) {
-    void validate(String assertion, bool value) {
-      if (!value) {
-        throw "InvalidFormat sent from browser driving page: $assertion:\n\n"
-            "${result.lastKnownMessage}";
-      }
-    }
-
     String indent(String string, int numSpaces) {
       var spaces = new List.filled(numSpaces, ' ').join('');
       return string
@@ -1374,11 +1367,7 @@ class BrowserControllerTestOutcome extends CommandOutputImpl
         stderr = "This test timed out. The delay until the test actually "
             "started was: ${result.delayUntilTestStarted}.";
       } else {
-        // TODO(ricow/kustermann) as soon as we record the state periodically,
-        // we will have more information and can remove this warning.
-        stderr = "This test has not notified test.py that it started running. "
-            "This could be a bug in test.py! "
-            "Please contact ricow/whesse";
+        stderr = "This test has not notified test.py that it started running.";
       }
     }
 
