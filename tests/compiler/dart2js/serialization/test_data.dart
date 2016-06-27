@@ -402,6 +402,20 @@ class A {
 }
 ''',
   }),
+
+  const Test('Malformed types', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  m();
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+Unresolved m() {}
+''',
+  }),
 ];
 
 class Test {

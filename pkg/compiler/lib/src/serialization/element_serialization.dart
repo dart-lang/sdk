@@ -8,6 +8,7 @@ import '../common.dart';
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
+import '../diagnostics/messages.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show ErroneousElementX;
 import 'constant_serialization.dart';
@@ -213,8 +214,8 @@ class ErrorSerializer implements ElementSerializer {
     encoder.setEnum(Key.MESSAGE_KIND, element.messageKind);
     if (element.messageArguments.isNotEmpty) {
       MapEncoder mapEncoder = encoder.createMap(Key.ARGUMENTS);
-      element.messageArguments.forEach((String key, String value) {
-        mapEncoder.setString(key, value);
+      element.messageArguments.forEach((String key, var value) {
+        mapEncoder.setString(key, Message.convertToString(value));
       });
     }
   }
