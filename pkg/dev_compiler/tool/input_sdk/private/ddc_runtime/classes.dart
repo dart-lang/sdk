@@ -251,7 +251,6 @@ setSignature(f, signature) => JS('', '''(() => {
   $_setMethodSignature($f, methods);
   $_setStaticSignature($f, statics);
   $_setStaticTypes($f, names);
-  $tagLazy($f, () => $Type);
 })()''');
 
 hasMethod(obj, name) => JS('', '$getMethodType($obj, $name) !== void 0');

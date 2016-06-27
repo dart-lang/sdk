@@ -830,7 +830,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     dart._setMethodSignature(f, methods);
     dart._setStaticSignature(f, statics);
     dart._setStaticTypes(f, names);
-    dart.tagLazy(f, () => core.Type);
   };
   dart.hasMethod = function(obj, name) {
     return dart.getMethodType(obj, name) !== void 0;
@@ -1890,6 +1889,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       noSuchMethod: dart.definiteFunctionType(dart.dynamic, [core.Invocation])
     })
   });
+  dart.tagComputed(core.Object, () => core.Type);
   dart.TypeRep = class TypeRep extends core.Object {
     new() {
       dart._initialize;

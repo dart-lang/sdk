@@ -1614,6 +1614,12 @@ class CodeGenerator extends GeneralizingAstVisitor
       var sig = new JS.ObjectInitializer(sigFields);
       body.add(js.statement('dart.setSignature(#, #);', [className, sig]));
     }
+    // Add static property dart._runtimeType to Object.
+    // All other Dart classes will (statically) inherit this property.
+    if (classElem == objectClass) {
+      body.add(js.statement('dart.tagComputed(#, () => #.#);',
+          [className, emitLibraryName(dartCoreLibrary), 'Type']));
+    }
   }
 
   /// Ensure `dartx.` symbols we will use are present.
