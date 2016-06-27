@@ -1573,15 +1573,12 @@ import 'my_lib1.dart';
 library my_lib3;
 import 'my_lib2.dart';
 ''');
-    AnalysisTarget lib1Target = new LibrarySpecificUnit(lib1Source, lib1Source);
-    AnalysisTarget lib2Target = new LibrarySpecificUnit(lib2Source, lib2Source);
-    AnalysisTarget lib3Target = new LibrarySpecificUnit(lib3Source, lib3Source);
 
-    computeResult(lib1Target, LIBRARY_CYCLE);
+    computeResult(lib1Source, LIBRARY_CYCLE);
     expect(outputs[LIBRARY_CYCLE], hasLength(1));
-    computeResult(lib2Target, LIBRARY_CYCLE);
+    computeResult(lib2Source, LIBRARY_CYCLE);
     expect(outputs[LIBRARY_CYCLE], hasLength(1));
-    computeResult(lib3Target, LIBRARY_CYCLE);
+    computeResult(lib3Source, LIBRARY_CYCLE);
     expect(outputs[LIBRARY_CYCLE], hasLength(1));
 
     // create a cycle
@@ -1591,15 +1588,15 @@ import 'my_lib2.dart';
 library my_lib1;
 import 'my_lib3.dart';
 ''');
-    _expectInvalid(lib1Target);
-    _expectInvalid(lib2Target);
-    _expectInvalid(lib3Target);
+    _expectInvalid(lib1Source);
+    _expectInvalid(lib2Source);
+    _expectInvalid(lib3Source);
 
-    computeResult(lib1Target, LIBRARY_CYCLE);
+    computeResult(lib1Source, LIBRARY_CYCLE);
     expect(outputs[LIBRARY_CYCLE], hasLength(3));
-    computeResult(lib2Target, LIBRARY_CYCLE);
+    computeResult(lib2Source, LIBRARY_CYCLE);
     expect(outputs[LIBRARY_CYCLE], hasLength(3));
-    computeResult(lib3Target, LIBRARY_CYCLE);
+    computeResult(lib3Source, LIBRARY_CYCLE);
     expect(outputs[LIBRARY_CYCLE], hasLength(3));
 
     // break the cycle again
@@ -1608,15 +1605,15 @@ import 'my_lib3.dart';
         '''
 library my_lib1;
 ''');
-    _expectInvalid(lib1Target);
-    _expectInvalid(lib2Target);
-    _expectInvalid(lib3Target);
+    _expectInvalid(lib1Source);
+    _expectInvalid(lib2Source);
+    _expectInvalid(lib3Source);
 
-    computeResult(lib1Target, LIBRARY_CYCLE);
+    computeResult(lib1Source, LIBRARY_CYCLE);
     expect(outputs[LIBRARY_CYCLE], hasLength(1));
-    computeResult(lib2Target, LIBRARY_CYCLE);
+    computeResult(lib2Source, LIBRARY_CYCLE);
     expect(outputs[LIBRARY_CYCLE], hasLength(1));
-    computeResult(lib3Target, LIBRARY_CYCLE);
+    computeResult(lib3Source, LIBRARY_CYCLE);
     expect(outputs[LIBRARY_CYCLE], hasLength(1));
   }
 
@@ -1639,13 +1636,10 @@ import 'my_lib1.dart';
 library my_lib3;
 import 'my_lib2.dart';
 ''');
-    AnalysisTarget lib1Target = new LibrarySpecificUnit(lib1Source, lib1Source);
-    AnalysisTarget lib2Target = new LibrarySpecificUnit(lib2Source, lib2Source);
-    AnalysisTarget lib3Target = new LibrarySpecificUnit(lib3Source, lib3Source);
 
-    computeResult(lib1Target, LIBRARY_CYCLE);
+    computeResult(lib1Source, LIBRARY_CYCLE);
     expect(outputs[LIBRARY_CYCLE], hasLength(1));
-    computeResult(lib2Target, LIBRARY_CYCLE);
+    computeResult(lib2Source, LIBRARY_CYCLE);
     expect(outputs[LIBRARY_CYCLE], hasLength(1));
     // lib3 is not reachable, so we have not yet computed its library
     // cycles
@@ -1657,17 +1651,17 @@ import 'my_lib2.dart';
 library my_lib1;
 import 'my_lib3.dart';
 ''');
-    _expectInvalid(lib1Target);
-    _expectInvalid(lib2Target);
-    _expectInvalid(lib3Target);
+    _expectInvalid(lib1Source);
+    _expectInvalid(lib2Source);
+    _expectInvalid(lib3Source);
 
     // Ensure that invalidation correctly invalidated everything reachable
     // through lib3
-    computeResult(lib1Target, LIBRARY_CYCLE);
+    computeResult(lib1Source, LIBRARY_CYCLE);
     expect(outputs[LIBRARY_CYCLE], hasLength(3));
-    computeResult(lib2Target, LIBRARY_CYCLE);
+    computeResult(lib2Source, LIBRARY_CYCLE);
     expect(outputs[LIBRARY_CYCLE], hasLength(3));
-    computeResult(lib3Target, LIBRARY_CYCLE);
+    computeResult(lib3Source, LIBRARY_CYCLE);
     expect(outputs[LIBRARY_CYCLE], hasLength(3));
   }
 
@@ -1780,9 +1774,9 @@ library my_lib1;
 import 'my_lib3.dart';
 var foo = 123;
 ''');
-    _expectInvalid(lib1Target);
-    _expectInvalid(lib2Target);
-    _expectInvalid(lib3Target);
+    _expectInvalid(lib1Source);
+    _expectInvalid(lib2Source);
+    _expectInvalid(lib3Source);
 
     computeResult(lib1Target, RESOLVED_UNIT);
     computeResult(lib2Target, RESOLVED_UNIT);
@@ -1817,7 +1811,7 @@ var foo = 123;
         '''
 import 'dart:core';
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), LIBRARY_CYCLE);
+    computeResult(source, LIBRARY_CYCLE);
     List<LibraryElement> component = getLibraryCycle(outputs);
     List<CompilationUnitElement> units = getLibraryCycleUnits(outputs);
     List<CompilationUnitElement> deps = getLibraryCycleDependencies(outputs);
@@ -1942,86 +1936,46 @@ import 'dart:core';
       '/db.dart': '''
 '''
     });
-    computeResult(
-        new LibrarySpecificUnit(sources[0], sources[0]), LIBRARY_CYCLE);
+    computeResult(sources[0], LIBRARY_CYCLE);
     Map<ResultDescriptor, dynamic> results0 = outputs;
-    computeResult(
-        new LibrarySpecificUnit(sources[1], sources[1]), LIBRARY_CYCLE);
+    computeResult(sources[1], LIBRARY_CYCLE);
     Map<ResultDescriptor, dynamic> results1 = outputs;
-    computeResult(
-        new LibrarySpecificUnit(sources[0], sources[2]), LIBRARY_CYCLE);
-    Map<ResultDescriptor, dynamic> results2 = outputs;
-    computeResult(
-        new LibrarySpecificUnit(sources[0], sources[3]), LIBRARY_CYCLE);
-    Map<ResultDescriptor, dynamic> results3 = outputs;
-    computeResult(
-        new LibrarySpecificUnit(sources[4], sources[4]), LIBRARY_CYCLE);
+    computeResult(sources[4], LIBRARY_CYCLE);
     Map<ResultDescriptor, dynamic> results4 = outputs;
-    computeResult(
-        new LibrarySpecificUnit(sources[5], sources[5]), LIBRARY_CYCLE);
+    computeResult(sources[5], LIBRARY_CYCLE);
     Map<ResultDescriptor, dynamic> results5 = outputs;
-    computeResult(
-        new LibrarySpecificUnit(sources[5], sources[6]), LIBRARY_CYCLE);
-    Map<ResultDescriptor, dynamic> results6 = outputs;
-    computeResult(
-        new LibrarySpecificUnit(sources[5], sources[7]), LIBRARY_CYCLE);
-    Map<ResultDescriptor, dynamic> results7 = outputs;
 
     List<LibraryElement> component0 = getLibraryCycle(results0);
     List<LibraryElement> component1 = getLibraryCycle(results1);
-    List<LibraryElement> component2 = getLibraryCycle(results2);
-    List<LibraryElement> component3 = getLibraryCycle(results3);
     List<LibraryElement> component4 = getLibraryCycle(results4);
     List<LibraryElement> component5 = getLibraryCycle(results5);
-    List<LibraryElement> component6 = getLibraryCycle(results6);
-    List<LibraryElement> component7 = getLibraryCycle(results7);
 
     expect(component0, hasLength(2));
     expect(component1, hasLength(2));
-    expect(component2, hasLength(2));
-    expect(component3, hasLength(2));
     expect(component4, hasLength(2));
     expect(component5, hasLength(2));
-    expect(component6, hasLength(2));
-    expect(component7, hasLength(2));
 
     List<CompilationUnitElement> units0 = getLibraryCycleUnits(results0);
     List<CompilationUnitElement> units1 = getLibraryCycleUnits(results1);
-    List<CompilationUnitElement> units2 = getLibraryCycleUnits(results2);
-    List<CompilationUnitElement> units3 = getLibraryCycleUnits(results3);
     List<CompilationUnitElement> units4 = getLibraryCycleUnits(results4);
     List<CompilationUnitElement> units5 = getLibraryCycleUnits(results5);
-    List<CompilationUnitElement> units6 = getLibraryCycleUnits(results6);
-    List<CompilationUnitElement> units7 = getLibraryCycleUnits(results7);
     expect(units0, hasLength(4));
     expect(units1, hasLength(4));
-    expect(units2, hasLength(4));
-    expect(units3, hasLength(4));
     expect(units4, hasLength(4));
     expect(units5, hasLength(4));
-    expect(units6, hasLength(4));
-    expect(units7, hasLength(4));
 
     List<CompilationUnitElement> dep0 = getLibraryCycleDependencies(results0);
     List<CompilationUnitElement> dep1 = getLibraryCycleDependencies(results1);
-    List<CompilationUnitElement> dep2 = getLibraryCycleDependencies(results2);
-    List<CompilationUnitElement> dep3 = getLibraryCycleDependencies(results3);
     List<CompilationUnitElement> dep4 = getLibraryCycleDependencies(results4);
     List<CompilationUnitElement> dep5 = getLibraryCycleDependencies(results5);
-    List<CompilationUnitElement> dep6 = getLibraryCycleDependencies(results6);
-    List<CompilationUnitElement> dep7 = getLibraryCycleDependencies(results7);
     expect(dep0, hasLength(1)); // dart:core
     expect(dep1, hasLength(1)); // dart:core
-    expect(dep2, hasLength(1)); // dart:core
-    expect(dep3, hasLength(1)); // dart:core
     expect(dep4, hasLength(5)); // dart:core, a.dart, aa.dart, ab.dart, b.dart
     expect(dep5, hasLength(5)); // dart:core, a.dart, aa.dart, ab.dart, b.dart
-    expect(dep6, hasLength(5)); // dart:core, a.dart, aa.dart, ab.dart, b.dart
-    expect(dep7, hasLength(5)); // dart:core, a.dart, aa.dart, ab.dart, b.dart
   }
 
-  void _expectInvalid(LibrarySpecificUnit target) {
-    CacheEntry entry = context.getCacheEntry(target);
+  void _expectInvalid(Source librarySource) {
+    CacheEntry entry = context.getCacheEntry(librarySource);
     expect(entry.getState(LIBRARY_CYCLE), CacheState.INVALID);
   }
 }
@@ -5672,8 +5626,7 @@ class _AbstractDartTaskTest extends AbstractContextTest {
       List<Source> sources, ResultDescriptor result,
       {isInstanceOf matcher: null}) {
     Map<ResultDescriptor, dynamic> compute(Source source) {
-      computeResult(new LibrarySpecificUnit(source, source), result,
-          matcher: matcher);
+      computeResult(source, result, matcher: matcher);
       return outputs;
     }
     return sources.map(compute).toList();
