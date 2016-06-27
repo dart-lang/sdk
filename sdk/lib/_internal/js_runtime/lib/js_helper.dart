@@ -1369,6 +1369,11 @@ class Primitives {
     }
 
     if (!acceptsOptionalArguments) {
+      if (namedArguments != null && namedArguments.isNotEmpty) {
+        // Tried to invoke a function that takes a fixed number of arguments
+        // with named (optional) arguments.
+        return functionNoSuchMethod(function, arguments, namedArguments);
+      }
       if (argumentCount == requiredParameterCount) {
         return JS('var', r'#.apply(#, #)', jsFunction, function, arguments);
       }

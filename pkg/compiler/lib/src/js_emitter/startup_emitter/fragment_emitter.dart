@@ -833,6 +833,9 @@ class FragmentEmitter {
     // TODO(herhut): Replace [js.LiteralNull] with [js.ArrayHole].
     if (method.optionalParameterDefaultValues is List) {
       List<ConstantValue> defaultValues = method.optionalParameterDefaultValues;
+      if (defaultValues.isEmpty) {
+        return new js.LiteralNull();
+      }
       Iterable<js.Expression> elements =
           defaultValues.map(generateConstantReference);
       return js.js('function() { return #; }',
