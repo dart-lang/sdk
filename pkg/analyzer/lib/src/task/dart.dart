@@ -439,7 +439,7 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT1 =
 /**
  * The partial [LibraryElement] associated with a library.
  *
- * In addition to [LIBRARY_ELEMENT1] [LibraryElement.imports] and
+ * In addition to [LIBRARY_ELEMENT1] also [LibraryElement.imports] and
  * [LibraryElement.exports] are set.
  *
  * The result is only available for [Source]s representing a library.
@@ -2548,25 +2548,32 @@ class DartDelta extends Delta {
     if (target is Element) {
       targetSource = target.source;
     }
-    // Keep results that are updated incrementally.
-    // If we want to analyze only some references to the source being changed,
-    // we need to keep the same instances of CompilationUnitElement and
-    // LibraryElement.
+    // Keep results that don't change: any library.
+    if (_isTaskResult(BuildLibraryElementTask.DESCRIPTOR, descriptor) ||
+        _isTaskResult(BuildDirectiveElementsTask.DESCRIPTOR, descriptor) ||
+        _isTaskResult(ResolveDirectiveElementsTask.DESCRIPTOR, descriptor) ||
+        _isTaskResult(BuildEnumMemberElementsTask.DESCRIPTOR, descriptor) ||
+        _isTaskResult(BuildSourceExportClosureTask.DESCRIPTOR, descriptor) ||
+        _isTaskResult(ReadyLibraryElement2Task.DESCRIPTOR, descriptor) ||
+        _isTaskResult(ComputeLibraryCycleTask.DESCRIPTOR, descriptor)) {
+      return DeltaResult.KEEP_CONTINUE;
+    }
+    // Keep results that don't change: changed library.
     if (targetSource == source) {
-      if (ScanDartTask.DESCRIPTOR.results.contains(descriptor)) {
-        return DeltaResult.KEEP_CONTINUE;
-      }
-      if (ParseDartTask.DESCRIPTOR.results.contains(descriptor)) {
-        return DeltaResult.KEEP_CONTINUE;
-      }
-      if (BuildCompilationUnitElementTask.DESCRIPTOR.results
-          .contains(descriptor)) {
-        return DeltaResult.KEEP_CONTINUE;
-      }
-      if (BuildLibraryElementTask.DESCRIPTOR.results.contains(descriptor)) {
+      if (_isTaskResult(ScanDartTask.DESCRIPTOR, descriptor) ||
+          _isTaskResult(ParseDartTask.DESCRIPTOR, descriptor) ||
+          _isTaskResult(
+              BuildCompilationUnitElementTask.DESCRIPTOR, descriptor) ||
+          _isTaskResult(BuildLibraryElementTask.DESCRIPTOR, descriptor)) {
         return DeltaResult.KEEP_CONTINUE;
       }
       return DeltaResult.INVALIDATE;
+    }
+    // Keep results that don't change: dependent library.
+    if (targetSource != source) {
+      if (_isTaskResult(BuildPublicNamespaceTask.DESCRIPTOR, descriptor)) {
+        return DeltaResult.KEEP_CONTINUE;
+      }
     }
     // Use the target library dependency information to decide whether
     // the delta affects the library.
@@ -2594,6 +2601,11 @@ class DartDelta extends Delta {
   }
 
   static bool _isPrivateName(String name) => name.startsWith('_');
+
+  static bool _isTaskResult(
+      TaskDescriptor taskDescriptor, ResultDescriptor result) {
+    return taskDescriptor.results.contains(result);
+  }
 }
 
 /**

@@ -2663,12 +2663,12 @@ int a = 0;''');
   }
 }
 
-@reflectiveTest
 /**
  * TODO(scheglov) After changes that affect only resolution in method bodies,
  * it is theoretically possible to keep the same element model and resolve
  * only corresponding method bodies.
  */
+@reflectiveTest
 class LimitedInvalidateTest extends AbstractContextTest {
   @override
   void setUp() {
@@ -2709,6 +2709,8 @@ class A {
 }
 class B extends A {}
 ''');
+    _assertValidForChangedLibrary(a);
+    _assertValidForDependentLibrary(b);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
     _assertInvalid(b, LIBRARY_ERRORS_READY);
   }
@@ -2755,7 +2757,10 @@ class A {
   void set _privateSetter2(_) {}
 }
 ''');
+    _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertValidAllLibraryUnitResults(b);
     _assertValid(b, LIBRARY_ERRORS_READY);
   }
 
@@ -2785,7 +2790,10 @@ main() {
 class _A2 {}
 class _B {}
 ''');
+    _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertValidAllLibraryUnitResults(b);
     _assertValid(b, LIBRARY_ERRORS_READY);
   }
 
@@ -2811,7 +2819,10 @@ main() {
         r'''
 int _V = 2;
 ''');
+    _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertValidAllLibraryUnitResults(b);
     _assertValid(b, LIBRARY_ERRORS_READY);
   }
 
@@ -2843,9 +2854,11 @@ class A {}
 class B {}
 class C2 {}
 ''');
+    _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
     _assertInvalid(b, LIBRARY_ERRORS_READY);
-    _assertUnitInvalid(b, RESOLVED_UNIT);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
     // Now b.dart is analyzed and the error is fixed.
     _performPendingAnalysisTasks();
     expect(context.getErrors(b).errors, hasLength(0));
@@ -2858,8 +2871,11 @@ class A {}
 class B {}
 class C {}
 ''');
+    _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
     _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
     // Now b.dart is analyzed and it again has the error.
     _performPendingAnalysisTasks();
     expect(context.getErrors(b).errors, hasLength(1));
@@ -2902,8 +2918,11 @@ class B {
   B();
 }
 ''');
+    _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
-    _assertValid(b, LIBRARY_ELEMENT);
+    _assertValidForDependentLibrary(b);
+    _assertValidAllLibraryUnitResults(b);
+    _assertValid(b, LIBRARY_ERRORS_READY);
     // The a.dart's unit and element are updated incrementally.
     // They are the same instances as initially.
     // So, all the references from other units are still valid.
@@ -2937,8 +2956,11 @@ class B {
   B();
 }
 ''');
+    _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
-    _assertInvalid(b, LIBRARY_ELEMENT);
+    _assertValidForDependentLibrary(b);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
     // The a.dart's unit and element are the same.
     {
       LibrarySpecificUnit target = new LibrarySpecificUnit(a, a);
@@ -2982,6 +3004,7 @@ main() {
 class A {}
 class B2 {}
 ''');
+    _assertValidAllLibraryUnitResults(b);
     _assertValid(b, LIBRARY_ERRORS_READY);
   }
 
@@ -3014,12 +3037,12 @@ class A {}
 class B2 {}
 class C {}
 ''');
+    _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
-    _assertValid(a, LINE_INFO);
-    _assertUnitValid(a, RESOLVED_UNIT1);
     _assertUnitInvalid(a, RESOLVED_UNIT);
+    _assertValidForDependentLibrary(b);
+    _assertValidAllLibraryUnitResults(b);
     _assertValid(b, LIBRARY_ERRORS_READY);
-    _assertUnitValid(b, RESOLVED_UNIT);
   }
 
   void test_usedName_class_name_asHole_inBody() {
@@ -3049,10 +3072,11 @@ class A {}
 class B {}
 class C2 {}
 ''');
+    _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
     _assertInvalid(b, LIBRARY_ERRORS_READY);
-    _assertInvalidUnits(b, RESOLVED_UNIT2);
-    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT2);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
   }
 
   void test_usedName_class_name_asSuper() {
@@ -3075,10 +3099,11 @@ class B extends A {}
         r'''
 class A2 {}
 ''');
+    _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
     _assertInvalid(b, LIBRARY_ERRORS_READY);
-    _assertInvalidUnits(b, RESOLVED_UNIT2);
-    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT2);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
   }
 
   void test_usedName_class_name_asTypeBound() {
@@ -3103,10 +3128,11 @@ class B<T extends A> {
         r'''
 class A2 {}
 ''');
+    _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
     _assertInvalid(b, LIBRARY_ERRORS_READY);
-    _assertInvalidUnits(b, RESOLVED_UNIT2);
-    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT2);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
   }
 
   void test_usedName_class_name_inBody() {
@@ -3136,10 +3162,11 @@ class A {}
 class B {}
 class C2 {}
 ''');
+    _assertValidForChangedLibrary(a);
+    _assertValidForDependentLibrary(b);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
     _assertInvalid(b, LIBRARY_ERRORS_READY);
-    _assertInvalidUnits(b, RESOLVED_UNIT2);
-    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT2);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
   }
 
   void test_usedName_classMethod_name_inBody() {
@@ -3169,10 +3196,12 @@ class A {
   m2() {}
 }
 ''');
+    _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT4);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
     _assertInvalid(b, LIBRARY_ERRORS_READY);
-    _assertInvalidUnits(b, RESOLVED_UNIT2);
-    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT2);
   }
 
   void test_usedName_indirect_classMethod_name_inBody() {
@@ -3209,13 +3238,18 @@ class A {
   m2() {}
 }
 ''');
+    _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
+
+    _assertValidForDependentLibrary(b);
+    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT4);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
     _assertInvalid(b, LIBRARY_ERRORS_READY);
-    _assertInvalid(c, LIBRARY_ERRORS_READY);
-    _assertInvalidUnits(b, RESOLVED_UNIT2);
-    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT2);
-    _assertInvalidUnits(c, RESOLVED_UNIT4);
+
+    _assertValidForDependentLibrary(c);
     _assertInvalidLibraryElements(c, LIBRARY_ELEMENT5);
+    _assertInvalidUnits(c, RESOLVED_UNIT4);
+    _assertInvalid(c, LIBRARY_ERRORS_READY);
   }
 
   void test_usedName_indirect_classMethod_returnType_inBody() {
@@ -3257,14 +3291,18 @@ class A {
 }
 ''');
     _assertInvalid(a, LIBRARY_ERRORS_READY);
-    _assertInvalid(b, LIBRARY_ERRORS_READY);
-    _assertInvalid(c, LIBRARY_ERRORS_READY);
+
     // TODO(scheglov) In theory b.dart is not affected, because it does not
     // call A.m, does not override it, etc.
-    _assertInvalidUnits(b, RESOLVED_UNIT2);
-    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT2);
-    _assertInvalidUnits(c, RESOLVED_UNIT4);
+    _assertValidForDependentLibrary(b);
+    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT4);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+
+    _assertValidForDependentLibrary(c);
     _assertInvalidLibraryElements(c, LIBRARY_ELEMENT5);
+    _assertInvalidUnits(c, RESOLVED_UNIT4);
+    _assertInvalid(c, LIBRARY_ERRORS_READY);
   }
 
   void _assertInvalid(AnalysisTarget target, ResultDescriptor descriptor) {
@@ -3314,9 +3352,62 @@ class A {
         new LibrarySpecificUnit(librarySource, unitSource), descriptor);
   }
 
+  void _assertUnitValidTaskResults(Source unitSource, TaskDescriptor descriptor,
+      {Source librarySource}) {
+    librarySource ??= unitSource;
+    for (ResultDescriptor result in descriptor.results) {
+      _assertUnitValid(unitSource, result, librarySource: librarySource);
+    }
+  }
+
   void _assertValid(AnalysisTarget target, ResultDescriptor descriptor) {
     CacheState state = analysisCache.getState(target, descriptor);
-    expect(state, CacheState.VALID, reason: '$descriptor in $target');
+    expect(state, isIn([CacheState.VALID, CacheState.FLUSHED]),
+        reason: '$descriptor in $target');
+  }
+
+  void _assertValidAllLibraryUnitResults(Source source, {Source library}) {
+    for (ResultDescriptor<LibraryElement> result in LIBRARY_ELEMENT_RESULTS) {
+      _assertValid(source, result);
+    }
+    library ??= source;
+    LibrarySpecificUnit target = new LibrarySpecificUnit(library, source);
+    for (ResultDescriptor<CompilationUnit> result in RESOLVED_UNIT_RESULTS) {
+      _assertValid(target, result);
+    }
+  }
+
+  void _assertValidForAnyLibrary(Source source) {
+    // Source results.
+    _assertValidTaskResults(source, ScanDartTask.DESCRIPTOR);
+    // Library results.
+    _assertValidTaskResults(source, BuildLibraryElementTask.DESCRIPTOR);
+    _assertValidTaskResults(source, BuildDirectiveElementsTask.DESCRIPTOR);
+    _assertValidTaskResults(source, BuildSourceExportClosureTask.DESCRIPTOR);
+    _assertValidTaskResults(source, ReadyLibraryElement2Task.DESCRIPTOR);
+    _assertValidTaskResults(source, ComputeLibraryCycleTask.DESCRIPTOR);
+    // Unit results.
+    _assertUnitValidTaskResults(
+        source, BuildCompilationUnitElementTask.DESCRIPTOR);
+    _assertUnitValidTaskResults(
+        source, ResolveDirectiveElementsTask.DESCRIPTOR);
+    _assertUnitValidTaskResults(source, BuildEnumMemberElementsTask.DESCRIPTOR);
+  }
+
+  void _assertValidForChangedLibrary(Source source) {
+    _assertValidForAnyLibrary(source);
+  }
+
+  void _assertValidForDependentLibrary(Source source) {
+    _assertValidForAnyLibrary(source);
+    // Library results.
+    _assertValidTaskResults(source, BuildPublicNamespaceTask.DESCRIPTOR);
+  }
+
+  void _assertValidTaskResults(AnalysisTarget target, TaskDescriptor task) {
+    for (ResultDescriptor result in task.results) {
+      _assertValid(target, result);
+    }
   }
 
   void _performPendingAnalysisTasks([int maxTasks = 512]) {
