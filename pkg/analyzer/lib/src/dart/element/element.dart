@@ -2568,8 +2568,8 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @override
   bool get isFactory =>
       element is PropertyAccessorElement &&
-          element.name == _FACTORY_VARIABLE_NAME &&
-          element.library?.name == _META_LIB_NAME;
+      element.name == _FACTORY_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
 
   @override
   bool get isJS =>
@@ -6543,6 +6543,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   LibraryElement get library => null;
 
   @override
+  Source get librarySource => null;
+
+  @override
   ElementLocation get location => null;
 
   @override
@@ -6559,9 +6562,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   Source get source => null;
-
-  @override
-  Source get librarySource => null;
 
   @override
   DartType get type => DynamicTypeImpl.instance;
@@ -6610,7 +6610,12 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
       if (i > 0) {
         buffer.write(", ");
       }
-      (conflictingElements[i] as ElementImpl).appendTo(buffer);
+      Element element = conflictingElements[i];
+      if (element is ElementImpl) {
+        element.appendTo(buffer);
+      } else {
+        buffer.write(element);
+      }
     }
     buffer.write("]");
     return buffer.toString();
