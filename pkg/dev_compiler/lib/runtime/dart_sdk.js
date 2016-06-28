@@ -2326,7 +2326,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.const(new _debugger.JsonMLConfig("keyToString"));
     }
   });
-  _debugger.maxSpanLength = 100;
+  _debugger._maxSpanLength = 100;
   dart.defineLazy(_debugger, {
     get _devtoolsFormatter() {
       return new _debugger.JsonMLFormatter(new _debugger.DartFormatter());
@@ -2536,6 +2536,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     new(simpleFormatter) {
       this[_simpleFormatter] = simpleFormatter;
     }
+    setMaxSpanLengthForTestingOnly(spanLength) {
+      _debugger._maxSpanLength = spanLength;
+    }
     header(object, config) {
       if (dart.equals(config, _debugger.JsonMLConfig.skipDart) || dart.test(_debugger.isNativeJavaScriptObject(object))) {
         return null;
@@ -2583,6 +2586,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(_debugger.JsonMLFormatter, {
     constructors: () => ({new: dart.definiteFunctionType(_debugger.JsonMLFormatter, [_debugger.DartFormatter])}),
     methods: () => ({
+      setMaxSpanLengthForTestingOnly: dart.definiteFunctionType(dart.void, [core.int]),
       header: dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic]),
       hasBody: dart.definiteFunctionType(core.bool, [dart.dynamic]),
       body: dart.definiteFunctionType(dart.dynamic, [dart.dynamic])
@@ -2926,13 +2930,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _debugger.childrenHelper = function(span) {
     let length = dart.notNull(span.end) - dart.notNull(span.start);
     let ret = ListOfNameValuePair().new();
-    if (length <= dart.notNull(_debugger.maxSpanLength)) {
+    if (length <= dart.notNull(_debugger._maxSpanLength)) {
       for (let i = span.start; dart.notNull(i) < dart.notNull(span.end); i = dart.notNull(i) + 1) {
         ret[dartx.add](new _debugger.NameValuePair({name: dart.toString(i), value: span.iterable[dartx.elementAt](i)}));
       }
     } else {
-      let maxPowerOfSubsetSize = (dart.notNull(math.log(length - 0.5)) / dart.notNull(math.log(_debugger.maxSpanLength)))[dartx.truncate]();
-      let subsetSize = math.pow(_debugger.maxSpanLength, maxPowerOfSubsetSize);
+      let maxPowerOfSubsetSize = (dart.notNull(math.log(length - 0.5)) / dart.notNull(math.log(_debugger._maxSpanLength)))[dartx.truncate]();
+      let subsetSize = math.pow(_debugger._maxSpanLength, maxPowerOfSubsetSize);
       for (let i = span.start; dart.notNull(i) < dart.notNull(span.end); i = dart.notNull(i) + dart.notNull(dart.asInt(subsetSize))) {
         let endIndex = math.min(core.num)(span.end, dart.notNull(subsetSize) + dart.notNull(i));
         if (dart.notNull(endIndex) - dart.notNull(i) == 1)

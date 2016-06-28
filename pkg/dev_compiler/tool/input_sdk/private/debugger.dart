@@ -30,7 +30,7 @@ class JsonMLConfig {
   static const keyToString = const JsonMLConfig("keyToString");
 }
 
-int maxSpanLength = 100;
+int _maxSpanLength = 100;
 
 var _devtoolsFormatter = new JsonMLFormatter(new DartFormatter());
 
@@ -219,6 +219,10 @@ class JsonMLFormatter {
   DartFormatter _simpleFormatter;
 
   JsonMLFormatter(this._simpleFormatter);
+
+  void setMaxSpanLengthForTestingOnly(int spanLength) {
+    _maxSpanLength = spanLength;
+  }
 
   header(object, config) {
     if (config == JsonMLConfig.skipDart || isNativeJavaScriptObject(object)) {
@@ -633,7 +637,7 @@ class IterableSpanFormatter implements Formatter {
 List<NameValuePair> childrenHelper(IterableSpan span) {
   var length = span.end - span.start;
   var ret = new List<NameValuePair>();
-  if (length <= maxSpanLength) {
+  if (length <= _maxSpanLength) {
     for (var i = span.start; i < span.end; i++) {
       /// TODO(bmilligan): Stop using elementAt if it becomes a performance
       /// bottleneck in the future.
@@ -647,8 +651,8 @@ List<NameValuePair> childrenHelper(IterableSpan span) {
     /// maxPowerOfSubsetSize of 2, so the list will be broken up into 1
     /// 10000-length subset and 1 1-length subset.
     var maxPowerOfSubsetSize =
-        (log(length - .5) / log(maxSpanLength)).truncate();
-    var subsetSize = pow(maxSpanLength, maxPowerOfSubsetSize);
+        (log(length - .5) / log(_maxSpanLength)).truncate();
+    var subsetSize = pow(_maxSpanLength, maxPowerOfSubsetSize);
     for (var i = span.start; i < span.end; i += subsetSize) {
       var endIndex = min(span.end, subsetSize + i);
       if (endIndex - i == 1)
