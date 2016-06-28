@@ -473,8 +473,8 @@ Future<api.CompilationResult> compile(List<String> argv) {
   if (resolveOnly) {
     if (resolutionInputs.contains(resolutionOutput)) {
       helpAndFail("Resolution input '${resolutionOutput}' can't be used as "
-      "resolution output. Use the '--out' option to specify another resolution "
-      "output.");
+          "resolution output. Use the '--out' option to specify another resolution "
+          "output.");
     }
     analyzeOnly = analyzeAll = true;
   } else if (analyzeAll) {

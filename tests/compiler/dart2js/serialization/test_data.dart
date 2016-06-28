@@ -416,6 +416,27 @@ main() {
 Unresolved m() {}
 ''',
   }),
+
+  const Test('Function types for closures', const {
+    'main.dart': '''
+import 'a.dart';
+
+typedef Func();
+
+main(args) {
+  (args.isEmpty ? new B() : new C()) is Func;
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+class B {
+  call(a) {}
+}
+class C {
+  call() {}
+}
+''',
+  }),
 ];
 
 class Test {
