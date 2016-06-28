@@ -42,4 +42,4 @@ pub run test:test test/all_tests.dart || fail
   echo "There are" $fc "tests marked as known failures."
 }
 
-echo -e "[32mAll tests pass[0m"
+echo -e "[32mAll tests built - run tool/browser_test.sh to run tests[0m"
