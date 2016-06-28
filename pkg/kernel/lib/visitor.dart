@@ -102,6 +102,7 @@ abstract class InitializerVisitor<R> {
   R visitSuperInitializer(SuperInitializer node) => defaultInitializer(node);
   R visitRedirectingInitializer(RedirectingInitializer node) =>
       defaultInitializer(node);
+  R visitLocalInitializer(LocalInitializer node) => defaultInitializer(node);
 }
 
 class TreeVisitor<R> implements ExpressionVisitor<R>,
@@ -199,6 +200,7 @@ class TreeVisitor<R> implements ExpressionVisitor<R>,
   R visitSuperInitializer(SuperInitializer node) => defaultInitializer(node);
   R visitRedirectingInitializer(RedirectingInitializer node) =>
       defaultInitializer(node);
+  R visitLocalInitializer(LocalInitializer node) => defaultInitializer(node);
 
   // Other tree nodes
   R visitLibrary(Library node) => defaultTreeNode(node);

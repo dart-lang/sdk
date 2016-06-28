@@ -1194,6 +1194,10 @@ class Printer extends Visitor<Null> {
     writeNode(node.arguments);
   }
 
+  visitLocalInitializer(LocalInitializer node) {
+    writeVariableDeclaration(node.variable);
+  }
+
   defaultInitializer(Initializer node) {
     writeIndentation();
     endLine(': ${node.runtimeType}');

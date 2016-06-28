@@ -374,6 +374,8 @@ class BinaryBuilder {
       case Tag.RedirectingInitializer:
         return new RedirectingInitializer(
             readMemberReference(), readArguments());
+      case Tag.LocalInitializer:
+        return new LocalInitializer(readAndPushVariableDeclaration());
       default:
         throw fail('Invalid initializer tag: $tag');
     }

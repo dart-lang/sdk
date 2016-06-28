@@ -1124,6 +1124,11 @@ class InitializerBuilder extends InitializerVisitor<Null> {
     expressionBuilder.passArgumentsToFunction(
         node.arguments, node.target.function);
   }
+
+  visitLocalInitializer(LocalInitializer node) {
+    environment.localVariables[node.variable] =
+        buildExpression(node.variable.initializer);
+  }
 }
 
 class Names {

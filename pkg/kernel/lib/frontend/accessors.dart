@@ -4,9 +4,9 @@
 
 /// A library to help transform compounds and null-aware accessors into
 /// let expressions.
-library kernel.accessors;
+library kernel.frontend.accessors;
 
-import 'ast.dart';
+import '../ast.dart';
 
 abstract class Accessor {
   Expression buildSimpleRead() {

@@ -3,12 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.analyzer.ast_from_analyzer;
 
-import 'loader.dart';
-import 'analyzer.dart';
 import '../ast.dart' as ast;
-import '../accessors.dart';
+import '../frontend/accessors.dart';
+import '../frontend/super_calls.dart';
 import '../log.dart';
 import '../type_algebra.dart';
+import 'analyzer.dart';
+import 'loader.dart';
 
 /// Provides reference-level access to libraries, classes, and members.
 ///
@@ -2013,6 +2014,8 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
           : new ast.SuperInitializer(
               target, new ast.Arguments(<ast.Expression>[]));
       constructor.initializers.add(initializer..parent = constructor);
+    } else {
+      moveSuperCallLast(constructor);
     }
   }
 

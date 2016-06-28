@@ -253,6 +253,11 @@ type RedirectingInitializer extends Initializer {
   Arguments arguments;
 }
 
+type LocalInitializer extends Initializer {
+  Byte tag = 11;
+  VariableDeclaration variable;
+}
+
 /*
 enum AsyncMarker {
   Sync,

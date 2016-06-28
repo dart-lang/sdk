@@ -309,6 +309,11 @@ class BinaryPrinter extends Visitor {
     writeNode(node.arguments);
   }
 
+  visitLocalInitializer(LocalInitializer node) {
+    writeByte(Tag.LocalInitializer);
+    writeVariableDeclaration(node.variable);
+  }
+
   visitFunctionNode(FunctionNode node) {
     assert(_variableIndexer != null);
     var oldLabels = _labelIndexer;
@@ -806,6 +811,7 @@ class VariableIndexer extends RecursiveVisitor {
     for (var init in node.initializers) {
       init.accept(this);
     }
+    stackHeight = 0;
   }
 
   visitFunctionNode(FunctionNode node) {

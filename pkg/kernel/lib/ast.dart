@@ -809,6 +809,31 @@ class RedirectingInitializer extends Initializer {
   }
 }
 
+/// Binding of a temporary variable in the initializer list of a constructor.
+///
+/// The variable is in scope for the remainder of the initializer list, but is
+/// not in scope in the constructor body.
+class LocalInitializer extends Initializer {
+  VariableDeclaration variable;
+
+  LocalInitializer(this.variable) {
+    variable?.parent = this;
+  }
+
+  accept(InitializerVisitor v) => v.visitLocalInitializer(this);
+
+  visitChildren(Visitor v) {
+    variable?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (variable != null) {
+      variable = variable.accept(v);
+      variable?.parent = this;
+    }
+  }
+}
+
 // ------------------------------------------------------------------------
 //                            FUNCTIONS
 // ------------------------------------------------------------------------

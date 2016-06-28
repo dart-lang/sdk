@@ -18,6 +18,7 @@ class Tag {
   static const int FieldInitializer = 8;
   static const int SuperInitializer = 9;
   static const int RedirectingInitializer = 10;
+  static const int LocalInitializer = 11;
 
   static const int ConstStaticInvocation = 18;
   static const int InvalidExpression = 19;
