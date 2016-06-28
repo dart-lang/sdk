@@ -1157,15 +1157,29 @@ class ContextManagerImpl implements ContextManager {
 
     EmbedderYamlLocator locator =
         disposition.getEmbedderLocator(resourceProvider);
-    EmbedderSdk sdk = new EmbedderSdk(locator.embedderYamls);
-    if (sdk.libraryMap.size() == 0) {
-      // The embedder uri resolver has no mappings. Use the default Dart SDK
-      // uri resolver.
+    Map<Folder, YamlMap> embedderYamls = locator.embedderYamls;
+    EmbedderSdk embedderSdk = new EmbedderSdk(embedderYamls);
+    if (embedderSdk.libraryMap.size() == 0) {
+      // There was no embedder file, or the file was empty, so used the default
+      // SDK.
       resolvers.add(new DartUriResolver(sdkManager.getSdkForOptions(options)));
     } else {
-      // The embedder uri resolver has mappings, use it instead of the default
-      // Dart SDK uri resolver.
-      resolvers.add(new DartUriResolver(sdk));
+      // The embedder file defines an alternate SDK, so use it.
+      List<String> paths = <String>[];
+      for (Folder folder in embedderYamls.keys) {
+        paths.add(folder
+            .getChildAssumingFile(EmbedderYamlLocator.EMBEDDER_FILE_NAME)
+            .path);
+      }
+      DartSdk dartSdk =
+          sdkManager.getSdk(new SdkDescription(paths, options), () {
+        embedderSdk.analysisOptions = options;
+        // TODO(brianwilkerson) Enable summary use after we have decided where
+        // summary files for embedder files will live.
+        embedderSdk.useSummary = false;
+        return embedderSdk;
+      });
+      resolvers.add(new DartUriResolver(dartSdk));
     }
 
     resolvers.addAll(packageUriResolvers);

@@ -65,9 +65,8 @@ class SingleContextManagerTest {
     packageResolver = new TestUriResolver();
 
     _processRequiredPlugins();
-    DartSdkManager sdkManager = new DartSdkManager((_) {
-      return new MockSdk();
-    });
+    DartSdkManager sdkManager =
+        new DartSdkManager('', false, (_) => new MockSdk());
     manager = new SingleContextManager(resourceProvider, sdkManager,
         (_) => packageResolver, analysisFilesGlobs, new AnalysisOptionsImpl());
     callbacks = new TestContextManagerCallbacks(resourceProvider);

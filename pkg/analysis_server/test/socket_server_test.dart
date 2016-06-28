@@ -116,7 +116,7 @@ class SocketServerTest {
         new DirectoryBasedDartSdk(DirectoryBasedDartSdk.defaultSdkDirectory);
     return new SocketServer(
         new AnalysisServerOptions(),
-        sdkCreator,
+        new DartSdkManager('', false, sdkCreator),
         sdkCreator(null),
         InstrumentationService.NULL_SERVICE,
         serverPlugin,
