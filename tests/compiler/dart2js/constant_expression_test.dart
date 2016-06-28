@@ -51,6 +51,8 @@ const List<TestData> DATA = const [
     const ConstantData('0.0', ConstantExpressionKind.DOUBLE),
     const ConstantData('"foo"', ConstantExpressionKind.STRING),
     const ConstantData('1 + 2', ConstantExpressionKind.BINARY),
+    const ConstantData('1 == 2', ConstantExpressionKind.BINARY),
+    const ConstantData('1 != 2', ConstantExpressionKind.BINARY),
     const ConstantData('-(1)', ConstantExpressionKind.UNARY, text: '-1'),
     const ConstantData('"foo".length', ConstantExpressionKind.STRING_LENGTH),
     const ConstantData('identical(0, 1)', ConstantExpressionKind.IDENTICAL),

@@ -55,6 +55,8 @@ const List<TestData> DATA = const [
     const ConstantData('"foo"', const { const {} : 'StringConstant("foo")' }),
     const ConstantData('1 + 2', const { const {} : 'IntConstant(3)' }),
     const ConstantData('-(1)', const { const {} : 'IntConstant(-1)' }),
+    const ConstantData('1 == 2', const { const {} : 'BoolConstant(false)' }),
+    const ConstantData('1 != 2', const { const {} : 'BoolConstant(true)' }),
     const ConstantData('"foo".length', const { const {} : 'IntConstant(3)' }),
     const ConstantData('identical(0, 1)',
                        const { const {} : 'BoolConstant(false)' }),
