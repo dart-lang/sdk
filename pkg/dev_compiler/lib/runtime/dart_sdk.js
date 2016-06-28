@@ -40,6 +40,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let JSArrayOfNameValuePair = () => (JSArrayOfNameValuePair = dart.constFn(_interceptors.JSArray$(_debugger.NameValuePair)))();
   let LinkedHashSetOfNameValuePair = () => (LinkedHashSetOfNameValuePair = dart.constFn(collection.LinkedHashSet$(_debugger.NameValuePair)))();
   let SetOfString = () => (SetOfString = dart.constFn(core.Set$(core.String)))();
+  let ListOfNameValuePair = () => (ListOfNameValuePair = dart.constFn(core.List$(_debugger.NameValuePair)))();
   let JSArrayOfJsonMLFormatter = () => (JSArrayOfJsonMLFormatter = dart.constFn(_interceptors.JSArray$(_debugger.JsonMLFormatter)))();
   let JSArray = () => (JSArray = dart.constFn(_interceptors.JSArray$()))();
   let JSMutableArray = () => (JSMutableArray = dart.constFn(_interceptors.JSMutableArray$()))();
@@ -482,6 +483,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let dynamicAndStringTobool = () => (dynamicAndStringTobool = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic, core.String])))();
   let dynamicTobool$ = () => (dynamicTobool$ = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic])))();
   let dynamicAnddynamicTovoid = () => (dynamicAnddynamicTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [dart.dynamic, dart.dynamic])))();
+  let IterableSpanToListOfNameValuePair = () => (IterableSpanToListOfNameValuePair = dart.constFn(dart.definiteFunctionType(ListOfNameValuePair(), [_debugger.IterableSpan])))();
   let VoidTodynamic$ = () => (VoidTodynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   let StringAndString__Todynamic = () => (StringAndString__Todynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.String, core.String], [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic])))();
   let VoidToIsolateContext = () => (VoidToIsolateContext = dart.constFn(dart.definiteFunctionType(_foreign_helper.IsolateContext, [])))();
@@ -2324,7 +2326,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.const(new _debugger.JsonMLConfig("keyToString"));
     }
   });
-  _debugger.maxIterableChildrenToDisplay = 50;
+  _debugger.maxSpanLength = 100;
   dart.defineLazy(_debugger, {
     get _devtoolsFormatter() {
       return new _debugger.JsonMLFormatter(new _debugger.DartFormatter());
@@ -2407,9 +2409,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let name = opts && 'name' in opts ? opts.name : null;
       let value = opts && 'value' in opts ? opts.value : null;
       let config = opts && 'config' in opts ? opts.config : _debugger.JsonMLConfig.none;
+      let hideName = opts && 'hideName' in opts ? opts.hideName : false;
       this.name = name;
       this.value = value;
       this.config = config;
+      this.hideName = hideName;
     }
     ['=='](other) {
       return _debugger.NameValuePair.is(other) && other.name == this.name;
@@ -2417,9 +2421,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get hashCode() {
       return dart.hashCode(this.name);
     }
+    get displayName() {
+      return dart.test(this.hideName) ? '' : this.name;
+    }
   };
   dart.setSignature(_debugger.NameValuePair, {
-    constructors: () => ({new: dart.definiteFunctionType(_debugger.NameValuePair, [], {name: core.String, value: core.Object, config: _debugger.JsonMLConfig})})
+    constructors: () => ({new: dart.definiteFunctionType(_debugger.NameValuePair, [], {name: core.String, value: core.Object, config: _debugger.JsonMLConfig, hideName: core.bool})})
   });
   _debugger.MapEntry = class MapEntry extends core.Object {
     new(opts) {
@@ -2431,6 +2438,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.setSignature(_debugger.MapEntry, {
     constructors: () => ({new: dart.definiteFunctionType(_debugger.MapEntry, [], {key: core.Object, value: core.Object})})
+  });
+  _debugger.IterableSpan = class IterableSpan extends core.Object {
+    new(opts) {
+      let start = opts && 'start' in opts ? opts.start : null;
+      let end = opts && 'end' in opts ? opts.end : null;
+      let iterable = opts && 'iterable' in opts ? opts.iterable : null;
+      this.start = start;
+      this.end = end;
+      this.iterable = iterable;
+    }
+  };
+  dart.setSignature(_debugger.IterableSpan, {
+    constructors: () => ({new: dart.definiteFunctionType(_debugger.IterableSpan, [], {start: core.int, end: core.int, iterable: core.Iterable})})
   });
   _debugger.ClassMetadata = class ClassMetadata extends core.Object {
     new(object) {
@@ -2540,7 +2560,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       for (let child of children) {
         let li = body.createChild('li');
         let nameSpan = new _debugger.JsonMLElement('span');
-        nameSpan.createTextChild(child.name != null ? dart.notNull(child.name) + ': ' : '');
+        nameSpan.createTextChild(dart.test(child.displayName[dartx.isNotEmpty]) ? dart.str`${child.displayName}: ` : '');
         nameSpan.setStyle('color: rgb(136, 19, 145);');
         if (_debugger._typeof(child.value) == 'object' || _debugger._typeof(child.value) == 'function') {
           nameSpan.addStyle("padding-left: 13px;");
@@ -2573,7 +2593,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _debugger.DartFormatter = class DartFormatter extends core.Object {
     new() {
       this[_formatters] = null;
-      this[_formatters] = JSArrayOfFormatter().of([new _debugger.FunctionFormatter(), new _debugger.MapFormatter(), new _debugger.IterableFormatter(), new _debugger.MapEntryFormatter(), new _debugger.ClassMetadataFormatter(), new _debugger.HeritageClauseFormatter(), new _debugger.ObjectFormatter()]);
+      this[_formatters] = JSArrayOfFormatter().of([new _debugger.FunctionFormatter(), new _debugger.MapFormatter(), new _debugger.IterableFormatter(), new _debugger.MapEntryFormatter(), new _debugger.IterableSpanFormatter(), new _debugger.ClassMetadataFormatter(), new _debugger.HeritageClauseFormatter(), new _debugger.ObjectFormatter()]);
     }
     preview(object) {
       try {
@@ -2774,17 +2794,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return true;
     }
     children(object) {
-      let iterable = core.Iterable._check(object);
       let ret = LinkedHashSetOfNameValuePair().new();
-      let i = 0;
-      for (let entry of iterable) {
-        if (i > dart.notNull(_debugger.maxIterableChildrenToDisplay)) {
-          ret.add(new _debugger.NameValuePair({name: 'Warning', value: 'Truncated Iterable display'}));
-          break;
-        }
-        ret.add(new _debugger.NameValuePair({name: dart.toString(i), value: entry}));
-        i++;
-      }
+      ret.addAll(_debugger.childrenHelper(new _debugger.IterableSpan({start: 0, end: core.int._check(dart.dload(object, 'length')), iterable: core.Iterable._check(object)})));
       this.addMetadataChildren(object, ret);
       return ret.toList();
     }
@@ -2888,6 +2899,53 @@ dart_library.library('dart_sdk', null, /* Imports */[
       children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
     })
   });
+  _debugger.IterableSpanFormatter = class IterableSpanFormatter extends core.Object {
+    accept(object) {
+      return _debugger.IterableSpan.is(object);
+    }
+    preview(object) {
+      let entry = _debugger.IterableSpan._check(object);
+      return dart.str`[${dart.dload(object, 'start')}...${dart.dsend(dart.dload(object, 'end'), '-', 1)}]`;
+    }
+    hasChildren(object) {
+      return true;
+    }
+    children(object) {
+      return _debugger.childrenHelper(_debugger.IterableSpan._check(object));
+    }
+  };
+  _debugger.IterableSpanFormatter[dart.implements] = () => [_debugger.Formatter];
+  dart.setSignature(_debugger.IterableSpanFormatter, {
+    methods: () => ({
+      accept: dart.definiteFunctionType(core.bool, [dart.dynamic]),
+      preview: dart.definiteFunctionType(core.String, [dart.dynamic]),
+      hasChildren: dart.definiteFunctionType(core.bool, [dart.dynamic]),
+      children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
+    })
+  });
+  _debugger.childrenHelper = function(span) {
+    let length = dart.notNull(span.end) - dart.notNull(span.start);
+    let ret = ListOfNameValuePair().new();
+    if (length <= dart.notNull(_debugger.maxSpanLength)) {
+      for (let i = span.start; dart.notNull(i) < dart.notNull(span.end); i = dart.notNull(i) + 1) {
+        ret[dartx.add](new _debugger.NameValuePair({name: dart.toString(i), value: span.iterable[dartx.elementAt](i)}));
+      }
+    } else {
+      let maxPowerOfSubsetSize = (dart.notNull(math.log(length - 0.5)) / dart.notNull(math.log(_debugger.maxSpanLength)))[dartx.truncate]();
+      let subsetSize = math.pow(_debugger.maxSpanLength, maxPowerOfSubsetSize);
+      for (let i = span.start; dart.notNull(i) < dart.notNull(span.end); i = dart.notNull(i) + dart.notNull(dart.asInt(subsetSize))) {
+        let endIndex = math.min(core.num)(span.end, dart.notNull(subsetSize) + dart.notNull(i));
+        if (dart.notNull(endIndex) - dart.notNull(i) == 1)
+          ret[dartx.add](new _debugger.NameValuePair({name: dart.toString(i), value: span.iterable[dartx.elementAt](i)}));
+        else {
+          let entryWrapper = new _debugger.IterableSpan({start: i, end: dart.asInt(endIndex), iterable: span.iterable});
+          ret[dartx.add](new _debugger.NameValuePair({name: dart.str`[${i}...${dart.notNull(endIndex) - 1}]`, value: entryWrapper, hideName: true}));
+        }
+      }
+    }
+    return ret;
+  };
+  dart.lazyFn(_debugger.childrenHelper, () => IterableSpanToListOfNameValuePair());
   _debugger.registerDevtoolsFormatter = function() {
     let formatters = JSArrayOfJsonMLFormatter().of([_debugger._devtoolsFormatter]);
     dart.global.devtoolsFormatters = formatters;

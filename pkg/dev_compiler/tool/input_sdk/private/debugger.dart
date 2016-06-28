@@ -9,6 +9,7 @@ import 'dart:_runtime' as dart;
 import 'dart:core';
 import 'dart:collection';
 import 'dart:html' as html;
+import 'dart:math';
 
 /// JsonMLConfig object to pass to devtools to specify how an Object should
 /// be displayed. skipDart signals that an object should not be formatted
@@ -29,7 +30,7 @@ class JsonMLConfig {
   static const keyToString = const JsonMLConfig("keyToString");
 }
 
-final int maxIterableChildrenToDisplay = 50;
+int maxSpanLength = 100;
 
 var _devtoolsFormatter = new JsonMLFormatter(new DartFormatter());
 
@@ -98,7 +99,11 @@ bool hasMethod(object, String name) {
 
 /// [JsonMLFormatter] consumes [NameValuePair] objects and
 class NameValuePair {
-  NameValuePair({this.name, this.value, this.config: JsonMLConfig.none});
+  NameValuePair(
+      {this.name,
+      this.value,
+      this.config: JsonMLConfig.none,
+      this.hideName: false});
 
   // Define equality and hashCode so that NameValuePair can be used
   // in a Set to dedupe entries with duplicate names.
@@ -108,6 +113,9 @@ class NameValuePair {
   final String name;
   final Object value;
   final JsonMLConfig config;
+  final bool hideName;
+
+  String get displayName => hideName ? '' : name;
 }
 
 class MapEntry {
@@ -115,6 +123,14 @@ class MapEntry {
 
   final Object key;
   final Object value;
+}
+
+class IterableSpan {
+  IterableSpan({this.start, this.end, this.iterable});
+
+  final int start;
+  final int end;
+  final Iterable iterable;
 }
 
 class ClassMetadata {
@@ -238,7 +254,8 @@ class JsonMLFormatter {
     for (NameValuePair child in children) {
       var li = body.createChild('li');
       var nameSpan = new JsonMLElement('span')
-        ..createTextChild(child.name != null ? child.name + ': ' : '')
+        ..createTextChild(
+            child.displayName.isNotEmpty ? '${child.displayName}: ' : '')
         ..setStyle('color: rgb(136, 19, 145);');
       if (_typeof(child.value) == 'object' ||
           _typeof(child.value) == 'function') {
@@ -279,9 +296,10 @@ class DartFormatter {
       new MapFormatter(),
       new IterableFormatter(),
       new MapEntryFormatter(),
+      new IterableSpanFormatter(),
       new ClassMetadataFormatter(),
       new HeritageClauseFormatter(),
-      new ObjectFormatter()
+      new ObjectFormatter(),
     ];
   }
 
@@ -494,19 +512,9 @@ class IterableFormatter extends ObjectFormatter {
     // are not the built in Set or List types.
     // TODO(jacobr): handle large Iterables better.
     // TODO(jacobr): consider only using numeric indices
-    Iterable iterable = object;
     var ret = new LinkedHashSet<NameValuePair>();
-    var i = 0;
-    for (var entry in iterable) {
-      if (i > maxIterableChildrenToDisplay) {
-        ret.add(new NameValuePair(
-            name: 'Warning', value: 'Truncated Iterable display'));
-        // TODO(jacobr): provide an expandable entry to show more entries.
-        break;
-      }
-      ret.add(new NameValuePair(name: i.toString(), value: entry));
-      i++;
-    }
+    ret.addAll(childrenHelper(
+        new IterableSpan(start: 0, end: object.length, iterable: object)));
     // TODO(jacobr): provide a link to show regular class properties here.
     // required for subclasses of iterable, etc.
     addMetadataChildren(object, ret);
@@ -605,6 +613,58 @@ class HeritageClauseFormatter implements Formatter {
     }
     return ret;
   }
+}
+
+/// Formatter for synthetic IterableSpan objects used to display contents of
+/// an Iterable cleanly.
+class IterableSpanFormatter implements Formatter {
+  accept(object) => object is IterableSpan;
+
+  String preview(object) {
+    IterableSpan entry = object;
+    return '[${object.start}...${object.end-1}]';
+  }
+
+  bool hasChildren(object) => true;
+
+  List<NameValuePair> children(object) => childrenHelper(object);
+}
+
+List<NameValuePair> childrenHelper(IterableSpan span) {
+  var length = span.end - span.start;
+  var ret = new List<NameValuePair>();
+  if (length <= maxSpanLength) {
+    for (var i = span.start; i < span.end; i++) {
+      /// TODO(bmilligan): Stop using elementAt if it becomes a performance
+      /// bottleneck in the future.
+      ret.add(new NameValuePair(
+          name: i.toString(), value: span.iterable.elementAt(i)));
+    }
+  } else {
+    /// Using length - .5, a list of length 10000 results in a
+    /// maxPowerOfSubsetSize of 1, so the list will be broken up into 100,
+    /// 100-length subsets. A list of length 10001 results in a
+    /// maxPowerOfSubsetSize of 2, so the list will be broken up into 1
+    /// 10000-length subset and 1 1-length subset.
+    var maxPowerOfSubsetSize =
+        (log(length - .5) / log(maxSpanLength)).truncate();
+    var subsetSize = pow(maxSpanLength, maxPowerOfSubsetSize);
+    for (var i = span.start; i < span.end; i += subsetSize) {
+      var endIndex = min(span.end, subsetSize + i);
+      if (endIndex - i == 1)
+        ret.add(new NameValuePair(
+            name: i.toString(), value: span.iterable.elementAt(i)));
+      else {
+        var entryWrapper =
+            new IterableSpan(start: i, end: endIndex, iterable: span.iterable);
+        ret.add(new NameValuePair(
+            name: '[${i}...${endIndex - 1}]',
+            value: entryWrapper,
+            hideName: true));
+      }
+    }
+  }
+  return ret;
 }
 
 /// This entry point is automatically invoked by the code generated by
