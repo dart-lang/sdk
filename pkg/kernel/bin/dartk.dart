@@ -2,11 +2,12 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+import 'dart:async';
+import 'dart:io';
 import 'package:args/args.dart';
+import 'package:kernel/checks.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/log.dart';
-import 'dart:io';
-import 'dart:async';
 
 ArgParser parser = new ArgParser()
   ..addOption('format',
@@ -38,7 +39,9 @@ ArgParser parser = new ArgParser()
   ..addFlag('print-metrics',
       negatable: false, help: 'Print performance metrics.')
   ..addOption('write-dependencies',
-      help: 'Write all the .dart that were loaded to the given file.');
+      help: 'Write all the .dart that were loaded to the given file.')
+  ..addFlag('sanity-check',
+      help: 'Perform slow internal correctness checks.');
 
 String getUsage() => """
 Usage: dartk [options] FILE
@@ -198,6 +201,10 @@ main(List<String> args) {
   int loadTime = watch.elapsedMilliseconds;
   if (shouldReportMetrics) {
     print('loader.time = $loadTime ms');
+  }
+
+  if (options['sanity-check']) {
+    CheckParentPointers.check(program ?? library);
   }
 
   String outputDependencies = options['write-dependencies'];

@@ -2012,7 +2012,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
           ? new ast.InvalidInitializer()
           : new ast.SuperInitializer(
               target, new ast.Arguments(<ast.Expression>[]));
-      constructor.initializers.add(initializer);
+      constructor.initializers.add(initializer..parent = constructor);
     }
   }
 
