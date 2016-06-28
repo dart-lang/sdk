@@ -2492,14 +2492,69 @@ class DartDelta extends Delta {
   final Map<String, ClassElementDelta> changedClasses =
       <String, ClassElementDelta>{};
 
-  final Set<Source> invalidatedSources = new Set<Source>();
+  /**
+   * The cache of libraries in which all results are invalid.
+   */
+  final Set<Source> librariesWithInvalidResults = new Set<Source>();
 
-  DartDelta(Source source) : super(source) {
-    invalidatedSources.add(source);
+  /**
+   * The cache of libraries in which all results are valid.
+   */
+  final Set<Source> librariesWithValidResults = new Set<Source>();
+
+  DartDelta(Source source) : super(source);
+
+  /**
+   * Add names that are changed in the given [references].
+   */
+  void addChangedElements(ReferencedNames references) {
+    Source refLibrary = references.librarySource;
+    bool hasProgress = true;
+    while (hasProgress) {
+      hasProgress = false;
+      // Classes that extend changed classes are also changed.
+      // If there is a delta for a superclass, use it for the subclass.
+      // Otherwise mark the subclass as "general name change".
+      references.superToSubs.forEach((String superName, Set<String> subNames) {
+        ClassElementDelta superDelta = changedClasses[superName];
+        for (String subName in subNames) {
+          if (superDelta != null) {
+            ClassElementDelta subDelta = changedClasses.putIfAbsent(subName,
+                () => new ClassElementDelta(null, refLibrary, subName));
+            _log(() => '$subName in $refLibrary has delta because of its '
+                'superclass $superName has delta');
+            if (subDelta.superDeltas.add(superDelta)) {
+              hasProgress = true;
+            }
+          } else if (isChanged(refLibrary, superName)) {
+            if (nameChanged(refLibrary, subName)) {
+              _log(() => '$subName in $refLibrary is changed because its '
+                  'superclass $superName is changed');
+              hasProgress = true;
+            }
+          }
+        }
+      });
+      // If a user element uses a changed top-level element, then the user is
+      // also changed. Note that if a changed class with delta is used, this
+      // does not make the user changed - classes with delta keep their
+      // original elements, so resolution of their names does not change.
+      references.userToDependsOn.forEach((user, dependencies) {
+        for (String dependency in dependencies) {
+          if (isChangedOrClassMember(refLibrary, dependency)) {
+            if (nameChanged(refLibrary, user)) {
+              _log(() => '$user in $refLibrary is changed because '
+                  'of $dependency in $dependencies');
+              hasProgress = true;
+            }
+          }
+        }
+      });
+    }
   }
 
   void classChanged(ClassElementDelta classDelta) {
-    changedClasses[classDelta.element.name] = classDelta;
+    changedClasses[classDelta.name] = classDelta;
   }
 
   void elementChanged(Element element) {
@@ -2507,20 +2562,70 @@ class DartDelta extends Delta {
     nameChanged(librarySource, element.name);
   }
 
-  /**
-   * Return `true` if the given [name], used in a unit of the [librarySource]
-   * is affected by this delta.
-   */
-  bool isNameAffected(Source librarySource, String name) {
-    if (_isPrivateName(name)) {
-      return changedPrivateNames[librarySource]?.contains(name) ?? false;
+  bool hasAffectedReferences(ReferencedNames references) {
+    Source refLibrary = references.librarySource;
+    // Verify errors must be recomputed when a superclass changes.
+    for (String superName in references.superToSubs.keys) {
+      if (isChangedOrClass(refLibrary, superName)) {
+        _log(() => '$refLibrary is affected because '
+            '${references.superToSubs[superName]} subclasses $superName');
+        return true;
+      }
     }
-    if (changedNames.contains(name)) {
+    // Verify errors must be recomputed when an instantiated class changes.
+    for (String name in references.instantiatedNames) {
+      if (isChangedOrClass(refLibrary, name)) {
+        _log(() => '$refLibrary is affected because $name is instantiated');
+        return true;
+      }
+    }
+    // Resolution must be performed when a referenced element changes.
+    for (String name in references.names) {
+      if (isChangedOrClassMember(refLibrary, name)) {
+        _log(() => '$refLibrary is affected by $name');
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Return `true` if the given [name], used in a unit of the [librarySource],
+   * is affected by a changed top-level element, excluding classes.
+   */
+  bool isChanged(Source librarySource, String name) {
+    if (_isPrivateName(name)) {
+      if (changedPrivateNames[librarySource]?.contains(name) ?? false) {
+        return true;
+      }
+    }
+    return changedNames.contains(name);
+  }
+
+  /**
+   * Return `true` if the given [name], used in a unit of the [librarySource],
+   * is affected by a changed top-level element or a class.
+   */
+  bool isChangedOrClass(Source librarySource, String name) {
+    if (isChanged(librarySource, name)) {
       return true;
     }
-    ClassElementDelta classDelta = changedClasses[name];
-    if (classDelta != null) {
-      return classDelta.hasPublicChanges;
+    return changedClasses[name] != null;
+  }
+
+  /**
+   * Return `true` if the given [name], used in a unit of the [librarySource],
+   * is affected by a changed top-level element or a class member.
+   */
+  bool isChangedOrClassMember(Source librarySource, String name) {
+    if (isChanged(librarySource, name)) {
+      return true;
+    }
+    // TODO(scheglov) Optimize this.
+    for (ClassElementDelta classDelta in changedClasses.values) {
+      if (classDelta.hasChanges(librarySource, name)) {
+        return true;
+      }
     }
     return false;
   }
@@ -2546,15 +2651,16 @@ class DartDelta extends Delta {
       return DeltaResult.INVALIDATE;
     }
     // Prepare target source.
-    Source targetSource = null;
+    Source targetSource = target.source;
+    Source librarySource = target.librarySource;
     if (target is Source) {
-      targetSource = target;
+      if (context.getKindOf(target) == SourceKind.LIBRARY) {
+        librarySource = target;
+      }
     }
-    if (target is LibrarySpecificUnit) {
-      targetSource = target.library;
-    }
-    if (target is Element) {
-      targetSource = target.source;
+    // We don't know what to do with the given target, invalidate it.
+    if (targetSource == null) {
+      return DeltaResult.INVALIDATE;
     }
     // Keep results that don't change: any library.
     if (_isTaskResult(BuildLibraryElementTask.DESCRIPTOR, descriptor) ||
@@ -2583,29 +2689,36 @@ class DartDelta extends Delta {
         return DeltaResult.KEEP_CONTINUE;
       }
     }
-    // Use the target library dependency information to decide whether
-    // the delta affects the library.
-    if (targetSource != null) {
-      List<Source> librarySources =
-          context.getLibrariesContaining(targetSource);
-      int length = librarySources.length;
-      for (int i = 0; i < length; i++) {
-        Source librarySource = librarySources[i];
-        AnalysisCache cache = context.analysisCache;
-        ReferencedNames referencedNames =
-            cache.getValue(librarySource, REFERENCED_NAMES);
-        if (referencedNames == null) {
-          return DeltaResult.INVALIDATE;
-        }
-        referencedNames.addChangedElements(this);
-        if (referencedNames.isAffectedBy(this)) {
-          return DeltaResult.INVALIDATE;
-        }
+    // Handle in-library results only for now.
+    if (librarySource != null) {
+      // Use cached library results.
+      if (librariesWithInvalidResults.contains(librarySource)) {
+        return DeltaResult.INVALIDATE;
       }
+      if (librariesWithValidResults.contains(librarySource)) {
+        return DeltaResult.STOP;
+      }
+      // Compute the library result.
+      ReferencedNames referencedNames =
+          context.getResult(librarySource, REFERENCED_NAMES);
+      if (referencedNames == null) {
+        return DeltaResult.INVALIDATE_NO_DELTA;
+      }
+      addChangedElements(referencedNames);
+      if (hasAffectedReferences(referencedNames)) {
+        librariesWithInvalidResults.add(librarySource);
+        return DeltaResult.INVALIDATE;
+      }
+      librariesWithValidResults.add(librarySource);
       return DeltaResult.STOP;
     }
     // We don't know what to do with the given target, invalidate it.
     return DeltaResult.INVALIDATE;
+  }
+
+  void _log(String getMessage()) {
+//    String message = getMessage();
+//    print(message);
   }
 
   static bool _isPrivateName(String name) => name.startsWith('_');
@@ -4611,40 +4724,8 @@ class ReferencedNames {
 
   ReferencedNames(this.librarySource);
 
-  /**
-   * Updates [delta] by adding names that are changed in this library.
-   */
-  void addChangedElements(DartDelta delta) {
-    bool hasProgress = true;
-    while (hasProgress) {
-      hasProgress = false;
-      userToDependsOn.forEach((user, dependencies) {
-        for (String dependency in dependencies) {
-          if (delta.isNameAffected(librarySource, dependency)) {
-            if (delta.nameChanged(librarySource, user)) {
-              hasProgress = true;
-            }
-          }
-        }
-      });
-    }
-  }
-
   void addSubclass(String subName, String superName) {
     superToSubs.putIfAbsent(superName, () => new Set<String>()).add(subName);
-  }
-
-  /**
-   * Returns `true` if the library described by this object is affected by
-   * the given [delta].
-   */
-  bool isAffectedBy(DartDelta delta) {
-    for (String name in names) {
-      if (delta.isNameAffected(librarySource, name)) {
-        return true;
-      }
-    }
-    return false;
   }
 }
 
@@ -4657,7 +4738,7 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
 
   ReferencedNamesScope scope = new ReferencedNamesScope(null);
 
-  int bodyLevel = 0;
+  int localLevel = 0;
   Set<String> dependsOn;
 
   ReferencedNamesBuilder(this.names);
@@ -4715,6 +4796,16 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
   }
 
   @override
+  visitComment(Comment node) {
+    try {
+      localLevel++;
+      super.visitComment(node);
+    } finally {
+      localLevel--;
+    }
+  }
+
+  @override
   visitConstructorName(ConstructorName node) {
     if (node.parent is! ConstructorDeclaration) {
       super.visitConstructorName(node);
@@ -4724,16 +4815,16 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
   @override
   visitFunctionBody(FunctionBody node) {
     try {
-      bodyLevel++;
+      localLevel++;
       super.visitFunctionBody(node);
     } finally {
-      bodyLevel--;
+      localLevel--;
     }
   }
 
   @override
   visitFunctionDeclaration(FunctionDeclaration node) {
-    if (bodyLevel == 0) {
+    if (localLevel == 0) {
       ReferencedNamesScope outerScope = scope;
       try {
         scope = new ReferencedNamesScope.forFunction(scope, node);
@@ -4751,7 +4842,7 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
 
   @override
   visitFunctionTypeAlias(FunctionTypeAlias node) {
-    if (bodyLevel == 0) {
+    if (localLevel == 0) {
       ReferencedNamesScope outerScope = scope;
       try {
         scope = new ReferencedNamesScope.forFunctionTypeAlias(scope, node);
@@ -4828,7 +4919,7 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
     }
     // Do add the dependency.
     names.names.add(name);
-    if (dependsOn != null && bodyLevel == 0) {
+    if (dependsOn != null && localLevel == 0) {
       dependsOn.add(name);
     }
   }

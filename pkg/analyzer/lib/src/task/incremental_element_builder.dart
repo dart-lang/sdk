@@ -21,7 +21,11 @@ import 'package:analyzer/src/generated/source.dart';
  * The change of a single [ClassElement].
  */
 class ClassElementDelta {
-  final ClassElement element;
+  final ClassElement _element;
+  final Source librarySource;
+  final String name;
+
+  final Set<ClassElementDelta> superDeltas = new Set<ClassElementDelta>();
 
   final List<PropertyAccessorElement> addedAccessors =
       <PropertyAccessorElement>[];
@@ -34,20 +38,26 @@ class ClassElementDelta {
   final List<MethodElement> addedMethods = <MethodElement>[];
   final List<MethodElement> removedMethods = <MethodElement>[];
 
-  ClassElementDelta(this.element);
+  ClassElementDelta(this._element, this.librarySource, this.name);
 
-  bool get hasPublicChanges {
-    return _hasPublicElements(addedAccessors) ||
-        _hasPublicElements(removedAccessors) ||
-        _hasPublicElements(addedConstructors) ||
-        _hasPublicElements(removedConstructors) ||
-        _hasPublicElements(addedMethods) ||
-        _hasPublicElements(removedMethods) ||
-        false;
+  /**
+   * Return `true` if this delta has changes to the [name] visible in the
+   * given [librarySource].
+   */
+  bool hasChanges(Source librarySource, String name) {
+    if (Identifier.isPrivateName(name) && librarySource != this.librarySource) {
+      return false;
+    }
+    return _hasElementWithName(addedAccessors, name) ||
+        _hasElementWithName(removedAccessors, name) ||
+        _hasElementWithName(addedConstructors, name) ||
+        _hasElementWithName(removedConstructors, name) ||
+        _hasElementWithName(addedMethods, name) ||
+        _hasElementWithName(removedMethods, name);
   }
 
-  static bool _hasPublicElements(Iterable<Element> elements) {
-    return elements.any((e) => e.isPublic);
+  static bool _hasElementWithName(List<Element> elements, String name) {
+    return elements.any((e) => e.displayName == name);
   }
 }
 
@@ -174,7 +184,8 @@ class IncrementalCompilationUnitElementBuilder {
     // Prepare delta.
     ClassElementImpl classElement = oldClass.element;
     ElementHolder classElementHolder = new ElementHolder();
-    ClassElementDelta classDelta = new ClassElementDelta(classElement);
+    ClassElementDelta classDelta =
+        new ClassElementDelta(classElement, librarySource, classElement.name);
     // Prepare all old member elements.
     var removedAccessors = new Set<PropertyAccessorElement>();
     var removedConstructors = new Set<ConstructorElement>();
@@ -400,9 +411,9 @@ class IncrementalCompilationUnitElementBuilder {
           if (oldClass != null) {
             ClassElementDelta delta = _processClassMembers(oldClass, newNode);
             if (delta != null) {
-              unitDelta.classDeltas[delta.element.name] = delta;
-              _addElementToUnitHolder(delta.element);
-              removedElements.remove(delta.element);
+              unitDelta.classDeltas[delta._element.name] = delta;
+              _addElementToUnitHolder(delta._element);
+              removedElements.remove(delta._element);
               continue;
             }
           }

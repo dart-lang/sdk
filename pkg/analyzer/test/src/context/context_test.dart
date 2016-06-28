@@ -2663,11 +2663,6 @@ int a = 0;''');
   }
 }
 
-/**
- * TODO(scheglov) After changes that affect only resolution in method bodies,
- * it is theoretically possible to keep the same element model and resolve
- * only corresponding method bodies.
- */
 @reflectiveTest
 class LimitedInvalidateTest extends AbstractContextTest {
   @override
@@ -2678,6 +2673,112 @@ class LimitedInvalidateTest extends AbstractContextTest {
     options.incremental = true;
     options.finerGrainedInvalidation = true;
     context.analysisOptions = options;
+  }
+
+  void test_class_addMethod_useClass() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {}
+class B extends A {
+  foo() {}
+}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+B b = null;
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: remove add A.bar.
+    //   b.dart is valid, because though it uses A, it has the same element.
+    context.setContents(
+        a,
+        r'''
+class A {}
+class B extends A {
+  foo() {}
+  bar() {}
+}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertValidAllLibraryUnitResults(b);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+  }
+
+  void test_class_method_change_notUsed() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {
+  foo() {}
+  bar() {}
+}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main(A a) {
+  a.foo();
+}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: remove A.bar, add A.bar2.
+    //   b.dart is valid, because it doesn't references 'bar' or 'bar2'.
+    context.setContents(
+        a,
+        r'''
+class A {
+  foo() {}
+  bar2() {}
+}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertValidAllLibraryUnitResults(b);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+  }
+
+  void test_class_method_change_notUsed_throughSubclass_extends() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {
+  foo() {}
+  bar() {}
+}
+class B extends A {}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main(B b) {
+  a.foo();
+}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: remove A.bar, add A.bar2.
+    //   b.dart is valid, because it doesn't references 'bar' or 'bar2'.
+    context.setContents(
+        a,
+        r'''
+class A {
+  foo() {}
+  bar2() {}
+}
+class B extends A {}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertValidAllLibraryUnitResults(b);
+    _assertValid(b, LIBRARY_ERRORS_READY);
   }
 
   void test_class_method_definedInSuper_sameLibrary() {
@@ -2764,6 +2865,54 @@ class A {
     _assertValid(b, LIBRARY_ERRORS_READY);
   }
 
+  void test_class_super_makeAbstract_instantiate() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+abstract class I {
+ void m();
+}
+class A implements I {
+ void m() {}
+}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+class B extends A {}
+''');
+    Source c = addSource(
+        '/c.dart',
+        r'''
+import 'b.dart';
+main() {
+  new B();
+}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: remove A.bar, add A.bar2.
+    //   b.dart is valid, because it doesn't references 'bar' or 'bar2'.
+    context.setContents(
+        a,
+        r'''
+abstract class I {
+ void m();
+}
+class A implements I {
+ void m2() {}
+}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+
+    _assertValidForDependentLibrary(b);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+
+    _assertValidForDependentLibrary(c);
+    _assertInvalid(c, LIBRARY_ERRORS_READY);
+  }
+
   void test_private_class() {
     Source a = addSource(
         '/a.dart',
@@ -2808,7 +2957,7 @@ int _V = 1;
         r'''
 import 'a.dart';
 main() {
-  print(_V);
+  print(_A);
 }
 ''');
     _performPendingAnalysisTasks();
@@ -2824,6 +2973,36 @@ int _V = 2;
     _assertValidForDependentLibrary(b);
     _assertValidAllLibraryUnitResults(b);
     _assertValid(b, LIBRARY_ERRORS_READY);
+  }
+
+  void test_private_topLevelVariable_throughPublic() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+int _A = 1;
+int B = _A + 1;
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main() {
+  print(B);
+}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: change _A
+    //   b.dart is invalid, because it uses B, which uses _A.
+    context.setContents(
+        a,
+        r'''
+int _A = 2;
+int B = _A + 1;
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
   }
 
   void test_sequence_class_give_take() {
@@ -3187,8 +3366,8 @@ main() {
 }
 ''');
     _performPendingAnalysisTasks();
-    // Update a.dart: remove C.m, add C.m2.
-    //   b.dart is invalid, because it references c.m.
+    // Update a.dart: remove A.m, add A.m2.
+    //   b.dart is invalid, because it references 'm'.
     context.setContents(
         a,
         r'''
@@ -3278,9 +3457,9 @@ main() {
 }
 ''');
     _performPendingAnalysisTasks();
-    // Update a.dart: remove C.m, add C.m2.
+    // Update a.dart: remove A.m, add A.m2.
     //   b.dart is invalid, because B extends A.
-    //   c.dart is invalid, because 'main' references B.m.
+    //   c.dart is invalid, because 'main' references 'm'.
     context.setContents(
         a,
         r'''

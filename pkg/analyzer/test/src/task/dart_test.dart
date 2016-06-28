@@ -3965,6 +3965,20 @@ A f(B b) {
     expect(info.userToDependsOn['f'], unorderedEquals(['A', 'B']));
   }
 
+  test_unit_function_doc() {
+    ReferencedNames info = _computeReferencedNames('''
+/**
+ * Documentation [C.d] reference.
+ */
+A f(B b) {}
+''');
+    expect(info.names, unorderedEquals(['A', 'B', 'C', 'd']));
+    expect(info.superToSubs.keys, isEmpty);
+    expect(info.instantiatedNames, isEmpty);
+    expect(info.userToDependsOn.keys, unorderedEquals(['f']));
+    expect(info.userToDependsOn['f'], unorderedEquals(['A', 'B']));
+  }
+
   test_unit_function_localFunctions() {
     ReferencedNames info = _computeReferencedNames('''
 A f() {
