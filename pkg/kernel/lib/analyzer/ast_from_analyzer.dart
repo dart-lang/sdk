@@ -1995,9 +1995,24 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
         constructor.initializers.add(initializer..parent = constructor);
       }
     }
+    bool hasExplicitConstructorCall = false;
     for (var initializer in node.initializers) {
       var node = scope.buildInitializer(initializer);
       constructor.initializers.add(node..parent = constructor);
+      if (node is ast.SuperInitializer || node is ast.RedirectingInitializer) {
+        hasExplicitConstructorCall = true;
+      }
+    }
+    ClassElement classElement = node.element.enclosingElement;
+    if (classElement.supertype != null && !hasExplicitConstructorCall) {
+      ConstructorElement targetElement =
+          scope.findDefaultConstructor(classElement.supertype.element);
+      ast.Constructor target = scope.resolveConstructor(targetElement);
+      ast.Initializer initializer = target == null
+          ? new ast.InvalidInitializer()
+          : new ast.SuperInitializer(
+              target, new ast.Arguments(<ast.Expression>[]));
+      constructor.initializers.add(initializer);
     }
   }
 
