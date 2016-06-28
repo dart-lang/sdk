@@ -1248,10 +1248,12 @@ class StaticInvocation extends InvocationExpression {
 // DESIGN TODO: Should we pass type arguments in a separate field
 // `classTypeArguments`? They are quite different from type arguments to
 // generic functions.
-class ConstructorInvocation extends Expression {
+class ConstructorInvocation extends InvocationExpression {
   Constructor target;
   Arguments arguments;
   bool isConst;
+
+  Name get name => target?.name;
 
   ConstructorInvocation(this.target, this.arguments, {this.isConst: false}) {
     arguments?.parent = this;
