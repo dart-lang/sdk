@@ -355,9 +355,7 @@ class AdbPrecompilationCommand extends Command {
   final bool useBlobs;
 
   AdbPrecompilationCommand._(this.precompiledRunnerFilename,
-                             this.precompiledTestDirectory,
-                             this.arguments,
-                             this.useBlobs)
+      this.precompiledTestDirectory, this.arguments, this.useBlobs)
       : super._("adb_precompilation");
 
   void _buildHashCode(HashCodeBuilder builder) {
@@ -376,7 +374,7 @@ class AdbPrecompilationCommand extends Command {
       precompiledTestDirectory == other.precompiledTestDirectory;
 
   String toString() => 'Steps to push precompiled runner and precompiled code '
-                       'to an attached device. Uses (and requires) adb.';
+      'to an attached device. Uses (and requires) adb.';
 }
 
 class JSCommandlineCommand extends ProcessCommand {
@@ -466,8 +464,8 @@ class ModifyPubspecYamlCommand extends ScriptCommand {
   String _destinationFile;
   Map<String, Map> _dependencyOverrides;
 
-  ModifyPubspecYamlCommand._(this._pubspecYamlFile,
-      this._destinationFile, this._dependencyOverrides)
+  ModifyPubspecYamlCommand._(
+      this._pubspecYamlFile, this._destinationFile, this._dependencyOverrides)
       : super._("modify_pubspec") {
     assert(_pubspecYamlFile.endsWith("pubspec.yaml"));
     assert(_destinationFile.endsWith("pubspec.yaml"));
@@ -667,9 +665,7 @@ class CommandBuilder {
   }
 
   AdbPrecompilationCommand getAdbPrecompiledCommand(String precompiledRunner,
-                                                    String testDirectory,
-                                                    List<String> arguments,
-                                                    bool useBlobs) {
+      String testDirectory, List<String> arguments, bool useBlobs) {
     var command = new AdbPrecompilationCommand._(
         precompiledRunner, testDirectory, arguments, useBlobs);
     return _getUniqueCommand(command);
@@ -1040,7 +1036,7 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
   Expectation _negateOutcomeIfNegativeTest(
       Expectation outcome, bool isNegative) {
     if (!isNegative) return outcome;
-
+    if (outcome == Expectation.IGNORE) return outcome;
     if (outcome.canBeOutcomeOf(Expectation.FAIL)) {
       return Expectation.PASS;
     }
@@ -1060,8 +1056,8 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     // a core dump. Sometimes content shell crashes after it has set the stdout
     // to PASS, so we have to do this check first.
     // Content shell also fails with a broken pipe message: Issue 26739
-    var zygoteCrash = new RegExp(
-        r"ERROR:zygote_linux\.cc\(\d+\)] write: Broken pipe");
+    var zygoteCrash =
+        new RegExp(r"ERROR:zygote_linux\.cc\(\d+\)] write: Broken pipe");
     var stderr = decodeUtf8(stderrBytes);
     // TODO(whesse): Issue: 7564
     // This may not be happening anymore.  Test by removing this suppression.
@@ -1074,7 +1070,7 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     // Issue 26739
     if (zygoteCrash.hasMatch(stderr)) {
       DebugLogger.warning("Warning: Failure because of content_shell "
-                           "zygote crash. Test ignored");
+          "zygote crash. Test ignored");
       return true;
     }
     return false;
@@ -1085,7 +1081,7 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
   BrowserCommandOutputImpl(
       command, exitCode, timedOut, stdout, stderr, time, compilationSkipped)
       : super(command, exitCode, timedOut, stdout, stderr, time,
-          compilationSkipped, 0),
+            compilationSkipped, 0),
         _infraFailure = _failedBecauseOfFlakyInfrastructure(stderr);
 
   Expectation result(TestCase testCase) {
@@ -1572,7 +1568,15 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
   Expectation result(TestCase testCase) {
     // Handle general crash/timeout detection.
     if (hasCrashed) return Expectation.CRASH;
-    if (hasTimedOut) return Expectation.TIMEOUT;
+    if (hasTimedOut) {
+      bool isWindows = io.Platform.operatingSystem == 'windows';
+      bool isBrowserTestCase =
+          testCase.commands.any((command) => command is BrowserTestCommand);
+      // TODO(26060) Dart2js batch mode hangs on Windows under heavy load.
+      return (isWindows && isBrowserTestCase)
+          ? Expectation.IGNORE
+          : Expectation.TIMEOUT;
+    }
 
     // Handle dart2js specific crash detection
     if (exitCode == DART2JS_EXITCODE_CRASH ||
@@ -2522,8 +2526,8 @@ class CommandExecutorImpl implements CommandExecutor {
     } else if (command is AdbPrecompilationCommand) {
       assert(adbDevicePool != null);
       return adbDevicePool.acquireDevice().then((AdbDevice device) {
-        return _runAdbPrecompilationCommand(
-            device, command, timeout).whenComplete(() {
+        return _runAdbPrecompilationCommand(device, command, timeout)
+            .whenComplete(() {
           adbDevicePool.releaseDevice(device);
         });
       });
@@ -2554,35 +2558,36 @@ class CommandExecutorImpl implements CommandExecutor {
     // All closures are of type "Future<AdbCommandResult> run()"
     List<Function> steps = [];
 
-    steps.add(() => device.runAdbShellCommand(
-          ['rm', '-Rf', deviceTestDir]));
-    steps.add(() => device.runAdbShellCommand(
-          ['mkdir', '-p', deviceTestDir]));
+    steps.add(() => device.runAdbShellCommand(['rm', '-Rf', deviceTestDir]));
+    steps.add(() => device.runAdbShellCommand(['mkdir', '-p', deviceTestDir]));
     // TODO: We should find a way for us to cache the runner binary and avoid
     // pushhing it for every single test (this is bad for SSD cycle time, test
     // timing).
     steps.add(() => device.runAdbCommand(
-          ['push', runner, '$devicedir/dart_precompiled_runtime']));
+        ['push', runner, '$devicedir/dart_precompiled_runtime']));
     steps.add(() => device.runAdbShellCommand(
-          ['chmod', '777', '$devicedir/dart_precompiled_runtime']));
+        ['chmod', '777', '$devicedir/dart_precompiled_runtime']));
 
     for (var file in files) {
-      steps.add(() => device.runAdbCommand(
-            ['push', '$testdir/$file', '$deviceTestDir/$file']));
+      steps.add(() => device
+          .runAdbCommand(['push', '$testdir/$file', '$deviceTestDir/$file']));
     }
 
     if (command.useBlobs) {
       steps.add(() => device.runAdbShellCommand(
-            ['$devicedir/dart_precompiled_runtime',
-             '--run-app-snapshot=$deviceTestDir',
-             '--use-blobs']..addAll(arguments),
-            timeout: timeoutDuration));
+          [
+            '$devicedir/dart_precompiled_runtime',
+            '--run-app-snapshot=$deviceTestDir',
+            '--use-blobs'
+          ]..addAll(arguments),
+          timeout: timeoutDuration));
     } else {
       steps.add(() => device.runAdbShellCommand(
-            ['$devicedir/dart_precompiled_runtime',
-             '--run-app-snapshot=$deviceTestDir'
-             ]..addAll(arguments),
-            timeout: timeoutDuration));
+          [
+            '$devicedir/dart_precompiled_runtime',
+            '--run-app-snapshot=$deviceTestDir'
+          ]..addAll(arguments),
+          timeout: timeoutDuration));
     }
 
     var stopwatch = new Stopwatch()..start();
@@ -2612,9 +2617,8 @@ class CommandExecutorImpl implements CommandExecutor {
       // immediately.
       if (result.exitCode != 0) break;
     }
-    return createCommandOutput(
-        command, result.exitCode, result.timedOut, UTF8.encode('$writer'),
-        [], stopwatch.elapsed, false);
+    return createCommandOutput(command, result.exitCode, result.timedOut,
+        UTF8.encode('$writer'), [], stopwatch.elapsed, false);
   }
 
   BatchRunnerProcess _getBatchRunner(String identifier) {
@@ -2970,8 +2974,8 @@ class ProcessQueue {
         executor = new ReplayingCommandExecutor(new Path(recordedInputFile));
       } else {
         executor = new CommandExecutorImpl(
-            _globalConfiguration, maxProcesses,
-            maxBrowserProcesses, adbDevicePool: adbDevicePool);
+            _globalConfiguration, maxProcesses, maxBrowserProcesses,
+            adbDevicePool: adbDevicePool);
       }
 
       // Run "runnable commands" using [executor] subject to
