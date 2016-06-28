@@ -117,17 +117,17 @@ class Utf16 : AllStatic {
   }
 
   // Returns true if ch is a lead or trail surrogate.
-  static bool IsSurrogate(int32_t ch) {
+  static bool IsSurrogate(uint32_t ch) {
     return (ch & 0xFFFFF800) == 0xD800;
   }
 
   // Returns true if ch is a lead surrogate.
-  static bool IsLeadSurrogate(int32_t ch) {
+  static bool IsLeadSurrogate(uint32_t ch) {
     return (ch & 0xFFFFFC00) == 0xD800;
   }
 
   // Returns true if ch is a low surrogate.
-  static bool IsTrailSurrogate(int32_t ch) {
+  static bool IsTrailSurrogate(uint32_t ch) {
     return (ch & 0xFFFFFC00) == 0xDC00;
   }
 
@@ -147,8 +147,8 @@ class Utf16 : AllStatic {
   }
 
   // Decodes a surrogate pair into a supplementary code point.
-  static int32_t Decode(int32_t lead, int32_t trail) {
-    return 0x10000 + ((lead & 0x3FF) << 10) + (trail & 0x3FF);
+  static int32_t Decode(uint16_t lead, uint16_t trail) {
+    return 0x10000 + ((lead & 0x000003FF) << 10) + (trail & 0x3FF);
   }
 
   // Encodes a single code point.

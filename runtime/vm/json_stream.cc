@@ -822,8 +822,25 @@ bool JSONStream::AddDartString(const String& s,
   }
   intptr_t limit = offset + count;
   for (intptr_t i = offset; i < limit; i++) {
-    intptr_t code_unit = s.CharAt(i);
-    buffer_.EscapeAndAddCodeUnit(code_unit);
+    uint16_t code_unit = s.CharAt(i);
+    if (Utf16::IsTrailSurrogate(code_unit)) {
+      buffer_.EscapeAndAddUTF16CodeUnit(code_unit);
+    } else if (Utf16::IsLeadSurrogate(code_unit)) {
+      if (i + 1 == limit) {
+        buffer_.EscapeAndAddUTF16CodeUnit(code_unit);
+      } else {
+        uint16_t next_code_unit = s.CharAt(i+1);
+        if (Utf16::IsTrailSurrogate(next_code_unit)) {
+          uint32_t decoded = Utf16::Decode(code_unit, next_code_unit);
+          buffer_.EscapeAndAddCodeUnit(decoded);
+          i++;
+        } else {
+          buffer_.EscapeAndAddUTF16CodeUnit(code_unit);
+        }
+      }
+    } else {
+      buffer_.EscapeAndAddCodeUnit(code_unit);
+    }
   }
   // Return value indicates whether the string is truncated.
   return (offset > 0) || (limit < length);
