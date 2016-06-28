@@ -13,7 +13,9 @@ namespace dart {
 class Definition;
 class Field;
 class FlowGraph;
+class ForwardInstructionIterator;
 class Function;
+class InstanceCallInstr;
 class Instruction;
 class TargetEntryInstr;
 
@@ -41,6 +43,11 @@ class FlowGraphInliner : ValueObject {
                         intptr_t caller_id);
 
   bool trace_inlining() const { return trace_inlining_; }
+
+  static bool TryReplaceInstanceCallWithInline(
+      FlowGraph* flow_graph,
+      ForwardInstructionIterator* iterator,
+      InstanceCallInstr* call);
 
   static bool TryInlineRecognizedMethod(FlowGraph* flow_graph,
                                         intptr_t receiver_cid,

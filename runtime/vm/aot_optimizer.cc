@@ -746,7 +746,8 @@ bool AotOptimizer::TryReplaceWithIndexedOp(InstanceCallInstr* call) {
   if (ic_data.NumberOfChecks() != 1) {
     return false;
   }
-  return TryReplaceInstanceCallWithInline(call);
+  return FlowGraphInliner::TryReplaceInstanceCallWithInline(
+      flow_graph_, current_iterator(), call);
 }
 
 
@@ -1629,51 +1630,6 @@ bool AotOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
 }
 
 
-bool AotOptimizer::TryReplaceInstanceCallWithInline(
-    InstanceCallInstr* call) {
-  if (!IsAllowedForInlining(call->deopt_id())) return false;
-  Function& target = Function::Handle(Z);
-  GrowableArray<intptr_t> class_ids;
-  call->ic_data()->GetCheckAt(0, &class_ids, &target);
-  const intptr_t receiver_cid = class_ids[0];
-
-  TargetEntryInstr* entry;
-  Definition* last;
-  if (!FlowGraphInliner::TryInlineRecognizedMethod(flow_graph_,
-                                                   receiver_cid,
-                                                   target,
-                                                   call,
-                                                   call->ArgumentAt(0),
-                                                   call->token_pos(),
-                                                   *call->ic_data(),
-                                                   &entry, &last)) {
-    return false;
-  }
-
-  // Insert receiver class check.
-  AddReceiverCheck(call);
-  // Remove the original push arguments.
-  for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-    PushArgumentInstr* push = call->PushArgumentAt(i);
-    push->ReplaceUsesWith(push->value()->definition());
-    push->RemoveFromGraph();
-  }
-  // Replace all uses of this definition with the result.
-  call->ReplaceUsesWith(last);
-  // Finally insert the sequence other definition in place of this one in the
-  // graph.
-  call->previous()->LinkTo(entry->next());
-  entry->UnuseAllInputs();  // Entry block is not in the graph.
-  last->LinkTo(call);
-  // Remove through the iterator.
-  ASSERT(current_iterator()->Current() == call);
-  current_iterator()->RemoveCurrentFromGraph();
-  call->set_previous(NULL);
-  call->set_next(NULL);
-  return true;
-}
-
-
 void AotOptimizer::ReplaceWithMathCFunction(
     InstanceCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
@@ -1729,49 +1685,15 @@ bool AotOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(target);
 
-  if ((recognized_kind == MethodRecognizer::kGrowableArraySetData) &&
-      (ic_data.NumberOfChecks() == 1) &&
-      (class_ids[0] == kGrowableObjectArrayCid)) {
-    // This is an internal method, no need to check argument types.
-    Definition* array = call->ArgumentAt(0);
-    Definition* value = call->ArgumentAt(1);
-    StoreInstanceFieldInstr* store = new(Z) StoreInstanceFieldInstr(
-        GrowableObjectArray::data_offset(),
-        new(Z) Value(array),
-        new(Z) Value(value),
-        kEmitStoreBarrier,
-        call->token_pos());
-    ReplaceCall(call, store);
-    return true;
-  }
-
-  if ((recognized_kind == MethodRecognizer::kGrowableArraySetLength) &&
-      (ic_data.NumberOfChecks() == 1) &&
-      (class_ids[0] == kGrowableObjectArrayCid)) {
-    // This is an internal method, no need to check argument types nor
-    // range.
-    Definition* array = call->ArgumentAt(0);
-    Definition* value = call->ArgumentAt(1);
-    StoreInstanceFieldInstr* store = new(Z) StoreInstanceFieldInstr(
-        GrowableObjectArray::length_offset(),
-        new(Z) Value(array),
-        new(Z) Value(value),
-        kNoStoreBarrier,
-        call->token_pos());
-    ReplaceCall(call, store);
-    return true;
-  }
-
   if ((recognized_kind == MethodRecognizer::kOneByteStringCodeUnitAt) ||
       (recognized_kind == MethodRecognizer::kTwoByteStringCodeUnitAt) ||
       (recognized_kind == MethodRecognizer::kExternalOneByteStringCodeUnitAt) ||
-      (recognized_kind == MethodRecognizer::kExternalTwoByteStringCodeUnitAt)) {
+      (recognized_kind == MethodRecognizer::kExternalTwoByteStringCodeUnitAt) ||
+      (recognized_kind == MethodRecognizer::kGrowableArraySetData) ||
+      (recognized_kind == MethodRecognizer::kGrowableArraySetLength)) {
       ASSERT(ic_data.NumberOfChecks() == 1);
-      ASSERT((class_ids[0] == kOneByteStringCid) ||
-             (class_ids[0] == kTwoByteStringCid) ||
-             (class_ids[0] == kExternalOneByteStringCid) ||
-             (class_ids[0] == kExternalTwoByteStringCid));
-    return TryReplaceInstanceCallWithInline(call);
+    return FlowGraphInliner::TryReplaceInstanceCallWithInline(
+        flow_graph_, current_iterator(), call);
   }
 
   if ((recognized_kind == MethodRecognizer::kStringBaseCharAt) &&
@@ -1780,7 +1702,8 @@ bool AotOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
              (class_ids[0] == kTwoByteStringCid) ||
              (class_ids[0] == kExternalOneByteStringCid) ||
              (class_ids[0] == kExternalTwoByteStringCid));
-    return TryReplaceInstanceCallWithInline(call);
+    return FlowGraphInliner::TryReplaceInstanceCallWithInline(
+        flow_graph_, current_iterator(), call);
   }
 
   if ((class_ids[0] == kOneByteStringCid) && (ic_data.NumberOfChecks() == 1)) {
@@ -1868,7 +1791,8 @@ bool AotOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       case MethodRecognizer::kDoubleSub:
       case MethodRecognizer::kDoubleMul:
       case MethodRecognizer::kDoubleDiv:
-        return TryReplaceInstanceCallWithInline(call);
+        return FlowGraphInliner::TryReplaceInstanceCallWithInline(
+            flow_graph_, current_iterator(), call);
       default:
         // Unsupported method.
         return false;
@@ -1877,7 +1801,8 @@ bool AotOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 
   if (IsSupportedByteArrayViewCid(class_ids[0]) &&
       (ic_data.NumberOfChecks() == 1)) {
-    return TryReplaceInstanceCallWithInline(call);
+    return FlowGraphInliner::TryReplaceInstanceCallWithInline(
+        flow_graph_, current_iterator(), call);
   }
 
   if ((class_ids[0] == kFloat32x4Cid) && (ic_data.NumberOfChecks() == 1)) {

@@ -2460,6 +2460,33 @@ static bool InlineDoubleOp(FlowGraph* flow_graph,
 }
 
 
+static bool InlineGrowableArraySetter(FlowGraph* flow_graph,
+                                      intptr_t offset,
+                                      StoreBarrierType store_barrier_type,
+                                      Instruction* call,
+                                      TargetEntryInstr** entry,
+                                      Definition** last) {
+  Definition* array = call->ArgumentAt(0);
+  Definition* value = call->ArgumentAt(1);
+
+  *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                   call->GetBlock()->try_index());
+  (*entry)->InheritDeoptTarget(Z, call);
+
+  // This is an internal method, no need to check argument types.
+  StoreInstanceFieldInstr* store = new(Z) StoreInstanceFieldInstr(
+      offset,
+      new(Z) Value(array),
+      new(Z) Value(value),
+      store_barrier_type,
+      call->token_pos());
+  flow_graph->AppendTo(*entry, store, call->env(), FlowGraph::kEffect);
+  *last = store;
+
+  return true;
+}
+
+
 static intptr_t PrepareInlineByteArrayBaseOp(
     FlowGraph* flow_graph,
     Instruction* call,
@@ -2876,6 +2903,10 @@ static bool InlineStringCodeUnitAt(
     intptr_t cid,
     TargetEntryInstr** entry,
     Definition** last) {
+  ASSERT((cid == kOneByteStringCid) ||
+         (cid == kTwoByteStringCid) ||
+         (cid == kExternalOneByteStringCid) ||
+         (cid == kExternalTwoByteStringCid));
   Definition* str = call->ArgumentAt(0);
   Definition* index = call->ArgumentAt(1);
 
@@ -2885,6 +2916,62 @@ static bool InlineStringCodeUnitAt(
 
   *last = PrepareInlineStringIndexOp(flow_graph, call, cid, str, index, *entry);
 
+  return true;
+}
+
+
+bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
+    FlowGraph* flow_graph,
+    ForwardInstructionIterator* iterator,
+    InstanceCallInstr* call) {
+  Function& target = Function::Handle(Z);
+  GrowableArray<intptr_t> class_ids;
+  call->ic_data()->GetCheckAt(0, &class_ids, &target);
+  const intptr_t receiver_cid = class_ids[0];
+
+  TargetEntryInstr* entry;
+  Definition* last;
+  if (!FlowGraphInliner::TryInlineRecognizedMethod(flow_graph,
+                                                   receiver_cid,
+                                                   target,
+                                                   call,
+                                                   call->ArgumentAt(0),
+                                                   call->token_pos(),
+                                                   *call->ic_data(),
+                                                   &entry, &last)) {
+    return false;
+  }
+
+  // Insert receiver class check if needed.
+  if (MethodRecognizer::PolymorphicTarget(target) ||
+      flow_graph->InstanceCallNeedsClassCheck(call, target.kind())) {
+    Instruction* check = GetCheckClass(
+        flow_graph,
+        call->ArgumentAt(0),
+        ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks()),
+        call->deopt_id(),
+        call->token_pos());
+    flow_graph->InsertBefore(call, check, call->env(), FlowGraph::kEffect);
+  }
+
+  // Remove the original push arguments.
+  for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
+    PushArgumentInstr* push = call->PushArgumentAt(i);
+    push->ReplaceUsesWith(push->value()->definition());
+    push->RemoveFromGraph();
+  }
+  // Replace all uses of this definition with the result.
+  call->ReplaceUsesWith(last);
+  // Finally insert the sequence other definition in place of this one in the
+  // graph.
+  call->previous()->LinkTo(entry->next());
+  entry->UnuseAllInputs();  // Entry block is not in the graph.
+  last->LinkTo(call);
+  // Remove through the iterator.
+  ASSERT(iterator->Current() == call);
+  iterator->RemoveCurrentFromGraph();
+  call->set_previous(NULL);
+  call->set_next(NULL);
   return true;
 }
 
@@ -3128,6 +3215,18 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
       return InlineDoubleOp(flow_graph, Token::kMUL, call, entry, last);
     case MethodRecognizer::kDoubleDiv:
       return InlineDoubleOp(flow_graph, Token::kDIV, call, entry, last);
+    case MethodRecognizer::kGrowableArraySetData:
+      ASSERT(receiver_cid == kGrowableObjectArrayCid);
+      ASSERT(ic_data.NumberOfChecks() == 1);
+      return InlineGrowableArraySetter(
+          flow_graph, GrowableObjectArray::data_offset(), kEmitStoreBarrier,
+          call, entry, last);
+    case MethodRecognizer::kGrowableArraySetLength:
+      ASSERT(receiver_cid == kGrowableObjectArrayCid);
+      ASSERT(ic_data.NumberOfChecks() == 1);
+      return InlineGrowableArraySetter(
+          flow_graph, GrowableObjectArray::length_offset(), kNoStoreBarrier,
+          call, entry, last);
     default:
       return false;
   }
