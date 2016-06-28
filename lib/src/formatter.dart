@@ -13,6 +13,9 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:linter/src/linter.dart';
 
+final int _pipeCodeUnit = '|'.codeUnitAt(0);
+final int _slashCodeUnit = '\\'.codeUnitAt(0);
+
 String getLineContents(int lineNumber, AnalysisError error) {
   String path = error.source.fullName;
   File file = new File(path);
@@ -33,7 +36,6 @@ String getLineContents(int lineNumber, AnalysisError error) {
 
 String pluralize(String word, int count) =>
     "$count ${count == 1 ? '$word' : '${word}s'}";
-
 String shorten(String fileRoot, String fullName) {
   if (fileRoot == null || !fullName.startsWith(fileRoot)) {
     return fullName;
@@ -44,7 +46,7 @@ String shorten(String fileRoot, String fullName) {
 String _escapePipe(String input) {
   var result = new StringBuffer();
   for (var c in input.codeUnits) {
-    if (c == '\\' || c == '|') {
+    if (c == _slashCodeUnit || c == _pipeCodeUnit) {
       result.write('\\');
     }
     result.writeCharCode(c);

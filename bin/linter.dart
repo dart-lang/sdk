@@ -111,7 +111,6 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
       }
       rules.add(rule);
     }
-    ;
 
     lintOptions.enabledLints = rules;
   }

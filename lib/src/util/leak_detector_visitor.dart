@@ -96,7 +96,7 @@ _VisitVariableDeclaration _buildVariableReporter(
           containerNodes, variable));
 
       // Read this as: validators.forAll((i) => i.isEmpty).
-      if (!validators.any((i) => !i.isEmpty)) {
+      if (!validators.any((i) => i.isNotEmpty)) {
         rule.reportLint(variable);
       }
     };
