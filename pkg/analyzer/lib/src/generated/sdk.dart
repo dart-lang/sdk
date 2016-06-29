@@ -9,7 +9,7 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisOptions;
+    show AnalysisContext, AnalysisOptions, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/utilities_general.dart';
 
@@ -136,6 +136,12 @@ class DartSdkManager {
   }
 
   /**
+   * Return a list of the descriptors of the SDKs that are currently being
+   * managed.
+   */
+  List<SdkDescription> get sdkDescriptors => sdkMap.keys.toList();
+
+  /**
    * Return the Dart SDK that is appropriate for the given analysis [options].
    * If such an SDK has not yet been created, then the [sdkCreator] will be
    * invoked to create it.
@@ -246,6 +252,30 @@ class SdkDescription {
       return true;
     }
     return false;
+  }
+
+  @override
+  String toString() {
+    StringBuffer buffer = new StringBuffer();
+    bool needsSeparator = false;
+    void add(String optionName) {
+      if (needsSeparator) {
+        buffer.write(', ');
+      }
+      buffer.write(optionName);
+      needsSeparator = true;
+    }
+    for (String path in paths) {
+      add(path);
+    }
+    if (needsSeparator) {
+      buffer.write(' ');
+    }
+    buffer.write('(');
+    buffer.write(AnalysisOptionsImpl
+        .decodeCrossContextOptions(options.encodeCrossContextOptions()));
+    buffer.write(')');
+    return buffer.toString();
   }
 }
 
