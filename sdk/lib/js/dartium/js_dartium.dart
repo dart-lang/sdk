@@ -1528,7 +1528,7 @@ Function _wrapAsDebuggerVarArgsFunction(JsFunction jsFunction) => (
 /// JavaScript. We may remove the need to call this method completely in the
 /// future if Dart2Js is refactored so that its function calling conventions
 /// are more compatible with JavaScript.
-JSFunction allowInterop(Function f) {
+Function /*=F*/ allowInterop/*<F extends Function>*/(Function /*=F*/ f) {
   if (f is JSFunction) {
     // The function is already a JSFunction... no need to do anything.
     return f;
