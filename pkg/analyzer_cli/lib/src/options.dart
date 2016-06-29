@@ -62,6 +62,10 @@ class CommandLineOptions {
   /// The path to output the summary when creating summaries in build mode.
   final String buildSummaryOutput;
 
+  /// The path to output the semantic-only summary when creating summaries in
+  /// build mode.
+  final String buildSummaryOutputSemantic;
+
   /// Whether to output a summary in "fallback mode".
   final bool buildSummaryFallback;
 
@@ -163,6 +167,7 @@ class CommandLineOptions {
         buildSummaryExcludeInformative =
             args['build-summary-exclude-informative'],
         buildSummaryOutput = args['build-summary-output'],
+        buildSummaryOutputSemantic = args['build-summary-output-semantic'],
         buildSuppressExitCode = args['build-suppress-exit-code'],
         dartSdkPath = args['dart-sdk'],
         dartSdkSummaryPath = args['dart-sdk-summary'],
@@ -385,8 +390,12 @@ class CommandLineOptions {
           allowMultiple: true,
           hide: true)
       ..addOption('build-summary-output',
-          help: 'Specifies the path to the file where the summary information '
-              'should be written.',
+          help: 'Specifies the path to the file where the full summary '
+              'information should be written.',
+          hide: true)
+      ..addOption('build-summary-output-semantic',
+          help: 'Specifies the path to the file where the semantic summary '
+              'information should be written.',
           hide: true)
       ..addFlag('build-summary-only',
           help: 'Disable analysis (only generate summaries).',
@@ -404,7 +413,8 @@ class CommandLineOptions {
           negatable: false,
           hide: true)
       ..addFlag('build-summary-exclude-informative',
-          help: 'Exclude @informative information (docs, offsets, etc).',
+          help: 'Exclude @informative information (docs, offsets, etc).  '
+              'Deprecated: please use --build-summary-output-semantic instead.',
           defaultsTo: false,
           negatable: false,
           hide: true)
