@@ -91,6 +91,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         _typeSystem = typeSystem ?? new TypeSystemImpl();
 
   @override
+  Object visitAnnotation(Annotation node) {
+    if (node.elementAnnotation?.isFactory == true) {
+      AstNode parent = node.parent;
+      if (parent is MethodDeclaration) {
+        _checkForInvalidFactory(parent);
+      } else {
+        _errorReporter
+            .reportErrorForNode(HintCode.INVALID_FACTORY_ANNOTATION, node, []);
+      }
+    }
+    return super.visitAnnotation(node);
+  }
+
+  @override
   Object visitArgumentList(ArgumentList node) {
     for (Expression argument in node.arguments) {
       ParameterElement parameter = argument.bestParameterElement;
@@ -674,6 +688,44 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     return false;
   }
 
+  void _checkForInvalidFactory(MethodDeclaration decl) {
+    // Check declaration.
+    // Note that null return types are expected to be flagged by other analyses.
+    DartType returnType = decl.returnType?.type;
+    if (returnType is VoidType) {
+      _errorReporter.reportErrorForNode(HintCode.INVALID_FACTORY_METHOD_DECL,
+          decl.name, [decl.name.toString()]);
+      return;
+    }
+
+    // Check implementation.
+
+    FunctionBody body = decl.body;
+    if (body is EmptyFunctionBody) {
+      // Abstract methods are OK.
+      return;
+    }
+
+    // `new Foo()` or `null`.
+    bool factoryExpression(Expression expression) =>
+        expression is InstanceCreationExpression || expression is NullLiteral;
+
+    if (body is ExpressionFunctionBody && factoryExpression(body.expression)) {
+      return;
+    } else if (body is BlockFunctionBody) {
+      NodeList<Statement> statements = body.block.statements;
+      if (statements.isNotEmpty) {
+        Statement last = statements.last;
+        if (last is ReturnStatement && factoryExpression(last.expression)) {
+          return;
+        }
+      }
+    }
+
+    _errorReporter.reportErrorForNode(HintCode.INVALID_FACTORY_METHOD_IMPL,
+        decl.name, [decl.name.toString()]);
+  }
+
   /**
    * Produces a hint if the given identifier is a protected closure, field or
    * getter/setter, method closure or invocation accessed outside a subclass.
@@ -701,8 +753,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         identifier.getAncestor((AstNode node) => node is CommentReference) !=
         null;
 
+    bool inCurrentLibrary(Element element) =>
+        element.library == _currentLibrary;
+
     Element element = identifier.bestElement;
-    if (isProtected(element) && !inCommentReference(identifier)) {
+    if (isProtected(element) &&
+        !inCurrentLibrary(element) &&
+        !inCommentReference(identifier)) {
       ClassElement definingClass = element.enclosingElement;
       ClassDeclaration accessingClass =
           identifier.getAncestor((AstNode node) => node is ClassDeclaration);
@@ -3556,7 +3613,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     bool outerBreakValue = _enclosingBlockContainsBreak;
     _enclosingBlockContainsBreak = false;
     try {
-      if (_nodeExits(node.body)) {
+      if (_nodeExits(node.body) && !_enclosingBlockContainsBreak) {
         return true;
       }
       Expression conditionExpression = node.condition;
@@ -3858,13 +3915,21 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       if (conditionExpression.accept(this)) {
         return true;
       }
-      bool blockReturns = node.body.accept(this);
+      node.body.accept(this);
       // TODO(jwren) Do we want to take all constant expressions into account?
       if (conditionExpression is BooleanLiteral) {
-        // If while(true), and the body doesn't return or the body doesn't have
-        // a break, then return true.
-        if (conditionExpression.value &&
-            (blockReturns || !_enclosingBlockContainsBreak)) {
+        // If while(true), and the body doesn't have a break, then return true.
+        // The body might be found to exit, but if there are any break
+        // statements, then it is a faulty finding. In other words:
+        //
+        // * If the body exits, and does not contain a break statement, then
+        //   it exits.
+        // * If the body does not exit, and does not contain a break statement,
+        //   then it loops infinitely (also an exit).
+        //
+        // As both conditions forbid any break statements to be found, the logic
+        // just boils down to checking [_enclosingBlockContainsBreak].
+        if (conditionExpression.value && !_enclosingBlockContainsBreak) {
           return true;
         }
       }
@@ -4775,7 +4840,7 @@ class InferenceContext {
    * Place an info node into the error stream indicating that a
    * [type] has been inferred as the type of [node].
    */
-  void recordInference(Expression node, DartType type) {
+  void recordInference(AstNode node, DartType type) {
     if (!_inferenceHints) {
       return;
     }
@@ -5571,6 +5636,11 @@ class ResolverVisitor extends ScopedVisitor {
   bool resolveOnlyCommentInFunctionBody = false;
 
   /**
+   * True if we're analyzing in strong mode.
+   */
+  bool _strongMode;
+
+  /**
    * Body of the function currently being analyzed, if any.
    */
   FunctionBody _currentFunctionBody;
@@ -5601,6 +5671,7 @@ class ResolverVisitor extends ScopedVisitor {
     this.typeSystem = definingLibrary.context.typeSystem;
     bool strongModeHints = false;
     AnalysisOptions options = definingLibrary.context.analysisOptions;
+    _strongMode = options.strongMode;
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
     }
@@ -6291,12 +6362,23 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
-    InferenceContext.setType(node.defaultValue, node.parameter.element?.type);
-    super.visitDefaultFormalParameter(node);
     ParameterElement element = node.element;
+    InferenceContext.setType(node.defaultValue, element.type);
+    super.visitDefaultFormalParameter(node);
     if (element.initializer != null && node.defaultValue != null) {
       (element.initializer as FunctionElementImpl).returnType =
           node.defaultValue.staticType;
+    }
+    if (_strongMode &&
+        node.defaultValue != null &&
+        element.hasImplicitType &&
+        element is! FieldFormalParameterElement) {
+
+      DartType type = node.defaultValue.staticType;
+      if (!type.isBottom && !type.isDynamic) {
+        (element as ParameterElementImpl).type = type;
+        inferenceContext.recordInference(node, type);
+      }
     }
     // Clone the ASTs for default formal parameters, so that we can use them
     // during constant evaluation.

@@ -1552,7 +1552,8 @@ class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
   void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
-    handle->UpdateUnreachable(thread()->isolate());
+    FinalizationQueue* queue = NULL;  // Finalize in the foreground.
+    handle->UpdateUnreachable(thread()->isolate(), queue);
   }
 
  private:
@@ -1675,10 +1676,20 @@ void Isolate::Shutdown() {
   if (heap_ != NULL) {
     // Wait for any concurrent GC tasks to finish before shutting down.
     // TODO(koda): Support faster sweeper shutdown (e.g., after current page).
-    PageSpace* old_space = heap_->old_space();
-    MonitorLocker ml(old_space->tasks_lock());
-    while (old_space->tasks() > 0) {
-      ml.Wait();
+    {
+      PageSpace* old_space = heap_->old_space();
+      MonitorLocker ml(old_space->tasks_lock());
+      while (old_space->tasks() > 0) {
+        ml.Wait();
+      }
+    }
+
+    // Wait for background finalization to finish before shutting down.
+    {
+      MonitorLocker ml(heap_->finalization_tasks_lock());
+      while (heap_->finalization_tasks() > 0) {
+        ml.Wait();
+      }
     }
   }
 

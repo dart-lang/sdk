@@ -20,6 +20,7 @@ class TextBuffer : ValueObject {
 
   intptr_t Printf(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void AddChar(char ch);
+  void EscapeAndAddUTF16CodeUnit(uint16_t cu);
   void EscapeAndAddCodeUnit(uint32_t cu);
   void AddString(const char* s);
   void AddEscapedString(const char* s);

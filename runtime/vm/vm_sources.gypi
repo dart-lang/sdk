@@ -136,6 +136,7 @@
     'dart_api_impl_test.cc',
     'dart_api_message.cc',
     'dart_api_message.h',
+    'dart_api_state.cc',
     'dart_api_state.h',
     'dart_entry.cc',
     'dart_entry.h',

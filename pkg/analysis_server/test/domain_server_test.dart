@@ -11,6 +11,7 @@ import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:plugin/manager.dart';
 import 'package:unittest/unittest.dart';
 
@@ -37,7 +38,7 @@ main() {
         null,
         serverPlugin,
         new AnalysisServerOptions(),
-        (_) => new MockSdk(),
+        new DartSdkManager('', false, (_) => new MockSdk()),
         InstrumentationService.NULL_SERVICE);
     handler = new ServerDomainHandler(server);
   });

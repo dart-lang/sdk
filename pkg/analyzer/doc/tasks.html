@@ -30,6 +30,7 @@ digraph G {
   BuildLibraryElementTask -> BUILD_LIBRARY_ERRORS
   BuildLibraryElementTask -> IS_LAUNCHABLE
   BuildLibraryElementTask -> LIBRARY_ELEMENT1
+  BuildLibraryElementTask -> REFERENCED_NAMES
   BuildPublicNamespaceTask -> LIBRARY_ELEMENT3
   BuildSourceExportClosureTask -> EXPORT_SOURCE_CLOSURE
   BuildTypeProviderTask -> TYPE_PROVIDER
@@ -305,7 +306,6 @@ digraph G {
   ResolveInstanceFieldsInUnitTask -> CREATED_RESOLVED_UNIT10
   ResolveInstanceFieldsInUnitTask -> RESOLVED_UNIT10
   ResolveLibraryReferencesTask -> LIBRARY_ELEMENT9
-  ResolveLibraryReferencesTask -> REFERENCED_NAMES
   ResolveLibraryTask -> LIBRARY_ELEMENT
   ResolveLibraryTypeNamesTask -> LIBRARY_ELEMENT6
   ResolveTopLevelLibraryTypeBoundsTask -> LIBRARY_ELEMENT5

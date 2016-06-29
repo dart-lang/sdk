@@ -385,6 +385,75 @@ main() {
 }
 ''',
   }, expectedWarningCount: 1),
+
+  const Test('Unused noSuchMethod', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  new A().m();
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+class A {
+  noSuchMethod(_) => null;
+  m();
+}
+''',
+  }),
+
+  const Test('Malformed types', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  m();
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+Unresolved m() {}
+''',
+  }),
+
+  const Test('Function types for closures', const {
+    'main.dart': '''
+import 'a.dart';
+
+typedef Func();
+
+main(args) {
+  (args.isEmpty ? new B() : new C()) is Func;
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+class B {
+  call(a) {}
+}
+class C {
+  call() {}
+}
+''',
+  }),
+
+  const Test('Double literal in constant constructor', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  const A(1.0);
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+class A {
+  final field1;
+  const A(a) : this.field1 = a + 1.0;
+}
+''',
+  }),
 ];
 
 class Test {

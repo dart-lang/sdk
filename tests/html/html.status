@@ -111,6 +111,7 @@ canvasrenderingcontext2d_test/drawImage_video_element: Skip # Times out. Please 
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Times out. Please triage this failure.
 transition_event_test/functional: Skip # Times out. Issue 22167
 request_animation_frame_test: Skip # Times out. Issue 22167
+custom/*: Pass, Timeout # Issue 26789
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219

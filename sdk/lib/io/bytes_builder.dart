@@ -160,7 +160,7 @@ class _BytesBuilder implements BytesBuilder {
     if (bytes is Uint8List) {
       typedBytes = bytes;
     } else {
-      bytes = new Uint8List.fromList(bytes);
+      typedBytes = new Uint8List.fromList(bytes);
     }
     _chunks.add(typedBytes);
     _length += typedBytes.length;

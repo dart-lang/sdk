@@ -5335,13 +5335,14 @@ DART_EXPORT Dart_Handle Dart_RootLibrary() {
 
 DART_EXPORT Dart_Handle Dart_SetRootLibrary(Dart_Handle library) {
   DARTSCOPE(Thread::Current());
-  const Library& lib = Api::UnwrapLibraryHandle(Z, library);
-  if (lib.IsNull()) {
-    RETURN_TYPE_ERROR(Z, library, Library);
+  const Object& obj = Object::Handle(Z, Api::UnwrapHandle(library));
+  if (obj.IsNull() || obj.IsLibrary()) {
+    Library& lib = Library::Handle(Z);
+    lib ^= obj.raw();
+    T->isolate()->object_store()->set_root_library(lib);
+    return library;
   }
-  Isolate* isolate = Isolate::Current();
-  isolate->object_store()->set_root_library(lib);
-  return library;
+  RETURN_TYPE_ERROR(Z, library, Library);
 }
 
 

@@ -624,6 +624,11 @@ abstract class Element implements AnalysisTarget {
   bool get isDeprecated;
 
   /**
+   * Return `true` if this element has an annotation of the form '@factory'.
+   */
+  bool get isFactory;
+
+  /**
    * Return `true` if this element has an annotation of the form '@JS(..)'.
    */
   bool get isJS;
@@ -817,6 +822,11 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
    * deprecated.
    */
   bool get isDeprecated;
+
+  /**
+   * Return `true` if this annotation marks the associated member as a factory.
+   */
+  bool get isFactory;
 
   /**
    * Return `true` if this annotation marks the associated element with the `JS`

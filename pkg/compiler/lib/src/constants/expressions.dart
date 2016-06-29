@@ -870,9 +870,18 @@ class BinaryConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
-    return constantSystem.lookupBinary(operator).fold(
-        left.evaluate(environment, constantSystem),
-        right.evaluate(environment, constantSystem));
+    ConstantValue leftValue = left.evaluate(environment, constantSystem);
+    ConstantValue rightValue = right.evaluate(environment, constantSystem);
+    switch (operator.kind) {
+      case BinaryOperatorKind.NOT_EQ:
+        BoolConstantValue equals =
+            constantSystem.equal.fold(leftValue, rightValue);
+        return equals.negate();
+      default:
+        return constantSystem
+            .lookupBinary(operator)
+            .fold(leftValue, rightValue);
+    }
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {

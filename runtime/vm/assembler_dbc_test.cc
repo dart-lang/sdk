@@ -147,6 +147,55 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
 }
 
 
+//  - OneByteStringFromCharCode rA, rX
+//
+//    Load the one-character symbol with the char code given by the Smi
+//    in FP[rX] into FP[rA].
+ASSEMBLER_TEST_GENERATE(OneByteStringFromCharCode, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Smi::ZoneHandle(Smi::New(65)));
+  __ OneByteStringFromCharCode(1, 0);
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(OneByteStringFromCharCode, test) {
+  EXPECT_EQ(Symbols::New(Thread::Current(), "A"),
+            EXECUTE_TEST_CODE_OBJECT(test->code()).raw());
+}
+
+
+//  - StringToCharCode rA, rX
+//
+//    Load and smi-encode the single char code of the string in FP[rX] into
+//    FP[rA]. If the string's length is not 1, load smi -1 instead.
+//
+ASSEMBLER_TEST_GENERATE(StringToCharCode, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, String::ZoneHandle(String::New("A", Heap::kOld)));
+  __ StringToCharCode(1, 0);
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(StringToCharCode, test) {
+  EXPECT_EQ(65, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(StringToCharCodeIllegalLength, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, String::ZoneHandle(String::New("AAA", Heap::kOld)));
+  __ StringToCharCode(1, 0);
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(StringToCharCodeIllegalLength, test) {
+  EXPECT_EQ(-1, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
 //  - AddTOS; SubTOS; MulTOS; BitOrTOS; BitAndTOS; EqualTOS; LessThanTOS;
 //    GreaterThanTOS;
 //

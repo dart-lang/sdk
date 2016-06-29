@@ -544,9 +544,7 @@ class _CodeGenerator {
     out('class $builderName extends Object with $mixinName '
         'implements ${idlPrefix(name)} {');
     indent(() {
-      out('bool _finished = false;');
       // Generate fields.
-      out();
       for (idlModel.FieldDeclaration field in cls.fields) {
         String fieldName = field.name;
         idlModel.FieldType type = field.type;
@@ -572,7 +570,6 @@ class _CodeGenerator {
           out('void set $fieldName($typeStr _value) {');
           indent(() {
             String stateFieldName = '_' + fieldName;
-            out('assert(!_finished);');
             // Validate that int(s) are non-negative.
             if (fieldType.typeName == 'int') {
               if (!fieldType.isList) {
@@ -637,8 +634,6 @@ class _CodeGenerator {
       out();
       out('fb.Offset finish(fb.Builder fbBuilder) {');
       indent(() {
-        out('assert(!_finished);');
-        out('_finished = true;');
         // Write objects and remember Offset(s).
         for (idlModel.FieldDeclaration field in cls.fields) {
           idlModel.FieldType fieldType = field.type;

@@ -1720,12 +1720,26 @@ void Precompiler::DropLibraries() {
       it.GetNext();
       entries++;
     }
-    // The root library might have no surviving members if it only exports main
-    // from another library. It will still be referenced from the object store,
-    // so retain it.
-    bool retain = (entries > 0) ||
-                  lib.is_dart_scheme() ||
-                  (lib.raw() == root_lib.raw());
+    bool retain = false;
+    if (entries > 0) {
+      retain = true;
+    } else if (lib.is_dart_scheme()) {
+      // The core libraries are referenced from the object store.
+      retain = true;
+    } else if (lib.raw() == root_lib.raw()) {
+      // The root library might have no surviving members if it only exports
+      // main from another library. It will still be referenced from the object
+      // store, so retain it.
+      retain = true;
+    } else {
+      // A type for a top-level class may be referenced from an object pool as
+      // part of an error message.
+      const Class& top = Class::Handle(Z, lib.toplevel_class());
+      if (classes_to_retain_.Lookup(&top) != NULL) {
+        retain = true;
+      }
+    }
+
     if (retain) {
       lib.set_index(retained_libraries.Length());
       retained_libraries.Add(lib);
@@ -1908,7 +1922,7 @@ void Precompiler::DedupStackmaps() {
 
     RawStackmap* DedupStackmap(const Stackmap& stackmap) {
       const Stackmap* canonical_stackmap =
-          canonical_stackmaps_.Lookup(&stackmap);
+          canonical_stackmaps_.LookupValue(&stackmap);
       if (canonical_stackmap == NULL) {
         canonical_stackmaps_.Insert(
             &Stackmap::ZoneHandle(zone_, stackmap.raw()));
@@ -1956,7 +1970,7 @@ void Precompiler::DedupStackmapLists() {
 
     RawArray* DedupStackmapList(const Array& stackmaps) {
       const Array* canonical_stackmap_list =
-          canonical_stackmap_lists_.Lookup(&stackmaps);
+          canonical_stackmap_lists_.LookupValue(&stackmaps);
       if (canonical_stackmap_list == NULL) {
         canonical_stackmap_lists_.Insert(
             &Array::ZoneHandle(zone_, stackmaps.raw()));
@@ -2004,7 +2018,7 @@ void Precompiler::DedupInstructions() {
 
     RawInstructions* DedupOneInstructions(const Instructions& instructions) {
       const Instructions* canonical_instructions =
-          canonical_instructions_set_.Lookup(&instructions);
+          canonical_instructions_set_.LookupValue(&instructions);
       if (canonical_instructions == NULL) {
         canonical_instructions_set_.Insert(
             &Instructions::ZoneHandle(zone_, instructions.raw()));
@@ -2710,8 +2724,11 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // The return value of setjmp is the deopt id of the check instruction
         // that caused the bailout.
         done = false;
+        if (!use_speculative_inlining) {
+          // Assert that we don't repeatedly retry speculation.
+          UNREACHABLE();
+        }
 #if defined(DEBUG)
-        ASSERT(use_speculative_inlining);
         for (intptr_t i = 0; i < inlining_black_list.length(); ++i) {
           ASSERT(inlining_black_list[i] != val);
         }

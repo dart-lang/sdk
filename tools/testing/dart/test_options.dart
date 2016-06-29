@@ -25,7 +25,8 @@ const List<String> defaultTestSelectors = const [
   'lib',
   'pkg',
   'analyze_library',
-  'service'
+  'service',
+  'observatory_ui'
 ];
 
 /**

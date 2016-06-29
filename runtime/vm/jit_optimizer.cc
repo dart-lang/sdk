@@ -741,7 +741,8 @@ bool JitOptimizer::TryReplaceWithIndexedOp(InstanceCallInstr* call) {
   if (ic_data.NumberOfChecks() != 1) {
     return false;
   }
-  return TryReplaceInstanceCallWithInline(call);
+  return FlowGraphInliner::TryReplaceInstanceCallWithInline(
+      flow_graph_, current_iterator(), call);
 }
 
 
@@ -1635,50 +1636,6 @@ bool JitOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
 }
 
 
-bool JitOptimizer::TryReplaceInstanceCallWithInline(
-    InstanceCallInstr* call) {
-  Function& target = Function::Handle(Z);
-  GrowableArray<intptr_t> class_ids;
-  call->ic_data()->GetCheckAt(0, &class_ids, &target);
-  const intptr_t receiver_cid = class_ids[0];
-
-  TargetEntryInstr* entry;
-  Definition* last;
-  if (!FlowGraphInliner::TryInlineRecognizedMethod(flow_graph_,
-                                                   receiver_cid,
-                                                   target,
-                                                   call,
-                                                   call->ArgumentAt(0),
-                                                   call->token_pos(),
-                                                   *call->ic_data(),
-                                                   &entry, &last)) {
-    return false;
-  }
-
-  // Insert receiver class check.
-  AddReceiverCheck(call);
-  // Remove the original push arguments.
-  for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-    PushArgumentInstr* push = call->PushArgumentAt(i);
-    push->ReplaceUsesWith(push->value()->definition());
-    push->RemoveFromGraph();
-  }
-  // Replace all uses of this definition with the result.
-  call->ReplaceUsesWith(last);
-  // Finally insert the sequence other definition in place of this one in the
-  // graph.
-  call->previous()->LinkTo(entry->next());
-  entry->UnuseAllInputs();  // Entry block is not in the graph.
-  last->LinkTo(call);
-  // Remove through the iterator.
-  ASSERT(current_iterator()->Current() == call);
-  current_iterator()->RemoveCurrentFromGraph();
-  call->set_previous(NULL);
-  call->set_next(NULL);
-  return true;
-}
-
-
 void JitOptimizer::ReplaceWithMathCFunction(
     InstanceCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
@@ -1734,49 +1691,15 @@ bool JitOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(target);
 
-  if ((recognized_kind == MethodRecognizer::kGrowableArraySetData) &&
-      (ic_data.NumberOfChecks() == 1) &&
-      (class_ids[0] == kGrowableObjectArrayCid)) {
-    // This is an internal method, no need to check argument types.
-    Definition* array = call->ArgumentAt(0);
-    Definition* value = call->ArgumentAt(1);
-    StoreInstanceFieldInstr* store = new(Z) StoreInstanceFieldInstr(
-        GrowableObjectArray::data_offset(),
-        new(Z) Value(array),
-        new(Z) Value(value),
-        kEmitStoreBarrier,
-        call->token_pos());
-    ReplaceCall(call, store);
-    return true;
-  }
-
-  if ((recognized_kind == MethodRecognizer::kGrowableArraySetLength) &&
-      (ic_data.NumberOfChecks() == 1) &&
-      (class_ids[0] == kGrowableObjectArrayCid)) {
-    // This is an internal method, no need to check argument types nor
-    // range.
-    Definition* array = call->ArgumentAt(0);
-    Definition* value = call->ArgumentAt(1);
-    StoreInstanceFieldInstr* store = new(Z) StoreInstanceFieldInstr(
-        GrowableObjectArray::length_offset(),
-        new(Z) Value(array),
-        new(Z) Value(value),
-        kNoStoreBarrier,
-        call->token_pos());
-    ReplaceCall(call, store);
-    return true;
-  }
-
   if ((recognized_kind == MethodRecognizer::kOneByteStringCodeUnitAt) ||
       (recognized_kind == MethodRecognizer::kTwoByteStringCodeUnitAt) ||
       (recognized_kind == MethodRecognizer::kExternalOneByteStringCodeUnitAt) ||
-      (recognized_kind == MethodRecognizer::kExternalTwoByteStringCodeUnitAt)) {
+      (recognized_kind == MethodRecognizer::kExternalTwoByteStringCodeUnitAt) ||
+      (recognized_kind == MethodRecognizer::kGrowableArraySetData) ||
+      (recognized_kind == MethodRecognizer::kGrowableArraySetLength)) {
       ASSERT(ic_data.NumberOfChecks() == 1);
-      ASSERT((class_ids[0] == kOneByteStringCid) ||
-             (class_ids[0] == kTwoByteStringCid) ||
-             (class_ids[0] == kExternalOneByteStringCid) ||
-             (class_ids[0] == kExternalTwoByteStringCid));
-    return TryReplaceInstanceCallWithInline(call);
+    return FlowGraphInliner::TryReplaceInstanceCallWithInline(
+        flow_graph_, current_iterator(), call);
   }
 
   if ((recognized_kind == MethodRecognizer::kStringBaseCharAt) &&
@@ -1785,7 +1708,8 @@ bool JitOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
              (class_ids[0] == kTwoByteStringCid) ||
              (class_ids[0] == kExternalOneByteStringCid) ||
              (class_ids[0] == kExternalTwoByteStringCid));
-    return TryReplaceInstanceCallWithInline(call);
+    return FlowGraphInliner::TryReplaceInstanceCallWithInline(
+        flow_graph_, current_iterator(), call);
   }
 
   if ((class_ids[0] == kOneByteStringCid) && (ic_data.NumberOfChecks() == 1)) {
@@ -1873,7 +1797,8 @@ bool JitOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       case MethodRecognizer::kDoubleSub:
       case MethodRecognizer::kDoubleMul:
       case MethodRecognizer::kDoubleDiv:
-        return TryReplaceInstanceCallWithInline(call);
+        return FlowGraphInliner::TryReplaceInstanceCallWithInline(
+            flow_graph_, current_iterator(), call);
       default:
         // Unsupported method.
         return false;
@@ -1882,7 +1807,8 @@ bool JitOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 
   if (IsSupportedByteArrayViewCid(class_ids[0]) &&
       (ic_data.NumberOfChecks() == 1)) {
-    return TryReplaceInstanceCallWithInline(call);
+    return FlowGraphInliner::TryReplaceInstanceCallWithInline(
+        flow_graph_, current_iterator(), call);
   }
 
   if ((class_ids[0] == kFloat32x4Cid) && (ic_data.NumberOfChecks() == 1)) {
@@ -2041,14 +1967,6 @@ bool JitOptimizer::TryInlineFloat32x4Method(
     case MethodRecognizer::kFloat32x4NotEqual: {
       Definition* left = call->ArgumentAt(0);
       Definition* right = call->ArgumentAt(1);
-      // Type check left.
-      AddCheckClass(left,
-                    ICData::ZoneHandle(
-                        Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                    call->deopt_id(),
-                    call->env(),
-                    call);
-      // Replace call.
       Float32x4ComparisonInstr* cmp =
           new(Z) Float32x4ComparisonInstr(recognized_kind,
                                           new(Z) Value(left),
@@ -2061,13 +1979,6 @@ bool JitOptimizer::TryInlineFloat32x4Method(
     case MethodRecognizer::kFloat32x4Max: {
       Definition* left = call->ArgumentAt(0);
       Definition* right = call->ArgumentAt(1);
-      // Type check left.
-      AddCheckClass(left,
-                    ICData::ZoneHandle(
-                        Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                    call->deopt_id(),
-                    call->env(),
-                    call);
       Float32x4MinMaxInstr* minmax =
           new(Z) Float32x4MinMaxInstr(
               recognized_kind,
@@ -2080,13 +1991,6 @@ bool JitOptimizer::TryInlineFloat32x4Method(
     case MethodRecognizer::kFloat32x4Scale: {
       Definition* left = call->ArgumentAt(0);
       Definition* right = call->ArgumentAt(1);
-      // Type check left.
-      AddCheckClass(left,
-                    ICData::ZoneHandle(
-                        Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                    call->deopt_id(),
-                    call->env(),
-                    call);
       // Left and right values are swapped when handed to the instruction,
       // this is done so that the double value is loaded into the output
       // register and can be destroyed.
@@ -2102,12 +2006,6 @@ bool JitOptimizer::TryInlineFloat32x4Method(
     case MethodRecognizer::kFloat32x4ReciprocalSqrt:
     case MethodRecognizer::kFloat32x4Reciprocal: {
       Definition* left = call->ArgumentAt(0);
-      AddCheckClass(left,
-                    ICData::ZoneHandle(
-                        Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                    call->deopt_id(),
-                    call->env(),
-                    call);
       Float32x4SqrtInstr* sqrt =
           new(Z) Float32x4SqrtInstr(recognized_kind,
                                     new(Z) Value(left),
@@ -2121,13 +2019,6 @@ bool JitOptimizer::TryInlineFloat32x4Method(
     case MethodRecognizer::kFloat32x4WithW: {
       Definition* left = call->ArgumentAt(0);
       Definition* right = call->ArgumentAt(1);
-      // Type check left.
-      AddCheckClass(left,
-                    ICData::ZoneHandle(
-                        Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                    call->deopt_id(),
-                    call->env(),
-                    call);
       Float32x4WithInstr* with = new(Z) Float32x4WithInstr(recognized_kind,
                                                            new(Z) Value(left),
                                                            new(Z) Value(right),
@@ -2138,13 +2029,6 @@ bool JitOptimizer::TryInlineFloat32x4Method(
     case MethodRecognizer::kFloat32x4Absolute:
     case MethodRecognizer::kFloat32x4Negate: {
       Definition* left = call->ArgumentAt(0);
-      // Type check left.
-      AddCheckClass(left,
-                    ICData::ZoneHandle(
-                        Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                    call->deopt_id(),
-                    call->env(),
-                    call);
       Float32x4ZeroArgInstr* zeroArg =
           new(Z) Float32x4ZeroArgInstr(
               recognized_kind, new(Z) Value(left), call->deopt_id());
@@ -2155,13 +2039,6 @@ bool JitOptimizer::TryInlineFloat32x4Method(
       Definition* left = call->ArgumentAt(0);
       Definition* lower = call->ArgumentAt(1);
       Definition* upper = call->ArgumentAt(2);
-      // Type check left.
-      AddCheckClass(left,
-                    ICData::ZoneHandle(
-                        Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                    call->deopt_id(),
-                    call->env(),
-                    call);
       Float32x4ClampInstr* clamp = new(Z) Float32x4ClampInstr(
           new(Z) Value(left),
           new(Z) Value(lower),
@@ -2198,13 +2075,6 @@ bool JitOptimizer::TryInlineFloat64x2Method(
     case MethodRecognizer::kFloat64x2Sqrt:
     case MethodRecognizer::kFloat64x2GetSignMask: {
       Definition* left = call->ArgumentAt(0);
-      // Type check left.
-      AddCheckClass(left,
-                    ICData::ZoneHandle(
-                        Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                    call->deopt_id(),
-                    call->env(),
-                    call);
       Float64x2ZeroArgInstr* zeroArg =
           new(Z) Float64x2ZeroArgInstr(
               recognized_kind, new(Z) Value(left), call->deopt_id());
@@ -2218,13 +2088,6 @@ bool JitOptimizer::TryInlineFloat64x2Method(
     case MethodRecognizer::kFloat64x2Max: {
       Definition* left = call->ArgumentAt(0);
       Definition* right = call->ArgumentAt(1);
-      // Type check left.
-      AddCheckClass(left,
-                    ICData::ZoneHandle(
-                        Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                    call->deopt_id(),
-                    call->env(),
-                    call);
       Float64x2OneArgInstr* zeroArg =
           new(Z) Float64x2OneArgInstr(recognized_kind,
                                       new(Z) Value(left),

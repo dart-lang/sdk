@@ -28,6 +28,7 @@
 #include "vm/object_store.h"
 #include "vm/os_thread.h"
 #include "vm/stack_frame.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -1525,6 +1526,28 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(OneByteStringFromCharCode, A_X);
+    const intptr_t char_code = Smi::Value(RAW_CAST(Smi, FP[rD]));
+    ASSERT(char_code >= 0);
+    ASSERT(char_code <= 255);
+    RawString** strings = Symbols::PredefinedAddress();
+    const intptr_t index = char_code + Symbols::kNullCharCodeSymbolOffset;
+    FP[rA] = strings[index];
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StringToCharCode, A_X);
+    RawOneByteString* str = RAW_CAST(OneByteString, FP[rD]);
+    if (str->ptr()->length_ == Smi::New(1)) {
+      FP[rA] = Smi::New(str->ptr()->data()[0]);
+    } else {
+      FP[rA] = Smi::New(-1);
+    }
+    DISPATCH();
+  }
+
+  {
     BYTECODE(AddTOS, A_B_C);
     SMI_FASTPATH_TOS(intptr_t, SignedAddWithOverflow);
     DISPATCH();
@@ -1850,6 +1873,73 @@ RawObject* Simulator::Call(const Code& code,
     NativeArguments args(thread, 2, SP + 1, SP - 1);
     INVOKE_RUNTIME(DRT_AllocateArray, args);
     SP -= 1;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(InstanceOf, A);  // Stack: instance, type args, type, cache
+    RawInstance* instance = static_cast<RawInstance*>(SP[-3]);
+    RawTypeArguments* instantiator_type_arguments =
+        static_cast<RawTypeArguments*>(SP[-2]);
+    RawAbstractType* type = static_cast<RawAbstractType*>(SP[-1]);
+    RawSubtypeTestCache* cache = static_cast<RawSubtypeTestCache*>(SP[0]);
+
+    if (cache != null_value) {
+      const intptr_t cid = SimulatorHelpers::GetClassId(instance);
+
+      RawTypeArguments* instance_type_arguments =
+          static_cast<RawTypeArguments*>(null_value);
+      RawObject* instance_cid_or_function;
+      if (cid == kClosureCid) {
+        RawClosure* closure = static_cast<RawClosure*>(instance);
+        instance_type_arguments = closure->ptr()->type_arguments_;
+        instance_cid_or_function = closure->ptr()->function_;
+      } else {
+        instance_cid_or_function = Smi::New(cid);
+
+        RawClass* instance_class =
+            thread->isolate()->class_table()->At(cid);
+        if (instance_class->ptr()->num_type_arguments_ < 0) {
+          goto InstanceOfCallRuntime;
+        } else if (instance_class->ptr()->num_type_arguments_ > 0) {
+          instance_type_arguments = reinterpret_cast<RawTypeArguments**>(
+              instance
+                  ->ptr())[instance_class->ptr()
+                               ->type_arguments_field_offset_in_words_];
+        }
+      }
+
+      for (RawObject** entries = cache->ptr()->cache_->ptr()->data();
+           entries[0] != null_value;
+           entries += SubtypeTestCache::kTestEntryLength) {
+        if ((entries[SubtypeTestCache::kInstanceClassIdOrFunction] ==
+                instance_cid_or_function) &&
+            (entries[SubtypeTestCache::kInstanceTypeArguments] ==
+                instance_type_arguments) &&
+            (entries[SubtypeTestCache::kInstantiatorTypeArguments] ==
+                instantiator_type_arguments)) {
+          SP[-3] = entries[SubtypeTestCache::kTestResult];
+          goto InstanceOfOk;
+        }
+      }
+    }
+
+  InstanceOfCallRuntime:
+    {
+      SP[1] = instance;
+      SP[2] = type;
+      SP[3] = instantiator_type_arguments;
+      SP[4] = cache;
+      Exit(thread, FP, SP + 5, pc);
+      NativeArguments native_args(thread, 4, SP + 1, SP - 3);
+      INVOKE_RUNTIME(DRT_Instanceof, native_args);
+    }
+
+  InstanceOfOk:
+    SP -= 3;
+    if (rA) {  // Negate result.
+      SP[0] = (SP[0] == true_value) ? false_value : true_value;
+    }
     DISPATCH();
   }
 

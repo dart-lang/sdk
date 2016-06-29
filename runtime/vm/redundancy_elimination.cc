@@ -45,7 +45,7 @@ class CSEInstructionMap : public ValueObject {
   }
 
   Instruction* Lookup(Instruction* other) const {
-    return GetMapFor(other)->Lookup(other);
+    return GetMapFor(other)->LookupValue(other);
   }
 
   void Insert(Instruction* instr) {
@@ -707,7 +707,7 @@ class AliasedSet : public ZoneAllocated {
   }
 
   intptr_t LookupAliasId(const Place& alias) {
-    const Place* result = aliases_map_.Lookup(&alias);
+    const Place* result = aliases_map_.LookupValue(&alias);
     return (result != NULL) ? result->id() : static_cast<intptr_t>(kNoAlias);
   }
 
@@ -725,7 +725,7 @@ class AliasedSet : public ZoneAllocated {
   }
 
   Place* LookupCanonical(Place* place) const {
-    return places_map_->Lookup(place);
+    return places_map_->LookupValue(place);
   }
 
   void PrintSet(BitVector* set) {
@@ -851,14 +851,14 @@ class AliasedSet : public ZoneAllocated {
   }
 
   const Place* CanonicalizeAlias(const Place& alias) {
-    const Place* canonical = aliases_map_.Lookup(&alias);
+    const Place* canonical = aliases_map_.LookupValue(&alias);
     if (canonical == NULL) {
       canonical = Place::Wrap(zone_,
                               alias,
                               kAnyInstanceAnyIndexAlias + aliases_.length());
       InsertAlias(canonical);
     }
-    ASSERT(aliases_map_.Lookup(&alias) == canonical);
+    ASSERT(aliases_map_.LookupValue(&alias) == canonical);
     return canonical;
   }
 
@@ -1234,7 +1234,7 @@ static PhiPlaceMoves* ComputePhiMoves(
       for (intptr_t j = 0; j < phi->InputCount(); j++) {
         input_place.set_instance(phi->InputAt(j)->definition());
 
-        Place* result = map->Lookup(&input_place);
+        Place* result = map->LookupValue(&input_place);
         if (result == NULL) {
           result = Place::Wrap(zone, input_place, places->length());
           map->Insert(result);
@@ -1289,7 +1289,7 @@ static AliasedSet* NumberPlaces(
         continue;
       }
 
-      Place* result = map->Lookup(&place);
+      Place* result = map->LookupValue(&place);
       if (result == NULL) {
         result = Place::Wrap(zone, place, places->length());
         map->Insert(result);

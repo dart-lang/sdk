@@ -86,6 +86,12 @@ abstract class AnalysisContext {
   static const List<AnalysisContext> EMPTY_LIST = const <AnalysisContext>[];
 
   /**
+   * The file resolver provider used to override the way file URI's are
+   * resolved in some contexts.
+   */
+  ResolverProvider fileResolverProvider;
+
+  /**
    * Return the set of analysis options controlling the behavior of this
    * context. Clients should not modify the returned set of options. The options
    * should only be set by invoking the method [setAnalysisOptions].
@@ -331,12 +337,6 @@ abstract class AnalysisContext {
    * exist even if there is no file on disk.
    */
   bool exists(Source source);
-
-  /**
-   * The file resolver provider used to override the way file URI's are
-   * resolved in some contexts.
-   */
-  ResolverProvider fileResolverProvider;
 
   /**
    * Return the element model corresponding to the compilation unit defined by
@@ -787,12 +787,6 @@ class AnalysisEngine {
   final PartitionManager partitionManager = new PartitionManager();
 
   /**
-   * A flag indicating whether the task model should attempt to limit
-   * invalidation after a change.
-   */
-  bool limitInvalidationInTaskModel = false;
-
-  /**
    * The task manager used to manage the tasks used to analyze code.
    */
   TaskManager _taskManager;
@@ -1101,6 +1095,14 @@ abstract class AnalysisOptions {
   bool get enableTiming;
 
   /**
+   * A flag indicating whether finer grained dependencies should be used
+   * instead of just source level dependencies.
+   *
+   * This option is experimental and subject to change.
+   */
+  bool get finerGrainedInvalidation;
+
+  /**
    * Return `true` if errors, warnings and hints should be generated for sources
    * that are implicitly being analyzed. The default value is `true`.
    */
@@ -1309,6 +1311,21 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   bool implicitCasts = true;
 
+  @override
+  bool finerGrainedInvalidation = false;
+
+  /**
+   * A flag indicating whether implicit dynamic type is allowed, on by default.
+   *
+   * This flag can be used without necessarily enabling [strongMode], but it is
+   * designed with strong mode's type inference in mind. Without type inference,
+   * it will raise many errors. Also it does not provide type safety without
+   * strong mode.
+   *
+   * This option is experimental and subject to change.
+   */
+  bool implicitDynamic = true;
+
   /**
    * Initialize a newly created set of analysis options to have their default
    * values.
@@ -1341,8 +1358,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
       implicitCasts = options.implicitCasts;
+      implicitDynamic = options.implicitDynamic;
     }
     trackCacheDependencies = options.trackCacheDependencies;
+    finerGrainedInvalidation = options.finerGrainedInvalidation;
   }
 
   bool get analyzeFunctionBodies {
@@ -1404,6 +1423,48 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
     }
+  }
+
+  /**
+   * Produce a human readable list of option names corresponding to the options
+   * encoded in the given [encoding], presumably from invoking the method
+   * [encodeCrossContextOptions].
+   */
+  static String decodeCrossContextOptions(int encoding) {
+    if (encoding == 0) {
+      return 'none';
+    }
+    StringBuffer buffer = new StringBuffer();
+    bool needsSeparator = false;
+    void add(String optionName) {
+      if (needsSeparator) {
+        buffer.write(', ');
+      }
+      buffer.write(optionName);
+      needsSeparator = true;
+    }
+    if (encoding & ENABLE_ASSERT_FLAG > 0) {
+      add('assert');
+    }
+    if (encoding & ENABLE_ASYNC_FLAG > 0) {
+      add('async');
+    }
+    if (encoding & ENABLE_GENERIC_METHODS_FLAG > 0) {
+      add('genericMethods');
+    }
+    if (encoding & ENABLE_STRICT_CALL_CHECKS_FLAG > 0) {
+      add('strictCallChecks');
+    }
+    if (encoding & ENABLE_STRONG_MODE_FLAG > 0) {
+      add('strongMode');
+    }
+    if (encoding & ENABLE_STRONG_MODE_HINTS_FLAG > 0) {
+      add('strongModeHints');
+    }
+    if (encoding & ENABLE_SUPER_MIXINS_FLAG > 0) {
+      add('superMixins');
+    }
+    return buffer.toString();
   }
 
   /**

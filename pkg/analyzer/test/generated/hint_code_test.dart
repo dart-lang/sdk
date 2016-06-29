@@ -707,10 +707,10 @@ class A {
     verify([source]);
   }
 
-  void test_deprecatedAnnotationUse_Deprecated() {
+  void test_deprecatedAnnotationUse_deprecated() {
     Source source = addSource(r'''
 class A {
-  @Deprecated('0.9')
+  @deprecated
   m() {}
   n() {m();}
 }''');
@@ -719,10 +719,10 @@ class A {
     verify([source]);
   }
 
-  void test_deprecatedAnnotationUse_deprecated() {
+  void test_deprecatedAnnotationUse_Deprecated() {
     Source source = addSource(r'''
 class A {
-  @deprecated
+  @Deprecated('0.9')
   m() {}
   n() {m();}
 }''');
@@ -1002,6 +1002,186 @@ class B {}''');
     verify([source]);
   }
 
+  void test_factory__expr_return_null_OK() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class Stateful {
+  @factory
+  State createState() => null;
+}
+
+class State { }
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_factory_abstract_OK() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+abstract class Stateful {
+  @factory
+  State createState();
+}
+
+class State { }
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_factory_bad_return() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class Stateful {
+  State _s = new State();
+
+  @factory
+  State createState() => _s;
+}
+
+class State { }
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_FACTORY_METHOD_IMPL]);
+    verify([source]);
+  }
+
+  void test_factory_block_OK() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class Stateful {
+  @factory
+  State createState() {
+    return new State();
+  }
+}
+
+class State { }
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_factory_block_return_null_OK() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class Stateful {
+  @factory
+  State createState() {
+    return null;
+  }
+}
+
+class State { }
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_factory_expr_OK() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class Stateful {
+  @factory
+  State createState() => new State();
+}
+
+class State { }
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_factory_misplaced_annotation() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+@factory
+class X {
+  @factory
+  int x;
+}
+
+@factory
+main() { }
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      HintCode.INVALID_FACTORY_ANNOTATION,
+      HintCode.INVALID_FACTORY_ANNOTATION,
+      HintCode.INVALID_FACTORY_ANNOTATION
+    ]);
+    verify([source]);
+  }
+
+  void test_factory_no_return_type_OK() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class Stateful {
+  @factory
+  createState() {
+    return new Stateful();
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    // Null return types will get flagged elsewhere, no need to pile-on here.
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_factory_subclass_OK() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+abstract class Stateful {
+  @factory
+  State createState();
+}
+
+class MyThing extends Stateful {
+  @override
+  State createState() {
+    print('my state');
+    return new MyState();
+  }
+}
+
+class State { }
+class MyState extends State { }
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_factory_void_return() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class Stateful {
+  @factory
+  void createState() {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_FACTORY_METHOD_DECL]);
+    verify([source]);
+  }
+
   void test_importDeferredLibraryWithLoadFunction() {
     resolveWithErrors(<String>[
       r'''
@@ -1088,35 +1268,55 @@ main() {
   }
 
   void test_invalidUseOfProtectedMember_closure() {
-    Source source = addSource(r'''
+    Source source = addNamedSource(
+        '/lib1.dart',
+        r'''
 import 'package:meta/meta.dart';
 
 class A {
   @protected
   int a() => 42;
 }
+''');
+    Source source2 = addNamedSource(
+        '/lib2.dart',
+        r'''
+import 'lib1.dart';
+
 void main() {
   var leak = new A().a;
   print(leak);
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
-    verify([source]);
+}
+''');
+    computeLibrarySourceErrors(source2);
+    assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertNoErrors(source);
+    verify([source, source2]);
   }
 
   void test_invalidUseOfProtectedMember_field() {
-    Source source = addSource(r'''
+    Source source = addNamedSource(
+        '/lib1.dart',
+        r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   int a;
 }
+''');
+    Source source2 = addNamedSource(
+        '/lib2.dart',
+        r'''
+import 'lib1.dart';
+
 abstract class B {
   int b() => new A().a;
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
-    verify([source]);
+}
+''');
+    computeLibrarySourceErrors(source2);
+    assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertNoErrors(source);
+    verify([source, source2]);
   }
 
   void test_invalidUseOfProtectedMember_field_OK() {
@@ -1135,6 +1335,31 @@ abstract class B implements A {
   }
 
   void test_invalidUseOfProtectedMember_function() {
+    Source source = addNamedSource(
+        '/lib1.dart',
+        r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+''');
+    Source source2 = addNamedSource(
+        '/lib2.dart',
+        r'''
+import 'lib1.dart';
+
+main() {
+  new A().a();
+}
+''');
+    computeLibrarySourceErrors(source2);
+    assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertNoErrors(source);
+    verify([source, source2]);
+  }
+
+  void test_invalidUseOfProtectedMember_function_OK2() {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
 class A {
@@ -1145,7 +1370,7 @@ main() {
   new A().a();
 }''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1166,19 +1391,29 @@ abstract class B implements A {
   }
 
   void test_invalidUseOfProtectedMember_getter() {
-    Source source = addSource(r'''
+    Source source = addNamedSource(
+        '/lib1.dart',
+        r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   int get a => 42;
 }
+''');
+    Source source2 = addNamedSource(
+        '/lib2.dart',
+        r'''
+import 'lib1.dart';
+
 class B {
   A a;
   int b() => a.a;
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
-    verify([source]);
+}
+''');
+    computeLibrarySourceErrors(source2);
+    assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertNoErrors(source);
+    verify([source, source2]);
   }
 
   void test_invalidUseOfProtectedMember_getter_OK() {
@@ -1218,34 +1453,55 @@ f() {}
   }
 
   void test_invalidUseOfProtectedMember_message() {
-    Source source = addSource(r'''
+    Source source = addNamedSource(
+        '/lib1.dart',
+        r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   void a(){ }
 }
+''');
+    Source source2 = addNamedSource(
+        '/lib2.dart',
+        r'''
+import 'lib1.dart';
+
 class B {
   void b() => new A().a();
-}''');
-    List<AnalysisError> errors = analysisContext2.computeErrors(source);
+}
+''');
+    List<AnalysisError> errors = analysisContext2.computeErrors(source2);
     expect(errors, hasLength(1));
     expect(errors[0].message,
         "The member 'a' can only be used within instance members of subclasses of 'A'");
+    verify([source, source2]);
   }
 
   void test_invalidUseOfProtectedMember_method_1() {
-    Source source = addSource(r'''
+    Source source = addNamedSource(
+        '/lib1.dart',
+        r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   void a(){ }
 }
+''');
+    Source source2 = addNamedSource(
+        '/lib2.dart',
+        r'''
+import 'lib1.dart';
+
 class B {
   void b() => new A().a();
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
-    verify([source]);
+}
+''');
+
+    computeLibrarySourceErrors(source2);
+    assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertNoErrors(source);
+    verify([source, source2]);
   }
 
   void test_invalidUseOfProtectedMember_method_OK() {
@@ -1401,21 +1657,31 @@ class A {
   }
 
   void test_invalidUseOfProtectedMember_setter() {
-    Source source = addSource(r'''
+    Source source = addNamedSource(
+        '/lib1.dart',
+        r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   void set a(int i) { }
 }
+''');
+    Source source2 = addNamedSource(
+        '/lib2.dart',
+        r'''
+import 'lib1.dart';
+
 class B{
   A a;
   b(int i) {
     a.a = i;
   }
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
-    verify([source]);
+}
+''');
+    computeLibrarySourceErrors(source2);
+    assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertNoErrors(source);
+    verify([source, source2]);
   }
 
   void test_invalidUseOfProtectedMember_setter_OK() {

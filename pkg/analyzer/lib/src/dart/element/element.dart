@@ -2462,6 +2462,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
   static String _DEPRECATED_VARIABLE_NAME = "deprecated";
 
   /**
+   * The name of the top-level variable used to mark a method as being a
+   * factory.
+   */
+  static String _FACTORY_VARIABLE_NAME = "factory";
+
+  /**
    * The name of the class used to JS annotate an element.
    */
   static String _JS_CLASS_NAME = "JS";
@@ -2558,6 +2564,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
     }
     return false;
   }
+
+  @override
+  bool get isFactory =>
+      element is PropertyAccessorElement &&
+      element.name == _FACTORY_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
 
   @override
   bool get isJS =>
@@ -2803,6 +2815,16 @@ abstract class ElementImpl implements Element {
   }
 
   @override
+  bool get isFactory {
+    for (ElementAnnotation annotation in metadata) {
+      if (annotation.isFactory) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
   bool get isJS {
     for (ElementAnnotation annotation in metadata) {
       if (annotation.isJS) {
@@ -2865,6 +2887,9 @@ abstract class ElementImpl implements Element {
   @override
   LibraryElement get library =>
       getAncestor((element) => element is LibraryElement);
+
+  @override
+  Source get librarySource => library?.source;
 
   @override
   ElementLocation get location {
@@ -6482,6 +6507,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   bool get isDeprecated => false;
 
   @override
+  bool get isFactory => false;
+
+  @override
   bool get isJS => false;
 
   @override
@@ -6513,6 +6541,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   LibraryElement get library => null;
+
+  @override
+  Source get librarySource => null;
 
   @override
   ElementLocation get location => null;
@@ -6579,7 +6610,12 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
       if (i > 0) {
         buffer.write(", ");
       }
-      (conflictingElements[i] as ElementImpl).appendTo(buffer);
+      Element element = conflictingElements[i];
+      if (element is ElementImpl) {
+        element.appendTo(buffer);
+      } else {
+        buffer.write(element);
+      }
     }
     buffer.write("]");
     return buffer.toString();

@@ -2682,6 +2682,9 @@ abstract class ErrorCode {
     HintCode.DEPRECATED_MEMBER_USE,
     HintCode.DUPLICATE_IMPORT,
     HintCode.DIVISION_OPTIMIZATION,
+    HintCode.INVALID_FACTORY_ANNOTATION,
+    HintCode.INVALID_FACTORY_METHOD_DECL,
+    HintCode.INVALID_FACTORY_METHOD_IMPL,
     HintCode.IS_DOUBLE,
     HintCode.IS_INT,
     HintCode.IS_NOT_DOUBLE,
@@ -2856,6 +2859,16 @@ abstract class ErrorCode {
     StrongModeCode.DOWN_CAST_IMPLICIT,
     StrongModeCode.DYNAMIC_CAST,
     StrongModeCode.DYNAMIC_INVOKE,
+    StrongModeCode.IMPLICIT_DYNAMIC_FIELD,
+    StrongModeCode.IMPLICIT_DYNAMIC_FUNCTION,
+    StrongModeCode.IMPLICIT_DYNAMIC_INVOKE,
+    StrongModeCode.IMPLICIT_DYNAMIC_LIST_LITERAL,
+    StrongModeCode.IMPLICIT_DYNAMIC_MAP_LITERAL,
+    StrongModeCode.IMPLICIT_DYNAMIC_METHOD,
+    StrongModeCode.IMPLICIT_DYNAMIC_PARAMETER,
+    StrongModeCode.IMPLICIT_DYNAMIC_RETURN,
+    StrongModeCode.IMPLICIT_DYNAMIC_TYPE,
+    StrongModeCode.IMPLICIT_DYNAMIC_VARIABLE,
     StrongModeCode.INFERRED_TYPE,
     StrongModeCode.INFERRED_TYPE_ALLOCATION,
     StrongModeCode.INFERRED_TYPE_CLOSURE,
@@ -3607,6 +3620,34 @@ class HintCode extends ErrorCode {
   static const HintCode INVALID_ASSIGNMENT = const HintCode(
       'INVALID_ASSIGNMENT',
       "A value of type '{0}' cannot be assigned to a variable of type '{1}'");
+
+  /**
+   * This hint is generated anywhere a @factory annotation is associated with
+   * anything other than a method.
+   */
+  static const HintCode INVALID_FACTORY_ANNOTATION = const HintCode(
+      'INVALID_FACTORY_ANNOTATION',
+      "Only methods can be annotated as factories.");
+
+  /**
+   * This hint is generated anywhere a @factory annotation is associated with
+   * a method that does not declare a return type.
+   */
+  static const HintCode INVALID_FACTORY_METHOD_DECL = const HintCode(
+      'INVALID_FACTORY_METHOD_DECL',
+      "Factory method '{0}' must have a return type.");
+
+  /**
+   * This hint is generated anywhere a @factory annotation is associated with
+   * a non-abstract method that can return anything other than a newly allocated
+   * object.
+   *
+   * Parameters:
+   * 0: the name of the method
+   */
+  static const HintCode INVALID_FACTORY_METHOD_IMPL = const HintCode(
+      'INVALID_FACTORY_METHOD_IMPL',
+      "Factory method '{0}' does not return a newly allocated object.");
 
   /**
    * This hint is generated anywhere where a member annotated with `@protected`
@@ -4885,7 +4926,7 @@ class StaticWarningCode extends ErrorCode {
    */
   static const StaticWarningCode FINAL_NOT_INITIALIZED =
       const StaticWarningCode('FINAL_NOT_INITIALIZED',
-          "The final variable '{0}' must be initialized");
+          "The final variable '{0}' must be initialized", null, false);
 
   /**
    * 7.6.1 Generative Constructors: Each final instance variable <i>f</i>
@@ -4901,7 +4942,7 @@ class StaticWarningCode extends ErrorCode {
    */
   static const StaticWarningCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 =
       const StaticWarningCode('FINAL_NOT_INITIALIZED_CONSTRUCTOR_1',
-          "The final variable '{0}' must be initialized");
+          "The final variable '{0}' must be initialized", null, false);
 
   /**
    * 7.6.1 Generative Constructors: Each final instance variable <i>f</i>
@@ -4917,8 +4958,11 @@ class StaticWarningCode extends ErrorCode {
    * 1: the name of the uninitialized final variable
    */
   static const StaticWarningCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 =
-      const StaticWarningCode('FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
-          "The final variables '{0}' and '{1}' must be initialized");
+      const StaticWarningCode(
+          'FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
+          "The final variables '{0}' and '{1}' must be initialized",
+          null,
+          false);
 
   /**
    * 7.6.1 Generative Constructors: Each final instance variable <i>f</i>
@@ -4935,8 +4979,11 @@ class StaticWarningCode extends ErrorCode {
    * 2: the number of additional not initialized variables that aren't listed
    */
   static const StaticWarningCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS =
-      const StaticWarningCode('FINAL_NOT_INITIALIZED_CONSTRUCTOR_3',
-          "The final variables '{0}', '{1}' and '{2}' more must be initialized");
+      const StaticWarningCode(
+          'FINAL_NOT_INITIALIZED_CONSTRUCTOR_3',
+          "The final variables '{0}', '{1}' and '{2}' more must be initialized",
+          null,
+          false);
 
   /**
    * 15.5 Function Types: It is a static warning if a concrete class implements
@@ -5257,8 +5304,11 @@ class StaticWarningCode extends ErrorCode {
    * <i>S</i>, and <i>T</i> may not be assigned to <i>S</i>.
    */
   static const StaticWarningCode MISMATCHED_GETTER_AND_SETTER_TYPES =
-      const StaticWarningCode('MISMATCHED_GETTER_AND_SETTER_TYPES',
-          "The parameter type for setter '{0}' is '{1}' which is not assignable to its getter (of type '{2}')");
+      const StaticWarningCode(
+          'MISMATCHED_GETTER_AND_SETTER_TYPES',
+          "The parameter type for setter '{0}' is '{1}' which is not assignable to its getter (of type '{2}')",
+          null,
+          false);
 
   /**
    * 7.3 Setters: It is a static warning if a class has a setter named <i>v=</i>
@@ -5269,7 +5319,9 @@ class StaticWarningCode extends ErrorCode {
       MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE =
       const StaticWarningCode(
           'MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE',
-          "The parameter type for setter '{0}' is '{1}' which is not assignable to its getter (of type '{2}'), from superclass '{3}'");
+          "The parameter type for setter '{0}' is '{1}' which is not assignable to its getter (of type '{2}'), from superclass '{3}'",
+          null,
+          false);
 
   /**
    * 13.12 Return: It is a static warning if a function contains both one or
@@ -5278,7 +5330,9 @@ class StaticWarningCode extends ErrorCode {
    */
   static const StaticWarningCode MIXED_RETURN_TYPES = const StaticWarningCode(
       'MIXED_RETURN_TYPES',
-      "Methods and functions cannot use return both with and without values");
+      "Methods and functions cannot use return both with and without values",
+      null,
+      false);
 
   /**
    * 12.11.1 New: It is a static warning if <i>q</i> is a constructor of an
@@ -5490,7 +5544,7 @@ class StaticWarningCode extends ErrorCode {
    */
   static const StaticWarningCode NON_VOID_RETURN_FOR_OPERATOR =
       const StaticWarningCode('NON_VOID_RETURN_FOR_OPERATOR',
-          "The return type of the operator []= must be 'void'");
+          "The return type of the operator []= must be 'void'", null, false);
 
   /**
    * 7.3 Setters: It is a static warning if a setter declares a return type
@@ -5498,7 +5552,7 @@ class StaticWarningCode extends ErrorCode {
    */
   static const StaticWarningCode NON_VOID_RETURN_FOR_SETTER =
       const StaticWarningCode('NON_VOID_RETURN_FOR_SETTER',
-          "The return type of the setter must be 'void'");
+          "The return type of the setter must be 'void'", null, false);
 
   /**
    * 15.1 Static Types: A type <i>T</i> is malformed iff:
@@ -5597,7 +5651,10 @@ class StaticWarningCode extends ErrorCode {
    * * The return type of <i>f</i> may not be assigned to void.
    */
   static const StaticWarningCode RETURN_WITHOUT_VALUE = const StaticWarningCode(
-      'RETURN_WITHOUT_VALUE', "Missing return value after 'return'");
+      'RETURN_WITHOUT_VALUE',
+      "Missing return value after 'return'",
+      null,
+      false);
 
   /**
    * 12.16.3 Static Invocation: It is a static warning if <i>C</i> does not
@@ -5780,7 +5837,7 @@ class StaticWarningCode extends ErrorCode {
    */
   static const StaticWarningCode VOID_RETURN_FOR_GETTER =
       const StaticWarningCode('VOID_RETURN_FOR_GETTER',
-          "The return type of the getter must not be 'void'");
+          "The return type of the getter must not be 'void'", null, false);
 
   /**
    * 17.9 Switch: It is a static warning if all of the following conditions
@@ -5799,7 +5856,8 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode(
           'MISSING_ENUM_CONSTANT_IN_SWITCH',
           "Missing case clause for '{0}'",
-          "Add a case clause for the missing constant or add a default clause.");
+          "Add a case clause for the missing constant or add a default clause.",
+          false);
 
   /**
    * A flag indicating whether this warning is an error when running with strong
@@ -5814,7 +5872,7 @@ class StaticWarningCode extends ErrorCode {
    * given [correction] template.
    */
   const StaticWarningCode(String name, String message,
-      [String correction, this.isStrongModeError = false])
+      [String correction, this.isStrongModeError = true])
       : super(name, message, correction);
 
   @override
@@ -5842,6 +5900,17 @@ class StrongModeCode extends ErrorCode {
   static const String _invalidOverrideMessage =
       'The type of {0}.{1} ({2}) is not a '
       'subtype of {3}.{1} ({4}).';
+
+  /**
+   * This is appended to the end of an error message about implicit dynamic.
+   *
+   * The idea is to make sure the user is aware that this error message is the
+   * result of turning on a particular option, and they are free to turn it
+   * back off.
+   */
+  static const String _implicitDynamicTip =
+      ". Either add an explicit type like 'dynamic'"
+      ", or enable implicit-dynamic in your Analyzer options.";
 
   static const String _inferredTypeMessage = '{0} has inferred type {1}';
 
@@ -5915,6 +5984,62 @@ class StrongModeCode extends ErrorCode {
       'INVALID_FIELD_OVERRIDE',
       'Field declaration {3}.{1} cannot be '
       'overridden in {0}.');
+
+  static const StrongModeCode IMPLICIT_DYNAMIC_PARAMETER = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'IMPLICIT_DYNAMIC_PARAMETER',
+      "Missing parameter type for '{0}'$_implicitDynamicTip");
+
+  static const StrongModeCode IMPLICIT_DYNAMIC_RETURN = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'IMPLICIT_DYNAMIC_RETURN',
+      "Missing return type for '{0}'$_implicitDynamicTip");
+
+  static const StrongModeCode IMPLICIT_DYNAMIC_VARIABLE = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'IMPLICIT_DYNAMIC_VARIABLE',
+      "Missing variable type for '{0}'$_implicitDynamicTip");
+
+  static const StrongModeCode IMPLICIT_DYNAMIC_FIELD = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'IMPLICIT_DYNAMIC_FIELD',
+      "Missing field type for '{0}'$_implicitDynamicTip");
+
+  static const StrongModeCode IMPLICIT_DYNAMIC_TYPE = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'IMPLICIT_DYNAMIC_TYPE',
+      "Missing type arguments for generic type '{0}'"
+      "$_implicitDynamicTip");
+
+  static const StrongModeCode IMPLICIT_DYNAMIC_LIST_LITERAL =
+      const StrongModeCode(
+          ErrorType.COMPILE_TIME_ERROR,
+          'IMPLICIT_DYNAMIC_LIST_LITERAL',
+          "Missing type argument for list literal$_implicitDynamicTip");
+
+  static const StrongModeCode IMPLICIT_DYNAMIC_MAP_LITERAL =
+      const StrongModeCode(
+          ErrorType.COMPILE_TIME_ERROR,
+          'IMPLICIT_DYNAMIC_MAP_LITERAL',
+          'Missing type arguments for map literal$_implicitDynamicTip');
+
+  static const StrongModeCode IMPLICIT_DYNAMIC_FUNCTION = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'IMPLICIT_DYNAMIC_FUNCTION',
+      "Missing type arguments for generic function '{0}<{1}>'"
+      "$_implicitDynamicTip");
+
+  static const StrongModeCode IMPLICIT_DYNAMIC_METHOD = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'IMPLICIT_DYNAMIC_METHOD',
+      "Missing type arguments for generic method '{0}<{1}>'"
+      "$_implicitDynamicTip");
+
+  static const StrongModeCode IMPLICIT_DYNAMIC_INVOKE = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'IMPLICIT_DYNAMIC_INVOKE',
+      "Missing type arguments for calling generic function type '{0}'"
+      "$_implicitDynamicTip");
 
   @override
   final ErrorType type;

@@ -510,6 +510,12 @@ var b = a.m();
 
   @override
   @failingTest
+  void test_inferDefaultFormalParameter() {
+    super.test_inferDefaultFormalParameter();
+  }
+
+  @override
+  @failingTest
   void test_inferenceInCyclesIsDeterministic() {
     super.test_inferenceInCyclesIsDeterministic();
   }

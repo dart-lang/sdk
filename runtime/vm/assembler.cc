@@ -275,7 +275,7 @@ intptr_t ObjectPoolWrapper::FindObject(ObjectPoolWrapperEntry entry,
   // If the object is not patchable, check if we've already got it in the
   // object pool.
   if (patchable == kNotPatchable) {
-    intptr_t idx = object_pool_index_table_.Lookup(entry);
+    intptr_t idx = object_pool_index_table_.LookupValue(entry);
     if (idx != ObjIndexPair::kNoIndex) {
       return idx;
     }

@@ -910,7 +910,7 @@ class Scheduler {
     // Attempt to find equivalent instruction that was already scheduled.
     // If the instruction is still in the graph (it could have been
     // un-scheduled by a rollback action) and it dominates the sink - use it.
-    Instruction* emitted = map_.Lookup(instruction);
+    Instruction* emitted = map_.LookupValue(instruction);
     if (emitted != NULL &&
         !emitted->WasEliminated() &&
         sink->IsDominatedBy(emitted)) {

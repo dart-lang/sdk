@@ -32,7 +32,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 #define FOR_EACH_UNIMPLEMENTED_INSTRUCTION(M)                                  \
   M(IndirectGoto)                                                              \
   M(LoadCodeUnits)                                                             \
-  M(InstanceOf)                                                                \
   M(LoadUntagged)                                                              \
   M(AllocateUninitializedContext)                                              \
   M(BinaryInt32Op)                                                             \
@@ -56,8 +55,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(BinaryMintOp)                                                              \
   M(ShiftMintOp)                                                               \
   M(UnaryMintOp)                                                               \
-  M(StringToCharCode)                                                          \
-  M(OneByteStringFromCharCode)                                                 \
   M(InvokeMathCFunction)                                                       \
   M(MergedMath)                                                                \
   M(GuardFieldClass)                                                           \
@@ -177,6 +174,32 @@ DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(TestCids)
 DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(TestSmi)
 DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(RelationalOp)
 DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(EqualityCompare)
+
+
+EMIT_NATIVE_CODE(InstanceOf, 2, Location::SameAsFirstInput(),
+                 LocationSummary::kCall) {
+  SubtypeTestCache& test_cache = SubtypeTestCache::Handle();
+  if (!type().IsVoidType() && type().IsInstantiated()) {
+    test_cache = SubtypeTestCache::New();
+  }
+
+  if (compiler->is_optimizing()) {
+    __ Push(locs()->in(0).reg());  // Value.
+    __ Push(locs()->in(1).reg());  // Instantiator type arguments.
+  }
+
+  __ PushConstant(type());
+  __ PushConstant(test_cache);
+  __ InstanceOf(negate_result() ? 1 : 0);
+  compiler->RecordSafepoint(locs());
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
+                                 deopt_id(),
+                                 token_pos());
+
+  if (compiler->is_optimizing()) {
+    __ PopLocal(locs()->out(0).reg());
+  }
+}
 
 
 DEFINE_MAKE_LOCATION_SUMMARY(AssertAssignable, 2,
@@ -572,6 +595,27 @@ EMIT_NATIVE_CODE(NativeCall,
                                  Thread::kNoDeoptId,
                                  token_pos());
 }
+
+
+EMIT_NATIVE_CODE(OneByteStringFromCharCode,
+                 1, Location::RequiresRegister(),
+                 LocationSummary::kNoCall) {
+  ASSERT(compiler->is_optimizing());
+  const Register char_code = locs()->in(0).reg();  // Char code is a smi.
+  const Register result = locs()->out(0).reg();
+  __ OneByteStringFromCharCode(result, char_code);
+}
+
+
+EMIT_NATIVE_CODE(StringToCharCode,
+                 1, Location::RequiresRegister(),
+                 LocationSummary::kNoCall) {
+  ASSERT(cid_ == kOneByteStringCid);
+  const Register str = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();  // Result char code is a smi.
+  __ StringToCharCode(result, str);
+}
+
 
 
 EMIT_NATIVE_CODE(AllocateObject,

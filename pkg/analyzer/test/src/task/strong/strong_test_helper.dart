@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:logging/logging.dart';
 import 'package:source_span/source_span.dart';
 import 'package:unittest/unittest.dart';
 
@@ -38,7 +37,7 @@ bool _checkCalled;
 /// create a file like:
 ///
 ///     addFile('''
-///       String x = /*severe:STATIC_TYPE_ERROR*/3;
+///       String x = /*error:STATIC_TYPE_ERROR*/3;
 ///     ''');
 ///     check();
 ///
@@ -55,7 +54,7 @@ void addFile(String content, {String name: '/main.dart'}) {
 /// the file text.
 ///
 /// Returns the main resolved library. This can be used for further checks.
-CompilationUnit check({bool implicitCasts: true}) {
+CompilationUnit check({bool implicitCasts: true, bool implicitDynamic: true}) {
   _checkCalled = true;
 
   expect(files.getFile('/main.dart').exists, true,
@@ -68,6 +67,7 @@ CompilationUnit check({bool implicitCasts: true}) {
   options.strongMode = true;
   options.strongModeHints = true;
   options.implicitCasts = implicitCasts;
+  options.implicitDynamic = implicitDynamic;
   var mockSdk = new MockSdk();
   mockSdk.context.analysisOptions.strongMode = true;
   context.sourceFactory =
@@ -132,14 +132,6 @@ void initStrongModeTests() {
   });
 }
 
-Level _actualErrorLevel(AnalysisContext context, AnalysisError actual) {
-  return const <ErrorSeverity, Level>{
-    ErrorSeverity.ERROR: Level.SEVERE,
-    ErrorSeverity.WARNING: Level.WARNING,
-    ErrorSeverity.INFO: Level.INFO
-  }[_errorSeverity(context, actual)];
-}
-
 SourceSpanWithContext _createSpanHelper(
     LineInfo lineInfo, int start, Source source, String content,
     {int end}) {
@@ -200,7 +192,7 @@ void _expectErrors(AnalysisContext context, CompilationUnit unit,
     int delta = x.offset.compareTo(y.offset);
     if (delta != 0) return delta;
 
-    delta = x.level.compareTo(y.level);
+    delta = x.severity.compareTo(y.severity);
     if (delta != 0) return delta;
 
     return x.typeName.compareTo(y.typeName);
@@ -213,7 +205,7 @@ void _expectErrors(AnalysisContext context, CompilationUnit unit,
   for (var expected in expectedErrors) {
     AnalysisError actual = expected._removeMatchingActual(actualErrors);
     if (actual != null) {
-      if (_actualErrorLevel(context, actual) != expected.level ||
+      if (_errorSeverity(context, actual) != expected.severity ||
           _errorCodeName(actual.errorCode) != expected.typeName) {
         different[expected] = actual;
       }
@@ -233,7 +225,7 @@ void _expectErrors(AnalysisContext context, CompilationUnit unit,
 List<_ErrorExpectation> _findExpectedErrors(Token beginToken) {
   var expectedErrors = <_ErrorExpectation>[];
 
-  // Collect expectations like "severe:STATIC_TYPE_ERROR" from comment tokens.
+  // Collect expectations like "error:STATIC_TYPE_ERROR" from comment tokens.
   for (Token t = beginToken; t.type != TokenType.EOF; t = t.next) {
     for (CommentToken c = t.precedingComments; c != null; c = c.next) {
       if (c.type == TokenType.MULTI_LINE_COMMENT) {
@@ -295,7 +287,7 @@ void _reportFailure(
     var span = _createSpanHelper(
         unit.lineInfo, offset, unit.element.source, sourceCode,
         end: offset + length);
-    var levelName = _actualErrorLevel(context, error).name.toLowerCase();
+    var levelName = _errorSeverity(context, error).displayName;
     return '@$offset $levelName:${_errorCodeName(error.errorCode)}\n' +
         span.message(error.message);
   }
@@ -304,8 +296,8 @@ void _reportFailure(
     int offset = error.offset;
     var span = _createSpanHelper(
         unit.lineInfo, offset, unit.element.source, sourceCode);
-    var levelName = error.level.toString().toLowerCase();
-    return '@$offset $levelName:${error.typeName}\n' + span.message('');
+    var severity = error.severity.displayName;
+    return '@$offset $severity:${error.typeName}\n' + span.message('');
   }
 
   var message = new StringBuffer();
@@ -349,13 +341,12 @@ class _ErrorCollector implements AnalysisErrorListener {
 /// Describes an expected message that should be produced by the checker.
 class _ErrorExpectation {
   final int offset;
-  final Level level;
+  final ErrorSeverity severity;
   final String typeName;
 
-  _ErrorExpectation(this.offset, this.level, this.typeName);
+  _ErrorExpectation(this.offset, this.severity, this.typeName);
 
-  String toString() =>
-      '@$offset ${level.toString().toLowerCase()}: [$typeName]';
+  String toString() => '@$offset ${severity.displayName}: [$typeName]';
 
   AnalysisError _removeMatchingActual(List<AnalysisError> actualErrors) {
     for (var actual in actualErrors) {
@@ -386,10 +377,10 @@ class _ErrorExpectation {
     var name = tokens[0].toUpperCase();
     var typeName = tokens[1];
 
-    var level =
-        Level.LEVELS.firstWhere((l) => l.name == name, orElse: () => null);
+    var level = ErrorSeverity.values
+        .firstWhere((l) => l.name == name, orElse: () => null);
     expect(level, isNotNull,
-        reason: 'invalid level in error descriptor: `${tokens[0]}`');
+        reason: 'invalid severity in error descriptor: `${tokens[0]}`');
     expect(typeName, isNotNull,
         reason: 'invalid type in error descriptor: ${tokens[1]}');
     return new _ErrorExpectation(offset, level, typeName);

@@ -746,7 +746,8 @@ bool AotOptimizer::TryReplaceWithIndexedOp(InstanceCallInstr* call) {
   if (ic_data.NumberOfChecks() != 1) {
     return false;
   }
-  return TryReplaceInstanceCallWithInline(call);
+  return FlowGraphInliner::TryReplaceInstanceCallWithInline(
+      flow_graph_, current_iterator(), call);
 }
 
 
@@ -1629,50 +1630,6 @@ bool AotOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
 }
 
 
-bool AotOptimizer::TryReplaceInstanceCallWithInline(
-    InstanceCallInstr* call) {
-  Function& target = Function::Handle(Z);
-  GrowableArray<intptr_t> class_ids;
-  call->ic_data()->GetCheckAt(0, &class_ids, &target);
-  const intptr_t receiver_cid = class_ids[0];
-
-  TargetEntryInstr* entry;
-  Definition* last;
-  if (!FlowGraphInliner::TryInlineRecognizedMethod(flow_graph_,
-                                                   receiver_cid,
-                                                   target,
-                                                   call,
-                                                   call->ArgumentAt(0),
-                                                   call->token_pos(),
-                                                   *call->ic_data(),
-                                                   &entry, &last)) {
-    return false;
-  }
-
-  // Insert receiver class check.
-  AddReceiverCheck(call);
-  // Remove the original push arguments.
-  for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-    PushArgumentInstr* push = call->PushArgumentAt(i);
-    push->ReplaceUsesWith(push->value()->definition());
-    push->RemoveFromGraph();
-  }
-  // Replace all uses of this definition with the result.
-  call->ReplaceUsesWith(last);
-  // Finally insert the sequence other definition in place of this one in the
-  // graph.
-  call->previous()->LinkTo(entry->next());
-  entry->UnuseAllInputs();  // Entry block is not in the graph.
-  last->LinkTo(call);
-  // Remove through the iterator.
-  ASSERT(current_iterator()->Current() == call);
-  current_iterator()->RemoveCurrentFromGraph();
-  call->set_previous(NULL);
-  call->set_next(NULL);
-  return true;
-}
-
-
 void AotOptimizer::ReplaceWithMathCFunction(
     InstanceCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
@@ -1728,49 +1685,15 @@ bool AotOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(target);
 
-  if ((recognized_kind == MethodRecognizer::kGrowableArraySetData) &&
-      (ic_data.NumberOfChecks() == 1) &&
-      (class_ids[0] == kGrowableObjectArrayCid)) {
-    // This is an internal method, no need to check argument types.
-    Definition* array = call->ArgumentAt(0);
-    Definition* value = call->ArgumentAt(1);
-    StoreInstanceFieldInstr* store = new(Z) StoreInstanceFieldInstr(
-        GrowableObjectArray::data_offset(),
-        new(Z) Value(array),
-        new(Z) Value(value),
-        kEmitStoreBarrier,
-        call->token_pos());
-    ReplaceCall(call, store);
-    return true;
-  }
-
-  if ((recognized_kind == MethodRecognizer::kGrowableArraySetLength) &&
-      (ic_data.NumberOfChecks() == 1) &&
-      (class_ids[0] == kGrowableObjectArrayCid)) {
-    // This is an internal method, no need to check argument types nor
-    // range.
-    Definition* array = call->ArgumentAt(0);
-    Definition* value = call->ArgumentAt(1);
-    StoreInstanceFieldInstr* store = new(Z) StoreInstanceFieldInstr(
-        GrowableObjectArray::length_offset(),
-        new(Z) Value(array),
-        new(Z) Value(value),
-        kNoStoreBarrier,
-        call->token_pos());
-    ReplaceCall(call, store);
-    return true;
-  }
-
   if ((recognized_kind == MethodRecognizer::kOneByteStringCodeUnitAt) ||
       (recognized_kind == MethodRecognizer::kTwoByteStringCodeUnitAt) ||
       (recognized_kind == MethodRecognizer::kExternalOneByteStringCodeUnitAt) ||
-      (recognized_kind == MethodRecognizer::kExternalTwoByteStringCodeUnitAt)) {
+      (recognized_kind == MethodRecognizer::kExternalTwoByteStringCodeUnitAt) ||
+      (recognized_kind == MethodRecognizer::kGrowableArraySetData) ||
+      (recognized_kind == MethodRecognizer::kGrowableArraySetLength)) {
       ASSERT(ic_data.NumberOfChecks() == 1);
-      ASSERT((class_ids[0] == kOneByteStringCid) ||
-             (class_ids[0] == kTwoByteStringCid) ||
-             (class_ids[0] == kExternalOneByteStringCid) ||
-             (class_ids[0] == kExternalTwoByteStringCid));
-    return TryReplaceInstanceCallWithInline(call);
+    return FlowGraphInliner::TryReplaceInstanceCallWithInline(
+        flow_graph_, current_iterator(), call);
   }
 
   if ((recognized_kind == MethodRecognizer::kStringBaseCharAt) &&
@@ -1779,7 +1702,8 @@ bool AotOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
              (class_ids[0] == kTwoByteStringCid) ||
              (class_ids[0] == kExternalOneByteStringCid) ||
              (class_ids[0] == kExternalTwoByteStringCid));
-    return TryReplaceInstanceCallWithInline(call);
+    return FlowGraphInliner::TryReplaceInstanceCallWithInline(
+        flow_graph_, current_iterator(), call);
   }
 
   if ((class_ids[0] == kOneByteStringCid) && (ic_data.NumberOfChecks() == 1)) {
@@ -1867,7 +1791,8 @@ bool AotOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       case MethodRecognizer::kDoubleSub:
       case MethodRecognizer::kDoubleMul:
       case MethodRecognizer::kDoubleDiv:
-        return TryReplaceInstanceCallWithInline(call);
+        return FlowGraphInliner::TryReplaceInstanceCallWithInline(
+            flow_graph_, current_iterator(), call);
       default:
         // Unsupported method.
         return false;
@@ -1876,7 +1801,8 @@ bool AotOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 
   if (IsSupportedByteArrayViewCid(class_ids[0]) &&
       (ic_data.NumberOfChecks() == 1)) {
-    return TryReplaceInstanceCallWithInline(call);
+    return FlowGraphInliner::TryReplaceInstanceCallWithInline(
+        flow_graph_, current_iterator(), call);
   }
 
   if ((class_ids[0] == kFloat32x4Cid) && (ic_data.NumberOfChecks() == 1)) {
@@ -2292,6 +2218,24 @@ static bool HasLikelySmiOperand(InstanceCallInstr* instr) {
 }
 
 
+bool AotOptimizer::TryInlineFieldAccess(InstanceCallInstr* call) {
+  const Token::Kind op_kind = call->token_kind();
+  if ((op_kind == Token::kGET) && TryInlineInstanceGetter(call)) {
+    return true;
+  }
+
+  const ICData& unary_checks =
+      ICData::Handle(Z, call->ic_data()->AsUnaryClassChecks());
+  if ((unary_checks.NumberOfChecks() > 0) &&
+      (op_kind == Token::kSET) &&
+      TryInlineInstanceSetter(call, unary_checks)) {
+    return true;
+  }
+
+  return false;
+}
+
+
 // Tries to optimize instance call by replacing it with a faster instruction
 // (e.g, binary op, field load, ..).
 void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
@@ -2310,18 +2254,12 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     return;
   }
 
-  if ((op_kind == Token::kGET) &&
-      TryInlineInstanceGetter(instr)) {
-    return;
-  }
-  const ICData& unary_checks =
-      ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
-  if ((unary_checks.NumberOfChecks() > 0) &&
-      (op_kind == Token::kSET) &&
-      TryInlineInstanceSetter(instr, unary_checks)) {
+  if (TryInlineFieldAccess(instr)) {
     return;
   }
 
+  const ICData& unary_checks =
+      ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
   if (IsAllowedForInlining(instr->deopt_id()) &&
       (unary_checks.NumberOfChecks() > 0)) {
     if ((op_kind == Token::kINDEX) && TryReplaceWithIndexedOp(instr)) {
@@ -2345,6 +2283,10 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     }
     if (Token::IsUnaryOperator(op_kind) &&
         TryReplaceWithUnaryOp(instr, op_kind)) {
+      return;
+    }
+
+    if (TryInlineInstanceMethod(instr)) {
       return;
     }
   }
@@ -2404,9 +2346,7 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
       break;
   }
 
-  // No IC data checks. Try resolve target using the propagated type.
-  // If the propagated type has a method with the target name and there are
-  // no overrides with that name according to CHA, call the method directly.
+  // No IC data checks. Try resolve target using the propagated cid.
   const intptr_t receiver_cid =
       instr->PushArgumentAt(0)->value()->Type()->ToCid();
   if (receiver_cid != kDynamicCid) {
@@ -2423,32 +2363,20 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
             instr->function_name(),
             args_desc));
     if (!function.IsNull()) {
-      intptr_t subclasses = 0;
-      if (!thread()->cha()->HasOverride(receiver_class,
-                                        instr->function_name(),
-                                        &subclasses)) {
-        if (FLAG_trace_cha) {
-          THR_Print("  **(CHA) Instance call needs no check, "
-              "no overrides of '%s' '%s'\n",
-              instr->function_name().ToCString(), receiver_class.ToCString());
-        }
-
-        // Create fake IC data with the resolved target.
-        const ICData& ic_data = ICData::Handle(
-            ICData::New(flow_graph_->function(),
-                        instr->function_name(),
-                        args_desc_array,
-                        Thread::kNoDeoptId,
-                        /* args_tested = */ 1,
-                        false));
-        ic_data.AddReceiverCheck(receiver_class.id(), function);
-        PolymorphicInstanceCallInstr* call =
-            new(Z) PolymorphicInstanceCallInstr(instr, ic_data,
-                                                /* with_checks = */ false,
-                                                /* complete = */ true);
-        instr->ReplaceWith(call, current_iterator());
-        return;
-      }
+      const ICData& ic_data = ICData::Handle(
+          ICData::New(flow_graph_->function(),
+                      instr->function_name(),
+                      args_desc_array,
+                      Thread::kNoDeoptId,
+                      /* args_tested = */ 1,
+                      false));
+      ic_data.AddReceiverCheck(receiver_class.id(), function);
+      PolymorphicInstanceCallInstr* call =
+          new(Z) PolymorphicInstanceCallInstr(instr, ic_data,
+                                              /* with_checks = */ false,
+                                              /* complete = */ true);
+      instr->ReplaceWith(call, current_iterator());
+      return;
     }
   }
 
@@ -2527,6 +2455,26 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
       }
 
       if (single_target.raw() != Function::null()) {
+        // If this is a getter or setter invocation try inlining it right away
+        // instead of replacing it with a static call.
+        if ((op_kind == Token::kGET) || (op_kind == Token::kSET)) {
+          // Create fake IC data with the resolved target.
+          const ICData& ic_data = ICData::Handle(
+              ICData::New(flow_graph_->function(),
+                          instr->function_name(),
+                          args_desc_array,
+                          Thread::kNoDeoptId,
+                          /* args_tested = */ 1,
+                          false));
+          cls = single_target.Owner();
+          ic_data.AddReceiverCheck(cls.id(), single_target);
+          instr->set_ic_data(&ic_data);
+
+          if (TryInlineFieldAccess(instr)) {
+            return;
+          }
+        }
+
         // We have computed that there is only a single target for this call
         // within the whole hierarchy. Replace InstanceCall with StaticCall.
         ZoneGrowableArray<PushArgumentInstr*>* args =

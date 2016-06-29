@@ -285,6 +285,11 @@ class ConstantConstructorComputer extends SemanticVisitor
   }
 
   @override
+  ConstantExpression visitLiteralDouble(LiteralDouble node) {
+    return new DoubleConstantExpression(node.value);
+  }
+
+  @override
   ConstantExpression visitLiteralBool(LiteralBool node) {
     return new BoolConstantExpression(node.value);
   }

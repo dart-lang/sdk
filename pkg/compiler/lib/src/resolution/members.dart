@@ -444,11 +444,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // fields they reference are visible, but must be resolved independently.
       if (element.isInitializingFormal) {
         registry.useElement(parameterNode, element);
-        if (compiler.options.enableInitializingFormalAccess) {
-          InitializingFormalElementX initializingFormalElementX = element;
-          defineLocalVariable(parameterNode, initializingFormalElementX);
-          addToScope(initializingFormalElementX);
-        }
       } else {
         LocalParameterElementX parameterElement = element;
         defineLocalVariable(parameterNode, parameterElement);

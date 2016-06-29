@@ -3904,6 +3904,10 @@ on String catch (e, s) { return 1; }''');
     _assertTrue("{ while (true) { throw ''; } }");
   }
 
+  void test_whileStatement_true_break_and_throw() {
+    _assertFalse("{ while (true) { if (1==1) break; throw 'T'; } }");
+  }
+
   void _assertFalse(String source) {
     _assertHasReturn(false, source);
   }

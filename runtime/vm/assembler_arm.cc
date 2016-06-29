@@ -1584,8 +1584,6 @@ void Assembler::LoadObjectHelper(Register rd,
                                  Register pp) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
-  // Load common VM constants from the thread. This works also in places where
-  // no constant pool is set up (e.g. intrinsic code).
   if (Thread::CanLoadFromThread(object)) {
     // Load common VM constants from the thread. This works also in places where
     // no constant pool is set up (e.g. intrinsic code).

@@ -4,13 +4,12 @@
 
 #include "vm/freelist.h"
 
-#include <map>
-
 #include "vm/bit_set.h"
+#include "vm/hash_map.h"
 #include "vm/lockers.h"
 #include "vm/object.h"
-#include "vm/raw_object.h"
 #include "vm/os_thread.h"
+#include "vm/raw_object.h"
 
 namespace dart {
 
@@ -286,26 +285,53 @@ void FreeList::PrintSmall() const {
 }
 
 
+class IntptrPair {
+ public:
+  IntptrPair() : first_(-1), second_(-1) {}
+  IntptrPair(intptr_t first, intptr_t second)
+      : first_(first), second_(second) {}
+
+  intptr_t first() const { return first_; }
+  intptr_t second() const { return second_; }
+  void set_second(intptr_t s) { second_ = s; }
+
+  bool operator==(const IntptrPair& other) {
+    return (first_ == other.first_) && (second_ == other.second_);
+  }
+
+  bool operator!=(const IntptrPair& other) {
+    return (first_ != other.first_) || (second_ != other.second_);
+  }
+
+ private:
+  intptr_t first_;
+  intptr_t second_;
+};
+
+
 void FreeList::PrintLarge() const {
   int large_sizes = 0;
   int large_objects = 0;
   intptr_t large_bytes = 0;
-  std::map<intptr_t, intptr_t> sorted;
-  std::map<intptr_t, intptr_t>::iterator it;
+  MallocDirectChainedHashMap<NumbersKeyValueTrait<IntptrPair> > map;
   FreeListElement* node;
   for (node = free_lists_[kNumLists]; node != NULL; node = node->next()) {
-    it = sorted.find(node->Size());
-    if (it != sorted.end()) {
-      it->second += 1;
-    } else {
+    IntptrPair* pair = map.Lookup(node->Size());
+    if (pair == NULL) {
       large_sizes += 1;
-      sorted.insert(std::make_pair(node->Size(), 1));
+      map.Insert(IntptrPair(node->Size(), 1));
+    } else {
+      pair->set_second(pair->second() + 1);
     }
     large_objects += 1;
   }
-  for (it = sorted.begin(); it != sorted.end(); ++it) {
-    intptr_t size = it->first;
-    intptr_t list_length = it->second;
+
+  MallocDirectChainedHashMap<NumbersKeyValueTrait<IntptrPair> >::Iterator it =
+      map.GetIterator();
+  IntptrPair* pair;
+  while ((pair = it.Next()) != NULL) {
+    intptr_t size = pair->first();
+    intptr_t list_length = pair->second();
     intptr_t list_bytes = list_length * size;
     large_bytes += list_bytes;
     OS::Print("large %3" Pd " [%8" Pd " bytes] : "

@@ -244,6 +244,11 @@ class Driver implements ServerStarter {
       "incremental-resolution-validation";
 
   /**
+   * The name of the option used to enable fined grained invalidation.
+   */
+  static const String FINER_GRAINED_INVALIDATION = 'finer-grained-invalidation';
+
+  /**
    * The name of the option used to cause instrumentation to also be written to
    * a local file.
    */
@@ -374,6 +379,8 @@ class Driver implements ServerStarter {
         results[ENABLE_INCREMENTAL_RESOLUTION_API];
     analysisServerOptions.enableIncrementalResolutionValidation =
         results[INCREMENTAL_RESOLUTION_VALIDATION];
+    analysisServerOptions.finerGrainedInvalidation =
+        results[FINER_GRAINED_INVALIDATION];
     analysisServerOptions.noErrorNotification = results[NO_ERROR_NOTIFICATION];
     analysisServerOptions.noIndex = results[NO_INDEX];
     analysisServerOptions.useAnalysisHighlight2 =
@@ -441,7 +448,8 @@ class Driver implements ServerStarter {
     //
     socketServer = new SocketServer(
         analysisServerOptions,
-        defaultSdkCreator,
+        new DartSdkManager(defaultSdkDirectory.getAbsolutePath(), useSummaries,
+            defaultSdkCreator),
         defaultSdk,
         service,
         serverPlugin,
@@ -522,6 +530,10 @@ class Driver implements ServerStarter {
         help: "set a destination for the incremental resolver's log");
     parser.addFlag(INCREMENTAL_RESOLUTION_VALIDATION,
         help: "enable validation of incremental resolution results (slow)",
+        defaultsTo: false,
+        negatable: false);
+    parser.addFlag(FINER_GRAINED_INVALIDATION,
+        help: "enable finer grained invalidation",
         defaultsTo: false,
         negatable: false);
     parser.addOption(INSTRUMENTATION_LOG_FILE,

@@ -1316,12 +1316,15 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     }
 
     if (FLAG_disassemble && FlowGraphPrinter::ShouldPrint(function)) {
+      SafepointOperationScope safepoint_scope(thread);
       Disassembler::DisassembleCode(function, optimized);
     } else if (FLAG_disassemble_optimized &&
                optimized &&
                FlowGraphPrinter::ShouldPrint(function)) {
+      SafepointOperationScope safepoint_scope(thread);
       Disassembler::DisassembleCode(function, true);
     }
+
     DEBUG_ONLY(CheckInliningIntervals(function));
     return Error::null();
   } else {

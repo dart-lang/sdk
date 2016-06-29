@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/incremental_element_builder.dart';
@@ -219,6 +220,134 @@ class A {
     expect(helper.delta.removedMethods, isEmpty);
   }
 
+  test_classDelta_constructor_fieldReference_initializer() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+class A {
+  final int f;
+  A() : f = 1 {}
+}
+''');
+    helper.initOld(oldUnit);
+    _buildNewUnit(r'''
+class A {
+  final int f;
+  A() : f = 1;
+}
+''');
+    helper.initNew(newUnit, unitDelta);
+  }
+
+  test_classDelta_constructor_fieldReference_parameter() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+class A {
+  final int f;
+  A(this.f) {}
+}
+''');
+    helper.initOld(oldUnit);
+    _buildNewUnit(r'''
+class A {
+  final int f;
+  A(this.f);
+}
+''');
+    helper.initNew(newUnit, unitDelta);
+  }
+
+  test_classDelta_constructor_fieldReference_parameter_default() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+class A {
+  final int f;
+  A([this.f = 1]) {}
+}
+''');
+    helper.initOld(oldUnit);
+    _buildNewUnit(r'''
+class A {
+  final int f;
+  A([this.f = 1]);
+}
+''');
+    helper.initNew(newUnit, unitDelta);
+  }
+
+  test_classDelta_duplicate_constructor() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+class A {
+  A() {}
+}
+''');
+    helper.initOld(oldUnit);
+    _buildNewUnit(r'''
+class A {
+  A() {}
+  A() {}
+}
+''');
+    helper.initNew(newUnit, unitDelta);
+    // nodes
+    ConstructorDeclaration oldNode = helper.oldMembers[0];
+    ConstructorDeclaration newNode1 = helper.newMembers[0];
+    ConstructorDeclaration newNode2 = helper.newMembers[1];
+    // elements
+    ConstructorElement oldElement = oldNode.element;
+    ConstructorElement newElement1 = newNode1.element;
+    ConstructorElement newElement2 = newNode2.element;
+    expect(newElement1, same(oldElement));
+    expect(newElement2, isNot(same(oldElement)));
+    expect(oldElement.name, '');
+    expect(newElement1.name, '');
+    expect(newElement2.name, '');
+    // verify delta
+    expect(helper.delta.addedConstructors, unorderedEquals([newElement2]));
+    expect(helper.delta.removedConstructors, isEmpty);
+    expect(helper.delta.addedAccessors, isEmpty);
+    expect(helper.delta.removedAccessors, isEmpty);
+    expect(helper.delta.addedMethods, isEmpty);
+    expect(helper.delta.removedMethods, isEmpty);
+  }
+
+  test_classDelta_duplicate_method() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+class A {
+  m() {}
+}
+''');
+    helper.initOld(oldUnit);
+    _buildNewUnit(r'''
+class A {
+  m() {}
+  m() {}
+}
+''');
+    helper.initNew(newUnit, unitDelta);
+    // nodes
+    MethodDeclaration oldNode = helper.oldMembers[0];
+    MethodDeclaration newNode1 = helper.newMembers[0];
+    MethodDeclaration newNode2 = helper.newMembers[1];
+    // elements
+    MethodElement oldElement = oldNode.element;
+    MethodElement newElement1 = newNode1.element;
+    MethodElement newElement2 = newNode2.element;
+    expect(newElement1, same(oldElement));
+    expect(newElement2, isNot(same(oldElement)));
+    expect(oldElement.name, 'm');
+    expect(newElement1.name, 'm');
+    expect(newElement2.name, 'm');
+    // verify delta
+    expect(helper.delta.addedConstructors, isEmpty);
+    expect(helper.delta.removedConstructors, isEmpty);
+    expect(helper.delta.addedAccessors, isEmpty);
+    expect(helper.delta.removedAccessors, isEmpty);
+    expect(helper.delta.addedMethods, unorderedEquals([newElement2]));
+    expect(helper.delta.removedMethods, isEmpty);
+  }
+
   test_classDelta_field_add() {
     var helper = new _ClassDeltaHelper('A');
     _buildOldUnit(r'''
@@ -249,47 +378,6 @@ class A {
     expect(helper.delta.addedAccessors,
         unorderedEquals([newFieldElementB.getter, newFieldElementB.setter]));
     expect(helper.delta.removedAccessors, isEmpty);
-    expect(helper.delta.addedMethods, isEmpty);
-    expect(helper.delta.removedMethods, isEmpty);
-  }
-
-  test_classDelta_field_changeName() {
-    var helper = new _ClassDeltaHelper('A');
-    _buildOldUnit(r'''
-class A {
-  int aaa;
-  int bbb;
-}
-''');
-    helper.initOld(oldUnit);
-    _buildNewUnit(r'''
-class A {
-  int aaa2;
-  int bbb;
-}
-''');
-    helper.initNew(newUnit, unitDelta);
-    // nodes
-    FieldDeclaration oldNodeA = helper.oldMembers[0];
-    FieldDeclaration newNodeA = helper.newMembers[0];
-    List<VariableDeclaration> oldFieldsA = oldNodeA.fields.variables;
-    List<VariableDeclaration> newFieldsA = newNodeA.fields.variables;
-    expect(oldFieldsA, hasLength(1));
-    expect(newFieldsA, hasLength(1));
-    FieldDeclaration nodeB = helper.newMembers[1];
-    expect(nodeB, same(helper.oldMembers[1]));
-    // elements
-    FieldElement oldFieldElementA = oldFieldsA[0].name.staticElement;
-    FieldElement newFieldElementA = newFieldsA[0].name.staticElement;
-    expect(oldFieldElementA.name, 'aaa');
-    expect(newFieldElementA.name, 'aaa2');
-    // verify delta
-    expect(helper.delta.addedConstructors, isEmpty);
-    expect(helper.delta.removedConstructors, isEmpty);
-    expect(helper.delta.addedAccessors,
-        unorderedEquals([newFieldElementA.getter, newFieldElementA.setter]));
-    expect(helper.delta.removedAccessors,
-        unorderedEquals([oldFieldElementA.getter, oldFieldElementA.setter]));
     expect(helper.delta.addedMethods, isEmpty);
     expect(helper.delta.removedMethods, isEmpty);
   }
@@ -597,6 +685,154 @@ class A {
     expect(helper.delta.removedMethods, unorderedEquals([oldElementA]));
   }
 
+  test_classDelta_null_extendsClause_add() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+class A {}
+class B {}
+''',
+        r'''
+class A {}
+class B extends A {}
+''');
+  }
+
+  test_classDelta_null_extendsClause_change() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+class A1 {}
+class A2 {}
+class B extends A1 {}
+''',
+        r'''
+class A1 {}
+class A2 {}
+class B extends A2 {}
+''');
+  }
+
+  test_classDelta_null_extendsClause_remove() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+class A {}
+class B extends A {}
+''',
+        r'''
+class A {}
+class B {}
+''');
+  }
+
+  test_classDelta_null_implementsClause_add() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+class A {}
+class B {}
+''',
+        r'''
+class A {}
+class B implements A {}
+''');
+  }
+
+  test_classDelta_null_implementsClause_change() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+class A1 {}
+class A2 {}
+class B implements A1 {}
+''',
+        r'''
+class A1 {}
+class A2 {}
+class B implements A2 {}
+''');
+  }
+
+  test_classDelta_null_implementsClause_remove() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+class A {}
+class B implements A {}
+''',
+        r'''
+class A {}
+class B {}
+''');
+  }
+
+  test_classDelta_null_typeParameters_change() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+class A {}
+class B<T> {}
+''',
+        r'''
+class A {}
+class B<T extends A> {}
+''');
+  }
+
+  test_classDelta_null_withClause_add() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+class A {}
+class M {}
+class B extends A {}
+''',
+        r'''
+class A {}
+class M {}
+class B extends A with M {}
+''');
+  }
+
+  test_classDelta_null_withClause_change1() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+class A {}
+class M1 {}
+class M2 {}
+class B extends A with M1 {}
+''',
+        r'''
+class A {}
+class M1 {}
+class M2 {}
+class B extends A with M2 {}
+''');
+  }
+
+  test_classDelta_null_withClause_change2() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+class A {}
+class M1 {}
+class M2 {}
+class B extends A with M1, M2 {}
+''',
+        r'''
+class A {}
+class M1 {}
+class M2 {}
+class B extends A with M2, M1 {}
+''');
+  }
+
+  test_classDelta_null_withClause_remove() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+class A {}
+class M {}
+class B extends A with M {}
+''',
+        r'''
+class A {}
+class M {}
+class B extends A {}
+''');
+  }
+
   test_classDelta_setter_add() {
     var helper = new _ClassDeltaHelper('A');
     _buildOldUnit(r'''
@@ -663,6 +899,19 @@ class A {
     expect(helper.delta.removedAccessors, unorderedEquals([oldElementB]));
     expect(helper.delta.addedMethods, isEmpty);
     expect(helper.delta.removedMethods, isEmpty);
+  }
+
+  test_classDelta_typeParameter_same() {
+    _buildOldUnit(r'''
+class A<T> {
+  m() {}
+}
+''');
+    _buildNewUnit(r'''
+class A<T> {
+  m2() {}
+}
+''');
   }
 
   test_directives_add() {
@@ -1299,27 +1548,160 @@ final int a =  1;
     expect(unitDelta.removedDeclarations, unorderedEquals([]));
   }
 
+  test_update_addIdentifier_beforeConstructorWithComment() {
+    _buildOldUnit(r'''
+class A {
+  /// CCC
+  A();
+}
+''');
+    _buildNewUnit(r'''
+class A {
+  b
+
+  /// CCC
+  A();
+}
+''');
+  }
+
+  test_update_beforeClassWithDelta_nameOffset() {
+    _buildOldUnit(r'''
+class A {}
+
+class B {
+  A a;
+}
+''');
+    _buildNewUnit(r'''
+class A2 {}
+
+class B {
+  A2 a;
+}
+''');
+  }
+
+  test_update_changeDuplicatingOffsetsMapping() {
+    _buildOldUnit(r'''
+class A {
+  m() {
+  }
+}
+
+/// X
+class C {}
+''');
+    _buildNewUnit(r'''
+class A {
+  m2() {
+    b
+  }
+}
+
+/// X
+class C {}
+''');
+  }
+
+  test_update_closuresOfSyntheticInitializer() {
+    _buildOldUnit(r'''
+f1() {
+  print(1);
+}
+f2() {
+  B b = new B((C c) {});
+}
+''');
+    _buildNewUnit(r'''
+f1() {
+  print(12);
+}
+f2() {
+  B b = new B((C c) {});
+}
+''');
+  }
+
+  test_update_commentReference_empty() {
+    _buildOldUnit(r'''
+/// Empty [] reference.
+class A {}
+''');
+    _buildNewUnit(r'''
+/// Empty [] reference.
+class A {}
+''');
+  }
+
+  test_update_commentReference_notClosed() {
+    _buildOldUnit(r'''
+/// [c)
+class A {}
+''');
+    _buildNewUnit(r'''
+int a;
+/// [c)
+class A {}
+''');
+  }
+
+  test_update_rewrittenConstructorName() {
+    _buildOldUnit(r'''
+class A {
+  A();
+  A.named();
+}
+
+foo() {}
+
+main() {
+  new A();
+  new A.named();
+}
+''');
+    _buildNewUnit(r'''
+class A {
+  A();
+  A.named();
+}
+
+bar() {}
+
+main() {
+  new A();
+  new A.named();
+}
+''');
+  }
+
   void _buildNewUnit(String newCode) {
     this.newCode = newCode;
-    context.setContents(source, newCode);
-    newUnit = context.parseCompilationUnit(source);
-    IncrementalCompilationUnitElementBuilder builder =
-        new IncrementalCompilationUnitElementBuilder(oldUnit, newUnit);
-    builder.build();
-    unitDelta = builder.unitDelta;
-    expect(newUnit.element, unitElement);
-    // Flush all tokens, ASTs and elements.
-    context.analysisCache.flush((target, result) {
-      return result == TOKEN_STREAM ||
-          result == PARSED_UNIT ||
-          RESOLVED_UNIT_RESULTS.contains(result) ||
-          LIBRARY_ELEMENT_RESULTS.contains(result);
-    });
-    // Compute a new AST with built elements.
-    CompilationUnit newUnitFull = context.computeResult(
-        new LibrarySpecificUnit(source, source), RESOLVED_UNIT1);
-    expect(newUnitFull, isNot(same(newUnit)));
-    new _BuiltElementsValidator().isEqualNodes(newUnitFull, newUnit);
+    AnalysisOptionsImpl analysisOptions = context.analysisOptions;
+    analysisOptions.finerGrainedInvalidation = false;
+    try {
+      context.setContents(source, newCode);
+      newUnit = context.parseCompilationUnit(source);
+      IncrementalCompilationUnitElementBuilder builder =
+          new IncrementalCompilationUnitElementBuilder(oldUnit, newUnit);
+      builder.build();
+      unitDelta = builder.unitDelta;
+      expect(newUnit.element, unitElement);
+      // Flush all tokens, ASTs and elements.
+      context.analysisCache.flush((target, result) {
+        return result == TOKEN_STREAM ||
+            result == PARSED_UNIT ||
+            RESOLVED_UNIT_RESULTS.contains(result) ||
+            LIBRARY_ELEMENT_RESULTS.contains(result);
+      });
+      // Compute a new AST with built elements.
+      CompilationUnit newUnitFull = context.computeResult(
+          new LibrarySpecificUnit(source, source), RESOLVED_UNIT1);
+      expect(newUnitFull, isNot(same(newUnit)));
+      new _BuiltElementsValidator().isEqualNodes(newUnitFull, newUnit);
+    } finally {
+      analysisOptions.finerGrainedInvalidation = true;
+    }
   }
 
   void _buildOldUnit(String oldCode, [Source libSource]) {
@@ -1332,6 +1714,19 @@ final int a =  1;
     unitElement = oldUnit.element;
     expect(unitElement, isNotNull);
   }
+
+  void _verifyNoClassDeltaForTheLast(String oldCode, String newCode) {
+    _buildOldUnit(oldCode);
+    List<CompilationUnitMember> oldMembers = oldUnit.declarations.toList();
+    Element oldElementLast = oldMembers.last.element;
+    _buildNewUnit(newCode);
+    List<CompilationUnitMember> newMembers = newUnit.declarations;
+    Element newElementLast = newMembers.last.element;
+    expect(newElementLast, isNot(same(oldElementLast)));
+    expect(unitDelta.classDeltas, isEmpty);
+    expect(unitDelta.removedDeclarations, unorderedEquals([oldElementLast]));
+    expect(unitDelta.addedDeclarations, unorderedEquals([newElementLast]));
+  }
 }
 
 /**
@@ -1340,13 +1735,43 @@ final int a =  1;
 class _BuiltElementsValidator extends AstComparator {
   @override
   bool isEqualNodes(AstNode expected, AstNode actual) {
-    // Elements of constructors must be linked to the elements of the
-    // corresponding enclosing classes.
-    if (actual is ConstructorDeclaration) {
-      ConstructorElement actualConstructorElement = actual.element;
-      ClassDeclaration actualClassNode = actual.parent;
-      expect(actualConstructorElement.enclosingElement,
-          same(actualClassNode.element));
+    // Elements of nodes which are children of ClassDeclaration(s) must be
+    // linked to the corresponding ClassElement(s).
+    if (actual is TypeParameter) {
+      TypeParameterElement element = actual.element;
+      ClassDeclaration classNode = actual.parent.parent;
+      expect(element.enclosingElement, same(classNode.element));
+    } else if (actual is FieldDeclaration) {
+      for (VariableDeclaration field in actual.fields.variables) {
+        Element element = field.element;
+        ClassDeclaration classNode = actual.parent;
+        expect(element.enclosingElement, same(classNode.element));
+      }
+    } else if (actual is ClassMember) {
+      Element element = actual.element;
+      ClassDeclaration classNode = actual.parent;
+      expect(element.enclosingElement, same(classNode.element));
+    }
+    // Field elements referenced by field formal parameters of constructors
+    // must by fields of the enclosing class element.
+    if (actual is FieldFormalParameter) {
+      FieldFormalParameterElement parameterElement = actual.element;
+      FieldElement element = parameterElement.field;
+      ClassDeclaration classNode =
+          actual.getAncestor((n) => n is ClassDeclaration);
+      expect(element.enclosingElement, same(classNode.element));
+    }
+    // Identifiers like 'a.b' in 'new a.b()' might be rewritten if resolver
+    // sees that 'a' is actually a class name, so 'b' is a constructor name.
+    //
+    if (expected is ConstructorName && actual is ConstructorName) {
+      Identifier expectedTypeName = expected.type.name;
+      Identifier actualTypeName = actual.type.name;
+      if (expectedTypeName is PrefixedIdentifier &&
+          actualTypeName is SimpleIdentifier) {
+        return isEqualNodes(expectedTypeName.prefix, actualTypeName) &&
+            isEqualNodes(expectedTypeName.identifier, actual.name);
+      }
     }
     // Compare nodes.
     bool result = super.isEqualNodes(expected, actual);
@@ -1418,12 +1843,8 @@ class _ClassDeltaHelper {
     ClassDeclaration newClass = _findClassNode(newUnit, name);
     expect(newClass, isNotNull);
     newMembers = newClass.members.toList();
-    for (ClassElementDelta delta in unitDelta.classDeltas) {
-      if (delta.element.name == name) {
-        this.delta = delta;
-      }
-    }
-    expect(this.delta, isNotNull, reason: 'No delta for class: $name');
+    delta = unitDelta.classDeltas[name];
+    expect(delta, isNotNull, reason: 'No delta for class: $name');
   }
 
   void initOld(CompilationUnit oldUnit) {

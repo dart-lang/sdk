@@ -484,6 +484,9 @@ abstract class Source implements AnalysisTarget {
    */
   bool get isInSystemLibrary;
 
+  @override
+  Source get librarySource => null;
+
   /**
    * Return the modification stamp for this source, or a negative value if the
    * source does not exist. A modification stamp is a non-negative integer with

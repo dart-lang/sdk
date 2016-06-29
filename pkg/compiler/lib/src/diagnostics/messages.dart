@@ -687,6 +687,26 @@ class C {
 main() {
   new C(4, 2);
 }
+""",
+            """
+class C {
+  int x;
+  C(int x, this.x);
+}
+
+main() {
+  new C(4, 2);
+}
+""",
+            """
+class C {
+  int x;
+  C(this.x, this.x);
+}
+
+main() {
+  new C(4, 2);
+}
 """
           ]),
 

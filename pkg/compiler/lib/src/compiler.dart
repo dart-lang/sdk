@@ -810,7 +810,14 @@ abstract class Compiler implements LibraryLoaderListener {
             supportSerialization: serialization.supportSerialization);
 
         phase = PHASE_RESOLVING;
-        if (analyzeAll) {
+        if (options.resolveOnly) {
+          libraryLoader.libraries.where((LibraryElement library) {
+            return !serialization.isDeserialized(library);
+          }).forEach((LibraryElement library) {
+            reporter.log('Enqueuing ${library.canonicalUri}');
+            fullyEnqueueLibrary(library, enqueuer.resolution);
+          });
+        } else if (analyzeAll) {
           libraryLoader.libraries.forEach((LibraryElement library) {
             reporter.log('Enqueuing ${library.canonicalUri}');
             fullyEnqueueLibrary(library, enqueuer.resolution);
@@ -846,9 +853,11 @@ abstract class Compiler implements LibraryLoaderListener {
 
         if (options.resolveOnly) {
           reporter.log('Serializing to ${options.resolutionOutput}');
-          serialization.serializeToSink(
-              userOutputProvider.createEventSink('', 'data'),
-              libraryLoader.libraries);
+          serialization
+              .serializeToSink(userOutputProvider.createEventSink('', 'data'),
+                  libraryLoader.libraries.where((LibraryElement library) {
+            return !serialization.isDeserialized(library);
+          }));
         }
         if (options.analyzeOnly) {
           if (!analyzeAll && !compilationFailed) {

@@ -217,6 +217,7 @@ class ResolvedAstSerializerPlugin extends SerializerPlugin {
   void onElement(Element element, ObjectEncoder createEncoder(String tag)) {
     assert(invariant(element, element.isDeclaration,
         message: "Element $element must be the declaration"));
+    if (element.isError) return;
     if (element is MemberElement) {
       assert(invariant(element, resolution.hasResolvedAst(element),
           message: "Element $element must have a resolved ast"));

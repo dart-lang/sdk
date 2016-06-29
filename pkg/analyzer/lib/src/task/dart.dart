@@ -36,6 +36,7 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/task/html.dart';
+import 'package:analyzer/src/task/incremental_element_builder.dart';
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
@@ -392,7 +393,7 @@ final ResultDescriptor<VariableElement> INFERRED_STATIC_VARIABLE =
  *
  * Only non-empty in strongMode.
  *
- * The result is only available for [LibrarySpecificUnit]s.
+ * The result is only available for [Source]s representing a library.
  */
 final ListResultDescriptor<LibraryElement> LIBRARY_CYCLE =
     new ListResultDescriptor<LibraryElement>('LIBRARY_CYCLE', null);
@@ -404,7 +405,7 @@ final ListResultDescriptor<LibraryElement> LIBRARY_CYCLE =
  *
  * Only non-empty in strongMode.
  *
- * The result is only available for [LibrarySpecificUnit]s.
+ * The result is only available for [Source]s representing a library.
  */
 final ListResultDescriptor<CompilationUnitElement> LIBRARY_CYCLE_DEPENDENCIES =
     new ListResultDescriptor<CompilationUnitElement>(
@@ -417,7 +418,7 @@ final ListResultDescriptor<CompilationUnitElement> LIBRARY_CYCLE_DEPENDENCIES =
  *
  * Only non-empty in strongMode.
  *
- * The result is only available for [LibrarySpecificUnit]s.
+ * The result is only available for [Source]s representing a library.
  */
 final ListResultDescriptor<CompilationUnitElement> LIBRARY_CYCLE_UNITS =
     new ListResultDescriptor<CompilationUnitElement>(
@@ -438,7 +439,7 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT1 =
 /**
  * The partial [LibraryElement] associated with a library.
  *
- * In addition to [LIBRARY_ELEMENT1] [LibraryElement.imports] and
+ * In addition to [LIBRARY_ELEMENT1] also [LibraryElement.imports] and
  * [LibraryElement.exports] are set.
  *
  * The result is only available for [Source]s representing a library.
@@ -1384,6 +1385,7 @@ class BuildExportNamespaceTask extends SourceBasedAnalysisTask {
     //
     // Compute export namespace.
     //
+    library.exportNamespace = null;
     NamespaceBuilder builder = new NamespaceBuilder();
     Namespace namespace = builder.createExportNamespaceForLibrary(library);
     library.exportNamespace = namespace;
@@ -1448,7 +1450,8 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
       'BuildLibraryElementTask', createTask, buildInputs, <ResultDescriptor>[
     BUILD_LIBRARY_ERRORS,
     LIBRARY_ELEMENT1,
-    IS_LAUNCHABLE
+    IS_LAUNCHABLE,
+    REFERENCED_NAMES
   ]);
 
   /**
@@ -1620,12 +1623,19 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
       Directive directive = directivesToResolve[i];
       directive.element = libraryElement;
     }
+    // Compute referenced names.
+    ReferencedNames referencedNames = new ReferencedNames(librarySource);
+    new ReferencedNamesBuilder(referencedNames).build(definingCompilationUnit);
+    for (CompilationUnit partUnit in partUnits) {
+      new ReferencedNamesBuilder(referencedNames).build(partUnit);
+    }
     //
     // Record outputs.
     //
     outputs[BUILD_LIBRARY_ERRORS] = errors;
     outputs[LIBRARY_ELEMENT1] = libraryElement;
     outputs[IS_LAUNCHABLE] = entryPoint != null;
+    outputs[REFERENCED_NAMES] = referencedNames;
   }
 
   /**
@@ -2226,10 +2236,10 @@ class ComputeLibraryCycleTask extends SourceBasedAnalysisTask {
    * given [target].
    */
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
-    LibrarySpecificUnit unit = target;
+    Source librarySource = target;
     return <String, TaskInput>{
-      LIBRARY_ELEMENT_INPUT: LIBRARY_ELEMENT2.of(unit.library),
-      'resolveReachableLibraries': READY_LIBRARY_ELEMENT2.of(unit.library),
+      LIBRARY_ELEMENT_INPUT: LIBRARY_ELEMENT2.of(librarySource),
+      'resolveReachableLibraries': READY_LIBRARY_ELEMENT2.of(librarySource),
     };
   }
 
@@ -2476,36 +2486,162 @@ class ContainingLibrariesTask extends SourceBasedAnalysisTask {
 class DartDelta extends Delta {
   bool hasDirectiveChange = false;
 
-  final Set<String> addedNames = new Set<String>();
   final Set<String> changedNames = new Set<String>();
-  final Set<String> removedNames = new Set<String>();
+  final Map<Source, Set<String>> changedPrivateNames = <Source, Set<String>>{};
 
-  final Set<Source> invalidatedSources = new Set<Source>();
+  final Map<String, ClassElementDelta> changedClasses =
+      <String, ClassElementDelta>{};
 
-  DartDelta(Source source) : super(source) {
-    invalidatedSources.add(source);
+  /**
+   * The cache of libraries in which all results are invalid.
+   */
+  final Set<Source> librariesWithInvalidResults = new Set<Source>();
+
+  /**
+   * The cache of libraries in which all results are valid.
+   */
+  final Set<Source> librariesWithValidResults = new Set<Source>();
+
+  DartDelta(Source source) : super(source);
+
+  /**
+   * Add names that are changed in the given [references].
+   */
+  void addChangedElements(ReferencedNames references) {
+    Source refLibrary = references.librarySource;
+    bool hasProgress = true;
+    while (hasProgress) {
+      hasProgress = false;
+      // Classes that extend changed classes are also changed.
+      // If there is a delta for a superclass, use it for the subclass.
+      // Otherwise mark the subclass as "general name change".
+      references.superToSubs.forEach((String superName, Set<String> subNames) {
+        ClassElementDelta superDelta = changedClasses[superName];
+        for (String subName in subNames) {
+          if (superDelta != null) {
+            ClassElementDelta subDelta = changedClasses.putIfAbsent(subName,
+                () => new ClassElementDelta(null, refLibrary, subName));
+            _log(() => '$subName in $refLibrary has delta because of its '
+                'superclass $superName has delta');
+            if (subDelta.superDeltas.add(superDelta)) {
+              hasProgress = true;
+            }
+          } else if (isChanged(refLibrary, superName)) {
+            if (nameChanged(refLibrary, subName)) {
+              _log(() => '$subName in $refLibrary is changed because its '
+                  'superclass $superName is changed');
+              hasProgress = true;
+            }
+          }
+        }
+      });
+      // If a user element uses a changed top-level element, then the user is
+      // also changed. Note that if a changed class with delta is used, this
+      // does not make the user changed - classes with delta keep their
+      // original elements, so resolution of their names does not change.
+      references.userToDependsOn.forEach((user, dependencies) {
+        for (String dependency in dependencies) {
+          if (isChangedOrClassMember(refLibrary, dependency)) {
+            if (nameChanged(refLibrary, user)) {
+              _log(() => '$user in $refLibrary is changed because '
+                  'of $dependency in $dependencies');
+              hasProgress = true;
+            }
+          }
+        }
+      });
+    }
   }
 
-  void elementAdded(Element element) {
-    addedNames.add(element.name);
+  void classChanged(ClassElementDelta classDelta) {
+    changedClasses[classDelta.name] = classDelta;
   }
 
   void elementChanged(Element element) {
-    changedNames.add(element.name);
+    Source librarySource = element.library.source;
+    nameChanged(librarySource, element.name);
   }
 
-  void elementRemoved(Element element) {
-    removedNames.add(element.name);
+  bool hasAffectedReferences(ReferencedNames references) {
+    Source refLibrary = references.librarySource;
+    // Verify errors must be recomputed when a superclass changes.
+    for (String superName in references.superToSubs.keys) {
+      if (isChangedOrClass(refLibrary, superName)) {
+        _log(() => '$refLibrary is affected because '
+            '${references.superToSubs[superName]} subclasses $superName');
+        return true;
+      }
+    }
+    // Verify errors must be recomputed when an instantiated class changes.
+    for (String name in references.instantiatedNames) {
+      if (isChangedOrClass(refLibrary, name)) {
+        _log(() => '$refLibrary is affected because $name is instantiated');
+        return true;
+      }
+    }
+    // Resolution must be performed when a referenced element changes.
+    for (String name in references.names) {
+      if (isChangedOrClassMember(refLibrary, name)) {
+        _log(() => '$refLibrary is affected by $name');
+        return true;
+      }
+    }
+    return false;
   }
 
-  bool isNameAffected(String name) {
-    return addedNames.contains(name) ||
-        changedNames.contains(name) ||
-        removedNames.contains(name);
+  /**
+   * Return `true` if the given [name], used in a unit of the [librarySource],
+   * is affected by a changed top-level element, excluding classes.
+   */
+  bool isChanged(Source librarySource, String name) {
+    if (_isPrivateName(name)) {
+      if (changedPrivateNames[librarySource]?.contains(name) ?? false) {
+        return true;
+      }
+    }
+    return changedNames.contains(name);
   }
 
-  bool nameChanged(String name) {
-    return changedNames.add(name);
+  /**
+   * Return `true` if the given [name], used in a unit of the [librarySource],
+   * is affected by a changed top-level element or a class.
+   */
+  bool isChangedOrClass(Source librarySource, String name) {
+    if (isChanged(librarySource, name)) {
+      return true;
+    }
+    return changedClasses[name] != null;
+  }
+
+  /**
+   * Return `true` if the given [name], used in a unit of the [librarySource],
+   * is affected by a changed top-level element or a class member.
+   */
+  bool isChangedOrClassMember(Source librarySource, String name) {
+    if (isChanged(librarySource, name)) {
+      return true;
+    }
+    // TODO(scheglov) Optimize this.
+    for (ClassElementDelta classDelta in changedClasses.values) {
+      if (classDelta.hasChanges(librarySource, name)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Register the fact that the given [name], defined in the [librarySource]
+   * is changed.  Return `true` if the [name] is a new name, not yet registered.
+   */
+  bool nameChanged(Source librarySource, String name) {
+    if (_isPrivateName(name)) {
+      return changedPrivateNames
+          .putIfAbsent(librarySource, () => new Set<String>())
+          .add(name);
+    } else {
+      return changedNames.add(name);
+    }
   }
 
   @override
@@ -2515,60 +2651,81 @@ class DartDelta extends Delta {
       return DeltaResult.INVALIDATE;
     }
     // Prepare target source.
-    Source targetSource = null;
+    Source targetSource = target.source;
+    Source librarySource = target.librarySource;
     if (target is Source) {
-      targetSource = target;
+      if (context.getKindOf(target) == SourceKind.LIBRARY) {
+        librarySource = target;
+      }
     }
-    if (target is LibrarySpecificUnit) {
-      targetSource = target.library;
+    // We don't know what to do with the given target, invalidate it.
+    if (targetSource == null) {
+      return DeltaResult.INVALIDATE;
     }
-    if (target is Element) {
-      targetSource = target.source;
+    // Keep results that don't change: any library.
+    if (_isTaskResult(BuildLibraryElementTask.DESCRIPTOR, descriptor) ||
+        _isTaskResult(BuildDirectiveElementsTask.DESCRIPTOR, descriptor) ||
+        _isTaskResult(ResolveDirectiveElementsTask.DESCRIPTOR, descriptor) ||
+        _isTaskResult(BuildEnumMemberElementsTask.DESCRIPTOR, descriptor) ||
+        _isTaskResult(BuildSourceExportClosureTask.DESCRIPTOR, descriptor) ||
+        _isTaskResult(ReadyLibraryElement2Task.DESCRIPTOR, descriptor) ||
+        _isTaskResult(ComputeLibraryCycleTask.DESCRIPTOR, descriptor)) {
+      return DeltaResult.KEEP_CONTINUE;
     }
-    // Keep results that are updated incrementally.
-    // If we want to analyze only some references to the source being changed,
-    // we need to keep the same instances of CompilationUnitElement and
-    // LibraryElement.
+    // Keep results that don't change: changed library.
     if (targetSource == source) {
-      if (ParseDartTask.DESCRIPTOR.results.contains(descriptor)) {
-        return DeltaResult.KEEP_CONTINUE;
-      }
-      if (BuildCompilationUnitElementTask.DESCRIPTOR.results
-          .contains(descriptor)) {
-        return DeltaResult.KEEP_CONTINUE;
-      }
-      if (BuildLibraryElementTask.DESCRIPTOR.results.contains(descriptor)) {
-        // Invalidate cached results.
-        if (value is LibraryElementImpl) {
-          value.exportNamespace = null;
-        }
+      if (_isTaskResult(ScanDartTask.DESCRIPTOR, descriptor) ||
+          _isTaskResult(ParseDartTask.DESCRIPTOR, descriptor) ||
+          _isTaskResult(
+              BuildCompilationUnitElementTask.DESCRIPTOR, descriptor) ||
+          _isTaskResult(BuildLibraryElementTask.DESCRIPTOR, descriptor)) {
         return DeltaResult.KEEP_CONTINUE;
       }
       return DeltaResult.INVALIDATE;
     }
-    // Use the target library dependency information to decide whether
-    // the delta affects the library.
-    if (targetSource != null) {
-      List<Source> librarySources =
-          context.getLibrariesContaining(targetSource);
-      int length = librarySources.length;
-      for (int i = 0; i < length; i++) {
-        Source librarySource = librarySources[i];
-        AnalysisCache cache = context.analysisCache;
-        ReferencedNames referencedNames =
-            cache.getValue(librarySource, REFERENCED_NAMES);
-        if (referencedNames == null) {
-          return DeltaResult.INVALIDATE;
-        }
-        referencedNames.addChangedElements(this);
-        if (referencedNames.isAffectedBy(this)) {
-          return DeltaResult.INVALIDATE;
-        }
+    // Keep results that don't change: dependent library.
+    if (targetSource != source) {
+      if (_isTaskResult(BuildPublicNamespaceTask.DESCRIPTOR, descriptor)) {
+        return DeltaResult.KEEP_CONTINUE;
       }
+    }
+    // Handle in-library results only for now.
+    if (librarySource != null) {
+      // Use cached library results.
+      if (librariesWithInvalidResults.contains(librarySource)) {
+        return DeltaResult.INVALIDATE;
+      }
+      if (librariesWithValidResults.contains(librarySource)) {
+        return DeltaResult.STOP;
+      }
+      // Compute the library result.
+      ReferencedNames referencedNames =
+          context.getResult(librarySource, REFERENCED_NAMES);
+      if (referencedNames == null) {
+        return DeltaResult.INVALIDATE_NO_DELTA;
+      }
+      addChangedElements(referencedNames);
+      if (hasAffectedReferences(referencedNames)) {
+        librariesWithInvalidResults.add(librarySource);
+        return DeltaResult.INVALIDATE;
+      }
+      librariesWithValidResults.add(librarySource);
       return DeltaResult.STOP;
     }
     // We don't know what to do with the given target, invalidate it.
     return DeltaResult.INVALIDATE;
+  }
+
+  void _log(String getMessage()) {
+//    String message = getMessage();
+//    print(message);
+  }
+
+  static bool _isPrivateName(String name) => name.startsWith('_');
+
+  static bool _isTaskResult(
+      TaskDescriptor taskDescriptor, ResultDescriptor result) {
+    return taskDescriptor.results.contains(result);
   }
 }
 
@@ -3270,14 +3427,14 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
 
       // Require that field re-resolution be complete for all units in the
       // current library cycle.
-      'orderLibraryCycleTasks': LIBRARY_CYCLE_UNITS.of(unit).toList(
+      'orderLibraryCycleTasks': LIBRARY_CYCLE_UNITS.of(unit.library).toList(
           (CompilationUnitElement unit) => CREATED_RESOLVED_UNIT10.of(
               new LibrarySpecificUnit(
                   (unit as CompilationUnitElementImpl).librarySource,
                   unit.source))),
       // Require that full inference be complete for all dependencies of the
       // current library cycle.
-      'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit).toList(
+      'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit.library).toList(
           (CompilationUnitElement unit) => CREATED_RESOLVED_UNIT11.of(
               new LibrarySpecificUnit(
                   (unit as CompilationUnitElementImpl).librarySource,
@@ -3549,7 +3706,7 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
 
       // Require that full inference be complete for all dependencies of the
       // current library cycle.
-      'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit).toList(
+      'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit.library).toList(
           (CompilationUnitElement unit) => CREATED_RESOLVED_UNIT11.of(
               new LibrarySpecificUnit(
                   (unit as CompilationUnitElementImpl).librarySource,
@@ -4050,7 +4207,7 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
 
       // Require that full inference be complete for all dependencies of the
       // current library cycle.
-      'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit).toList(
+      'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit.library).toList(
           (CompilationUnitElement unit) => CREATED_RESOLVED_UNIT11.of(
               new LibrarySpecificUnit(
                   (unit as CompilationUnitElementImpl).librarySource,
@@ -4530,39 +4687,45 @@ class ReadyResolvedUnitTask extends SourceBasedAnalysisTask {
  * with their externally visible dependencies.
  */
 class ReferencedNames {
+  final Source librarySource;
+
+  /**
+   * The mapping from the name of a class to the set of names of other classes
+   * that extend, mix-in, or implement it.
+   *
+   * If the set of member of a class is changed, these changes might change
+   * the list of unimplemented inherited members in the class and classes that
+   * extend, mix-in, or implement it. So, we might need to report (or stop
+   * reporting) the corresponding warning.
+   */
+  final Map<String, Set<String>> superToSubs = <String, Set<String>>{};
+
+  /**
+   * The names of instantiated classes.
+   *
+   * If one of these classes changes its set of members, it might change
+   * its list of unimplemented inherited members. So, we might need to report
+   * (or stop reporting) the corresponding warning.
+   */
+  final Set<String> instantiatedNames = new Set<String>();
+
+  /**
+   * The set of names that are referenced by the library, both inside and
+   * outside of method bodies.
+   */
   final Set<String> names = new Set<String>();
+
+  /**
+   * The mapping from the name of a top-level element to the set of names that
+   * the element uses in a way that is visible outside of the element, e.g.
+   * the return type, or a parameter type.
+   */
   final Map<String, Set<String>> userToDependsOn = <String, Set<String>>{};
 
-  /**
-   * Updates [delta] by adding names that are changed in this library.
-   */
-  void addChangedElements(DartDelta delta) {
-    bool hasProgress = true;
-    while (hasProgress) {
-      hasProgress = false;
-      userToDependsOn.forEach((user, dependencies) {
-        for (String dependency in dependencies) {
-          if (delta.isNameAffected(dependency)) {
-            if (delta.nameChanged(user)) {
-              hasProgress = true;
-            }
-          }
-        }
-      });
-    }
-  }
+  ReferencedNames(this.librarySource);
 
-  /**
-   * Returns `true` if the library described by this object is affected by
-   * the given [delta].
-   */
-  bool isAffectedBy(DartDelta delta) {
-    for (String name in names) {
-      if (delta.isNameAffected(name)) {
-        return true;
-      }
-    }
-    return false;
+  void addSubclass(String subName, String superName) {
+    superToSubs.putIfAbsent(superName, () => new Set<String>()).add(subName);
   }
 }
 
@@ -4570,11 +4733,12 @@ class ReferencedNames {
  * A builder for creating [ReferencedNames].
  */
 class ReferencedNamesBuilder extends GeneralizingAstVisitor {
+  final Set<String> importPrefixNames = new Set<String>();
   final ReferencedNames names;
 
   ReferencedNamesScope scope = new ReferencedNamesScope(null);
 
-  int bodyLevel = 0;
+  int localLevel = 0;
   Set<String> dependsOn;
 
   ReferencedNamesBuilder(this.names);
@@ -4602,7 +4766,11 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
       scope = new ReferencedNamesScope.forClass(scope, node);
       dependsOn = new Set<String>();
       super.visitClassDeclaration(node);
-      names.userToDependsOn[node.name.name] = dependsOn;
+      String className = node.name.name;
+      names.userToDependsOn[className] = dependsOn;
+      _addSuperName(className, node.extendsClause?.superclass);
+      _addSuperNames(className, node.withClause?.mixinTypes);
+      _addSuperNames(className, node.implementsClause?.interfaces);
     } finally {
       dependsOn = null;
       scope = outerScope;
@@ -4616,10 +4784,24 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
       scope = new ReferencedNamesScope.forClassTypeAlias(scope, node);
       dependsOn = new Set<String>();
       super.visitClassTypeAlias(node);
-      names.userToDependsOn[node.name.name] = dependsOn;
+      String className = node.name.name;
+      names.userToDependsOn[className] = dependsOn;
+      _addSuperName(className, node.superclass);
+      _addSuperNames(className, node.withClause?.mixinTypes);
+      _addSuperNames(className, node.implementsClause?.interfaces);
     } finally {
       dependsOn = null;
       scope = outerScope;
+    }
+  }
+
+  @override
+  visitComment(Comment node) {
+    try {
+      localLevel++;
+      super.visitComment(node);
+    } finally {
+      localLevel--;
     }
   }
 
@@ -4633,16 +4815,16 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
   @override
   visitFunctionBody(FunctionBody node) {
     try {
-      bodyLevel++;
+      localLevel++;
       super.visitFunctionBody(node);
     } finally {
-      bodyLevel--;
+      localLevel--;
     }
   }
 
   @override
   visitFunctionDeclaration(FunctionDeclaration node) {
-    if (bodyLevel == 0) {
+    if (localLevel == 0) {
       ReferencedNamesScope outerScope = scope;
       try {
         scope = new ReferencedNamesScope.forFunction(scope, node);
@@ -4660,7 +4842,7 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
 
   @override
   visitFunctionTypeAlias(FunctionTypeAlias node) {
-    if (bodyLevel == 0) {
+    if (localLevel == 0) {
       ReferencedNamesScope outerScope = scope;
       try {
         scope = new ReferencedNamesScope.forFunctionTypeAlias(scope, node);
@@ -4674,6 +4856,32 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
     } else {
       super.visitFunctionTypeAlias(node);
     }
+  }
+
+  @override
+  visitImportDirective(ImportDirective node) {
+    if (node.prefix != null) {
+      importPrefixNames.add(node.prefix.name);
+    }
+    super.visitImportDirective(node);
+  }
+
+  @override
+  visitInstanceCreationExpression(InstanceCreationExpression node) {
+    ConstructorName constructorName = node.constructorName;
+    Identifier typeName = constructorName.type.name;
+    if (typeName is SimpleIdentifier) {
+      names.instantiatedNames.add(typeName.name);
+    }
+    if (typeName is PrefixedIdentifier) {
+      String prefixName = typeName.prefix.name;
+      if (importPrefixNames.contains(prefixName)) {
+        names.instantiatedNames.add(typeName.identifier.name);
+      } else {
+        names.instantiatedNames.add(prefixName);
+      }
+    }
+    super.visitInstanceCreationExpression(node);
   }
 
   @override
@@ -4701,12 +4909,17 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
     // Prepare name.
     String name = node.name;
     // Ignore unqualified names shadowed by local elements.
-    if (!node.isQualified && scope.contains(name)) {
-      return;
+    if (!node.isQualified) {
+      if (scope.contains(name)) {
+        return;
+      }
+      if (importPrefixNames.contains(name)) {
+        return;
+      }
     }
     // Do add the dependency.
     names.names.add(name);
-    if (dependsOn != null && bodyLevel == 0) {
+    if (dependsOn != null && localLevel == 0) {
       dependsOn.add(name);
     }
   }
@@ -4726,6 +4939,22 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
       names.userToDependsOn[variable.name.name] = dependsOn;
     }
     dependsOn = null;
+  }
+
+  void _addSuperName(String className, TypeName type) {
+    if (type != null) {
+      Identifier typeName = type.name;
+      if (typeName is SimpleIdentifier) {
+        names.addSubclass(className, typeName.name);
+      }
+      if (typeName is PrefixedIdentifier) {
+        names.addSubclass(className, typeName.identifier.name);
+      }
+    }
+  }
+
+  void _addSuperNames(String className, List<TypeName> types) {
+    types?.forEach((type) => _addSuperName(className, type));
   }
 }
 
@@ -5044,14 +5273,14 @@ class ResolveInstanceFieldsInUnitTask extends SourceBasedAnalysisTask {
 
       // Require that static variable inference  be complete for all units in
       // the current library cycle.
-      'orderLibraryCycleTasks': LIBRARY_CYCLE_UNITS.of(unit).toList(
+      'orderLibraryCycleTasks': LIBRARY_CYCLE_UNITS.of(unit.library).toList(
           (CompilationUnitElement unit) => CREATED_RESOLVED_UNIT9.of(
               new LibrarySpecificUnit(
                   (unit as CompilationUnitElementImpl).librarySource,
                   unit.source))),
       // Require that full inference be complete for all dependencies of the
       // current library cycle.
-      'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit).toList(
+      'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit.library).toList(
           (CompilationUnitElement unit) => CREATED_RESOLVED_UNIT11.of(
               new LibrarySpecificUnit(
                   (unit as CompilationUnitElementImpl).librarySource,
@@ -5080,18 +5309,13 @@ class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {
   static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
 
   /**
-   * The name of the list of [RESOLVED_UNIT12] input.
-   */
-  static const String UNITS_INPUT = 'UNITS_INPUT';
-
-  /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'ResolveLibraryReferencesTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[LIBRARY_ELEMENT9, REFERENCED_NAMES]);
+      <ResultDescriptor>[LIBRARY_ELEMENT9]);
 
   ResolveLibraryReferencesTask(
       InternalAnalysisContext context, AnalysisTarget target)
@@ -5102,22 +5326,8 @@ class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {
 
   @override
   void internalPerform() {
-    //
-    // Prepare inputs.
-    //
     LibraryElement library = getRequiredInput(LIBRARY_INPUT);
-    List<CompilationUnit> units = getRequiredInput(UNITS_INPUT);
-    // Compute referenced names.
-    ReferencedNames referencedNames = new ReferencedNames();
-    int length = units.length;
-    for (int i = 0; i < length; i++) {
-      new ReferencedNamesBuilder(referencedNames).build(units[i]);
-    }
-    //
-    // Record outputs.
-    //
     outputs[LIBRARY_ELEMENT9] = library;
-    outputs[REFERENCED_NAMES] = referencedNames;
   }
 
   /**
@@ -5129,7 +5339,8 @@ class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {
     Source source = target;
     return <String, TaskInput>{
       LIBRARY_INPUT: LIBRARY_ELEMENT8.of(source),
-      UNITS_INPUT: LIBRARY_SPECIFIC_UNITS.of(source).toListOf(RESOLVED_UNIT12),
+      'resolvedUnits':
+          LIBRARY_SPECIFIC_UNITS.of(source).toListOf(RESOLVED_UNIT12),
     };
   }
 
@@ -5527,7 +5738,7 @@ class ResolveUnitTask extends SourceBasedAnalysisTask {
 
       // Require that inference be complete for all units in the
       // current library cycle.
-      'orderLibraryCycleTasks': LIBRARY_CYCLE_UNITS.of(unit).toList(
+      'orderLibraryCycleTasks': LIBRARY_CYCLE_UNITS.of(unit.library).toList(
           (CompilationUnitElement unit) => CREATED_RESOLVED_UNIT11.of(
               new LibrarySpecificUnit(
                   (unit as CompilationUnitElementImpl).librarySource,

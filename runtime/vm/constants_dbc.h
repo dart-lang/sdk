@@ -156,6 +156,16 @@ namespace dart {
 //
 //    Invoke native function SP[-1] with argc_tag SP[0].
 //
+//  - OneByteStringFromCharCode rA, rX
+//
+//    Load the one-character symbol with the char code given by the Smi
+//    in FP[rX] into FP[rA].
+//
+//  - StringToCharCode rA, rX
+//
+//    Load and smi-encode the single char code of the string in FP[rX] into
+//    FP[rA]. If the string's length is not 1, load smi -1 instead.
+//
 //  - AddTOS; SubTOS; MulTOS; BitOrTOS; BitAndTOS; EqualTOS; LessThanTOS;
 //    GreaterThanTOS;
 //
@@ -340,6 +350,12 @@ namespace dart {
 //
 //    Instantiate type arguments PP[D] with instantiator SP[0].
 //
+//  - InstanceOf A
+//
+//    Test if instance SP[-3] with type arguments SP[-2] is (A = 0) or is not
+//    (A = 1) a subtype of SP[-1] using SubtypeTestCache SP[0], with result
+//    placed at top of stack.
+//
 //  - AssertAssignable D
 //
 //    Assert that SP[-3] is assignable to variable named SP[0] of type
@@ -446,6 +462,8 @@ namespace dart {
   V(InstanceCall2Opt,              A_D, num, num, ___) \
   V(NativeCall,                      0, ___, ___, ___) \
   V(NativeBootstrapCall,             0, ___, ___, ___) \
+  V(OneByteStringFromCharCode,     A_X, reg, xeg, ___) \
+  V(StringToCharCode,              A_X, reg, xeg, ___) \
   V(AddTOS,                          0, ___, ___, ___) \
   V(SubTOS,                          0, ___, ___, ___) \
   V(MulTOS,                          0, ___, ___, ___) \
@@ -499,6 +517,7 @@ namespace dart {
   V(MoveSpecial,                   A_D, reg, num, ___) \
   V(InstantiateType,                 D, lit, ___, ___) \
   V(InstantiateTypeArgumentsTOS,   A_D, num, lit, ___) \
+  V(InstanceOf,                      A, num, ___, ___) \
   V(AssertAssignable,                D, num, lit, ___) \
   V(AssertBoolean,                   A, num, ___, ___) \
   V(CheckSmi,                        A, reg, ___, ___) \

@@ -28,6 +28,7 @@ import 'non_hint_code_test.dart' as non_hint_code_test;
 import 'parser_test.dart' as parser_test;
 import 'resolver_test.dart' as resolver_test;
 import 'scanner_test.dart' as scanner_test;
+import 'sdk_test.dart' as sdk_test;
 import 'simple_resolver_test.dart' as simple_resolver_test;
 import 'source_factory_test.dart' as source_factory_test;
 import 'static_type_analyzer_test.dart' as static_type_analyzer_test;
@@ -61,6 +62,7 @@ main() {
     parser_test.main();
     resolver_test.main();
     scanner_test.main();
+    sdk_test.main();
     simple_resolver_test.main();
     source_factory_test.main();
     static_type_analyzer_test.main();

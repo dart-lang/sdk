@@ -1717,7 +1717,27 @@ class GetHandler {
           buffer.write(' <small>[no .packages file]</small>');
         }
       });
-      // TODO(brianwilkerson) Add items for the SDK contexts (currently only one).
+      buffer.write('</p>');
+      buffer.write('<p><b>SDK Contexts</b></p>');
+      buffer.write('<p>');
+      first = true;
+      List<String> descriptors = analysisServer.sdkManager.sdkDescriptors
+          .map((SdkDescription descriptor) => descriptor.toString())
+          .toList();
+      if (descriptors.isEmpty) {
+        buffer.write('none');
+      } else {
+        descriptors.sort();
+        for (String descriptor in descriptors) {
+          if (first) {
+            first = false;
+          } else {
+            buffer.write('<br>');
+          }
+          // TODO(brianwilkerson) Add a link to information about the contexts.
+          buffer.write(descriptor);
+        }
+      }
       buffer.write('</p>');
 
       int freq = AnalysisServer.performOperationDelayFrequency;

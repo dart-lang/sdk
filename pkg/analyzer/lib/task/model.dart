@@ -61,6 +61,9 @@ class AnalysisContextTarget implements AnalysisTarget {
   AnalysisContextTarget(this.context);
 
   @override
+  Source get librarySource => null;
+
+  @override
   Source get source => null;
 }
 
@@ -72,6 +75,12 @@ class AnalysisContextTarget implements AnalysisTarget {
  * required to correctly implement [==] and [hashCode].
  */
 abstract class AnalysisTarget {
+  /**
+   * If this target is associated with a library, return the source of the
+   * library's defining compilation unit; otherwise return `null`.
+   */
+  Source get librarySource;
+
   /**
    * Return the source associated with this target, or `null` if this target is
    * not associated with a source.

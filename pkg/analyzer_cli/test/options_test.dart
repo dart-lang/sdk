@@ -25,6 +25,7 @@ main() {
         expect(options.buildSummaryInputs, isEmpty);
         expect(options.buildSummaryOnly, isFalse);
         expect(options.buildSummaryOutput, isNull);
+        expect(options.buildSummaryOutputSemantic, isNull);
         expect(options.buildSuppressExitCode, isFalse);
         expect(options.dartSdkPath, isNotNull);
         expect(options.disableHints, isFalse);
@@ -316,6 +317,16 @@ class CommandLineOptionsTest extends AbstractStatusTest {
     ]);
     expect(options.buildMode, isTrue);
     expect(options.buildSummaryOutput, '//path/to/output.sum');
+  }
+
+  test_buildSummaryOutputSemantic() {
+    _parse([
+      '--build-mode',
+      '--build-summary-output-semantic=//path/to/output.sum',
+      'package:p/foo.dart|/path/to/p/lib/foo.dart'
+    ]);
+    expect(options.buildMode, isTrue);
+    expect(options.buildSummaryOutputSemantic, '//path/to/output.sum');
   }
 
   test_buildSuppressExitCode() {

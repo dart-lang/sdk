@@ -357,6 +357,9 @@ abstract class ElementHandle implements Element {
   bool get isDeprecated => actualElement.isDeprecated;
 
   @override
+  bool get isFactory => actualElement.isFactory;
+
+  @override
   bool get isJS => actualElement.isJS;
 
   @override
@@ -380,6 +383,9 @@ abstract class ElementHandle implements Element {
   @override
   LibraryElement get library =>
       getAncestor((element) => element is LibraryElement);
+
+  @override
+  Source get librarySource => actualElement.librarySource;
 
   @override
   ElementLocation get location => _location;

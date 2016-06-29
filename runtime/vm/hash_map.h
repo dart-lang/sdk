@@ -5,28 +5,39 @@
 #ifndef VM_HASH_MAP_H_
 #define VM_HASH_MAP_H_
 
+#include "vm/growable_array.h"  // For Malloc, EmptyBase
 #include "vm/zone.h"
 
 namespace dart {
 
-template <typename KeyValueTrait>
-class DirectChainedHashMap: public ValueObject {
+template<typename KeyValueTrait, typename B, typename Allocator = Zone>
+class BaseDirectChainedHashMap : public B {
  public:
-  DirectChainedHashMap() : array_size_(0),
-                           lists_size_(0),
-                           count_(0),
-                           array_(NULL),
-                           lists_(NULL),
-                           free_list_head_(kNil) {
+  explicit BaseDirectChainedHashMap(Allocator* allocator)
+      : array_size_(0),
+        lists_size_(0),
+        count_(0),
+        array_(NULL),
+        lists_(NULL),
+        free_list_head_(kNil),
+        allocator_(allocator) {
     ResizeLists(kInitialSize);
     Resize(kInitialSize);
   }
 
-  DirectChainedHashMap(const DirectChainedHashMap& other);
+  BaseDirectChainedHashMap(const BaseDirectChainedHashMap& other);
+
+  ~BaseDirectChainedHashMap() {
+    allocator_->template Free<HashMapListElement>(array_, array_size_);
+    allocator_->template Free<HashMapListElement>(lists_, lists_size_);
+  }
 
   void Insert(typename KeyValueTrait::Pair kv);
 
-  typename KeyValueTrait::Value Lookup(typename KeyValueTrait::Key key) const;
+  typename KeyValueTrait::Value LookupValue(
+      typename KeyValueTrait::Key key) const;
+
+  typename KeyValueTrait::Pair* Lookup(typename KeyValueTrait::Key key) const;
 
   bool IsEmpty() const { return count_ == 0; }
 
@@ -42,6 +53,29 @@ class DirectChainedHashMap: public ValueObject {
       free_list_head_ = lists_size_ - 1;
     }
   }
+
+  class Iterator {
+   public:
+    typename KeyValueTrait::Pair* Next();
+
+    void Reset() {
+      array_index_ = 0;
+      list_index_ = kNil;
+    }
+
+   private:
+    explicit Iterator(const BaseDirectChainedHashMap& map)
+        : map_(map), array_index_(0), list_index_(kNil) {}
+
+    const BaseDirectChainedHashMap& map_;
+    intptr_t array_index_;
+    intptr_t list_index_;
+
+    template<typename T, typename Bs, typename A>
+    friend class BaseDirectChainedHashMap;
+  };
+
+  Iterator GetIterator() const { return Iterator(*this); }
 
  protected:
   // A linked list of T values.  Stored in arrays.
@@ -72,12 +106,31 @@ class DirectChainedHashMap: public ValueObject {
   // with a given hash.  Colliding elements are stored in linked lists.
   HashMapListElement* lists_;  // The linked lists containing hash collisions.
   intptr_t free_list_head_;  // Unused elements in lists_ are on the free list.
+  Allocator* allocator_;
 };
 
 
-template <typename KeyValueTrait>
-typename KeyValueTrait::Value
-    DirectChainedHashMap<KeyValueTrait>::
+template<typename KeyValueTrait, typename B, typename Allocator>
+BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::
+    BaseDirectChainedHashMap(const BaseDirectChainedHashMap& other)
+  : B(),
+    array_size_(other.array_size_),
+    lists_size_(other.lists_size_),
+    count_(other.count_),
+    array_(other.allocator_->template Alloc<HashMapListElement>(
+        other.array_size_)),
+    lists_(other.allocator_->template Alloc<HashMapListElement>(
+        other.lists_size_)),
+    free_list_head_(other.free_list_head_),
+    allocator_(other.allocator_) {
+  memmove(array_, other.array_, array_size_ * sizeof(HashMapListElement));
+  memmove(lists_, other.lists_, lists_size_ * sizeof(HashMapListElement));
+}
+
+
+template<typename KeyValueTrait, typename B, typename Allocator>
+typename KeyValueTrait::Pair*
+    BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::
         Lookup(typename KeyValueTrait::Key key) const {
   const typename KeyValueTrait::Value kNoValue =
       KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
@@ -86,40 +139,69 @@ typename KeyValueTrait::Value
   uword pos = Bound(hash);
   if (KeyValueTrait::ValueOf(array_[pos].kv) != kNoValue) {
     if (KeyValueTrait::IsKeyEqual(array_[pos].kv, key)) {
-      return KeyValueTrait::ValueOf(array_[pos].kv);
+      return &array_[pos].kv;
     }
 
     intptr_t next = array_[pos].next;
     while (next != kNil) {
       if (KeyValueTrait::IsKeyEqual(lists_[next].kv, key)) {
-        return KeyValueTrait::ValueOf(lists_[next].kv);
+        return &lists_[next].kv;
       }
       next = lists_[next].next;
     }
   }
-  return kNoValue;
+  return NULL;
 }
 
 
-template <typename KeyValueTrait>
-DirectChainedHashMap<KeyValueTrait>::
-    DirectChainedHashMap(const DirectChainedHashMap& other)
-  : ValueObject(),
-    array_size_(other.array_size_),
-    lists_size_(other.lists_size_),
-    count_(other.count_),
-    array_(Thread::Current()->zone()->
-           Alloc<HashMapListElement>(other.array_size_)),
-    lists_(Thread::Current()->zone()->
-           Alloc<HashMapListElement>(other.lists_size_)),
-    free_list_head_(other.free_list_head_) {
-  memmove(array_, other.array_, array_size_ * sizeof(HashMapListElement));
-  memmove(lists_, other.lists_, lists_size_ * sizeof(HashMapListElement));
+template<typename KeyValueTrait, typename B, typename Allocator>
+typename KeyValueTrait::Value
+    BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::
+        LookupValue(typename KeyValueTrait::Key key) const {
+  const typename KeyValueTrait::Value kNoValue =
+      KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
+  typename KeyValueTrait::Pair* pair = Lookup(key);
+  return (pair == NULL) ? kNoValue : KeyValueTrait::ValueOf(*pair);
 }
 
 
-template <typename KeyValueTrait>
-void DirectChainedHashMap<KeyValueTrait>::Resize(intptr_t new_size) {
+template<typename KeyValueTrait, typename B, typename Allocator>
+typename KeyValueTrait::Pair*
+    BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Iterator::Next() {
+  const typename KeyValueTrait::Pair kNoPair = typename KeyValueTrait::Pair();
+
+  if (array_index_ < map_.array_size_) {
+    // If we're not in the middle of a list, find the next array slot.
+    if (list_index_ == kNil) {
+      while ((map_.array_[array_index_].kv == kNoPair) &&
+             (array_index_ < map_.array_size_)) {
+        array_index_++;
+      }
+      if (array_index_ < map_.array_size_) {
+        // When we're done with the list, we'll continue with the next array
+        // slot.
+        const intptr_t old_array_index = array_index_;
+        array_index_++;
+        list_index_ = map_.array_[old_array_index].next;
+        return &map_.array_[old_array_index].kv;
+      } else {
+        return NULL;
+      }
+    }
+
+    // Otherwise, return the current lists_ entry, advancing list_index_.
+    intptr_t current = list_index_;
+    list_index_ = map_.lists_[current].next;
+    return &map_.lists_[current].kv;
+  }
+
+  return NULL;
+}
+
+
+template<typename KeyValueTrait, typename B, typename Allocator>
+void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Resize(
+    intptr_t new_size) {
   const typename KeyValueTrait::Value kNoValue =
       KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
 
@@ -133,7 +215,7 @@ void DirectChainedHashMap<KeyValueTrait>::Resize(intptr_t new_size) {
   }
 
   HashMapListElement* new_array =
-      Thread::Current()->zone()->Alloc<HashMapListElement>(new_size);
+      allocator_->template Alloc<HashMapListElement>(new_size);
   InitArray(new_array, new_size);
 
   HashMapListElement* old_array = array_;
@@ -163,16 +245,17 @@ void DirectChainedHashMap<KeyValueTrait>::Resize(intptr_t new_size) {
   }
   USE(old_count);
   ASSERT(count_ == old_count);
+  allocator_->template Free<HashMapListElement>(old_array, old_size);
 }
 
 
-template <typename T>
-void DirectChainedHashMap<T>::ResizeLists(intptr_t new_size) {
+template<typename KeyValueTrait, typename B, typename Allocator>
+void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::ResizeLists(
+    intptr_t new_size) {
   ASSERT(new_size > lists_size_);
 
   HashMapListElement* new_lists =
-      Thread::Current()->zone()->
-      Alloc<HashMapListElement>(new_size);
+      allocator_->template Alloc<HashMapListElement>(new_size);
   InitArray(new_lists, new_size);
 
   HashMapListElement* old_lists = lists_;
@@ -188,11 +271,12 @@ void DirectChainedHashMap<T>::ResizeLists(intptr_t new_size) {
     lists_[i].next = free_list_head_;
     free_list_head_ = i;
   }
+  allocator_->template Free<HashMapListElement>(old_lists, old_size);
 }
 
 
-template <typename KeyValueTrait>
-void DirectChainedHashMap<KeyValueTrait>::
+template<typename KeyValueTrait, typename B, typename Allocator>
+void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::
     Insert(typename KeyValueTrait::Pair kv) {
   const typename KeyValueTrait::Value kNoValue =
       KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
@@ -223,6 +307,24 @@ void DirectChainedHashMap<KeyValueTrait>::
 }
 
 
+template<typename KeyValueTrait>
+class DirectChainedHashMap
+    : public BaseDirectChainedHashMap<KeyValueTrait, ValueObject> {
+ public:
+  DirectChainedHashMap() : BaseDirectChainedHashMap<KeyValueTrait, ValueObject>(
+          ASSERT_NOTNULL(Thread::Current()->zone())) {}
+};
+
+
+template<typename KeyValueTrait>
+class MallocDirectChainedHashMap
+    : public BaseDirectChainedHashMap<KeyValueTrait, EmptyBase, Malloc> {
+ public:
+  MallocDirectChainedHashMap()
+      : BaseDirectChainedHashMap<KeyValueTrait, EmptyBase, Malloc>(NULL) {}
+};
+
+
 template<typename T>
 class PointerKeyValueTrait {
  public:
@@ -245,6 +347,20 @@ class PointerKeyValueTrait {
   static inline bool IsKeyEqual(Pair kv, Key key) {
     return kv->Equals(key);
   }
+};
+
+
+template<typename T>
+class NumbersKeyValueTrait {
+ public:
+  typedef T Value;
+  typedef intptr_t Key;
+  typedef T Pair;
+
+  static intptr_t KeyOf(Pair kv) { return kv.first(); }
+  static T ValueOf(Pair kv) { return kv; }
+  static inline intptr_t Hashcode(Key key) { return key; }
+  static inline bool IsKeyEqual(Pair kv, Key key) { return kv.first() == key; }
 };
 
 }  // namespace dart

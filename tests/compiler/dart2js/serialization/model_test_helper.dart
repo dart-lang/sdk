@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library dart2js.serialization_model_test;
+
 import 'dart:async';
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';

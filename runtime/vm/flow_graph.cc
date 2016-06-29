@@ -120,7 +120,7 @@ GrowableArray<BlockEntryInstr*>* FlowGraph::CodegenBlockOrder(
 
 
 ConstantInstr* FlowGraph::GetConstant(const Object& object) {
-  ConstantInstr* constant = constant_instr_pool_.Lookup(object);
+  ConstantInstr* constant = constant_instr_pool_.LookupValue(object);
   if (constant == NULL) {
     // Otherwise, allocate and add it to the pool.
     constant = new(zone()) ConstantInstr(

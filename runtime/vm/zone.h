@@ -176,6 +176,8 @@ class Zone {
   friend class ApiZone;
   template<typename T, typename B, typename Allocator>
   friend class BaseGrowableArray;
+  template<typename T, typename B, typename Allocator>
+  friend class BaseDirectChainedHashMap;
   DISALLOW_COPY_AND_ASSIGN(Zone);
 };
 

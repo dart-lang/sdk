@@ -18,6 +18,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
@@ -129,7 +130,7 @@ class AbstractAnalysisTest {
         index,
         serverPlugin,
         new AnalysisServerOptions(),
-        (_) => new MockSdk(),
+        new DartSdkManager('', false, (_) => new MockSdk()),
         InstrumentationService.NULL_SERVICE);
   }
 

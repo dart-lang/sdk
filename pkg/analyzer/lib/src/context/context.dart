@@ -281,6 +281,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         ((options is AnalysisOptionsImpl)
             ? this._options.implicitCasts != options.implicitCasts
             : false) ||
+        ((options is AnalysisOptionsImpl)
+            ? this._options.implicitDynamic != options.implicitDynamic
+            : false) ||
         this._options.enableStrictCallChecks !=
             options.enableStrictCallChecks ||
         this._options.enableGenericMethods != options.enableGenericMethods ||
@@ -309,9 +312,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.preserveComments = options.preserveComments;
     this._options.strongMode = options.strongMode;
     this._options.trackCacheDependencies = options.trackCacheDependencies;
+    this._options.finerGrainedInvalidation = options.finerGrainedInvalidation;
     if (options is AnalysisOptionsImpl) {
       this._options.strongModeHints = options.strongModeHints;
       this._options.implicitCasts = options.implicitCasts;
+      this._options.implicitDynamic = options.implicitDynamic;
     }
     if (needsRecompute) {
       for (WorkManager workManager in workManagers) {
@@ -1067,6 +1072,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     CacheEntry entry = _cache.get(source);
     if (entry == null) {
       return false;
+    }
+    // If there were no "originalContents" in the content cache,
+    // use the contents of the file instead.
+    if (originalContents == null) {
+      try {
+        TimestampedData<String> fileContents = source.contents;
+        if (fileContents.modificationTime == entry.modificationTime) {
+          originalContents = fileContents.data;
+        }
+      } catch (e) {}
     }
     bool changed = newContents != originalContents;
     if (newContents != null) {
@@ -1871,8 +1886,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     // We need to invalidate the cache.
     {
-      Object delta = null;
-      if (AnalysisEngine.instance.limitInvalidationInTaskModel &&
+      if (analysisOptions.finerGrainedInvalidation &&
           AnalysisEngine.isDartFileName(source.fullName)) {
         // TODO(scheglov) Incorrect implementation in general.
         entry.setState(TOKEN_STREAM, CacheState.FLUSHED);
@@ -1880,8 +1894,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         List<Source> librarySources = getLibrariesContaining(source);
         if (librarySources.length == 1) {
           Source librarySource = librarySources[0];
-          CompilationUnit oldUnit =
-              getResolvedCompilationUnit2(source, librarySource);
+          // Try to find an old unit which has element model.
+          CacheEntry unitEntry =
+              getCacheEntry(new LibrarySpecificUnit(librarySource, source));
+          CompilationUnit oldUnit = RESOLVED_UNIT_RESULTS
+              .map(unitEntry.getValue)
+              .firstWhere((unit) => unit != null, orElse: () => null);
+          // If we have the old unit, we can try to update it.
           if (oldUnit != null) {
             CompilationUnit newUnit = parseCompilationUnit(source);
             IncrementalCompilationUnitElementBuilder builder =
@@ -1891,15 +1910,17 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             if (!unitDelta.hasDirectiveChange) {
               DartDelta dartDelta = new DartDelta(source);
               dartDelta.hasDirectiveChange = unitDelta.hasDirectiveChange;
-              unitDelta.addedDeclarations.forEach(dartDelta.elementAdded);
-              unitDelta.removedDeclarations.forEach(dartDelta.elementRemoved);
-              for (ClassElementDelta classDelta in unitDelta.classDeltas) {
-                dartDelta.elementChanged(classDelta.element);
+              unitDelta.addedDeclarations.forEach(dartDelta.elementChanged);
+              unitDelta.removedDeclarations.forEach(dartDelta.elementChanged);
+              unitDelta.classDeltas.values.forEach(dartDelta.classChanged);
+              // Add other names in the library that are changed transitively.
+              {
+                ReferencedNames referencedNames = new ReferencedNames(source);
+                new ReferencedNamesBuilder(referencedNames).build(oldUnit);
+                dartDelta.addChangedElements(referencedNames);
               }
-//              print(
-//                  'dartDelta: add=${dartDelta.addedNames} remove=${dartDelta.removedNames}');
-              delta = dartDelta;
-              entry.setState(CONTENT, CacheState.INVALID, delta: delta);
+              // Invalidate using the prepared DartDelta.
+              entry.setState(CONTENT, CacheState.INVALID, delta: dartDelta);
               return;
             }
           }

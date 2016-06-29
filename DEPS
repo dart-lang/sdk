@@ -21,12 +21,18 @@ vars = {
   "github_mirror":
       "https://chromium.googlesource.com/external/github.com/dart-lang/%s.git",
 
+  # Chromium git
+  "chromium_git": "https://chromium.googlesource.com",
+
   # Only use this temporarily while waiting for a mirror for a new package.
   "github_dartlang": "https://github.com/dart-lang/%s.git",
 
   "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
   "co19_rev": "@3f0a4bc9a080a792cdf5f093147a900f99ea301f",
-  "chromium_git": "https://chromium.googlesource.com",
+
+  # Revisions of GN/Mojo/Flutter related dependencies.
+  "base_revision": "@672b04e54b937ec899429a6bd5409c5a6300d151",
+  "buildtools_revision": "@565d04e8741429fb1b4f26d102f2c6c3b849edeb",
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "@0.13.4",
@@ -49,7 +55,7 @@ vars = {
   "dart2js_info_rev" : "@0a221eaf16aec3879c45719de656680ccb80d8a1",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.4",
-  "dartdoc_tag" : "@v0.9.6",
+  "dartdoc_tag" : "@v0.9.6+1",
   "dev_compiler_rev": "@7e9708eb5e9f3fcdc68b9af039d78cf39ce502b7",
   "fixnum_tag": "@0.10.5",
   "func_rev": "@8d4aea75c21be2179cb00dc2b94a71414653094e",
@@ -64,7 +70,7 @@ vars = {
   "intl_tag": "@0.13.0",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@2.0.0",
-  "linter_rev": "@1a08f395b1f4e24b3901018938320f053bad6aa8",
+  "linter_rev": "@7ca3aab6ca45b988440e425c187993a533fbe27e",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
   "markdown_rev": "@4aaadf3d940bb172e1f6285af4d2b1710d309982",
   "matcher_tag": "@0.12.0",
@@ -118,6 +124,14 @@ deps = {
   # Stuff needed for GYP to run.
   Var("dart_root") + "/third_party/gyp":
       Var('chromium_git') + '/external/gyp.git' + Var("gyp_rev"),
+
+  # Stuff needed for GN/Mojo/Flutter.
+  Var("dart_root") + "/base":
+     Var('chromium_git') + '/external/github.com/domokit/base' +  Var('base_revision'),
+
+  Var("dart_root") + "/buildtools":
+     Var('chromium_git') + '/chromium/buildtools.git' +
+     Var('buildtools_revision'),
 
   Var("dart_root") + "/tests/co19/src":
       (Var("github_mirror") % "co19") + Var("co19_rev"),

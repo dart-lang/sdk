@@ -21607,7 +21607,6 @@ class DefaultHashTraits {
     }
   }
 };
-typedef EnumIndexHashMap<DefaultHashTraits> EnumIndexDefaultMap;
 
 
 RawLinkedHashMap* LinkedHashMap::NewDefault(Heap::Space space) {

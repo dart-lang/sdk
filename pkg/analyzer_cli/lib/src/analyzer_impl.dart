@@ -259,14 +259,12 @@ class AnalyzerImpl {
   static ErrorSeverity computeSeverity(
       AnalysisError error, CommandLineOptions options,
       [AnalysisContext context]) {
-    bool isStrongMode = false;
     if (context != null) {
       ErrorProcessor processor = ErrorProcessor.getProcessor(context, error);
       // If there is a processor for this error, defer to it.
       if (processor != null) {
         return processor.severity;
       }
-      isStrongMode = context.analysisOptions.strongMode;
     }
 
     if (!options.enableTypeChecks &&
@@ -275,10 +273,6 @@ class AnalyzerImpl {
     } else if (options.hintsAreFatal && error.errorCode is HintCode) {
       return ErrorSeverity.ERROR;
     } else if (options.lintsAreFatal && error.errorCode is LintCode) {
-      return ErrorSeverity.ERROR;
-    } else if (isStrongMode &&
-        error is StaticWarningCode &&
-        (error as StaticWarningCode).isStrongModeError) {
       return ErrorSeverity.ERROR;
     }
     return error.errorCode.errorSeverity;

@@ -29,7 +29,7 @@ class SocketServer {
   /**
    * The function used to create a new SDK using the default SDK.
    */
-  final SdkCreator defaultSdkCreator;
+  final DartSdkManager sdkManager;
 
   final DirectoryBasedDartSdk defaultSdk;
   final InstrumentationService instrumentationService;
@@ -51,7 +51,7 @@ class SocketServer {
 
   SocketServer(
       this.analysisServerOptions,
-      this.defaultSdkCreator,
+      this.sdkManager,
       this.defaultSdk,
       this.instrumentationService,
       this.serverPlugin,
@@ -97,7 +97,7 @@ class SocketServer {
         index,
         serverPlugin,
         analysisServerOptions,
-        defaultSdkCreator,
+        sdkManager,
         instrumentationService,
         fileResolverProvider: fileResolverProvider,
         packageResolverProvider: packageResolverProvider,

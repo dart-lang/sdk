@@ -74,6 +74,9 @@ class DartScript implements Source {
   bool get isInSystemLibrary => source.isInSystemLibrary;
 
   @override
+  Source get librarySource => source;
+
+  @override
   int get modificationStamp => source.modificationStamp;
 
   @override

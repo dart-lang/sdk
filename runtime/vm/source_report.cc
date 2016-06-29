@@ -113,7 +113,7 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
 
 intptr_t SourceReport::GetScriptIndex(const Script& script) {
   const String& url = String::Handle(zone(), script.url());
-  ScriptTableEntry* pair = script_table_.Lookup(&url);
+  ScriptTableEntry* pair = script_table_.LookupValue(&url);
   if (pair != NULL) {
     return pair->index;
   }
@@ -140,7 +140,7 @@ void SourceReport::VerifyScriptTable() {
     ASSERT(i == index);
     const String& url2 = String::Handle(zone(), script->url());
     ASSERT(url2.Equals(*url));
-    ScriptTableEntry* pair = script_table_.Lookup(&url2);
+    ScriptTableEntry* pair = script_table_.LookupValue(&url2);
     ASSERT(i == pair->index);
   }
 }

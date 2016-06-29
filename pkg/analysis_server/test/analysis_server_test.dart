@@ -19,6 +19,7 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
@@ -144,7 +145,7 @@ import "../foo/foo.dart";
         null,
         plugin,
         new AnalysisServerOptions(),
-        (_) => new MockSdk(),
+        new DartSdkManager('', false, (_) => new MockSdk()),
         InstrumentationService.NULL_SERVICE,
         rethrowExceptions: true);
     processRequiredPlugins();

@@ -6910,6 +6910,8 @@ class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
 
   virtual EffectSet Effects() const { return EffectSet::All(); }
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
   PRINT_OPERANDS_TO_SUPPORT
 
   DECLARE_INSTRUCTION(CheckedSmiOp)

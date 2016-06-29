@@ -26,6 +26,7 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart' show Document;
 import 'package:unittest/unittest.dart';
@@ -298,6 +299,39 @@ int b = aa;''';
     ApplyChangesStatus changesStatus = context.applyChanges(changeSet);
     expect(changesStatus.hasChanges, isFalse);
     expect(context.sourcesNeedingProcessing, hasLength(0));
+  }
+
+  void test_applyChanges_recompute_exportNamespace() {
+    Source libSource = addSource(
+        "/lib.dart",
+        r'''
+class A {}
+''');
+    Source exporterSource = addSource(
+        "/exporter.dart",
+        r'''
+export 'lib.dart';
+''');
+    _performPendingAnalysisTasks();
+    // initially: A
+    {
+      LibraryElement libraryElement =
+          context.getResult(exporterSource, LIBRARY_ELEMENT1) as LibraryElement;
+      expect(libraryElement.exportNamespace.definedNames.keys,
+          unorderedEquals(['A']));
+    }
+    // after update: B
+    context.setContents(
+        libSource,
+        r'''
+class B {}''');
+    _performPendingAnalysisTasks();
+    {
+      LibraryElement libraryElement =
+          context.getResult(exporterSource, LIBRARY_ELEMENT1) as LibraryElement;
+      expect(libraryElement.exportNamespace.definedNames.keys,
+          unorderedEquals(['B']));
+    }
   }
 
   Future test_applyChanges_remove() {
@@ -1464,6 +1498,44 @@ main() {}''');
     expect(context.getLibraryElement(source), isNull);
   }
 
+  void test_handleContentsChanged_noOriginal_sameAsFile() {
+    ContentCache contentCache = new ContentCache();
+    context.contentCache = contentCache;
+    // Add the source.
+    String code = 'foo() {}';
+    Source source = addSource("/test.dart", code);
+    _analyzeAll_assertFinished();
+    expect(context.getResolvedCompilationUnit2(source, source), isNotNull);
+    // Update the content cache, and notify that we updated the source.
+    // We pass "null" as "originalContents" because the was no one.
+    contentCache.setContents(source, code);
+    context.handleContentsChanged(source, null, code, true);
+    expect(context.getResolvedCompilationUnit2(source, source), isNotNull);
+  }
+
+  void test_handleContentsChanged_noOriginal_sameAsFile_butFileUpdated() {
+    ContentCache contentCache = new ContentCache();
+    context.contentCache = contentCache;
+    // Add the source.
+    String oldCode = 'foo() {}';
+    String newCode = 'bar() {}';
+    var file = resourceProvider.newFile('/test.dart', oldCode);
+    Source source = file.createSource();
+    context.applyChanges(new ChangeSet()..addedSource(source));
+    _analyzeAll_assertFinished();
+    expect(context.getResolvedCompilationUnit2(source, source), isNotNull);
+    // Test for the race condition.
+    // 1. Update the file.
+    // 2. Update the content cache.
+    // 3. Notify the context, and because this is the first time when we
+    //    update the content cache, we don't know "originalContents".
+    // The source must be invalidated, because it has different contents now.
+    resourceProvider.updateFile('/test.dart', newCode);
+    contentCache.setContents(source, newCode);
+    context.handleContentsChanged(source, null, newCode, true);
+    expect(context.getResolvedCompilationUnit2(source, source), isNull);
+  }
+
   Future test_implicitAnalysisEvents_added() async {
     AnalyzedSourcesListener listener = new AnalyzedSourcesListener();
     context.implicitAnalysisEvents.listen(listener.onData);
@@ -1826,7 +1898,7 @@ void g() { f(null); }''');
         reason: "part resolved 1");
     // update and analyze #1
     context.setContents(partSource, "part of lib; // 1");
-    if (AnalysisEngine.instance.limitInvalidationInTaskModel) {
+    if (context.analysisOptions.finerGrainedInvalidation) {
       expect(
           context.getResolvedCompilationUnit2(libSource, libSource), isNotNull,
           reason: "library changed 2");
@@ -1848,7 +1920,7 @@ void g() { f(null); }''');
     }
     // update and analyze #2
     context.setContents(partSource, "part of lib; // 12");
-    if (AnalysisEngine.instance.limitInvalidationInTaskModel) {
+    if (context.analysisOptions.finerGrainedInvalidation) {
       expect(
           context.getResolvedCompilationUnit2(libSource, libSource), isNotNull,
           reason: "library changed 3");
@@ -2004,7 +2076,7 @@ library expectedToFindSemicolon
     _changeSource(source, "");
     source.generateExceptionOnRead = true;
     _analyzeAll_assertFinished();
-    if (AnalysisEngine.instance.limitInvalidationInTaskModel) {
+    if (context.analysisOptions.finerGrainedInvalidation) {
       expect(source.readCount, 7);
     } else {
       expect(source.readCount, 4);
@@ -2592,26 +2664,345 @@ int a = 0;''');
 }
 
 @reflectiveTest
-/**
- * TODO(scheglov) After changes that affect only resolution in method bodies,
- * it is theoretically possible to keep the same element model and resolve
- * only corresponding method bodies.
- */
 class LimitedInvalidateTest extends AbstractContextTest {
   @override
   void setUp() {
-    AnalysisEngine.instance.limitInvalidationInTaskModel = true;
     super.setUp();
     AnalysisOptionsImpl options =
         new AnalysisOptionsImpl.from(context.analysisOptions);
     options.incremental = true;
+    options.finerGrainedInvalidation = true;
     context.analysisOptions = options;
   }
 
-  @override
-  void tearDown() {
-    AnalysisEngine.instance.limitInvalidationInTaskModel = false;
-    super.tearDown();
+  void test_class_addMethod_useClass() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {}
+class B extends A {
+  foo() {}
+}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+B b = null;
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: remove add A.bar.
+    //   b.dart is valid, because though it uses A, it has the same element.
+    context.setContents(
+        a,
+        r'''
+class A {}
+class B extends A {
+  foo() {}
+  bar() {}
+}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertValidAllLibraryUnitResults(b);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+  }
+
+  void test_class_method_change_notUsed() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {
+  foo() {}
+  bar() {}
+}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main(A a) {
+  a.foo();
+}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: remove A.bar, add A.bar2.
+    //   b.dart is valid, because it doesn't references 'bar' or 'bar2'.
+    context.setContents(
+        a,
+        r'''
+class A {
+  foo() {}
+  bar2() {}
+}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertValidAllLibraryUnitResults(b);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+  }
+
+  void test_class_method_change_notUsed_throughSubclass_extends() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {
+  foo() {}
+  bar() {}
+}
+class B extends A {}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main(B b) {
+  a.foo();
+}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: remove A.bar, add A.bar2.
+    //   b.dart is valid, because it doesn't references 'bar' or 'bar2'.
+    context.setContents(
+        a,
+        r'''
+class A {
+  foo() {}
+  bar2() {}
+}
+class B extends A {}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertValidAllLibraryUnitResults(b);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+  }
+
+  void test_class_method_definedInSuper_sameLibrary() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {
+  m() {}
+}
+class B extends A {}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main(B b) {
+  b.m();
+}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: change A.m
+    //   This makes B changed.
+    //   b.dart is invalid, because it references B.
+    context.setContents(
+        a,
+        r'''
+class A {
+  m2() {}
+}
+class B extends A {}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertValidForDependentLibrary(b);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+  }
+
+  void test_class_private_member() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {
+  A();
+  A._privateConstructor();
+
+  foo() {}
+
+  int _privateField;
+  _privateMethod() {}
+  int get _privateGetter => null;
+  void set _privateSetter(_) {}
+}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main(A a) {
+  a.foo();
+}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: rename private members of A
+    //   b.dart is valid, it cannot see these private members.
+    context.setContents(
+        a,
+        r'''
+class A {
+  A();
+  A._privateConstructor2();
+
+  foo() {}
+
+  int _privateField2;
+  _privateMethod2() {}
+  int get _privateGetter2 => null;
+  void set _privateSetter2(_) {}
+}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertValidAllLibraryUnitResults(b);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+  }
+
+  void test_class_super_makeAbstract_instantiate() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+abstract class I {
+ void m();
+}
+class A implements I {
+ void m() {}
+}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+class B extends A {}
+''');
+    Source c = addSource(
+        '/c.dart',
+        r'''
+import 'b.dart';
+main() {
+  new B();
+}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: remove A.bar, add A.bar2.
+    //   b.dart is valid, because it doesn't references 'bar' or 'bar2'.
+    context.setContents(
+        a,
+        r'''
+abstract class I {
+ void m();
+}
+class A implements I {
+ void m2() {}
+}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+
+    _assertValidForDependentLibrary(b);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+
+    _assertValidForDependentLibrary(c);
+    _assertInvalid(c, LIBRARY_ERRORS_READY);
+  }
+
+  void test_private_class() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class _A {}
+class _B2 {}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main() {
+  new _A();
+  new _B();
+}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: change _A and _B2
+    //   b.dart is valid, because _A, _B, _A2 and _B2 are all private,
+    //   so b.dart cannot see them.
+    context.setContents(
+        a,
+        r'''
+class _A2 {}
+class _B {}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertValidAllLibraryUnitResults(b);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+  }
+
+  void test_private_topLevelVariable() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+int _V = 1;
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main() {
+  print(_A);
+}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: change _V
+    //   b.dart is valid, because _V is private and b.dart cannot see it.
+    context.setContents(
+        a,
+        r'''
+int _V = 2;
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertValidAllLibraryUnitResults(b);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+  }
+
+  void test_private_topLevelVariable_throughPublic() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+int _A = 1;
+int B = _A + 1;
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main() {
+  print(B);
+}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: change _A
+    //   b.dart is invalid, because it uses B, which uses _A.
+    context.setContents(
+        a,
+        r'''
+int _A = 2;
+int B = _A + 1;
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
   }
 
   void test_sequence_class_give_take() {
@@ -2642,9 +3033,11 @@ class A {}
 class B {}
 class C2 {}
 ''');
+    _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
     _assertInvalid(b, LIBRARY_ERRORS_READY);
-    _assertUnitInvalid(b, RESOLVED_UNIT);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
     // Now b.dart is analyzed and the error is fixed.
     _performPendingAnalysisTasks();
     expect(context.getErrors(b).errors, hasLength(0));
@@ -2657,8 +3050,11 @@ class A {}
 class B {}
 class C {}
 ''');
+    _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
     _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
     // Now b.dart is analyzed and it again has the error.
     _performPendingAnalysisTasks();
     expect(context.getErrors(b).errors, hasLength(1));
@@ -2671,6 +3067,7 @@ class C {}
 class A {
   A();
 }
+
 class B {
   B();
 }
@@ -2700,8 +3097,11 @@ class B {
   B();
 }
 ''');
+    _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
-    _assertValid(b, LIBRARY_ELEMENT);
+    _assertValidForDependentLibrary(b);
+    _assertValidAllLibraryUnitResults(b);
+    _assertValid(b, LIBRARY_ERRORS_READY);
     // The a.dart's unit and element are updated incrementally.
     // They are the same instances as initially.
     // So, all the references from other units are still valid.
@@ -2735,8 +3135,11 @@ class B {
   B();
 }
 ''');
+    _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
-    _assertInvalid(b, LIBRARY_ELEMENT);
+    _assertValidForDependentLibrary(b);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
     // The a.dart's unit and element are the same.
     {
       LibrarySpecificUnit target = new LibrarySpecificUnit(a, a);
@@ -2748,6 +3151,40 @@ class B {
     _performPendingAnalysisTasks();
     expect(context.getErrors(a).errors, hasLength(0));
     expect(context.getErrors(b).errors, hasLength(0));
+  }
+
+  void test_sequence_useAnyResolvedUnit() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {}
+class B {}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main() {
+  new A();
+}
+''');
+    _performPendingAnalysisTasks();
+    _assertValid(a, LIBRARY_ERRORS_READY);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+    // Invalidate RESOLVED_UNIT
+    CacheEntry entryA = context.getCacheEntry(new LibrarySpecificUnit(a, a));
+    entryA.setState(RESOLVED_UNIT, CacheState.FLUSHED);
+    entryA.setState(RESOLVED_UNIT1, CacheState.FLUSHED);
+    entryA.setState(RESOLVED_UNIT2, CacheState.FLUSHED);
+    entryA.setState(RESOLVED_UNIT3, CacheState.FLUSHED);
+    context.setContents(
+        a,
+        r'''
+class A {}
+class B2 {}
+''');
+    _assertValidAllLibraryUnitResults(b);
+    _assertValid(b, LIBRARY_ERRORS_READY);
   }
 
   void test_unusedName_class_add() {
@@ -2768,6 +3205,7 @@ main() {
 }
 ''');
     _performPendingAnalysisTasks();
+    _assertValid(a, LINE_INFO);
     // The class B is not referenced.
     //   a.dart is invalid.
     //   b.dart is valid.
@@ -2778,11 +3216,12 @@ class A {}
 class B2 {}
 class C {}
 ''');
+    _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
-    _assertUnitValid(a, RESOLVED_UNIT1);
     _assertUnitInvalid(a, RESOLVED_UNIT);
+    _assertValidForDependentLibrary(b);
+    _assertValidAllLibraryUnitResults(b);
     _assertValid(b, LIBRARY_ERRORS_READY);
-    _assertUnitValid(b, RESOLVED_UNIT);
   }
 
   void test_usedName_class_name_asHole_inBody() {
@@ -2812,10 +3251,11 @@ class A {}
 class B {}
 class C2 {}
 ''');
+    _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
     _assertInvalid(b, LIBRARY_ERRORS_READY);
-    _assertInvalidUnits(b, RESOLVED_UNIT2);
-    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT2);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
   }
 
   void test_usedName_class_name_asSuper() {
@@ -2838,10 +3278,11 @@ class B extends A {}
         r'''
 class A2 {}
 ''');
+    _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
     _assertInvalid(b, LIBRARY_ERRORS_READY);
-    _assertInvalidUnits(b, RESOLVED_UNIT2);
-    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT2);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
   }
 
   void test_usedName_class_name_asTypeBound() {
@@ -2866,10 +3307,11 @@ class B<T extends A> {
         r'''
 class A2 {}
 ''');
+    _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
     _assertInvalid(b, LIBRARY_ERRORS_READY);
-    _assertInvalidUnits(b, RESOLVED_UNIT2);
-    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT2);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
   }
 
   void test_usedName_class_name_inBody() {
@@ -2899,10 +3341,11 @@ class A {}
 class B {}
 class C2 {}
 ''');
+    _assertValidForChangedLibrary(a);
+    _assertValidForDependentLibrary(b);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
     _assertInvalid(b, LIBRARY_ERRORS_READY);
-    _assertInvalidUnits(b, RESOLVED_UNIT2);
-    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT2);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
   }
 
   void test_usedName_classMethod_name_inBody() {
@@ -2923,8 +3366,8 @@ main() {
 }
 ''');
     _performPendingAnalysisTasks();
-    // Update a.dart: remove C.m, add C.m2.
-    //   b.dart is invalid, because it references c.m.
+    // Update a.dart: remove A.m, add A.m2.
+    //   b.dart is invalid, because it references 'm'.
     context.setContents(
         a,
         r'''
@@ -2932,10 +3375,12 @@ class A {
   m2() {}
 }
 ''');
+    _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT4);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
     _assertInvalid(b, LIBRARY_ERRORS_READY);
-    _assertInvalidUnits(b, RESOLVED_UNIT2);
-    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT2);
   }
 
   void test_usedName_indirect_classMethod_name_inBody() {
@@ -2962,7 +3407,7 @@ main() {
 }
 ''');
     _performPendingAnalysisTasks();
-    // Update a.dart: remove C.m, add C.m2.
+    // Update a.dart: remove A.m, add A.m2.
     //   b.dart is invalid, because B extends A.
     //   c.dart is invalid, because 'main' references B.
     context.setContents(
@@ -2972,13 +3417,18 @@ class A {
   m2() {}
 }
 ''');
+    _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
+
+    _assertValidForDependentLibrary(b);
+    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT4);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
     _assertInvalid(b, LIBRARY_ERRORS_READY);
-    _assertInvalid(c, LIBRARY_ERRORS_READY);
-    _assertInvalidUnits(b, RESOLVED_UNIT2);
-    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT2);
-    _assertInvalidUnits(c, RESOLVED_UNIT4);
+
+    _assertValidForDependentLibrary(c);
     _assertInvalidLibraryElements(c, LIBRARY_ELEMENT5);
+    _assertInvalidUnits(c, RESOLVED_UNIT4);
+    _assertInvalid(c, LIBRARY_ERRORS_READY);
   }
 
   void test_usedName_indirect_classMethod_returnType_inBody() {
@@ -3007,9 +3457,9 @@ main() {
 }
 ''');
     _performPendingAnalysisTasks();
-    // Update a.dart: remove C.m, add C.m2.
+    // Update a.dart: remove A.m, add A.m2.
     //   b.dart is invalid, because B extends A.
-    //   c.dart is invalid, because 'main' references B.m.
+    //   c.dart is invalid, because 'main' references 'm'.
     context.setContents(
         a,
         r'''
@@ -3020,14 +3470,18 @@ class A {
 }
 ''');
     _assertInvalid(a, LIBRARY_ERRORS_READY);
-    _assertInvalid(b, LIBRARY_ERRORS_READY);
-    _assertInvalid(c, LIBRARY_ERRORS_READY);
+
     // TODO(scheglov) In theory b.dart is not affected, because it does not
     // call A.m, does not override it, etc.
-    _assertInvalidUnits(b, RESOLVED_UNIT2);
-    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT2);
-    _assertInvalidUnits(c, RESOLVED_UNIT4);
+    _assertValidForDependentLibrary(b);
+    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT4);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+
+    _assertValidForDependentLibrary(c);
     _assertInvalidLibraryElements(c, LIBRARY_ELEMENT5);
+    _assertInvalidUnits(c, RESOLVED_UNIT4);
+    _assertInvalid(c, LIBRARY_ERRORS_READY);
   }
 
   void _assertInvalid(AnalysisTarget target, ResultDescriptor descriptor) {
@@ -3077,9 +3531,62 @@ class A {
         new LibrarySpecificUnit(librarySource, unitSource), descriptor);
   }
 
+  void _assertUnitValidTaskResults(Source unitSource, TaskDescriptor descriptor,
+      {Source librarySource}) {
+    librarySource ??= unitSource;
+    for (ResultDescriptor result in descriptor.results) {
+      _assertUnitValid(unitSource, result, librarySource: librarySource);
+    }
+  }
+
   void _assertValid(AnalysisTarget target, ResultDescriptor descriptor) {
     CacheState state = analysisCache.getState(target, descriptor);
-    expect(state, CacheState.VALID, reason: '$descriptor in $target');
+    expect(state, isIn([CacheState.VALID, CacheState.FLUSHED]),
+        reason: '$descriptor in $target');
+  }
+
+  void _assertValidAllLibraryUnitResults(Source source, {Source library}) {
+    for (ResultDescriptor<LibraryElement> result in LIBRARY_ELEMENT_RESULTS) {
+      _assertValid(source, result);
+    }
+    library ??= source;
+    LibrarySpecificUnit target = new LibrarySpecificUnit(library, source);
+    for (ResultDescriptor<CompilationUnit> result in RESOLVED_UNIT_RESULTS) {
+      _assertValid(target, result);
+    }
+  }
+
+  void _assertValidForAnyLibrary(Source source) {
+    // Source results.
+    _assertValidTaskResults(source, ScanDartTask.DESCRIPTOR);
+    // Library results.
+    _assertValidTaskResults(source, BuildLibraryElementTask.DESCRIPTOR);
+    _assertValidTaskResults(source, BuildDirectiveElementsTask.DESCRIPTOR);
+    _assertValidTaskResults(source, BuildSourceExportClosureTask.DESCRIPTOR);
+    _assertValidTaskResults(source, ReadyLibraryElement2Task.DESCRIPTOR);
+    _assertValidTaskResults(source, ComputeLibraryCycleTask.DESCRIPTOR);
+    // Unit results.
+    _assertUnitValidTaskResults(
+        source, BuildCompilationUnitElementTask.DESCRIPTOR);
+    _assertUnitValidTaskResults(
+        source, ResolveDirectiveElementsTask.DESCRIPTOR);
+    _assertUnitValidTaskResults(source, BuildEnumMemberElementsTask.DESCRIPTOR);
+  }
+
+  void _assertValidForChangedLibrary(Source source) {
+    _assertValidForAnyLibrary(source);
+  }
+
+  void _assertValidForDependentLibrary(Source source) {
+    _assertValidForAnyLibrary(source);
+    // Library results.
+    _assertValidTaskResults(source, BuildPublicNamespaceTask.DESCRIPTOR);
+  }
+
+  void _assertValidTaskResults(AnalysisTarget target, TaskDescriptor task) {
+    for (ResultDescriptor result in task.results) {
+      _assertValid(target, result);
+    }
   }
 
   void _performPendingAnalysisTasks([int maxTasks = 512]) {
