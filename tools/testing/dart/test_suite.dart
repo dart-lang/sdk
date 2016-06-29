@@ -2394,6 +2394,8 @@ class TestUtils {
   static List<String> getExtraVmOptions(Map configuration) =>
       getExtraOptions(configuration, 'vm_options');
 
+  static int shortNameCounter = 0;  // Make unique short file names on Windows.
+
   static String getShortName(String path) {
     final PATH_REPLACEMENTS = const {
       "pkg_polymer_e2e_test_bad_import_test": "polymer_bi",
@@ -2457,6 +2459,7 @@ class TestUtils {
     }
     path = path.replaceAll('/', '_');
     final int WINDOWS_SHORTEN_PATH_LIMIT = 58;
+    final int WINDOWS_PATH_END_LENGTH = 30;
     if (Platform.operatingSystem == 'windows' &&
         path.length > WINDOWS_SHORTEN_PATH_LIMIT) {
       for (var key in PATH_REPLACEMENTS.keys) {
@@ -2464,6 +2467,11 @@ class TestUtils {
           path = path.replaceFirst(key, PATH_REPLACEMENTS[key]);
           break;
         }
+      }
+      if (path.length > WINDOWS_SHORTEN_PATH_LIMIT) {
+        ++shortNameCounter;
+        var pathEnd = path.substring(path.length - WINDOWS_PATH_END_LENGTH);
+        path = "short${shortNameCounter}_$pathEnd";
       }
     }
     return path;
