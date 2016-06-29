@@ -53,6 +53,7 @@ import 'class_members.dart' show MembersCreator;
 import 'constructors.dart';
 import 'members.dart';
 import 'registry.dart';
+import 'scope.dart' show MutableScope;
 import 'signatures.dart';
 import 'tree_elements.dart';
 import 'typedefs.dart';
@@ -236,7 +237,7 @@ class ResolverTask extends CompilerTask {
       ResolverVisitor visitor = visitorFor(element);
       ResolutionRegistry registry = visitor.registry;
       registry.defineFunction(tree, element);
-      visitor.setupFunction(tree, element);
+      visitor.setupFunction(tree, element); // Modifies the scope.
       processAsyncMarker(compiler, element, registry);
 
       if (element.isGenerativeConstructor) {
@@ -244,7 +245,9 @@ class ResolverTask extends CompilerTask {
         // resolution in case there is an implicit super constructor call.
         InitializerResolver resolver =
             new InitializerResolver(visitor, element, tree);
-        FunctionElement redirection = resolver.resolveInitializers();
+        FunctionElement redirection = resolver.resolveInitializers(
+            enableInitializingFormalAccess:
+                compiler.options.enableInitializingFormalAccess);
         if (redirection != null) {
           resolveRedirectingConstructor(resolver, tree, element, redirection);
         }
