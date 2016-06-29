@@ -101,25 +101,30 @@ _VisitVariableDeclaration _buildVariableReporter(
       }
     };
 
-Iterable<AstNode> _findVariableAssignments(
-        Iterable<AstNode> containerNodes, VariableDeclaration variable) =>
-    containerNodes.where((n) {
-      return n is AssignmentExpression &&
-          ((n.leftHandSide is SimpleIdentifier &&
-                  // Assignment to VariableDeclaration as variable.
-                  (n.leftHandSide as SimpleIdentifier).token.lexeme ==
-                      variable.name.token.lexeme) ||
-              // Assignment to VariableDeclaration as setter.
-              (n.leftHandSide is PropertyAccess &&
-                  (n.leftHandSide as PropertyAccess)
-                          .propertyName
-                          .token
-                          .lexeme ==
-                      variable.name.token.lexeme))
-          // Being assigned another reference.
-          &&
-          n.rightHandSide is SimpleIdentifier;
-    });
+Iterable<AstNode> _findVariableAssignments(Iterable<AstNode> containerNodes,
+    VariableDeclaration variable) {
+  if (variable.equals != null &&
+      variable.initializer != null &&
+      variable.initializer is SimpleIdentifier) {
+    return [variable];
+  }
+
+  return containerNodes.where((n) => n is AssignmentExpression &&
+        ((n.leftHandSide is SimpleIdentifier &&
+            // Assignment to VariableDeclaration as variable.
+            (n.leftHandSide as SimpleIdentifier).token.lexeme ==
+                variable.name.token.lexeme) ||
+            // Assignment to VariableDeclaration as setter.
+            (n.leftHandSide is PropertyAccess &&
+                (n.leftHandSide as PropertyAccess)
+                    .propertyName
+                    .token
+                    .lexeme ==
+                    variable.name.token.lexeme))
+        // Being assigned another reference.
+        &&
+        n.rightHandSide is SimpleIdentifier);
+}
 
 Iterable<AstNode> _findMethodInvocationsWithVariableAsArgument(
     Iterable<AstNode> containerNodes, VariableDeclaration variable) {
