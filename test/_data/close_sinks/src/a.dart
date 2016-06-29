@@ -8,6 +8,11 @@ import 'package:mockito/mockito.dart';
 
 class MockIOSink extends Mock implements IOSink {}
 
+IOSink outSink = stdout;
+void inScope() {
+  IOSink currentOut = outSink;
+}
+
 class A {
   IOSink _sinkA; // LINT
   void init(filename) {
