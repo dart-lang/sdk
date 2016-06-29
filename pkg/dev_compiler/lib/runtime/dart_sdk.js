@@ -617,6 +617,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let dynamicToObject = () => (dynamicToObject = dart.constFn(dart.definiteFunctionType(core.Object, [dart.dynamic])))();
   let dynamicToJsObject = () => (dynamicToJsObject = dart.constFn(dart.definiteFunctionType(js.JsObject, [dart.dynamic])))();
   let dynamicAnddynamicAndFnToObject = () => (dynamicAnddynamicAndFnToObject = dart.constFn(dart.definiteFunctionType(core.Object, [dart.dynamic, dart.dynamic, dynamicTodynamic()])))();
+  let FToF = () => (FToF = dart.constFn(dart.definiteFunctionType(F => [F, [F]])))();
   let FunctionToFunction = () => (FunctionToFunction = dart.constFn(dart.definiteFunctionType(core.Function, [core.Function])))();
   let TAndTToT = () => (TAndTToT = dart.constFn(dart.definiteFunctionType(T => [T, [T, T]])))();
   let TAndTToT$ = () => (TAndTToT$ = dart.constFn(dart.definiteFunctionType(T => [T, [T, T]])))();
@@ -33505,10 +33506,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return value;
   };
   dart.fn(js._putIfAbsent, dynamicAnddynamicAndFnToObject());
-  js.allowInterop = function(f) {
-    return f;
+  js.allowInterop = function(F) {
+    return f => {
+      return f;
+    };
   };
-  dart.fn(js.allowInterop, FunctionToFunction());
+  dart.fn(js.allowInterop, FToF());
   dart.defineLazy(js, {
     get _interopCaptureThisExpando() {
       return new (ExpandoOfFunction())();
