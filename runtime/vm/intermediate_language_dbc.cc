@@ -102,7 +102,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(UnboxInteger32)                                                            \
   M(CheckedSmiOp)                                                              \
   M(CheckArrayBound)                                                           \
-  M(TestSmi)                                                                   \
   M(RelationalOp)                                                              \
   M(EqualityCompare)                                                           \
   M(LoadIndexed)
@@ -158,7 +157,7 @@ static LocationSummary* CreateLocationSummary(
   Condition Name##Instr::EmitComparisonCode(FlowGraphCompiler*,                \
                                             BranchLabels) {                    \
     UNIMPLEMENTED();                                                           \
-    return EQ;                                                                 \
+    return NEXT_IS_TRUE;                                                       \
   }
 
 #define DEFINE_UNIMPLEMENTED(Name)                                             \
@@ -170,7 +169,6 @@ FOR_EACH_UNIMPLEMENTED_INSTRUCTION(DEFINE_UNIMPLEMENTED)
 #undef DEFINE_UNIMPLEMENTED
 
 DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(TestCids)
-DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(TestSmi)
 DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(RelationalOp)
 DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(EqualityCompare)
 
@@ -382,14 +380,14 @@ EMIT_NATIVE_CODE(ClosureCall,
 static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
                                   Condition true_condition,
                                   BranchLabels labels) {
-  if (labels.fall_through == labels.false_label) {
-    // If the next block is the false successor, fall through to it.
+  if (true_condition == NEXT_IS_TRUE) {
     __ Jump(labels.true_label);
+    if (labels.fall_through != labels.false_label) {
+      __ Jump(labels.false_label);
+    }
   } else {
-    // If the next block is not the false successor, branch to it.
+    ASSERT(true_condition == NEXT_IS_FALSE);
     __ Jump(labels.false_label);
-
-    // Fall through or jump to the true successor.
     if (labels.fall_through != labels.true_label) {
       __ Jump(labels.true_label);
     }
@@ -402,34 +400,33 @@ Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   ASSERT((kind() == Token::kNE_STRICT) ||
          (kind() == Token::kEQ_STRICT));
 
+  Token::Kind comparison;
+  Condition condition;
+  if (labels.fall_through == labels.false_label) {
+    condition = NEXT_IS_TRUE;
+    comparison = kind();
+  } else {
+    // Flip comparision to save a jump.
+    condition = NEXT_IS_FALSE;
+    comparison = (kind() == Token::kEQ_STRICT) ? Token::kNE_STRICT
+                                               : Token::kEQ_STRICT;
+  }
+
   if (!compiler->is_optimizing()) {
     const Bytecode::Opcode eq_op = needs_number_check() ?
         Bytecode::kIfEqStrictNumTOS : Bytecode::kIfEqStrictTOS;
     const Bytecode::Opcode ne_op = needs_number_check() ?
         Bytecode::kIfNeStrictNumTOS : Bytecode::kIfNeStrictTOS;
-
-    if (kind() == Token::kEQ_STRICT) {
-      __ Emit((labels.fall_through == labels.false_label) ? eq_op : ne_op);
-    } else {
-      __ Emit((labels.fall_through == labels.false_label) ? ne_op : eq_op);
-    }
+    __ Emit(comparison == Token::kEQ_STRICT ? eq_op : ne_op);
   } else {
     const Bytecode::Opcode eq_op = needs_number_check() ?
         Bytecode::kIfEqStrictNum : Bytecode::kIfEqStrict;
     const Bytecode::Opcode ne_op = needs_number_check() ?
         Bytecode::kIfNeStrictNum : Bytecode::kIfNeStrict;
-
-    if (kind() == Token::kEQ_STRICT) {
-      __ Emit(Bytecode::Encode(
-          (labels.fall_through == labels.false_label) ? eq_op : ne_op,
-          locs()->in(0).reg(),
-          locs()->in(1).reg()));
-    } else {
-      __ Emit(Bytecode::Encode(
-          (labels.fall_through == labels.false_label) ? ne_op : eq_op,
-          locs()->in(0).reg(),
-          locs()->in(1).reg()));
-    }
+    __ Emit(Bytecode::Encode(
+        (comparison == Token::kEQ_STRICT) ? eq_op : ne_op,
+        locs()->in(0).reg(),
+        locs()->in(1).reg()));
   }
 
   if (needs_number_check() && token_pos().IsReal()) {
@@ -438,7 +435,8 @@ Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                    Thread::kNoDeoptId,
                                    token_pos());
   }
-  return EQ;
+
+  return condition;
 }
 
 
@@ -518,6 +516,34 @@ EMIT_NATIVE_CODE(Goto, 0) {
   if (!compiler->CanFallThroughTo(successor())) {
     __ Jump(compiler->GetJumpLabel(successor()));
   }
+}
+
+
+Condition TestSmiInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
+                                           BranchLabels labels) {
+  ASSERT((kind() == Token::kEQ) ||
+         (kind() == Token::kNE));
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  __ TestSmi(left, right);
+  return (kind() == Token::kEQ) ? NEXT_IS_TRUE : NEXT_IS_FALSE;
+}
+
+
+void TestSmiInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                  BranchInstr* branch) {
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  EmitBranchOnCondition(compiler, true_condition, labels);
+}
+
+
+EMIT_NATIVE_CODE(TestSmi,
+                 2,
+                 Location::RequiresRegister(),
+                 LocationSummary::kNoCall) {
+  // Never emitted outside of the BranchInstr.
+  UNREACHABLE();
 }
 
 

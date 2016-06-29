@@ -2048,6 +2048,16 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(TestSmi, A_D);
+    intptr_t left = reinterpret_cast<intptr_t>(RAW_CAST(Smi, FP[rA]));
+    intptr_t right = reinterpret_cast<intptr_t>(RAW_CAST(Smi, FP[rD]));
+    if ((left & right) != 0) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
     BYTECODE(CheckSmi, 0);
     intptr_t obj = reinterpret_cast<intptr_t>(FP[rA]);
     if ((obj & kSmiTagMask) == kSmiTag) {

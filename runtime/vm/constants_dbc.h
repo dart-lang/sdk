@@ -371,6 +371,11 @@ namespace dart {
 //
 //    Assert that TOS is a boolean (A = 1) or that TOS is not null (A = 0).
 //
+//  - TestSmi rA, rD
+//
+//    If FP[rA] & FP[rD] != 0, then skip the next instruction. FP[rA] and FP[rD]
+//    must be Smis.
+//
 //  - CheckSmi rA
 //
 //    If FP[rA] is a Smi, then skip the next instruction.
@@ -541,6 +546,7 @@ namespace dart {
   V(InstanceOf,                      A, num, ___, ___) \
   V(AssertAssignable,                D, num, lit, ___) \
   V(AssertBoolean,                   A, num, ___, ___) \
+  V(TestSmi,                       A_D, reg, reg, ___) \
   V(CheckSmi,                        A, reg, ___, ___) \
   V(CheckClassId,                  A_D, reg, num, ___) \
   V(CheckDenseSwitch,              A_D, reg, num, ___) \
@@ -662,7 +668,11 @@ enum FpuRegister {
 const FpuRegister FpuTMP = kFakeFpuRegister;
 const intptr_t kNumberOfFpuRegisters = 1;
 
-enum Condition { EQ, NE };
+// After a comparison, the condition NEXT_IS_TRUE means the following
+// instruction is executed if the comparision is true and skipped over overwise.
+// Conidition NEXT_IS_FALSE means the following instruction is executed if the
+// comparison is false and skipped over otherwise.
+enum Condition { NEXT_IS_TRUE, NEXT_IS_FALSE };
 
 }  // namespace dart
 

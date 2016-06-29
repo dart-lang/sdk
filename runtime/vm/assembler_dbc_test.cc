@@ -1606,6 +1606,50 @@ ASSEMBLER_TEST_RUN(CreateArrayTOS, test) {
 }
 
 
+//  - TestSmi rA, rD
+//
+//    If FP[rA] & FP[rD] != 0, then skip the next instruction. FP[rA] and FP[rD]
+//    must be Smis.
+ASSEMBLER_TEST_GENERATE(TestSmiTrue, assembler) {
+  Label branch_taken;
+  __ Frame(2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(7)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(3)));
+  __ TestSmi(0, 1);
+  __ Jump(&branch_taken);
+  __ PushConstant(Bool::True());
+  __ ReturnTOS();
+  __ Bind(&branch_taken);
+  __ PushConstant(Bool::False());
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(TestSmiTrue, test) {
+  EXPECT(EXECUTE_TEST_CODE_BOOL(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(TestSmiFalse, assembler) {
+  Label branch_taken;
+  __ Frame(2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(8)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(4)));
+  __ TestSmi(0, 1);
+  __ Jump(&branch_taken);
+  __ PushConstant(Bool::True());
+  __ ReturnTOS();
+  __ Bind(&branch_taken);
+  __ PushConstant(Bool::False());
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(TestSmiFalse, test) {
+  EXPECT(!EXECUTE_TEST_CODE_BOOL(test->code()));
+}
+
+
 //  - CheckSmi rA
 //
 //    If FP[rA] is a Smi, then skip the next instruction.
