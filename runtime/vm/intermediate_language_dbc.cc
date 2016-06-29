@@ -55,8 +55,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(BinaryMintOp)                                                              \
   M(ShiftMintOp)                                                               \
   M(UnaryMintOp)                                                               \
-  M(StringToCharCode)                                                          \
-  M(OneByteStringFromCharCode)                                                 \
   M(InvokeMathCFunction)                                                       \
   M(MergedMath)                                                                \
   M(GuardFieldClass)                                                           \
@@ -597,6 +595,27 @@ EMIT_NATIVE_CODE(NativeCall,
                                  Thread::kNoDeoptId,
                                  token_pos());
 }
+
+
+EMIT_NATIVE_CODE(OneByteStringFromCharCode,
+                 1, Location::RequiresRegister(),
+                 LocationSummary::kNoCall) {
+  ASSERT(compiler->is_optimizing());
+  const Register char_code = locs()->in(0).reg();  // Char code is a smi.
+  const Register result = locs()->out(0).reg();
+  __ OneByteStringFromCharCode(result, char_code);
+}
+
+
+EMIT_NATIVE_CODE(StringToCharCode,
+                 1, Location::RequiresRegister(),
+                 LocationSummary::kNoCall) {
+  ASSERT(cid_ == kOneByteStringCid);
+  const Register str = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();  // Result char code is a smi.
+  __ StringToCharCode(result, str);
+}
+
 
 
 EMIT_NATIVE_CODE(AllocateObject,

@@ -156,6 +156,16 @@ namespace dart {
 //
 //    Invoke native function SP[-1] with argc_tag SP[0].
 //
+//  - OneByteStringFromCharCode rA, rX
+//
+//    Load the one-character symbol with the char code given by the Smi
+//    in FP[rX] into FP[rA].
+//
+//  - StringToCharCode rA, rX
+//
+//    Load and smi-encode the single char code of the string in FP[rX] into
+//    FP[rA]. If the string's length is not 1, load smi -1 instead.
+//
 //  - AddTOS; SubTOS; MulTOS; BitOrTOS; BitAndTOS; EqualTOS; LessThanTOS;
 //    GreaterThanTOS;
 //
@@ -452,6 +462,8 @@ namespace dart {
   V(InstanceCall2Opt,              A_D, num, num, ___) \
   V(NativeCall,                      0, ___, ___, ___) \
   V(NativeBootstrapCall,             0, ___, ___, ___) \
+  V(OneByteStringFromCharCode,     A_X, reg, xeg, ___) \
+  V(StringToCharCode,              A_X, reg, xeg, ___) \
   V(AddTOS,                          0, ___, ___, ___) \
   V(SubTOS,                          0, ___, ___, ___) \
   V(MulTOS,                          0, ___, ___, ___) \

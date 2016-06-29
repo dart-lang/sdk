@@ -28,6 +28,7 @@
 #include "vm/object_store.h"
 #include "vm/os_thread.h"
 #include "vm/stack_frame.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -1521,6 +1522,28 @@ RawObject* Simulator::Call(const Code& code,
     NativeArguments args(thread, argc_tag, incoming_args, SP - 1);
     INVOKE_NATIVE_WRAPPER(native_target, args);
     SP -= 1;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(OneByteStringFromCharCode, A_X);
+    const intptr_t char_code = Smi::Value(RAW_CAST(Smi, FP[rD]));
+    ASSERT(char_code >= 0);
+    ASSERT(char_code <= 255);
+    RawString** strings = Symbols::PredefinedAddress();
+    const intptr_t index = char_code + Symbols::kNullCharCodeSymbolOffset;
+    FP[rA] = strings[index];
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StringToCharCode, A_X);
+    RawOneByteString* str = RAW_CAST(OneByteString, FP[rD]);
+    if (str->ptr()->length_ == Smi::New(1)) {
+      FP[rA] = Smi::New(str->ptr()->data()[0]);
+    } else {
+      FP[rA] = Smi::New(-1);
+    }
     DISPATCH();
   }
 
