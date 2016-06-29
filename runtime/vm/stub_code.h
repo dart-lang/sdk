@@ -71,6 +71,7 @@ class SnapshotWriter;
   V(FixCallersTarget)                                                          \
   V(Deoptimize)                                                                \
   V(DeoptimizeLazy)                                                            \
+  V(FrameAwaitingMaterialization)                                              \
 
 #endif  // !defined(TARGET_ARCH_DBC)
 

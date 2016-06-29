@@ -83,9 +83,10 @@ namespace dart {
 //
 //    Unreachable instruction.
 //
-//  - Nop
+//  - Nop D
 //
-//    This instuction does nothing.
+//    This instuction does nothing. It may refer to an object in the constant
+//    pool that may be decoded by other instructions.
 //
 //  - Compile
 //
@@ -221,6 +222,11 @@ namespace dart {
 //
 //        IfNeStrictTOS
 //        Jump T         ;; jump if not equal
+//
+//  - If<Cond>Null rA
+//
+//    Cond is Eq or Ne. Skips the next instruction unless the given condition
+//    holds.
 //
 //  - CreateArrayTOS
 //
@@ -371,8 +377,21 @@ namespace dart {
 //
 //  - CheckClassId rA, D
 //
-//    If the object at FP[rA]'s class id matches hthe class id in PP[D], then
-//    skip the following instruction.
+//    If the object at FP[rA]'s class id matches the class id D, then skip the
+//    following instruction.
+//
+//  - CheckDenseSwitch rA, D
+//
+//    Skips the next 3 instructions if the object at FP[rA] is a valid class for
+//    a dense switch with low cid encoded in the following Nop instruction, and
+//    the cid mask encoded in the Nop instruction after that, or if D == 1 and
+//    FP[rA] is a Smi. Skips 2 instructions otherwise.
+//
+//  - CheckCids rA, rB, rC
+//
+//    Skips rC + 1 instructions if the object at FP[rA] is a Smi and
+//    rB == 1, or if FP[rA]'s cid is found in the array of cids encoded by the
+//    following rC Nop instructions. Otherwise skips only rC instructions.
 //
 //  - CheckStack
 //
@@ -436,7 +455,7 @@ namespace dart {
 //
 #define BYTECODES_LIST(V)                              \
   V(Trap,                            0, ___, ___, ___) \
-  V(Nop,                             0, ___, ___, ___) \
+  V(Nop,                             D, lit, ___, ___) \
   V(Compile,                         0, ___, ___, ___) \
   V(HotCheck,                      A_D, num, num, ___) \
   V(Intrinsic,                       A, num, ___, ___) \
@@ -495,6 +514,8 @@ namespace dart {
   V(IfEqStrict,                    A_D, reg, reg, ___) \
   V(IfNeStrictNum,                 A_D, reg, reg, ___) \
   V(IfEqStrictNum,                 A_D, reg, reg, ___) \
+  V(IfEqNull,                        A, reg, ___, ___) \
+  V(IfNeNull,                        A, reg, ___, ___) \
   V(CreateArrayTOS,                  0, ___, ___, ___) \
   V(Allocate,                        D, lit, ___, ___) \
   V(AllocateT,                       0, ___, ___, ___) \
@@ -521,7 +542,9 @@ namespace dart {
   V(AssertAssignable,                D, num, lit, ___) \
   V(AssertBoolean,                   A, num, ___, ___) \
   V(CheckSmi,                        A, reg, ___, ___) \
-  V(CheckClassId,                  A_D, reg, lit, ___) \
+  V(CheckClassId,                  A_D, reg, num, ___) \
+  V(CheckDenseSwitch,              A_D, reg, num, ___) \
+  V(CheckCids,                   A_B_C, reg, num, ___) \
   V(CheckStack,                      0, ___, ___, ___) \
   V(DebugStep,                       0, ___, ___, ___) \
   V(DebugBreak,                      A, num, ___, ___) \

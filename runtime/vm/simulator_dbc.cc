@@ -2058,11 +2058,59 @@ RawObject* Simulator::Call(const Code& code,
 
   {
     BYTECODE(CheckClassId, A_D);
-    const RawSmi* actual_cid =
-        SimulatorHelpers::GetClassIdAsSmi(static_cast<RawObject*>(FP[rA]));
-    const RawSmi* desired_cid = RAW_CAST(Smi, LOAD_CONSTANT(rD));
-    if (actual_cid == desired_cid) {
-      pc++;
+    const intptr_t actual_cid = SimulatorHelpers::GetClassId(FP[rA]);
+    const intptr_t desired_cid = rD;
+    pc += (actual_cid == desired_cid) ? 1 : 0;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CheckDenseSwitch, A_D);
+    const intptr_t raw_value = reinterpret_cast<intptr_t>(FP[rA]);
+    const bool is_smi = ((raw_value & kSmiTagMask) == kSmiTag);
+    const intptr_t cid_min = Bytecode::DecodeD(*pc);
+    const intptr_t cid_mask =
+        Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(Bytecode::DecodeD(*(pc + 1)))));
+    if (LIKELY(!is_smi)) {
+      const intptr_t cid_max = Utils::HighestBit(cid_mask) + cid_min;
+      const intptr_t cid = SimulatorHelpers::GetClassId(FP[rA]);
+      // The cid is in-bounds, and the bit is set in the mask.
+      if ((cid >= cid_min) && (cid <= cid_max) &&
+          ((cid_mask & (1 << (cid - cid_min))) != 0)) {
+        pc += 3;
+      } else {
+        pc += 2;
+      }
+    } else {
+      const bool may_be_smi = (rD == 1);
+      pc += (may_be_smi ? 3 : 2);
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CheckCids, A_B_C);
+    const intptr_t raw_value = reinterpret_cast<intptr_t>(FP[rA]);
+    const bool is_smi = ((raw_value & kSmiTagMask) == kSmiTag);
+    const bool may_be_smi = (rB == 1);
+    const intptr_t cids_length = rC;
+    if (LIKELY(!is_smi)) {
+      const intptr_t cid = SimulatorHelpers::GetClassId(FP[rA]);
+      for (intptr_t i = 0; i < cids_length; i++) {
+        const intptr_t desired_cid = Bytecode::DecodeD(*(pc + i));
+        if (cid == desired_cid) {
+          pc++;
+          break;
+        }
+        // The cids are sorted.
+        if (cid < desired_cid) {
+          break;
+        }
+      }
+      pc += cids_length;
+    } else {
+      pc += cids_length;
+      pc += (may_be_smi ? 1 : 0);
     }
     DISPATCH();
   }
@@ -2156,6 +2204,22 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(IfEqNull, A);
+    if (FP[rA] != null_value) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfNeNull, A_D);
+    if (FP[rA] == null_value) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
     BYTECODE(Jump, 0);
     const int32_t target = static_cast<int32_t>(op) >> 8;
     pc += (target - 1);
@@ -2241,7 +2305,7 @@ RawObject* Simulator::Call(const Code& code,
       INVOKE_RUNTIME(DRT_DeoptimizeMaterialize, native_args);
     }
     const intptr_t materialization_arg_count =
-        Smi::Value(RAW_CAST(Smi, *SP--));
+        Smi::Value(RAW_CAST(Smi, *SP--)) / kWordSize;
     if (is_lazy) {
       // Reload the result. It might have been relocated by GC.
       result = *SP--;

@@ -3329,9 +3329,10 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ PushConstant(function());
   __ StaticCall(ArgumentCount(), argdesc_kidx);
-  compiler->AddCurrentDescriptor(RawPcDescriptors::kUnoptStaticCall,
-                                 deopt_id(),
-                                 token_pos());
+  RawPcDescriptors::Kind kind = (compiler->is_optimizing())
+                              ? RawPcDescriptors::kOther
+                              : RawPcDescriptors::kUnoptStaticCall;
+  compiler->AddCurrentDescriptor(kind, deopt_id(), token_pos());
 
   compiler->RecordAfterCall(this);
 

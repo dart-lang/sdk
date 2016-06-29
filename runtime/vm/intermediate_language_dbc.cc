@@ -102,7 +102,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(UnboxInteger32)                                                            \
   M(CheckedSmiOp)                                                              \
   M(CheckArrayBound)                                                           \
-  M(CheckClass)                                                                \
   M(TestSmi)                                                                   \
   M(RelationalOp)                                                              \
   M(EqualityCompare)                                                           \
@@ -504,6 +503,13 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 EMIT_NATIVE_CODE(Goto, 0) {
+  if (!compiler->is_optimizing()) {
+    // Add a deoptimization descriptor for deoptimizing instructions that
+    // may be inserted before this instruction.
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
+                                   GetDeoptId(),
+                                   TokenPosition::kNoSource);
+  }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
@@ -983,9 +989,78 @@ EMIT_NATIVE_CODE(CheckEitherNonSmi, 2) {
 
 
 EMIT_NATIVE_CODE(CheckClassId, 1) {
-  intptr_t cid = __ AddConstant(Smi::Handle(Smi::New(cid_)));
-  __ CheckClassId(locs()->in(0).reg(), cid);
+  if (!Utils::IsUint(16, cid_)) {
+#if defined(PRODUCT)
+    compiler->Bailout("CheckClassInstr::EmitNativeCode");
+#else  // defined(PRODUCT)
+    compiler->Bailout(ToCString());
+#endif  // defined(PRODUCT)
+  }
+  __ CheckClassId(locs()->in(0).reg(), cid_);
   compiler->EmitDeopt(deopt_id(), ICData::kDeoptCheckClass);
+}
+
+
+EMIT_NATIVE_CODE(CheckClass, 1) {
+#if defined(PRODUCT)
+  const char* bailout_msg = "CheckClassInstr::EmitNativeCode";
+#else  // defined(PRODUCT)
+  const char* bailout_msg = ToCString();
+#endif  // defined(PRODUCT)
+  const Register value = locs()->in(0).reg();
+  if (IsNullCheck()) {
+    ASSERT(DeoptIfNull() || DeoptIfNotNull());
+    if (DeoptIfNull()) {
+      __ IfEqNull(value);
+    } else {
+      __ IfNeNull(value);
+    }
+  } else {
+    ASSERT((unary_checks().GetReceiverClassIdAt(0) != kSmiCid) ||
+           (unary_checks().NumberOfChecks() > 1));
+    const intptr_t may_be_smi =
+        (unary_checks().GetReceiverClassIdAt(0) == kSmiCid) ? 1 : 0;
+    if (IsDenseSwitch()) {
+      ASSERT(cids_[0] < cids_[cids_.length() - 1]);
+      const intptr_t low_cid = cids_[0];
+      if (!Utils::IsUint(16, low_cid)) {
+        compiler->Bailout(bailout_msg);
+      }
+      const intptr_t cid_mask = ComputeCidMask();
+      __ CheckDenseSwitch(value, may_be_smi);
+      __ Nop(low_cid);
+      __ Nop(__ AddConstant(Smi::Handle(Smi::New(cid_mask))));
+    } else {
+      GrowableArray<CidTarget> sorted_ic_data;
+      FlowGraphCompiler::SortICDataByCount(unary_checks(),
+                                           &sorted_ic_data,
+                                           /* drop_smi = */ true);
+      const intptr_t sorted_length = sorted_ic_data.length();
+      ASSERT(sorted_length >= 1);
+      if (sorted_length == 1) {
+        const intptr_t cid = sorted_ic_data[0].cid;
+        if (!Utils::IsUint(16, cid)) {
+          compiler->Bailout(bailout_msg);
+        }
+        __ CheckClassId(value, cid);
+      } else {
+        if (!Utils::IsUint(8, sorted_length)) {
+          compiler->Bailout(bailout_msg);
+        }
+        __ CheckCids(value, may_be_smi, sorted_length);
+        for (intptr_t i = 0; i < sorted_length; i++) {
+          const intptr_t cid = sorted_ic_data[i].cid;
+          if (!Utils::IsUint(16, cid)) {
+            compiler->Bailout(bailout_msg);
+          }
+          __ Nop(cid);
+        }
+      }
+    }
+  }
+  compiler->EmitDeopt(deopt_id(),
+                      ICData::kDeoptCheckClass,
+                      licm_hoisted_ ? ICData::kHoisted : 0);
 }
 
 
@@ -1042,7 +1117,7 @@ EMIT_NATIVE_CODE(BinarySmiOp, 2, Location::RequiresRegister()) {
   if (can_deopt) {
     compiler->EmitDeopt(deopt_id(), ICData::kDeoptBinarySmiOp);
   } else if (needs_nop) {
-    __ Nop();
+    __ Nop(0);
   }
 }
 

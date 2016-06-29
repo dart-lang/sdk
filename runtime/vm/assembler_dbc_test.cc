@@ -121,11 +121,11 @@ ASSEMBLER_TEST_RUN(Simple, test) {
 
 ASSEMBLER_TEST_GENERATE(Nop, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(42)));
-  __ Nop();
-  __ Nop();
-  __ Nop();
-  __ Nop();
-  __ Nop();
+  __ Nop(0);
+  __ Nop(0);
+  __ Nop(0);
+  __ Nop(0);
+  __ Nop(0);
   __ ReturnTOS();
 }
 
@@ -1646,7 +1646,7 @@ ASSEMBLER_TEST_RUN(CheckSmiFail, test) {
 ASSEMBLER_TEST_GENERATE(CheckClassIdSmiPass, assembler) {
   __ Frame(1);
   __ LoadConstant(0, Smi::Handle(Smi::New(42)));
-  __ CheckClassId(0, __ AddConstant(Smi::Handle(Smi::New(kSmiCid))));
+  __ CheckClassId(0, kSmiCid);
   __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
   __ Return(0);
 }
@@ -1660,7 +1660,7 @@ ASSEMBLER_TEST_RUN(CheckClassIdSmiPass, test) {
 ASSEMBLER_TEST_GENERATE(CheckClassIdNonSmiPass, assembler) {
   __ Frame(1);
   __ LoadConstant(0, Bool::True());
-  __ CheckClassId(0, __ AddConstant(Smi::Handle(Smi::New(kBoolCid))));
+  __ CheckClassId(0, kBoolCid);
   __ LoadConstant(0, Bool::False());
   __ Return(0);
 }
@@ -1674,13 +1674,77 @@ ASSEMBLER_TEST_RUN(CheckClassIdNonSmiPass, test) {
 ASSEMBLER_TEST_GENERATE(CheckClassIdFail, assembler) {
   __ Frame(1);
   __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
-  __ CheckClassId(0, __ AddConstant(Smi::Handle(Smi::New(kBoolCid))));
+  __ CheckClassId(0, kBoolCid);
   __ LoadConstant(0, Smi::Handle(Smi::New(42)));
   __ Return(0);
 }
 
 
 ASSEMBLER_TEST_RUN(CheckClassIdFail, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+//  - If<Cond>Null rA
+//
+//    Cond is Eq or Ne. Skips the next instruction unless the given condition
+//    holds.
+ASSEMBLER_TEST_GENERATE(IfEqNullNotNull, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(42)));
+  __ IfEqNull(0);
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(IfEqNullNotNull, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfEqNullIsNull, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Object::null_object());
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ IfEqNull(0);
+  __ LoadConstant(1, Smi::Handle(Smi::New(42)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(IfEqNullIsNull, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfNeNullIsNull, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Object::null_object());
+  __ LoadConstant(1, Smi::Handle(Smi::New(42)));
+  __ IfNeNull(0);
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(IfNeNullIsNull, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfNeNullNotNull, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ IfNeNull(0);
+  __ LoadConstant(1, Smi::Handle(Smi::New(42)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(IfNeNullNotNull, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
 

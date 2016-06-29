@@ -64,12 +64,16 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
 }
 
 
+void StubCode::GenerateFrameAwaitingMaterializationStub(Assembler* assembler) {
+  __ Trap();
+}
+
+
 // Print the stop message.
 DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, 1, const char* message) {
   OS::Print("Stop message: %s\n", message);
 }
 END_LEAF_RUNTIME_ENTRY
-
 
 }  // namespace dart
 
