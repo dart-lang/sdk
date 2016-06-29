@@ -22,6 +22,7 @@ import 'package:linter/src/rules/close_sinks.dart';
 import 'package:linter/src/rules/comment_references.dart';
 import 'package:linter/src/rules/constant_identifier_names.dart';
 import 'package:linter/src/rules/control_flow_in_finally.dart';
+import 'package:linter/src/rules/empty_catches.dart';
 import 'package:linter/src/rules/empty_constructor_bodies.dart';
 import 'package:linter/src/rules/empty_statements.dart';
 import 'package:linter/src/rules/hash_and_equals.dart';
@@ -65,7 +66,7 @@ final Registry ruleRegistry = new Registry()
   ..register(new CloseSinks())
   ..register(new CommentReferences())
   ..register(new ConstantIdentifierNames())
-  ..register(new UnrelatedTypeEqualityChecks())
+  ..register(new EmptyCatches())
   ..register(new EmptyConstructorBodies())
   ..register(new EmptyStatements())
   ..register(new TestTypesInEquals())
@@ -95,7 +96,9 @@ final Registry ruleRegistry = new Registry()
   ..register(new UnnecessaryBraceInStringInterp())
   // Disabled pending fix: https://github.com/dart-lang/linter/issues/35
   //..register(new UnnecessaryGetters())
-  ..register(new UnnecessaryGettersSetters());
+  ..register(new UnnecessaryGettersSetters())
+  ..register(new UnrelatedTypeEqualityChecks());
+
 
 /// Registry of contributed lint rules.
 class Registry extends Object with IterableMixin<LintRule> {
