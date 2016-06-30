@@ -61,6 +61,16 @@ void _printCurrentStacktrace() {
   OS::PrintErr("=== Current Trace:\n%s===\n", stacktrace.ToCString());
 }
 
+// Like _printCurrentStacktrace, but works in a NoSafepointScope.
+void _printCurrentStacktraceNoSafepoint() {
+  StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
+  StackFrame* frame = frames.NextFrame();
+  while (frame != NULL) {
+    OS::Print("%s\n", frame->ToCString());
+    frame = frames.NextFrame();
+  }
+}
+
 DEFINE_NATIVE_ENTRY(StackTrace_current, 0) {
   const Stacktrace& stacktrace = GetCurrentStacktrace(1);
   return stacktrace.raw();

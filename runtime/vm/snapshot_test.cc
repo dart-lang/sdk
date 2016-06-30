@@ -7,6 +7,7 @@
 #include "include/dart_tools_api.h"
 #include "platform/assert.h"
 #include "vm/class_finalizer.h"
+#include "vm/clustered_snapshot.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_message.h"
 #include "vm/dart_api_state.h"

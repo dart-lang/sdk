@@ -14,6 +14,7 @@
 #include "vm/snapshot.h"
 #include "vm/virtual_memory.h"
 #include "vm/visitor.h"
+#include "vm/clustered_snapshot.h"
 
 namespace dart {
 
@@ -59,22 +60,31 @@ void StubCode::InitOnce() {
 #undef STUB_CODE_GENERATE
 
 
-void StubCode::ReadFrom(SnapshotReader* reader) {
+void StubCode::Push(Serializer* serializer) {
+#define WRITE_STUB(name)                                                       \
+  serializer->Push(StubCode::name##_entry()->code());
+  VM_STUB_CODE_LIST(WRITE_STUB);
+#undef WRITE_STUB
+}
+
+
+void StubCode::WriteRef(Serializer* serializer) {
+#define WRITE_STUB(name)                                                       \
+  serializer->WriteRef(StubCode::name##_entry()->code());
+  VM_STUB_CODE_LIST(WRITE_STUB);
+#undef WRITE_STUB
+}
+
+
+void StubCode::ReadRef(Deserializer* deserializer) {
+  Code& code = Code::Handle();
 #define READ_STUB(name)                                                        \
-  *(reader->CodeHandle()) ^= reader->ReadObject();                             \
-  name##_entry_ = new StubEntry(*(reader->CodeHandle()));
+  code ^= deserializer->ReadRef();                                             \
+  name##_entry_ = new StubEntry(code);
   VM_STUB_CODE_LIST(READ_STUB);
 #undef READ_STUB
 }
 
-void StubCode::WriteTo(SnapshotWriter* writer) {
-  // TODO(rmacnak): Consider writing only the instructions to avoid
-  // vm_isolate_is_symbolic.
-#define WRITE_STUB(name)                                                       \
-  writer->WriteObject(StubCode::name##_entry()->code());
-  VM_STUB_CODE_LIST(WRITE_STUB);
-#undef WRITE_STUB
-}
 
 
 void StubCode::Init(Isolate* isolate) { }

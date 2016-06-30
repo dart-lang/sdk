@@ -429,10 +429,7 @@ class SnapshotReader : public BaseReader {
   // Get an object from the backward references list.
   Object* GetBackRef(intptr_t id);
 
-  // Read a full snap shot.
-  RawApiError* ReadFullSnapshot();
-
-  // Read a script snap shot.
+  // Read a script snapshot.
   RawObject* ReadScriptSnapshot();
 
   // Read version number of snapshot and verify.
@@ -650,38 +647,6 @@ class SnapshotReader : public BaseReader {
 };
 
 
-class VmIsolateSnapshotReader : public SnapshotReader {
- public:
-  VmIsolateSnapshotReader(Snapshot::Kind kind,
-                          const uint8_t* buffer,
-                          intptr_t size,
-                          const uint8_t* instructions_buffer,
-                          const uint8_t* data_buffer,
-                          Thread* thread);
-  ~VmIsolateSnapshotReader();
-
-  RawApiError* ReadVmIsolateSnapshot();
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(VmIsolateSnapshotReader);
-};
-
-
-class IsolateSnapshotReader : public SnapshotReader {
- public:
-  IsolateSnapshotReader(Snapshot::Kind kind,
-                        const uint8_t* buffer,
-                        intptr_t size,
-                        const uint8_t* instructions_buffer,
-                        const uint8_t* data_buffer,
-                        Thread* thread);
-  ~IsolateSnapshotReader();
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(IsolateSnapshotReader);
-};
-
-
 class ScriptSnapshotReader : public SnapshotReader {
  public:
   ScriptSnapshotReader(const uint8_t* buffer,
@@ -849,7 +814,6 @@ class ForwardList {
   GrowableArray<Node*> nodes_;
   intptr_t first_unprocessed_object_id_;
 
-  friend class FullSnapshotWriter;
   DISALLOW_COPY_AND_ASSIGN(ForwardList);
 };
 
@@ -1075,7 +1039,6 @@ class SnapshotWriter : public BaseWriter {
   bool can_send_any_object_;  // True if any Dart instance can be sent.
   bool writing_vm_isolate_;
 
-  friend class FullSnapshotWriter;
   friend class RawArray;
   friend class RawClass;
   friend class RawClosureData;
@@ -1106,63 +1069,6 @@ class SnapshotWriter : public BaseWriter {
   friend class SnapshotWriterVisitor;
   friend class WriteInlinedObjectVisitor;
   DISALLOW_COPY_AND_ASSIGN(SnapshotWriter);
-};
-
-
-class FullSnapshotWriter {
- public:
-  static const intptr_t kInitialSize = 64 * KB;
-  FullSnapshotWriter(Snapshot::Kind kind,
-                     uint8_t** vm_isolate_snapshot_buffer,
-                     uint8_t** isolate_snapshot_buffer,
-                     ReAlloc alloc,
-                     InstructionsWriter* instructions_writer);
-  ~FullSnapshotWriter();
-
-  uint8_t** vm_isolate_snapshot_buffer() {
-    return vm_isolate_snapshot_buffer_;
-  }
-
-  uint8_t** isolate_snapshot_buffer() {
-    return isolate_snapshot_buffer_;
-  }
-
-  Thread* thread() const { return thread_; }
-  Zone* zone() const { return thread_->zone(); }
-  Isolate* isolate() const { return thread_->isolate(); }
-  Heap* heap() const { return isolate()->heap(); }
-
-  // Writes a full snapshot of the Isolate.
-  void WriteFullSnapshot();
-
-  intptr_t VmIsolateSnapshotSize() const {
-    return vm_isolate_snapshot_size_;
-  }
-  intptr_t IsolateSnapshotSize() const {
-    return isolate_snapshot_size_;
-  }
-
- private:
-  // Writes a snapshot of the VM Isolate.
-  void WriteVmIsolateSnapshot();
-
-  // Writes a full snapshot of a regular Dart Isolate.
-  void WriteIsolateFullSnapshot();
-
-  Thread* thread_;
-  Snapshot::Kind kind_;
-  uint8_t** vm_isolate_snapshot_buffer_;
-  uint8_t** isolate_snapshot_buffer_;
-  ReAlloc alloc_;
-  intptr_t vm_isolate_snapshot_size_;
-  intptr_t isolate_snapshot_size_;
-  ForwardList* forward_list_;
-  InstructionsWriter* instructions_writer_;
-  Array& scripts_;
-  Array& saved_symbol_table_;
-  Array& new_vm_symbol_table_;
-
-  DISALLOW_COPY_AND_ASSIGN(FullSnapshotWriter);
 };
 
 

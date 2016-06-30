@@ -1374,94 +1374,13 @@ void RawNamespace::WriteTo(SnapshotWriter* writer,
 }
 
 
-#if defined(DEBUG)
-static uword Checksum(uword entry, intptr_t size) {
-  uword sum = 0;
-  uword* start = reinterpret_cast<uword*>(entry);
-  uword* end = reinterpret_cast<uword*>(entry + size);
-  for (uword* cursor = start; cursor < end; cursor++) {
-    sum ^= *cursor;
-  }
-  return sum;
-}
-#endif
-
-
 RawCode* Code::ReadFrom(SnapshotReader* reader,
                         intptr_t object_id,
                         intptr_t tags,
                         Snapshot::Kind kind,
                         bool as_reference) {
-  ASSERT(Snapshot::IncludesCode(kind));
-  ASSERT(Snapshot::IsFull(kind));
-
-  Code& result = Code::ZoneHandle(reader->zone(), NEW_OBJECT_WITH_LEN(Code, 0));
-  reader->AddBackRef(object_id, &result, kIsDeserialized);
-
-  result.set_compile_timestamp(0);
-  result.set_state_bits(reader->Read<int32_t>());
-  result.set_lazy_deopt_pc_offset(-1);
-
-  int32_t text_offset = reader->Read<int32_t>();
-  RawInstructions* instr = reinterpret_cast<RawInstructions*>(
-      reader->GetInstructionsAt(text_offset) + kHeapObjectTag);
-  uword entry_point = Instructions::EntryPoint(instr);
-
-#if defined(DEBUG)
-  ASSERT(instr->IsMarked());
-  ASSERT(instr->IsVMHeapObject());
-  uword expected_check = reader->Read<uword>();
-  intptr_t instructions_size = Utils::RoundUp(instr->size_,
-                                              OS::PreferredCodeAlignment());
-  uword actual_check = Checksum(entry_point, instructions_size);
-  ASSERT(expected_check == actual_check);
-#endif
-
-  result.StoreNonPointer(&result.raw_ptr()->entry_point_, entry_point);
-
-  result.StorePointer(&result.raw_ptr()->active_instructions_, instr);
-  result.StorePointer(&result.raw_ptr()->instructions_, instr);
-
-  (*reader->PassiveObjectHandle()) ^= reader->ReadObjectImpl(kAsReference);
-  result.StorePointer(reinterpret_cast<RawObject*const*>(
-                          &result.raw_ptr()->object_pool_),
-                      reader->PassiveObjectHandle()->raw());
-
-  (*reader->PassiveObjectHandle()) ^= reader->ReadObjectImpl(kAsReference);
-  result.StorePointer(&result.raw_ptr()->owner_,
-                      reader->PassiveObjectHandle()->raw());
-
-  (*reader->PassiveObjectHandle()) ^= reader->ReadObjectImpl(kAsReference);
-  result.StorePointer(reinterpret_cast<RawObject*const*>(
-                          &result.raw_ptr()->exception_handlers_),
-                      reader->PassiveObjectHandle()->raw());
-
-  (*reader->PassiveObjectHandle()) ^= reader->ReadObjectImpl(kAsReference);
-  result.StorePointer(reinterpret_cast<RawObject*const*>(
-                          &result.raw_ptr()->pc_descriptors_),
-                      reader->PassiveObjectHandle()->raw());
-
-  (*reader->PassiveObjectHandle()) ^= reader->ReadObjectImpl(kAsReference);
-  result.StorePointer(reinterpret_cast<RawObject*const*>(
-                          &result.raw_ptr()->stackmaps_),
-                      reader->PassiveObjectHandle()->raw());
-
-  result.StorePointer(&result.raw_ptr()->deopt_info_array_,
-                      Array::null());
-  result.StorePointer(&result.raw_ptr()->static_calls_target_table_,
-                      Array::null());
-  result.StorePointer(&result.raw_ptr()->var_descriptors_,
-                      LocalVarDescriptors::null());
-  result.StorePointer(&result.raw_ptr()->inlined_metadata_,
-                      Array::null());
-  result.StorePointer(&result.raw_ptr()->code_source_map_,
-                      CodeSourceMap::null());
-  result.StorePointer(&result.raw_ptr()->comments_,
-                      Array::null());
-  result.StorePointer(&result.raw_ptr()->return_address_metadata_,
-                      Object::null());
-
-  return result.raw();
+  UNREACHABLE();
+  return Code::null();
 }
 
 
@@ -1469,55 +1388,7 @@ void RawCode::WriteTo(SnapshotWriter* writer,
                       intptr_t object_id,
                       Snapshot::Kind kind,
                       bool as_reference) {
-  ASSERT(Snapshot::IncludesCode(kind));
-  ASSERT(Snapshot::IsFull(kind));
-
-  intptr_t pointer_offsets_length =
-      Code::PtrOffBits::decode(ptr()->state_bits_);
-  if (pointer_offsets_length != 0) {
-    FATAL("Cannot serialize code with embedded pointers");
-  }
-  if (kind == Snapshot::kAppNoJIT) {
-    // No disabled code in precompilation.
-    ASSERT(ptr()->instructions_ == ptr()->active_instructions_);
-  } else {
-    ASSERT(kind == Snapshot::kAppWithJIT);
-    // We never include optimized code in JIT precompilation. Deoptimization
-    // requires code patching and we cannot patch code that is shared between
-    // isolates and should not mutate memory allocated by the embedder.
-    bool is_optimized = Code::PtrOffBits::decode(ptr()->state_bits_);
-    if (is_optimized) {
-      FATAL("Cannot include optimized code in a JIT snapshot");
-    }
-  }
-
-  // Write out the serialization header value for this object.
-  writer->WriteInlinedObjectHeader(object_id);
-
-  // Write out the class and tags information.
-  writer->WriteVMIsolateObject(kCodeCid);
-  writer->WriteTags(writer->GetObjectTags(this));
-
-  // Write out all the non object fields.
-  writer->Write<int32_t>(ptr()->state_bits_);
-
-  RawInstructions* instr = ptr()->instructions_;
-  int32_t text_offset = writer->GetInstructionsId(instr, this);
-  writer->Write<int32_t>(text_offset);
-
-#if defined(DEBUG)
-  uword entry = ptr()->entry_point_;
-  intptr_t instructions_size = Utils::RoundUp(instr->size_,
-                                              OS::PreferredCodeAlignment());
-  uword check = Checksum(entry, instructions_size);
-  writer->Write<uword>(check);
-#endif
-
-  writer->WriteObjectImpl(ptr()->object_pool_, kAsReference);
-  writer->WriteObjectImpl(ptr()->owner_, kAsReference);
-  writer->WriteObjectImpl(ptr()->exception_handlers_, kAsReference);
-  writer->WriteObjectImpl(ptr()->pc_descriptors_, kAsReference);
-  writer->WriteObjectImpl(ptr()->stackmaps_, kAsReference);
+  UNREACHABLE();
 }
 
 
@@ -1544,62 +1415,8 @@ RawObjectPool* ObjectPool::ReadFrom(SnapshotReader* reader,
                                     intptr_t tags,
                                     Snapshot::Kind kind,
                                     bool as_reference) {
-  ASSERT(Snapshot::IncludesCode(kind));
-  ASSERT(Snapshot::IsFull(kind));
-
-  intptr_t len = reader->Read<intptr_t>();
-  ObjectPool* result = NULL;
-  DeserializeState state;
-  if (!as_reference) {
-    result = reinterpret_cast<ObjectPool*>(reader->GetBackRef(object_id));
-    state = kIsDeserialized;
-  } else {
-    state = kIsNotDeserialized;
-  }
-  if (result == NULL) {
-    result = &(ObjectPool::ZoneHandle(
-        reader->zone(), NEW_OBJECT_WITH_LEN(ObjectPool, len)));
-    reader->AddBackRef(object_id, result, state);
-  }
-  if (!as_reference) {
-    // Read all the individual elements for inlined objects.
-    const TypedData& info_array =
-        TypedData::Handle(reader->NewTypedData(kTypedDataInt8ArrayCid, len));
-    result->set_info_array(info_array);
-
-    NoSafepointScope no_safepoint;
-    for (intptr_t i = 0; i < len; i++) {
-      ObjectPool::EntryType entry_type =
-          static_cast<ObjectPool::EntryType>(reader->Read<int8_t>());
-      *reinterpret_cast<int8_t*>(info_array.DataAddr(i)) = entry_type;
-      switch (entry_type) {
-        case ObjectPool::kTaggedObject: {
-          (*reader->PassiveObjectHandle()) =
-              reader->ReadObjectImpl(kAsReference);
-          result->SetObjectAt(i, *(reader->PassiveObjectHandle()));
-          break;
-        }
-        case ObjectPool::kImmediate: {
-          intptr_t raw_value = reader->Read<intptr_t>();
-          result->SetRawValueAt(i, raw_value);
-          break;
-        }
-        case ObjectPool::kNativeEntry: {
-#if !defined(TARGET_ARCH_DBC)
-          // Read nothing. Initialize with the lazy link entry.
-          uword new_entry = NativeEntry::LinkNativeCallEntry();
-          result->SetRawValueAt(i, static_cast<intptr_t>(new_entry));
-#else
-          UNREACHABLE();  // DBC does not support lazy native call linking.
-#endif
-          break;
-        }
-        default:
-          UNREACHABLE();
-      }
-    }
-  }
-  return result->raw();
+  UNREACHABLE();
+  return ObjectPool::null();
 }
 
 
@@ -1607,68 +1424,7 @@ void RawObjectPool::WriteTo(SnapshotWriter* writer,
                             intptr_t object_id,
                             Snapshot::Kind kind,
                             bool as_reference) {
-  ASSERT(Snapshot::IncludesCode(kind));
-  ASSERT(Snapshot::IsFull(kind));
-  intptr_t tags = writer->GetObjectTags(this);
-  intptr_t length = ptr()->length_;
-
-  if (as_reference) {
-    // Write out the serialization header value for this object.
-    writer->WriteInlinedObjectHeader(kOmittedObjectId);
-
-    // Write out the class information.
-    writer->WriteVMIsolateObject(kObjectPoolCid);
-    writer->WriteTags(tags);
-
-    // Write out the length field.
-    writer->Write<intptr_t>(length);
-  } else {
-    // Write out the serialization header value for this object.
-    writer->WriteInlinedObjectHeader(object_id);
-
-    // Write out the class and tags information.
-    writer->WriteVMIsolateObject(kObjectPoolCid);
-    writer->WriteTags(tags);
-
-    RawTypedData* info_array = ptr()->info_array_->ptr();
-    ASSERT(info_array != TypedData::null());
-
-    writer->Write<intptr_t>(length);
-    for (intptr_t i = 0; i < length; i++) {
-      ObjectPool::EntryType entry_type =
-          static_cast<ObjectPool::EntryType>(info_array->data()[i]);
-      writer->Write<int8_t>(entry_type);
-      Entry& entry = ptr()->data()[i];
-      switch (entry_type) {
-        case ObjectPool::kTaggedObject: {
-#if !defined(TARGET_ARCH_DBC)
-          if (entry.raw_obj_ == StubCode::CallNativeCFunction_entry()->code()) {
-            // Natives can run while precompiling, becoming linked and switching
-            // their stub. Reset to the initial stub used for lazy-linking.
-            writer->WriteObjectImpl(
-                StubCode::CallBootstrapCFunction_entry()->code(), kAsReference);
-            break;
-          }
-#endif
-          writer->WriteObjectImpl(entry.raw_obj_, kAsReference);
-          break;
-        }
-        case ObjectPool::kImmediate: {
-          writer->Write<intptr_t>(entry.raw_value_);
-          break;
-        }
-        case ObjectPool::kNativeEntry: {
-          // Write nothing. Will initialize with the lazy link entry.
-#if defined(TARGET_ARCH_DBC)
-          UNREACHABLE();   // DBC does not support lazy native call linking.
-#endif
-          break;
-        }
-        default:
-          UNREACHABLE();
-      }
-    }
-  }
+  UNREACHABLE();
 }
 
 
@@ -1677,15 +1433,8 @@ RawPcDescriptors* PcDescriptors::ReadFrom(SnapshotReader* reader,
                                           intptr_t tags,
                                           Snapshot::Kind kind,
                                           bool as_reference) {
-  ASSERT(Snapshot::IncludesCode(kind));
-  ASSERT(Snapshot::IsFull(kind));
-
-  intptr_t offset = reader->Read<int32_t>();
-  PcDescriptors& result = PcDescriptors::ZoneHandle(reader->zone());
-  result ^= reader->GetObjectAt(offset);
-  reader->AddBackRef(object_id, &result, kIsDeserialized);
-
-  return result.raw();
+  UNREACHABLE();
+  return PcDescriptors::null();
 }
 
 
@@ -1693,15 +1442,7 @@ void RawPcDescriptors::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind,
                                bool as_reference) {
-  ASSERT(Snapshot::IncludesCode(kind));
-  ASSERT(Snapshot::IsFull(kind));
-
-  // Write out the serialization header value for this object.
-  writer->WriteInlinedObjectHeader(object_id);
-  writer->WriteIndexedObject(kPcDescriptorsCid);
-  writer->WriteTags(writer->GetObjectTags(this));
-
-  writer->Write<int32_t>(writer->GetObjectId(this));
+  UNREACHABLE();
 }
 
 
@@ -1710,23 +1451,8 @@ RawCodeSourceMap* CodeSourceMap::ReadFrom(SnapshotReader* reader,
                                           intptr_t tags,
                                           Snapshot::Kind kind,
                                           bool as_reference) {
-  ASSERT(Snapshot::IncludesCode(kind));
-  ASSERT(Snapshot::IsFull(kind));
-
-  const int32_t length = reader->Read<int32_t>();
-  CodeSourceMap& result =
-      CodeSourceMap::ZoneHandle(reader->zone(),
-                                NEW_OBJECT_WITH_LEN(CodeSourceMap, length));
-  reader->AddBackRef(object_id, &result, kIsDeserialized);
-
-  if (result.Length() > 0) {
-    NoSafepointScope no_safepoint;
-    intptr_t len = result.Length();
-    uint8_t* data = result.UnsafeMutableNonPointer(result.raw_ptr()->data());
-    reader->ReadBytes(data, len);
-  }
-
-  return result.raw();
+  UNREACHABLE();
+  return CodeSourceMap::null();
 }
 
 
@@ -1734,19 +1460,7 @@ void RawCodeSourceMap::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind,
                                bool as_reference) {
-  ASSERT(Snapshot::IncludesCode(kind));
-  ASSERT(Snapshot::IsFull(kind));
-
-  // Write out the serialization header value for this object.
-  writer->WriteInlinedObjectHeader(object_id);
-  writer->WriteIndexedObject(kCodeSourceMapCid);
-  writer->WriteTags(writer->GetObjectTags(this));
-  writer->Write<int32_t>(ptr()->length_);
-  if (ptr()->length_ > 0) {
-    intptr_t len = ptr()->length_;
-    uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data());
-    writer->WriteBytes(data, len);
-  }
+  UNREACHABLE();
 }
 
 
@@ -1755,15 +1469,8 @@ RawStackmap* Stackmap::ReadFrom(SnapshotReader* reader,
                                 intptr_t tags,
                                 Snapshot::Kind kind,
                                 bool as_reference) {
-  ASSERT(Snapshot::IncludesCode(kind));
-  ASSERT(Snapshot::IsFull(kind));
-
-  intptr_t offset = reader->Read<int32_t>();
-  Stackmap& result = Stackmap::ZoneHandle(reader->zone());
-  result ^= reader->GetObjectAt(offset);
-  reader->AddBackRef(object_id, &result, kIsDeserialized);
-
-  return result.raw();
+  UNREACHABLE();
+  return Stackmap::null();
 }
 
 
@@ -1771,15 +1478,7 @@ void RawStackmap::WriteTo(SnapshotWriter* writer,
                           intptr_t object_id,
                           Snapshot::Kind kind,
                           bool as_reference) {
-  ASSERT(Snapshot::IncludesCode(kind));
-  ASSERT(Snapshot::IsFull(kind));
-
-  // Write out the serialization header value for this object.
-  writer->WriteInlinedObjectHeader(object_id);
-  writer->WriteIndexedObject(kStackmapCid);
-  writer->WriteTags(writer->GetObjectTags(this));
-
-  writer->Write<int32_t>(writer->GetObjectId(this));
+  UNREACHABLE();
 }
 
 
@@ -1788,32 +1487,8 @@ RawLocalVarDescriptors* LocalVarDescriptors::ReadFrom(SnapshotReader* reader,
                                                       intptr_t tags,
                                                       Snapshot::Kind kind,
                                                       bool as_reference) {
-  ASSERT(Snapshot::IncludesCode(kind));
-  ASSERT(Snapshot::IsFull(kind));
-
-  const int32_t num_entries = reader->Read<int32_t>();
-
-  LocalVarDescriptors& result =
-      LocalVarDescriptors::ZoneHandle(reader->zone(),
-                                      NEW_OBJECT_WITH_LEN(LocalVarDescriptors,
-                                                          num_entries));
-  reader->AddBackRef(object_id, &result, kIsDeserialized);
-
-  for (intptr_t i = 0; i < num_entries; i++) {
-    (*reader->StringHandle()) ^= reader->ReadObjectImpl(kAsReference);
-    result.StorePointer(result.raw()->nameAddrAt(i),
-                        reader->StringHandle()->raw());
-  }
-
-  if (num_entries > 0) {
-    NoSafepointScope no_safepoint;
-    intptr_t len = num_entries * sizeof(RawLocalVarDescriptors::VarInfo);
-    uint8_t* data = result.UnsafeMutableNonPointer(
-        reinterpret_cast<const uint8_t*>(result.raw()->data()));
-    reader->ReadBytes(data, len);
-  }
-
-  return result.raw();
+  UNREACHABLE();
+  return LocalVarDescriptors::null();
 }
 
 
@@ -1821,22 +1496,7 @@ void RawLocalVarDescriptors::WriteTo(SnapshotWriter* writer,
                                      intptr_t object_id,
                                      Snapshot::Kind kind,
                                      bool as_reference) {
-  ASSERT(Snapshot::IncludesCode(kind));
-  ASSERT(Snapshot::IsFull(kind));
-
-  // Write out the serialization header value for this object.
-  writer->WriteInlinedObjectHeader(object_id);
-  writer->WriteIndexedObject(kLocalVarDescriptorsCid);
-  writer->WriteTags(writer->GetObjectTags(this));
-  writer->Write<int32_t>(ptr()->num_entries_);
-  for (intptr_t i = 0; i < ptr()->num_entries_; i++) {
-    writer->WriteObjectImpl(ptr()->names()[i], kAsReference);
-  }
-  if (ptr()->num_entries_ > 0) {
-    intptr_t len = ptr()->num_entries_ * sizeof(VarInfo);
-    uint8_t* data = reinterpret_cast<uint8_t*>(this->data());
-    writer->WriteBytes(data, len);
-  }
+  UNREACHABLE();
 }
 
 
@@ -1845,30 +1505,8 @@ RawExceptionHandlers* ExceptionHandlers::ReadFrom(SnapshotReader* reader,
                                                   intptr_t tags,
                                                   Snapshot::Kind kind,
                                                   bool as_reference) {
-  ASSERT(Snapshot::IncludesCode(kind));
-  ASSERT(Snapshot::IsFull(kind));
-
-  const int32_t num_entries = reader->Read<int32_t>();
-  ExceptionHandlers& result =
-      ExceptionHandlers::ZoneHandle(reader->zone(),
-                                    NEW_OBJECT_WITH_LEN(ExceptionHandlers,
-                                                        num_entries));
-  reader->AddBackRef(object_id, &result, kIsDeserialized);
-
-  if (result.num_entries() > 0) {
-    NoSafepointScope no_safepoint;
-    const intptr_t len =
-        result.num_entries() * sizeof(RawExceptionHandlers::HandlerInfo);
-    uint8_t* data = result.UnsafeMutableNonPointer(
-        reinterpret_cast<const uint8_t*>(result.raw_ptr()->data()));
-    reader->ReadBytes(data, len);
-  }
-
-  *(reader->ArrayHandle()) ^= reader->ReadObjectImpl(kAsInlinedObject);
-  result.StorePointer(&result.raw_ptr()->handled_types_data_,
-                      reader->ArrayHandle()->raw());
-
-  return result.raw();
+  UNREACHABLE();
+  return ExceptionHandlers::null();
 }
 
 
@@ -1876,22 +1514,7 @@ void RawExceptionHandlers::WriteTo(SnapshotWriter* writer,
                                    intptr_t object_id,
                                    Snapshot::Kind kind,
                                    bool as_reference) {
-  ASSERT(Snapshot::IncludesCode(kind));
-  ASSERT(Snapshot::IsFull(kind));
-
-  // Write out the serialization header value for this object.
-  writer->WriteInlinedObjectHeader(object_id);
-  writer->WriteIndexedObject(kExceptionHandlersCid);
-  writer->WriteTags(writer->GetObjectTags(this));
-  writer->Write<int32_t>(ptr()->num_entries_);
-
-  if (ptr()->num_entries_ > 0) {
-    intptr_t len = ptr()->num_entries_ * sizeof(HandlerInfo);
-    uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data());
-    writer->WriteBytes(data, len);
-  }
-
-  writer->WriteObjectImpl(ptr()->handled_types_data_, kAsInlinedObject);
+  UNREACHABLE();
 }
 
 
@@ -2106,22 +1729,8 @@ RawMegamorphicCache* MegamorphicCache::ReadFrom(SnapshotReader* reader,
                                                 intptr_t tags,
                                                 Snapshot::Kind kind,
                                                 bool as_reference) {
-  ASSERT(Snapshot::IncludesCode(kind));
-  ASSERT(Snapshot::IsFull(kind));
-
-  MegamorphicCache& result =
-      MegamorphicCache::ZoneHandle(reader->zone(),
-                                   NEW_OBJECT(MegamorphicCache));
-  reader->AddBackRef(object_id, &result, kIsDeserialized);
-
-  result.set_filled_entry_count(reader->Read<int32_t>());
-
-  // Set all the object fields.
-  READ_OBJECT_FIELDS(result,
-                     result.raw()->from(), result.raw()->to(),
-                     kAsReference);
-
-  return result.raw();
+  UNREACHABLE();
+  return MegamorphicCache::null();
 }
 
 
@@ -2129,22 +1738,7 @@ void RawMegamorphicCache::WriteTo(SnapshotWriter* writer,
                                   intptr_t object_id,
                                   Snapshot::Kind kind,
                                   bool as_reference) {
-  ASSERT(Snapshot::IncludesCode(kind));
-  ASSERT(Snapshot::IsFull(kind));
-
-  // Write out the serialization header value for this object.
-  writer->WriteInlinedObjectHeader(object_id);
-
-  // Write out the class and tags information.
-  writer->WriteVMIsolateObject(kMegamorphicCacheCid);
-  writer->WriteTags(writer->GetObjectTags(this));
-
-  // Write out all the non object fields.
-  writer->Write<int32_t>(ptr()->filled_entry_count_);
-
-  // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer, kAsReference);
-  visitor.VisitPointers(from(), to());
+  UNREACHABLE();
 }
 
 
@@ -2153,22 +1747,8 @@ RawSubtypeTestCache* SubtypeTestCache::ReadFrom(SnapshotReader* reader,
                                                 intptr_t tags,
                                                 Snapshot::Kind kind,
                                                 bool as_reference) {
-  ASSERT(Snapshot::IncludesCode(kind));
-  ASSERT(Snapshot::IsFull(kind));
-
-  SubtypeTestCache& result =
-      SubtypeTestCache::ZoneHandle(reader->zone(),
-                                   NEW_OBJECT(SubtypeTestCache));
-  reader->AddBackRef(object_id, &result, kIsDeserialized);
-
-  // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  (*reader->ArrayHandle()) ^= reader->ReadObjectImpl(kAsReference);
-  result.StorePointer(&result.raw_ptr()->cache_,
-                      reader->ArrayHandle()->raw());
-
-  return result.raw();
+  UNREACHABLE();
+  return SubtypeTestCache::null();
 }
 
 
@@ -2176,18 +1756,7 @@ void RawSubtypeTestCache::WriteTo(SnapshotWriter* writer,
                                   intptr_t object_id,
                                   Snapshot::Kind kind,
                                   bool as_reference) {
-  ASSERT(Snapshot::IncludesCode(kind));
-  ASSERT(Snapshot::IsFull(kind));
-
-  // Write out the serialization header value for this object.
-  writer->WriteInlinedObjectHeader(object_id);
-
-  // Write out the class and tags information.
-  writer->WriteVMIsolateObject(kSubtypeTestCacheCid);
-  writer->WriteTags(writer->GetObjectTags(this));
-
-  // Write out all the object pointer fields.
-  writer->WriteObjectImpl(ptr()->cache_, kAsReference);
+  UNREACHABLE();
 }
 
 
@@ -2621,14 +2190,6 @@ RawOneByteString* OneByteString::ReadFrom(SnapshotReader* reader,
                                           intptr_t tags,
                                           Snapshot::Kind kind,
                                           bool as_reference) {
-  if (Snapshot::IncludesCode(kind)) {
-    ASSERT(Snapshot::IsFull(kind));
-    intptr_t offset = reader->Read<int32_t>();
-    String& result = String::ZoneHandle(reader->zone());
-    result ^= reader->GetObjectAt(offset);
-    reader->AddBackRef(object_id, &result, kIsDeserialized);
-    return raw(result);
-  }
   // Read the length so that we can determine instance size to allocate.
   ASSERT(reader != NULL);
   intptr_t len = reader->ReadSmiValue();
@@ -2736,22 +2297,6 @@ void RawOneByteString::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind,
                                bool as_reference) {
-  if (Snapshot::IncludesCode(kind)) {
-    ASSERT(Snapshot::IncludesCode(kind));
-    ASSERT(Snapshot::IsFull(kind));
-    // Assert that hash is computed.
-    if (ptr()->hash_ == NULL) {
-      ptr()->hash_ = Smi::New(String::Hash(ptr()->data(),
-                                           Smi::Value(ptr()->length_)));
-    }
-    ASSERT(ptr()->hash_ != NULL);
-    // Write out the serialization header value for this object.
-    writer->WriteInlinedObjectHeader(object_id);
-    writer->WriteIndexedObject(kOneByteStringCid);
-    writer->WriteTags(writer->GetObjectTags(this));
-    writer->Write<int32_t>(writer->GetObjectId(this));
-    return;
-  }
   StringWriteTo(writer,
                 object_id,
                 kind,
@@ -3017,8 +2562,7 @@ RawLinkedHashMap* LinkedHashMap::ReadFrom(SnapshotReader* reader,
 
   LinkedHashMap& map = LinkedHashMap::ZoneHandle(
       reader->zone(), LinkedHashMap::null());
-  if ((Snapshot::IsFull(kind) && !Snapshot::IncludesCode(kind)) ||
-      kind == Snapshot::kScript) {
+  if (Snapshot::IsFull(kind) || kind == Snapshot::kScript) {
     // The immutable maps that seed map literals are not yet VM-internal, so
     // we don't reach this.
     UNREACHABLE();
@@ -3076,8 +2620,7 @@ void RawLinkedHashMap::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind,
                                bool as_reference) {
-  if ((Snapshot::IsFull(kind) && !Snapshot::IncludesCode(kind)) ||
-      kind == Snapshot::kScript) {
+  if (Snapshot::IsFull(kind) || kind == Snapshot::kScript) {
     // The immutable maps that seed map literals are not yet VM-internal, so
     // we don't reach this.
   }
@@ -3552,18 +3095,14 @@ RawSendPort* SendPort::ReadFrom(SnapshotReader* reader,
                                 intptr_t tags,
                                 Snapshot::Kind kind,
                                 bool as_reference) {
-  ASSERT(kind == Snapshot::kMessage || Snapshot::IncludesCode(kind));
+  ASSERT(kind == Snapshot::kMessage);
 
   uint64_t id = reader->Read<uint64_t>();
   uint64_t origin_id = reader->Read<uint64_t>();
 
-  SendPort& result = SendPort::ZoneHandle(reader->zone());
-  if (Snapshot::IncludesCode(kind)) {
-    // TODO(rmacnak): Reset fields in precompiled snapshots and assert
-    // this is unreachable.
-  } else {
-    result = SendPort::New(id, origin_id);
-  }
+  SendPort& result =
+      SendPort::ZoneHandle(reader->zone(),
+                           SendPort::New(id, origin_id));
   reader->AddBackRef(object_id, &result, kIsDeserialized);
   return result.raw();
 }

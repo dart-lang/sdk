@@ -179,6 +179,8 @@ class ClassTable {
 
   void Register(const Class& cls);
 
+  void AllocateIndex(intptr_t index);
+
   void RegisterAt(intptr_t index, const Class& cls);
 
 #if defined(DEBUG)

@@ -80,6 +80,8 @@
     'class_finalizer_test.cc',
     'class_table.cc',
     'class_table.h',
+    'clustered_snapshot.cc',
+    'clustered_snapshot.h',
     'code_descriptors.cc',
     'code_descriptors.h',
     'code_descriptors_test.cc',

@@ -504,7 +504,7 @@ class Object {
     return *void_type_;
   }
 
-  static void InitVmIsolateSnapshotObjectTable(intptr_t len);
+  static void set_vm_isolate_snapshot_object_table(const Array& table);
 
   static RawClass* class_class() { return class_class_; }
   static RawClass* dynamic_class() { return dynamic_class_; }
@@ -835,6 +835,7 @@ class Object {
   friend void RawObject::Validate(Isolate* isolate) const;
   friend class Closure;
   friend class SnapshotReader;
+  friend class InstanceDeserializationCluster;
   friend class OneByteString;
   friend class TwoByteString;
   friend class ExternalOneByteString;
@@ -2217,6 +2218,8 @@ class ICData : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ICData, Object);
   friend class Class;
   friend class SnapshotWriter;
+  friend class Serializer;
+  friend class Deserializer;
 };
 
 
@@ -3335,6 +3338,7 @@ class Field : public Object {
   friend class Class;
   friend class HeapProfiler;
   friend class RawField;
+  friend class FieldSerializationCluster;
 };
 
 
@@ -3859,6 +3863,7 @@ class Library : public Object {
   friend class DictionaryIterator;
   friend class Namespace;
   friend class Object;
+  friend class LibraryDeserializationCluster;
 };
 
 
@@ -4860,6 +4865,8 @@ class Code : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Code, Object);
   friend class Class;
   friend class SnapshotWriter;
+  friend class FunctionSerializationCluster;
+  friend class CodeSerializationCluster;
   friend class CodePatcher;  // for set_instructions
   friend class Precompiler;  // for set_instructions
   // So that the RawFunction pointer visitor can determine whether code the
@@ -5413,6 +5420,9 @@ class Instance : public Object {
   friend class SnapshotWriter;
   friend class StubCode;
   friend class TypedDataView;
+  friend class InstanceSerializationCluster;
+  friend class InstanceDeserializationCluster;
+  friend class ClassDeserializationCluster;  // vtable
 };
 
 
@@ -6786,6 +6796,7 @@ class String : public Instance {
   // So that SkippedCodeFunctions can print a debug string from a NoHandleScope.
   friend class SkippedCodeFunctions;
   friend class RawOneByteString;
+  friend class RODataSerializationCluster;  // SetHash
 };
 
 
@@ -8132,6 +8143,7 @@ class LinkedHashMap : public Instance {
   static RawLinkedHashMap* NewUninitialized(Heap::Space space = Heap::kNew);
 
   friend class Class;
+  friend class LinkedHashMapDeserializationCluster;
 };
 
 

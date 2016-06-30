@@ -9,6 +9,7 @@
 #include "platform/assert.h"
 #include "lib/stacktrace.h"
 #include "vm/class_finalizer.h"
+#include "vm/clustered_snapshot.h"
 #include "vm/compiler.h"
 #include "vm/dart.h"
 #include "vm/dart_api_impl.h"

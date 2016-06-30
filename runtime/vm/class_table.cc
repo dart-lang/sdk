@@ -143,10 +143,7 @@ void ClassTable::Register(const Class& cls) {
 }
 
 
-void ClassTable::RegisterAt(intptr_t index, const Class& cls) {
-  ASSERT(Thread::Current()->IsMutatorThread());
-  ASSERT(index != kIllegalCid);
-  ASSERT(index >= kNumPredefinedCids);
+void ClassTable::AllocateIndex(intptr_t index) {
   if (index >= capacity_) {
     // Grow the capacity of the class table.
     // TODO(koda): Add ClassTable::Grow to share code.
@@ -171,12 +168,21 @@ void ClassTable::RegisterAt(intptr_t index, const Class& cls) {
     class_heap_stats_table_ = new_stats_table;
     ASSERT(capacity_increment_ >= 1);
   }
+
   ASSERT(table_[index] == 0);
-  cls.set_id(index);
-  table_[index] = cls.raw();
   if (index >= top_) {
     top_ = index + 1;
   }
+}
+
+
+void ClassTable::RegisterAt(intptr_t index, const Class& cls) {
+  ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(index != kIllegalCid);
+  ASSERT(index >= kNumPredefinedCids);
+  AllocateIndex(index);
+  cls.set_id(index);
+  table_[index] = cls.raw();
 }
 
 

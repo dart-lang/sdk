@@ -612,9 +612,8 @@ OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD)
     return NULL;
   }
 
-  friend class FullSnapshotWriter;
-  friend class SnapshotReader;
-  friend class VmIsolateSnapshotReader;
+  friend class Serializer;
+  friend class Deserializer;
 
   DISALLOW_COPY_AND_ASSIGN(ObjectStore);
 };

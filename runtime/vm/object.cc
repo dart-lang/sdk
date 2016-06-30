@@ -1028,9 +1028,9 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
 }
 
 
-void Object::InitVmIsolateSnapshotObjectTable(intptr_t len) {
+void Object::set_vm_isolate_snapshot_object_table(const Array& table) {
   ASSERT(Isolate::Current() == Dart::vm_isolate());
-  *vm_isolate_snapshot_object_table_ = Array::New(len, Heap::kOld);
+  *vm_isolate_snapshot_object_table_ = table.raw();
 }
 
 
@@ -1691,8 +1691,8 @@ NOT_IN_PRODUCT(
 #define REGISTER_TYPED_DATA_VIEW_CLASS(clazz)                                  \
   cls = Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid);
   CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
-  cls = Class::NewTypedDataViewClass(kByteDataViewCid);
 #undef REGISTER_TYPED_DATA_VIEW_CLASS
+  cls = Class::NewTypedDataViewClass(kByteDataViewCid);
 #define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);
   CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
@@ -4448,6 +4448,7 @@ void Class::RehashConstants(Zone* zone) const {
   while (it.MoveNext()) {
     constant ^= set.GetKey(it.Current());
     ASSERT(!constant.IsNull());
+    ASSERT(constant.IsCanonical());
     InsertCanonicalConstant(zone, constant);
   }
   set.Release();
@@ -22018,6 +22019,12 @@ RawTypedData* TypedData::EmptyUint32Array(Thread* thread) {
 
 
 const char* TypedData::ToCString() const {
+  switch (GetClassId()) {
+#define CASE_TYPED_DATA_CLASS(clazz)                                           \
+  case kTypedData##clazz##Cid: return #clazz;
+  CLASS_LIST_TYPED_DATA(CASE_TYPED_DATA_CLASS);
+#undef CASE_TYPED_DATA_CLASS
+  }
   return "TypedData";
 }
 
