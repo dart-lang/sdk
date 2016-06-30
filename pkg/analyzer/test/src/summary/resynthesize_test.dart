@@ -4107,28 +4107,14 @@ void f<T, U>() {
     checkLibrary('class C { bool operator<=(C other) => false; }');
   }
 
-  test_parameterType_inferred_constructor() {
+  test_parameterTypeNotInferred_constructor() {
+    // Strong mode doesn't do type inference on constructor parameters, so it's
+    // ok that we don't store inferred type info for them in summaries.
     checkLibrary('''
 class C {
   C.positional([x = 1]);
   C.named({x: 1});
 }
-''');
-  }
-
-  test_parameterType_inferred_staticMethod() {
-    checkLibrary('''
-class C {
-  static void positional([x = 1]) {}
-  static void named({x: 1}) {}
-}
-''');
-  }
-
-  test_parameterType_inferred_topLevelFunction() {
-    checkLibrary('''
-void positional([x = 1]) {}
-void named({x: 1}) {}
 ''');
   }
 
@@ -4141,6 +4127,27 @@ class C {
   C.positional([this.x = 1]);
   C.named({this.x: 1});
 }
+''');
+  }
+
+  test_parameterTypeNotInferred_staticMethod() {
+    // Strong mode doesn't do type inference on parameters of static methods,
+    // so it's ok that we don't store inferred type info for them in summaries.
+    checkLibrary('''
+class C {
+  static void positional([x = 1]) {}
+  static void named({x: 1}) {}
+}
+''');
+  }
+
+  test_parameterTypeNotInferred_topLevelFunction() {
+    // Strong mode doesn't do type inference on parameters of top level
+    // functions, so it's ok that we don't store inferred type info for them in
+    // summaries.
+    checkLibrary('''
+void positional([x = 1]) {}
+void named({x: 1}) {}
 ''');
   }
 

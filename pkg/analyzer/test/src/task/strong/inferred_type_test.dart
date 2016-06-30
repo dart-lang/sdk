@@ -723,7 +723,7 @@ class Foo {
 }
 void f([List<int> l = /*info:INFERRED_TYPE_LITERAL*/const [1]]) {}
 // We do this inference in an early task but don't preserve the infos.
-Function2<List<int>, String> g = /*pass should be info:INFERRED_TYPE_CLOSURE*/([/*info:INFERRED_TYPE*/llll = /*info:INFERRED_TYPE_LITERAL*/const [1]]) => "hello";
+Function2<List<int>, String> g = /*pass should be info:INFERRED_TYPE_CLOSURE*/([llll = /*info:INFERRED_TYPE_LITERAL*/const [1]]) => "hello";
 ''');
   }
 
@@ -1908,33 +1908,6 @@ foo() {
   i = new B().y;
   i = /*error:INVALID_ASSIGNMENT*/new B().z;
   i = new B().w;
-}
-''');
-  }
-
-  void test_inferDefaultFormalParameter() {
-    var unit = checkFile('''
-f([/*info:INFERRED_TYPE*/x = 42]) {}
-g({/*info:INFERRED_TYPE*/x: 'hi'}) {}
-''');
-    expect(unit.functions[0].parameters[0].type.toString(), 'int');
-    expect(unit.functions[1].parameters[0].type.toString(), 'String');
-  }
-
-  void test_inferDefaultFormalParameter_fieldFormal() {
-    checkFile('''
-class C {
-  int x;
-  var y;
-  C({this.x: /*error:INVALID_ASSIGNMENT*/0.0, this.y: 'hi'}) {
-    String z = /*info:DYNAMIC_CAST*/y;
-  }
-  C.c([this.x =/*error:INVALID_ASSIGNMENT*/0.0, this.y = 'hi']) {
-    String z = /*info:DYNAMIC_CAST*/y;
-  }
-  m() {
-    String z = /*info:DYNAMIC_CAST*/y;
-  }
 }
 ''');
   }
