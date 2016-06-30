@@ -478,7 +478,7 @@ intptr_t ClassTable::CounterOffsetFor(intptr_t cid, bool is_new_space) {
 
 
 intptr_t ClassTable::StateOffsetFor(intptr_t cid) {
-  return ClassOffsetFor(cid)+ ClassHeapStats::state_offset();
+  return ClassOffsetFor(cid) + ClassHeapStats::state_offset();
 }
 
 

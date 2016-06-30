@@ -3521,7 +3521,7 @@ void Assembler::TryAllocate(const Class& cls,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cls.id(), failure, near_jump);
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cls.id(), failure, near_jump));
     const intptr_t instance_size = cls.instance_size();
     Heap::Space space = Heap::SpaceForAllocation(cls.id());
     movq(temp, Address(THR, Thread::heap_offset()));
@@ -3533,7 +3533,7 @@ void Assembler::TryAllocate(const Class& cls,
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
     movq(Address(temp, Heap::TopOffset(space)), instance_reg);
-    UpdateAllocationStats(cls.id(), space);
+    NOT_IN_PRODUCT(UpdateAllocationStats(cls.id(), space));
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, Immediate(kHeapObjectTag - instance_size));
     uword tags = 0;
@@ -3560,7 +3560,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cid, failure, near_jump);
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, failure, near_jump));
     Heap::Space space = Heap::SpaceForAllocation(cid);
     movq(temp, Address(THR, Thread::heap_offset()));
     movq(instance, Address(temp, Heap::TopOffset(space)));
@@ -3579,7 +3579,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // next object start and initialize the object.
     movq(Address(temp, Heap::TopOffset(space)), end_address);
     addq(instance, Immediate(kHeapObjectTag));
-    UpdateAllocationStatsWithSize(cid, instance_size, space);
+    NOT_IN_PRODUCT(UpdateAllocationStatsWithSize(cid, instance_size, space));
 
     // Initialize the tags.
     // instance: new object start as a tagged pointer.

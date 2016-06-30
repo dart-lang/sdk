@@ -625,7 +625,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ b(&slow_case, GT);
 
   const intptr_t cid = kArrayCid;
-  __ MaybeTraceAllocation(cid, R4, &slow_case);
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, R4, &slow_case));
 
   const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ LoadImmediate(R9, fixed_size);
@@ -652,7 +652,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ LoadAllocationStatsAddress(R3, cid);
+  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R3, cid));
   __ str(NOTFP, Address(R8, Heap::TopOffset(space)));
   __ add(R0, R0, Operand(kHeapObjectTag));
 
@@ -695,7 +695,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // data area to be initialized.
   // NOTFP: new object end address.
   // R9: allocation size.
-  __ IncrementAllocationStatsWithSize(R3, R9, space);
+  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R3, R9, space));
 
   __ LoadObject(R8, Object::null_object());
   __ mov(R9, Operand(R8));
@@ -858,7 +858,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     ASSERT(kSmiTagShift == 1);
     __ bic(R2, R2, Operand(kObjectAlignment - 1));
 
-    __ MaybeTraceAllocation(kContextCid, R8, &slow_case);
+    NOT_IN_PRODUCT(__ MaybeTraceAllocation(kContextCid, R8, &slow_case));
     // Now allocate the object.
     // R1: number of context variables.
     // R2: object size.
@@ -889,7 +889,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R2: object size.
     // R3: next object start.
     // R9: heap.
-    __ LoadAllocationStatsAddress(R4, cid);
+    NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R4, cid));
     __ str(R3, Address(R9, Heap::TopOffset(space)));
     __ add(R0, R0, Operand(kHeapObjectTag));
 
@@ -939,7 +939,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     Label loop;
     __ AddImmediate(NOTFP, R0, Context::variable_offset(0) - kHeapObjectTag);
     __ InitializeFieldsNoBarrier(R0, NOTFP, R3, R8, R9);
-    __ IncrementAllocationStatsWithSize(R4, R2, space);
+    NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2, space));
 
     // Done allocating and initializing the context.
     // R0: new object.
@@ -1081,7 +1081,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 
     // Load the address of the allocation stats table. We split up the load
     // and the increment so that the dependent load is not too nearby.
-    __ LoadAllocationStatsAddress(R9, cls.id());
+    NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R9, cls.id()));
 
     // R0: new object start.
     // R1: next object start.
@@ -1138,7 +1138,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // R9: allocation stats table.
 
     // Update allocation stats.
-    __ IncrementAllocationStats(R9, cls.id(), space);
+    NOT_IN_PRODUCT(__ IncrementAllocationStats(R9, cls.id(), space));
 
     // R0: new object (tagged).
     __ Ret();

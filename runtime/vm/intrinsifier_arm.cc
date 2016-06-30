@@ -166,7 +166,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_shift)           \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 0 * kWordSize;                      \
-  __ MaybeTraceAllocation(cid, R2, &fall_through);                             \
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, R2, &fall_through));             \
   __ ldr(R2, Address(SP, kArrayLengthStackOffset));  /* Array length. */       \
   /* Check that length is a positive Smi. */                                   \
   /* R2: requested array length argument. */                                   \
@@ -202,7 +202,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
                                                                                \
   /* Successfully allocated the object(s), now update top to point to */       \
   /* next object start and initialize the object. */                           \
-  __ LoadAllocationStatsAddress(R4, cid);                                      \
+  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R4, cid));                      \
   __ str(R1, Address(R3, Heap::TopOffset(space)));                             \
   __ AddImmediate(R0, kHeapObjectTag);                                         \
   /* Initialize the tags. */                                                   \
@@ -249,7 +249,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ b(&init_loop, CC);                                                        \
   __ str(R8, Address(R3, -2 * kWordSize), HI);                                 \
                                                                                \
-  __ IncrementAllocationStatsWithSize(R4, R2, space);                          \
+  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2, space));          \
   __ Ret();                                                                    \
   __ Bind(&fall_through);                                                      \
 
@@ -1824,7 +1824,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* failure) {
   const Register length_reg = R2;
   Label fail;
-  __ MaybeTraceAllocation(kOneByteStringCid, R0, failure);
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kOneByteStringCid, R0, failure));
   __ mov(R8, Operand(length_reg));  // Save the length register.
   // TODO(koda): Protect against negative length and overflow here.
   __ SmiUntag(length_reg);
@@ -1852,7 +1852,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ LoadAllocationStatsAddress(R4, cid);
+  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R4, cid));
   __ str(R1, Address(R3, Heap::TopOffset(space)));
   __ AddImmediate(R0, kHeapObjectTag);
 
@@ -1885,7 +1885,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                               FieldAddress(R0, String::hash_offset()),
                               TMP);
 
-  __ IncrementAllocationStatsWithSize(R4, R2, space);
+  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2, space));
   __ b(ok);
 
   __ Bind(&fail);

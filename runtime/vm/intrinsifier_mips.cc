@@ -161,7 +161,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_shift)           \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 0 * kWordSize;                      \
-  __ MaybeTraceAllocation(cid, T2, &fall_through);                             \
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, T2, &fall_through));             \
   __ lw(T2, Address(SP, kArrayLengthStackOffset));  /* Array length. */        \
   /* Check that length is a positive Smi. */                                   \
   /* T2: requested array length argument. */                                   \
@@ -198,7 +198,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* next object start and initialize the object. */                           \
   __ sw(T1, Address(T3, Heap::TopOffset(space)));                              \
   __ AddImmediate(V0, kHeapObjectTag);                                         \
-  __ UpdateAllocationStatsWithSize(cid, T2, T4, space);                        \
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, T2, T4, space));        \
   /* Initialize the tags. */                                                   \
   /* V0: new object start as a tagged pointer. */                              \
   /* T1: new object end address. */                                            \
@@ -1941,7 +1941,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* ok,
                                      Label* failure) {
   const Register length_reg = T2;
-  __ MaybeTraceAllocation(kOneByteStringCid, V0, failure);
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kOneByteStringCid, V0, failure));
   __ mov(T6, length_reg);  // Save the length register.
   // TODO(koda): Protect against negative length and overflow here.
   __ SmiUntag(length_reg);
@@ -1972,7 +1972,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ sw(T1, Address(T3, Heap::TopOffset(space)));
   __ AddImmediate(V0, kHeapObjectTag);
 
-  __ UpdateAllocationStatsWithSize(cid, T2, T3, space);
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, T2, T3, space));
 
   // Initialize the tags.
   // V0: new object start as a tagged pointer.

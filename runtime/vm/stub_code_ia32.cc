@@ -561,10 +561,10 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ cmpl(EDX, max_len);
   __ j(GREATER, &slow_case);
 
-  __ MaybeTraceAllocation(kArrayCid,
-                          EAX,
-                          &slow_case,
-                          Assembler::kFarJump);
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kArrayCid,
+                                         EAX,
+                                         &slow_case,
+                                         Assembler::kFarJump));
 
   const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ leal(EBX, Address(EDX, TIMES_2, fixed_size));  // EDX is Smi.
@@ -596,7 +596,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ movl(Address(EDI, Heap::TopOffset(space)), EBX);
   __ subl(EBX, EAX);
   __ addl(EAX, Immediate(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(cid, EBX, EDI, space);
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EBX, EDI, space));
 
   // Initialize the tags.
   // EAX: new object start as a tagged pointer.
@@ -798,10 +798,10 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ leal(EBX, Address(EDX, TIMES_4, fixed_size));
     __ andl(EBX, Immediate(-kObjectAlignment));
 
-    __ MaybeTraceAllocation(kContextCid,
-                            EAX,
-                            &slow_case,
-                            Assembler::kFarJump);
+    NOT_IN_PRODUCT(__ MaybeTraceAllocation(kContextCid,
+                                           EAX,
+                                           &slow_case,
+                                           Assembler::kFarJump));
 
     // Now allocate the object.
     // EDX: number of context variables.
@@ -836,7 +836,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ subl(EBX, EAX);
     __ addl(EAX, Immediate(kHeapObjectTag));
     // Generate isolate-independent code to allow sharing between isolates.
-    __ UpdateAllocationStatsWithSize(cid, EBX, EDI, space);
+    NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EBX, EDI, space));
 
     // Calculate the size tag.
     // EAX: new object.
@@ -1033,7 +1033,7 @@ void StubCode::GenerateAllocationStubForClass(
       __ j(ABOVE_EQUAL, &slow_case);
     }
     __ movl(Address(EDI, Heap::TopOffset(space)), EBX);
-    __ UpdateAllocationStats(cls.id(), ECX, space);
+    NOT_IN_PRODUCT(__ UpdateAllocationStats(cls.id(), ECX, space));
 
     // EAX: new object start (untagged).
     // EBX: next object start.

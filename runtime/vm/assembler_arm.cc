@@ -3477,7 +3477,8 @@ void Assembler::TryAllocate(const Class& cls,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cls.id(), temp_reg, failure);
+    NOT_IN_PRODUCT(
+      MaybeTraceAllocation(cls.id(), temp_reg, failure));
     Heap::Space space = Heap::SpaceForAllocation(cls.id());
     ldr(temp_reg, Address(THR, Thread::heap_offset()));
     ldr(instance_reg, Address(temp_reg, Heap::TopOffset(space)));
@@ -3494,7 +3495,7 @@ void Assembler::TryAllocate(const Class& cls,
     // next object start and store the class in the class field of object.
     str(instance_reg, Address(temp_reg, Heap::TopOffset(space)));
 
-    LoadAllocationStatsAddress(temp_reg, cls.id());
+    NOT_IN_PRODUCT(LoadAllocationStatsAddress(temp_reg, cls.id()));
 
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
@@ -3506,7 +3507,7 @@ void Assembler::TryAllocate(const Class& cls,
     LoadImmediate(IP, tags);
     str(IP, FieldAddress(instance_reg, Object::tags_offset()));
 
-    IncrementAllocationStats(temp_reg, cls.id(), space);
+    NOT_IN_PRODUCT(IncrementAllocationStats(temp_reg, cls.id(), space));
   } else {
     b(failure);
   }
@@ -3524,7 +3525,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cid, temp1, failure);
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp1, failure));
     Heap::Space space = Heap::SpaceForAllocation(cid);
     ldr(temp1, Address(THR, Thread::heap_offset()));
     // Potential new object start.
@@ -3539,7 +3540,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     cmp(end_address, Operand(temp2));
     b(failure, CS);
 
-    LoadAllocationStatsAddress(temp2, cid);
+    NOT_IN_PRODUCT(LoadAllocationStatsAddress(temp2, cid));
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -3555,7 +3556,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     str(temp1, FieldAddress(instance, Array::tags_offset()));  // Store tags.
 
     LoadImmediate(temp1, instance_size);
-    IncrementAllocationStatsWithSize(temp2, temp1, space);
+    NOT_IN_PRODUCT(IncrementAllocationStatsWithSize(temp2, temp1, space));
   } else {
     b(failure);
   }

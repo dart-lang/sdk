@@ -2771,7 +2771,8 @@ void Assembler::TryAllocate(const Class& cls,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cls.id(), temp_reg, failure, near_jump);
+    NOT_IN_PRODUCT(
+      MaybeTraceAllocation(cls.id(), temp_reg, failure, near_jump));
     const intptr_t instance_size = cls.instance_size();
     Heap::Space space = Heap::SpaceForAllocation(cls.id());
     movl(temp_reg, Address(THR, Thread::heap_offset()));
@@ -2783,7 +2784,7 @@ void Assembler::TryAllocate(const Class& cls,
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
     movl(Address(temp_reg, Heap::TopOffset(space)), instance_reg);
-    UpdateAllocationStats(cls.id(), temp_reg, space);
+    NOT_IN_PRODUCT(UpdateAllocationStats(cls.id(), temp_reg, space));
     ASSERT(instance_size >= kHeapObjectTag);
     subl(instance_reg, Immediate(instance_size - kHeapObjectTag));
     uword tags = 0;
@@ -2810,7 +2811,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cid, temp_reg, failure, near_jump);
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp_reg, failure, near_jump));
     Heap::Space space = Heap::SpaceForAllocation(cid);
     movl(temp_reg, Address(THR, Thread::heap_offset()));
     movl(instance, Address(temp_reg, Heap::TopOffset(space)));
@@ -2829,7 +2830,8 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // next object start and initialize the object.
     movl(Address(temp_reg, Heap::TopOffset(space)), end_address);
     addl(instance, Immediate(kHeapObjectTag));
-    UpdateAllocationStatsWithSize(cid, instance_size, temp_reg, space);
+    NOT_IN_PRODUCT(
+        UpdateAllocationStatsWithSize(cid, instance_size, temp_reg, space));
 
     // Initialize the tags.
     uword tags = 0;
