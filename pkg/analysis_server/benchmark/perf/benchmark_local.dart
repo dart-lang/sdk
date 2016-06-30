@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 
 import 'benchmark_scenario.dart';
+import 'memory_tests.dart';
 
 main(List<String> args) async {
   int length = args.length;
@@ -35,6 +36,9 @@ main(List<String> args) async {
   await run_local_completion_3();
   await run_local_completion_4();
   await run_local_refactoring_1();
+
+  await run_memory_initialAnalysis_1();
+  await run_memory_initialAnalysis_2();
 }
 
 PathHolder paths;
@@ -222,6 +226,35 @@ Future run_local_refactoring_1() async {
           refactoringOptions: new RenameOptions('getSourcesWithFullName2'),
           numOfRepeats: 5);
   printBenchmarkResults(id, description, times);
+}
+
+Future run_memory_initialAnalysis_1() async {
+  String id = 'memory-initialAnalysis-1';
+  String description = r'''
+1. Start server, set 'analyzer' and 'analysis_server' analysis roots.
+2. Measure the memory usage after finishing initial analysis.
+3. Shutdown the server.
+4. Go to (1).
+''';
+  List<int> sizes = await AnalysisServerMemoryUsageTest
+      .start_waitInitialAnalysis_shutdown(
+          roots: <String>[paths.analyzer], numOfRepeats: 3);
+  printMemoryResults(id, description, sizes);
+}
+
+Future run_memory_initialAnalysis_2() async {
+  String id = 'memory-initialAnalysis-2';
+  String description = r'''
+1. Start server, set 'analyzer' and 'analysis_server' analysis roots.
+2. Measure the memory usage after finishing initial analysis.
+3. Shutdown the server.
+4. Go to (1).
+''';
+  List<int> sizes = await AnalysisServerMemoryUsageTest
+      .start_waitInitialAnalysis_shutdown(
+          roots: <String>[paths.analyzer, paths.analysisServer],
+          numOfRepeats: 3);
+  printMemoryResults(id, description, sizes);
 }
 
 class PathHolder {

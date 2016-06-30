@@ -205,7 +205,8 @@ abstract class AbstractAnalysisServerIntegrationTest
   /**
    * Start [server].
    */
-  Future startServer() => server.start();
+  Future startServer({int servicesPort}) =>
+      server.start(servicesPort: servicesPort);
 
   /**
    * After every test, the server is stopped and [sourceDirectory] is deleted.
@@ -509,6 +510,9 @@ class Server {
         .listen((String line) {
       lastCommunicationTime = currentElapseTime;
       String trimmedLine = line.trim();
+      if (trimmedLine.startsWith('Observatory listening on ')) {
+        return;
+      }
       _recordStdio('RECV: $trimmedLine');
       var message;
       try {
@@ -596,6 +600,7 @@ class Server {
       {bool debugServer: false,
       int diagnosticPort,
       bool profileServer: false,
+      int servicesPort,
       bool useAnalysisHighlight2: false}) {
     if (_process != null) {
       throw new Exception('Process already started');
@@ -610,8 +615,14 @@ class Server {
       arguments.add('--debug');
     }
     if (profileServer) {
-      arguments.add('--observe');
+      if (servicesPort == null) {
+        arguments.add('--observe');
+      } else {
+        arguments.add('--observe=$servicesPort');
+      }
       arguments.add('--pause-isolates-on-exit');
+    } else if (servicesPort != null) {
+      arguments.add('--enable-vm-service=$servicesPort');
     }
     if (Platform.packageRoot != null) {
       arguments.add('--package-root=${Platform.packageRoot}');
