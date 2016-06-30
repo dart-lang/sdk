@@ -3036,8 +3036,6 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeOldspaceGC) {
   // Expect small garbage to be collected.
   EXPECT_EQ(kHugeExternalSize,
             isolate->heap()->ExternalInWords(Heap::kOld) * kWordSize);
-  Dart_DeleteWeakPersistentHandle(reinterpret_cast<Dart_Isolate>(isolate),
-                                  weak);
   Dart_ExitScope();
 }
 
