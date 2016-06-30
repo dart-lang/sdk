@@ -2565,14 +2565,14 @@ class C {
 
 @reflectiveTest
 class ElementLocatorTest extends ResolverTestCase {
-  void fail_locate_ExportDirective() {
+  void test_locate_ExportDirective() {
     AstNode id = _findNodeIn("export", "export 'dart:core';");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
-        (obj) => obj is ImportElement, ImportElement, element);
+        (obj) => obj is ExportElement, ExportElement, element);
   }
 
-  void fail_locate_Identifier_libraryDirective() {
+  void test_locate_Identifier_libraryDirective() {
     AstNode id = _findNodeIn("foo", "library foo.bar;");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
@@ -3267,18 +3267,6 @@ class ErrorSeverityTest extends EngineTestCase {
  */
 @reflectiveTest
 class ExitDetectorTest extends ParserTestCase {
-  void fail_doStatement_continue_with_label() {
-    _assertFalse("{ x: do { continue x; } while(true); }");
-  }
-
-  void fail_whileStatement_continue_with_label() {
-    _assertFalse("{ x: while (true) { continue x; } }");
-  }
-
-  void fail_whileStatement_doStatement_scopeRequired() {
-    _assertTrue("{ while (true) { x: do { continue x; } while(true); }");
-  }
-
   void test_asExpression() {
     _assertFalse("a as Object;");
   }
@@ -3528,6 +3516,11 @@ class ExitDetectorTest extends ParserTestCase {
   void test_doStatement_true_continue() {
     _assertTrue("{ do { continue; } while (true); }");
   }
+
+  void test_doStatement_true_continueWithLabel() {
+    _assertTrue("{ x: do { continue x; } while (true); }");
+  }
+
 
   void test_doStatement_true_if_return() {
     _assertTrue("{ do { if (true) {return null;} } while (true); }");
@@ -3933,6 +3926,14 @@ on String catch (e, s) { return 1; }''');
 
   void test_whileStatement_true_continue() {
     _assertTrue("{ while (true) { continue; } }");
+  }
+
+  void test_whileStatement_true_continueWithLabel() {
+    _assertTrue("{ x: while (true) { continue x; } }");
+  }
+
+  void test_whileStatement_true_doStatement_scopeRequired() {
+    _assertTrue("{ while (true) { x: do { continue x; } while (true); } }");
   }
 
   void test_whileStatement_true_if_return() {
