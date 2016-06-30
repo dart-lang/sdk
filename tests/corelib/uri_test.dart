@@ -196,7 +196,7 @@ testUriPerRFCs() {
   testResolve("s://h/", "../../../..");
   testResolve("s://h/", "../../../../");
 
-  base = Uri.parse("s://h/p?q#f%20");  // A non-simpe base
+  base = Uri.parse("s://h/p?q#f%20");  // A non-simpe base.
   // Simple references:
   testResolve("s2://h2/P?Q#F", "s2://h2/P?Q#F");
   testResolve("s://h2/P?Q#F", "//h2/P?Q#F");
