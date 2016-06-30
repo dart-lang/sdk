@@ -12,6 +12,7 @@
 #include "vm/log.h"
 #include "vm/object_store.h"
 #include "vm/symbols.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -118,6 +119,8 @@ static void CollectImmediateSuperInterfaces(
 // b) after the user classes are loaded (dart_api).
 bool ClassFinalizer::ProcessPendingClasses() {
   Thread* thread = Thread::Current();
+  NOT_IN_PRODUCT(TimelineDurationScope tds(thread, Timeline::GetIsolateStream(),
+                                           "ProcessPendingClasses"));
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   HANDLESCOPE(thread);

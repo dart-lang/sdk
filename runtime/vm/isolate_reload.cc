@@ -233,6 +233,7 @@ void IsolateReloadContext::ReportSuccess() {
 
 
 void IsolateReloadContext::StartReload() {
+  TIMELINE_SCOPE(Reload);
   Thread* thread = Thread::Current();
 
   // Grab root library before calling CheckpointBeforeReload.
@@ -346,6 +347,7 @@ void IsolateReloadContext::EnsuredUnoptimizedCodeForStack() {
 
 
 void IsolateReloadContext::DeoptimizeDependentCode() {
+  TIMELINE_SCOPE(DeoptimizeDependentCode);
   ClassTable* class_table = I->class_table();
 
   const intptr_t bottom = Dart::vm_isolate()->class_table()->NumCids();
