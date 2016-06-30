@@ -18,6 +18,8 @@ dependencies:
   charted: ^0.3.0
   polymer: ^0.16.3
   unittest: < 0.12.0
+  js: ^0.6.0
+  js_util: ^0.2.0
   usage: any
 dependency_overrides:
   analyzer:
@@ -52,6 +54,10 @@ dependency_overrides:
     path: ../../third_party/observatory_pub_packages/packages/initialize
   intl:
     path: ../../third_party/observatory_pub_packages/packages/intl
+  js:
+    path: ../../third_party/observatory_pub_packages/packages/js
+  js_util:
+    path: ../../third_party/observatory_pub_packages/packages/js_util
   logging:
     path: ../../third_party/observatory_pub_packages/packages/logging
   matcher:
