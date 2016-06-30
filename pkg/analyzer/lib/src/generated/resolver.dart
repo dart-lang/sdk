@@ -3499,6 +3499,12 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   bool _enclosingBlockContainsBreak = false;
 
   /**
+   * Set to `true` when a `continue` is encountered, and reset to `false` when a
+   * `do`, `while`, `for` or `switch` block is entered.
+   */
+  bool _enclosingBlockContainsContinue = false;
+
+  /**
    * Add node when a labelled `break` is encountered.
    */
   Set<AstNode> _enclosingBlockBreaksLabel = new Set<AstNode>();
@@ -3606,14 +3612,24 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   }
 
   @override
-  bool visitContinueStatement(ContinueStatement node) => false;
+  bool visitContinueStatement(ContinueStatement node) {
+    _enclosingBlockContainsContinue = true;
+    return false;
+  }
 
   @override
   bool visitDoStatement(DoStatement node) {
     bool outerBreakValue = _enclosingBlockContainsBreak;
+    bool outerContinueValue = _enclosingBlockContainsContinue;
     _enclosingBlockContainsBreak = false;
+    _enclosingBlockContainsContinue = false;
     try {
-      if (_nodeExits(node.body) && !_enclosingBlockContainsBreak) {
+      bool bodyExits = _nodeExits(node.body);
+      bool containsBreakOrContinue =
+          _enclosingBlockContainsBreak || _enclosingBlockContainsContinue;
+      // Even if we determine that the body "exits", there might be break or
+      // continue statements that actually mean it _doesn't_ always exit.
+      if (bodyExits && !containsBreakOrContinue) {
         return true;
       }
       Expression conditionExpression = node.condition;
@@ -3630,6 +3646,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       return false;
     } finally {
       _enclosingBlockContainsBreak = outerBreakValue;
+      _enclosingBlockContainsContinue = outerContinueValue;
     }
   }
 

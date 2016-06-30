@@ -3487,6 +3487,40 @@ class ExitDetectorTest extends ParserTestCase {
     _assertTrue("{ do {} while (throw ''); }");
   }
 
+  void test_doStatement_break_and_throw() {
+    _assertFalse("{ do { if (1==1) break; throw 'T'; } while (0==1); }");
+  }
+
+  void test_doStatement_continue_and_throw() {
+    _assertFalse("{ do { if (1==1) continue; throw 'T'; } while (0==1); }");
+  }
+
+  void test_doStatement_continueInSwitch_and_throw() {
+    _assertFalse('''
+{
+  do {
+    switch (1) {
+      L: case 0: continue;
+      M: case 1: break;
+    }
+    throw 'T';
+  } while (0 == 1);
+}''');
+  }
+
+  void test_doStatement_continueDoInSwitch_and_throw() {
+    _assertFalse('''
+{
+  D: do {
+    switch (1) {
+      L: case 0: continue D;
+      M: case 1: break;
+    }
+    throw 'T';
+  } while (0 == 1);
+}''');
+  }
+
   void test_doStatement_true_break() {
     _assertFalse("{ do { break; } while (true); }");
   }
@@ -3757,6 +3791,19 @@ class ExitDetectorTest extends ParserTestCase {
 
   void test_switch_fallThroughToReturn() {
     _assertTrue("switch (i) { case 0: case 1: return 0; default: return 1; }");
+  }
+
+  // The ExitDetector could conceivably follow switch continue labels and
+  // determine that `case 0` exits, `case 1` continues to an exiting case, and
+  // `default` exits, so the switch exits.
+  @failingTest
+  void test_switch_includesContinue() {
+    _assertTrue('''
+switch (i) {
+  zero: case 0: return 0;
+  case 1: continue zero;
+  default: return 1;
+}''');
   }
 
   void test_switch_noDefault() {
