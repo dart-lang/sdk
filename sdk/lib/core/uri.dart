@@ -902,32 +902,47 @@ abstract class Uri {
               end = uri.length;
             } else if (pathStart == queryStart) {
               // Uri has authority and empty path. Add "/" as path.
-              uri = "${uri.substring(start, pathStart)}/"
-                    "${uri.substring(queryStart, end)}";
-              schemeEnd -= start;
-              hostStart -= start;
-              portStart -= start;
-              pathStart -= start;
-              queryStart += 1 - start;
-              fragmentStart += 1 - start;
-              start = 0;
-              end = uri.length;
+              if (start == 0 && end == uri.length) {
+                uri = uri.replaceRange(pathStart, queryStart, "/");
+                queryStart += 1;
+                fragmentStart += 1;
+                end += 1;
+              } else {
+                uri = "${uri.substring(start, pathStart)}/"
+                      "${uri.substring(queryStart, end)}";
+                schemeEnd -= start;
+                hostStart -= start;
+                portStart -= start;
+                pathStart -= start;
+                queryStart += 1 - start;
+                fragmentStart += 1 - start;
+                start = 0;
+                end = uri.length;
+              }
             }
           } else if (uri.startsWith("http", start)) {
             scheme = "http";
             // HTTP URIs should not have an explicit port of 80.
             if (portStart > start && portStart + 3 == pathStart &&
                 uri.startsWith("80", portStart + 1)) {
-              uri = uri.substring(start, portStart) +
-                    uri.substring(pathStart, end);
-              schemeEnd -= start;
-              hostStart -= start;
-              portStart -= start;
-              pathStart -= 3 + start;
-              queryStart -= 3 + start;
-              fragmentStart -= 3 + start;
-              start = 0;
-              end = uri.length;
+              if (start == 0 && end == uri.length) {
+                uri = uri.replaceRange(portStart, pathStart, "");
+                pathStart -= 3;
+                queryStart -= 3;
+                fragmentStart -= 3;
+                end -= 3;
+              } else {
+                uri = uri.substring(start, portStart) +
+                      uri.substring(pathStart, end);
+                schemeEnd -= start;
+                hostStart -= start;
+                portStart -= start;
+                pathStart -= 3 + start;
+                queryStart -= 3 + start;
+                fragmentStart -= 3 + start;
+                start = 0;
+                end = uri.length;
+              }
             }
           }
         } else if (schemeEnd == start + 5 && uri.startsWith("https", start)) {
@@ -935,16 +950,24 @@ abstract class Uri {
           // HTTPS URIs should not have an explicit port of 443.
           if (portStart > start && portStart + 4 == pathStart &&
               uri.startsWith("443", portStart + 1)) {
-            uri = uri.substring(start, portStart) +
-                  uri.substring(pathStart, end);
-            schemeEnd -= start;
-            hostStart -= start;
-            portStart -= start;
-            pathStart -= 4 + start;
-            queryStart -= 4 + start;
-            fragmentStart -= 4 + start;
-            start = 0;
-            end = uri.length;
+            if (start == 0 && end == uri.length) {
+              uri = uri.replaceRange(portStart, pathStart, "");
+              pathStart -= 4;
+              queryStart -= 4;
+              fragmentStart -= 4;
+              end -= 3;
+            } else {
+              uri = uri.substring(start, portStart) +
+                    uri.substring(pathStart, end);
+              schemeEnd -= start;
+              hostStart -= start;
+              portStart -= start;
+              pathStart -= 4 + start;
+              queryStart -= 4 + start;
+              fragmentStart -= 4 + start;
+              start = 0;
+              end = uri.length;
+            }
           }
         }
       }
@@ -4330,6 +4353,14 @@ class _SimpleUri implements Uri {
         backCount--;
         if (backCount == 0) break;
       }
+    }
+    // If the base URI has no scheme or authority (`_pathStart == 0`)
+    // and a relative path, and we reached the beginning of the path,
+    // we have a special case.
+    if (baseEnd == 0 && !base.hasAbsolutePath) {
+      // Non-RFC 3986 behavior when resolving a purely relative path on top of
+      // another relative path: Don't make the result absolute.
+      insert = "";
     }
 
     var delta = baseEnd - refStart + insert.length;

@@ -150,6 +150,11 @@ testUriPerRFCs() {
   testResolve("s:bar", "bar");
   testResolve("s:bar", "../bar");
 
+  // Special-case (deliberate non-RFC behavior).
+  base = Uri.parse("foo/bar");
+  testResolve("foo/baz", "baz");
+  testResolve("baz", "../baz");
+
   base = Uri.parse("s:/foo");
   testResolve("s:/bar", "bar");
   testResolve("s:/bar", "../bar");
@@ -164,7 +169,7 @@ testUriPerRFCs() {
   testResolve("./", "../..");
   testResolve("../", "../../..");
   testResolve("a/b/", ".");
-  testResolve("/c", "../../c");
+  testResolve("c", "../../c");  // Deliberate non-RFC behavior.
   base = Uri.parse("../../a/b/c?_#_");  // Initial ".." in base url.
   testResolve("../../a/d", "../d");
   testResolve("../../../d", "../../../d");
