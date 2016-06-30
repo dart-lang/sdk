@@ -620,6 +620,7 @@ void IsolateReloadContext::Rollback() {
 
 #ifdef DEBUG
 void IsolateReloadContext::VerifyMaps() {
+  TIMELINE_SCOPE(VerifyMaps);
   Class& cls = Class::Handle();
   Class& new_cls = Class::Handle();
   Class& cls2 = Class::Handle();
