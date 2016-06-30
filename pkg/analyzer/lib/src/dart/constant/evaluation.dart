@@ -347,7 +347,14 @@ class ConstantEvaluationEngine {
         // This could happen in the event of invalid code.  The error will be
         // reported at constant evaluation time.
       }
-      if (constNode.arguments != null) {
+      if (constNode == null) {
+        // We cannot determine what element the annotation is on, nor the offset
+        // of the annotation, so there's not a lot of information in this
+        // message, but it's better than getting an exception.
+        // https://github.com/dart-lang/sdk/issues/26811
+        AnalysisEngine.instance.logger.logInformation(
+            'No annotationAst for $constant in ${constant.compilationUnit}');
+      } else if (constNode.arguments != null) {
         constNode.arguments.accept(referenceFinder);
       }
     } else if (constant is VariableElement) {
