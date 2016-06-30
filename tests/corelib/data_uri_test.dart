@@ -18,6 +18,13 @@ main() {
   testRoundTrip("blåbærgrød", UTF8);
   testRoundTrip("blåbærgrød", LATIN1);
 
+  testUriEquals("data:,abc?d#e");
+  testUriEquals("DATA:,ABC?D#E");
+  testUriEquals("data:,a%20bc?d#e");
+  testUriEquals("DATA:,A%20BC?D#E");
+  testUriEquals("data:,a%62c?d#e");
+  testUriEquals("DATA:,A%42C?D#E");
+
   testUtf8Encoding("\u1000\uffff");
   testBytes();
   testInvalidCharacters();
@@ -249,4 +256,12 @@ expectUriEquals(Uri expect, Uri actual) {
   Expect.equals(expect.query, actual.query, "query");
   Expect.equals(expect.hasFragment, actual.hasFragment, "hasFragment");
   Expect.equals(expect.fragment, actual.fragment, "fragment");
+}
+
+void testUriEquals(String uriText) {
+  var data = UriData.parse(uriText);
+  var uri = Uri.parse(uriText);
+  Expect.equals(data.uri, uri);
+  Expect.equals(data.toString(), uri.data.toString());
+  Expect.equals(data.toString(), uri.toString());
 }
