@@ -293,7 +293,6 @@ class LibrarySerializer implements ElementSerializer {
     encoder.setElements(Key.EXPORTS, element.exports);
 
     encoder.setElements(Key.IMPORT_SCOPE, getImportedElements(element));
-
     encoder.setElements(Key.EXPORT_SCOPE, getExportedElements(element));
   }
 }

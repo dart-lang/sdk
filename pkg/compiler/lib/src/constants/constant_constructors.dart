@@ -339,4 +339,10 @@ class ConstantConstructorComputer extends SemanticVisitor
   ConstantExpression visitNamedArgument(NamedArgument node) {
     return apply(node.expression);
   }
+
+  @override
+  ConstantExpression visitIfNull(Send node, Node left, Node right, _) {
+    return new BinaryConstantExpression(
+        apply(left), BinaryOperator.IF_NULL, apply(right));
+  }
 }

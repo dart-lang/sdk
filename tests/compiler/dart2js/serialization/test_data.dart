@@ -455,6 +455,23 @@ class A {
 ''',
   }),
 
+  const Test('If-null expression in constant constructor', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  const A(1.0);
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+class A {
+  final field1;
+  const A(a) : this.field1 = a ?? 1.0;
+}
+''',
+  }),
+
   const Test('Forwarding constructor defined by forwarding constructor', const {
     'main.dart': '''
 import 'a.dart';
