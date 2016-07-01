@@ -41,8 +41,8 @@ main(List<String> args) {
   bool strongMode = options['strong'];
 
   String path = options.rest.single;
-  Repository repository = new Repository(sdk: sdk, packageRoot: packageRoot,
-      strongMode: strongMode);
+  Repository repository = new AnalyzerRepository(sdk: sdk,
+      packageRoot: packageRoot, strongMode: strongMode);
 
   loadProgramFromDart(path, repository);
 

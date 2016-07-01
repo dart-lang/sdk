@@ -15,7 +15,7 @@ class Strength extends core::Object {
   final field core::int/core::Object value;
   final field core::String/core::String name;
   const constructor •(core::int/core::int value, core::String/core::String name) → void/bottom
-    : self::Strength::value = value, self::Strength::name = name;
+    : self::Strength::value = value, self::Strength::name = name, super core::Object::•();
   method nextWeaker() → self::Strength/core::Object
     return const <self::Strength>[self::STRONG_PREFERRED, self::PREFERRED, self::STRONG_DEFAULT, self::NORMAL, self::WEAK_DEFAULT, self::WEAKEST].[](this.value);
   static method stronger(self::Strength/self::Strength s1, self::Strength/self::Strength s2) → core::bool/core::Object {
@@ -34,7 +34,7 @@ class Strength extends core::Object {
 abstract class Constraint extends core::Object {
   final field self::Strength/self::Strength strength;
   const constructor •(self::Strength/self::Strength strength) → void/bottom
-    : self::Constraint::strength = strength;
+    : self::Constraint::strength = strength, super core::Object::•();
   abstract method isSatisfied() → core::bool/<missing type>;
   abstract method markUnsatisfied() → void/<missing type>;
   abstract method addToGraph() → void/<missing type>;
@@ -237,7 +237,7 @@ class Variable extends core::Object {
   field core::int/core::Object value;
   final field core::String/core::String name;
   constructor •(core::String/core::String name, core::int/core::Object value) → void/bottom
-    : self::Variable::name = name, self::Variable::value = value;
+    : self::Variable::name = name, self::Variable::value = value, super core::Object::•();
   method addConstraint(self::Constraint/core::Object c) → void/bottom {
     this.constraints.add(c);
   }
