@@ -321,3 +321,11 @@ out_of_memory_test: Skip # Issue #26377
 
 [ $runtime == dart_precompiled ]
 deferred_transitive_import_error_test: Skip # Contains intentional errors.
+
+[ $hot_reload ]
+io/bytes_builder_test: RuntimeError
+io/file_input_stream_test: Crash
+io/file_test: Pass, Crash
+io/web_socket_protocol_processor_test: Pass, Crash
+map_insert_remove_oom_test: Crash
+priority_queue_stress_test: Crash

@@ -246,3 +246,8 @@ large_class_declaration_test: Skip
 [ $compiler == precompiler && $runtime == dart_precompiled && $system == android ]
 vm/optimized_guarded_field_isolates_test: Skip # Issue #26373
 issue23244_test: Skip # Issue #26373
+
+[ $hot_reload ]
+deferred_load_inval_code_test: RuntimeError
+regress_26453_test: Pass, Fail, Crash
+vm/regress_16873_test: Pass, Crash

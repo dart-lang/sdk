@@ -53,6 +53,7 @@ abstract class CompilerConfiguration {
     bool isCsp = configuration['csp'];
     bool useCps = configuration['cps_ir'];
     bool useBlobs = configuration['use_blobs'];
+    bool hotReload = configuration['hot_reload'];
 
     switch (compiler) {
       case 'dart2analyzer':
@@ -89,7 +90,8 @@ abstract class CompilerConfiguration {
             isDebug: isDebug,
             isChecked: isChecked,
             isHostChecked: isHostChecked,
-            useSdk: useSdk);
+            useSdk: useSdk,
+            hotReload: hotReload);
       default:
         throw "Unknown compiler '$compiler'";
     }
@@ -149,13 +151,17 @@ abstract class CompilerConfiguration {
 
 /// The "none" compiler.
 class NoneCompilerConfiguration extends CompilerConfiguration {
+  final bool hotReload;
+
   NoneCompilerConfiguration(
-      {bool isDebug, bool isChecked, bool isHostChecked, bool useSdk})
+      {bool isDebug, bool isChecked, bool isHostChecked, bool useSdk,
+       bool hotReload})
       : super._subclass(
             isDebug: isDebug,
             isChecked: isChecked,
             isHostChecked: isHostChecked,
-            useSdk: useSdk);
+            useSdk: useSdk),
+        this.hotReload = hotReload;
 
   bool get hasCompiler => false;
 
@@ -171,6 +177,12 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
     if (isChecked) {
       args.add('--enable_asserts');
       args.add('--enable_type_checks');
+    }
+    if (hotReload) {
+      args.add('--identity-reload');
+      args.add('--reload-every=100000');
+      args.add('--no-background-compilation');
+      args.add('--no-osr');
     }
     return args
       ..addAll(vmOptions)

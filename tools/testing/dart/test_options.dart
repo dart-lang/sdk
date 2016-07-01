@@ -187,8 +187,12 @@ class TestOptionsParser {
           'noopt', 'Run an in-place precompilation', ['--noopt'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
-          'use_blobs', 'Use mmap instead of shared libraries for precompilation', ['--use-blobs'], [], false,
-          type: 'bool'),
+          'hot_reload', 'Run hot reload stress tests', ['--hot-reload'], [],
+          false, type: 'bool'),
+      new _TestOptionSpecification(
+          'use_blobs',
+          'Use mmap instead of shared libraries for precompilation',
+          ['--use-blobs'], [], false, type: 'bool'),
       new _TestOptionSpecification(
           'timeout', 'Timeout in seconds', ['-t', '--timeout'], [], -1,
           type: 'int'),
