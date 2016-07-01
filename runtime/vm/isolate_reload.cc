@@ -215,7 +215,7 @@ void IsolateReloadContext::ReportError(const Error& error) {
   if (FLAG_trace_reload) {
     THR_Print("ISO-RELOAD: Error: %s\n", error.ToErrorCString());
   }
-  ServiceEvent service_event(Isolate::Current(), ServiceEvent::kIsolateReload);
+  ServiceEvent service_event(I, ServiceEvent::kIsolateReload);
   service_event.set_reload_error(&error);
   Service::HandleEvent(&service_event);
 }
@@ -227,7 +227,7 @@ void IsolateReloadContext::ReportError(const String& error_msg) {
 
 
 void IsolateReloadContext::ReportSuccess() {
-  ServiceEvent service_event(Isolate::Current(), ServiceEvent::kIsolateReload);
+  ServiceEvent service_event(I, ServiceEvent::kIsolateReload);
   Service::HandleEvent(&service_event);
 }
 
@@ -278,7 +278,7 @@ void IsolateReloadContext::StartReload() {
 void IsolateReloadContext::RegisterClass(const Class& new_cls) {
   const Class& old_cls = Class::Handle(OldClassOrNull(new_cls));
   if (old_cls.IsNull()) {
-    Isolate::Current()->class_table()->Register(new_cls);
+    I->class_table()->Register(new_cls);
 
     if (FLAG_identity_reload) {
       TIR_Print("Could not find replacement class for %s\n",
@@ -597,7 +597,7 @@ void IsolateReloadContext::RollbackLibraries() {
     }
 
     // Reset the registered libraries to the filtered array.
-    Library::RegisterLibraries(Thread::Current(), saved_libs);
+    Library::RegisterLibraries(thread, saved_libs);
   }
 
   Library& saved_root_lib = Library::Handle(Z, saved_root_library());
@@ -624,36 +624,32 @@ void IsolateReloadContext::VerifyMaps() {
   Class& cls = Class::Handle();
   Class& new_cls = Class::Handle();
   Class& cls2 = Class::Handle();
-  Class& new_cls2 = Class::Handle();
 
   // Verify that two old classes aren't both mapped to the same new
-  // class.  This could happen is the IsSameClass function is broken.
+  // class. This could happen is the IsSameClass function is broken.
   UnorderedHashMap<ClassMapTraits> class_map(class_map_storage_);
+  UnorderedHashMap<ClassMapTraits> reverse_class_map(
+      HashTables::New<UnorderedHashMap<ClassMapTraits> >(
+         class_map.NumOccupied()));
   {
     UnorderedHashMap<ClassMapTraits>::Iterator it(&class_map);
     while (it.MoveNext()) {
       const intptr_t entry = it.Current();
       new_cls = Class::RawCast(class_map.GetKey(entry));
       cls = Class::RawCast(class_map.GetPayload(entry, 0));
-      if (new_cls.raw() != cls.raw()) {
-        UnorderedHashMap<ClassMapTraits>::Iterator it2(&class_map);
-        while (it2.MoveNext()) {
-          new_cls2 = Class::RawCast(class_map.GetKey(entry));
-          if (new_cls.raw() == new_cls2.raw()) {
-            cls2 = Class::RawCast(class_map.GetPayload(entry, 0));
-            if (cls.raw() != cls2.raw()) {
-              OS::PrintErr(
-                  "Classes '%s' and '%s' are distinct classes but both map to "
-                  "class '%s'\n",
-                  cls.ToCString(), cls2.ToCString(), new_cls.ToCString());
-              UNREACHABLE();
-            }
-          }
-        }
+      cls2 ^= reverse_class_map.GetOrNull(new_cls);
+      if (!cls2.IsNull()) {
+        OS::PrintErr("Classes '%s' and '%s' are distinct classes but both map "
+                     " to class '%s'\n",
+                     cls.ToCString(), cls2.ToCString(), new_cls.ToCString());
+        UNREACHABLE();
       }
+      bool update = reverse_class_map.UpdateOrInsert(cls, new_cls);
+      ASSERT(!update);
     }
   }
   class_map.Release();
+  reverse_class_map.Release();
 }
 #endif
 
