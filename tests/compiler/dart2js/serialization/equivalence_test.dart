@@ -15,6 +15,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/invariant.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/visitor.dart';
+import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/ordered_typeset.dart';
 import 'package:compiler/src/serialization/element_serialization.dart';
@@ -23,6 +24,14 @@ import 'package:compiler/src/serialization/json_serializer.dart';
 import 'package:compiler/src/serialization/serialization.dart';
 import 'package:expect/expect.dart';
 import 'test_helper.dart';
+
+const TEST_SOURCES = const <String, String>{
+  'main.dart': '''
+import 'a.dart' deferred as a;
+''',
+  'a.dart': '''
+''',
+};
 
 main(List<String> arguments) {
   // Ensure that we can print out constant expressions.
@@ -44,15 +53,19 @@ main(List<String> arguments) {
       if (entryPoint != null) {
         print("Multiple entrypoints is not supported.");
       }
-      entryPoint = Uri.parse(arg);
+      entryPoint = Uri.base.resolve(nativeToUriPath(arg));
     }
   }
+  Map<String, String> sourceFiles = const <String, String>{};
   if (entryPoint == null) {
-    entryPoint = Uri.parse('dart:core');
+    entryPoint = Uri.parse('memory:main.dart');
+    sourceFiles = TEST_SOURCES;
   }
   asyncTest(() async {
     CompilationResult result = await runCompiler(
-        entryPoint: entryPoint, options: [Flags.analyzeAll]);
+        memorySourceFiles: sourceFiles,
+        entryPoint: entryPoint,
+        options: [Flags.analyzeAll]);
     Compiler compiler = result.compiler;
     testSerialization(
         compiler.libraryLoader.libraries,
@@ -798,8 +811,12 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1, element2, 'isDeferred',
         element1.isDeferred, element2.isDeferred);
     checkElementIdentities(
-        element1, element2, 'importedLibrary',
+        element1, element2, 'deferredImport',
         element1.deferredImport, element2.deferredImport);
+    if (element1.isDeferred) {
+      checkElementProperties(element1, element2,
+          'loadLibrary', element1.loadLibrary, element2.loadLibrary);
+    }
     // TODO(johnniwinther): Check members.
   }
 }

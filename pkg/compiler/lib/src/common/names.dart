@@ -26,6 +26,9 @@ class Identifiers {
   /// The name of the iterator property used in for-each loops.
   static const String iterator = 'iterator';
 
+  /// The name of the `loadLibrary` getter defined on deferred prefixes.
+  static const String loadLibrary = 'loadLibrary';
+
   /// The name of the main method.
   static const String main = 'main';
 

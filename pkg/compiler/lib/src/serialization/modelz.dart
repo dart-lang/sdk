@@ -458,7 +458,8 @@ class LibraryElementZ extends DeserializedElementZ
 
   void _ensureExports() {
     if (_exportsMap == null) {
-      _exportsMap = new ListedContainer(_decoder.getElements(Key.EXPORT_SCOPE));
+      _exportsMap = new ListedContainer(
+          _decoder.getElements(Key.EXPORT_SCOPE, isOptional: true));
     }
   }
 
@@ -2257,6 +2258,7 @@ class PrefixElementZ extends DeserializedElementZ
     implements PrefixElement {
   bool _isDeferred;
   ImportElement _deferredImport;
+  GetterElement _loadLibrary;
 
   PrefixElementZ(ObjectDecoder decoder) : super(decoder);
 
@@ -2266,7 +2268,10 @@ class PrefixElementZ extends DeserializedElementZ
   void _ensureDeferred() {
     if (_isDeferred == null) {
       _isDeferred = _decoder.getBool(Key.IS_DEFERRED);
-      _deferredImport = _decoder.getElement(Key.IMPORT, isOptional: true);
+      if (_isDeferred) {
+        _deferredImport = _decoder.getElement(Key.IMPORT);
+        _loadLibrary = _decoder.getElement(Key.GETTER);
+      }
     }
   }
 
@@ -2280,6 +2285,11 @@ class PrefixElementZ extends DeserializedElementZ
   bool get isDeferred {
     _ensureDeferred();
     return _isDeferred;
+  }
+
+  @override
+  GetterElement get loadLibrary {
+    return _loadLibrary;
   }
 
   @override

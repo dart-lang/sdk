@@ -468,6 +468,27 @@ class B {}
 class C {}
 class D = A with B, C;
 ''',
+    'b.dart': '''
+''',
+}),
+
+  const Test('Deferred prefix loadLibrary', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  test();
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+import 'b.dart' deferred as pre;
+test() {
+  pre.loadLibrary();
+}
+''',
+    'b.dart': '''
+''',
   }),
 ];
 

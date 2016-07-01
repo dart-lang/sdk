@@ -536,7 +536,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
       packageConfig: packageConfig,
       packagesDiscoveryProvider: findPackages,
       resolutionInputs: resolutionInputs,
-      resolutionOutput: resolveOnly ? resolutionOutput: null,
+      resolutionOutput: resolveOnly ? resolutionOutput : null,
       options: options,
       environment: environment);
   return compileFunc(

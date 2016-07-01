@@ -20,15 +20,16 @@ class Listener extends DiagnosticReporter {
     errorMessage = message;
     throw "error";
   }
-  reportError(message, [infos]) {
 
+  reportError(message, [infos = const <DiagnosticMessage>[]]) {
     errorMessage =
         '${message.message.arguments}'; // E.g.  "{text: Duplicate tag 'new'.}"
     throw "error";
   }
 
   @override
-  DiagnosticMessage createMessage(spannable, messageKind, [arguments]) {
+  DiagnosticMessage createMessage(spannable, messageKind,
+      [arguments = const {}]) {
     return new DiagnosticMessage(null, spannable,
         MessageTemplate.TEMPLATES[messageKind].message(arguments));
   }

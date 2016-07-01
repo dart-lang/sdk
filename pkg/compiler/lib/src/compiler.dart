@@ -920,6 +920,11 @@ abstract class Compiler implements LibraryLoaderListener {
       fullyEnqueueTopLevelElement(element, world);
     }
     library.implementation.forEachLocalMember(enqueueAll);
+    library.imports.forEach((ImportElement import) {
+      if (import.isDeferred) {
+        world.addToWorkList(import.prefix.loadLibrary);
+      }
+    });
   }
 
   void fullyEnqueueTopLevelElement(Element element, Enqueuer world) {

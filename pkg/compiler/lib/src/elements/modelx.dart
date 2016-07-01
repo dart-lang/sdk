@@ -5,6 +5,7 @@
 library elements.modelx;
 
 import '../common.dart';
+import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart' show Resolution, ParsingContext;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_constructors.dart';
@@ -1259,6 +1260,11 @@ class PrefixElementX extends ElementX implements PrefixElement {
     return visitor.visitPrefixElement(this, arg);
   }
 
+  @override
+  GetterElement get loadLibrary {
+    return isDeferred ? lookupLocalMember(Identifiers.loadLibrary) : null;
+  }
+
   String toString() => '$kind($name)';
 }
 
@@ -2264,7 +2270,7 @@ class DeferredLoaderGetterElementX extends GetterElementX
 
   DeferredLoaderGetterElementX(PrefixElement prefix)
       : this.prefix = prefix,
-        super("loadLibrary", Modifiers.EMPTY, prefix, false) {
+        super(Identifiers.loadLibrary, Modifiers.EMPTY, prefix, false) {
     functionSignature = new FunctionSignatureX(type: new FunctionType(this));
   }
 
@@ -2275,6 +2281,7 @@ class DeferredLoaderGetterElementX extends GetterElementX
   bool get isDeferredLoaderGetter => true;
 
   bool get isTopLevel => true;
+
   // By having position null, the enclosing elements location is printed in
   // error messages.
   Token get position => null;
@@ -2284,6 +2291,13 @@ class DeferredLoaderGetterElementX extends GetterElementX
   bool get hasNode => false;
 
   FunctionExpression get node => null;
+
+  bool get hasResolvedAst => true;
+
+  ResolvedAst get resolvedAst {
+    return new SynthesizedResolvedAst(
+        this, ResolvedAstKind.DEFERRED_LOAD_LIBRARY);
+  }
 
   @override
   SetterElement get setter => null;
