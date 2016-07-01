@@ -400,6 +400,20 @@ class GetHandler {
   }
 
   /**
+   * Produce an encoded version of the given [descriptor] that can be used to
+   * find the descriptor later.
+   */
+  String _encodeSdkDescriptor(SdkDescription descriptor) {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(descriptor.options.encodeCrossContextOptions());
+    for (String path in descriptor.paths) {
+      buffer.write('+');
+      buffer.write(path);
+    }
+    return buffer.toString();
+  }
+
+  /**
    * Return the folder being managed by the given [analysisServer] that matches
    * the given [contextFilter], or `null` if there is none.
    */
@@ -562,10 +576,30 @@ class GetHandler {
   }
 
   /**
+   * Return the context for the SDK whose descriptor is encoded to be the same
+   * as the given [contextFilter]. The [analysisServer] is used to access the
+   * SDKs.
+   */
+  AnalysisContext _getSdkContext(
+      AnalysisServer analysisServer, String contextFilter) {
+    DartSdkManager manager = analysisServer.sdkManager;
+    List<SdkDescription> descriptors = manager.sdkDescriptors;
+    for (SdkDescription descriptor in descriptors) {
+      if (contextFilter == _encodeSdkDescriptor(descriptor)) {
+        return manager.getSdk(descriptor, () => null)?.context;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Return `true` if the given analysis [context] has at least one entry with
    * an exception.
    */
   bool _hasException(InternalAnalysisContext context) {
+    if (context == null) {
+      return false;
+    }
     MapIterator<AnalysisTarget, CacheEntry> iterator =
         context.analysisCache.iterator();
     while (iterator.moveNext()) {
@@ -902,9 +936,17 @@ class GetHandler {
       return _returnFailure(
           request, 'Query parameter $CONTEXT_QUERY_PARAM required');
     }
+    InternalAnalysisContext context = null;
     Folder folder = _findFolder(analysisServer, contextFilter);
     if (folder == null) {
-      return _returnFailure(request, 'Invalid context: $contextFilter');
+      context = _getSdkContext(analysisServer, contextFilter);
+      if (context == null) {
+        return _returnFailure(request, 'Invalid context: $contextFilter');
+      }
+      return _returnFailure(request,
+          'Cannot view cache entries from an SDK context: $contextFilter');
+    } else {
+      context = analysisServer.folderMap[folder];
     }
     String sourceUri = request.uri.queryParameters[SOURCE_QUERY_PARAM];
     if (sourceUri == null) {
@@ -946,7 +988,6 @@ class GetHandler {
     });
     allContexts.sort((Folder firstFolder, Folder secondFolder) =>
         firstFolder.path.compareTo(secondFolder.path));
-    InternalAnalysisContext context = analysisServer.folderMap[folder];
 
     _writeResponse(request, (StringBuffer buffer) {
       _writePage(buffer, 'Analysis Server - Cache Entry',
@@ -1000,7 +1041,7 @@ class GetHandler {
         }
         for (CacheEntry entry in entries) {
           Map<String, String> linkParameters = <String, String>{
-            CONTEXT_QUERY_PARAM: folder.path,
+            CONTEXT_QUERY_PARAM: contextFilter,
             SOURCE_QUERY_PARAM: sourceUri
           };
           List<ResultDescriptor> results = _getExpectedResults(entry);
@@ -1217,17 +1258,21 @@ class GetHandler {
       return _returnFailure(
           request, 'Query parameter $CONTEXT_QUERY_PARAM required');
     }
+    InternalAnalysisContext context = null;
     Folder folder = _findFolder(analysisServer, contextFilter);
     if (folder == null) {
-      return _returnFailure(request, 'Invalid context: $contextFilter');
+      context = _getSdkContext(analysisServer, contextFilter);
+      if (context == null) {
+        return _returnFailure(request, 'Invalid context: $contextFilter');
+      }
+    } else {
+      context = analysisServer.folderMap[folder];
     }
-
-    InternalAnalysisContext context = analysisServer.folderMap[folder];
 
     _writeResponse(request, (StringBuffer buffer) {
       _writePage(buffer, 'Analysis Server - Context Diagnostics',
           ['Context: $contextFilter'], (StringBuffer buffer) {
-        _writeContextDiagnostics(buffer, context);
+        _writeContextDiagnostics(buffer, context, contextFilter);
       });
     });
   }
@@ -1246,9 +1291,15 @@ class GetHandler {
       return _returnFailure(
           request, 'Query parameter $CONTEXT_QUERY_PARAM required');
     }
+    InternalAnalysisContext context = null;
     Folder folder = _findFolder(analysisServer, contextFilter);
     if (folder == null) {
-      return _returnFailure(request, 'Invalid context: $contextFilter');
+      context = _getSdkContext(analysisServer, contextFilter);
+      if (context == null) {
+        return _returnFailure(request, 'Invalid context: $contextFilter');
+      }
+    } else {
+      context = analysisServer.folderMap[folder];
     }
 
     List<String> priorityNames = <String>[];
@@ -1256,7 +1307,6 @@ class GetHandler {
     List<String> implicitNames = <String>[];
     Map<String, String> links = new HashMap<String, String>();
     List<CaughtException> exceptions = <CaughtException>[];
-    InternalAnalysisContext context = analysisServer.folderMap[folder];
     context.prioritySources.forEach((Source source) {
       priorityNames.add(source.fullName);
     });
@@ -1275,7 +1325,7 @@ class GetHandler {
           String link = makeLink(
               CACHE_ENTRY_PATH,
               {
-                CONTEXT_QUERY_PARAM: folder.path,
+                CONTEXT_QUERY_PARAM: contextFilter,
                 SOURCE_QUERY_PARAM: target.uri.toString()
               },
               sourceName,
@@ -1333,7 +1383,8 @@ class GetHandler {
       _writeOption(
           buffer, 'Enable strict call checks', options.enableStrictCallChecks);
       _writeOption(buffer, 'Enable super mixins', options.enableSuperMixins);
-      _writeOption(buffer, 'Enable trailing commas', options.enableTrailingCommas);
+      _writeOption(
+          buffer, 'Enable trailing commas', options.enableTrailingCommas);
       _writeOption(buffer, 'Generate dart2js hints', options.dart2jsHint);
       _writeOption(buffer, 'Generate errors in implicit files',
           options.generateImplicitErrors);
@@ -1479,12 +1530,16 @@ class GetHandler {
       return _returnFailure(
           request, 'Query parameter $CONTEXT_QUERY_PARAM required');
     }
+    InternalAnalysisContext context = null;
     Folder folder = _findFolder(analysisServer, contextFilter);
     if (folder == null) {
-      return _returnFailure(request, 'Invalid context: $contextFilter');
+      context = _getSdkContext(analysisServer, contextFilter);
+      if (context == null) {
+        return _returnFailure(request, 'Invalid context: $contextFilter');
+      }
+    } else {
+      context = analysisServer.folderMap[folder];
     }
-
-    InternalAnalysisContext context = analysisServer.folderMap[folder];
 
     _writeResponse(request, (StringBuffer buffer) {
       _writePage(buffer, 'Analysis Server - Context Validation Diagnostics',
@@ -1722,21 +1777,34 @@ class GetHandler {
       buffer.write('<p><b>SDK Contexts</b></p>');
       buffer.write('<p>');
       first = true;
-      List<String> descriptors = analysisServer.sdkManager.sdkDescriptors
-          .map((SdkDescription descriptor) => descriptor.toString())
-          .toList();
+      DartSdkManager manager = analysisServer.sdkManager;
+      List<SdkDescription> descriptors = manager.sdkDescriptors;
       if (descriptors.isEmpty) {
         buffer.write('none');
       } else {
-        descriptors.sort();
-        for (String descriptor in descriptors) {
+        Map<String, SdkDescription> sdkMap = <String, SdkDescription>{};
+        for (SdkDescription descriptor in descriptors) {
+          sdkMap[descriptor.toString()] = descriptor;
+        }
+        List<String> descriptorNames = sdkMap.keys.toList();
+        descriptorNames.sort();
+        for (String name in descriptorNames) {
           if (first) {
             first = false;
           } else {
             buffer.write('<br>');
           }
-          // TODO(brianwilkerson) Add a link to information about the contexts.
-          buffer.write(descriptor);
+          SdkDescription descriptor = sdkMap[name];
+          String contextId = _encodeSdkDescriptor(descriptor);
+          buffer.write(makeLink(
+              CONTEXT_PATH,
+              {CONTEXT_QUERY_PARAM: contextId},
+              name,
+              _hasException(manager.getSdk(descriptor, () => null)?.context)));
+          buffer.write(' <small><b>[');
+          buffer.write(makeLink(CONTEXT_DIAGNOSTICS_PATH,
+              {CONTEXT_QUERY_PARAM: contextId}, 'diagnostics'));
+          buffer.write(']</b></small>');
         }
       }
       buffer.write('</p>');
@@ -1878,14 +1946,14 @@ class GetHandler {
    * Write diagnostic information about the given [context] to the given
    * [buffer].
    */
-  void _writeContextDiagnostics(
-      StringBuffer buffer, InternalAnalysisContext context) {
+  void _writeContextDiagnostics(StringBuffer buffer,
+      InternalAnalysisContext context, String contextFilter) {
     AnalysisDriver driver = (context as AnalysisContextImpl).driver;
     List<WorkItem> workItems = driver.currentWorkOrder?.workItems;
 
     buffer.write('<p>');
     buffer.write(makeLink(CONTEXT_VALIDATION_DIAGNOSTICS_PATH,
-        {CONTEXT_QUERY_PARAM: context.name}, 'Run validation'));
+        {CONTEXT_QUERY_PARAM: contextFilter}, 'Run validation'));
     buffer.write('</p>');
 
     buffer.write('<h3>Most Recently Perfomed Tasks</h3>');
