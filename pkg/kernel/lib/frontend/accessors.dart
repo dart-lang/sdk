@@ -52,14 +52,20 @@ abstract class Accessor {
   }
 
   Expression _makeSimpleRead() => _makeRead();
+
   Expression _makeSimpleWrite(Expression value, bool voidContext) {
     return _makeWrite(value, voidContext);
   }
 
   Expression _makeRead();
+
   Expression _makeWrite(Expression value, bool voidContext);
 
   Expression _finish(Expression body) => body;
+
+  makeInvalidRead() => new InvalidExpression();
+
+  makeInvalidWrite(Expression value) => wrapInvalid(value);
 }
 
 class VariableAccessor extends Accessor {
@@ -71,7 +77,7 @@ class VariableAccessor extends Accessor {
 
   _makeWrite(Expression value, bool voidContext) {
     return variable.isFinal || variable.isConst
-        ? wrapInvalid(value)
+        ? makeInvalidWrite(value)
         : new VariableSet(variable, value);
   }
 }
@@ -152,12 +158,12 @@ class SuperPropertyAccessor extends Accessor {
   SuperPropertyAccessor(this.readTarget, this.writeTarget);
 
   _makeRead() => readTarget == null
-      ? new InvalidExpression()
+      ? makeInvalidRead()
       : new SuperPropertyGet(readTarget);
 
   _makeWrite(Expression value, bool voidContext) {
     return writeTarget == null
-        ? wrapInvalid(value)
+        ? makeInvalidWrite(value)
         : new SuperPropertySet(writeTarget, value);
   }
 }
@@ -292,27 +298,27 @@ class SuperIndexAccessor extends Accessor {
   }
 
   _makeSimpleRead() => readTarget == null
-      ? new InvalidExpression()
+      ? makeInvalidRead()
       : new SuperMethodInvocation(
           readTarget, new Arguments(<Expression>[index]));
 
   _makeSimpleWrite(Expression value, bool voidContext) {
     return writeTarget == null
-        ? wrapInvalid(value)
+        ? makeInvalidWrite(value)
         : new SuperMethodInvocation(
             writeTarget, new Arguments(<Expression>[index, value]));
   }
 
   _makeRead() {
     return readTarget == null
-        ? new InvalidExpression()
+        ? makeInvalidRead()
         : new SuperMethodInvocation(
             readTarget, new Arguments(<Expression>[indexAccess()]));
   }
 
   _makeWrite(Expression value, bool voidContext) {
     return writeTarget == null
-        ? wrapInvalid(value)
+        ? makeInvalidWrite(value)
         : new SuperMethodInvocation(
             writeTarget, new Arguments(<Expression>[indexAccess(), value]));
   }
@@ -329,11 +335,11 @@ class StaticAccessor extends Accessor {
   StaticAccessor(this.readTarget, this.writeTarget);
 
   _makeRead() =>
-      readTarget == null ? new InvalidExpression() : new StaticGet(readTarget);
+      readTarget == null ? makeInvalidRead() : new StaticGet(readTarget);
 
   _makeWrite(Expression value, bool voidContext) {
     return writeTarget == null
-        ? wrapInvalid(value)
+        ? makeInvalidWrite(value)
         : new StaticSet(writeTarget, value);
   }
 }
@@ -351,7 +357,7 @@ class ReadOnlyAccessor extends Accessor {
     return new VariableGet(value);
   }
 
-  _makeWrite(Expression value, bool voidContext) => new InvalidExpression();
+  _makeWrite(Expression value, bool voidContext) => makeInvalidWrite(value);
 
   Expression _finish(Expression body) => makeLet(value, body);
 }
