@@ -454,6 +454,21 @@ class A {
 }
 ''',
   }),
+
+  const Test('Forwarding constructor defined by forwarding constructor', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() => new C();
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+class A {}
+class B {}
+class C {}
+class D = A with B, C;
+''',
+  }),
 ];
 
 class Test {

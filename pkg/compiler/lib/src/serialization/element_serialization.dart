@@ -423,7 +423,8 @@ class ConstructorSerializer implements ElementSerializer {
       SerializedElementKind kind) {
     SerializerUtil.serializeParentRelation(element, encoder);
     if (kind == SerializedElementKind.FORWARDING_CONSTRUCTOR) {
-      encoder.setElement(Key.ELEMENT, element.definingConstructor);
+      serializeElementReference(element.enclosingClass, Key.ELEMENT, Key.NAME,
+          encoder, element.definingConstructor);
     } else {
       SerializerUtil.serializeMetadata(element, encoder);
       encoder.setType(Key.TYPE, element.type);
@@ -773,8 +774,10 @@ class ElementDeserializer {
       case SerializedElementKind.REDIRECTING_FACTORY_CONSTRUCTOR:
         return new RedirectingFactoryConstructorElementZ(decoder);
       case SerializedElementKind.FORWARDING_CONSTRUCTOR:
-        return new ForwardingConstructorElementZ(
-            decoder.getElement(Key.CLASS), decoder.getElement(Key.ELEMENT));
+        ClassElement cls = decoder.getElement(Key.CLASS);
+        Element definingConstructor =
+            deserializeElementReference(cls, Key.ELEMENT, Key.NAME, decoder);
+        return new ForwardingConstructorElementZ(cls, definingConstructor);
       case SerializedElementKind.TOPLEVEL_FUNCTION:
         return new TopLevelFunctionElementZ(decoder);
       case SerializedElementKind.STATIC_FUNCTION:
