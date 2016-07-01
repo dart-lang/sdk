@@ -25,7 +25,6 @@
 #include "vm/tags.h"
 #include "vm/thread.h"
 #include "vm/token_position.h"
-#include "vm/verified_memory.h"
 
 namespace dart {
 
@@ -655,7 +654,6 @@ class Object {
     ASSERT(Contains(reinterpret_cast<uword>(to)));
     if (raw()->IsNewObject()) {
       memmove(const_cast<RawObject**>(to), from, count * kWordSize);
-      VerifiedMemory::Accept(reinterpret_cast<uword>(to), count * kWordSize);
     } else {
       for (intptr_t i = 0; i < count; ++i) {
         StorePointer(&to[i], from[i]);
@@ -7440,7 +7438,7 @@ class GrowableObjectArray : public Instance {
     ASSERT(index < Length());
 
     // TODO(iposva): Add storing NoSafepointScope.
-    DataStorePointer(ObjectAddr(index), value.raw());
+    data()->StorePointer(ObjectAddr(index), value.raw());
   }
 
   void Add(const Object& value, Heap::Space space = Heap::kNew) const;
@@ -7509,9 +7507,6 @@ class GrowableObjectArray : public Instance {
   RawObject** ObjectAddr(intptr_t index) const {
     ASSERT((index >= 0) && (index < Length()));
     return &(DataArray()->data()[index]);
-  }
-  void DataStorePointer(RawObject** addr, RawObject* value) const {
-    data()->StorePointer(addr, value);
   }
 
   static const int kDefaultInitialCapacity = 4;

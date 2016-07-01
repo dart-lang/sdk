@@ -15,11 +15,6 @@
 
 namespace dart {
 
-#if defined(DEBUG)
-DEFINE_FLAG(bool, validate_overwrite, true, "Verify overwritten fields.");
-#endif  // DEBUG
-
-
 void RawObject::Validate(Isolate* isolate) const {
   if (Object::void_class_ == reinterpret_cast<RawClass*>(kHeapObjectTag)) {
     // Validation relies on properly initialized class classes. Skip if the
@@ -224,22 +219,6 @@ intptr_t RawObject::SizeFromClass() const {
 #endif  // DEBUG
   return instance_size;
 }
-
-
-#if defined(DEBUG)
-void RawObject::ValidateOverwrittenPointer(RawObject* raw) {
-  if (FLAG_validate_overwrite) {
-    raw->Validate(Isolate::Current());
-  }
-}
-
-
-void RawObject::ValidateOverwrittenSmi(RawSmi* raw) {
-  if (FLAG_validate_overwrite && raw->IsHeapObject() && raw != Object::null()) {
-    FATAL1("Expected smi/null, found: %" Px "\n", reinterpret_cast<uword>(raw));
-  }
-}
-#endif  // DEBUG
 
 
 intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {

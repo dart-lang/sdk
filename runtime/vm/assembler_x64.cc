@@ -2489,9 +2489,6 @@ void Assembler::hlt() {
 
 void Assembler::j(Condition condition, Label* label, bool near) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  if (VerifiedMemory::enabled()) {
-    near = Assembler::kFarJump;
-  }
   if (label->IsBound()) {
     static const int kShortSize = 2;
     static const int kLongSize = 6;
@@ -2546,9 +2543,6 @@ void Assembler::jmp(const Address& dst) {
 
 void Assembler::jmp(Label* label, bool near) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  if (VerifiedMemory::enabled()) {
-    near = Assembler::kFarJump;
-  }
   if (label->IsBound()) {
     static const int kShortSize = 2;
     static const int kLongSize = 5;
@@ -2944,109 +2938,12 @@ void Assembler::StoreIntoObjectFilter(Register object,
 }
 
 
-void Assembler::VerifyHeapWord(const Address& address,
-                               FieldContent old_content) {
-#if defined(DEBUG)
-  switch (old_content) {
-    case kEmptyOrSmiOrNull:
-      VerifyUninitialized(address);
-      break;
-    case kHeapObjectOrSmi:
-      VerifyObjectOrSmi(address);
-      break;
-    case kOnlySmi:
-      VerifySmi(address);
-      break;
-  }
-#endif  // DEBUG
-  if (VerifiedMemory::enabled()) {
-    Register addr_reg = RDX;
-    Register value = RBX;
-    // Preserve registers.
-    pushq(addr_reg);
-    pushq(value);
-    leaq(addr_reg, address);
-    // ASSERT(*address == *(address + offset))
-    movq(value, Address(addr_reg, 0));
-    cmpq(value, Address(addr_reg, VerifiedMemory::offset()));
-    Label ok;
-    j(EQUAL, &ok);
-    static const bool kFixedLengthEncoding = true;
-    Stop("Write barrier verification failed", kFixedLengthEncoding);
-    Bind(&ok);
-    popq(value);
-    popq(addr_reg);
-  }
-}
-
-
-void Assembler::VerifiedWrite(const Address& dest,
-                              Register value,
-                              FieldContent old_content) {
-  VerifyHeapWord(dest, old_content);
-  movq(dest, value);
-  if (VerifiedMemory::enabled()) {
-    Register temp = (value == RDX) ? RCX : RDX;
-    pushq(temp);
-    leaq(temp, dest);
-    movq(Address(temp, VerifiedMemory::offset()), value);
-    popq(temp);
-  }
-}
-
-
-#if defined(DEBUG)
-void Assembler::VerifyObjectOrSmi(const Address& dest) {
-  Label ok;
-  testb(dest, Immediate(kHeapObjectTag));
-  j(ZERO, &ok, Assembler::kNearJump);
-  // Non-smi case: Verify object pointer is word-aligned when untagged.
-  COMPILE_ASSERT(kHeapObjectTag == 1);
-  testb(dest, Immediate((kWordSize - 1) - kHeapObjectTag));
-  j(ZERO, &ok, Assembler::kNearJump);
-  static const bool kFixedLengthEncoding = true;
-  Stop("Expected heap object or Smi", kFixedLengthEncoding);
-  Bind(&ok);
-}
-
-
-void Assembler::VerifyUninitialized(const Address& dest) {
-  Label ok;
-  testb(dest, Immediate(kHeapObjectTag));
-  j(ZERO, &ok, Assembler::kNearJump);
-  // Non-smi case: Check for the special zap word or null.
-#if defined(DEBUG)
-  cmpq(dest, Immediate(Heap::kZap64Bits));
-  j(EQUAL, &ok, Assembler::kNearJump);
-#else
-#error Only supported in DEBUG mode
-#endif
-  LoadObject(TMP, Object::null_object());
-  cmpq(dest, TMP);
-  j(EQUAL, &ok, Assembler::kNearJump);
-  static const bool kFixedLengthEncoding = true;
-  Stop("Expected zapped, Smi or null", kFixedLengthEncoding);
-  Bind(&ok);
-}
-
-
-void Assembler::VerifySmi(const Address& dest, const char* stop_msg) {
-  Label done;
-  testb(dest, Immediate(kHeapObjectTag));
-  j(ZERO, &done, Assembler::kNearJump);
-  static const bool kFixedLengthEncoding = true;
-  Stop(stop_msg, kFixedLengthEncoding);
-  Bind(&done);
-}
-#endif  // defined(DEBUG)
-
-
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
                                 bool can_value_be_smi) {
   ASSERT(object != value);
-  VerifiedWrite(dest, value, kHeapObjectOrSmi);
+  movq(dest, value);
   Label done;
   if (can_value_be_smi) {
     StoreIntoObjectFilter(object, value, &done);
@@ -3071,9 +2968,8 @@ void Assembler::StoreIntoObject(Register object,
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         Register value,
-                                         FieldContent old_content) {
-  VerifiedWrite(dest, value, old_content);
+                                         Register value) {
+  movq(dest, value);
 #if defined(DEBUG)
   Label done;
   pushq(value);
@@ -3088,22 +2984,10 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         const Object& value,
-                                         FieldContent old_content) {
+                                         const Object& value) {
   ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
   ASSERT(!value.IsField() || Field::Cast(value).IsOriginal());
-  VerifyHeapWord(dest, old_content);
-  if (VerifiedMemory::enabled()) {
-    const Register temp = RCX;
-    pushq(temp);
-    leaq(temp, dest);
-    StoreObject(Address(temp, 0), value);
-    StoreObject(Address(temp, VerifiedMemory::offset()), value);
-    popq(temp);
-  } else {
-    StoreObject(dest, value);
-  }
-  // TODO(koda): Use 'object', verify that generational barrier's not needed.
+  StoreObject(dest, value);
 }
 
 
@@ -3115,39 +2999,21 @@ void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
   Stop("New value must be Smi.");
   Bind(&done);
 #endif  // defined(DEBUG)
-  VerifiedWrite(dest, value, kOnlySmi);
+  movq(dest, value);
 }
 
 
 void Assembler::ZeroInitSmiField(const Address& dest) {
-  // TODO(koda): Add VerifySmi once we distinguish initalization.
-  VerifyHeapWord(dest, kEmptyOrSmiOrNull);
   Immediate zero(Smi::RawValue(0));
   movq(dest, zero);
-  if (VerifiedMemory::enabled()) {
-    Register temp = RCX;
-    pushq(temp);
-    leaq(temp, dest);
-    movq(Address(temp, VerifiedMemory::offset()), zero);
-    popq(temp);
-  }
 }
 
 
 void Assembler::IncrementSmiField(const Address& dest, int64_t increment) {
   // Note: FlowGraphCompiler::EdgeCounterIncrementSizeInBytes depends on
   // the length of this instruction sequence.
-  // TODO(koda): Add VerifySmi once we distinguish initalization.
-  VerifyHeapWord(dest, kOnlySmi);
   Immediate inc_imm(Smi::RawValue(increment));
   addq(dest, inc_imm);
-  if (VerifiedMemory::enabled()) {
-    Register temp = RCX;
-    pushq(temp);
-    leaq(temp, dest);
-    addq(Address(temp, VerifiedMemory::offset()), inc_imm);
-    popq(temp);
-  }
 }
 
 

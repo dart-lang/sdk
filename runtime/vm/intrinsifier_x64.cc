@@ -100,7 +100,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // Store backing array object in growable array object.
   __ movq(RCX, Address(RSP, kArrayOffset));  // data argument.
   // RAX is new, no barrier needed.
-  __ InitializeFieldNoBarrier(
+  __ StoreIntoObjectNoBarrier(
       RAX,
       FieldAddress(RAX, GrowableObjectArray::data_offset()),
       RCX);
@@ -108,7 +108,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // RAX: new growable array object start as a tagged pointer.
   // Store the type argument field in the growable array object.
   __ movq(RCX, Address(RSP, kTypeArgumentsOffset));  // type argument.
-  __ InitializeFieldNoBarrier(
+  __ StoreIntoObjectNoBarrier(
       RAX,
       FieldAddress(RAX, GrowableObjectArray::type_arguments_offset()),
       RCX);
@@ -222,7 +222,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* RAX: new object start as a tagged pointer. */                             \
   /* RCX: new object end address. */                                           \
   __ movq(RDI, Address(RSP, kArrayLengthStackOffset));  /* Array length. */    \
-  __ InitializeFieldNoBarrier(RAX,                                             \
+  __ StoreIntoObjectNoBarrier(RAX,                                             \
                               FieldAddress(RAX, type_name::length_offset()),   \
                               RDI);                                            \
   /* Initialize all array elements to 0. */                                    \
@@ -1882,7 +1882,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
   // Set the length field.
   __ popq(RDI);
-  __ InitializeFieldNoBarrier(RAX,
+  __ StoreIntoObjectNoBarrier(RAX,
                               FieldAddress(RAX, String::length_offset()),
                               RDI);
   // Clear hash.

@@ -2011,7 +2011,7 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
           ((IsPotentialUnboxedStore()) ? 3 : 0);
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
-          ((IsUnboxedStore() && opt && is_potential_unboxed_initialization_) ||
+          ((IsUnboxedStore() && opt && is_initialization()) ||
            IsPotentialUnboxedStore())
           ? LocationSummary::kCallOnSlowPath
           : LocationSummary::kNoCall);
@@ -2072,7 +2072,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const Register temp2 = locs()->temp(1).reg();
     const intptr_t cid = field().UnboxedFieldCid();
 
-    if (is_potential_unboxed_initialization_) {
+    if (is_initialization()) {
       const Class* cls = NULL;
       switch (cid) {
         case kDoubleCid:
@@ -2214,21 +2214,14 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                              CanValueBeSmi());
   } else {
     if (locs()->in(1).IsConstant()) {
-      __ StoreIntoObjectNoBarrierOffset(
-          instance_reg,
-          offset_in_bytes_,
-          locs()->in(1).constant(),
-          is_object_reference_initialization_ ?
-              Assembler::kEmptyOrSmiOrNull :
-              Assembler::kHeapObjectOrSmi);
+      __ StoreIntoObjectNoBarrierOffset(instance_reg,
+                                        offset_in_bytes_,
+                                        locs()->in(1).constant());
     } else {
       const Register value_reg = locs()->in(1).reg();
       __ StoreIntoObjectNoBarrierOffset(instance_reg,
                                         offset_in_bytes_,
-                                        value_reg,
-                                        is_object_reference_initialization_ ?
-                                            Assembler::kEmptyOrSmiOrNull :
-                                            Assembler::kHeapObjectOrSmi);
+                                        value_reg);
     }
   }
   __ Bind(&skip_store);
@@ -2345,12 +2338,12 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // R3: new object end address.
 
   // Store the type argument field.
-  __ InitializeFieldNoBarrier(R0,
+  __ StoreIntoObjectNoBarrier(R0,
                               FieldAddress(R0, Array::type_arguments_offset()),
                               kElemTypeReg);
 
   // Set the length field.
-  __ InitializeFieldNoBarrier(R0,
+  __ StoreIntoObjectNoBarrier(R0,
                               FieldAddress(R0, Array::length_offset()),
                               kLengthReg);
 

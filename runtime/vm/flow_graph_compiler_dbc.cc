@@ -20,7 +20,6 @@
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
-#include "vm/verified_memory.h"
 
 namespace dart {
 

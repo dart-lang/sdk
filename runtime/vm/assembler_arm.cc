@@ -1687,49 +1687,6 @@ void Assembler::StoreIntoObjectFilter(Register object,
 }
 
 
-Operand Assembler::GetVerifiedMemoryShadow() {
-  Operand offset;
-  if (!Operand::CanHold(VerifiedMemory::offset(), &offset)) {
-    FATAL1("Offset 0x%" Px " not representable", VerifiedMemory::offset());
-  }
-  return offset;
-}
-
-
-void Assembler::WriteShadowedField(Register base,
-                                   intptr_t offset,
-                                   Register value,
-                                   Condition cond) {
-  if (VerifiedMemory::enabled()) {
-    ASSERT(base != value);
-    Operand shadow(GetVerifiedMemoryShadow());
-    add(base, base, shadow, cond);
-    str(value, Address(base, offset), cond);
-    sub(base, base, shadow, cond);
-  }
-  str(value, Address(base, offset), cond);
-}
-
-
-void Assembler::WriteShadowedFieldPair(Register base,
-                                       intptr_t offset,
-                                       Register value_even,
-                                       Register value_odd,
-                                       Condition cond) {
-  ASSERT(value_odd == value_even + 1);
-  ASSERT(value_even % 2 == 0);
-  if (VerifiedMemory::enabled()) {
-    ASSERT(base != value_even);
-    ASSERT(base != value_odd);
-    Operand shadow(GetVerifiedMemoryShadow());
-    add(base, base, shadow, cond);
-    strd(value_even, value_odd, base, offset, cond);
-    sub(base, base, shadow, cond);
-  }
-  strd(value_even, value_odd, base, offset, cond);
-}
-
-
 Register UseRegister(Register reg, RegList* used) {
   ASSERT(reg != THR);
   ASSERT(reg != SP);
@@ -1749,89 +1706,12 @@ Register AllocateRegister(RegList* used) {
 }
 
 
-void Assembler::VerifiedWrite(Register object,
-                              const Address& address,
-                              Register new_value,
-                              FieldContent old_content) {
-#if defined(DEBUG)
-  ASSERT(address.mode() == Address::Offset ||
-         address.mode() == Address::NegOffset);
-  // Allocate temporary registers (and check for register collisions).
-  RegList used = 0;
-  UseRegister(new_value, &used);
-  Register base = UseRegister(address.rn(), &used);
-  if ((object != base) && (object != kNoRegister)) {
-    UseRegister(object, &used);
-  }
-  if (address.rm() != kNoRegister) {
-    UseRegister(address.rm(), &used);
-  }
-  Register old_value = AllocateRegister(&used);
-  Register temp = AllocateRegister(&used);
-  PushList(used);
-  ldr(old_value, address);
-  // First check that 'old_value' contains 'old_content'.
-  // Smi test.
-  tst(old_value, Operand(kHeapObjectTag));
-  Label ok;
-  switch (old_content) {
-    case kOnlySmi:
-      b(&ok, EQ);  // Smi is OK.
-      Stop("Expected smi.");
-      break;
-    case kHeapObjectOrSmi:
-      b(&ok, EQ);  // Smi is OK.
-      // Non-smi case: Verify object pointer is word-aligned when untagged.
-      COMPILE_ASSERT(kHeapObjectTag == 1);
-      tst(old_value, Operand((kWordSize - 1) - kHeapObjectTag));
-      b(&ok, EQ);
-      Stop("Expected heap object or Smi");
-      break;
-    case kEmptyOrSmiOrNull:
-      b(&ok, EQ);  // Smi is OK.
-      // Non-smi case: Check for the special zap word or null.
-      // Note: Cannot use CompareImmediate, since IP may be in use.
-      LoadImmediate(temp, Heap::kZap32Bits);
-      cmp(old_value, Operand(temp));
-      b(&ok, EQ);
-      LoadObject(temp, Object::null_object());
-      cmp(old_value, Operand(temp));
-      b(&ok, EQ);
-      Stop("Expected zapped, Smi or null");
-      break;
-    default:
-      UNREACHABLE();
-  }
-  Bind(&ok);
-  if (VerifiedMemory::enabled()) {
-    Operand shadow_offset(GetVerifiedMemoryShadow());
-    // Adjust the address to shadow.
-    add(base, base, shadow_offset);
-    ldr(temp, address);
-    cmp(old_value, Operand(temp));
-    Label match;
-    b(&match, EQ);
-    Stop("Write barrier verification failed");
-    Bind(&match);
-    // Write new value in shadow.
-    str(new_value, address);
-    // Restore original address.
-    sub(base, base, shadow_offset);
-  }
-  str(new_value, address);
-  PopList(used);
-#else
-  str(new_value, address);
-#endif  // DEBUG
-}
-
-
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
                                 bool can_value_be_smi) {
   ASSERT(object != value);
-  VerifiedWrite(object, dest, value, kHeapObjectOrSmi);
+  str(value, dest);
   Label done;
   if (can_value_be_smi) {
     StoreIntoObjectFilter(object, value, &done);
@@ -1872,9 +1752,8 @@ void Assembler::StoreIntoObjectOffset(Register object,
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         Register value,
-                                         FieldContent old_content) {
-  VerifiedWrite(object, dest, value, old_content);
+                                         Register value) {
+  str(value, dest);
 #if defined(DEBUG)
   Label done;
   StoreIntoObjectFilter(object, value, &done);
@@ -1885,50 +1764,48 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 }
 
 
-void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
-                                               int32_t offset,
-                                               Register value,
-                                               FieldContent old_content) {
-  int32_t ignored = 0;
-  if (Address::CanHoldStoreOffset(kWord, offset - kHeapObjectTag, &ignored)) {
-    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
-                             old_content);
-  } else {
-    AddImmediate(IP, object, offset - kHeapObjectTag);
-    StoreIntoObjectNoBarrier(object, Address(IP), value, old_content);
-  }
-}
-
-
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         const Object& value,
-                                         FieldContent old_content) {
+                                         const Object& value) {
   ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
   ASSERT(!value.IsField() || Field::Cast(value).IsOriginal());
   ASSERT(value.IsSmi() || value.InVMHeap() ||
          (value.IsOld() && value.IsNotTemporaryScopedHandle()));
   // No store buffer update.
   LoadObject(IP, value);
-  VerifiedWrite(object, dest, IP, old_content);
+  str(IP, dest);
 }
 
 
 void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
                                                int32_t offset,
-                                               const Object& value,
-                                               FieldContent old_content) {
-  ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
-  ASSERT(!value.IsField() || Field::Cast(value).IsOriginal());
+                                               Register value) {
   int32_t ignored = 0;
   if (Address::CanHoldStoreOffset(kWord, offset - kHeapObjectTag, &ignored)) {
-    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
-                             old_content);
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
   } else {
     Register base = object == R9 ? R8 : R9;
     Push(base);
     AddImmediate(base, object, offset - kHeapObjectTag);
-    StoreIntoObjectNoBarrier(object, Address(base), value, old_content);
+    StoreIntoObjectNoBarrier(object, Address(base), value);
+    Pop(base);
+  }
+}
+
+
+void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
+                                               int32_t offset,
+                                               const Object& value) {
+  ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
+  ASSERT(!value.IsField() || Field::Cast(value).IsOriginal());
+  int32_t ignored = 0;
+  if (Address::CanHoldStoreOffset(kWord, offset - kHeapObjectTag, &ignored)) {
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
+  } else {
+    Register base = object == R9 ? R8 : R9;
+    Push(base);
+    AddImmediate(base, object, offset - kHeapObjectTag);
+    StoreIntoObjectNoBarrier(object, Address(base), value);
     Pop(base);
   }
 }
@@ -1944,9 +1821,9 @@ void Assembler::InitializeFieldsNoBarrier(Register object,
   Bind(&init_loop);
   AddImmediate(begin, 2 * kWordSize);
   cmp(begin, Operand(end));
-  WriteShadowedFieldPair(begin, -2 * kWordSize, value_even, value_odd, LS);
+  strd(value_even, value_odd, begin, -2 * kWordSize, LS);
   b(&init_loop, CC);
-  WriteShadowedField(begin, -2 * kWordSize, value_even, HI);
+  str(value_even, Address(begin, -2 * kWordSize), HI);
 #if defined(DEBUG)
   Label done;
   StoreIntoObjectFilter(object, value_even, &done);
@@ -1967,11 +1844,11 @@ void Assembler::InitializeFieldsNoBarrierUnrolled(Register object,
   ASSERT(value_odd == value_even + 1);
   intptr_t current_offset = begin_offset;
   while (current_offset + kWordSize < end_offset) {
-    WriteShadowedFieldPair(base, current_offset, value_even, value_odd);
+    strd(value_even, value_odd, base, current_offset);
     current_offset += 2*kWordSize;
   }
   while (current_offset < end_offset) {
-    WriteShadowedField(base, current_offset, value_even);
+    str(value_even, Address(base, current_offset));
     current_offset += kWordSize;
   }
 #if defined(DEBUG)
@@ -1993,7 +1870,7 @@ void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
   Stop("New value must be Smi.");
   Bind(&done);
 #endif  // defined(DEBUG)
-  VerifiedWrite(kNoRegister, dest, value, kOnlySmi);
+  str(value, dest);
 }
 
 

@@ -17,7 +17,6 @@ package/scenarios/empty_packages_file/empty_packages_file_option_test: Fail, OK 
 package/scenarios/invalid/invalid_package_name_test: RuntimeError, CompileTimeError # Errors intentionally
 package/scenarios/invalid/same_package_twice_test.dart: RuntimeError, CompileTimeError # Errors intentionally
 full_coverage_test: Pass, Slow, Timeout
-verified_mem_test: Pass, Slow, Timeout # Does verify before and after GC.
 
 issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue 14516 comment #4.
 
@@ -194,9 +193,6 @@ verbose_gc_to_bmu_test: Skip
 io/platform_resolved_executable_test/06: RuntimeError  # Issue 23641
 io/process_sync_test: Pass, Timeout # Issue 24596
 io/sleep_test: Pass, Fail # Issue 25757
-
-[ $arch != ia32 && $arch != x64 && $arch != simarm && $arch != simarmv5te && $mode == debug ]
-verified_mem_test: Skip  # Not yet implemented.
 
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $mode == debug && $builder_tag == asan ]
 full_coverage_test: Skip  # Timeout.

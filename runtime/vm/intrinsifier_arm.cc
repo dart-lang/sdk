@@ -103,7 +103,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // Store backing array object in growable array object.
   __ ldr(R1, Address(SP, kArrayOffset));  // Data argument.
   // R0 is new, no barrier needed.
-  __ InitializeFieldNoBarrier(
+  __ StoreIntoObjectNoBarrier(
       R0,
       FieldAddress(R0, GrowableObjectArray::data_offset()),
       R1);
@@ -111,14 +111,14 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // R0: new growable array object start as a tagged pointer.
   // Store the type argument field in the growable array object.
   __ ldr(R1, Address(SP, kTypeArgumentsOffset));  // Type argument.
-  __ InitializeFieldNoBarrier(
+  __ StoreIntoObjectNoBarrier(
       R0,
       FieldAddress(R0, GrowableObjectArray::type_arguments_offset()),
       R1);
 
   // Set the length field in the growable array object to 0.
   __ LoadImmediate(R1, 0);
-  __ InitializeFieldNoBarrier(
+  __ StoreIntoObjectNoBarrier(
       R0,
       FieldAddress(R0, GrowableObjectArray::length_offset()),
       R1);
@@ -227,7 +227,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* R2: allocation size. */                                                   \
   /* R4: allocation stats address. */                                          \
   __ ldr(R3, Address(SP, kArrayLengthStackOffset));  /* Array length. */       \
-  __ InitializeFieldNoBarrier(R0,                                              \
+  __ StoreIntoObjectNoBarrier(R0,                                              \
                               FieldAddress(R0, type_name::length_offset()),    \
                               R3);                                             \
   /* Initialize all array elements to 0. */                                    \
@@ -1876,12 +1876,12 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   }
 
   // Set the length field using the saved length (R8).
-  __ InitializeFieldNoBarrier(R0,
+  __ StoreIntoObjectNoBarrier(R0,
                               FieldAddress(R0, String::length_offset()),
                               R8);
   // Clear hash.
   __ LoadImmediate(TMP, 0);
-  __ InitializeFieldNoBarrier(R0,
+  __ StoreIntoObjectNoBarrier(R0,
                               FieldAddress(R0, String::hash_offset()),
                               TMP);
 

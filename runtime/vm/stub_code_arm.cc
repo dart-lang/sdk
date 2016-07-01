@@ -371,7 +371,8 @@ static void PushArgumentsArray(Assembler* assembler) {
   Label loop;
   __ Bind(&loop);
   __ ldr(IP, Address(R1, kWordSize, Address::PreIndex));
-  __ InitializeFieldNoBarrier(R0, Address(R3, R2, LSL, 1), IP);
+  // Generational barrier is needed, array is not necessarily in new space.
+  __ StoreIntoObject(R0, Address(R3, R2, LSL, 1), IP);
   __ Bind(&enter);
   __ subs(R2, R2, Operand(Smi::RawValue(1)));  // R2 is Smi.
   __ b(&loop, PL);
@@ -678,12 +679,12 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // R0: new object start as a tagged pointer.
   // NOTFP: new object end address.
   // Store the type argument field.
-  __ InitializeFieldNoBarrier(R0,
+  __ StoreIntoObjectNoBarrier(R0,
                               FieldAddress(R0, Array::type_arguments_offset()),
                               R1);
 
   // Set the length field.
-  __ InitializeFieldNoBarrier(R0,
+  __ StoreIntoObjectNoBarrier(R0,
                               FieldAddress(R0, Array::length_offset()),
                               R2);
 
@@ -926,7 +927,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R3: next object start.
     // R4: allocation stats address.
     __ LoadObject(R8, Object::null_object());
-    __ InitializeFieldNoBarrier(R0, FieldAddress(R0, Context::parent_offset()),
+    __ StoreIntoObjectNoBarrier(R0, FieldAddress(R0, Context::parent_offset()),
                                 R8);
 
     // Initialize the context variables.
@@ -1130,7 +1131,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       // Set the type arguments in the new object.
       __ ldr(R4, Address(SP, 0));
       FieldAddress type_args(R0, cls.type_arguments_field_offset());
-      __ InitializeFieldNoBarrier(R0, type_args, R4);
+      __ StoreIntoObjectNoBarrier(R0, type_args, R4);
     }
 
     // Done allocating and initializing the instance.

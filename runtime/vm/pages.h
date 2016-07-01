@@ -345,11 +345,6 @@ class PageSpace {
   uword TryAllocateDataBumpLocked(intptr_t size, GrowthPolicy growth_policy);
   // Prefer small freelist blocks, then chip away at the bump block.
   uword TryAllocatePromoLocked(intptr_t size, GrowthPolicy growth_policy);
-  // Allocates memory where every word is guaranteed to be a Smi. Calling this
-  // method after the first garbage collection is inefficient in release mode
-  // and illegal in debug mode.
-  uword TryAllocateSmiInitializedLocked(intptr_t size,
-                                        GrowthPolicy growth_policy);
 
   // Bump block allocation from generated code.
   uword* TopAddress() { return &bump_top_; }

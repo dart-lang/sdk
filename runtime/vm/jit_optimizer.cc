@@ -2775,7 +2775,7 @@ void JitOptimizer::VisitStaticCall(StaticCallInstr* call) {
 void JitOptimizer::VisitStoreInstanceField(
     StoreInstanceFieldInstr* instr) {
   if (instr->IsUnboxedStore()) {
-    ASSERT(instr->is_potential_unboxed_initialization_);
+    ASSERT(instr->is_initialization());
     // Determine if this field should be unboxed based on the usage of getter
     // and setter functions: The heuristic requires that the setter has a
     // usage count of at least 1/kGetterSetterRatio of the getter usage count.
@@ -2844,7 +2844,7 @@ void JitOptimizer::VisitAllocateContext(AllocateContextInstr* instr) {
                                      instr->token_pos());
   // Storing into uninitialized memory; remember to prevent dead store
   // elimination and ensure proper GC barrier.
-  store->set_is_object_reference_initialization(true);
+  store->set_is_initialization(true);
   flow_graph_->InsertAfter(replacement, store, NULL, FlowGraph::kEffect);
   Definition* cursor = store;
   for (intptr_t i = 0; i < instr->num_context_variables(); ++i) {
@@ -2856,7 +2856,7 @@ void JitOptimizer::VisitAllocateContext(AllocateContextInstr* instr) {
                                        instr->token_pos());
     // Storing into uninitialized memory; remember to prevent dead store
     // elimination and ensure proper GC barrier.
-    store->set_is_object_reference_initialization(true);
+    store->set_is_initialization(true);
     flow_graph_->InsertAfter(cursor, store, NULL, FlowGraph::kEffect);
     cursor = store;
   }

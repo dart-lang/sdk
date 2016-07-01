@@ -136,17 +136,12 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // Try allocating in new space.
   const Class& cls = Class::Handle(
       Isolate::Current()->object_store()->growable_object_array_class());
-#if defined(DEBUG)
-  static const bool kJumpLength = Assembler::kFarJump;
-#else
-  static const bool kJumpLength = Assembler::kNearJump;
-#endif  // DEBUG
-  __ TryAllocate(cls, &fall_through, kJumpLength, EAX, EBX);
+  __ TryAllocate(cls, &fall_through, Assembler::kNearJump, EAX, EBX);
 
   // Store backing array object in growable array object.
   __ movl(EBX, Address(ESP, kArrayOffset));  // data argument.
   // EAX is new, no barrier needed.
-  __ InitializeFieldNoBarrier(
+  __ StoreIntoObjectNoBarrier(
       EAX,
       FieldAddress(EAX, GrowableObjectArray::data_offset()),
       EBX);
@@ -154,7 +149,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // EAX: new growable array object start as a tagged pointer.
   // Store the type argument field in the growable array object.
   __ movl(EBX, Address(ESP, kTypeArgumentsOffset));  // type argument.
-  __ InitializeFieldNoBarrier(
+  __ StoreIntoObjectNoBarrier(
       EAX,
       FieldAddress(EAX, GrowableObjectArray::type_arguments_offset()),
       EBX);
@@ -269,7 +264,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* EAX: new object start as a tagged pointer. */                             \
   /* EBX: new object end address. */                                           \
   __ movl(EDI, Address(ESP, kArrayLengthStackOffset));  /* Array length. */    \
-  __ InitializeFieldNoBarrier(EAX,                                             \
+  __ StoreIntoObjectNoBarrier(EAX,                                             \
                               FieldAddress(EAX, type_name::length_offset()),   \
                               EDI);                                            \
   /* Initialize all array elements to 0. */                                    \
@@ -1918,7 +1913,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
   // Set the length field.
   __ popl(EDI);
-  __ InitializeFieldNoBarrier(EAX,
+  __ StoreIntoObjectNoBarrier(EAX,
                               FieldAddress(EAX, String::length_offset()),
                               EDI);
   // Clear hash.

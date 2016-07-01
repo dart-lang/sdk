@@ -19,7 +19,6 @@
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/timeline.h"
-#include "vm/verified_memory.h"
 #include "vm/version.h"
 
 // We currently only expect the Dart mutator to read snapshots.
@@ -1428,12 +1427,8 @@ RawObject* SnapshotReader::AllocateUninitialized(intptr_t class_id,
   ASSERT_NO_SAFEPOINT_SCOPE();
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
 
-  // Allocate memory where all words look like smis. This is currently
-  // only needed for DEBUG-mode validation in StorePointer/StoreSmi, but will
-  // be essential with the upcoming deletion barrier.
   uword address =
-      old_space()->TryAllocateSmiInitializedLocked(size,
-                                                   PageSpace::kForceGrowth);
+      old_space()->TryAllocateDataBumpLocked(size, PageSpace::kForceGrowth);
   if (address == 0) {
     // Use the preallocated out of memory exception to avoid calling
     // into dart code or allocating any code.
@@ -1443,7 +1438,6 @@ RawObject* SnapshotReader::AllocateUninitialized(intptr_t class_id,
         object_store()->preallocated_unhandled_exception());
     thread()->long_jump_base()->Jump(1, error);
   }
-  VerifiedMemory::Accept(address, size);
 
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
   uword tags = 0;
