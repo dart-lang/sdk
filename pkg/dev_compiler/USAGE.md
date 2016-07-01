@@ -46,27 +46,11 @@ correct the error.
 
 For code that statically type checks, DDC can be used to generate EcmaScript 6 (ES6) code:
 
-    $ dartdevc -o out main.dart
+    $ dartdevc -o out/main.js lib1.dart main.dart
 
-The generated output will be in 'out/foo.js'.  DDC generates one ES6
-file per library.  It is a modular compiler: the whole program is not
-necessary.
-
-## Running in Server Mode
-
-DDC output may be tested most easily in [Chrome
-](https://www.google.com/chrome/browser/desktop/).  It runs in Chrome 47 and later.  Launch a
-local server via:
-
-    $ dartdevc --server main.dart
-
-## Testing in Chrome
-
-Launch Chrome at the URL shown by the above (e.g., http://localhost:8080).  Remember to open the Developer Tools to see the output of a print.
-
-DDC does not fully support ```dart:html```, but it does allow raw access
-to the JavaScript DOM.  See our [modified version](https://github.com/dart-lang/dev_compiler/blob/master/test/codegen/sunflower/sunflower.dart) of Dart Sunflower for
-an example.
+The generated output will be in 'out/main.js'.  DDC generates one ES6
+file per module.  It is a modular compiler: the whole program is not
+necessary, but you may need to pass in summaries from other modules using `-s`.
 
 ## Feedback
 
