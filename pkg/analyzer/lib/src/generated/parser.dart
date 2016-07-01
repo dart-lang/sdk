@@ -2330,6 +2330,9 @@ class Parser {
       bool foundNamedArgument = argument is NamedExpression;
       bool generatedError = false;
       while (_optional(TokenType.COMMA)) {
+        if (parseTrailingCommas && _matches(TokenType.CLOSE_PAREN)) {
+          break;
+        }
         argument = parseArgument();
         arguments.add(argument);
         if (argument is NamedExpression) {
@@ -6118,6 +6121,21 @@ class Parser {
       // TODO(brianwilkerson) Improve the detection and reporting of missing and
       // mismatched delimiters.
       type = _currentToken.type;
+
+      // Advance past trailing commas as appropriate.
+      if (parseTrailingCommas && type == TokenType.COMMA) {
+        // Only parse commas trailing normal (non-positional/named) params.
+        if (rightSquareBracket == null && rightCurlyBracket == null) {
+          Token next = _peek();
+          if (next.type == TokenType.CLOSE_PAREN ||
+              next.type == TokenType.CLOSE_CURLY_BRACKET ||
+              next.type == TokenType.CLOSE_SQUARE_BRACKET) {
+            _advance();
+            type = _currentToken.type;
+          }
+        }
+      }
+
       if (type == TokenType.CLOSE_SQUARE_BRACKET) {
         rightSquareBracket = getAndAdvance();
         if (leftSquareBracket == null) {
