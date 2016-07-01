@@ -23,8 +23,15 @@ abstract class Accessor {
 
   Expression buildNullAwareAssignment(Expression value,
       {bool voidContext: false}) {
-    return _finish(new ConditionalExpression(buildIsNull(_makeRead()),
-        new NullLiteral(), _makeWrite(value, voidContext)));
+    if (voidContext) {
+      return _finish(new ConditionalExpression(
+          buildIsNull(_makeRead()),
+          _makeWrite(value, voidContext), new NullLiteral()));
+    }
+    var tmp = new VariableDeclaration.forValue(_makeRead());
+    return _finish(makeLet(tmp, new ConditionalExpression(
+        buildIsNull(new VariableGet(tmp)),
+        _makeWrite(value, voidContext), new VariableGet(tmp))));
   }
 
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
