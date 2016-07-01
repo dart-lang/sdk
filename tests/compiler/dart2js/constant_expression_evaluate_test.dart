@@ -108,6 +108,10 @@ class C extends B {
   const C({field1: 42, this.field2: false}) : super(field1);
   const C.named([field = false]) : this(field1: field, field2: field);
 }
+class D extends C {
+  final field3 = 99;
+  const D(a, b) : super(field2: a, field1: b);
+}
 ''', const [
     const ConstantData('const Object()',
         const { const {} : 'ConstructedConstant(Object())' }),
@@ -140,6 +144,10 @@ class C extends B {
         const {'foo': 'false', 'bar': '87'} :
           'ConstructedConstant(C(field1=BoolConstant(false),'
                                 'field2=IntConstant(87)))', }),
+    const ConstantData('const D(42, 87)', const { const {} :
+       'ConstructedConstant(D(field1=IntConstant(87),'
+                             'field2=IntConstant(42),'
+                             'field3=IntConstant(99)))' }),
   ]),
   const TestData('''
 class A<T> implements B {

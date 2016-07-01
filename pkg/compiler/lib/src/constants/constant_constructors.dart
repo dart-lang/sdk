@@ -87,6 +87,11 @@ class ConstantConstructorComputer extends SemanticVisitor
     applyParameters(parameters, _);
     ConstructedConstantExpression constructorInvocation =
         applyInitializers(node, _);
+    constructor.enclosingClass.forEachInstanceField((_, FieldElement field) {
+      if (!fieldMap.containsKey(field)) {
+        fieldMap[field] = field.constant;
+      }
+    });
     return new GenerativeConstantConstructor(
         currentClass.thisType, defaultValues, fieldMap, constructorInvocation);
   }
