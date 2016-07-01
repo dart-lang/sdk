@@ -2189,6 +2189,12 @@ class Parser {
   bool parseGenericMethodComments = false;
 
   /**
+   * A flag indicating whether the parser is to parse trailing commas in
+   * parameter and argument lists (sdk#26647).
+   */
+  bool parseTrailingCommas = false;
+
+  /**
    * Initialize a newly created parser to parse tokens in the given [_source]
    * and to report any errors that are found to the given [_errorListener].
    */

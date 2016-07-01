@@ -288,7 +288,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             options.enableStrictCallChecks ||
         this._options.enableGenericMethods != options.enableGenericMethods ||
         this._options.enableAsync != options.enableAsync ||
-        this._options.enableSuperMixins != options.enableSuperMixins;
+        this._options.enableSuperMixins != options.enableSuperMixins ||
+        this._options.enableTrailingCommas != options.enableTrailingCommas;
     int cacheSize = options.cacheSize;
     if (this._options.cacheSize != cacheSize) {
       this._options.cacheSize = cacheSize;
@@ -304,6 +305,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.enableAsync = options.enableAsync;
     this._options.enableSuperMixins = options.enableSuperMixins;
     this._options.enableTiming = options.enableTiming;
+    this._options.enableTrailingCommas = options.enableTrailingCommas;
     this._options.hint = options.hint;
     this._options.incremental = options.incremental;
     this._options.incrementalApi = options.incrementalApi;
