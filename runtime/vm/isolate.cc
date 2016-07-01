@@ -55,6 +55,7 @@ DECLARE_FLAG(bool, timing);
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, trace_reload);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
+DECLARE_FLAG(bool, check_reloaded);
 
 NOT_IN_PRODUCT(
 static void CheckedModeHandler(bool value) {
@@ -1693,6 +1694,15 @@ void Isolate::Shutdown() {
       while (heap_->finalization_tasks() > 0) {
         ml.Wait();
       }
+    }
+  }
+
+  if (FLAG_check_reloaded &&
+      (this != Dart::vm_isolate()) &&
+      !ServiceIsolate::IsServiceIsolateDescendant(this)) {
+    if (!HasAttemptedReload()) {
+      FATAL("Isolate did not reload before exiting and "
+            "--check-reloaded is enabled.\n");
     }
   }
 

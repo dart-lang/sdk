@@ -425,6 +425,26 @@ static bool ProcessTraceLoadingOption(const char* arg,
 }
 
 
+static bool ProcessHotReloadTestModeOption(const char* arg,
+                                           CommandLineOptions* vm_options) {
+  if (*arg != '\0') {
+    return false;
+  }
+
+  // Identity reload.
+  vm_options->AddArgument("--identity_reload");
+  // Start reloading quickly.
+  vm_options->AddArgument("--reload_every=50");
+  // Reload from optimized and unoptimized code.
+  vm_options->AddArgument("--reload_every_optimized=false");
+  // Reload less frequently as time goes on.
+  vm_options->AddArgument("--reload_every_back_off");
+  // Ensure that an isolate has reloaded once.
+  vm_options->AddArgument("--check_reloaded");
+
+  return true;
+}
+
 
 static bool ProcessShutdownOption(const char* arg,
                                   CommandLineOptions* vm_options) {
@@ -477,6 +497,7 @@ static struct {
   { "--run-app-snapshot=", ProcessRunAppSnapshotOption },
   { "--use-blobs", ProcessUseBlobsOption },
   { "--trace-loading", ProcessTraceLoadingOption },
+  { "--hot-reload-test-mode", ProcessHotReloadTestModeOption },
   { NULL, NULL }
 };
 

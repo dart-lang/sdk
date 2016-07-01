@@ -27,7 +27,10 @@ DEFINE_FLAG(bool, trace_reload, false, "Trace isolate reloading");
 DEFINE_FLAG(bool, identity_reload, false, "Enable checks for identity reload.");
 DEFINE_FLAG(int, reload_every, 0, "Reload every N stack overflow checks.");
 DEFINE_FLAG(bool, reload_every_optimized, true, "Only from optimized code.");
-
+DEFINE_FLAG(bool, reload_every_back_off, false,
+            "Double the --reload-every value after each reload.");
+DEFINE_FLAG(bool, check_reloaded, false,
+            "Assert that an isolate has reloaded at least once.")
 #ifndef PRODUCT
 
 #define I (isolate())

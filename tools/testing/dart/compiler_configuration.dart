@@ -179,8 +179,9 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       args.add('--enable_type_checks');
     }
     if (hotReload) {
-      args.add('--identity-reload');
-      args.add('--reload-every=100000');
+      args.add('--hot-reload-test-mode');
+      // Remove the following once known bugs with background compilation
+      // and OSR are fixed.
       args.add('--no-background-compilation');
       args.add('--no-osr');
     }
