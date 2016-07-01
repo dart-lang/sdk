@@ -60,6 +60,45 @@ Future cleanupCallback() async {
   _shutdown();
 }
 
+Future<Uri> createTempDirCallback(String base) async {
+  Directory temp = await Directory.systemTemp.createTemp(base);
+  return temp.uri;
+}
+
+Future deleteDirCallback(Uri path) async {
+  Directory dir = new Directory.fromUri(path);
+  await dir.delete(recursive: true);
+}
+
+Future writeFileCallback(Uri path, List<int> bytes) async {
+  var file = await new File.fromUri(path);
+  await file.writeAsBytes(bytes);
+}
+
+Future<List<int>> readFileCallback(Uri path) async {
+  var file = await new File.fromUri(path);
+  return await file.readAsBytes();
+}
+
+Future<List<Map<String,String>>> listFilesCallback(Uri dirPath) async {
+  var dir = new Directory.fromUri(dirPath);
+  var dirPathStr = dirPath.path;
+  var stream = dir.list(recursive: true);
+  var result = [];
+  await for (var fileEntity in stream) {
+    var stat = await fileEntity.stat();
+    if (stat.type == FileSystemEntityType.FILE &&
+        fileEntity.path.startsWith(dirPathStr)) {
+      var map = {};
+      map['name'] = '/' + fileEntity.path.substring(dirPathStr.length);
+      map['size'] = stat.size;
+      map['modified'] = stat.modified.millisecondsSinceEpoch;
+      result.add(map);
+    }
+  }
+  return result;
+}
+
 _clearFuture(_) {
   serverFuture = null;
 }
@@ -96,6 +135,11 @@ _registerSignalHandler() {
 main() {
   // Set embedder hooks.
   VMServiceEmbedderHooks.cleanup = cleanupCallback;
+  VMServiceEmbedderHooks.createTempDir = createTempDirCallback;
+  VMServiceEmbedderHooks.deleteDir = deleteDirCallback;
+  VMServiceEmbedderHooks.writeFile = writeFileCallback;
+  VMServiceEmbedderHooks.readFile = readFileCallback;
+  VMServiceEmbedderHooks.listFiles = listFilesCallback;
   // Always instantiate the vmservice object so that the exit message
   // can be delivered and waiting loaders can be cancelled.
   var service = new VMService();
