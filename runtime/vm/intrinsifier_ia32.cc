@@ -218,7 +218,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
   __ leal(EDI, Address(EDI, scale_factor, fixed_size));                        \
   __ andl(EDI, Immediate(-kObjectAlignment));                                  \
-  Heap::Space space = Heap::SpaceForAllocation(cid);                           \
+  Heap::Space space = Heap::kNew;                                              \
   __ movl(ECX, Address(THR, Thread::heap_offset()));                           \
   __ movl(EAX, Address(ECX, Heap::TopOffset(space)));                          \
   __ movl(EBX, EAX);                                                           \
@@ -1867,7 +1867,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ andl(EDI, Immediate(-kObjectAlignment));
 
   const intptr_t cid = kOneByteStringCid;
-  Heap::Space space = Heap::SpaceForAllocation(cid);
+  Heap::Space space = Heap::kNew;
   __ movl(ECX, Address(THR, Thread::heap_offset()));
   __ movl(EAX, Address(ECX, Heap::TopOffset(space)));
   __ movl(EBX, EAX);

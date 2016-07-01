@@ -3356,7 +3356,7 @@ void Assembler::TryAllocate(const Class& cls,
     // allocation call site.
     NOT_IN_PRODUCT(
       MaybeTraceAllocation(cls.id(), temp_reg, failure));
-    Heap::Space space = Heap::SpaceForAllocation(cls.id());
+    Heap::Space space = Heap::kNew;
     ldr(temp_reg, Address(THR, Thread::heap_offset()));
     ldr(instance_reg, Address(temp_reg, Heap::TopOffset(space)));
     // TODO(koda): Protect against unsigned overflow here.
@@ -3403,7 +3403,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
     NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp1, failure));
-    Heap::Space space = Heap::SpaceForAllocation(cid);
+    Heap::Space space = Heap::kNew;
     ldr(temp1, Address(THR, Thread::heap_offset()));
     // Potential new object start.
     ldr(instance, Address(temp1, Heap::TopOffset(space)));

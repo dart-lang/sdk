@@ -654,7 +654,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   const intptr_t cid = kArrayCid;
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(kArrayCid, R4, &slow_case));
 
-  Heap::Space space = Heap::SpaceForAllocation(cid);
+  Heap::Space space = Heap::kNew;
   __ LoadIsolate(R8);
   __ ldr(R8, Address(R8, Isolate::heap_offset()));
 
@@ -922,7 +922,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R1: number of context variables.
     // R2: object size.
     const intptr_t cid = kContextCid;
-    Heap::Space space = Heap::SpaceForAllocation(cid);
+    Heap::Space space = Heap::kNew;
     __ LoadIsolate(R5);
     __ ldr(R5, Address(R5, Isolate::heap_offset()));
     __ ldr(R0, Address(R5, Heap::TopOffset(space)));
@@ -1108,7 +1108,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     // R1: instantiated type arguments (if is_cls_parameterized).
-    Heap::Space space = Heap::SpaceForAllocation(cls.id());
+    Heap::Space space = Heap::kNew;
     __ ldr(R5, Address(THR, Thread::heap_offset()));
     __ ldr(R2, Address(R5, Heap::TopOffset(space)));
     __ AddImmediate(R3, R2, instance_size);

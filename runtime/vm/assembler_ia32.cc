@@ -2642,7 +2642,7 @@ void Assembler::TryAllocate(const Class& cls,
     NOT_IN_PRODUCT(
       MaybeTraceAllocation(cls.id(), temp_reg, failure, near_jump));
     const intptr_t instance_size = cls.instance_size();
-    Heap::Space space = Heap::SpaceForAllocation(cls.id());
+    Heap::Space space = Heap::kNew;
     movl(temp_reg, Address(THR, Thread::heap_offset()));
     movl(instance_reg, Address(temp_reg, Heap::TopOffset(space)));
     addl(instance_reg, Immediate(instance_size));
@@ -2680,7 +2680,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
     NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp_reg, failure, near_jump));
-    Heap::Space space = Heap::SpaceForAllocation(cid);
+    Heap::Space space = Heap::kNew;
     movl(temp_reg, Address(THR, Thread::heap_offset()));
     movl(instance, Address(temp_reg, Heap::TopOffset(space)));
     movl(end_address, instance);

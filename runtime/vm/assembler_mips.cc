@@ -983,7 +983,7 @@ void Assembler::TryAllocate(const Class& cls,
     // allocation call site.
     NOT_IN_PRODUCT(MaybeTraceAllocation(cls.id(), temp_reg, failure));
     const intptr_t instance_size = cls.instance_size();
-    Heap::Space space = Heap::SpaceForAllocation(cls.id());
+    Heap::Space space = Heap::kNew;
     lw(temp_reg, Address(THR, Thread::heap_offset()));
     lw(instance_reg, Address(temp_reg, Heap::TopOffset(space)));
     // TODO(koda): Protect against unsigned overflow here.
@@ -1027,7 +1027,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp1, failure));
     Isolate* isolate = Isolate::Current();
     Heap* heap = isolate->heap();
-    Heap::Space space = heap->SpaceForAllocation(cid);
+    Heap::Space space = Heap::kNew;
     lw(temp1, Address(THR, Thread::heap_offset()));
     // Potential new object start.
     lw(instance, Address(temp1, heap->TopOffset(space)));

@@ -132,12 +132,6 @@ P(precompiled_mode, bool, false,                                               \
   "Precompilation compiler mode")                                              \
 C(precompiled_runtime, true, false, bool, false,                               \
   "Precompiled runtime mode")                                                  \
-R(pretenure_all, false, bool, false,                                           \
-  "Global pretenuring (for testing).")                                         \
-P(pretenure_interval, int, 10,                                                 \
-  "Back off pretenuring after this many cycles.")                              \
-P(pretenure_threshold, int, 98,                                                \
-  "Trigger pretenuring when this many percent are promoted.")                  \
 R(print_ssa_liveness, false, bool, false,                                      \
   "Print liveness for ssa variables.")                                         \
 R(print_ssa_liveranges, false, bool, false,                                    \

@@ -31,8 +31,6 @@ class Heap {
     kNew,
     kOld,
     kCode,
-    // TODO(koda): Harmonize all old-space allocation and get rid of this.
-    kPretenured,
   };
 
   enum WeakSelector {
@@ -81,8 +79,6 @@ class Heap {
         return AllocateOld(size, HeapPage::kData);
       case kCode:
         return AllocateOld(size, HeapPage::kExecutable);
-      case kPretenured:
-        return AllocatePretenured(size);
       default:
         UNREACHABLE();
     }
@@ -148,7 +144,6 @@ class Heap {
   // Accessors for inlined allocation in generated code.
   static intptr_t TopOffset(Space space);
   static intptr_t EndOffset(Space space);
-  static Space SpaceForAllocation(intptr_t class_id);
 
   // Initialize the heap and register it with the isolate.
   static void Init(Isolate* isolate,
@@ -262,8 +257,6 @@ class Heap {
   intptr_t finalization_tasks() const { return finalization_tasks_; }
   void set_finalization_tasks(intptr_t count) { finalization_tasks_ = count; }
 
-  bool ShouldPretenure(intptr_t class_id) const;
-
   void SetupExternalPage(void* pointer, uword size, bool is_executable) {
     old_space_.SetupExternalPage(pointer, size, is_executable);
   }
@@ -308,7 +301,6 @@ class Heap {
 
   uword AllocateNew(intptr_t size);
   uword AllocateOld(intptr_t size, HeapPage::PageType type);
-  uword AllocatePretenured(intptr_t size);
 
   // Visit all pointers. Caller must ensure concurrent sweeper is not running,
   // and the visitor must not allocate.
@@ -333,7 +325,6 @@ class Heap {
   void RecordAfterGC(Space space);
   void PrintStats();
   void UpdateClassHeapStatsBeforeGC(Heap::Space space);
-  void UpdatePretenurePolicy();
   void PrintStatsToTimeline(TimelineEventScope* event);
 
   // Updates gc in progress flags.
@@ -372,8 +363,6 @@ class Heap {
   Monitor gc_in_progress_monitor_;
   bool gc_new_space_in_progress_;
   bool gc_old_space_in_progress_;
-
-  int pretenure_policy_;
 
   friend class Become;  // VisitObjectPointers
   friend class ServiceEvent;

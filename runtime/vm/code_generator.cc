@@ -109,8 +109,7 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   if (length.IsSmi()) {
     const intptr_t len = Smi::Cast(length).Value();
     if ((len >= 0) && (len <= Array::kMaxElements)) {
-      Heap::Space space = isolate->heap()->SpaceForAllocation(kArrayCid);
-      const Array& array = Array::Handle(Array::New(len, space));
+      const Array& array = Array::Handle(Array::New(len, Heap::kNew));
       arguments.SetReturn(array);
       TypeArguments& element_type =
           TypeArguments::CheckedHandle(arguments.ArgAt(1));
@@ -159,7 +158,7 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
     }
   }
 #endif
-  Heap::Space space = isolate->heap()->SpaceForAllocation(cls.id());
+  Heap::Space space = Heap::kNew;
   const Instance& instance = Instance::Handle(Instance::New(cls, space));
 
   arguments.SetReturn(instance);

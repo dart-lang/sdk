@@ -300,8 +300,7 @@ DEFINE_NATIVE_ENTRY(OneByteString_splitWithCharCode, 2) {
 
 DEFINE_NATIVE_ENTRY(OneByteString_allocate, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length_obj, arguments->NativeArgAt(0));
-  Heap::Space space = isolate->heap()->SpaceForAllocation(kOneByteStringCid);
-  return OneByteString::New(length_obj.Value(), space);
+  return OneByteString::New(length_obj.Value(), Heap::kNew);
 }
 
 
@@ -326,7 +325,7 @@ DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 3) {
   }
   ASSERT(length >= 0);
 
-  Heap::Space space = isolate->heap()->SpaceForAllocation(kOneByteStringCid);
+  Heap::Space space = Heap::kNew;
   if (list.IsTypedData()) {
     const TypedData& array = TypedData::Cast(list);
     if (end > array.LengthInBytes()) {
@@ -425,7 +424,7 @@ DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 3) {
     Exceptions::ThrowArgumentError(end_obj);
   }
 
-  Heap::Space space = isolate->heap()->SpaceForAllocation(kTwoByteStringCid);
+  Heap::Space space = Heap::kNew;
   if (list.IsTypedData()) {
     const TypedData& array = TypedData::Cast(list);
     if (array.ElementType() != kUint16ArrayElement) {
