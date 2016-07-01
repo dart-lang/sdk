@@ -26,7 +26,9 @@ OSThread::OSThread() :
 #if defined(DEBUG)
     join_id_(kInvalidThreadJoinId),
 #endif
+#ifndef PRODUCT
     trace_id_(OSThread::GetCurrentThreadTraceId()),
+#endif
     name_(NULL),
     timeline_block_lock_(new Mutex()),
     timeline_block_(NULL),

@@ -1,29 +1,24 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"  // NOLINT
-
-
-#if defined(TARGET_OS_ANDROID)
+#if defined(TARGET_OS_FUCHSIA)
 
 #include "vm/os_thread.h"
+#include "vm/os_thread_fuchsia.h"
 
 #include <errno.h>  // NOLINT
-#include <sys/time.h>  // NOLINT
+#include <magenta/syscalls.h>
+#include <magenta/types.h>
 
 #include "platform/assert.h"
-#include "platform/signal_blocker.h"
-#include "platform/utils.h"
 
 namespace dart {
 
 #define VALIDATE_PTHREAD_RESULT(result) \
   if (result != 0) { \
-    const int kBufferSize = 1024; \
-    char error_message[kBufferSize]; \
-    Utils::StrError(result, error_message, kBufferSize); \
-    FATAL2("pthread error: %d (%s)", result, error_message); \
+    FATAL1("pthread error: %d", result); \
   }
 
 
@@ -39,10 +34,9 @@ namespace dart {
 #define RETURN_ON_PTHREAD_FAILURE(result) \
   if (result != 0) { \
     const int kBufferSize = 1024; \
-    char error_message[kBufferSize]; \
-    Utils::StrError(result, error_message, kBufferSize); \
-    fprintf(stderr, "%s:%d: pthread error: %d (%s)\n", \
-            __FILE__, __LINE__, result, error_message); \
+    char error_buf[kBufferSize]; \
+    fprintf(stderr, "%s:%d: pthread error: %d\n", \
+            __FILE__, __LINE__, result); \
     return result; \
   }
 #else
@@ -52,13 +46,14 @@ namespace dart {
 
 
 static void ComputeTimeSpecMicros(struct timespec* ts, int64_t micros) {
-  struct timeval tv;
-  int64_t secs = micros / kMicrosecondsPerSecond;
-  int64_t remaining_micros = (micros - (secs * kMicrosecondsPerSecond));
-  int result = gettimeofday(&tv, NULL);
-  ASSERT(result == 0);
-  ts->tv_sec = tv.tv_sec + secs;
-  ts->tv_nsec = (tv.tv_usec + remaining_micros) * kNanosecondsPerMicrosecond;
+  // time in nanoseconds.
+  mx_time_t now = _magenta_current_time();
+  mx_time_t target = now + (micros * kNanosecondsPerMicrosecond);
+  int64_t secs = target / kNanosecondsPerSecond;
+  int64_t nanos = target - (secs * kNanosecondsPerSecond);
+
+  ts->tv_sec += secs;
+  ts->tv_nsec += nanos;
   if (ts->tv_nsec >= kNanosecondsPerSecond) {
     ts->tv_sec += 1;
     ts->tv_nsec -= kNanosecondsPerSecond;
@@ -86,21 +81,6 @@ class ThreadStartData {
 };
 
 
-// Spawned threads inherit their spawner's signal mask. We sometimes spawn
-// threads for running Dart code from a thread that is blocking SIGPROF.
-// This function explicitly unblocks SIGPROF so the profiler continues to
-// sample this thread.
-static void UnblockSIGPROF() {
-  sigset_t set;
-  sigemptyset(&set);
-  sigaddset(&set, SIGPROF);
-  int r = pthread_sigmask(SIG_UNBLOCK, &set, NULL);
-  USE(r);
-  ASSERT(r == 0);
-  ASSERT(!CHECK_IS_BLOCKING(SIGPROF));
-}
-
-
 // Dispatch to the thread start function provided by the caller. This trampoline
 // is used to ensure that the thread is properly destroyed if the thread just
 // exits.
@@ -117,7 +97,6 @@ static void* ThreadStart(void* data_ptr) {
   if (thread != NULL) {
     OSThread::SetCurrent(thread);
     thread->set_name(name);
-    UnblockSIGPROF();
     // Call the supplied thread start function handing it its parameters.
     function(parameter);
   }
@@ -184,13 +163,14 @@ intptr_t OSThread::GetMaxStackSize() {
 
 
 ThreadId OSThread::GetCurrentThreadId() {
-  return gettid();
+  return pthread_self();
 }
 
 
 #ifndef PRODUCT
 ThreadId OSThread::GetCurrentThreadTraceId() {
-  return GetCurrentThreadId();
+  UNIMPLEMENTED();
+  return 0;
 }
 #endif  // PRODUCT
 
@@ -227,7 +207,7 @@ ThreadId OSThread::ThreadIdFromIntPtr(intptr_t id) {
 
 
 bool OSThread::Compare(ThreadId a, ThreadId b) {
-  return a == b;
+  return pthread_equal(a, b) != 0;
 }
 
 
@@ -249,7 +229,7 @@ Mutex::Mutex() {
   VALIDATE_PTHREAD_RESULT(result);
 
 #if defined(DEBUG)
-  // When running with assertions enabled we do track the owner.
+  // When running with assertions enabled we track the owner.
   owner_ = OSThread::kInvalidThreadId;
 #endif  // defined(DEBUG)
 }
@@ -261,7 +241,7 @@ Mutex::~Mutex() {
   VALIDATE_PTHREAD_RESULT(result);
 
 #if defined(DEBUG)
-  // When running with assertions enabled we do track the owner.
+  // When running with assertions enabled we track the owner.
   ASSERT(owner_ == OSThread::kInvalidThreadId);
 #endif  // defined(DEBUG)
 }
@@ -273,7 +253,7 @@ void Mutex::Lock() {
   ASSERT(result != EDEADLK);
   ASSERT_PTHREAD_SUCCESS(result);  // Verify no other errors.
 #if defined(DEBUG)
-  // When running with assertions enabled we do track the owner.
+  // When running with assertions enabled we track the owner.
   owner_ = OSThread::GetCurrentThreadId();
 #endif  // defined(DEBUG)
 }
@@ -287,7 +267,7 @@ bool Mutex::TryLock() {
   }
   ASSERT_PTHREAD_SUCCESS(result);  // Verify no other errors.
 #if defined(DEBUG)
-  // When running with assertions enabled we do track the owner.
+  // When running with assertions enabled we track the owner.
   owner_ = OSThread::GetCurrentThreadId();
 #endif  // defined(DEBUG)
   return true;
@@ -296,7 +276,7 @@ bool Mutex::TryLock() {
 
 void Mutex::Unlock() {
 #if defined(DEBUG)
-  // When running with assertions enabled we do track the owner.
+  // When running with assertions enabled we track the owner.
   ASSERT(IsOwnedByCurrentThread());
   owner_ = OSThread::kInvalidThreadId;
 #endif  // defined(DEBUG)
@@ -325,6 +305,9 @@ Monitor::Monitor() {
 
   pthread_condattr_t cond_attr;
   result = pthread_condattr_init(&cond_attr);
+  VALIDATE_PTHREAD_RESULT(result);
+
+  result = pthread_condattr_setclock(&cond_attr, CLOCK_MONOTONIC);
   VALIDATE_PTHREAD_RESULT(result);
 
   result = pthread_cond_init(data_.cond(), &cond_attr);
@@ -395,7 +378,8 @@ void Monitor::Exit() {
 
 
 Monitor::WaitResult Monitor::Wait(int64_t millis) {
-  return WaitMicros(millis * kMicrosecondsPerMillisecond);
+  Monitor::WaitResult retval = WaitMicros(millis * kMicrosecondsPerMillisecond);
+  return retval;
 }
 
 
@@ -449,4 +433,4 @@ void Monitor::NotifyAll() {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_ANDROID)
+#endif  // defined(TARGET_OS_FUCHSIA)

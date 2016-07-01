@@ -116,7 +116,9 @@ class ClassHeapStats {
   void ResetAccumulator();
   void UpdatePromotedAfterNewGC();
   void UpdateSize(intptr_t instance_size);
+#ifndef PRODUCT
   void PrintToJSONObject(const Class& cls, JSONObject* obj) const;
+#endif
   void Verify();
 
   bool trace_allocation() const {
@@ -192,8 +194,9 @@ class ClassTable {
   void Validate();
 
   void Print();
-
+#ifndef PRODUCT
   void PrintToJSONObject(JSONObject* object);
+#endif
 
   // Used by the generated code.
   static intptr_t table_offset() {

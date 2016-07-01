@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/atomic.h"
 #include "vm/class_table.h"
+
+#include "vm/atomic.h"
 #include "vm/flags.h"
 #include "vm/freelist.h"
 #include "vm/growable_array.h"
@@ -234,6 +235,7 @@ void ClassTable::Print() {
 }
 
 
+#ifndef PRODUCT
 void ClassTable::PrintToJSONObject(JSONObject* object) {
   if (!FLAG_support_service) {
     return;
@@ -250,6 +252,7 @@ void ClassTable::PrintToJSONObject(JSONObject* object) {
     }
   }
 }
+#endif  // PRODUCT
 
 
 void ClassHeapStats::Initialize() {
@@ -329,6 +332,7 @@ void ClassHeapStats::UpdatePromotedAfterNewGC() {
 }
 
 
+#ifndef PRODUCT
 void ClassHeapStats::PrintToJSONObject(const Class& cls,
                                        JSONObject* obj) const {
   if (!FLAG_support_service) {
@@ -365,6 +369,7 @@ void ClassHeapStats::PrintToJSONObject(const Class& cls,
   obj->AddProperty("promotedInstances", promoted_count);
   obj->AddProperty("promotedBytes", promoted_size);
 }
+#endif
 
 
 void ClassTable::UpdateAllocatedNew(intptr_t cid, intptr_t size) {
@@ -491,6 +496,7 @@ intptr_t ClassTable::SizeOffsetFor(intptr_t cid, bool is_new_space) {
 }
 
 
+#ifndef PRODUCT
 void ClassTable::AllocationProfilePrintJSON(JSONStream* stream) {
   if (!FLAG_support_service) {
     return;
@@ -532,6 +538,7 @@ void ClassTable::AllocationProfilePrintJSON(JSONStream* stream) {
     }
   }
 }
+#endif
 
 
 void ClassTable::ResetAllocationAccumulators() {

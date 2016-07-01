@@ -60,7 +60,7 @@ def BuildOptions():
       default=utils.GuessArchitecture())
   result.add_option("--os",
     help='Target OSs (comma-separated).',
-    metavar='[all,host,android]',
+    metavar='[all,host,android,fuchsia]',
     default='host')
   result.add_option("-t", "--toolchain",
     help='Cross-compiler toolchain path',
@@ -109,11 +109,11 @@ def ProcessOptions(options, args):
       return False
   options.os = [ProcessOsOption(os_name) for os_name in options.os]
   for os_name in options.os:
-    if not os_name in ['android', 'freebsd', 'linux', 'macos', 'win32']:
+    if not os_name in ['android', 'freebsd', 'fuchsia', 'linux', 'macos', 'win32']:
       print "Unknown os %s" % os_name
       return False
     if os_name != HOST_OS:
-      if os_name != 'android':
+      if os_name != 'android' and os_name != 'fuchsia':
         print "Unsupported target os %s" % os_name
         return False
       if not HOST_OS in ['linux']:
@@ -148,6 +148,13 @@ def GetToolchainPrefix(target_os, arch, options):
     if arch == 'x64':
       return os.path.join(android_toolchain, 'x86_64-linux-android')
 
+  if target_os == 'fuchsia':
+    fuchsia_toolchain = GetFuchsiaToolchainDir(HOST_OS, arch)
+    if arch == 'arm64':
+      return os.path.join(fuchsia_toolchain, 'aarch64-elf')
+    if arch == 'x64':
+      return os.path.join(fuchsia_toolchain, 'x86_64-elf')
+
   # If no cross compiler is specified, only try to figure one out on Linux.
   if not HOST_OS in ['linux']:
     raise Exception('Unless --toolchain is used cross-building is only '
@@ -175,6 +182,8 @@ def SetTools(arch, target_os, options):
   linker = ""
   if target_os == 'android':
     linker = os.path.join(DART_ROOT, 'tools', 'android_link.py')
+  elif target_os == 'fuchsia':
+    linker = os.path.join(DART_ROOT, 'tools', 'fuchsia_link.py')
   elif toolchainprefix:
     linker = toolchainprefix + "-g++"
 
@@ -224,6 +233,28 @@ def GetAndroidToolchainDir(host_os, target_arch):
   CheckDirExists(android_toolchain, 'Android toolchain')
 
   return android_toolchain
+
+
+def GetFuchsiaToolchainDir(host_os, target_arch):
+  global THIRD_PARTY_ROOT
+  if host_os not in ['linux']:
+    raise Exception('Unsupported host os %s' % host_os)
+  if target_arch not in ['x64', 'arm64',]:
+    raise Exception('Unsupported target architecture %s' % target_arch)
+
+  # Set up path to the Android NDK.
+  CheckDirExists(THIRD_PARTY_ROOT, 'third party tools')
+  fuchsia_tools = os.path.join(THIRD_PARTY_ROOT, 'fuchsia_tools')
+  CheckDirExists(fuchsia_tools, 'Fuchsia tools')
+
+  toolchain_arch = 'x86_64-elf-5.3.0-Linux-x86_64'
+  if target_arch == 'arm64':
+    toolchain_arch = 'aarch64-elf-5.3.0-Linux-x86_64'
+  fuchsia_toolchain = os.path.join(
+      fuchsia_tools, 'toolchains', toolchain_arch, 'bin')
+  CheckDirExists(fuchsia_toolchain, 'Fuchsia toolchain')
+
+  return fuchsia_toolchain
 
 
 def Execute(args):

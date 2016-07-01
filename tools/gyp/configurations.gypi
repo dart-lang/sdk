@@ -41,6 +41,7 @@
   },
   'includes': [
     'configurations_android.gypi',
+    'configurations_fuchsia.gypi',
     'configurations_make.gypi',
     'configurations_xcode.gypi',
     'configurations_msvs.gypi',
@@ -728,6 +729,21 @@
           'Dart_Linux_Product',
         ],
       },
+
+      # Fuchsia configurations. The configuration names explicitly include
+      # 'Fuchsia' because we are cross-building from Linux, and, when building
+      # the standalone VM, we cannot inspect the gyp built-in 'OS' variable to
+      # figure out that we are building for Fuchsia. Since we have not re-run
+      # gyp, it will still be 'linux'.
+      'ProductFuchsiaX64': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_x64_Base', 'Dart_Product',
+          'Dart_Fuchsia_Base',
+          'Dart_Fuchsia_x64_Base',
+          'Dart_Fuchsia_Product',
+        ],
+      },
+
 
       # Android configurations. The configuration names explicitly include
       # 'Android' because we are cross-building from Linux, and, when building

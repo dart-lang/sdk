@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#ifndef PRODUCT
+
 #include <cstdlib>
 
 #include "vm/atomic.h"
@@ -15,8 +17,6 @@
 #include "vm/timeline.h"
 
 namespace dart {
-
-#ifndef PRODUCT
 
 DEFINE_FLAG(bool, complete_timeline, false, "Record the complete timeline");
 DEFINE_FLAG(bool, startup_timeline, false, "Record the startup timeline");
@@ -1692,6 +1692,6 @@ TimelineEventBlock* TimelineEventBlockIterator::Next() {
   return r;
 }
 
-#endif  // !PRODUCT
-
 }  // namespace dart
+
+#endif  // !PRODUCT

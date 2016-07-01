@@ -35,6 +35,13 @@
       ],
     },
     {
+      'target_name': 'fuchsia_test',
+      'type': 'none',
+      'dependencies': [
+        'runtime/dart-runtime.gyp:fuchsia_test',
+      ],
+    },
+    {
       # This is the target that is built on the VM build bots.  It
       # must depend on anything that is required by the VM test
       # suites.

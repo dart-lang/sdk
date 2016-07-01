@@ -244,12 +244,14 @@ class Heap {
     return size <= kNewAllocatableSize;
   }
 
+#ifndef PRODUCT
   void PrintToJSONObject(Space space, JSONObject* object) const;
 
   // The heap map contains the sizes and class ids for the objects in each page.
   void PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) {
-    return old_space_.PrintHeapMapToJSONStream(isolate, stream);
+    old_space_.PrintHeapMapToJSONStream(isolate, stream);
   }
+#endif  // PRODUCT
 
   Isolate* isolate() const { return isolate_; }
 

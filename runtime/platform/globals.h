@@ -113,7 +113,7 @@
 // Windows, both 32- and 64-bit, regardless of the check for _WIN32.
 #define TARGET_OS_WINDOWS 1
 
-#else
+#elif !defined(TARGET_OS_FUCHSIA)
 #error Automatic target os detection failed.
 #endif
 

@@ -34,6 +34,9 @@ struct siginfo_t;
 struct mcontext_t;
 struct sigset_t {
 };
+#elif defined(TARGET_OS_FUCHSIA)
+#include <signal.h>  // NOLINT
+#include <ucontext.h>  // NOLINT
 #endif
 
 
@@ -84,7 +87,8 @@ class SignalHandler : public AllStatic {
   // that no actual instructions are skipped and then branch to the actual
   // signal handler.
   //
-  // For the kernel patch that fixes the issue see: http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=6ecf830e5029598732e04067e325d946097519cb
+  // For the kernel patch that fixes the issue see:
+  // http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=6ecf830e5029598732e04067e325d946097519cb
   //
   // Note: this function is marked "naked" because we must guarantee that
   // our NOPs occur before any compiler generated prologue.

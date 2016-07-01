@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#ifndef PRODUCT
+
 #include <map>
 #include <string>
 #include <vector>
@@ -15,8 +17,6 @@
 #include "vm/unicode.h"
 
 namespace dart {
-
-#ifndef PRODUCT
 
 static const uint8_t decode_table[256] = {
   64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
@@ -370,6 +370,6 @@ void DevFS::ReadFile(JSONStream* js,
                           file_contents->size());
 }
 
-#endif  // !PRODUCT
-
 }  // namespace dart
+
+#endif  // !PRODUCT

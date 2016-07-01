@@ -12,6 +12,8 @@
 // Declare the OS-specific types ahead of defining the generic classes.
 #if defined(TARGET_OS_ANDROID)
 #include "vm/os_thread_android.h"
+#elif defined(TARGET_OS_FUCHSIA)
+#include "vm/os_thread_fuchsia.h"
 #elif defined(TARGET_OS_LINUX)
 #include "vm/os_thread_linux.h"
 #elif defined(TARGET_OS_MACOS)
@@ -61,10 +63,12 @@ class OSThread : public BaseThread {
     return id_;
   }
 
+#ifndef PRODUCT
   ThreadId trace_id() const {
     ASSERT(trace_id_ != OSThread::kInvalidThreadId);
     return trace_id_;
   }
+#endif
 
   const char* name() const {
     return name_;
@@ -203,7 +207,9 @@ class OSThread : public BaseThread {
   }
 
   static void Cleanup();
+#ifndef PRODUCT
   static ThreadId GetCurrentThreadTraceId();
+#endif  // PRODUCT
   static OSThread* GetOSThreadFromThread(Thread* thread);
   static void AddThreadToListLocked(OSThread* thread);
   static void RemoveThreadFromList(OSThread* thread);
@@ -217,7 +223,9 @@ class OSThread : public BaseThread {
   // only called once per OSThread.
   ThreadJoinId join_id_;
 #endif
+#ifndef PRODUCT
   const ThreadId trace_id_;  // Used to interface with tracing tools.
+#endif
   char* name_;  // A name for this thread.
 
   Mutex* timeline_block_lock_;

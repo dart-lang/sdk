@@ -455,7 +455,9 @@ class Isolate : public BaseIsolate {
     return defer_finalization_count_ == 0;
   }
 
+#ifndef PRODUCT
   void PrintJSON(JSONStream* stream, bool ref = true);
+#endif
 
   // Mutator thread is used to aggregate compiler stats.
   CompilerStats* aggregate_compiler_stats() {

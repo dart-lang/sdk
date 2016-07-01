@@ -671,6 +671,7 @@ void PageSpace::WriteProtect(bool read_only) {
 }
 
 
+#ifndef PRODUCT
 void PageSpace::PrintToJSONObject(JSONObject* object) const {
   if (!FLAG_support_service) {
     return;
@@ -754,6 +755,7 @@ void PageSpace::PrintHeapMapToJSONStream(
     }
   }
 }
+#endif  // PRODUCT
 
 
 bool PageSpace::ShouldCollectCode() {

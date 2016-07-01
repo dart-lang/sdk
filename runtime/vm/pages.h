@@ -314,8 +314,10 @@ class PageSpace {
     return collections_;
   }
 
+#ifndef PRODUCT
   void PrintToJSONObject(JSONObject* object) const;
   void PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) const;
+#endif  // PRODUCT
 
   void AllocateExternal(intptr_t size);
   void FreeExternal(intptr_t size);

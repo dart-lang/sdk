@@ -1834,6 +1834,7 @@ RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {
 }
 
 
+#ifndef PRODUCT
 static const char* ExceptionPauseInfoToServiceEnum(Dart_ExceptionPauseInfo pi) {
   switch (pi) {
     case kPauseOnAllExceptions:
@@ -1970,6 +1971,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     }
   }
 }
+#endif
 
 
 void Isolate::set_tag_table(const GrowableObjectArray& value) {

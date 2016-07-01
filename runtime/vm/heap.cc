@@ -734,6 +734,7 @@ void Heap::SetWeakEntry(RawObject* raw_obj, WeakSelector sel, intptr_t val) {
 }
 
 
+#ifndef PRODUCT
 void Heap::PrintToJSONObject(Space space, JSONObject* object) const {
   if (space == kNew) {
     new_space_.PrintToJSONObject(object);
@@ -741,6 +742,7 @@ void Heap::PrintToJSONObject(Space space, JSONObject* object) const {
     old_space_.PrintToJSONObject(object);
   }
 }
+#endif  // PRODUCT
 
 
 void Heap::RecordBeforeGC(Space space, GCReason reason) {

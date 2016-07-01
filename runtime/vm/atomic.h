@@ -77,6 +77,8 @@ class AtomicOperations : public AllStatic {
 
 #if defined(TARGET_OS_ANDROID)
 #include "vm/atomic_android.h"
+#elif defined(TARGET_OS_FUCHSIA)
+#include "vm/atomic_fuchsia.h"
 #elif defined(TARGET_OS_LINUX)
 #include "vm/atomic_linux.h"
 #elif defined(TARGET_OS_MACOS)

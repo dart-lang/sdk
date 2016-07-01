@@ -163,9 +163,11 @@ ThreadId OSThread::GetCurrentThreadId() {
 }
 
 
+#ifndef PRODUCT
 ThreadId OSThread::GetCurrentThreadTraceId() {
   return ThreadIdFromIntPtr(pthread_mach_thread_np(pthread_self()));
 }
+#endif  // PRODUCT
 
 
 ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
