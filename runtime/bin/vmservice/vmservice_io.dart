@@ -86,11 +86,12 @@ Future<List<Map<String,String>>> listFilesCallback(Uri dirPath) async {
   var stream = dir.list(recursive: true);
   var result = [];
   await for (var fileEntity in stream) {
+    var filePath = new Uri.file(fileEntity.path).path;
     var stat = await fileEntity.stat();
     if (stat.type == FileSystemEntityType.FILE &&
-        fileEntity.path.startsWith(dirPathStr)) {
+        filePath.startsWith(dirPathStr)) {
       var map = {};
-      map['name'] = '/' + fileEntity.path.substring(dirPathStr.length);
+      map['name'] = '/' + filePath.substring(dirPathStr.length);
       map['size'] = stat.size;
       map['modified'] = stat.modified.millisecondsSinceEpoch;
       result.add(map);
