@@ -1473,7 +1473,8 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
 
   EnsureExpressionTemp();
   StoreInstanceFieldNode* store_field =
-      new StoreInstanceFieldNode(ident_pos, receiver, field, value);
+      new StoreInstanceFieldNode(ident_pos, receiver, field, value,
+                                 /* is_initializer = */ false);
   current_block_->statements->Add(store_field);
   current_block_->statements->Add(new ReturnNode(ST(ident_pos)));
   return CloseBlock();
@@ -2609,7 +2610,8 @@ AstNode* Parser::ParseInitializer(const Class& cls,
       initialized_fields, instance, &field, init_expr);
   if (initializer == NULL) {
     initializer =
-        new(Z) StoreInstanceFieldNode(field_pos, instance, field, init_expr);
+        new(Z) StoreInstanceFieldNode(field_pos, instance, field, init_expr,
+                                      /* is_initializer = */ true);
   }
   return initializer;
 }
@@ -2735,7 +2737,8 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
           new StoreInstanceFieldNode(field.token_pos(),
                                      instance,
                                      field,
-                                     init_expr);
+                                     init_expr,
+                                     /* is_initializer = */ true);
       current_block_->statements->Add(field_init);
     }
   }
@@ -3198,7 +3201,8 @@ SequenceNode* Parser::ParseConstructor(const Function& func) {
                                     value);
         if (initializer == NULL) {
           initializer = new(Z) StoreInstanceFieldNode(
-              param.name_pos, instance, field, value);
+              param.name_pos, instance, field, value,
+              /* is_initializer = */ true);
         }
         current_block_->statements->Add(initializer);
       }

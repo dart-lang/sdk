@@ -1243,11 +1243,13 @@ class StoreInstanceFieldNode : public AstNode {
   StoreInstanceFieldNode(TokenPosition token_pos,
                          AstNode* instance,
                          const Field& field,
-                         AstNode* value)
+                         AstNode* value,
+                         bool is_initializer)
       : AstNode(token_pos),
         instance_(instance),
         field_(*MayCloneField(field)),
-        value_(value) {
+        value_(value),
+        is_initializer_(is_initializer) {
     ASSERT(instance_ != NULL);
     ASSERT(field_.IsZoneHandle());
     ASSERT(value_ != NULL);
@@ -1256,6 +1258,7 @@ class StoreInstanceFieldNode : public AstNode {
   AstNode* instance() const { return instance_; }
   const Field& field() const { return field_; }
   AstNode* value() const { return value_; }
+  bool is_initializer() const { return is_initializer_; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     instance()->Visit(visitor);
@@ -1268,6 +1271,7 @@ class StoreInstanceFieldNode : public AstNode {
   AstNode* instance_;
   const Field& field_;
   AstNode* value_;
+  const bool is_initializer_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StoreInstanceFieldNode);
 };
