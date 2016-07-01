@@ -856,27 +856,20 @@ class TypeGraphInferrerEngine
             if (constant != null) {
               ConstantValue value =
                   compiler.backend.constants.getConstantValue(constant);
-              if (value != null) {
-                if (value.isFunction) {
-                  FunctionConstantValue functionConstant = value;
-                  type = types.allocateClosure(node, functionConstant.element);
-                } else {
-                  // Although we might find a better type, we have to keep
-                  // the old type around to ensure that we get a complete view
-                  // of the type graph and do not drop any flow edges.
-                  TypeMask refinedType = computeTypeMask(compiler, value);
-                  assert(TypeMask.assertIsNormalized(refinedType, classWorld));
-                  type = new NarrowTypeInformation(type, refinedType);
-                  types.allocatedTypes.add(type);
-                }
+              assert(invariant(fieldElement, value != null,
+                  message: "Constant expression without value: "
+                      "${constant.toStructuredText()}."));
+              if (value.isFunction) {
+                FunctionConstantValue functionConstant = value;
+                type = types.allocateClosure(node, functionConstant.element);
               } else {
-                assert(invariant(
-                    fieldElement,
-                    fieldElement.isInstanceMember ||
-                        constant.isImplicit ||
-                        constant.isPotential,
-                    message: "Constant expression without value: "
-                        "${constant.toStructuredText()}."));
+                // Although we might find a better type, we have to keep
+                // the old type around to ensure that we get a complete view
+                // of the type graph and do not drop any flow edges.
+                TypeMask refinedType = computeTypeMask(compiler, value);
+                assert(TypeMask.assertIsNormalized(refinedType, classWorld));
+                type = new NarrowTypeInformation(type, refinedType);
+                types.allocatedTypes.add(type);
               }
             }
           }

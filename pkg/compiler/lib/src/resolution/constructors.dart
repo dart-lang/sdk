@@ -448,24 +448,11 @@ class InitializerResolver {
       constructorInvocation = resolveImplicitSuperConstructorSend();
     }
     if (isConst && isValidAsConstant) {
-      constructor.enclosingClass.forEachInstanceField((_, FieldElement field) {
-        if (!fieldInitializers.containsKey(field)) {
-          visitor.resolution.ensureResolved(field);
-          // TODO(johnniwinther): Report error if `field.constant` is `null`.
-          if (field.constant != null) {
-            fieldInitializers[field] = field.constant;
-          } else {
-            isValidAsConstant = false;
-          }
-        }
-      });
-      if (isValidAsConstant) {
-        constructor.constantConstructor = new GenerativeConstantConstructor(
-            constructor.enclosingClass.thisType,
-            defaultValues,
-            fieldInitializers,
-            constructorInvocation);
-      }
+      constructor.constantConstructor = new GenerativeConstantConstructor(
+          constructor.enclosingClass.thisType,
+          defaultValues,
+          fieldInitializers,
+          constructorInvocation);
     }
     visitor.scope = oldScope;
     return null; // If there was no redirection always return null.

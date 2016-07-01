@@ -414,10 +414,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
   AstConstant evaluate(Node node) {
     // TODO(johnniwinther): should there be a visitErrorNode?
     if (node is ErrorNode) return new ErroneousAstConstant(context, node);
-    AstConstant result = node.accept(this);
-    assert(invariant(node, !isEvaluatingConstant || result != null,
-        message: "No AstConstant computed for the node."));
-    return result;
+    return node.accept(this);
   }
 
   AstConstant evaluateConstant(Node node) {
@@ -425,8 +422,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     isEvaluatingConstant = true;
     AstConstant result = node.accept(this);
     isEvaluatingConstant = oldIsEvaluatingConstant;
-    assert(invariant(node, result != null,
-        message: "No AstConstant computed for the node."));
+    assert(result != null);
     return result;
   }
 
@@ -465,8 +461,8 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
         !link.isEmpty;
         link = link.tail) {
       AstConstant argument = evaluateConstant(link.head);
-      if (argument == null || argument.isError) {
-        return argument;
+      if (argument == null) {
+        return null;
       }
       argumentExpressions.add(argument.expression);
       argumentValues.add(argument.value);
@@ -492,12 +488,12 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
         link = link.tail) {
       LiteralMapEntry entry = link.head;
       AstConstant key = evaluateConstant(entry.key);
-      if (key == null || key.isError) {
-        return key;
+      if (key == null) {
+        return null;
       }
       AstConstant value = evaluateConstant(entry.value);
-      if (value == null || value.isError) {
-        return value;
+      if (value == null) {
+        return null;
       }
       if (!map.containsKey(key.value)) {
         keyValues.add(key.value);
@@ -534,12 +530,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
   AstConstant visitStringJuxtaposition(StringJuxtaposition node) {
     AstConstant left = evaluate(node.first);
     AstConstant right = evaluate(node.second);
-    if (left == null || left.isError) {
-      return left;
-    }
-    if (right == null || right.isError) {
-      return right;
-    }
+    if (left == null || right == null) return null;
     StringConstantValue leftValue = left.value;
     StringConstantValue rightValue = right.value;
     return new AstConstant(
@@ -553,16 +544,16 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
   AstConstant visitStringInterpolation(StringInterpolation node) {
     List<ConstantExpression> subexpressions = <ConstantExpression>[];
     AstConstant initialString = evaluate(node.string);
-    if (initialString == null || initialString.isError) {
-      return initialString;
+    if (initialString == null) {
+      return null;
     }
     subexpressions.add(initialString.expression);
     StringConstantValue initialStringValue = initialString.value;
     DartString accumulator = initialStringValue.primitiveValue;
     for (StringInterpolationPart part in node.parts) {
       AstConstant subexpression = evaluate(part.expression);
-      if (subexpression == null || subexpression.isError) {
-        return subexpression;
+      if (subexpression == null) {
+        return null;
       }
       subexpressions.add(subexpression.expression);
       ConstantValue expression = subexpression.value;
@@ -587,6 +578,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       accumulator =
           new DartString.concat(accumulator, partStringValue.primitiveValue);
     }
+    ;
     return new AstConstant(
         context,
         node,
@@ -733,8 +725,8 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     } else if (send.isPrefix) {
       assert(send.isOperator);
       AstConstant receiverConstant = evaluate(send.receiver);
-      if (receiverConstant == null || receiverConstant.isError) {
-        return receiverConstant;
+      if (receiverConstant == null) {
+        return null;
       }
       Operator node = send.selector;
       UnaryOperator operator = UnaryOperator.parse(node.source);
@@ -755,11 +747,8 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       assert(send.argumentCount() == 1);
       AstConstant left = evaluate(send.receiver);
       AstConstant right = evaluate(send.argumentsNode.nodes.head);
-      if (left == null || left.isError) {
-        return left;
-      }
-      if (right == null || right.isError) {
-        return right;
+      if (left == null || right == null) {
+        return null;
       }
       ConstantValue leftValue = left.value;
       ConstantValue rightValue = right.value;
@@ -807,8 +796,8 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
 
   AstConstant visitConditional(Conditional node) {
     AstConstant condition = evaluate(node.condition);
-    if (condition == null || condition.isError) {
-      return condition;
+    if (condition == null) {
+      return null;
     } else if (!condition.value.isBool) {
       DartType conditionType = condition.value.getType(coreTypes);
       if (isEvaluatingConstant) {
@@ -820,11 +809,8 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     }
     AstConstant thenExpression = evaluate(node.thenExpression);
     AstConstant elseExpression = evaluate(node.elseExpression);
-    if (thenExpression == null || thenExpression.isError) {
-      return thenExpression;
-    }
-    if (elseExpression == null || elseExpression.isError) {
-      return elseExpression;
+    if (thenExpression == null || elseExpression == null) {
+      return null;
     }
     BoolConstantValue boolCondition = condition.value;
     return new AstConstant(
@@ -992,43 +978,48 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     ConstantValue defaultValue = normalizedArguments[1].value;
 
     if (firstArgument.isNull) {
-      return reportNotCompileTimeConstant(
+      reporter.reportErrorMessage(
           normalizedArguments[0].node, MessageKind.NULL_NOT_ALLOWED);
+      return null;
     }
 
     if (!firstArgument.isString) {
       DartType type = defaultValue.getType(coreTypes);
-      return reportNotCompileTimeConstant(
+      reporter.reportErrorMessage(
           normalizedArguments[0].node,
           MessageKind.NOT_ASSIGNABLE,
           {'fromType': type, 'toType': coreTypes.stringType});
+      return null;
     }
 
     if (constructor.isIntFromEnvironmentConstructor &&
         !(defaultValue.isNull || defaultValue.isInt)) {
       DartType type = defaultValue.getType(coreTypes);
-      return reportNotCompileTimeConstant(
+      reporter.reportErrorMessage(
           normalizedArguments[1].node,
           MessageKind.NOT_ASSIGNABLE,
           {'fromType': type, 'toType': coreTypes.intType});
+      return null;
     }
 
     if (constructor.isBoolFromEnvironmentConstructor &&
         !(defaultValue.isNull || defaultValue.isBool)) {
       DartType type = defaultValue.getType(coreTypes);
-      return reportNotCompileTimeConstant(
+      reporter.reportErrorMessage(
           normalizedArguments[1].node,
           MessageKind.NOT_ASSIGNABLE,
           {'fromType': type, 'toType': coreTypes.boolType});
+      return null;
     }
 
     if (constructor.isStringFromEnvironmentConstructor &&
         !(defaultValue.isNull || defaultValue.isString)) {
       DartType type = defaultValue.getType(coreTypes);
-      return reportNotCompileTimeConstant(
+      reporter.reportErrorMessage(
           normalizedArguments[1].node,
           MessageKind.NOT_ASSIGNABLE,
           {'fromType': type, 'toType': coreTypes.stringType});
+      return null;
     }
 
     String name = firstArgument.primitiveValue.slowToString();
@@ -1112,11 +1103,6 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     fieldConstants.forEach((FieldElement field, AstConstant astConstant) {
       fieldValues[field] = astConstant.value;
     });
-    for (AstConstant fieldValue in fieldConstants.values) {
-      if (fieldValue.isError) {
-        return fieldValue;
-      }
-    }
     return new AstConstant(
         context,
         node,
@@ -1129,18 +1115,13 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     return node.expression.accept(this);
   }
 
-  AstConstant reportNotCompileTimeConstant(Node node, MessageKind message,
-      [Map arguments = const {}]) {
-    reporter.reportErrorMessage(node, message, arguments);
-    return new AstConstant(context, node, new ErroneousConstantExpression(),
-        new NullConstantValue());
-  }
-
   AstConstant signalNotCompileTimeConstant(Node node,
-      {MessageKind message: MessageKind.NOT_A_COMPILE_TIME_CONSTANT,
-      Map arguments: const {}}) {
+      {MessageKind message: MessageKind.NOT_A_COMPILE_TIME_CONSTANT}) {
     if (isEvaluatingConstant) {
-      return reportNotCompileTimeConstant(node, message, arguments);
+      reporter.reportErrorMessage(node, message);
+
+      return new AstConstant(context, node, new ErroneousConstantExpression(),
+          new NullConstantValue());
     }
     // Else we don't need to do anything. The final handler is only
     // optimistically trying to compile constants. So it is normal that we
@@ -1390,8 +1371,6 @@ class AstConstant {
         constant,
         value);
   }
-
-  bool get isError => expression.kind == ConstantExpressionKind.ERRONEOUS;
 
   String toString() => expression.toString();
 }

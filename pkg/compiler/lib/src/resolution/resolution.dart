@@ -53,7 +53,6 @@ import 'class_members.dart' show MembersCreator;
 import 'constructors.dart';
 import 'members.dart';
 import 'registry.dart';
-import 'resolution_result.dart';
 import 'scope.dart' show MutableScope;
 import 'signatures.dart';
 import 'tree_elements.dart';
@@ -388,10 +387,7 @@ class ResolverTask extends CompilerTask {
     if (initializer != null) {
       // TODO(johnniwinther): Avoid analyzing initializers if
       // [Compiler.analyzeSignaturesOnly] is set.
-      ResolutionResult result = visitor.visit(initializer);
-      if (result.isConstant) {
-        element.constant = result.constant;
-      }
+      visitor.visit(initializer);
     } else if (modifiers.isConst) {
       reporter.reportErrorMessage(
           element, MessageKind.CONST_WITHOUT_INITIALIZER);

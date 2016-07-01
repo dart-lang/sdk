@@ -1425,21 +1425,11 @@ abstract class ConstantVariableMixin implements VariableElement {
       // constant for a variable already known to be erroneous.
       return;
     }
-    if (constantCache != null && constantCache != value) {
-      // Allow setting the constant as erroneous. Constants computed during
-      // resolution are locally valid but might be effectively erroneous. For
-      // instance `a ? true : false` where a is `const a = m()`. Since `a` is
-      // declared to be constant, the conditional is assumed valid, but when
-      // computing the value we see that it isn't.
-      // TODO(johnniwinther): Remove this exception when all constant
-      // expressions are computed during resolution.
-      assert(invariant(this, value.kind == ConstantExpressionKind.ERRONEOUS,
-          message: "Constant has already been computed for $this. "
-              "Existing constant: "
-              "${constantCache != null ? constantCache.toStructuredText() : ''}"
-              ", New constant: "
-              "${value != null ? value.toStructuredText() : ''}."));
-    }
+    assert(invariant(this, constantCache == null || constantCache == value,
+        message: "Constant has already been computed for $this. "
+            "Existing constant: "
+            "${constantCache != null ? constantCache.toStructuredText() : ''}, "
+            "New constant: ${value != null ? value.toStructuredText() : ''}."));
     constantCache = value;
   }
 }
