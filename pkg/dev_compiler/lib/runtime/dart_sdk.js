@@ -41966,7 +41966,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _getPropertyValue = Symbol('_getPropertyValue');
   const _setPropertyHelper = Symbol('_setPropertyHelper');
   const _browserPropertyName = Symbol('_browserPropertyName');
-  let const$48;
   const _background = Symbol('_background');
   const _backgroundAttachment = Symbol('_backgroundAttachment');
   const _backgroundColor = Symbol('_backgroundColor');
@@ -45724,8 +45723,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static _camelCase(hyphenated) {
       let replacedMs = hyphenated.replace(/^-ms-/, "ms-");
-      let fToUpper = const$48 || (const$48 = dart.const(new _foreign_helper.JS_CONST('function(_, letter) { return letter.toUpperCase(); }')));
-      return replacedMs.replace(/-([\da-z])/ig, fToUpper);
+      return replacedMs.replace(/-([\da-z])/ig, (_, letter) => letter.toUpperCase());
     }
     [_setPropertyHelper](propertyName, value, priority) {
       if (priority === void 0) priority = null;
@@ -72850,6 +72848,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       allowsAttribute: dart.definiteFunctionType(core.bool, [html$.Element, core.String, core.String])
     })
   });
+  let const$48;
   let const$49;
   let const$50;
   let const$51;
@@ -72859,16 +72858,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let const$55;
   let const$56;
   let const$57;
-  let const$58;
   html$._SimpleNodeValidator = class _SimpleNodeValidator extends core.Object {
     static allowNavigation(uriPolicy) {
-      return new html$._SimpleNodeValidator(uriPolicy, {allowedElements: const$49 || (const$49 = dart.constList(['A', 'FORM'], core.String)), allowedAttributes: const$50 || (const$50 = dart.constList(['A::accesskey', 'A::coords', 'A::hreflang', 'A::name', 'A::shape', 'A::tabindex', 'A::target', 'A::type', 'FORM::accept', 'FORM::autocomplete', 'FORM::enctype', 'FORM::method', 'FORM::name', 'FORM::novalidate', 'FORM::target'], core.String)), allowedUriAttributes: const$51 || (const$51 = dart.constList(['A::href', 'FORM::action'], core.String))});
+      return new html$._SimpleNodeValidator(uriPolicy, {allowedElements: const$48 || (const$48 = dart.constList(['A', 'FORM'], core.String)), allowedAttributes: const$49 || (const$49 = dart.constList(['A::accesskey', 'A::coords', 'A::hreflang', 'A::name', 'A::shape', 'A::tabindex', 'A::target', 'A::type', 'FORM::accept', 'FORM::autocomplete', 'FORM::enctype', 'FORM::method', 'FORM::name', 'FORM::novalidate', 'FORM::target'], core.String)), allowedUriAttributes: const$50 || (const$50 = dart.constList(['A::href', 'FORM::action'], core.String))});
     }
     static allowImages(uriPolicy) {
-      return new html$._SimpleNodeValidator(uriPolicy, {allowedElements: const$52 || (const$52 = dart.constList(['IMG'], core.String)), allowedAttributes: const$53 || (const$53 = dart.constList(['IMG::align', 'IMG::alt', 'IMG::border', 'IMG::height', 'IMG::hspace', 'IMG::ismap', 'IMG::name', 'IMG::usemap', 'IMG::vspace', 'IMG::width'], core.String)), allowedUriAttributes: const$54 || (const$54 = dart.constList(['IMG::src'], core.String))});
+      return new html$._SimpleNodeValidator(uriPolicy, {allowedElements: const$51 || (const$51 = dart.constList(['IMG'], core.String)), allowedAttributes: const$52 || (const$52 = dart.constList(['IMG::align', 'IMG::alt', 'IMG::border', 'IMG::height', 'IMG::hspace', 'IMG::ismap', 'IMG::name', 'IMG::usemap', 'IMG::vspace', 'IMG::width'], core.String)), allowedUriAttributes: const$53 || (const$53 = dart.constList(['IMG::src'], core.String))});
     }
     static allowTextElements() {
-      return new html$._SimpleNodeValidator(null, {allowedElements: const$55 || (const$55 = dart.constList(['B', 'BLOCKQUOTE', 'BR', 'EM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'I', 'LI', 'OL', 'P', 'SPAN', 'UL'], core.String))});
+      return new html$._SimpleNodeValidator(null, {allowedElements: const$54 || (const$54 = dart.constList(['B', 'BLOCKQUOTE', 'BR', 'EM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'I', 'LI', 'OL', 'P', 'SPAN', 'UL'], core.String))});
     }
     new(uriPolicy, opts) {
       let allowedElements = opts && 'allowedElements' in opts ? opts.allowedElements : null;
@@ -72878,9 +72876,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this.allowedAttributes = SetOfString().new();
       this.allowedUriAttributes = SetOfString().new();
       this.uriPolicy = uriPolicy;
-      this.allowedElements.addAll((allowedElements != null ? allowedElements : const$56 || (const$56 = dart.constList([], core.String))));
-      allowedAttributes = allowedAttributes != null ? allowedAttributes : const$57 || (const$57 = dart.constList([], core.String));
-      allowedUriAttributes = allowedUriAttributes != null ? allowedUriAttributes : const$58 || (const$58 = dart.constList([], core.String));
+      this.allowedElements.addAll((allowedElements != null ? allowedElements : const$55 || (const$55 = dart.constList([], core.String))));
+      allowedAttributes = allowedAttributes != null ? allowedAttributes : const$56 || (const$56 = dart.constList([], core.String));
+      allowedUriAttributes = allowedUriAttributes != null ? allowedUriAttributes : const$57 || (const$57 = dart.constList([], core.String));
       let legalAttributes = allowedAttributes[dartx.where](dart.fn(x => !dart.test(html$._Html5NodeValidator._uriAttributes[dartx.contains](x)), StringTobool()));
       let extraUriAttributes = allowedAttributes[dartx.where](dart.fn(x => html$._Html5NodeValidator._uriAttributes[dartx.contains](x), StringTobool()));
       this.allowedAttributes.addAll(legalAttributes);
