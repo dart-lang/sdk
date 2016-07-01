@@ -45,6 +45,7 @@ typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64Li
 
 [ $compiler == dart2js && $builder_tag != dart2js_analyzer ]
 analyzer/test/*: Skip # Issue 26813
+analyzer/tool/*: Skip # Issue 26813
 analysis_server/test/*: Skip # Issue 26813
 
 [ $compiler == dart2js && $checked ]
