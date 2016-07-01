@@ -797,6 +797,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       symbols_mutex_(new Mutex()),
       type_canonicalization_mutex_(new Mutex()),
       constant_canonicalization_mutex_(new Mutex()),
+      megamorphic_lookup_mutex_(new Mutex()),
       message_handler_(NULL),
       spawn_state_(NULL),
       is_runnable_(false),
@@ -863,6 +864,8 @@ Isolate::~Isolate() {
   type_canonicalization_mutex_ = NULL;
   delete constant_canonicalization_mutex_;
   constant_canonicalization_mutex_ = NULL;
+  delete megamorphic_lookup_mutex_;
+  megamorphic_lookup_mutex_ = NULL;
   delete message_handler_;
   message_handler_ = NULL;  // Fail fast if we send messages to a dead isolate.
   ASSERT(deopt_context_ == NULL);  // No deopt in progress when isolate deleted.
