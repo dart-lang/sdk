@@ -228,11 +228,8 @@ LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
 
 
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-#if defined(PRODUCT)
-  compiler->Bailout("PolymorphicInstanceCallInstr::EmitNativeCode");
-#else  // defined(PRODUCT)
-  compiler->Bailout(ToCString());
-#endif  // defined(PRODUCT)
+  Unsupported(compiler);
+  UNREACHABLE();
 }
 
 
@@ -565,13 +562,9 @@ EMIT_NATIVE_CODE(CreateArray,
 EMIT_NATIVE_CODE(StoreIndexed, 3) {
   if (compiler->is_optimizing()) {
     if (class_id() != kArrayCid) {
-#if defined(PRODUCT)
-      compiler->Bailout("StoreIndexed");
-#else  // defined(PRODUCT)
-      compiler->Bailout(ToCString());
-#endif  // defined(PRODUCT)
+      Unsupported(compiler);
+      UNREACHABLE();
     }
-
     __ StoreIndexed(locs()->in(kArrayPos).reg(),
                     locs()->in(kIndexPos).reg(),
                     locs()->in(kValuePos).reg());
@@ -1015,24 +1008,13 @@ EMIT_NATIVE_CODE(CheckEitherNonSmi, 2) {
 
 
 EMIT_NATIVE_CODE(CheckClassId, 1) {
-  if (!Utils::IsUint(16, cid_)) {
-#if defined(PRODUCT)
-    compiler->Bailout("CheckClassInstr::EmitNativeCode");
-#else  // defined(PRODUCT)
-    compiler->Bailout(ToCString());
-#endif  // defined(PRODUCT)
-  }
-  __ CheckClassId(locs()->in(0).reg(), cid_);
+  __ CheckClassId(locs()->in(0).reg(),
+                  compiler->ToEmbeddableCid(cid_, this));
   compiler->EmitDeopt(deopt_id(), ICData::kDeoptCheckClass);
 }
 
 
 EMIT_NATIVE_CODE(CheckClass, 1) {
-#if defined(PRODUCT)
-  const char* bailout_msg = "CheckClassInstr::EmitNativeCode";
-#else  // defined(PRODUCT)
-  const char* bailout_msg = ToCString();
-#endif  // defined(PRODUCT)
   const Register value = locs()->in(0).reg();
   if (IsNullCheck()) {
     ASSERT(DeoptIfNull() || DeoptIfNotNull());
@@ -1049,12 +1031,9 @@ EMIT_NATIVE_CODE(CheckClass, 1) {
     if (IsDenseSwitch()) {
       ASSERT(cids_[0] < cids_[cids_.length() - 1]);
       const intptr_t low_cid = cids_[0];
-      if (!Utils::IsUint(16, low_cid)) {
-        compiler->Bailout(bailout_msg);
-      }
       const intptr_t cid_mask = ComputeCidMask();
       __ CheckDenseSwitch(value, may_be_smi);
-      __ Nop(low_cid);
+      __ Nop(compiler->ToEmbeddableCid(low_cid, this));
       __ Nop(__ AddConstant(Smi::Handle(Smi::New(cid_mask))));
     } else {
       GrowableArray<CidTarget> sorted_ic_data;
@@ -1062,25 +1041,13 @@ EMIT_NATIVE_CODE(CheckClass, 1) {
                                            &sorted_ic_data,
                                            /* drop_smi = */ true);
       const intptr_t sorted_length = sorted_ic_data.length();
-      ASSERT(sorted_length >= 1);
-      if (sorted_length == 1) {
-        const intptr_t cid = sorted_ic_data[0].cid;
-        if (!Utils::IsUint(16, cid)) {
-          compiler->Bailout(bailout_msg);
-        }
-        __ CheckClassId(value, cid);
-      } else {
-        if (!Utils::IsUint(8, sorted_length)) {
-          compiler->Bailout(bailout_msg);
-        }
-        __ CheckCids(value, may_be_smi, sorted_length);
-        for (intptr_t i = 0; i < sorted_length; i++) {
-          const intptr_t cid = sorted_ic_data[i].cid;
-          if (!Utils::IsUint(16, cid)) {
-            compiler->Bailout(bailout_msg);
-          }
-          __ Nop(cid);
-        }
+      if (!Utils::IsUint(8, sorted_length)) {
+        Unsupported(compiler);
+        UNREACHABLE();
+      }
+      __ CheckCids(value, may_be_smi, sorted_length);
+      for (intptr_t i = 0; i < sorted_length; i++) {
+        __ Nop(compiler->ToEmbeddableCid(sorted_ic_data[i].cid, this));
       }
     }
   }

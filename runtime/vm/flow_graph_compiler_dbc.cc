@@ -397,6 +397,16 @@ void FlowGraphCompiler::CompileGraph() {
 }
 
 
+uint16_t FlowGraphCompiler::ToEmbeddableCid(intptr_t cid,
+                                            Instruction* instruction) {
+  if (!Utils::IsUint(16, cid)) {
+    instruction->Unsupported(this);
+    UNREACHABLE();
+  }
+  return static_cast<uint16_t>(cid);
+}
+
+
 #undef __
 #define __ compiler_->assembler()->
 
@@ -416,6 +426,7 @@ void ParallelMoveResolver::EmitMove(int index) {
     __ LoadConstant(destination.reg(), source.constant());
   } else {
     compiler_->Bailout("Unsupported move");
+    UNREACHABLE();
   }
 
   move->Eliminate();

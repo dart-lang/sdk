@@ -532,6 +532,9 @@ class FlowGraphCompiler : public ValueObject {
   void EmitDeopt(intptr_t deopt_id,
                  ICData::DeoptReasonId reason,
                  uint32_t flags = 0);
+
+  // If the cid does not fit in 16 bits, then this will cause a bailout.
+  uint16_t ToEmbeddableCid(intptr_t cid, Instruction* instruction);
 #endif  // defined(TARGET_ARCH_DBC)
 
   void AddDeoptIndexAtCall(intptr_t deopt_id, TokenPosition token_pos);

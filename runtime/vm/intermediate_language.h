@@ -891,6 +891,8 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 
   void ClearEnv() { env_ = NULL; }
 
+  void Unsupported(FlowGraphCompiler* compiler);
+
  protected:
   // GetDeoptId and/or CopyDeoptIdFrom.
   friend class CallSiteInliner;

@@ -126,6 +126,12 @@ bool Instruction::Equals(Instruction* other) const {
 }
 
 
+void Instruction::Unsupported(FlowGraphCompiler* compiler) {
+  compiler->Bailout(ToCString());
+  UNREACHABLE();
+}
+
+
 bool Value::Equals(Value* other) const {
   return definition() == other->definition();
 }
