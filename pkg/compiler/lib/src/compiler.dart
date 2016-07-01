@@ -922,7 +922,12 @@ abstract class Compiler implements LibraryLoaderListener {
     library.implementation.forEachLocalMember(enqueueAll);
     library.imports.forEach((ImportElement import) {
       if (import.isDeferred) {
-        world.addToWorkList(import.prefix.loadLibrary);
+        // `import.prefix` and `loadLibrary` may be `null` when the deferred
+        // import has compile-time errors.
+        GetterElement loadLibrary = import.prefix?.loadLibrary;
+        if (loadLibrary != null) {
+          world.addToWorkList(loadLibrary);
+        }
       }
     });
   }

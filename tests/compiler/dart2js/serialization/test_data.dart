@@ -490,6 +490,43 @@ test() {
     'b.dart': '''
 ''',
   }),
+
+  const Test('Deferred without prefix', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  test();
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+import 'b.dart' deferred;
+test() {}
+''',
+    'b.dart': '''
+''',
+  }, expectedErrorCount: 1),
+
+  const Test('Deferred with duplicate prefix', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  test();
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+import 'b.dart' deferred as pre;
+import 'c.dart' deferred as pre;
+test() {}
+''',
+    'b.dart': '''
+''',
+    'c.dart': '''
+''',
+  }, expectedErrorCount: 1),
 ];
 
 class Test {
