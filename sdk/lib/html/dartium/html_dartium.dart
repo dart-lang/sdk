@@ -39131,6 +39131,99 @@ class WheelEvent extends MouseEvent {
 // BSD-style license that can be found in the LICENSE file.
 
 
+typedef void RemoveFrameRequestMapping(int id);
+
+/**
+ * The task object representing animation-frame requests.
+ *
+ * For historical reasons, [Window.requestAnimationFrame] returns an integer
+ * to users. However, zone tasks must be unique objects, and an integer can
+ * therefore not be used as task object. The [Window] class thus keeps a mapping
+ * from the integer ID to the corresponding task object. All zone related
+ * operations work on this task object, whereas users of
+ * [Window.requestAnimationFrame] only see the integer ID.
+ *
+ * Since this mapping takes up space, it must be removed when the
+ * animation-frame task has triggered. The default implementation does this
+ * automatically, but intercepting implementations of `requestAnimationFrame`
+ * must make sure to call the [AnimationFrameTask.removeMapping]
+ * function that is provided in the task specification.
+ *
+ * *Experimental*. This class may disappear without notice.
+ */
+abstract class AnimationFrameTask {
+  /** The ID that is returned to users. */
+  int get id;
+
+  /** The zone in which the task will run. */
+  Zone get zone;
+
+  /**
+   * Cancels the animation-frame request.
+   *
+   * A call to [Window.cancelAnimationFrame] with an `id` argument equal to [id]
+   * forwards the request to this function.
+   *
+   * Zones that intercept animation-frame requests implement this method so
+   * that they can react to cancelation requests.
+   */
+  void cancel(Window window);
+
+  /**
+   * Maps animation-frame request IDs to their task objects.
+   */
+  static final Map<int, _AnimationFrameTask> _tasks = {};
+
+  /**
+   * Removes the mapping from [id] to [AnimationFrameTask].
+   *
+   * This function must be invoked by user-implemented animation-frame
+   * tasks, before running [callback].
+   *
+   * See [AnimationFrameTask].
+   */
+  static void removeMapping(int id) {
+    _tasks.remove(id);
+  }
+}
+
+class _AnimationFrameTask implements AnimationFrameTask {
+  final int id;
+  final Zone zone;
+  final FrameRequestCallback _callback;
+
+  _AnimationFrameTask(this.id, this.zone, this._callback);
+
+  void cancel(Window window) {
+    window._cancelAnimationFrame(this.id);
+  }
+}
+
+/**
+ * The task specification for an animation-frame request.
+ *
+ * *Experimental*. This class may disappear without notice.
+ */
+class AnimationFrameRequestSpecification implements TaskSpecification {
+  /**
+   * The window on which [Window.requestAnimationFrame] was invoked.
+   */
+  final Window window;
+
+  /**
+   * The callback that is executed when the animation-frame is ready.
+   *
+   * Note that the callback hasn't been registered in any zone when the `create`
+   * function (passed to [Zone.createTask]) is invoked.
+   */
+  final FrameRequestCallback callback;
+
+  AnimationFrameRequestSpecification(this.window, this.callback);
+
+  String get name => "dart.html.request-animation-frame";
+  bool get isOneShot => true;
+}
+
 @DocsEditable()
 /**
  * Top-level container for the current browser tab or window.
@@ -39185,9 +39278,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   Future<num> get animationFrame {
     var completer = new Completer<num>.sync();
-    requestAnimationFrame((time) {
-      completer.complete(time);
-    });
+    requestAnimationFrame(completer.complete);
     return completer.future;
   }
 
