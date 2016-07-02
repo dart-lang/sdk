@@ -19240,6 +19240,109 @@ class HtmlOptionsCollection extends HtmlCollection {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/**
+ * A task specification for HTTP requests.
+ *
+ * This specification is not available when an HTTP request is sent through
+ * direct use of [HttpRequest.send]. See [HttpRequestSendTaskSpecification].
+ *
+ * A task created from this specification is a `Future<HttpRequest>`.
+ *
+ * *Experimental*. This class may disappear without notice.
+ */
+class HttpRequestTaskSpecification extends TaskSpecification {
+  /// The URL of the request.
+  final String url;
+
+  /// The HTTP request method.
+  ///
+  /// By default (when `null`) this is a `"GET"` request. Alternatively, the
+  /// method can be `"POST"`, `"PUT"`, `"DELETE"`, etc.
+  final String method;
+
+  /// Whether the request should send credentials. Credentials are only useful
+  /// for cross-origin requests.
+  ///
+  /// See [HttpRequest.request] for more information.
+  final bool withCredentials;
+
+  /// The desired response format.
+  ///
+  /// Supported types are:
+  /// - `""`: (same as `"text"`),
+  /// - `"arraybuffer"`,
+  /// - `"blob"`,
+  /// - `"document"`,
+  /// - `"json"`,
+  /// - `"text"`
+  ///
+  /// When no value is provided (when equal to `null`) defaults to `""`.
+  final String responseType;
+
+  /// The desired MIME type.
+  ///
+  /// This overrides the default MIME type which is set up to transfer textual
+  /// data.
+  final String mimeType;
+
+  /// The request headers that should be sent with the request.
+  final Map<String, String> requestHeaders;
+
+  /// The data that is sent with the request.
+  ///
+  /// When data is provided (the value is not `null`), it must be a
+  /// [ByteBuffer], [Blob], [Document], [String], or [FormData].
+  final dynamic sendData;
+
+  /// The function that is invoked on progress updates. This function is
+  /// registered as an event listener on the created [HttpRequest] object, and
+  /// thus has its own task. Further invocations of the progress function do
+  /// *not* use the HTTP request task as task object.
+  ///
+  /// Creating an HTTP request automatically registers the on-progress listener.
+  final ZoneUnaryCallback<dynamic, ProgressEvent> onProgress;
+
+  HttpRequestTaskSpecification(this.url,
+      {String this.method, bool this.withCredentials, String this.responseType,
+      String this.mimeType, Map<String, String> this.requestHeaders,
+      this.sendData,
+      void this.onProgress(ProgressEvent e)});
+
+  String get name => "dart.html.http-request";
+  bool get isOneShot => true;
+}
+
+/**
+ * A task specification for HTTP requests that are initiated through a direct
+ * invocation of [HttpRequest.send].
+ *
+ * This specification serves as signal to zones that an HTTP request has been
+ * initiated. The created task is the [request] object itself, and
+ * no callback is ever executed in this task.
+ *
+ * Note that event listeners on the HTTP request are also registered in the
+ * zone (although with their own task creations), and that a zone can thus
+ * detect when the HTTP request returns.
+ *
+ * HTTP requests that are initiated through `request` methods don't use
+ * this class but use [HttpRequestTaskSpecification].
+ *
+ * *Experimental*. This class may disappear without notice.
+ */
+class HttpRequestSendTaskSpecification extends TaskSpecification {
+  final HttpRequest request;
+  final dynamic sendData;
+
+  HttpRequestSendTaskSpecification(this.request, this.sendData);
+
+  String get name => "dart.html.http-request-send";
+
+  /**
+   * No callback is ever executed in an HTTP request send task.
+   */
+  bool get isOneShot => false;
+}
+
  /**
   * A client-side XHR request for getting data from a URL,
   * formally known as XMLHttpRequest.
@@ -19428,7 +19531,34 @@ class HttpRequest extends HttpRequestEventTarget {
       {String method, bool withCredentials, String responseType,
       String mimeType, Map<String, String> requestHeaders, sendData,
       void onProgress(ProgressEvent e)}) {
+    var spec = new HttpRequestTaskSpecification(
+        url, method: method,
+        withCredentials: withCredentials,
+        responseType: responseType,
+        mimeType: mimeType,
+        requestHeaders: requestHeaders,
+        sendData: sendData,
+        onProgress: onProgress);
+
+    if (identical(Zone.current, Zone.ROOT)) {
+      return _createHttpRequestTask(spec, null);
+    }
+    return Zone.current.createTask(_createHttpRequestTask, spec);
+  }
+
+  static Future<HttpRequest> _createHttpRequestTask(
+      HttpRequestTaskSpecification spec, Zone zone) {
+    String url = spec.url;
+    String method = spec.method;
+    bool withCredentials = spec.withCredentials;
+    String responseType = spec.responseType;
+    String mimeType = spec.mimeType;
+    Map<String, String> requestHeaders = spec.requestHeaders;
+    var sendData = spec.sendData;
+    var onProgress = spec.onProgress;
+
     var completer = new Completer<HttpRequest>();
+    var task = completer.future;
 
     var xhr = new HttpRequest();
     if (method == null) {
@@ -19468,23 +19598,42 @@ class HttpRequest extends HttpRequestEventTarget {
       // redirect case will be handled by the browser before it gets to us,
       // so if we see it we should pass it through to the user.
       var unknownRedirect = xhr.status > 307 && xhr.status < 400;
-      
-      if (accepted || fileUri || notModified || unknownRedirect) {
+
+      var isSuccessful = accepted || fileUri || notModified || unknownRedirect;
+
+      if (zone == null && isSuccessful) {
         completer.complete(xhr);
-      } else {
+      } else if (zone == null) {
         completer.completeError(e);
+      } else if (isSuccessful) {
+        zone.runTask((task, value) {
+          completer.complete(value);
+        }, task, xhr);
+      } else {
+        zone.runTask((task, error) {
+          completer.completeError(error);
+        }, task, e);
       }
     });
 
-    xhr.onError.listen(completer.completeError);
-
-    if (sendData != null) {
-      xhr.send(sendData);
+    if (zone == null) {
+      xhr.onError.listen(completer.completeError);
     } else {
-      xhr.send();
+      xhr.onError.listen((error) {
+        zone.runTask((task, error) {
+          completer.completeError(error);
+        }, task, error);
+      });
     }
 
-    return completer.future;
+    if (sendData != null) {
+      // TODO(floitsch): should we go through 'send()' and have nested tasks?
+      xhr._send(sendData);
+    } else {
+      xhr._send();
+    }
+
+    return task;
   }
 
   /**
@@ -19538,6 +19687,9 @@ class HttpRequest extends HttpRequestEventTarget {
         return xhr.responseText;
       });
     }
+    // TODO(floitsch): the following code doesn't go through task zones.
+    // Since 'XDomainRequest' is an IE9 feature we should probably just remove
+    // it.
     var completer = new Completer<String>();
     if (method == null) {
       method = 'GET';
@@ -19616,12 +19768,42 @@ class HttpRequest extends HttpRequestEventTarget {
    *
    * Note: Most simple HTTP requests can be accomplished using the [getString],
    * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
-   * `open` method is intended only for more complext HTTP requests where
+   * `open` method is intended only for more complex HTTP requests where
    * finer-grained control is needed.
    */
   @DomName('XMLHttpRequest.open')
   @DocsEditable()
   void open(String method, String url, {bool async, String user, String password}) native;
+
+  /**
+   * Sends the request with any given `data`.
+   *
+   * Note: Most simple HTTP requests can be accomplished using the [getString],
+   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
+   * `send` method is intended only for more complex HTTP requests where
+   * finer-grained control is needed.
+   *
+   * ## Other resources
+   *
+   * * [XMLHttpRequest.send](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send%28%29)
+   *   from MDN.
+   */
+  @DomName('XMLHttpRequest.send')
+  @DocsEditable()
+  void send([body_OR_data]) {
+    if (identical(Zone.current, Zone.ROOT)) {
+      _send(body_OR_data);
+    } else {
+      Zone.current.createTask(_createHttpRequestSendTask,
+          new HttpRequestSendTaskSpecification(this, body_OR_data));
+    }
+  }
+
+  static HttpRequest _createHttpRequestSendTask(
+      HttpRequestSendTaskSpecification spec, Zone zone) {
+    spec.request._send(spec.sendData);
+    return spec.request;
+  }
 
   // To suppress missing implicit constructor warnings.
   factory HttpRequest._() { throw new UnsupportedError("Not supported"); }
@@ -19893,12 +20075,13 @@ class HttpRequest extends HttpRequestEventTarget {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void overrideMimeType(String mime) native;
 
+  @JSName('send')
   /**
    * Send the request with any given `data`.
    *
    * Note: Most simple HTTP requests can be accomplished using the [getString],
    * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
-   * `send` method is intended only for more complext HTTP requests where
+   * `send` method is intended only for more complex HTTP requests where
    * finer-grained control is needed.
    *
    * ## Other resources
@@ -19908,7 +20091,7 @@ class HttpRequest extends HttpRequestEventTarget {
    */
   @DomName('XMLHttpRequest.send')
   @DocsEditable()
-  void send([body_OR_data]) native;
+  void _send([body_OR_data]) native;
 
   /**
    * Sets the value of an HTTP requst header.
