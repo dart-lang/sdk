@@ -224,10 +224,14 @@ abstract class ZoneDelegate {
 }
 
 /**
- * A Zone represents the asynchronous version of a dynamic extent. Asynchronous
- * callbacks are executed in the zone they have been queued in. For example,
- * the callback of a `future.then` is executed in the same zone as the one where
- * the `then` was invoked.
+ * A Zone is an execution context that persists across
+ * async functions.
+ * 
+ * Asynchronous callbacks are executed in the zone they have been queued in.
+ * For example, the callback of a `future.then` is executed in the same zone as
+ * the one where the `then` was invoked.
+ * 
+ * A Zone represents the asynchronous version of a _dynamic extent_.
  */
 abstract class Zone {
   // Private constructor so that it is not possible instantiate a Zone class.
