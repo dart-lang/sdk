@@ -4,26 +4,31 @@
 
 part of dart.dom.html;
 
-ZoneUnaryCallback/*<R, T>*/ _registerZone/*<R, T>*/(Zone zone,
-    ZoneUnaryCallback/*<R, T>*/ callback) {
-  // For performance reasons avoid registering if we are in the root zone.
-  if (identical(zone, Zone.ROOT)) return callback;
-  if (callback == null) return null;
-  return zone.registerUnaryCallback(callback);
-}
+// TODO(jacobr): remove these typedefs when dart:async supports generic types.
+typedef R _wrapZoneCallback<A, R>(A a);
+typedef R _wrapZoneBinaryCallback<A, B, R>(A a, B b);
 
-ZoneUnaryCallback/*<R, T>*/ _wrapZone/*<R, T>*/(ZoneUnaryCallback/*<R, T>*/ callback) {
+_wrapZoneCallback/*<A, R>*/ _wrapZone/*<A, R>*/(_wrapZoneCallback/*<A, R>*/ callback) {
   // For performance reasons avoid wrapping if we are in the root zone.
-  if (identical(Zone.current, Zone.ROOT)) return callback;
+  if (Zone.current == Zone.ROOT) return callback;
   if (callback == null) return null;
-  return Zone.current.bindUnaryCallback(callback, runGuarded: true);
+  // TODO(jacobr): we cast to _wrapZoneCallback/*<A, R>*/ to hack around missing
+  // generic method support in zones.
+  // ignore: STRONG_MODE_DOWN_CAST_COMPOSITE
+  _wrapZoneCallback/*<A, R>*/ wrapped =
+      Zone.current.bindUnaryCallback(callback, runGuarded: true);
+  return wrapped;
 }
 
-ZoneBinaryCallback/*<R, A, B>*/ _wrapBinaryZone/*<R, A, B>*/(
-    ZoneBinaryCallback/*<R, A, B>*/ callback) {
-  if (identical(Zone.current, Zone.ROOT)) return callback;
+_wrapZoneBinaryCallback/*<A, B, R>*/ _wrapBinaryZone/*<A, B, R>*/(_wrapZoneBinaryCallback/*<A, B, R>*/ callback) {
+  if (Zone.current == Zone.ROOT) return callback;
   if (callback == null) return null;
-  return Zone.current.bindBinaryCallback(callback, runGuarded: true);
+  // We cast to _wrapZoneBinaryCallback/*<A, B, R>*/ to hack around missing
+  // generic method support in zones.
+  // ignore: STRONG_MODE_DOWN_CAST_COMPOSITE
+  _wrapZoneBinaryCallback/*<A, B, R>*/ wrapped =
+      Zone.current.bindBinaryCallback(callback, runGuarded: true);
+  return wrapped;
 }
 
 /**
