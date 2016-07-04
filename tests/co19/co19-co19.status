@@ -76,7 +76,7 @@ LibTest/isolate/SendPort/send_A03_t02: Fail # Co19 issue 639
 [ $runtime == dartium || $compiler == dart2js ]
 LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
 
-[ $compiler == none && ($runtime == vm || $runtime == drt || $runtime == dartium)]
+[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == drt || $runtime == dartium || $runtime == dart_precompiled) ]
 # Optional trailing commas for argument and parameter lists added to language.
 # https://github.com/dart-lang/co19/issues/68
 Language/Expressions/Function_Invocation/Actual_Argument_List_Evaluation/syntax_t05: Fail, OK
