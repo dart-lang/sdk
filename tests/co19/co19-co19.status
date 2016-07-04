@@ -79,10 +79,10 @@ LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
 [ $compiler == none && ($runtime == vm || $runtime == drt || $runtime == dartium)]
 # Optional trailing commas for argument and parameter lists added to language.
 # https://github.com/dart-lang/co19/issues/68
-Language/Expressions/Function_Invocation/Actual_Argument_List_Evaluation/syntax_t05: MissingCompileTimeError, OK
-Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t05: MissingCompileTimeError, OK
-Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t10: MissingCompileTimeError, OK
-Language/Expressions/Method_Invocation/Super_Invocation/syntax_t05: MissingCompileTimeError, OK
-Language/Functions/Formal_Parameters/syntax_t04: MissingCompileTimeError, OK
-Language/Functions/Formal_Parameters/syntax_t05: MissingCompileTimeError, OK
-Language/Functions/Formal_Parameters/syntax_t12: MissingCompileTimeError, OK
+Language/Expressions/Function_Invocation/Actual_Argument_List_Evaluation/syntax_t05: Fail, OK
+Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t05: Fail, OK
+Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t10: Fail, OK
+Language/Expressions/Method_Invocation/Super_Invocation/syntax_t05: Fail, OK
+Language/Functions/Formal_Parameters/syntax_t04: Fail, OK
+Language/Functions/Formal_Parameters/syntax_t05: Fail, OK
+Language/Functions/Formal_Parameters/syntax_t12: Fail, OK
