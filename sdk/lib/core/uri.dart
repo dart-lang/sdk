@@ -1370,6 +1370,13 @@ class _Uri implements Uri {
   String _text;
 
   /**
+   * Cache of the hashCode of [_text].
+   *
+   * Is null until computed.
+   */
+  int _hashCodeCache;
+
+  /**
    * Cache the computed return value of [queryParameters].
    */
   Map<String, String> _queryParameters;
@@ -2580,7 +2587,11 @@ class _Uri implements Uri {
   UriData get data => (scheme == "data") ? new UriData.fromUri(this) : null;
 
   String toString() {
-    if (_text != null) return _text;
+    return _text ??= _initializeText();
+  }
+
+  String _initializeText() {
+    assert(_text == null);
     StringBuffer sb = new StringBuffer();
     if (scheme.isNotEmpty) sb..write(scheme)..write(":");
     if (hasAuthority || path.startsWith("//") || (scheme == "file")) {
@@ -2592,8 +2603,7 @@ class _Uri implements Uri {
     sb.write(path);
     if (_query != null) sb..write("?")..write(_query);
     if (_fragment != null) sb..write("#")..write(_fragment);
-    _text = sb.toString();
-    return _text;
+    return sb.toString();
   }
 
   bool operator==(other) {
@@ -2615,7 +2625,7 @@ class _Uri implements Uri {
   }
 
   int get hashCode {
-    return (_text ?? toString()).hashCode;
+    return _hashCodeCache ??= toString().hashCode;
   }
 
   static List _createList() => [];
@@ -4002,6 +4012,7 @@ class _SimpleUri implements Uri {
   /// To make comparisons more efficient, we cache the value, and
   /// canonicalize a few known types.
   String _schemeCache;
+  int _hashCodeCache;
 
   _SimpleUri(
       this._uri,
@@ -4409,7 +4420,7 @@ class _SimpleUri implements Uri {
     return null;
   }
 
-  int get hashCode => _uri.hashCode;
+  int get hashCode => _hashCodeCache ??= _uri.hashCode;
 
   bool operator==(Object other) {
     if (identical(this, other)) return true;
