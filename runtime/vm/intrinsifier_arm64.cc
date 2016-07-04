@@ -682,6 +682,11 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Smi_bitAndFromSmi(Assembler* assembler) {
+  Integer_bitAndFromInteger(assembler);
+}
+
+
 void Intrinsifier::Bigint_lsh(Assembler* assembler) {
   // static void _lsh(Uint32List x_digits, int x_used, int n,
   //                  Uint32List r_digits)

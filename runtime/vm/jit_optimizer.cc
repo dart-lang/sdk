@@ -1823,6 +1823,18 @@ bool JitOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     return TryInlineFloat64x2Method(call, recognized_kind);
   }
 
+  if (recognized_kind == MethodRecognizer::kSmi_bitAndFromSmi) {
+    AddReceiverCheck(call);
+    BinarySmiOpInstr* op =
+        new(Z) BinarySmiOpInstr(
+            Token::kBIT_AND,
+            new(Z) Value(call->ArgumentAt(0)),
+            new(Z) Value(call->ArgumentAt(1)),
+            call->deopt_id());
+    ReplaceCall(call, op);
+    return true;
+  }
+
   return false;
 }
 

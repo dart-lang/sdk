@@ -63,6 +63,7 @@ abstract class _IntegerImplementation {
   num remainder(num other) {
     return other._remainderFromInteger(this);
   }
+  int _bitAndFromSmi(int other) native "Integer_bitAndFromInteger";
   int _bitAndFromInteger(int other) native "Integer_bitAndFromInteger";
   int _bitOrFromInteger(int other) native "Integer_bitOrFromInteger";
   int _bitXorFromInteger(int other) native "Integer_bitXorFromInteger";
@@ -412,6 +413,9 @@ class _Smi extends _IntegerImplementation implements int {
   int operator ~() native "Smi_bitNegate";
   int get bitLength native "Smi_bitLength";
 
+  int operator &(int other) => other._bitAndFromSmi(this);
+
+  int _bitAndFromSmi(int other) native "Smi_bitAndFromSmi";
   int _shrFromInt(int other) native "Smi_shrFromInt";
   int _shlFromInt(int other) native "Smi_shlFromInt";
 
@@ -608,6 +612,8 @@ class _Mint extends _IntegerImplementation implements int {
   int get hashCode => this;
   int operator ~() native "Mint_bitNegate";
   int get bitLength native "Mint_bitLength";
+
+  int _bitAndFromSmi(int other) => _bitAndFromInteger(other);
 
   // Shift by mint exceeds range that can be handled by the VM.
   int _shrFromInt(int other) {
