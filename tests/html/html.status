@@ -142,6 +142,7 @@ notification_test/supported_notification: Fail # Notification not supported on I
 event_test: RuntimeError # Issue 23437. Only three failures, but hard to break them out.
 wheelevent_test: RuntimeError # Issue 23437
 text_event_test: RuntimeError # Issue 23437
+event_zone_task_test: RuntimeError # Issue 23437
 transition_event_test/functional: Skip # Times out. Issue 22167
 request_animation_frame_test: Skip # Times out. Issue 22167
 
@@ -361,6 +362,7 @@ touchevent_test/supported: Fail
 
 [ (($runtime == dartium || $runtime == drt) && $system == macos) || $system == windows ]
 xhr_test/xhr: Skip # Times out.  Issue 21527
+xhr_task_test/xhr: Skip # Times out.  Issue 21527
 
 [ $compiler == dart2analyzer ]
 custom/document_register_basic_test: StaticWarning
