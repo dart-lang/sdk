@@ -2074,6 +2074,9 @@ void Parser::ParseFormalParameters(bool allow_explicit_default_values,
                                    bool evaluate_metadata,
                                    ParamList* params) {
   TRACE_PARSER("ParseFormalParameters");
+  // Optional parameter lists cannot be empty.
+  // The completely empty parameter list is handled before getting here.
+  bool has_seen_parameter = false;
   do {
     ConsumeToken();
     if (!params->has_optional_positional_parameters &&
@@ -2090,9 +2093,18 @@ void Parser::ParseFormalParameters(bool allow_explicit_default_values,
       params->has_optional_named_parameters = true;
       return;
     }
+    Token::Kind terminator =
+       params->has_optional_positional_parameters ? Token::kRBRACK :
+       params->has_optional_named_parameters ? Token::kRBRACE :
+       Token :: kRPAREN;
+    if (has_seen_parameter && CurrentToken() == terminator) {
+      // Allow a trailing comma.
+      break;
+    }
     ParseFormalParameter(allow_explicit_default_values,
                          evaluate_metadata,
                          params);
+    has_seen_parameter = true;
   } while (CurrentToken() == Token::kCOMMA);
 }
 
@@ -11230,6 +11242,10 @@ ArgumentListNode* Parser::ParseActualParameters(
       ASSERT((CurrentToken() == Token::kLPAREN) ||
              (CurrentToken() == Token::kCOMMA));
       ConsumeToken();
+      if (CurrentToken() == Token::kRPAREN) {
+        // Allow trailing comma.
+        break;
+      }
       if (IsIdentifier() && (LookaheadToken(1) == Token::kCOLON)) {
         named_argument_seen = true;
         // The canonicalization of the arguments descriptor array built in
