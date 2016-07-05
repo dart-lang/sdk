@@ -27,8 +27,20 @@ void moveSuperCallLast(Constructor node) {
   SuperInitializer superCall = initializers[superIndex];
   Arguments arguments = superCall.arguments;
   int argumentCount = arguments.positional.length + arguments.named.length;
-  initializers.add(superCall);
-  _insertEntriesAt(initializers, superIndex, argumentCount - 1);
+
+  // We move all initializers after the super call to the place where the super
+  // call was, but reserve [argumentCount] slots before that for
+  // [LocalInitializer]s.
+  initializers.length += argumentCount;
+  initializers.setRange(
+      superIndex + argumentCount,  // desination start (inclusive)
+      initializers.length - 1,     // desination end (exclusive)
+      initializers,                // source list
+      superIndex + 1);             // source start index
+  initializers[initializers.length - 1] = superCall;
+
+  // Fill in the [argumentCount] reserved slots with the evaluation expressions
+  // of the arguments to the super constructor call.
   int storeIndex = superIndex;
   for (int i = 0; i < arguments.positional.length; ++i) {
     var variable = new VariableDeclaration.forValue(arguments.positional[i]);
@@ -43,12 +55,3 @@ void moveSuperCallLast(Constructor node) {
   }
 }
 
-/// Inserts new entries at the given index, shifting entries after that index
-/// towards the end of the list.
-void _insertEntriesAt(List<Initializer> list, int index, int count) {
-  int originalLength = list.length;
-  list.length += count;
-  for (int i = 0; i < count; ++i) {
-    list[list.length - i - 1] = list[originalLength - i - 1];
-  }
-}
