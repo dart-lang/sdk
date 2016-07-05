@@ -246,7 +246,9 @@ $endif
    */
   @DomName('Window.cancelAnimationFrame')
   void cancelAnimationFrame(int id) {
+$if DART2JS
     _ensureRequestAnimationFrame();
+$endif
     var task = AnimationFrameTask._tasks.remove(id);
     if (task == null) {
       // Assume that the animation frame request wasn't intercepted by a zone.

@@ -39519,7 +39519,6 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.cancelAnimationFrame')
   void cancelAnimationFrame(int id) {
-    _ensureRequestAnimationFrame();
     var task = AnimationFrameTask._tasks.remove(id);
     if (task == null) {
       // Assume that the animation frame request wasn't intercepted by a zone.
