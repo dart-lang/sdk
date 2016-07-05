@@ -75,9 +75,7 @@ class C {
   operator []=(x, y, ) {}                             /// none: continued
 }
 
-main(
-    args,                                             /// main_with_trailing
-    ) {
+main() {
   testCalls();                                        /// none: continued
   // Make sure the Bad class is checked.
   new Bad().method();
