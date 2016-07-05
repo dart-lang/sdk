@@ -5,11 +5,12 @@
 # This directory contains tests that are intended to show the
 # current state of the language.
 
-[ $compiler != none || ($runtime != vm && $runtime != dartium && $runtime != drt)]
+[ ($compiler != none && $compiler != precompiler) || ($runtime != vm && $runtime != dartium && $runtime != drt)]
 arg_param_trailing_comma_test/none: Fail # Issue 26644
 
 [ $compiler == none || $runtime == dartium && $runtime == drt ]
 arg_param_trailing_comma_test/main_with_trailing: Fail, OK # Dartium only looks for main without args.
+arg_param_trailing_comma_test/none: Fail, OK # Dartium only looks for main without args.
 
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) ]
 tearoff_constructor_basic_test: Skip # Crashes in checked mode -- hausner investigating
