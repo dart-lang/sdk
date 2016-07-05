@@ -5,6 +5,18 @@
 library dart2js.serialization_test_data;
 
 const List<Test> TESTS = const <Test>[
+  // This test is very long-running and put here first to compile it on its own
+  // in compilation0_test.dart
+  const Test('Disable tree shaking through reflection', const {
+    'main.dart': '''
+import 'dart:mirrors';
+
+main() {
+  reflect(null).invoke(#toString, []).reflectee;
+}
+''',
+  }, expectedWarningCount: 1),
+
   const Test('Empty program', const {
     'main.dart': 'main() {}'
   }),
@@ -375,16 +387,6 @@ void foo() {}
 main() => const String.fromEnvironment("foo");
 ''',
   }),
-
-  const Test('Disable tree shaking through reflection', const {
-    'main.dart': '''
-import 'dart:mirrors';
-
-main() {
-  reflect(null).invoke(#toString, []).reflectee;
-}
-''',
-  }, expectedWarningCount: 1),
 
   const Test('Unused noSuchMethod', const {
     'main.dart': '''
