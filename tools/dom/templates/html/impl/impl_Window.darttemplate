@@ -4,6 +4,99 @@
 
 part of $LIBRARYNAME;
 
+typedef void RemoveFrameRequestMapping(int id);
+
+/**
+ * The task object representing animation-frame requests.
+ *
+ * For historical reasons, [Window.requestAnimationFrame] returns an integer
+ * to users. However, zone tasks must be unique objects, and an integer can
+ * therefore not be used as task object. The [Window] class thus keeps a mapping
+ * from the integer ID to the corresponding task object. All zone related
+ * operations work on this task object, whereas users of
+ * [Window.requestAnimationFrame] only see the integer ID.
+ *
+ * Since this mapping takes up space, it must be removed when the
+ * animation-frame task has triggered. The default implementation does this
+ * automatically, but intercepting implementations of `requestAnimationFrame`
+ * must make sure to call the [AnimationFrameTask.removeMapping]
+ * function that is provided in the task specification.
+ *
+ * *Experimental*. This class may disappear without notice.
+ */
+abstract class AnimationFrameTask {
+  /** The ID that is returned to users. */
+  int get id;
+
+  /** The zone in which the task will run. */
+  Zone get zone;
+
+  /**
+   * Cancels the animation-frame request.
+   *
+   * A call to [Window.cancelAnimationFrame] with an `id` argument equal to [id]
+   * forwards the request to this function.
+   *
+   * Zones that intercept animation-frame requests implement this method so
+   * that they can react to cancelation requests.
+   */
+  void cancel(Window window);
+
+  /**
+   * Maps animation-frame request IDs to their task objects.
+   */
+  static final Map<int, _AnimationFrameTask> _tasks = {};
+
+  /**
+   * Removes the mapping from [id] to [AnimationFrameTask].
+   *
+   * This function must be invoked by user-implemented animation-frame
+   * tasks, before running [callback].
+   *
+   * See [AnimationFrameTask].
+   */
+  static void removeMapping(int id) {
+    _tasks.remove(id);
+  }
+}
+
+class _AnimationFrameTask implements AnimationFrameTask {
+  final int id;
+  final Zone zone;
+  final FrameRequestCallback _callback;
+
+  _AnimationFrameTask(this.id, this.zone, this._callback);
+
+  void cancel(Window window) {
+    window._cancelAnimationFrame(this.id);
+  }
+}
+
+/**
+ * The task specification for an animation-frame request.
+ *
+ * *Experimental*. This class may disappear without notice.
+ */
+class AnimationFrameRequestSpecification implements TaskSpecification {
+  /**
+   * The window on which [Window.requestAnimationFrame] was invoked.
+   */
+  final Window window;
+
+  /**
+   * The callback that is executed when the animation-frame is ready.
+   *
+   * Note that the callback hasn't been registered in any zone when the `create`
+   * function (passed to [Zone.createTask]) is invoked.
+   */
+  final FrameRequestCallback callback;
+
+  AnimationFrameRequestSpecification(this.window, this.callback);
+
+  String get name => "dart.html.request-animation-frame";
+  bool get isOneShot => true;
+}
+
 @DocsEditable()
 $if DART2JS
 $(ANNOTATIONS)@Native("Window,DOMWindow")
@@ -29,9 +122,7 @@ $endif
    */
   Future<num> get animationFrame {
     var completer = new Completer<num>.sync();
-    requestAnimationFrame((time) {
-      completer.complete(time);
-    });
+    requestAnimationFrame(completer.complete);
     return completer.future;
   }
 
@@ -115,7 +206,30 @@ $if DART2JS
   @DomName('Window.requestAnimationFrame')
   int requestAnimationFrame(FrameRequestCallback callback) {
     _ensureRequestAnimationFrame();
-    return _requestAnimationFrame(_wrapZone/*<num, dynamic>*/(callback));
+    if (identical(Zone.current, Zone.ROOT)) {
+      return _requestAnimationFrame(callback);
+    }
+    var spec = new AnimationFrameRequestSpecification(this, callback);
+    var task = Zone.current.createTask/*<AnimationFrameTask>*/(
+        _createAnimationFrameTask, spec);
+    AnimationFrameTask._tasks[task.id] = task;
+    return task.id;
+  }
+
+  static _AnimationFrameTask _createAnimationFrameTask(
+      AnimationFrameRequestSpecification spec, Zone zone) {
+    var task;
+    var id = spec.window._requestAnimationFrame((num time) {
+      AnimationFrameTask.removeMapping(task.id);
+      zone.runTask(_runAnimationFrame, task, time);
+    });
+    var callback = zone.registerUnaryCallback(spec.callback);
+    task = new _AnimationFrameTask(id, zone, callback);
+    return task;
+  }
+
+  static void _runAnimationFrame(_AnimationFrameTask task, num time) {
+    task._callback(time);
   }
 
   /**
@@ -128,7 +242,13 @@ $if DART2JS
    */
   void cancelAnimationFrame(int id) {
     _ensureRequestAnimationFrame();
-    _cancelAnimationFrame(id);
+    var task = AnimationFrameTask._tasks.remove(id);
+    if (task == null) {
+      // Assume that the animation frame request wasn't intercepted by a zone.
+      _cancelAnimationFrame(id);
+      return;
+    }
+    task.cancel(this);
   }
 
   @JSName('requestAnimationFrame')

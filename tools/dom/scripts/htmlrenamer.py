@@ -404,6 +404,8 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Window.requestAnimationFrame',
   'Window.setInterval',
   'Window.setTimeout',
+
+  'XMLHttpRequest.send',
 ])
 
 # Members from the standard dom that exist in the dart:html library with
