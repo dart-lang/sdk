@@ -1634,6 +1634,27 @@ class A {}
 ''');
   }
 
+  test_update_commentReference_multipleCommentTokens() {
+    _buildOldUnit(r'''
+class A {
+  /// C1 [C2]
+  /// C3 [C4]
+  /// C5 [C6]
+  void m() {}
+}
+''');
+    _buildNewUnit(r'''
+class A {
+  int field;
+
+  /// C1 [C2]
+  /// C3 [C4]
+  /// C5 [C6]
+  void m() {}
+}
+''');
+  }
+
   test_update_commentReference_notClosed() {
     _buildOldUnit(r'''
 /// [c)

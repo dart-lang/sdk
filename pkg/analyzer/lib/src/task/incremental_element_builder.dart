@@ -538,22 +538,23 @@ class TokenUtils {
   static void copyTokenOffsets(Map<int, int> offsetMap, Token oldToken,
       Token newToken, Token oldEndToken, Token newEndToken) {
     if (oldToken is CommentToken && newToken is CommentToken) {
-      // Update (otherwise unlinked) reference tokens in documentation.
-      if (oldToken is DocumentationCommentToken &&
-          newToken is DocumentationCommentToken) {
-        List<Token> oldReferences = oldToken.references;
-        List<Token> newReferences = newToken.references;
-        assert(oldReferences.length == newReferences.length);
-        for (int i = 0; i < oldReferences.length; i++) {
-          copyTokenOffsets(offsetMap, oldReferences[i], newReferences[i],
-              oldEndToken, newEndToken);
-        }
-      }
       // Update documentation tokens.
       while (oldToken != null) {
         offsetMap[oldToken.offset] = newToken.offset;
         offsetMap[oldToken.end] = newToken.end;
         oldToken.offset = newToken.offset;
+        // Update (otherwise unlinked) reference tokens in documentation.
+        if (oldToken is DocumentationCommentToken &&
+            newToken is DocumentationCommentToken) {
+          List<Token> oldReferences = oldToken.references;
+          List<Token> newReferences = newToken.references;
+          assert(oldReferences.length == newReferences.length);
+          for (int i = 0; i < oldReferences.length; i++) {
+            copyTokenOffsets(offsetMap, oldReferences[i], newReferences[i],
+                oldEndToken, newEndToken);
+          }
+        }
+        // Next tokens.
         oldToken = oldToken.next;
         newToken = newToken.next;
       }
