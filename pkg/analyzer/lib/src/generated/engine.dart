@@ -1095,6 +1095,12 @@ abstract class AnalysisOptions {
   bool get enableTiming;
 
   /**
+   * Return `true` to enable trailing commas in parameter and argument lists
+   * (sdk#26647).
+   */
+  bool get enableTrailingCommas;
+
+  /**
    * A flag indicating whether finer grained dependencies should be used
    * instead of just source level dependencies.
    *
@@ -1242,6 +1248,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool enableTiming = false;
 
+  @override
+  bool enableTrailingCommas = false;
+
   /**
    * A flag indicating whether errors, warnings and hints should be generated
    * for sources that are implicitly being analyzed.
@@ -1346,6 +1355,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     enableGenericMethods = options.enableGenericMethods;
     enableSuperMixins = options.enableSuperMixins;
     enableTiming = options.enableTiming;
+    enableTrailingCommas = options.enableTrailingCommas;
     generateImplicitErrors = options.generateImplicitErrors;
     generateSdkErrors = options.generateSdkErrors;
     hint = options.hint;

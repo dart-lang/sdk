@@ -5,12 +5,14 @@
 library dart2js.serialization.elements;
 
 import '../common.dart';
+import '../common/names.dart';
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../diagnostics/messages.dart';
 import '../elements/elements.dart';
-import '../elements/modelx.dart' show ErroneousElementX;
+import '../elements/modelx.dart'
+    show DeferredLoaderGetterElementX, ErroneousElementX;
 import 'constant_serialization.dart';
 import 'keys.dart';
 import 'modelz.dart';
@@ -51,6 +53,7 @@ enum SerializedElementKind {
   IMPORT,
   EXPORT,
   PREFIX,
+  DEFERRED_LOAD_LIBRARY,
   LOCAL_VARIABLE,
   EXTERNAL_LIBRARY,
   EXTERNAL_LIBRARY_MEMBER,
@@ -69,6 +72,8 @@ const List<ElementSerializer> ELEMENT_SERIALIZERS = const [
   const ErrorSerializer(),
   const LibrarySerializer(),
   const CompilationUnitSerializer(),
+  const PrefixSerializer(),
+  const DeferredLoadLibrarySerializer(),
   const ClassSerializer(),
   const ConstructorSerializer(),
   const FieldSerializer(),
@@ -78,7 +83,6 @@ const List<ElementSerializer> ELEMENT_SERIALIZERS = const [
   const ParameterSerializer(),
   const ImportSerializer(),
   const ExportSerializer(),
-  const PrefixSerializer(),
   const LocalVariableSerializer(),
 ];
 
@@ -289,7 +293,6 @@ class LibrarySerializer implements ElementSerializer {
     encoder.setElements(Key.EXPORTS, element.exports);
 
     encoder.setElements(Key.IMPORT_SCOPE, getImportedElements(element));
-
     encoder.setElements(Key.EXPORT_SCOPE, getExportedElements(element));
   }
 }
@@ -423,7 +426,8 @@ class ConstructorSerializer implements ElementSerializer {
       SerializedElementKind kind) {
     SerializerUtil.serializeParentRelation(element, encoder);
     if (kind == SerializedElementKind.FORWARDING_CONSTRUCTOR) {
-      encoder.setElement(Key.ELEMENT, element.definingConstructor);
+      serializeElementReference(element.enclosingClass, Key.ELEMENT, Key.NAME,
+          encoder, element.definingConstructor);
     } else {
       SerializerUtil.serializeMetadata(element, encoder);
       encoder.setType(Key.TYPE, element.type);
@@ -500,6 +504,9 @@ class FunctionSerializer implements ElementSerializer {
   const FunctionSerializer();
 
   SerializedElementKind getSerializedKind(Element element) {
+    if (element.isDeferredLoaderGetter) {
+      return null;
+    }
     if (element.isFunction) {
       if (element.isTopLevel) return SerializedElementKind.TOPLEVEL_FUNCTION;
       if (element.isStatic) return SerializedElementKind.STATIC_FUNCTION;
@@ -713,10 +720,27 @@ class PrefixSerializer implements ElementSerializer {
     encoder.setString(Key.NAME, element.name);
     encoder.setElement(Key.LIBRARY, element.library);
     encoder.setElement(Key.COMPILATION_UNIT, element.compilationUnit);
-    if (element.deferredImport != null) {
-      encoder.setElement(Key.IMPORT, element.deferredImport);
-    }
     encoder.setBool(Key.IS_DEFERRED, element.isDeferred);
+    if (element.isDeferred) {
+      encoder.setElement(Key.IMPORT, element.deferredImport);
+      encoder.setElement(Key.GETTER, element.loadLibrary);
+    }
+  }
+}
+
+class DeferredLoadLibrarySerializer implements ElementSerializer {
+  const DeferredLoadLibrarySerializer();
+
+  SerializedElementKind getSerializedKind(Element element) {
+    if (element.isDeferredLoaderGetter) {
+      return SerializedElementKind.DEFERRED_LOAD_LIBRARY;
+    }
+    return null;
+  }
+
+  void serialize(GetterElement element, ObjectEncoder encoder,
+      SerializedElementKind kind) {
+    encoder.setElement(Key.PREFIX, element.enclosingElement);
   }
 }
 
@@ -773,8 +797,10 @@ class ElementDeserializer {
       case SerializedElementKind.REDIRECTING_FACTORY_CONSTRUCTOR:
         return new RedirectingFactoryConstructorElementZ(decoder);
       case SerializedElementKind.FORWARDING_CONSTRUCTOR:
-        return new ForwardingConstructorElementZ(
-            decoder.getElement(Key.CLASS), decoder.getElement(Key.ELEMENT));
+        ClassElement cls = decoder.getElement(Key.CLASS);
+        Element definingConstructor =
+            deserializeElementReference(cls, Key.ELEMENT, Key.NAME, decoder);
+        return new ForwardingConstructorElementZ(cls, definingConstructor);
       case SerializedElementKind.TOPLEVEL_FUNCTION:
         return new TopLevelFunctionElementZ(decoder);
       case SerializedElementKind.STATIC_FUNCTION:
@@ -809,6 +835,8 @@ class ElementDeserializer {
         return new ExportElementZ(decoder);
       case SerializedElementKind.PREFIX:
         return new PrefixElementZ(decoder);
+      case SerializedElementKind.DEFERRED_LOAD_LIBRARY:
+        return new DeferredLoaderGetterElementX(decoder.getElement(Key.PREFIX));
       case SerializedElementKind.LOCAL_VARIABLE:
         return new LocalVariableElementZ(decoder);
       case SerializedElementKind.EXTERNAL_LIBRARY:

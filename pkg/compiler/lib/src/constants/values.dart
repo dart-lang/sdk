@@ -666,7 +666,7 @@ class ConstructedConstantValue extends ObjectConstantValue {
   ConstructedConstantValue(
       InterfaceType type, Map<FieldElement, ConstantValue> fields)
       : this.fields = fields,
-        hashCode = Hashing.mapHash(fields, Hashing.objectHash(type)),
+        hashCode = Hashing.unorderedMapHash(fields, Hashing.objectHash(type)),
         super(type) {
     assert(type != null);
     assert(!fields.containsValue(null));

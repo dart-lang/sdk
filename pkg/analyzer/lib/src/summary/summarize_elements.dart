@@ -902,14 +902,10 @@ class _CompilationUnitSerializer {
     DartType type = parameter.type;
     if (parameter.hasImplicitType) {
       Element contextParent = context.enclosingElement;
-      // Strong mode infers parameters in two cases:
-      // - instance members (i.e. not constructors or static members),
-      // - parameters with default values, except initializing formals
-      //   (the type comes from the field).
       if (!parameter.isInitializingFormal &&
           contextParent is ExecutableElement &&
-          (!contextParent.isStatic && contextParent is! ConstructorElement ||
-              parameter.parameterKind != ParameterKind.REQUIRED)) {
+          !contextParent.isStatic &&
+          contextParent is! ConstructorElement) {
         b.inferredTypeSlot = storeInferredType(type, context);
       }
     } else {

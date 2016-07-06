@@ -14,7 +14,6 @@
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
-#include "vm/dev_fs.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/message.h"
@@ -4008,127 +4007,6 @@ static bool SetTraceClassAllocation(Thread* thread, JSONStream* js) {
 }
 
 
-static const MethodParameter* create_dev_fs_params[] = {
-  NO_ISOLATE_PARAMETER,
-  new DartStringParameter("fsName", true),
-  NULL,
-};
-
-
-static bool CreateDevFS(Thread* thread, JSONStream* js) {
-  const String& fs_name =
-      String::Handle(String::RawCast(js->LookupObjectParam("fsName")));
-  DevFS::CreateFileSystem(js, fs_name);
-  return true;
-}
-
-
-static const MethodParameter* delete_dev_fs_params[] = {
-  NO_ISOLATE_PARAMETER,
-  new DartStringParameter("fsName", true),
-  NULL,
-};
-
-
-static bool DeleteDevFS(Thread* thread, JSONStream* js) {
-  const String& fs_name =
-      String::Handle(String::RawCast(js->LookupObjectParam("fsName")));
-  DevFS::DeleteFileSystem(js, fs_name);
-  return true;
-}
-
-
-static const MethodParameter* list_dev_fs_params[] = {
-  NO_ISOLATE_PARAMETER,
-  NULL,
-};
-
-
-static bool ListDevFS(Thread* thread, JSONStream* js) {
-  DevFS::ListFileSystems(js);
-  return true;
-}
-
-
-static const MethodParameter* write_dev_fs_file_params[] = {
-  NO_ISOLATE_PARAMETER,
-  new DartStringParameter("fsName", true),
-  new DartStringParameter("path", true),
-  new DartStringParameter("fileContents", true),
-  NULL,
-};
-
-
-static bool WriteDevFSFile(Thread* thread, JSONStream* js) {
-  const String& fs_name =
-      String::Handle(String::RawCast(js->LookupObjectParam("fsName")));
-  const String& path =
-      String::Handle(String::RawCast(js->LookupObjectParam("path")));
-  const String& file_contents =
-      String::Handle(String::RawCast(js->LookupObjectParam("fileContents")));
-  DevFS::WriteFile(js, fs_name, path, file_contents);
-  return true;
-}
-
-
-static const MethodParameter* write_dev_fs_files_params[] = {
-  NO_ISOLATE_PARAMETER,
-  new DartStringParameter("fsName", true),
-  new DartListParameter("files", true),
-  NULL,
-};
-
-
-static bool WriteDevFSFiles(Thread* thread, JSONStream* js) {
-  const String& fs_name =
-      String::Handle(String::RawCast(js->LookupObjectParam("fsName")));
-  Array& files = Array::Handle();
-  const Object& files_param = Object::Handle(js->LookupObjectParam("files"));
-  if (files_param.IsArray()) {
-    files ^= files_param.raw();
-  } else {
-    ASSERT(files_param.IsGrowableObjectArray());
-    files ^= GrowableObjectArray::Cast(files_param).data();
-  }
-  ASSERT(!files.IsNull());
-  DevFS::WriteFiles(js, fs_name, files);
-  return true;
-}
-
-
-static const MethodParameter* read_dev_fs_file_params[] = {
-  NO_ISOLATE_PARAMETER,
-  new DartStringParameter("fsName", true),
-  new DartStringParameter("path", true),
-  NULL,
-};
-
-
-static bool ReadDevFSFile(Thread* thread, JSONStream* js) {
-  const String& fs_name =
-      String::Handle(String::RawCast(js->LookupObjectParam("fsName")));
-  const String& path =
-      String::Handle(String::RawCast(js->LookupObjectParam("path")));
-  DevFS::ReadFile(js, fs_name, path);
-  return true;
-}
-
-
-static const MethodParameter* list_dev_fs_files_params[] = {
-  NO_ISOLATE_PARAMETER,
-  new DartStringParameter("fsName", true),
-  NULL,
-};
-
-
-static bool ListDevFSFiles(Thread* thread, JSONStream* js) {
-  const String& fs_name =
-      String::Handle(String::RawCast(js->LookupObjectParam("fsName")));
-  DevFS::ListFiles(js, fs_name);
-  return true;
-}
-
-
 static const ServiceMethodDescriptor service_methods_[] = {
   { "_dumpIdZone", DumpIdZone, NULL },
   { "_echo", Echo,
@@ -4241,20 +4119,6 @@ static const ServiceMethodDescriptor service_methods_[] = {
     set_vm_name_params },
   { "_setVMTimelineFlags", SetVMTimelineFlags,
     set_vm_timeline_flags_params },
-  { "_createDevFS", CreateDevFS,
-    create_dev_fs_params },
-  { "_deleteDevFS", DeleteDevFS,
-    delete_dev_fs_params },
-  { "_listDevFS", ListDevFS,
-    list_dev_fs_params },
-  { "_writeDevFSFile", WriteDevFSFile,
-    write_dev_fs_file_params },
-  { "_writeDevFSFiles", WriteDevFSFiles,
-    write_dev_fs_files_params },
-  { "_readDevFSFile", ReadDevFSFile,
-    read_dev_fs_file_params },
-  { "_listDevFSFiles", ListDevFSFiles,
-    list_dev_fs_files_params },
 };
 
 

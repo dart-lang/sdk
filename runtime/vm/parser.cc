@@ -1473,7 +1473,8 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
 
   EnsureExpressionTemp();
   StoreInstanceFieldNode* store_field =
-      new StoreInstanceFieldNode(ident_pos, receiver, field, value);
+      new StoreInstanceFieldNode(ident_pos, receiver, field, value,
+                                 /* is_initializer = */ false);
   current_block_->statements->Add(store_field);
   current_block_->statements->Add(new ReturnNode(ST(ident_pos)));
   return CloseBlock();
@@ -2073,6 +2074,9 @@ void Parser::ParseFormalParameters(bool allow_explicit_default_values,
                                    bool evaluate_metadata,
                                    ParamList* params) {
   TRACE_PARSER("ParseFormalParameters");
+  // Optional parameter lists cannot be empty.
+  // The completely empty parameter list is handled before getting here.
+  bool has_seen_parameter = false;
   do {
     ConsumeToken();
     if (!params->has_optional_positional_parameters &&
@@ -2089,9 +2093,18 @@ void Parser::ParseFormalParameters(bool allow_explicit_default_values,
       params->has_optional_named_parameters = true;
       return;
     }
+    Token::Kind terminator =
+       params->has_optional_positional_parameters ? Token::kRBRACK :
+       params->has_optional_named_parameters ? Token::kRBRACE :
+       Token :: kRPAREN;
+    if (has_seen_parameter && CurrentToken() == terminator) {
+      // Allow a trailing comma.
+      break;
+    }
     ParseFormalParameter(allow_explicit_default_values,
                          evaluate_metadata,
                          params);
+    has_seen_parameter = true;
   } while (CurrentToken() == Token::kCOMMA);
 }
 
@@ -2609,7 +2622,8 @@ AstNode* Parser::ParseInitializer(const Class& cls,
       initialized_fields, instance, &field, init_expr);
   if (initializer == NULL) {
     initializer =
-        new(Z) StoreInstanceFieldNode(field_pos, instance, field, init_expr);
+        new(Z) StoreInstanceFieldNode(field_pos, instance, field, init_expr,
+                                      /* is_initializer = */ true);
   }
   return initializer;
 }
@@ -2735,7 +2749,8 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
           new StoreInstanceFieldNode(field.token_pos(),
                                      instance,
                                      field,
-                                     init_expr);
+                                     init_expr,
+                                     /* is_initializer = */ true);
       current_block_->statements->Add(field_init);
     }
   }
@@ -3198,7 +3213,8 @@ SequenceNode* Parser::ParseConstructor(const Function& func) {
                                     value);
         if (initializer == NULL) {
           initializer = new(Z) StoreInstanceFieldNode(
-              param.name_pos, instance, field, value);
+              param.name_pos, instance, field, value,
+              /* is_initializer = */ true);
         }
         current_block_->statements->Add(initializer);
       }
@@ -11226,6 +11242,10 @@ ArgumentListNode* Parser::ParseActualParameters(
       ASSERT((CurrentToken() == Token::kLPAREN) ||
              (CurrentToken() == Token::kCOMMA));
       ConsumeToken();
+      if (CurrentToken() == Token::kRPAREN) {
+        // Allow trailing comma.
+        break;
+      }
       if (IsIdentifier() && (LookaheadToken(1) == Token::kCOLON)) {
         named_argument_seen = true;
         // The canonicalization of the arguments descriptor array built in

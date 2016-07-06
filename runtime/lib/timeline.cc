@@ -54,6 +54,7 @@ DEFINE_NATIVE_ENTRY(Timeline_getThreadCpuClock, 0) {
 
 
 DEFINE_NATIVE_ENTRY(Timeline_reportTaskEvent, 6) {
+#ifndef PRODUCT
   if (!FLAG_support_timeline) {
     return Object::null();
   }
@@ -114,12 +115,13 @@ DEFINE_NATIVE_ENTRY(Timeline_reportTaskEvent, 6) {
 
   // json was allocated in the zone and a copy will be stored in event.
   event->CompleteWithPreSerializedJSON(json);
-
+#endif
   return Object::null();
 }
 
 
 DEFINE_NATIVE_ENTRY(Timeline_reportCompleteEvent, 5) {
+#ifndef PRODUCT
   if (!FLAG_support_timeline) {
     return Object::null();
   }
@@ -185,12 +187,13 @@ DEFINE_NATIVE_ENTRY(Timeline_reportCompleteEvent, 5) {
                   end_cpu);
   // json was allocated in the zone and a copy will be stored in event.
   event->CompleteWithPreSerializedJSON(json);
-
+#endif
   return Object::null();
 }
 
 
 DEFINE_NATIVE_ENTRY(Timeline_reportInstantEvent, 4) {
+#ifndef PRODUCT
   if (!FLAG_support_timeline) {
     return Object::null();
   }
@@ -228,7 +231,7 @@ DEFINE_NATIVE_ENTRY(Timeline_reportInstantEvent, 4) {
   event->Instant("", start.AsInt64Value());
   // json was allocated in the zone and a copy will be stored in event.
   event->CompleteWithPreSerializedJSON(json);
-
+#endif
   return Object::null();
 }
 

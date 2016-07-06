@@ -17,9 +17,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, trace_reload);
-
-
 ForwardingCorpse* ForwardingCorpse::AsForwarder(uword addr, intptr_t size) {
   ASSERT(size >= kObjectAlignment);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
@@ -151,48 +148,13 @@ class ForwardHeapPointersHandleVisitor : public HandleVisitor {
 };
 
 
-#if defined(DEBUG)
-class NoForwardingCorpseTargetsVisitor : public ObjectPointerVisitor {
- public:
-  explicit NoForwardingCorpseTargetsVisitor(Isolate* isolate)
-      : ObjectPointerVisitor(isolate) { }
-
-  virtual void VisitPointers(RawObject** first, RawObject** last) {
-    for (RawObject** p = first; p <= last; p++) {
-      RawObject* target = *p;
-      if (target->IsHeapObject()) {
-        ASSERT(!target->IsForwardingCorpse());
-      }
-    }
-  }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(NoForwardingCorpseTargetsVisitor);
-};
-#endif
-
-
 void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Heap* heap = isolate->heap();
 
-  {
-    // TODO(rmacnak): Investigate why this is necessary.
-    heap->CollectGarbage(Heap::kNew);
-  }
-
   TIMELINE_FUNCTION_GC_DURATION(thread, "Become::ElementsForwardIdentity");
   HeapIterationScope his;
-
-#if defined(DEBUG)
-  {
-    // There should be no pointers to free list elements / forwarding corpses.
-    NoForwardingCorpseTargetsVisitor visitor(isolate);
-    isolate->VisitObjectPointers(&visitor, true);
-    heap->VisitObjectPointers(&visitor);
-  }
-#endif
 
   // Setup forwarding pointers.
   ASSERT(before.Length() == after.Length());
@@ -241,21 +203,17 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
     heap->VisitObjects(&object_visitor);
     pointer_visitor.VisitingObject(NULL);
 
-    TIR_Print("Performed %" Pd " heap and %" Pd " handle replacements\n",
-              pointer_visitor.count(),
-              handle_visitor.count());
+#if !defined(PRODUCT)
+    tds.SetNumArguments(2);
+    tds.FormatArgument(0, "Remapped objects", "%" Pd,  before.Length());
+    tds.FormatArgument(1, "Remapped references", "%" Pd,
+                       pointer_visitor.count() + handle_visitor.count());
+#endif
   }
 
 #if defined(DEBUG)
   for (intptr_t i = 0; i < before.Length(); i++) {
     ASSERT(before.At(i) == after.At(i));
-  }
-
-  {
-    // There should be no pointers to forwarding corpses.
-    NoForwardingCorpseTargetsVisitor visitor(isolate);
-    isolate->VisitObjectPointers(&visitor, true);
-    heap->VisitObjectPointers(&visitor);
   }
 #endif
 }

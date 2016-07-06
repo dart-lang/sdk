@@ -1,0 +1,41 @@
+This is a README file describing how to build Dart for Fuchsia. It assumes that
+you have built the magenta kernel under //magenta, its toolchains are
+under //toolchains, and that you have a Dart checkout under //dart. It is early
+days and this is crufty. The process will improve from here.
+
+1. First, set up some symlinks in your Dart checkout:
+
+  //dart/third_party/fuchsia_tools/toolchains
+      -> symlinked to //toolchains
+  //dart/third_party/fuchsia_tools/sysroot/x86_64/usr
+      -> symlinked to //magenta/build-magenta-qemu-x86-64/sysroot/
+
+  Also, copy the linker script:
+
+  //magenta$ cp kernel/arch/x86/64/user.ld build-magenta-qemu-x86-64/sysroot/
+
+  and similarly for arm64.
+
+2. Build:
+
+  //dart$ tools/build.py -m product -a x64 --os=fuchsia fuchsia_test
+
+  This will produce //dart/out/ProductFuchsiaX64/fuchsia_test
+
+3. Strip it:
+
+  //dart$ third_party/fuchsia_tools/toolchains/x86_64-elf-5.3.0-Linux-x86_64/bin/x86_64-elf-strip out/ProductFuchsiaX64/fuchsia_test -o out/ProductFuchsiaX64/fuchsia_test.stripped
+
+4. Make a file //magenta/fuchsia_test.manifest containing:
+
+  bin/fuchsia_test=//dart/out/ProductFuchsiaX64/fuchsia_test.stripped
+
+  Where //dart is the actual path to your Dart checkout.
+
+5. Make an extra bootfs:
+
+  //magenta$ build-magenta-qemu-x86-64/tools/mkbootfs -o fuchsia_test.bootfs fuchsia_test.manifest
+
+6. Run:
+
+  //magenta$ ./scripts/run-magenta-x86-64 -x fuchsia_test.bootfs

@@ -941,6 +941,9 @@ abstract class PrefixElement extends Element {
 
   /// Import that declared this deferred prefix.
   ImportElement get deferredImport;
+
+  /// The `loadLibrary` getter implicitly defined on deferred prefixes.
+  GetterElement get loadLibrary;
 }
 
 /// A type alias definition.
@@ -1691,6 +1694,10 @@ enum ResolvedAstKind {
   /// The element is an implicit forwarding constructor on a mixin application.
   /// No AST or [TreeElements] are provided.
   FORWARDING_CONSTRUCTOR,
+
+  /// The element is the `loadLibrary` getter implicitly defined on a deferred
+  /// prefix.
+  DEFERRED_LOAD_LIBRARY,
 }
 
 /// [ResolvedAst] contains info that define the semantics of an element.

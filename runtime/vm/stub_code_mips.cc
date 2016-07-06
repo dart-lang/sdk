@@ -656,7 +656,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ BranchUnsignedGreater(T3, Immediate(max_len), &slow_case);
 
   const intptr_t cid = kArrayCid;
-  __ MaybeTraceAllocation(kArrayCid, T4, &slow_case);
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kArrayCid, T4, &slow_case));
 
   const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ LoadImmediate(T2, fixed_size);
@@ -668,7 +668,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
   // T2: Allocation size.
 
-  Heap::Space space = Heap::SpaceForAllocation(cid);
+  Heap::Space space = Heap::kNew;
   __ LoadIsolate(T3);
   __ lw(T3, Address(T3, Isolate::heap_offset()));
   // Potential new object start.
@@ -690,7 +690,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // T3: heap.
   __ sw(T1, Address(T3, Heap::TopOffset(space)));
   __ addiu(T0, T0, Immediate(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(cid, T2, T4, space);
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, T2, T4, space));
 
   // Initialize the tags.
   // T0: new object start as a tagged pointer.
@@ -935,12 +935,12 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ LoadImmediate(T0, ~((kObjectAlignment) - 1));
     __ and_(T2, T2, T0);
 
-    __ MaybeTraceAllocation(kContextCid, T4, &slow_case);
+    NOT_IN_PRODUCT(__ MaybeTraceAllocation(kContextCid, T4, &slow_case));
     // Now allocate the object.
     // T1: number of context variables.
     // T2: object size.
     const intptr_t cid = kContextCid;
-    Heap::Space space = Heap::SpaceForAllocation(cid);
+    Heap::Space space = Heap::kNew;
     __ LoadIsolate(T5);
     __ lw(T5, Address(T5, Isolate::heap_offset()));
     __ lw(V0, Address(T5, Heap::TopOffset(space)));
@@ -968,7 +968,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // T5: heap.
     __ sw(T3, Address(T5, Heap::TopOffset(space)));
     __ addiu(V0, V0, Immediate(kHeapObjectTag));
-    __ UpdateAllocationStatsWithSize(cid, T2, T5, space);
+    NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, T2, T5, space));
 
     // Calculate the size tag.
     // V0: new object.
@@ -1135,7 +1135,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     // T1: instantiated type arguments (if is_cls_parameterized).
-    Heap::Space space = Heap::SpaceForAllocation(cls.id());
+    Heap::Space space = Heap::kNew;
     __ lw(T5, Address(THR, Thread::heap_offset()));
     __ lw(T2, Address(T5, Heap::TopOffset(space)));
     __ LoadImmediate(T4, instance_size);
@@ -1153,7 +1153,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
     __ sw(T3, Address(T5, Heap::TopOffset(space)));
-    __ UpdateAllocationStats(cls.id(), T5, space);
+    NOT_IN_PRODUCT(__ UpdateAllocationStats(cls.id(), T5, space));
 
     // T2: new object start.
     // T3: next object start.

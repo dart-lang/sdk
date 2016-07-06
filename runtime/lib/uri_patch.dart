@@ -16,13 +16,15 @@ Uri _unsupportedUriBase() {
 _UriBaseClosure _uriBaseClosure = _unsupportedUriBase;
 
 patch class Uri {
+  /* patch */ static Uri get base => _uriBaseClosure();
+}
+
+patch class _Uri {
   static final bool _isWindowsCached = _isWindowsPlatform;
 
-  /* patch */ static bool get _isWindows => _isWindowsCached;
-
-  /* patch */ static Uri get base => _uriBaseClosure();
-
   static bool get _isWindowsPlatform native "Uri_isWindowsPlatform";
+
+  /* patch */ static bool get _isWindows => _isWindowsCached;
 
   /* patch */ static String _uriEncode(List<int> canonicalTable,
                                        String text,

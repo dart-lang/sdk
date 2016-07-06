@@ -11,17 +11,19 @@ import 'test_helper.dart';
 var tests = [
   (VM vm) async {
     var result = await vm.invokeRpcNoUpgrade('_listDevFS', {});
-    expect(result['type'], equals('FSList'));
+    expect(result['type'], equals('FileSystemList'));
     expect(result['fsNames'].toString(), equals("[]"));
 
     var params = {
       'fsName': 'alpha'
     };
     result = await vm.invokeRpcNoUpgrade('_createDevFS', params);
-    expect(result['type'], equals('Success'));
+    expect(result['type'], equals('FileSystem'));
+    expect(result['name'], equals('alpha'));
+    expect(result['uri'], new isInstanceOf<String>());
 
     result = await vm.invokeRpcNoUpgrade('_listDevFS', {});
-    expect(result['type'], equals('FSList'));
+    expect(result['type'], equals('FileSystemList'));
     expect(result['fsNames'].toString(), equals('[alpha]'));
 
     bool caughtException;
@@ -39,7 +41,7 @@ var tests = [
     expect(result['type'], equals('Success'));
 
     result = await vm.invokeRpcNoUpgrade('_listDevFS', {});
-    expect(result['type'], equals('FSList'));
+    expect(result['type'], equals('FileSystemList'));
     expect(result['fsNames'].toString(), equals("[]"));
 
     caughtException = false;
@@ -61,10 +63,10 @@ var tests = [
 
     var result;
     // Create DevFS.
-    result = await vm.invokeRpcNoUpgrade('_createDevFS', {
-        'fsName': fsId
-            });
-    expect(result['type'], equals('Success'));
+    result = await vm.invokeRpcNoUpgrade('_createDevFS', { 'fsName': fsId });
+    expect(result['type'], equals('FileSystem'));
+    expect(result['name'], equals(fsId));
+    expect(result['uri'], new isInstanceOf<String>());
 
     bool caughtException = false;
     try {
@@ -76,9 +78,7 @@ var tests = [
     } on ServerRpcException catch(e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kFileDoesNotExist));
-      expect(e.message,
-             "_readDevFSFile: file 'dart-devfs://banana//foobar.dat' "
-             "does not exist");
+      expect(e.message, startsWith("_readDevFSFile: FileSystemException: "));
     }
     expect(caughtException, isTrue);
 
@@ -98,24 +98,28 @@ var tests = [
     expect(result['type'], equals('FSFile'));
     expect(result['fileContents'], equals(fileContents));
 
-    // Read a malformed path back.
+    // The leading '/' is optional.
+    result = await vm.invokeRpcNoUpgrade('_readDevFSFile', {
+        'fsName': fsId,
+        'path': filePath.substring(1),
+    });
+    expect(result['type'], equals('FSFile'));
+    expect(result['fileContents'], equals(fileContents));
+
+    // Read a file outside of the fs.
     caughtException = false;
     try {
-      result = await vm.invokeRpcNoUpgrade('_readDevFSFile', {
-          'fsName': fsId,
-          'path': filePath.substring(1)  // Strip the leading '/'.
+      await vm.invokeRpcNoUpgrade('_readDevFSFile', {
+        'fsName': fsId,
+        'path': '../foo',
       });
+      expect(false, isTrue, reason:'Unreachable');
     } on ServerRpcException catch(e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
-      expect(e.message,
-             "_readDevFSFile: file system path \'foobar.dat\' "
-             "must begin with a /");
+      expect(e.message, "_readDevFSFile: invalid 'path' parameter: ../foo");
     }
     expect(caughtException, isTrue);
-
-    expect(result['type'], equals('FSFile'));
-    expect(result['fileContents'], equals(fileContents));
 
     // Write a set of files.
     result = await vm.invokeRpcNoUpgrade('_writeDevFSFiles', {
@@ -140,7 +144,7 @@ var tests = [
     result = await vm.invokeRpcNoUpgrade('_listDevFSFiles', {
         'fsName': fsId,
     });
-    expect(result['type'], equals('FSFilesList'));
+    expect(result['type'], equals('FSFileList'));
     expect(result['files'].length, equals(3));
 
     // Delete DevFS.

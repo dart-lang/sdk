@@ -20,7 +20,6 @@
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
-#include "vm/verified_memory.h"
 
 namespace dart {
 
@@ -1252,8 +1251,7 @@ void FlowGraphCompiler::EmitEdgeCounter(intptr_t edge_id) {
 #endif  // DEBUG
   __ LoadFieldFromOffset(kWord, R1, R0, Array::element_offset(edge_id));
   __ add(R1, R1, Operand(Smi::RawValue(1)));
-  __ StoreIntoObjectNoBarrierOffset(
-      R0, Array::element_offset(edge_id), R1, Assembler::kOnlySmi);
+  __ StoreIntoObjectNoBarrierOffset(R0, Array::element_offset(edge_id), R1);
 #if defined(DEBUG)
   assembler_->set_use_far_branches(old_use_far_branches);
 #endif  // DEBUG

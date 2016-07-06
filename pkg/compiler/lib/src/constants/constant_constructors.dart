@@ -87,6 +87,11 @@ class ConstantConstructorComputer extends SemanticVisitor
     applyParameters(parameters, _);
     ConstructedConstantExpression constructorInvocation =
         applyInitializers(node, _);
+    constructor.enclosingClass.forEachInstanceField((_, FieldElement field) {
+      if (!fieldMap.containsKey(field)) {
+        fieldMap[field] = field.constant;
+      }
+    });
     return new GenerativeConstantConstructor(
         currentClass.thisType, defaultValues, fieldMap, constructorInvocation);
   }
@@ -333,5 +338,11 @@ class ConstantConstructorComputer extends SemanticVisitor
   @override
   ConstantExpression visitNamedArgument(NamedArgument node) {
     return apply(node.expression);
+  }
+
+  @override
+  ConstantExpression visitIfNull(Send node, Node left, Node right, _) {
+    return new BinaryConstantExpression(
+        apply(left), BinaryOperator.IF_NULL, apply(right));
   }
 }

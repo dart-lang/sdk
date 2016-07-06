@@ -232,9 +232,7 @@ DEFINE_NATIVE_ENTRY(Double_parse, 3) {
 
 DEFINE_NATIVE_ENTRY(Double_toString, 1) {
   const Number& number = Number::CheckedHandle(arguments->NativeArgAt(0));
-  Heap::Space space = isolate->heap()->ShouldPretenure(kOneByteStringCid) ?
-      Heap::kPretenured : Heap::kNew;
-  return number.ToString(space);
+  return number.ToString(Heap::kNew);
 }
 
 

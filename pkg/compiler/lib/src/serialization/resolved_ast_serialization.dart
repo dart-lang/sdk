@@ -100,6 +100,7 @@ class ResolvedAstSerializer extends Visitor {
         break;
       case ResolvedAstKind.DEFAULT_CONSTRUCTOR:
       case ResolvedAstKind.FORWARDING_CONSTRUCTOR:
+      case ResolvedAstKind.DEFERRED_LOAD_LIBRARY:
         // No additional properties.
         break;
     }
@@ -354,6 +355,8 @@ class ResolvedAstDeserializer {
       case ResolvedAstKind.FORWARDING_CONSTRUCTOR:
         (element as AstElementMixinZ).resolvedAst =
             new SynthesizedResolvedAst(element, kind);
+        break;
+      case ResolvedAstKind.DEFERRED_LOAD_LIBRARY:
         break;
     }
   }

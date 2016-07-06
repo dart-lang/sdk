@@ -136,17 +136,12 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // Try allocating in new space.
   const Class& cls = Class::Handle(
       Isolate::Current()->object_store()->growable_object_array_class());
-#if defined(DEBUG)
-  static const bool kJumpLength = Assembler::kFarJump;
-#else
-  static const bool kJumpLength = Assembler::kNearJump;
-#endif  // DEBUG
-  __ TryAllocate(cls, &fall_through, kJumpLength, EAX, EBX);
+  __ TryAllocate(cls, &fall_through, Assembler::kNearJump, EAX, EBX);
 
   // Store backing array object in growable array object.
   __ movl(EBX, Address(ESP, kArrayOffset));  // data argument.
   // EAX is new, no barrier needed.
-  __ InitializeFieldNoBarrier(
+  __ StoreIntoObjectNoBarrier(
       EAX,
       FieldAddress(EAX, GrowableObjectArray::data_offset()),
       EBX);
@@ -154,7 +149,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // EAX: new growable array object start as a tagged pointer.
   // Store the type argument field in the growable array object.
   __ movl(EBX, Address(ESP, kTypeArgumentsOffset));  // type argument.
-  __ InitializeFieldNoBarrier(
+  __ StoreIntoObjectNoBarrier(
       EAX,
       FieldAddress(EAX, GrowableObjectArray::type_arguments_offset()),
       EBX);
@@ -200,7 +195,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_factor)          \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 1 * kWordSize;                      \
-  __ MaybeTraceAllocation(cid, EDI, &fall_through, false);                     \
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, EDI, &fall_through, false));     \
   __ movl(EDI, Address(ESP, kArrayLengthStackOffset));  /* Array length. */    \
   /* Check that length is a positive Smi. */                                   \
   /* EDI: requested array length argument. */                                  \
@@ -223,7 +218,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
   __ leal(EDI, Address(EDI, scale_factor, fixed_size));                        \
   __ andl(EDI, Immediate(-kObjectAlignment));                                  \
-  Heap::Space space = Heap::SpaceForAllocation(cid);                           \
+  Heap::Space space = Heap::kNew;                                              \
   __ movl(ECX, Address(THR, Thread::heap_offset()));                           \
   __ movl(EAX, Address(ECX, Heap::TopOffset(space)));                          \
   __ movl(EBX, EAX);                                                           \
@@ -244,7 +239,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* next object start and initialize the object. */                           \
   __ movl(Address(ECX, Heap::TopOffset(space)), EBX);                          \
   __ addl(EAX, Immediate(kHeapObjectTag));                                     \
-  __ UpdateAllocationStatsWithSize(cid, EDI, ECX, space);                      \
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EDI, ECX, space));      \
                                                                                \
   /* Initialize the tags. */                                                   \
   /* EAX: new object start as a tagged pointer. */                             \
@@ -269,7 +264,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* EAX: new object start as a tagged pointer. */                             \
   /* EBX: new object end address. */                                           \
   __ movl(EDI, Address(ESP, kArrayLengthStackOffset));  /* Array length. */    \
-  __ InitializeFieldNoBarrier(EAX,                                             \
+  __ StoreIntoObjectNoBarrier(EAX,                                             \
                               FieldAddress(EAX, type_name::length_offset()),   \
                               EDI);                                            \
   /* Initialize all array elements to 0. */                                    \
@@ -819,6 +814,11 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
   __ bsrl(EAX, EAX);
   __ SmiTag(EAX);
   __ ret();
+}
+
+
+void Intrinsifier::Smi_bitAndFromSmi(Assembler* assembler) {
+  Integer_bitAndFromInteger(assembler);
 }
 
 
@@ -1859,7 +1859,8 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* ok,
                                      Label* failure,
                                      Register length_reg) {
-  __ MaybeTraceAllocation(kOneByteStringCid, EAX, failure, false);
+  NOT_IN_PRODUCT(
+    __ MaybeTraceAllocation(kOneByteStringCid, EAX, failure, false));
   if (length_reg != EDI) {
     __ movl(EDI, length_reg);
   }
@@ -1871,7 +1872,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ andl(EDI, Immediate(-kObjectAlignment));
 
   const intptr_t cid = kOneByteStringCid;
-  Heap::Space space = Heap::SpaceForAllocation(cid);
+  Heap::Space space = Heap::kNew;
   __ movl(ECX, Address(THR, Thread::heap_offset()));
   __ movl(EAX, Address(ECX, Heap::TopOffset(space)));
   __ movl(EBX, EAX);
@@ -1893,7 +1894,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ movl(Address(ECX, Heap::TopOffset(space)), EBX);
   __ addl(EAX, Immediate(kHeapObjectTag));
 
-  __ UpdateAllocationStatsWithSize(cid, EDI, ECX, space);
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EDI, ECX, space));
 
   // Initialize the tags.
   // EAX: new object start as a tagged pointer.
@@ -1917,7 +1918,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
   // Set the length field.
   __ popl(EDI);
-  __ InitializeFieldNoBarrier(EAX,
+  __ StoreIntoObjectNoBarrier(EAX,
                               FieldAddress(EAX, String::length_offset()),
                               EDI);
   // Clear hash.

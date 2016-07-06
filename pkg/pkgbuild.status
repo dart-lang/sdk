@@ -7,8 +7,5 @@ third_party/pkg/scheduled_test: Fail # Issue 26585
 [ $use_public_packages ]
 pkg/compiler: SkipByDesign # js_ast is not published
 
-[ $use_repository_packages ]
-third_party/pkg/dartdoc: PubGetError # Issue 26696
-
 [ ($use_repository_packages || $use_public_packages) && ($system == windows || $system == linux) ]
 third_party/pkg/*: Pass, PubGetError # Issue 26696

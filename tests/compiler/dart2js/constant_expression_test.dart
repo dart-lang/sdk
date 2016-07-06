@@ -53,6 +53,7 @@ const List<TestData> DATA = const [
     const ConstantData('1 + 2', ConstantExpressionKind.BINARY),
     const ConstantData('1 == 2', ConstantExpressionKind.BINARY),
     const ConstantData('1 != 2', ConstantExpressionKind.BINARY),
+    const ConstantData('1 ?? 2', ConstantExpressionKind.BINARY),
     const ConstantData('-(1)', ConstantExpressionKind.UNARY, text: '-1'),
     const ConstantData('"foo".length', ConstantExpressionKind.STRING_LENGTH),
     const ConstantData('identical(0, 1)', ConstantExpressionKind.IDENTICAL),

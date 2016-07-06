@@ -339,8 +339,8 @@ static void PushArgumentsArray(Assembler* assembler) {
   __ jmp(&loop_condition, kJumpLength);
   __ Bind(&loop);
   __ movq(RDI, Address(R12, 0));
-  // No generational barrier needed, since array is in new space.
-  __ InitializeFieldNoBarrier(RAX, Address(RBX, 0), RDI);
+  // Generational barrier is needed, array is not necessarily in new space.
+  __ StoreIntoObject(RAX, Address(RBX, 0), RDI);
   __ addq(RBX, Immediate(kWordSize));
   __ subq(R12, Immediate(kWordSize));
   __ Bind(&loop_condition);
@@ -588,9 +588,9 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ j(GREATER, &slow_case);
 
   // Check for allocation tracing.
-  __ MaybeTraceAllocation(kArrayCid,
-                          &slow_case,
-                          Assembler::kFarJump);
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kArrayCid,
+                                         &slow_case,
+                                         Assembler::kFarJump));
 
   const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ leaq(RDI, Address(RDI, TIMES_4, fixed_size));  // RDI is a Smi.
@@ -598,7 +598,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ andq(RDI, Immediate(-kObjectAlignment));
 
   const intptr_t cid = kArrayCid;
-  Heap::Space space = Heap::SpaceForAllocation(cid);
+  Heap::Space space = Heap::kNew;
   __ movq(R13, Address(THR, Thread::heap_offset()));
   __ movq(RAX, Address(R13, Heap::TopOffset(space)));
 
@@ -619,7 +619,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // next object start and initialize the object.
   __ movq(Address(R13, Heap::TopOffset(space)), RCX);
   __ addq(RAX, Immediate(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(cid, RDI, space);
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, RDI, space));
   // Initialize the tags.
   // RAX: new object start as a tagged pointer.
   // RDI: allocation size.
@@ -641,12 +641,13 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
   // RAX: new object start as a tagged pointer.
   // Store the type argument field.
-  __ InitializeFieldNoBarrier(RAX,
+  // No generetional barrier needed, since we store into a new object.
+  __ StoreIntoObjectNoBarrier(RAX,
                               FieldAddress(RAX, Array::type_arguments_offset()),
                               RBX);
 
   // Set the length field.
-  __ InitializeFieldNoBarrier(RAX,
+  __ StoreIntoObjectNoBarrier(RAX,
                               FieldAddress(RAX, Array::length_offset()),
                               R10);
 
@@ -668,7 +669,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 #endif  // DEBUG
   __ j(ABOVE_EQUAL, &done, kJumpLength);
   // No generational barrier needed, since we are storing null.
-  __ InitializeFieldNoBarrier(RAX, Address(RDI, 0), R12);
+  __ StoreIntoObjectNoBarrier(RAX, Address(RDI, 0), R12);
   __ addq(RDI, Immediate(kWordSize));
   __ jmp(&init_loop, kJumpLength);
   __ Bind(&done);
@@ -843,14 +844,14 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ andq(R13, Immediate(-kObjectAlignment));
 
     // Check for allocation tracing.
-    __ MaybeTraceAllocation(kContextCid,
-                            &slow_case,
-                            Assembler::kFarJump);
+    NOT_IN_PRODUCT(__ MaybeTraceAllocation(kContextCid,
+                                           &slow_case,
+                                           Assembler::kFarJump));
 
     // Now allocate the object.
     // R10: number of context variables.
     const intptr_t cid = kContextCid;
-    Heap::Space space = Heap::SpaceForAllocation(cid);
+    Heap::Space space = Heap::kNew;
     __ movq(RCX, Address(THR, Thread::heap_offset()));
     __ movq(RAX, Address(RCX, Heap::TopOffset(space)));
     __ addq(R13, RAX);
@@ -877,7 +878,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ subq(R13, RAX);
     __ addq(RAX, Immediate(kHeapObjectTag));
     // Generate isolate-independent code to allow sharing between isolates.
-    __ UpdateAllocationStatsWithSize(cid, R13, space);
+    NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R13, space));
 
     // Calculate the size tag.
     // RAX: new object.
@@ -913,7 +914,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // RAX: new object.
     // R10: number of context variables.
     // No generational barrier needed, since we are storing null.
-    __ InitializeFieldNoBarrier(RAX,
+    __ StoreIntoObjectNoBarrier(RAX,
                                 FieldAddress(RAX, Context::parent_offset()),
                                 R9);
 
@@ -932,7 +933,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
       __ Bind(&loop);
       __ decq(R10);
       // No generational barrier needed, since we are storing null.
-      __ InitializeFieldNoBarrier(RAX,
+      __ StoreIntoObjectNoBarrier(RAX,
                                   Address(R13, R10, TIMES_8, 0),
                                   R9);
       __ Bind(&entry);
@@ -1053,7 +1054,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     // RDX: instantiated type arguments (if is_cls_parameterized).
-    Heap::Space space = Heap::SpaceForAllocation(cls.id());
+    Heap::Space space = Heap::kNew;
     __ movq(RCX, Address(THR, Thread::heap_offset()));
     __ movq(RAX, Address(RCX, Heap::TopOffset(space)));
     __ leaq(RBX, Address(RAX, instance_size));
@@ -1068,7 +1069,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       __ j(ABOVE_EQUAL, &slow_case);
     }
     __ movq(Address(RCX, Heap::TopOffset(space)), RBX);
-    __ UpdateAllocationStats(cls.id(), space);
+    NOT_IN_PRODUCT(__ UpdateAllocationStats(cls.id(), space));
 
     // RAX: new object start (untagged).
     // RBX: next object start.
@@ -1093,7 +1094,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       for (intptr_t current_offset = Instance::NextFieldOffset();
            current_offset < instance_size;
            current_offset += kWordSize) {
-        __ InitializeFieldNoBarrier(RAX,
+        __ StoreIntoObjectNoBarrier(RAX,
                                     FieldAddress(RAX, current_offset),
                                     R9);
       }
@@ -1114,16 +1115,17 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       static const bool kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
       __ j(ABOVE_EQUAL, &done, kJumpLength);
-      __ InitializeFieldNoBarrier(RAX, Address(RCX, 0), R9);
+      __ StoreIntoObjectNoBarrier(RAX, Address(RCX, 0), R9);
       __ addq(RCX, Immediate(kWordSize));
       __ jmp(&init_loop, Assembler::kNearJump);
       __ Bind(&done);
     }
     if (is_cls_parameterized) {
+      // RAX: new object (tagged).
       // RDX: new object type arguments.
       // Set the type arguments in the new object.
       intptr_t offset = cls.type_arguments_field_offset();
-      __ InitializeFieldNoBarrier(RAX, FieldAddress(RAX, offset), RDX);
+      __ StoreIntoObjectNoBarrier(RAX, FieldAddress(RAX, offset), RDX);
     }
     // Done allocating and initializing the instance.
     // RAX: new object (tagged).

@@ -137,8 +137,13 @@ class Disassembler : public AllStatic {
   static bool CanFindOldObject(uword addr);
 
   static void DisassembleCode(const Function& function, bool optimized);
+  static void DisassembleCodeUnoptimized(
+      const Function& function, bool optimized);
 
  private:
+  static void DisassembleCodeHelper(
+      const char* function_fullname, const Code& code, bool optimized);
+
   static const int kHexadecimalBufferSize = 32;
   static const int kUserReadableBufferSize = 256;
 };

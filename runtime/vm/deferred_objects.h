@@ -231,20 +231,28 @@ class DeferredObject {
   // a graph which can contain cycles.
   void Create();
 
+  RawObject* GetArg(intptr_t index) const {
+#if !defined(TARGET_ARCH_DBC)
+    return args_[index];
+#else
+    return args_[-index];
+#endif
+  }
+
   RawObject* GetClass() const {
-    return args_[kClassIndex];
+    return GetArg(kClassIndex);
   }
 
   RawObject* GetLength() const {
-    return args_[kLengthIndex];
+    return GetArg(kLengthIndex);
   }
 
   RawObject* GetFieldOffset(intptr_t index) const {
-    return args_[kFieldsStartIndex + kFieldEntrySize * index + kOffsetIndex];
+    return GetArg(kFieldsStartIndex + kFieldEntrySize * index + kOffsetIndex);
   }
 
   RawObject* GetValue(intptr_t index) const {
-    return args_[kFieldsStartIndex + kFieldEntrySize * index + kValueIndex];
+    return GetArg(kFieldsStartIndex + kFieldEntrySize * index + kValueIndex);
   }
 
   // Amount of fields that have to be initialized.

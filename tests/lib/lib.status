@@ -167,6 +167,8 @@ async/stream_asyncmap_test: RuntimeError # Timer interface not supported: Issue 
 async/stream_transformation_broadcast_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/stream_controller_test: Fail # Timer interface not supported: Issue 7728.
 async/future_constructor2_test: Fail # Timer interface not supported: Issue 7728.
+async/zone_timer_task_test: Fail # Timer interface not supported: Issue 7728.
+async/zone_task_test: Fail # Timer interface not supported: Issue 7728.
 mirrors/mirrors_reader_test: Skip # Running in v8 suffices. Issue 16589 - RuntimeError.  Issue 22130 - Crash (out of memory).
 
 [ $compiler == dart2js && $checked ]
@@ -373,3 +375,8 @@ convert/utf85_test: Pass, Timeout
 # TODO(vegorov) LoadField bytecode supports only up to 256 fields. Need a long
 # version.
 mirrors/accessor_cache_overflow_test: Skip
+
+[ $hot_reload ]
+convert/chunked_conversion_utf88_test: Pass, Timeout
+convert/streamed_conversion_json_utf8_decode_test: Fail, Crash
+convert/utf85_test: Fail, Crash

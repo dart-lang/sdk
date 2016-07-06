@@ -2037,12 +2037,16 @@ void f1(dynamic x) {}
 // default formal
 void df0([/*error:IMPLICIT_DYNAMIC_PARAMETER*/x = DYNAMIC_VALUE]) {}
 void df1([dynamic x = DYNAMIC_VALUE]) {}
-void df2([/*info:INFERRED_TYPE*/x = 42]) {}
+
+// https://github.com/dart-lang/sdk/issues/25794
+void df2([/*error:IMPLICIT_DYNAMIC_PARAMETER*/x = 42]) {}
 
 // default formal (named)
 void nf0({/*error:IMPLICIT_DYNAMIC_PARAMETER*/x: DYNAMIC_VALUE}) {}
 void nf1({dynamic x: DYNAMIC_VALUE}) {}
-void nf2({/*info:INFERRED_TYPE*/x: 42}) {}
+
+// https://github.com/dart-lang/sdk/issues/25794
+void nf2({/*error:IMPLICIT_DYNAMIC_PARAMETER*/x: 42}) {}
 
 // field formal
 class C {

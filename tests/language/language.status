@@ -5,6 +5,10 @@
 # This directory contains tests that are intended to show the
 # current state of the language.
 
+# Trailing commas are so far supported by:
+# - The VM (vm, dartium, drt, precompiler+dart_precompiled)
+# Remaining targets still fail on arg_param_trailing_comma_test/none.
+[($compiler != none && $compiler != precompiler) || ($runtime != vm && $runtime != dartium && $runtime != drt && $runtime != dart_precompiled)]
 arg_param_trailing_comma_test/none: Fail # Issue 26644
 
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) ]
@@ -246,3 +250,8 @@ large_class_declaration_test: Skip
 [ $compiler == precompiler && $runtime == dart_precompiled && $system == android ]
 vm/optimized_guarded_field_isolates_test: Skip # Issue #26373
 issue23244_test: Skip # Issue #26373
+
+[ $hot_reload ]
+deferred_load_inval_code_test: RuntimeError
+regress_26453_test: Pass, Fail, Crash
+vm/regress_16873_test: Pass, Crash

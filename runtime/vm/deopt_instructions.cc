@@ -692,7 +692,6 @@ class DeoptPcMarkerInstr : public DeoptInstr {
       return;
     }
 
-#if !defined(TARGET_ARCH_DBC)
     // We don't always have the Code object for the frame's corresponding
     // unoptimized code as it may have been collected. Use a stub as the pc
     // marker until we can recreate that Code object during deferred
@@ -700,7 +699,6 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     // a pc marker.
     *reinterpret_cast<RawObject**>(dest_addr) =
         StubCode::FrameAwaitingMaterialization_entry()->code();
-#endif
     deopt_context->DeferPcMarkerMaterialization(object_table_index_, dest_addr);
   }
 

@@ -183,7 +183,7 @@ static int GetScaleFactor(intptr_t size) {
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_shift)           \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 0 * kWordSize;                      \
-  __ MaybeTraceAllocation(cid, R2, &fall_through);                             \
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, R2, &fall_through));             \
   __ ldr(R2, Address(SP, kArrayLengthStackOffset));  /* Array length. */       \
   /* Check that length is a positive Smi. */                                   \
   /* R2: requested array length argument. */                                   \
@@ -200,7 +200,7 @@ static int GetScaleFactor(intptr_t size) {
   const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
   __ AddImmediate(R2, R2, fixed_size);                                         \
   __ andi(R2, R2, Immediate(~(kObjectAlignment - 1)));                         \
-  Heap::Space space = Heap::SpaceForAllocation(cid);                           \
+  Heap::Space space = Heap::kNew;                                              \
   __ ldr(R3, Address(THR, Thread::heap_offset()));                             \
   __ ldr(R0, Address(R3, Heap::TopOffset(space)));                             \
                                                                                \
@@ -221,7 +221,7 @@ static int GetScaleFactor(intptr_t size) {
   /* next object start and initialize the object. */                           \
   __ str(R1, Address(R3, Heap::TopOffset(space)));                             \
   __ AddImmediate(R0, R0, kHeapObjectTag);                                     \
-  __ UpdateAllocationStatsWithSize(cid, R2, space);                            \
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R2, space));            \
   /* Initialize the tags. */                                                   \
   /* R0: new object start as a tagged pointer. */                              \
   /* R1: new object end address. */                                            \
@@ -679,6 +679,11 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
   __ sub(R0, R1, Operand(R0));
   __ SmiTag(R0);
   __ ret();
+}
+
+
+void Intrinsifier::Smi_bitAndFromSmi(Assembler* assembler) {
+  Integer_bitAndFromInteger(assembler);
 }
 
 
@@ -1907,7 +1912,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* failure) {
   const Register length_reg = R2;
   Label fail;
-  __ MaybeTraceAllocation(kOneByteStringCid, R0, failure);
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kOneByteStringCid, R0, failure));
   __ mov(R6, length_reg);  // Save the length register.
   // TODO(koda): Protect against negative length and overflow here.
   __ SmiUntag(length_reg);
@@ -1916,7 +1921,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ andi(length_reg, length_reg, Immediate(~(kObjectAlignment - 1)));
 
   const intptr_t cid = kOneByteStringCid;
-  Heap::Space space = Heap::SpaceForAllocation(cid);
+  Heap::Space space = Heap::kNew;
   __ ldr(R3, Address(THR, Thread::heap_offset()));
   __ ldr(R0, Address(R3, Heap::TopOffset(space)));
 
@@ -1937,7 +1942,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // next object start and initialize the object.
   __ str(R1, Address(R3, Heap::TopOffset(space)));
   __ AddImmediate(R0, R0, kHeapObjectTag);
-  __ UpdateAllocationStatsWithSize(cid, R2, space);
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R2, space));
 
   // Initialize the tags.
   // R0: new object start as a tagged pointer.

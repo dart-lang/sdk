@@ -12,7 +12,6 @@
 #include "vm/object.h"
 #include "vm/os_thread.h"
 #include "vm/safepoint.h"
-#include "vm/verified_memory.h"
 #include "vm/virtual_memory.h"
 
 namespace dart {
@@ -57,7 +56,7 @@ HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
 
 HeapPage* HeapPage::Allocate(intptr_t size_in_words, PageType type) {
   VirtualMemory* memory =
-      VerifiedMemory::Reserve(size_in_words << kWordSizeLog2);
+      VirtualMemory::Reserve(size_in_words << kWordSizeLog2);
   if (memory == NULL) {
     return NULL;
   }
@@ -672,6 +671,7 @@ void PageSpace::WriteProtect(bool read_only) {
 }
 
 
+#ifndef PRODUCT
 void PageSpace::PrintToJSONObject(JSONObject* object) const {
   if (!FLAG_support_service) {
     return;
@@ -755,6 +755,7 @@ void PageSpace::PrintHeapMapToJSONStream(
     }
   }
 }
+#endif  // PRODUCT
 
 
 bool PageSpace::ShouldCollectCode() {
@@ -1052,23 +1053,6 @@ uword PageSpace::TryAllocatePromoLocked(intptr_t size,
   result = TryAllocateDataBumpLocked(size, growth_policy);
   if (result != 0) return result;
   return TryAllocateDataLocked(size, growth_policy);
-}
-
-
-uword PageSpace::TryAllocateSmiInitializedLocked(intptr_t size,
-                                                 GrowthPolicy growth_policy) {
-  uword result = TryAllocateDataBumpLocked(size, growth_policy);
-  if (collections() != 0) {
-    FATAL1("%" Pd " GCs before TryAllocateSmiInitializedLocked", collections());
-  }
-#if defined(DEBUG)
-  RawObject** begin = reinterpret_cast<RawObject**>(result);
-  RawObject** end = reinterpret_cast<RawObject**>(result + size);
-  for (RawObject** current = begin; current < end; ++current) {
-    ASSERT(!(*current)->IsHeapObject());
-  }
-#endif
-  return result;
 }
 
 

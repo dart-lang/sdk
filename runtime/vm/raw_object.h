@@ -11,7 +11,6 @@
 #include "vm/snapshot.h"
 #include "vm/token.h"
 #include "vm/token_position.h"
-#include "vm/verified_memory.h"
 
 namespace dart {
 
@@ -250,9 +249,11 @@ CLASS_LIST_TYPED_DATA(V)
     }                                                                          \
     SNAPSHOT_WRITER_SUPPORT()                                                  \
     HEAP_PROFILER_SUPPORT()                                                    \
+    friend class object##SerializationCluster;                                 \
+    friend class object##DeserializationCluster;                               \
 
-// RawObject is the base class of all raw objects, even though it carries the
-// class_ field not all raw objects are allocated in the heap and thus cannot
+// RawObject is the base class of all raw objects; even though it carries the
+// tags_ field not all raw objects are allocated in the heap and thus cannot
 // be dereferenced (e.g. RawSmi).
 class RawObject {
  public:
@@ -570,10 +571,7 @@ CLASS_LIST_TYPED_DATA(DEFINE_IS_CID)
 
   template<typename type>
   void StorePointer(type const* addr, type value) {
-#if defined(DEBUG)
-    ValidateOverwrittenPointer(*addr);
-#endif  // DEBUG
-    VerifiedMemory::Write(const_cast<type*>(addr), value);
+    *const_cast<type*>(addr) = value;
     // Filter stores based on source and target.
     if (!value->IsHeapObject()) return;
     if (value->IsNewObject() && this->IsOldObject() &&
@@ -586,29 +584,14 @@ CLASS_LIST_TYPED_DATA(DEFINE_IS_CID)
   // Use for storing into an explicitly Smi-typed field of an object
   // (i.e., both the previous and new value are Smis).
   void StoreSmi(RawSmi* const* addr, RawSmi* value) {
-#if defined(DEBUG)
-    ValidateOverwrittenSmi(*addr);
-#endif  // DEBUG
     // Can't use Contains, as array length is initialized through this method.
     ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(this));
-    VerifiedMemory::Write(const_cast<RawSmi**>(addr), value);
+    *const_cast<RawSmi**>(addr) = value;
   }
-
-  void InitializeSmi(RawSmi* const* addr, RawSmi* value) {
-    // Can't use Contains, as array length is initialized through this method.
-    ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(this));
-    // This is an initializing store, so any previous content is OK.
-    VerifiedMemory::Accept(reinterpret_cast<uword>(addr), kWordSize);
-    VerifiedMemory::Write(const_cast<RawSmi**>(addr), value);
-  }
-
-#if defined(DEBUG)
-  static void ValidateOverwrittenPointer(RawObject* raw);
-  static void ValidateOverwrittenSmi(RawSmi* raw);
-#endif  // DEBUG
 
   friend class Api;
   friend class ApiMessageReader;  // GetClassId
+  friend class Serializer;  // GetClassId
   friend class Array;
   friend class Bigint;
   friend class ByteBuffer;
@@ -644,6 +627,7 @@ CLASS_LIST_TYPED_DATA(DEFINE_IS_CID)
   friend class AssemblyInstructionsWriter;
   friend class BlobInstructionsWriter;
   friend class SnapshotReader;
+  friend class Deserializer;
   friend class SnapshotWriter;
   friend class String;
   friend class Type;  // GetClassId
@@ -730,6 +714,7 @@ class RawClass : public RawObject {
   friend class RawInstance;
   friend class RawInstructions;
   friend class SnapshotReader;
+  friend class InstanceSerializationCluster;
 };
 
 
@@ -829,7 +814,9 @@ class RawFunction : public RawObject {
   // So that the SkippedCodeFunctions::DetachCode can null out the code fields.
   friend class SkippedCodeFunctions;
   friend class Class;
+
   RAW_HEAP_OBJECT_IMPLEMENTATION(Function);
+
   static bool ShouldVisitCode(RawCode* raw_code);
   static bool CheckUsageCounter(RawFunction* raw_fun);
 
@@ -1161,6 +1148,7 @@ class RawCode : public RawObject {
   friend class SkippedCodeFunctions;
   friend class StackFrame;
   friend class Profiler;
+  friend class FunctionDeserializationCluster;
 };
 
 
@@ -1850,6 +1838,7 @@ class RawOneByteString : public RawString {
 
   friend class ApiMessageReader;
   friend class SnapshotReader;
+  friend class RODataSerializationCluster;
 };
 
 
@@ -1861,6 +1850,7 @@ class RawTwoByteString : public RawString {
   const uint16_t* data() const { OPEN_ARRAY_START(uint16_t, uint16_t); }
 
   friend class SnapshotReader;
+  friend class RODataSerializationCluster;
 };
 
 
@@ -1936,6 +1926,9 @@ class RawArray : public RawInstance {
     return reinterpret_cast<RawObject**>(&ptr()->data()[length - 1]);
   }
 
+  friend class LinkedHashMapSerializationCluster;
+  friend class LinkedHashMapDeserializationCluster;
+  friend class Deserializer;
   friend class RawCode;
   friend class RawImmutableArray;
   friend class SnapshotReader;
@@ -1988,7 +1981,6 @@ class RawLinkedHashMap : public RawInstance {
     return reinterpret_cast<RawObject**>(&ptr()->deleted_keys_);
   }
 
-
   friend class SnapshotReader;
 };
 
@@ -1999,6 +1991,7 @@ class RawFloat32x4 : public RawInstance {
   ALIGN8 float value_[4];
 
   friend class SnapshotReader;
+
  public:
   float x() const { return value_[0]; }
   float y() const { return value_[1]; }
@@ -2014,6 +2007,7 @@ class RawInt32x4 : public RawInstance {
   ALIGN8 int32_t value_[4];
 
   friend class SnapshotReader;
+
  public:
   int32_t x() const { return value_[0]; }
   int32_t y() const { return value_[1]; }
@@ -2029,6 +2023,7 @@ class RawFloat64x2 : public RawInstance {
   ALIGN8 double value_[2];
 
   friend class SnapshotReader;
+
  public:
   double x() const { return value_[0]; }
   double y() const { return value_[1]; }
@@ -2065,6 +2060,8 @@ class RawTypedData : public RawInstance {
   friend class SnapshotReader;
   friend class ObjectPool;
   friend class RawObjectPool;
+  friend class ObjectPoolSerializationCluster;
+  friend class ObjectPoolDeserializationCluster;
 };
 
 

@@ -5,6 +5,7 @@
 #include "vm/dart.h"
 
 #include "vm/become.h"
+#include "vm/clustered_snapshot.h"
 #include "vm/code_observers.h"
 #include "vm/cpu.h"
 #include "vm/dart_api_state.h"
@@ -672,6 +673,12 @@ const char* Dart::FeaturesString(Snapshot::Kind kind) {
     buffer.AddString(" dbc");
 #elif defined(TARGET_ARCH_DBC64)
     buffer.AddString(" dbc64");
+#endif
+  } else if (Snapshot::IsFull(kind)) {
+#if defined(ARCH_IS_32BIT)
+  buffer.AddString(" 32");
+#else
+  buffer.AddString(" 64");
 #endif
   }
 

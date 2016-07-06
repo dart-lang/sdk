@@ -285,6 +285,19 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
 }
 
 
+DEFINE_NATIVE_ENTRY(Smi_bitAndFromSmi, 2) {
+  const Smi& left = Smi::CheckedHandle(arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, right, arguments->NativeArgAt(1));
+  if (FLAG_trace_intrinsified_natives) {
+    OS::Print("Smi_bitAndFromSmi %s & %s\n",
+        left.ToCString(), right.ToCString());
+  }
+  const Smi& left_value = Smi::Cast(left);
+  const Smi& right_value = Smi::Cast(right);
+  return Smi::New(left_value.Value() & right_value.Value());
+}
+
+
 DEFINE_NATIVE_ENTRY(Smi_shrFromInt, 2) {
   const Smi& amount = Smi::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, value, arguments->NativeArgAt(1));

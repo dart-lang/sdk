@@ -102,8 +102,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(UnboxInteger32)                                                            \
   M(CheckedSmiOp)                                                              \
   M(CheckArrayBound)                                                           \
-  M(CheckClass)                                                                \
-  M(TestSmi)                                                                   \
   M(RelationalOp)                                                              \
   M(EqualityCompare)                                                           \
   M(LoadIndexed)
@@ -159,7 +157,7 @@ static LocationSummary* CreateLocationSummary(
   Condition Name##Instr::EmitComparisonCode(FlowGraphCompiler*,                \
                                             BranchLabels) {                    \
     UNIMPLEMENTED();                                                           \
-    return EQ;                                                                 \
+    return NEXT_IS_TRUE;                                                       \
   }
 
 #define DEFINE_UNIMPLEMENTED(Name)                                             \
@@ -171,7 +169,6 @@ FOR_EACH_UNIMPLEMENTED_INSTRUCTION(DEFINE_UNIMPLEMENTED)
 #undef DEFINE_UNIMPLEMENTED
 
 DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(TestCids)
-DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(TestSmi)
 DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(RelationalOp)
 DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(EqualityCompare)
 
@@ -231,11 +228,8 @@ LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
 
 
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-#if defined(PRODUCT)
-  compiler->Bailout("PolymorphicInstanceCallInstr::EmitNativeCode");
-#else  // defined(PRODUCT)
-  compiler->Bailout(ToCString());
-#endif  // defined(PRODUCT)
+  Unsupported(compiler);
+  UNREACHABLE();
 }
 
 
@@ -383,14 +377,14 @@ EMIT_NATIVE_CODE(ClosureCall,
 static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
                                   Condition true_condition,
                                   BranchLabels labels) {
-  if (labels.fall_through == labels.false_label) {
-    // If the next block is the false successor, fall through to it.
+  if (true_condition == NEXT_IS_TRUE) {
     __ Jump(labels.true_label);
+    if (labels.fall_through != labels.false_label) {
+      __ Jump(labels.false_label);
+    }
   } else {
-    // If the next block is not the false successor, branch to it.
+    ASSERT(true_condition == NEXT_IS_FALSE);
     __ Jump(labels.false_label);
-
-    // Fall through or jump to the true successor.
     if (labels.fall_through != labels.true_label) {
       __ Jump(labels.true_label);
     }
@@ -403,34 +397,33 @@ Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   ASSERT((kind() == Token::kNE_STRICT) ||
          (kind() == Token::kEQ_STRICT));
 
+  Token::Kind comparison;
+  Condition condition;
+  if (labels.fall_through == labels.false_label) {
+    condition = NEXT_IS_TRUE;
+    comparison = kind();
+  } else {
+    // Flip comparision to save a jump.
+    condition = NEXT_IS_FALSE;
+    comparison = (kind() == Token::kEQ_STRICT) ? Token::kNE_STRICT
+                                               : Token::kEQ_STRICT;
+  }
+
   if (!compiler->is_optimizing()) {
     const Bytecode::Opcode eq_op = needs_number_check() ?
         Bytecode::kIfEqStrictNumTOS : Bytecode::kIfEqStrictTOS;
     const Bytecode::Opcode ne_op = needs_number_check() ?
         Bytecode::kIfNeStrictNumTOS : Bytecode::kIfNeStrictTOS;
-
-    if (kind() == Token::kEQ_STRICT) {
-      __ Emit((labels.fall_through == labels.false_label) ? eq_op : ne_op);
-    } else {
-      __ Emit((labels.fall_through == labels.false_label) ? ne_op : eq_op);
-    }
+    __ Emit(comparison == Token::kEQ_STRICT ? eq_op : ne_op);
   } else {
     const Bytecode::Opcode eq_op = needs_number_check() ?
         Bytecode::kIfEqStrictNum : Bytecode::kIfEqStrict;
     const Bytecode::Opcode ne_op = needs_number_check() ?
         Bytecode::kIfNeStrictNum : Bytecode::kIfNeStrict;
-
-    if (kind() == Token::kEQ_STRICT) {
-      __ Emit(Bytecode::Encode(
-          (labels.fall_through == labels.false_label) ? eq_op : ne_op,
-          locs()->in(0).reg(),
-          locs()->in(1).reg()));
-    } else {
-      __ Emit(Bytecode::Encode(
-          (labels.fall_through == labels.false_label) ? ne_op : eq_op,
-          locs()->in(0).reg(),
-          locs()->in(1).reg()));
-    }
+    __ Emit(Bytecode::Encode(
+        (comparison == Token::kEQ_STRICT) ? eq_op : ne_op,
+        locs()->in(0).reg(),
+        locs()->in(1).reg()));
   }
 
   if (needs_number_check() && token_pos().IsReal()) {
@@ -439,7 +432,8 @@ Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                    Thread::kNoDeoptId,
                                    token_pos());
   }
-  return EQ;
+
+  return condition;
 }
 
 
@@ -504,6 +498,13 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 EMIT_NATIVE_CODE(Goto, 0) {
+  if (!compiler->is_optimizing()) {
+    // Add a deoptimization descriptor for deoptimizing instructions that
+    // may be inserted before this instruction.
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
+                                   GetDeoptId(),
+                                   TokenPosition::kNoSource);
+  }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
@@ -512,6 +513,34 @@ EMIT_NATIVE_CODE(Goto, 0) {
   if (!compiler->CanFallThroughTo(successor())) {
     __ Jump(compiler->GetJumpLabel(successor()));
   }
+}
+
+
+Condition TestSmiInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
+                                           BranchLabels labels) {
+  ASSERT((kind() == Token::kEQ) ||
+         (kind() == Token::kNE));
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  __ TestSmi(left, right);
+  return (kind() == Token::kEQ) ? NEXT_IS_TRUE : NEXT_IS_FALSE;
+}
+
+
+void TestSmiInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                  BranchInstr* branch) {
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  EmitBranchOnCondition(compiler, true_condition, labels);
+}
+
+
+EMIT_NATIVE_CODE(TestSmi,
+                 2,
+                 Location::RequiresRegister(),
+                 LocationSummary::kNoCall) {
+  // Never emitted outside of the BranchInstr.
+  UNREACHABLE();
 }
 
 
@@ -533,13 +562,9 @@ EMIT_NATIVE_CODE(CreateArray,
 EMIT_NATIVE_CODE(StoreIndexed, 3) {
   if (compiler->is_optimizing()) {
     if (class_id() != kArrayCid) {
-#if defined(PRODUCT)
-      compiler->Bailout("StoreIndexed");
-#else  // defined(PRODUCT)
-      compiler->Bailout(ToCString());
-#endif  // defined(PRODUCT)
+      Unsupported(compiler);
+      UNREACHABLE();
     }
-
     __ StoreIndexed(locs()->in(kArrayPos).reg(),
                     locs()->in(kIndexPos).reg(),
                     locs()->in(kValuePos).reg());
@@ -983,9 +1008,52 @@ EMIT_NATIVE_CODE(CheckEitherNonSmi, 2) {
 
 
 EMIT_NATIVE_CODE(CheckClassId, 1) {
-  intptr_t cid = __ AddConstant(Smi::Handle(Smi::New(cid_)));
-  __ CheckClassId(locs()->in(0).reg(), cid);
+  __ CheckClassId(locs()->in(0).reg(),
+                  compiler->ToEmbeddableCid(cid_, this));
   compiler->EmitDeopt(deopt_id(), ICData::kDeoptCheckClass);
+}
+
+
+EMIT_NATIVE_CODE(CheckClass, 1) {
+  const Register value = locs()->in(0).reg();
+  if (IsNullCheck()) {
+    ASSERT(DeoptIfNull() || DeoptIfNotNull());
+    if (DeoptIfNull()) {
+      __ IfEqNull(value);
+    } else {
+      __ IfNeNull(value);
+    }
+  } else {
+    ASSERT((unary_checks().GetReceiverClassIdAt(0) != kSmiCid) ||
+           (unary_checks().NumberOfChecks() > 1));
+    const intptr_t may_be_smi =
+        (unary_checks().GetReceiverClassIdAt(0) == kSmiCid) ? 1 : 0;
+    if (IsDenseSwitch()) {
+      ASSERT(cids_[0] < cids_[cids_.length() - 1]);
+      const intptr_t low_cid = cids_[0];
+      const intptr_t cid_mask = ComputeCidMask();
+      __ CheckDenseSwitch(value, may_be_smi);
+      __ Nop(compiler->ToEmbeddableCid(low_cid, this));
+      __ Nop(__ AddConstant(Smi::Handle(Smi::New(cid_mask))));
+    } else {
+      GrowableArray<CidTarget> sorted_ic_data;
+      FlowGraphCompiler::SortICDataByCount(unary_checks(),
+                                           &sorted_ic_data,
+                                           /* drop_smi = */ true);
+      const intptr_t sorted_length = sorted_ic_data.length();
+      if (!Utils::IsUint(8, sorted_length)) {
+        Unsupported(compiler);
+        UNREACHABLE();
+      }
+      __ CheckCids(value, may_be_smi, sorted_length);
+      for (intptr_t i = 0; i < sorted_length; i++) {
+        __ Nop(compiler->ToEmbeddableCid(sorted_ic_data[i].cid, this));
+      }
+    }
+  }
+  compiler->EmitDeopt(deopt_id(),
+                      ICData::kDeoptCheckClass,
+                      licm_hoisted_ ? ICData::kHoisted : 0);
 }
 
 
@@ -1042,7 +1110,7 @@ EMIT_NATIVE_CODE(BinarySmiOp, 2, Location::RequiresRegister()) {
   if (can_deopt) {
     compiler->EmitDeopt(deopt_id(), ICData::kDeoptBinarySmiOp);
   } else if (needs_nop) {
-    __ Nop();
+    __ Nop(0);
   }
 }
 

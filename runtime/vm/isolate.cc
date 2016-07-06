@@ -55,6 +55,7 @@ DECLARE_FLAG(bool, timing);
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, trace_reload);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
+DECLARE_FLAG(bool, check_reloaded);
 
 NOT_IN_PRODUCT(
 static void CheckedModeHandler(bool value) {
@@ -797,6 +798,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       symbols_mutex_(new Mutex()),
       type_canonicalization_mutex_(new Mutex()),
       constant_canonicalization_mutex_(new Mutex()),
+      megamorphic_lookup_mutex_(new Mutex()),
       message_handler_(NULL),
       spawn_state_(NULL),
       is_runnable_(false),
@@ -863,6 +865,8 @@ Isolate::~Isolate() {
   type_canonicalization_mutex_ = NULL;
   delete constant_canonicalization_mutex_;
   constant_canonicalization_mutex_ = NULL;
+  delete megamorphic_lookup_mutex_;
+  megamorphic_lookup_mutex_ = NULL;
   delete message_handler_;
   message_handler_ = NULL;  // Fail fast if we send messages to a dead isolate.
   ASSERT(deopt_context_ == NULL);  // No deopt in progress when isolate deleted.
@@ -1693,6 +1697,15 @@ void Isolate::Shutdown() {
     }
   }
 
+  if (FLAG_check_reloaded &&
+      (this != Dart::vm_isolate()) &&
+      !ServiceIsolate::IsServiceIsolateDescendant(this)) {
+    if (!HasAttemptedReload()) {
+      FATAL("Isolate did not reload before exiting and "
+            "--check-reloaded is enabled.\n");
+    }
+  }
+
   // Then, proceed with low-level teardown.
   LowLevelShutdown();
 
@@ -1834,6 +1847,7 @@ RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {
 }
 
 
+#ifndef PRODUCT
 static const char* ExceptionPauseInfoToServiceEnum(Dart_ExceptionPauseInfo pi) {
   switch (pi) {
     case kPauseOnAllExceptions:
@@ -1970,6 +1984,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     }
   }
 }
+#endif
 
 
 void Isolate::set_tag_table(const GrowableObjectArray& value) {

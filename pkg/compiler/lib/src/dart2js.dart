@@ -471,7 +471,8 @@ Future<api.CompilationResult> compile(List<String> argv) {
         api.Diagnostic.INFO);
   }
   if (resolveOnly) {
-    if (resolutionInputs.contains(resolutionOutput)) {
+    if (resolutionInputs != null &&
+        resolutionInputs.contains(resolutionOutput)) {
       helpAndFail("Resolution input '${resolutionOutput}' can't be used as "
           "resolution output. Use the '--out' option to specify another "
           "resolution output.");
@@ -535,7 +536,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
       packageConfig: packageConfig,
       packagesDiscoveryProvider: findPackages,
       resolutionInputs: resolutionInputs,
-      resolutionOutput: resolutionOutput,
+      resolutionOutput: resolveOnly ? resolutionOutput : null,
       options: options,
       environment: environment);
   return compileFunc(

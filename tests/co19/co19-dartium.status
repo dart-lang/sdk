@@ -184,8 +184,8 @@ Language/Classes/deсlarations_t32: Skip # Times out. Please triage this failure
 Language/Classes/deсlarations_t33: Skip # Times out. Please triage this failure.
 Language/Classes/deсlarations_t34: Skip # Times out. Please triage this failure.
 Language/Expressions/Assignment/super_assignment_failed_t05: RuntimeError # Issue 25671
-Language/Expressions/Function_Invocation/async_generator_invokation_t08: Timeout # Issue 25967
-Language/Expressions/Function_Invocation/async_generator_invokation_t10: Timeout # Issue 25967
+Language/Expressions/Function_Invocation/async_generator_invokation_t08: Skip # Times out. Issue 25967
+Language/Expressions/Function_Invocation/async_generator_invokation_t10: Skip # Times out. Issue 25967
 Language/Expressions/Identifier_Reference/built_in_identifier_t35: Fail # Issue 25732
 Language/Expressions/Identifier_Reference/built_in_identifier_t36: Fail # Issue 25732
 Language/Expressions/Identifier_Reference/built_in_identifier_t37: Fail # Issue 25732
@@ -602,7 +602,7 @@ LayoutTests/fast/dynamic/crash-generated-text_t01: RuntimeError # co19-roll r786
 LayoutTests/fast/dynamic/insertAdjacentElement_t01: Skip # Timeout. co19-roll r786: Please triage this failure.
 LayoutTests/fast/dynamic/insertAdjacentHTML_t01: Pass, RuntimeError # co19 issue 11.
 LayoutTests/fast/dynamic/recursive-layout_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/events/change-overflow-on-overflow-change_t01: Timeout # Dartium 45 roll. Issue 25754
+LayoutTests/fast/events/change-overflow-on-overflow-change_t01: Skip # Timeout. Please triage this failure.
 LayoutTests/fast/events/clipboard-clearData_t01: Skip # Timeout. co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/clipboard-dataTransferItemList_t01: Skip # Timeout. co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/div-focus_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
@@ -707,7 +707,7 @@ LayoutTests/fast/loader/about-blank-hash-kept_t01: Skip # Times out. co19-roll r
 LayoutTests/fast/loader/hashchange-event-properties_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/loader/loadInProgress_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/loader/onhashchange-attribute-listeners_t01: Skip # Times out. co19-roll r801: Please triage this failure.
-LayoutTests/fast/loader/onload-policy-ignore-for-frame_t01: Timeout # Dartium 45 roll
+LayoutTests/fast/loader/onload-policy-ignore-for-frame_t01: Skip # Times out. Dartium 45 roll: Please triage this failure.
 LayoutTests/fast/loader/scroll-position-restored-on-back_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/loader/scroll-position-restored-on-reload-at-load-event_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/loader/stateobjects/replacestate-in-onunload_t01: RuntimeError # co19-roll r801: Please triage this failure.
@@ -771,8 +771,8 @@ LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-anc
 LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-cell-and-fixed-ancestor-vertical-lr_t01: RuntimeError, Pass # Spurious intermittent pass # co19 issue 11.
 LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-cell-and-fixed-ancestor_t01: RuntimeError, Pass # Spurious intermittent pass # co19 issue 11.
 LayoutTests/fast/replaced/container-width-zero_t01: RuntimeError # co19-roll r801: Please triage this failure.
-LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-anonymous-table-cell_t01: RuntimeError, Pass, Timeout # Spurious intermittent pass. # co19 issue 11.
-LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-table-cell-ignore-height_t01: RuntimeError, Pass, Timeout # co19-roll r801: Please triage this failure.
+LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-anonymous-table-cell_t01: Skip # Times out: Please triage this failure.
+LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-table-cell-ignore-height_t01: Skip # Times out: Please triage this failure.
 LayoutTests/fast/replaced/preferred-widths_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/replaced/table-percent-height_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/replaced/table-percent-width_t01: RuntimeError # co19-roll r801: Please triage this failure.
@@ -1039,7 +1039,7 @@ LibTest/isolate/ReceivePort/asBroadcastStream_A04_t01: RuntimeError, OK  # Uses 
 LibTest/isolate/ReceivePort/asBroadcastStream_A04_t02: RuntimeError, OK  # Uses Isolate.spawn.
 LibTest/isolate/ReceivePort/asBroadcastStream_A04_t03: RuntimeError, OK  # Uses Isolate.spawn.
 LibTest/isolate/ReceivePort/close_A01_t01: Pass, RuntimeError # Issue 13921, co19 issue for false pass https://github.com/dart-lang/co19/issues/13
-LibTest/isolate/ReceivePort/close_A02_t01: Pass, RuntimeError, Timeout # Issue 13921, co19 issue for false pass https://github.com/dart-lang/co19/issues/13
+LibTest/isolate/ReceivePort/close_A02_t01: Skip # Times out
 LibTest/isolate/ReceivePort/contains_A01_t01: RuntimeError, OK  # Uses Isolate.spawn.
 LibTest/isolate/ReceivePort/distinct_A01_t01: RuntimeError, OK  # Uses Isolate.spawn.
 LibTest/isolate/ReceivePort/distinct_A01_t02: RuntimeError, OK  # Uses Isolate.spawn.

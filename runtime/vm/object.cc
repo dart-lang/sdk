@@ -45,7 +45,6 @@
 #include "vm/timer.h"
 #include "vm/type_table.h"
 #include "vm/unicode.h"
-#include "vm/verified_memory.h"
 #include "vm/weak_code.h"
 
 namespace dart {
@@ -1028,9 +1027,9 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
 }
 
 
-void Object::InitVmIsolateSnapshotObjectTable(intptr_t len) {
+void Object::set_vm_isolate_snapshot_object_table(const Array& table) {
   ASSERT(Isolate::Current() == Dart::vm_isolate());
-  *vm_isolate_snapshot_object_table_ = Array::New(len, Heap::kOld);
+  *vm_isolate_snapshot_object_table_ = table.raw();
 }
 
 
@@ -1065,7 +1064,7 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
 
       intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
       ASSERT(TypedData::InstanceSize(leftover_len) == leftover_size);
-      raw->InitializeSmi(&(raw->ptr()->length_), Smi::New(leftover_len));
+      raw->StoreSmi(&(raw->ptr()->length_), Smi::New(leftover_len));
     } else {
       // Update the leftover space as a basic object.
       ASSERT(leftover_size == Object::InstanceSize());
@@ -1691,8 +1690,8 @@ NOT_IN_PRODUCT(
 #define REGISTER_TYPED_DATA_VIEW_CLASS(clazz)                                  \
   cls = Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid);
   CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
-  cls = Class::NewTypedDataViewClass(kByteDataViewCid);
 #undef REGISTER_TYPED_DATA_VIEW_CLASS
+  cls = Class::NewTypedDataViewClass(kByteDataViewCid);
 #define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);
   CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
@@ -1799,7 +1798,6 @@ void Object::InitializeObject(uword address,
   tags = RawObject::VMHeapObjectTag::update(is_vm_object, tags);
   reinterpret_cast<RawObject*>(address)->tags_ = tags;
   ASSERT(is_vm_object == RawObject::IsVMHeapObject(tags));
-  VerifiedMemory::Accept(address, size);
 }
 
 
@@ -1918,7 +1916,6 @@ RawObject* Object::Clone(const Object& orig, Heap::Space space) {
   memmove(reinterpret_cast<uint8_t*>(clone_addr + kHeaderSizeInBytes),
           reinterpret_cast<uint8_t*>(orig_addr + kHeaderSizeInBytes),
           size - kHeaderSizeInBytes);
-  VerifiedMemory::Accept(clone_addr, size);
   // Add clone to store buffer, if needed.
   if (!raw_clone->IsOldObject()) {
     // No need to remember an object in new space.
@@ -4448,6 +4445,7 @@ void Class::RehashConstants(Zone* zone) const {
   while (it.MoveNext()) {
     constant ^= set.GetKey(it.Current());
     ASSERT(!constant.IsNull());
+    ASSERT(constant.IsCanonical());
     InsertCanonicalConstant(zone, constant);
   }
   set.Release();
@@ -14037,7 +14035,6 @@ RawCode* Code::FinalizeCode(const char* name,
   MemoryRegion region(reinterpret_cast<void*>(instrs.EntryPoint()),
                       instrs.size());
   assembler->FinalizeInstructions(region);
-  VerifiedMemory::Accept(region.start(), region.size());
   CPU::FlushICache(instrs.EntryPoint(), instrs.size());
 
   code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
@@ -21340,8 +21337,6 @@ RawArray* Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
                          space));
     NoSafepointScope no_safepoint;
     raw->StoreSmi(&(raw->ptr()->length_), Smi::New(len));
-    VerifiedMemory::Accept(reinterpret_cast<uword>(raw->ptr()),
-                           Array::InstanceSize(len));
     return raw;
   }
 }
@@ -22018,6 +22013,12 @@ RawTypedData* TypedData::EmptyUint32Array(Thread* thread) {
 
 
 const char* TypedData::ToCString() const {
+  switch (GetClassId()) {
+#define CASE_TYPED_DATA_CLASS(clazz)                                           \
+  case kTypedData##clazz##Cid: return #clazz;
+  CLASS_LIST_TYPED_DATA(CASE_TYPED_DATA_CLASS);
+#undef CASE_TYPED_DATA_CLASS
+  }
   return "TypedData";
 }
 

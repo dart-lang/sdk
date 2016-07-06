@@ -52,6 +52,16 @@ class Hashing {
     return h;
   }
 
+  /// Mix the bits of the hash codes of the unordered key/value from [map] with
+  /// [existing].
+  static int unorderedMapHash(Map map, [int existing = 0]) {
+    int h = 0;
+    for (var key in map.keys) {
+      h ^= objectHash(key, objectHash(map[key]));
+    }
+    return mixHashCodeBits(h, existing);
+  }
+
   /// Mix the bits of the key/value hash codes from [map] with [existing].
   static int mapHash(Map map, [int existing = 0]) {
     int h = existing;

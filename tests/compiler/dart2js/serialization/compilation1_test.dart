@@ -8,5 +8,5 @@ import 'compilation_test_helper.dart' as test;
 import 'test_data.dart';
 
 main() {
-  test.main(['0', '${TESTS.length ~/ 4}']);
+  test.main(['1', '${TESTS.length ~/ 4}']);
 }

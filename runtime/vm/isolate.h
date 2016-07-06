@@ -282,6 +282,9 @@ class Isolate : public BaseIsolate {
   Mutex* constant_canonicalization_mutex() const {
     return constant_canonicalization_mutex_;
   }
+  Mutex* megamorphic_lookup_mutex() const {
+    return megamorphic_lookup_mutex_;
+  }
 
   Debugger* debugger() const {
     if (!FLAG_support_debugger) {
@@ -455,7 +458,9 @@ class Isolate : public BaseIsolate {
     return defer_finalization_count_ == 0;
   }
 
+#ifndef PRODUCT
   void PrintJSON(JSONStream* stream, bool ref = true);
+#endif
 
   // Mutator thread is used to aggregate compiler stats.
   CompilerStats* aggregate_compiler_stats() {
@@ -717,6 +722,7 @@ class Isolate : public BaseIsolate {
   Mutex* symbols_mutex_;  // Protects concurrent access to the symbol table.
   Mutex* type_canonicalization_mutex_;  // Protects type canonicalization.
   Mutex* constant_canonicalization_mutex_;  // Protects const canonicalization.
+  Mutex* megamorphic_lookup_mutex_;  // Protects megamorphic table lookup.
   MessageHandler* message_handler_;
   IsolateSpawnState* spawn_state_;
   bool is_runnable_;

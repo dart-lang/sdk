@@ -676,6 +676,8 @@ class Symbols : public AllStatic {
   friend class String;
   friend class SnapshotReader;
   friend class SnapshotWriter;
+  friend class Serializer;
+  friend class Deserializer;
   friend class ApiMessageReader;
 
   DISALLOW_COPY_AND_ASSIGN(Symbols);

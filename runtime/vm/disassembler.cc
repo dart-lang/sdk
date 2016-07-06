@@ -184,12 +184,11 @@ void Disassembler::Disassemble(uword start,
 }
 
 
-void Disassembler::DisassembleCode(const Function& function, bool optimized) {
-  const char* function_fullname = function.ToFullyQualifiedCString();
+void Disassembler::DisassembleCodeHelper(
+    const char* function_fullname, const Code& code, bool optimized) {
   THR_Print("Code for %sfunction '%s' {\n",
             optimized ? "optimized " : "",
             function_fullname);
-  const Code& code = Code::Handle(function.CurrentCode());
   code.Disassemble();
   THR_Print("}\n");
 
@@ -327,6 +326,22 @@ void Disassembler::DisassembleCode(const Function& function, bool optimized) {
     code.DumpInlinedIntervals();
   }
 }
+
+
+void Disassembler::DisassembleCode(const Function& function, bool optimized) {
+  const char* function_fullname = function.ToFullyQualifiedCString();
+  const Code& code = Code::Handle(function.CurrentCode());
+  DisassembleCodeHelper(function_fullname, code, optimized);
+}
+
+
+void Disassembler::DisassembleCodeUnoptimized(
+    const Function& function, bool optimized) {
+  const char* function_fullname = function.ToFullyQualifiedCString();
+  const Code& code = Code::Handle(function.unoptimized_code());
+  DisassembleCodeHelper(function_fullname, code, optimized);
+}
+
 
 #endif  // !PRODUCT
 

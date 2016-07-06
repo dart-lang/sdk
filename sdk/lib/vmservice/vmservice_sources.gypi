@@ -11,6 +11,7 @@
     'asset.dart',
     'client.dart',
     'constants.dart',
+    'devfs.dart',
     'running_isolate.dart',
     'running_isolates.dart',
     'message.dart',

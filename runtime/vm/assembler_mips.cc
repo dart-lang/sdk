@@ -981,9 +981,9 @@ void Assembler::TryAllocate(const Class& cls,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cls.id(), temp_reg, failure);
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cls.id(), temp_reg, failure));
     const intptr_t instance_size = cls.instance_size();
-    Heap::Space space = Heap::SpaceForAllocation(cls.id());
+    Heap::Space space = Heap::kNew;
     lw(temp_reg, Address(THR, Thread::heap_offset()));
     lw(instance_reg, Address(temp_reg, Heap::TopOffset(space)));
     // TODO(koda): Protect against unsigned overflow here.
@@ -1000,7 +1000,7 @@ void Assembler::TryAllocate(const Class& cls,
 
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
-    UpdateAllocationStats(cls.id(), temp_reg, space);
+    NOT_IN_PRODUCT(UpdateAllocationStats(cls.id(), temp_reg, space));
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
@@ -1024,10 +1024,10 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cid, temp1, failure);
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp1, failure));
     Isolate* isolate = Isolate::Current();
     Heap* heap = isolate->heap();
-    Heap::Space space = heap->SpaceForAllocation(cid);
+    Heap::Space space = Heap::kNew;
     lw(temp1, Address(THR, Thread::heap_offset()));
     // Potential new object start.
     lw(instance, Address(temp1, heap->TopOffset(space)));
@@ -1047,7 +1047,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     sw(end_address, Address(temp1, Heap::TopOffset(space)));
     addiu(instance, instance, Immediate(kHeapObjectTag));
     LoadImmediate(temp1, instance_size);
-    UpdateAllocationStatsWithSize(cid, temp1, temp2, space);
+    NOT_IN_PRODUCT(UpdateAllocationStatsWithSize(cid, temp1, temp2, space));
 
     // Initialize the tags.
     // instance: new object start as a tagged pointer.

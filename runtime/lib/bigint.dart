@@ -1336,6 +1336,8 @@ class _Bigint extends _IntegerImplementation implements int {
     return str;
   }
 
+  int _bitAndFromSmi(int other) => _bitAndFromInteger(other);
+
   int _bitAndFromInteger(int other) {
     return other._toBigint()._and(this)._toValidInt();
   }

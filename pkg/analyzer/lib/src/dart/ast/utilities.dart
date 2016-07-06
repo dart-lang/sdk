@@ -2539,6 +2539,9 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
       node.element;
 
   @override
+  Element visitExportDirective(ExportDirective node) => node.element;
+
+  @override
   Element visitFunctionDeclaration(FunctionDeclaration node) => node.element;
 
   @override
@@ -2570,6 +2573,8 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
         if (element is LibraryElement) {
           return element.definingCompilationUnit;
         }
+      } else if (grandParent is LibraryDirective) {
+        return grandParent.element;
       }
     }
     return node.bestElement;

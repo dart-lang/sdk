@@ -16,7 +16,7 @@ RawMegamorphicCache* MegamorphicCacheTable::Lookup(Isolate* isolate,
                                                    const String& name,
                                                    const Array& descriptor) {
   // Multiple compilation threads could access this lookup.
-  SafepointMutexLocker ml(isolate->mutex());
+  SafepointMutexLocker ml(isolate->megamorphic_lookup_mutex());
   ASSERT(name.IsSymbol());
   // TODO(rmacnak): ASSERT(descriptor.IsCanonical());
 

@@ -27,101 +27,19 @@ analysis_server/test/completion_test: Pass, Slow
 
 [ $runtime == vm && $system == windows]
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
+analysis_server/test/context_manager_test: RuntimeError # Issue 26828
 analysis_server/test/integration/analysis/analysis_options_test: RuntimeError # Issue 24796
 analyzer/test/generated/all_the_rest_test: Fail # Issue 21772
-analyzer_cli/test/driver_test: Fail # Issue 25471
+analyzer/test/generated/source_factory_test: RuntimeError # Issue 26828
+analyzer/test/src/context/builder_test: RuntimeError # Issue 26828
+analyzer/test/src/summary/linker_test: RuntimeError # Issue 26828
+analyzer/test/src/summary/prelinker_test: RuntimeError # Issue 26828
+analyzer/test/src/summary/summarize_elements_strong_test: RuntimeError # Issue 26828
+analyzer/test/src/summary/summarize_elements_test: RuntimeError # Issue 26828
 
 [ $compiler == dart2js ]
+analysis_server/test/integration: SkipByDesign # Analysis server integration tests don't make sense to run under dart2js, since the code under test always runs in the Dart vm as a subprocess.
 analyzer_cli/test/*: SkipByDesign # Only meant to run on vm
-analysis_server/test/*: Skip # Issue 22161
-analysis_server/test/analysis_notification_highlights_test: Pass, Slow # 19756, 21628
-analysis_server/test/analysis_notification_navigation_test: Pass, Slow # Issue 19756, 21628
-analysis_server/test/analysis_notification_occurrences_test: Pass, Slow # Issue 19756, 21628
-analysis_server/test/analysis_notification_outline_test: Pass, Slow # Issue 19756, 21628
-analysis_server/test/domain_analysis_test: Pass, Slow # Issue 19756, 21628
-analysis_server/test/domain_completion_test: Pass, Slow
-analysis_server/test/edit/assists_test: Pass, Slow
-analysis_server/test/edit/format_test: Pass, Slow
-analysis_server/test/edit/refactoring_test: Pass, Slow # Issue 19756, 21628
-analysis_server/test/search/element_references_test: Pass, Slow
-analysis_server/test/search/top_level_declarations_test: Pass, Slow # 19756, 21628
-analysis_server/test/services/index/store/codec_test: Pass, Slow
-analysis_server/test/socket_server_test: Pass, Slow # Issue 19756, 21628
-analyzer/test/context/declared_variables_test: Pass, Slow # Issue 21628
-analyzer/test/dart/element/element_test: Pass, Slow # Issue 24914
-analyzer/test/dart/ast/ast_test: Pass, Slow # Issue 19756, 21628
-analyzer/test/dart/ast/utilities_test: Pass, Slow # Issue 19756, 21628
-analyzer/test/dart/ast/visitor_test: Pass, Slow # Issue 19756, 21628
-analyzer/test/enum_test: Slow, Pass, Fail # Issue 21323
-analyzer/test/non_hint_code_test: Pass, Slow # Issue 21628
-analyzer/test/strong_mode_test: Pass, Slow # Issue 21628
-analyzer/test/generated/all_the_rest_test: Pass, Slow # Issue 21628
-analyzer/test/generated/checked_mode_compile_time_error_code_test: Pass, Slow # Issue 21628
-analyzer/test/generated/ast_test: Pass, Slow # Issue 21628
-analyzer/test/generated/checked_mode_compile_time_error_code_test: Pass, Slow # Issue 21628
-analyzer/test/generated/compile_time_error_code_test: Pass, Slow # Issue 21628
-analyzer/test/generated/constant_test: Pass, Slow # Issue 24914
-analyzer/test/generated/declaration_resolver_test: Pass, Slow # Issue 24914
-analyzer/test/generated/element_test: Pass, Slow # Issue 21628
-analyzer/test/generated/element_resolver_test: Pass, Slow # Issue 21628
-analyzer/test/generated/error_suppression_test: Pass, Slow # Issue 21628
-analyzer/test/generated/engine_test: SkipSlow
-analyzer/test/generated/hint_code_test: Pass, Slow # Issue 21628
-analyzer/test/generated/non_hint_code_test: Pass, Slow # Issue 21628
-analyzer/test/generated/incremental_resolver_test: Pass, Slow # Issue 21628
-analyzer/test/generated/incremental_scanner_test: Pass, Slow # Issue 21628
-analyzer/test/generated/inheritance_manager_test: Pass, Slow # Issue 21628
-analyzer/test/generated/non_error_resolver_test: Pass, Slow # Issue 21628
-analyzer/test/generated/parser_test: Pass, Slow # Issue 21628
-analyzer/test/generated/resolver_test: Pass, Slow # Issue 21628
-analyzer/test/generated/scanner_test: Pass, Slow # Issue 21628
-analyzer/test/generated/sdk_test: Skip # Issue 21628
-analyzer/test/generated/simple_resolver_test: Pass, Slow # Issue 21628
-analyzer/test/generated/source_factory_test: Pass, Slow # Issue 21628
-analyzer/test/generated/static_type_analyzer_test: Pass, Slow # Issue 21628
-analyzer/test/generated/static_type_warning_code_test: Pass, Slow
-analyzer/test/generated/static_type_warning_code_test: Pass, Slow # Issue 21628
-analyzer/test/generated/static_warning_code_test: Pass, Slow # Issue 21628
-analyzer/test/generated/strong_mode_test: Pass, Slow # Issue 21628
-analyzer/test/generated/type_system_test: Pass, Slow # Issue 21628
-analyzer/test/generated/utilities_test: Pass, Slow # Issue 21628
-analyzer/test/source/embedder_test: Skip # Issue 21628
-analyzer/test/source/package_map_provider_test: Skip # Issue 21628
-analyzer/test/src/context/cache_test: Pass, Slow # Issue 21628
-analyzer/test/src/context/context_test: Pass, Timeout # dartbug.com/23658
-analyzer/test/src/dart/ast/utilities_test: Pass, Slow # Issue 24914
-analyzer/test/src/dart/constant/evaluation_test: Pass, Slow # Issue 24914
-analyzer/test/src/dart/constant/value_test: Pass, Slow # Issue 24914
-analyzer/test/src/dart/element/element_test: Pass, Slow # Issue 24914
-analyzer/test/src/summary/incremental_cache_test: Pass, Slow # Issue 24914
-analyzer/test/src/summary/index_unit_test: Pass, Slow # Issue 24914
-analyzer/test/src/summary/linker_test: Pass, Slow # Issue 24914
-analyzer/test/src/summary/prelinker_test: Pass, Slow # Issue 24914
-analyzer/test/src/summary/resynthesize_ast_test: Pass, Slow
-analyzer/test/src/summary/resynthesize_strong_test: Pass, Slow
-analyzer/test/src/summary/resynthesize_test: Pass, Slow
-analyzer/test/src/summary/summary_sdk_test: Pass, Slow # Issue 24914
-analyzer/test/src/summary/summarize_ast_test: Pass, Slow # Issue 24914
-analyzer/test/src/summary/summarize_ast_strong_test: Pass, Slow # Issue 24914
-analyzer/test/src/summary/summarize_elements_strong_test: Pass, Slow # Issue 24914
-analyzer/test/src/summary/summarize_elements_test: Pass, Slow # Issue 24914
-analyzer/test/src/task/dart_test: Pass, Slow # Issue 21628
-analyzer/test/src/task/dart_work_manager_test: Pass, Slow # Issue 21628
-analyzer/test/src/task/driver_test: Pass, Slow # Issue 21628
-analyzer/test/src/task/general_test: Pass, Slow # Issue 21628
-analyzer/test/src/task/html_test: Pass, Slow # Issue 21628
-analyzer/test/src/task/html_work_manager_test: Pass, Slow # Issue 21628
-analyzer/test/src/task/incremental_element_builder_test: Pass, Slow # Issue 21628
-analyzer/test/src/task/inputs_test: Pass, Slow # Issue 21628
-analyzer/test/src/task/manager_test: Pass, Slow # Issue 21628
-analyzer/test/src/task/model_test: Pass, Slow # Issue 21628
-analyzer/test/src/task/options_test: Pass, Slow # Issue 21628
-analyzer/test/src/task/options_work_manager_test: Pass, Slow # Issue 21628
-analyzer/test/src/task/strong/checker_test: Pass, Slow # Issue 21628
-analyzer/test/src/task/strong/inferred_type_test: Pass, Slow # Issue 21628
-analyzer/test/src/task/strong_mode_test: Pass, Slow # Issue 21628
-analyzer/test/src/task/yaml_test: Pass, Slow # Issue 21628
-analyzer/tool/task_dependency_graph/check_test: Skip # Issue 21628
 collection/test/equality_test/01: Fail # Issue 1533
 collection/test/equality_test/02: Fail # Issue 1533
 collection/test/equality_test/03: Fail # Issue 1533
@@ -131,21 +49,13 @@ collection/test/equality_test/none: Pass, Fail # Issue 14348
 lookup_map/test/version_check_test: SkipByDesign # Only meant to run in vm.
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 
-# Analysis server integration tests don't make sense to run under
-# dart2js, since the code under test always runs in the Dart vm as a
-# subprocess.
-analysis_server/test/integration: Skip
+[ $compiler == dart2js && $builder_tag != dart2js_analyzer ]
+analyzer/test/*: Skip # Issue 26813
+analyzer/tool/*: Skip # Issue 26813
+analysis_server/test/*: Skip # Issue 26813
 
 [ $compiler == dart2js && $checked ]
 crypto/test/base64_test: Slow, Pass
-
-[ $runtime == d8 ]
-analysis_server/test/analysis_notification_overrides_test: Pass, Slow # Issue 19756
-analysis_server/test/analysis_notification_occurrences_test: Pass, Slow # Issue 19756
-analysis_server/test/analysis_notification_outline_test: Pass, Slow # Issue 19756
-analysis_server/test/domain_search_test: Pass, Slow # Issue 19756
-analysis_server/test/search/element_reference_test: Pass, Slow # Issue 19756
-analysis_server/index/store/codec_test: Pass, Slow # Issue 19756
 
 [ $runtime == jsshell ]
 async/test/stream_zip_test: RuntimeError, OK # Issue 26103. Timers are not supported.
@@ -160,7 +70,7 @@ async/test/stream_zip_test: SkipSlow # Times out. Issue 22050
 
 [ $runtime == ie10 ]
 analyzer/test/generated/java_core_test: Pass, Timeout # Issue 19747
-typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here explicitly, since this is not the same as on ie9)
+typed_data/test/typed_buffers_test/none: Fail # Issue 17607 (I put this here explicitly, since this is not the same as on ie9)
 
 [ $runtime == safarimobilesim ]
 # Unexplained errors only occuring on Safari 6.1 and earlier.
@@ -206,11 +116,6 @@ third_party/di_tests/di_test: Pass, Slow # Issue 22896
 
 [ $use_repository_packages ]
 analyzer/test/*: PubGetError
-
-[ $compiler == dart2js && $cps_ir && $host_checked == false ]
-analyzer/test/dart/element/element_test: Pass, Slow # Times out due to inlining, but see issue 24485
-analyzer/test/src/summary/resynthesize_test: Pass, Slow # Times out due to inlining, but see issue 24485
-analyzer/test/src/task/strong_mode_test: Pass, Slow # Times out due to inlining, but see issue 24485
 
 [ $compiler == dart2js && $cps_ir && $host_checked ]
 analyzer/test/dart/ast/ast_test: Crash # Issue 24485

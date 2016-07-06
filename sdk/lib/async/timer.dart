@@ -4,6 +4,84 @@
 
 part of dart.async;
 
+abstract class _TimerTask implements Timer {
+  final Zone _zone;
+  final Timer _nativeTimer;
+
+  _TimerTask(this._nativeTimer, this._zone);
+
+  void cancel() {
+    _nativeTimer.cancel();
+  }
+
+  bool get isActive => _nativeTimer.isActive;
+}
+
+class _SingleShotTimerTask extends _TimerTask {
+  // TODO(floitsch): the generic argument should be 'void'.
+  final ZoneCallback<dynamic> _callback;
+
+  _SingleShotTimerTask(Timer timer, this._callback, Zone zone)
+      : super(timer, zone);
+}
+
+class _PeriodicTimerTask extends _TimerTask {
+  // TODO(floitsch): the first generic argument should be 'void'.
+  final ZoneUnaryCallback<dynamic, Timer> _callback;
+
+  _PeriodicTimerTask(Timer timer, this._callback, Zone zone)
+      : super(timer, zone);
+}
+
+/**
+ * A task specification for a single-shot timer.
+ *
+ * *Experimental*. Might disappear without notice.
+ */
+class SingleShotTimerTaskSpecification implements TaskSpecification {
+  static const String specificationName = "dart.async.timer";
+
+  /** The duration after which the timer should invoke the [callback]. */
+  final Duration duration;
+
+  /** The callback that should be run when the timer triggers. */
+  // TODO(floitsch): the generic argument should be void.
+  final ZoneCallback<dynamic> callback;
+
+  SingleShotTimerTaskSpecification(this.duration, void this.callback());
+
+  @override
+  String get name => specificationName;
+
+  @override
+  bool get isOneShot => true;
+}
+
+/**
+ * A task specification for a periodic timer.
+ *
+ * *Experimental*. Might disappear without notice.
+ */
+class PeriodicTimerTaskSpecification implements TaskSpecification {
+  static const String specificationName = "dart.async.periodic-timer";
+
+  /** The interval at which the periodic timer should invoke the [callback]. */
+  final Duration duration;
+
+  /** The callback that should be run when the timer triggers. */
+  // TODO(floitsch): the first generic argument should be void.
+  final ZoneUnaryCallback<dynamic, Timer> callback;
+
+  PeriodicTimerTaskSpecification(
+      this.duration, void this.callback(Timer timer));
+
+  @override
+  String get name => specificationName;
+
+  @override
+  bool get isOneShot => false;
+}
+
 /**
  * A count-down timer that can be configured to fire once or repeatedly.
  *
@@ -47,10 +125,15 @@ abstract class Timer {
     if (Zone.current == Zone.ROOT) {
       // No need to bind the callback. We know that the root's timer will
       // be invoked in the root zone.
-      return Zone.current.createTimer(duration, callback);
+      return Timer._createTimer(duration, callback);
     }
-    return Zone.current.createTimer(
-        duration, Zone.current.bindCallback(callback, runGuarded: true));
+    return Zone.current.createTimer(duration, callback);
+  }
+
+  factory Timer._task(Zone zone, Duration duration, void callback()) {
+    SingleShotTimerTaskSpecification specification =
+        new SingleShotTimerTaskSpecification(duration, callback);
+    return zone.createTask(_createSingleShotTimerTask, specification);
   }
 
   /**
@@ -70,17 +153,65 @@ abstract class Timer {
    * scheduled for - even if the actual callback was delayed.
    */
   factory Timer.periodic(Duration duration,
-                         void callback(Timer timer)) {
+      void callback(Timer timer)) {
     if (Zone.current == Zone.ROOT) {
       // No need to bind the callback. We know that the root's timer will
       // be invoked in the root zone.
-      return Zone.current.createPeriodicTimer(duration, callback);
+      return Timer._createPeriodicTimer(duration, callback);
     }
+    return Zone.current.createPeriodicTimer(duration, callback);
+  }
+
+  factory Timer._periodicTask(Zone zone, Duration duration,
+      void callback(Timer timer)) {
+    PeriodicTimerTaskSpecification specification =
+        new PeriodicTimerTaskSpecification(duration, callback);
+    return zone.createTask(_createPeriodicTimerTask, specification);
+  }
+
+  static Timer _createSingleShotTimerTask(
+      SingleShotTimerTaskSpecification specification, Zone zone) {
+    ZoneCallback registeredCallback = identical(_ROOT_ZONE, zone)
+        ? specification.callback
+        : zone.registerCallback(specification.callback);
+
+    _TimerTask timerTask;
+
+    Timer nativeTimer = Timer._createTimer(specification.duration, () {
+      timerTask._zone.runTask(_runSingleShotCallback, timerTask, null);
+    });
+
+    timerTask = new _SingleShotTimerTask(nativeTimer, registeredCallback, zone);
+    return timerTask;
+  }
+
+  static void _runSingleShotCallback(_SingleShotTimerTask timerTask, Object _) {
+    timerTask._callback();
+  }
+
+  static Timer _createPeriodicTimerTask(
+      PeriodicTimerTaskSpecification specification, Zone zone) {
     // TODO(floitsch): the return type should be 'void', and the type
     // should be inferred.
-    var boundCallback = Zone.current.bindUnaryCallback/*<dynamic, Timer>*/(
-        callback, runGuarded: true);
-    return Zone.current.createPeriodicTimer(duration, boundCallback);
+    ZoneUnaryCallback<dynamic, Timer> registeredCallback =
+        identical(_ROOT_ZONE, zone)
+        ? specification.callback
+        : zone.registerUnaryCallback/*<dynamic, Timer>*/(
+            specification.callback);
+
+    _TimerTask timerTask;
+
+    Timer nativeTimer =
+        Timer._createPeriodicTimer(specification.duration, (Timer _) {
+      timerTask._zone.runTask(_runPeriodicCallback, timerTask, null);
+    });
+
+    timerTask = new _PeriodicTimerTask(nativeTimer, registeredCallback, zone);
+    return timerTask;
+  }
+
+  static void _runPeriodicCallback(_PeriodicTimerTask timerTask, Object _) {
+    timerTask._callback(timerTask);
   }
 
   /**

@@ -39,8 +39,7 @@ Heap::Heap(Isolate* isolate,
       finalization_tasks_(0),
       read_only_(false),
       gc_new_space_in_progress_(false),
-      gc_old_space_in_progress_(false),
-      pretenure_policy_(0) {
+      gc_old_space_in_progress_(false) {
   for (int sel = 0;
        sel < kNumWeakSelectors;
        sel++) {
@@ -145,14 +144,6 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   OS::PrintErr(
       "Exhausted heap space, trying to allocate %" Pd " bytes.\n", size);
   return 0;
-}
-
-
-uword Heap::AllocatePretenured(intptr_t size) {
-  ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
-  uword addr = old_space_.TryAllocateDataBump(size, PageSpace::kControlGrowth);
-  if (addr != 0) return addr;
-  return AllocateOld(size, HeapPage::kData);
 }
 
 
@@ -381,7 +372,6 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
     UpdateClassHeapStatsBeforeGC(kNew);
     new_space_.Scavenge(invoke_api_callbacks);
     isolate()->class_table()->UpdatePromoted();
-    UpdatePretenurePolicy();
     RecordAfterGC(kNew);
     PrintStats();
     NOT_IN_PRODUCT(PrintStatsToTimeline(&tds));
@@ -464,41 +454,6 @@ void Heap::WaitForSweeperTasks() {
 #endif
 
 
-bool Heap::ShouldPretenure(intptr_t class_id) const {
-  if (class_id == kOneByteStringCid) {
-    return pretenure_policy_ > 0;
-  } else {
-    return false;
-  }
-}
-
-
-void Heap::UpdatePretenurePolicy() {
-  if (FLAG_disable_alloc_stubs_after_gc) {
-    ClassTable* table = isolate_->class_table();
-    Zone* zone = Thread::Current()->zone();
-    for (intptr_t cid = 1; cid < table->NumCids(); ++cid) {
-      if (((cid >= kNumPredefinedCids) || (cid == kArrayCid)) &&
-          table->IsValidIndex(cid) &&
-          table->HasValidClassAt(cid)) {
-        const Class& cls = Class::Handle(zone, table->At(cid));
-        cls.DisableAllocationStub();
-      }
-    }
-  }
-  ClassHeapStats* stats =
-      isolate_->class_table()->StatsWithUpdatedSize(kOneByteStringCid);
-  int allocated = stats->pre_gc.new_count;
-  int promo_percent = (allocated == 0) ? 0 :
-      (100 * stats->promoted_count) / allocated;
-  if (promo_percent >= FLAG_pretenure_threshold) {
-    pretenure_policy_ += FLAG_pretenure_interval;
-  } else {
-    pretenure_policy_ = Utils::Maximum(0, pretenure_policy_ - 1);
-  }
-}
-
-
 void Heap::UpdateGlobalMaxUsed() {
   ASSERT(isolate_ != NULL);
   // We are accessing the used in words count for both new and old space
@@ -531,16 +486,11 @@ void Heap::WriteProtect(bool read_only) {
 }
 
 
-Heap::Space Heap::SpaceForAllocation(intptr_t cid) {
-  return FLAG_pretenure_all ? kPretenured : kNew;
-}
-
-
 intptr_t Heap::TopOffset(Heap::Space space) {
   if (space == kNew) {
     return OFFSET_OF(Heap, new_space_) + Scavenger::top_offset();
   } else {
-    ASSERT(space == kPretenured);
+    ASSERT(space == kOld);
     return OFFSET_OF(Heap, old_space_) + PageSpace::top_offset();
   }
 }
@@ -550,7 +500,7 @@ intptr_t Heap::EndOffset(Heap::Space space) {
   if (space == kNew) {
     return OFFSET_OF(Heap, new_space_) + Scavenger::end_offset();
   } else {
-    ASSERT(space == kPretenured);
+    ASSERT(space == kOld);
     return OFFSET_OF(Heap, old_space_) + PageSpace::end_offset();
   }
 }
@@ -734,6 +684,7 @@ void Heap::SetWeakEntry(RawObject* raw_obj, WeakSelector sel, intptr_t val) {
 }
 
 
+#ifndef PRODUCT
 void Heap::PrintToJSONObject(Space space, JSONObject* object) const {
   if (space == kNew) {
     new_space_.PrintToJSONObject(object);
@@ -741,6 +692,7 @@ void Heap::PrintToJSONObject(Space space, JSONObject* object) const {
     old_space_.PrintToJSONObject(object);
   }
 }
+#endif  // PRODUCT
 
 
 void Heap::RecordBeforeGC(Space space, GCReason reason) {

@@ -157,6 +157,7 @@ namespace dart {
 #define CORE_LIB_INTRINSIC_LIST(V)                                             \
   V(_Smi, ~, Smi_bitNegate, Smi, 0x63bfee11)                                   \
   V(_Smi, get:bitLength, Smi_bitLength, Smi, 0x25b2e24c)                       \
+  V(_Smi, _bitAndFromSmi, Smi_bitAndFromSmi, Smi, 0x0df806ed)                  \
   V(_Bigint, _lsh, Bigint_lsh, Dynamic, 0x5cd95513)                            \
   V(_Bigint, _rsh, Bigint_rsh, Dynamic, 0x2d68d0e1)                            \
   V(_Bigint, _absAdd, Bigint_absAdd, Dynamic, 0x492f4865)                      \

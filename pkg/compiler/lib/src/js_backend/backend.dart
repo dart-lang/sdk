@@ -1527,17 +1527,24 @@ class JavaScriptBackend extends Backend {
       ConstantExpression constant = variableElement.constant;
       if (constant != null) {
         ConstantValue initialValue = constants.getConstantValue(constant);
-        assert(invariant(variableElement, initialValue != null,
-            message: "Constant expression without value: "
-                "${constant.toStructuredText()}."));
-        registerCompileTimeConstant(initialValue, work.registry);
-        addCompileTimeConstantForEmission(initialValue);
-        // We don't need to generate code for static or top-level
-        // variables. For instance variables, we may need to generate
-        // the checked setter.
-        if (Elements.isStaticOrTopLevel(element)) {
-          return impactTransformer
-              .transformCodegenImpact(work.registry.worldImpact);
+        if (initialValue != null) {
+          registerCompileTimeConstant(initialValue, work.registry);
+          addCompileTimeConstantForEmission(initialValue);
+          // We don't need to generate code for static or top-level
+          // variables. For instance variables, we may need to generate
+          // the checked setter.
+          if (Elements.isStaticOrTopLevel(element)) {
+            return impactTransformer
+                .transformCodegenImpact(work.registry.worldImpact);
+          }
+        } else {
+          assert(invariant(
+              variableElement,
+              variableElement.isInstanceMember ||
+                  constant.isImplicit ||
+                  constant.isPotential,
+              message: "Constant expression without value: "
+                  "${constant.toStructuredText()}."));
         }
       } else {
         // If the constant-handler was not able to produce a result we have to

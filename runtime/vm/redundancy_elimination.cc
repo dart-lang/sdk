@@ -2539,8 +2539,7 @@ class StoreOptimizer : public LivenessAnalysis {
       case Instruction::kStoreInstanceField: {
         StoreInstanceFieldInstr* store_instance = instr->AsStoreInstanceField();
         // Can't eliminate stores that initialize fields.
-        return !(store_instance->is_potential_unboxed_initialization() ||
-                 store_instance->is_object_reference_initialization());
+        return !store_instance->is_initialization();
       }
       case Instruction::kStoreIndexed:
       case Instruction::kStoreStaticField:

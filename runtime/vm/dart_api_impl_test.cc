@@ -14,7 +14,6 @@
 #include "vm/class_finalizer.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
-#include "vm/dev_fs.h"
 #include "vm/lockers.h"
 #include "vm/timeline.h"
 #include "vm/unit_test.h"
@@ -3036,8 +3035,6 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeOldspaceGC) {
   // Expect small garbage to be collected.
   EXPECT_EQ(kHugeExternalSize,
             isolate->heap()->ExternalInWords(Heap::kOld) * kWordSize);
-  Dart_DeleteWeakPersistentHandle(reinterpret_cast<Dart_Isolate>(isolate),
-                                  weak);
   Dart_ExitScope();
 }
 
