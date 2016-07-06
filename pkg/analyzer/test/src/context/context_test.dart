@@ -2675,6 +2675,49 @@ class LimitedInvalidateTest extends AbstractContextTest {
     context.analysisOptions = options;
   }
 
+  void test_class_addMethod_useAsHole_inTopLevelVariable() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {
+}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+var B = A.foo;
+''');
+    Source c = addSource(
+        '/c.dart',
+        r'''
+import 'b.dart';
+var C = B;
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(b).errors, hasLength(1));
+    // Update a.dart: add A.foo.
+    //   'B' in b.dart is invalid, because 'B' references 'foo'
+    //   c.dart is invalid, because 'C' references 'B'
+    context.setContents(
+        a,
+        r'''
+class A {
+  static void foo(int p) {}
+}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+
+    _assertValidForDependentLibrary(b);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
+
+    _assertValidForDependentLibrary(c);
+    _assertInvalid(c, LIBRARY_ERRORS_READY);
+    _assertInvalidUnits(c, RESOLVED_UNIT4);
+  }
+
   void test_class_addMethod_useClass() {
     Source a = addSource(
         '/a.dart',
