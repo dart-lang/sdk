@@ -231,7 +231,7 @@ Future run_local_refactoring_1() async {
 Future run_memory_initialAnalysis_1() async {
   String id = 'memory-initialAnalysis-1';
   String description = r'''
-1. Start server, set 'analyzer' and 'analysis_server' analysis roots.
+1. Start server, set 'analyzer' as the analysis root.
 2. Measure the memory usage after finishing initial analysis.
 3. Shutdown the server.
 4. Go to (1).

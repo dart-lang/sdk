@@ -98,7 +98,7 @@ class AnalysisServerMemoryUsageTest
    *  1. Start Analysis Server.
    *  2. Set the analysis [roots].
    *  3. Wait for analysis to complete.
-   *  4. Record the time to finish analysis.
+   *  4. Record the heap size after analysis is finished.
    *  5. Shutdown.
    *  6. Go to (1).
    */
