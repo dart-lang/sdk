@@ -1349,7 +1349,10 @@ class FixProcessor {
       sb.append(prefix);
     }
     // return type
-    _appendType(sb, element.type.returnType);
+    if (!isSetter) {
+      _appendType(sb, element.type.returnType);
+    }
+    // keyword
     if (isGetter) {
       sb.append('get ');
     } else if (isSetter) {

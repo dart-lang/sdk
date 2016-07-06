@@ -2631,7 +2631,7 @@ class B extends A {
   }
 
   @override
-  void set s3(String x) {
+  set s3(String x) {
     // TODO: implement s3
   }
 }
