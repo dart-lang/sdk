@@ -60,6 +60,7 @@ var dart_library =
       args.unshift(this._library);
       this._loader.apply(null, args);
       this._state = LibraryLoader.READY;
+      this._library._name = this._name;
       return this._library;
     }
 
