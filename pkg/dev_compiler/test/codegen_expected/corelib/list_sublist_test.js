@@ -1,0 +1,83 @@
+dart_library.library('corelib/list_sublist_test', null, /* Imports */[
+  'dart_sdk',
+  'expect'
+], function load__list_sublist_test(exports, dart_sdk, expect) {
+  'use strict';
+  const core = dart_sdk.core;
+  const _interceptors = dart_sdk._interceptors;
+  const dart = dart_sdk.dart;
+  const dartx = dart_sdk.dartx;
+  const expect$ = expect.expect;
+  const list_sublist_test = Object.create(null);
+  let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
+  let ListOfint = () => (ListOfint = dart.constFn(core.List$(core.int)))();
+  let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.functionType(dart.void, [])))();
+  let VoidToList = () => (VoidToList = dart.constFn(dart.definiteFunctionType(core.List, [])))();
+  let VoidToListOfint = () => (VoidToListOfint = dart.constFn(dart.definiteFunctionType(ListOfint(), [])))();
+  let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
+  let dynamicTobool = () => (dynamicTobool = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic])))();
+  let FunctionTovoid = () => (FunctionTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.Function])))();
+  let const$;
+  let const$0;
+  let const$1;
+  let const$2;
+  let const$3;
+  let const$4;
+  let const$5;
+  let const$6;
+  let const$7;
+  let const$8;
+  let const$9;
+  let const$10;
+  let const$11;
+  let const$12;
+  let const$13;
+  let const$14;
+  let const$15;
+  list_sublist_test.main = function() {
+    expect$.Expect.listEquals([], [][dartx.sublist](0, 0));
+    expect$.Expect.listEquals([], (const$ || (const$ = dart.constList([], dart.dynamic)))[dartx.sublist](0, 0));
+    expect$.Expect.listEquals(JSArrayOfint().of([1, 2]), JSArrayOfint().of([1, 2])[dartx.sublist](0, 2));
+    expect$.Expect.listEquals(JSArrayOfint().of([1, 2]), (const$0 || (const$0 = dart.constList([1, 2], core.int)))[dartx.sublist](0, 2));
+    expect$.Expect.listEquals(JSArrayOfint().of([1]), JSArrayOfint().of([1, 2])[dartx.sublist](0, 1));
+    expect$.Expect.listEquals(JSArrayOfint().of([1]), (const$1 || (const$1 = dart.constList([1, 2], core.int)))[dartx.sublist](0, 1));
+    expect$.Expect.listEquals(JSArrayOfint().of([2]), JSArrayOfint().of([1, 2])[dartx.sublist](1, 2));
+    expect$.Expect.listEquals(JSArrayOfint().of([2]), (const$2 || (const$2 = dart.constList([1, 2], core.int)))[dartx.sublist](1, 2));
+    expect$.Expect.listEquals([], JSArrayOfint().of([1, 2])[dartx.sublist](0, 0));
+    expect$.Expect.listEquals([], (const$3 || (const$3 = dart.constList([1, 2], core.int)))[dartx.sublist](0, 0));
+    expect$.Expect.listEquals(JSArrayOfint().of([2, 3]), JSArrayOfint().of([1, 2, 3, 4])[dartx.sublist](1, 3));
+    expect$.Expect.listEquals(JSArrayOfint().of([2, 3]), (const$4 || (const$4 = dart.constList([1, 2, 3, 4], core.int)))[dartx.sublist](1, 3));
+    expect$.Expect.listEquals(JSArrayOfint().of([2, 3]), JSArrayOfint().of([1, 2, 3, 4])[dartx.sublist](1, 3));
+    expect$.Expect.listEquals(JSArrayOfint().of([2, 3]), (const$5 || (const$5 = dart.constList([1, 2, 3, 4], core.int)))[dartx.sublist](1, 3));
+    list_sublist_test.expectAE(dart.fn(() => [][dartx.sublist](-1, null), VoidToList()));
+    list_sublist_test.expectAE(dart.fn(() => (const$6 || (const$6 = dart.constList([], dart.dynamic)))[dartx.sublist](-1, null), VoidToList()));
+    list_sublist_test.expectAE(dart.fn(() => [][dartx.sublist](-1, 0), VoidToList()));
+    list_sublist_test.expectAE(dart.fn(() => (const$7 || (const$7 = dart.constList([], dart.dynamic)))[dartx.sublist](-1, 0), VoidToList()));
+    list_sublist_test.expectAE(dart.fn(() => [][dartx.sublist](-1, -1), VoidToList()));
+    list_sublist_test.expectAE(dart.fn(() => (const$8 || (const$8 = dart.constList([], dart.dynamic)))[dartx.sublist](-1, -1), VoidToList()));
+    list_sublist_test.expectAE(dart.fn(() => [][dartx.sublist](-1, 1), VoidToList()));
+    list_sublist_test.expectAE(dart.fn(() => (const$9 || (const$9 = dart.constList([], dart.dynamic)))[dartx.sublist](-1, 1), VoidToList()));
+    list_sublist_test.expectAE(dart.fn(() => [][dartx.sublist](0, -1), VoidToList()));
+    list_sublist_test.expectAE(dart.fn(() => (const$10 || (const$10 = dart.constList([], dart.dynamic)))[dartx.sublist](0, -1), VoidToList()));
+    list_sublist_test.expectAE(dart.fn(() => [][dartx.sublist](0, 1), VoidToList()));
+    list_sublist_test.expectAE(dart.fn(() => (const$11 || (const$11 = dart.constList([], dart.dynamic)))[dartx.sublist](0, 1), VoidToList()));
+    list_sublist_test.expectAE(dart.fn(() => [][dartx.sublist](1, null), VoidToList()));
+    list_sublist_test.expectAE(dart.fn(() => (const$12 || (const$12 = dart.constList([], dart.dynamic)))[dartx.sublist](1, null), VoidToList()));
+    list_sublist_test.expectAE(dart.fn(() => [][dartx.sublist](1, 0), VoidToList()));
+    list_sublist_test.expectAE(dart.fn(() => (const$13 || (const$13 = dart.constList([], dart.dynamic)))[dartx.sublist](1, 0), VoidToList()));
+    list_sublist_test.expectAE(dart.fn(() => [][dartx.sublist](1, -1), VoidToList()));
+    list_sublist_test.expectAE(dart.fn(() => (const$14 || (const$14 = dart.constList([], dart.dynamic)))[dartx.sublist](1, -1), VoidToList()));
+    list_sublist_test.expectAE(dart.fn(() => [][dartx.sublist](1, 1), VoidToList()));
+    list_sublist_test.expectAE(dart.fn(() => (const$15 || (const$15 = dart.constList([], dart.dynamic)))[dartx.sublist](1, 1), VoidToList()));
+    list_sublist_test.expectAE(dart.fn(() => JSArrayOfint().of([1])[dartx.sublist](0, 2), VoidToListOfint()));
+    list_sublist_test.expectAE(dart.fn(() => JSArrayOfint().of([1])[dartx.sublist](1, 2), VoidToListOfint()));
+    list_sublist_test.expectAE(dart.fn(() => JSArrayOfint().of([1])[dartx.sublist](1, 0), VoidToListOfint()));
+  };
+  dart.fn(list_sublist_test.main, VoidTodynamic());
+  list_sublist_test.expectAE = function(f) {
+    expect$.Expect.throws(VoidTovoid()._check(f), dart.fn(e => core.ArgumentError.is(e), dynamicTobool()));
+  };
+  dart.fn(list_sublist_test.expectAE, FunctionTovoid());
+  // Exports:
+  exports.list_sublist_test = list_sublist_test;
+});

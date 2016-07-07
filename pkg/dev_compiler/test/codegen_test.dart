@@ -40,6 +40,9 @@ final ArgParser argParser = new ArgParser()
 /// The `test/codegen` directory.
 final codegenDir = path.join(testDirectory, 'codegen');
 
+/// The `test/codegen/expect` directory.
+final codegenExpectDir = path.join(testDirectory, 'codegen_expected');
+
 /// The generated directory where tests, expanded multitests, and other test
 /// support libraries are copied to.
 ///
@@ -105,8 +108,9 @@ main(List<String> arguments) {
 
     var name = path.withoutExtension(relativePath);
     test('dartdevc $name', () {
-      var outDir = path.join(codegenOutputDir, path.dirname(relativePath));
-      _ensureDirectory(outDir);
+      var relativeDir = path.dirname(relativePath);
+      var outDir = path.join(codegenOutputDir, relativeDir);
+      var expectDir = path.join(codegenExpectDir, relativeDir);
 
       // Check if we need to use special compile options.
       var contents = new File(testFile).readAsStringSync();
@@ -129,7 +133,9 @@ main(List<String> arguments) {
           files.toList(), _moduleForLibrary);
       var module = compiler.compile(unit, options);
       _writeModule(
-          path.join(outDir, path.basenameWithoutExtension(testFile)), module);
+          path.join(outDir, path.basenameWithoutExtension(testFile)),
+          path.join(expectDir, path.basenameWithoutExtension(testFile)),
+          module);
     });
   }
 
@@ -140,14 +146,16 @@ main(List<String> arguments) {
   }
 }
 
-void _writeModule(String outPath, JSModuleFile result) {
+void _writeModule(String outPath, String expectPath, JSModuleFile result) {
   _ensureDirectory(path.dirname(outPath));
+  _ensureDirectory(path.dirname(expectPath));
 
   String errors = result.errors.join('\n');
   if (errors.isNotEmpty && !errors.endsWith('\n')) errors += '\n';
   new File(outPath + '.txt').writeAsStringSync(errors);
 
   var jsFile = new File(outPath + '.js');
+  var expectFile = new File(expectPath + '.js');
   var errorFile = new File(outPath + '.err');
 
   if (result.isValid) {
@@ -157,6 +165,8 @@ void _writeModule(String outPath, JSModuleFile result) {
       new File(mapPath)
           .writeAsStringSync(JSON.encode(result.placeSourceMap(mapPath)));
     }
+
+    expectFile.writeAsStringSync(result.code);
 
     // There are no errors, so delete any stale ".err" file.
     if (errorFile.existsSync()) {
@@ -186,38 +196,46 @@ dart_library.library('$moduleName', null, [
     if (jsFile.existsSync()) {
       jsFile.deleteSync();
     }
+
+    // There are errors, so delete any stale expect ".js" file.
+    if (expectFile.existsSync()) {
+      expectFile.deleteSync();
+    }
+    expectFile.writeAsStringSync("//FAILED TO COMPILE");
   }
 }
 
 void _buildAllPackages(ModuleCompiler compiler) {
   group('dartdevc package', () {
-    _buildPackages(compiler, codegenOutputDir);
+    _buildPackages(compiler, codegenOutputDir, codegenExpectDir);
 
     var packages = ['matcher', 'path', 'stack_trace'];
     for (var package in packages) {
       test(package, () {
-        _buildPackage(compiler, codegenOutputDir, package);
+        _buildPackage(compiler, codegenOutputDir, codegenExpectDir, package);
       });
     }
 
     test('unittest', () {
       // Only build files applicable to the web - html_*.dart and its
       // internal dependences.
-      _buildPackage(compiler, codegenOutputDir, "unittest", packageFiles: [
-        'unittest.dart',
-        'html_config.dart',
-        'html_individual_config.dart',
-        'html_enhanced_config.dart'
-      ]);
+      _buildPackage(compiler, codegenOutputDir, codegenExpectDir, "unittest",
+          packageFiles: [
+            'unittest.dart',
+            'html_config.dart',
+            'html_individual_config.dart',
+            'html_enhanced_config.dart'
+          ]);
     });
   });
 
   test('dartdevc sunflower', () {
-    _buildSunflower(compiler, codegenOutputDir);
+    _buildSunflower(compiler, codegenOutputDir, codegenExpectDir);
   });
 }
 
-void _buildSunflower(ModuleCompiler compiler, String outputDir) {
+void _buildSunflower(
+    ModuleCompiler compiler, String outputDir, String expectDir) {
   var baseDir = path.join(codegenDir, 'sunflower');
   var files = ['sunflower', 'circle', 'painter']
       .map((f) => path.join(baseDir, '$f.dart'))
@@ -226,10 +244,12 @@ void _buildSunflower(ModuleCompiler compiler, String outputDir) {
   var options = new CompilerOptions(summarizeApi: false);
 
   var built = compiler.compile(input, options);
-  _writeModule(path.join(outputDir, 'sunflower', 'sunflower'), built);
+  _writeModule(path.join(outputDir, 'sunflower', 'sunflower'),
+      path.join(expectDir, 'sunflower', 'sunflower'), built);
 }
 
-void _buildPackages(ModuleCompiler compiler, String outputDir) {
+void _buildPackages(
+    ModuleCompiler compiler, String outputDir, String expectDir) {
   // Note: we don't summarize these, as we're going to rely on our in-memory
   // shared analysis context for caching, and `_moduleForLibrary` below
   // understands these are from other modules.
@@ -244,12 +264,14 @@ void _buildPackages(ModuleCompiler compiler, String outputDir) {
       var built = compiler.compile(input, options);
 
       var outPath = path.join(outputDir, path.withoutExtension(uriPath));
-      _writeModule(outPath, built);
+      var expectPath = path.join(expectDir, path.withoutExtension(uriPath));
+      _writeModule(outPath, expectPath, built);
     });
   }
 }
 
-void _buildPackage(ModuleCompiler compiler, String outputDir, packageName,
+void _buildPackage(
+    ModuleCompiler compiler, String outputDir, String expectDir, packageName,
     {List<String> packageFiles}) {
   var options = new CompilerOptions(sourceMap: false, summarizeApi: false);
 
@@ -279,7 +301,8 @@ void _buildPackage(ModuleCompiler compiler, String outputDir, packageName,
   var module = compiler.compile(unit, options);
 
   var outPath = path.join(outputDir, packageName, packageName);
-  _writeModule(outPath, module);
+  var expectPath = path.join(expectDir, packageName, packageName);
+  _writeModule(outPath, expectPath, module);
 }
 
 String _moduleForLibrary(Source source) {
