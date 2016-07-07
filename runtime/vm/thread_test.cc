@@ -405,6 +405,25 @@ VM_TEST_CASE(SafepointTestVM) {
 }
 
 
+// Test case for recursive safepoint operations.
+VM_TEST_CASE(RecursiveSafepointTest1) {
+  intptr_t count = 0;
+  {
+    SafepointOperationScope safepoint_scope(thread);
+    count += 1;
+    {
+      SafepointOperationScope safepoint_scope(thread);
+      count += 1;
+      {
+        SafepointOperationScope safepoint_scope(thread);
+        count += 1;
+      }
+    }
+  }
+  EXPECT(count == 3);
+}
+
+
 VM_TEST_CASE(ThreadIterator_Count) {
   intptr_t thread_count_0 = 0;
   intptr_t thread_count_1 = 0;
@@ -522,6 +541,46 @@ VM_TEST_CASE(SafepointTestVM2) {
   while (exited != SafepointTestTask::kTaskCount) {
     ml.WaitWithSafepointCheck(thread);
   }
+}
+
+
+// Test recursive safepoint operation scopes with other threads trying
+// to also start a safepoint operation scope.
+VM_TEST_CASE(RecursiveSafepointTest2) {
+  Isolate* isolate = thread->isolate();
+  Monitor monitor;
+  intptr_t expected_count = 0;
+  intptr_t total_done = 0;
+  intptr_t exited = 0;
+  for (int i = 0; i < SafepointTestTask::kTaskCount; i++) {
+    Dart::thread_pool()->Run(new SafepointTestTask(
+        isolate, &monitor, &expected_count, &total_done, &exited));
+  }
+  bool all_helpers = false;
+  do {
+    SafepointOperationScope safepoint_scope(thread);
+    {
+      SafepointOperationScope safepoint_scope(thread);
+      MonitorLocker ml(&monitor);
+      if (expected_count == SafepointTestTask::kTaskCount) {
+        all_helpers = true;
+      }
+    }
+  } while (!all_helpers);
+  String& label = String::Handle(String::New("foo"));
+  UserTag& tag = UserTag::Handle(UserTag::New(label));
+  isolate->set_current_tag(tag);
+  bool all_exited = false;
+  do {
+    SafepointOperationScope safepoint_scope(thread);
+    {
+      SafepointOperationScope safepoint_scope(thread);
+      MonitorLocker ml(&monitor);
+      if (exited == SafepointTestTask::kTaskCount) {
+        all_exited = true;
+      }
+    }
+  } while (!all_exited);
 }
 
 

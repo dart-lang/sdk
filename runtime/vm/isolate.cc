@@ -2527,7 +2527,7 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
 
     // If a safepoint operation is in progress wait for it
     // to finish before scheduling this thread in.
-    while (!bypass_safepoint && safepoint_handler()->safepoint_in_progress()) {
+    while (!bypass_safepoint && safepoint_handler()->SafepointInProgress()) {
       ml.Wait();
     }
 

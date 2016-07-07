@@ -41,12 +41,14 @@ SafepointHandler::SafepointHandler(Isolate* isolate)
     : isolate_(isolate),
       safepoint_lock_(new Monitor()),
       number_threads_not_at_safepoint_(0),
-      safepoint_in_progress_(false) {
+      safepoint_operation_count_(0),
+      owner_(NULL) {
 }
 
 
 SafepointHandler::~SafepointHandler() {
-  ASSERT(safepoint_in_progress_ == false);
+  ASSERT(owner_ == NULL);
+  ASSERT(safepoint_operation_count_ == 0);
   delete safepoint_lock_;
   safepoint_lock_ = NULL;
   isolate_ = NULL;
@@ -63,12 +65,19 @@ void SafepointHandler::SafepointThreads(Thread* T) {
 
     // Now check to see if a safepoint operation is already in progress
     // for this isolate, block if an operation is in progress.
-    while (safepoint_in_progress()) {
+    while (SafepointInProgress()) {
+      // If we are recursively invoking a Safepoint operation then we
+      // just increment the count and return, otherwise we wait for the
+      // safepoint operation to be done.
+      if (owner_ == T) {
+        increment_safepoint_operation_count();
+        return;
+      }
       sl.WaitWithSafepointCheck(T);
     }
 
-    // Set safepoint in progress by this thread.
-    set_safepoint_in_progress(true);
+    // Set safepoint in progress state by this thread.
+    SetSafepointInProgress(T);
 
     // Go over the active thread list and ensure that all threads active
     // in the isolate reach a safepoint.
@@ -114,6 +123,14 @@ void SafepointHandler::ResumeThreads(Thread* T) {
   // First resume all the threads which are blocked for the safepoint
   // operation.
   MonitorLocker sl(threads_lock());
+
+  // First check if we are in a recursive safepoint operation, in that case
+  // we just decrement safepoint_operation_count and return.
+  ASSERT(SafepointInProgress());
+  if (safepoint_operation_count() > 1) {
+    decrement_safepoint_operation_count();
+    return;
+  }
   Thread* current = isolate()->thread_registry()->active_list();
   while (current != NULL) {
     MonitorLocker tl(current->thread_lock());
@@ -127,10 +144,10 @@ void SafepointHandler::ResumeThreads(Thread* T) {
     }
     current = current->next();
   }
-  // Now set the safepoint_in_progress_ flag to false and notify all threads
+  // Now reset the safepoint_in_progress_ state and notify all threads
   // that are waiting to enter the isolate or waiting to start another
   // safepoint operation.
-  set_safepoint_in_progress(false);
+  ResetSafepointInProgress(T);
   sl.NotifyAll();
 }
 
