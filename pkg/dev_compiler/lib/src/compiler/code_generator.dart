@@ -4302,8 +4302,9 @@ class CodeGenerator extends GeneralizingAstVisitor
       return AstBuilder.propertyAccess(newTarget, node.propertyName);
     } else {
       var invoke = node as MethodInvocation;
-      return AstBuilder.methodInvoke(
-          newTarget, invoke.methodName, invoke.argumentList.arguments);
+      return AstBuilder.methodInvoke(newTarget, invoke.methodName,
+          invoke.typeArguments, invoke.argumentList.arguments)
+        ..staticInvokeType = invoke.staticInvokeType;
     }
   }
 

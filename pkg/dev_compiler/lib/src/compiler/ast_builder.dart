@@ -105,10 +105,11 @@ class AstBuilder {
     return new PropertyAccess(target, p, name);
   }
 
-  static MethodInvocation methodInvoke(
-      Expression target, SimpleIdentifier name, NodeList<Expression> args) {
+  static MethodInvocation methodInvoke(Expression target, SimpleIdentifier name,
+      TypeArgumentList typeArguments, NodeList<Expression> args) {
     var p = new Token(TokenType.PERIOD, 0);
-    return new MethodInvocation(target, p, name, null, argumentList(args));
+    return new MethodInvocation(
+        target, p, name, typeArguments, argumentList(args));
   }
 
   static TokenType getTokenType(String lexeme) {

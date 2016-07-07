@@ -72786,8 +72786,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let attributes = opts && 'attributes' in opts ? opts.attributes : null;
       let uriAttributes = opts && 'uriAttributes' in opts ? opts.uriAttributes : null;
       let tagNameUpper = tagName[dartx.toUpperCase]();
-      let attrs = dart.nullSafe(attributes, _ => _[dartx.map](dart.fn(name => dart.str`${tagNameUpper}::${name[dartx.toLowerCase]()}`, StringToString$())));
-      let uriAttrs = dart.nullSafe(uriAttributes, _ => _[dartx.map](dart.fn(name => dart.str`${tagNameUpper}::${name[dartx.toLowerCase]()}`, StringToString$())));
+      let attrs = dart.nullSafe(attributes, _ => _[dartx.map](core.String)(dart.fn(name => dart.str`${tagNameUpper}::${name[dartx.toLowerCase]()}`, StringToString$())));
+      let uriAttrs = dart.nullSafe(uriAttributes, _ => _[dartx.map](core.String)(dart.fn(name => dart.str`${tagNameUpper}::${name[dartx.toLowerCase]()}`, StringToString$())));
       if (uriPolicy == null) {
         uriPolicy = html$.UriPolicy.new();
       }
@@ -72799,8 +72799,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let uriAttributes = opts && 'uriAttributes' in opts ? opts.uriAttributes : null;
       let baseNameUpper = baseName[dartx.toUpperCase]();
       let tagNameUpper = tagName[dartx.toUpperCase]();
-      let attrs = dart.nullSafe(attributes, _ => _[dartx.map](dart.fn(name => dart.str`${baseNameUpper}::${name[dartx.toLowerCase]()}`, StringToString$())));
-      let uriAttrs = dart.nullSafe(uriAttributes, _ => _[dartx.map](dart.fn(name => dart.str`${baseNameUpper}::${name[dartx.toLowerCase]()}`, StringToString$())));
+      let attrs = dart.nullSafe(attributes, _ => _[dartx.map](core.String)(dart.fn(name => dart.str`${baseNameUpper}::${name[dartx.toLowerCase]()}`, StringToString$())));
+      let uriAttrs = dart.nullSafe(uriAttributes, _ => _[dartx.map](core.String)(dart.fn(name => dart.str`${baseNameUpper}::${name[dartx.toLowerCase]()}`, StringToString$())));
       if (uriPolicy == null) {
         uriPolicy = html$.UriPolicy.new();
       }
