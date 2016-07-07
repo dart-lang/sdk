@@ -92,7 +92,7 @@ vars = {
   "quiver_tag": "@0.21.4",
   "resource_rev":"@a49101ba2deb29c728acba6fb86000a8f730f4b1",
   "root_certificates_rev": "@aed07942ce98507d2be28cbd29e879525410c7fc",
-  "scheduled_test_tag": "@0.12.5+2",
+  "scheduled_test_tag": "@0.12.5+6",
   "shelf_static_tag": "@0.2.3+4",
   "shelf_tag": "@0.6.5+2",
   "shelf_web_socket_tag": "@0.2.0",
