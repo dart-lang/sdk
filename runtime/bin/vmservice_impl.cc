@@ -176,7 +176,8 @@ bool VmService::LoadForGenPrecompiled() {
 
 bool VmService::Setup(const char* server_ip,
                       intptr_t server_port,
-                      bool running_precompiled) {
+                      bool running_precompiled,
+                      bool dev_mode_server) {
   Dart_Isolate isolate = Dart_CurrentIsolate();
   ASSERT(isolate != NULL);
   SetServerIPAndPort("", 0);
@@ -241,6 +242,9 @@ bool VmService::Setup(const char* server_ip,
                          DartUtils::NewString("_autoStart"),
                          Dart_NewBoolean(auto_start));
   SHUTDOWN_ON_ERROR(result);
+  result = Dart_SetField(library,
+                         DartUtils::NewString("_originCheckDisabled"),
+                         Dart_NewBoolean(dev_mode_server));
 
   // Are we running on Windows?
 #if defined(TARGET_OS_WINDOWS)

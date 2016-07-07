@@ -69,7 +69,7 @@ main() {
 ```
 Start the script:
 ```
-$ dart --observe clock.dart
+$ dart --disable-service-origin-check --observe clock.dart
 ```
 
 ## Code Reviews

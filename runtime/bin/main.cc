@@ -119,7 +119,9 @@ static const char* vm_service_server_ip = DEFAULT_VM_SERVICE_SERVER_IP;
 // The 0 port is a magic value which results in the first available port
 // being allocated.
 static int vm_service_server_port = -1;
-
+// True when we are running in development mode and cross origin security
+// checks are disabled.
+static bool vm_service_dev_mode = false;
 
 // Exit code indicating an API error.
 static const int kApiErrorExitCode = 253;
@@ -393,6 +395,16 @@ static bool ProcessEnableVmServiceOption(const char* option_value,
 }
 
 
+static bool ProcessDisableServiceOriginCheckOption(
+    const char* option_value, CommandLineOptions* vm_options) {
+  ASSERT(option_value != NULL);
+  Log::PrintErr("WARNING: You are running with the service protocol in an "
+                "insecure mode.\n");
+  vm_service_dev_mode = true;
+  return true;
+}
+
+
 static bool ProcessObserveOption(const char* option_value,
                                  CommandLineOptions* vm_options) {
   ASSERT(option_value != NULL);
@@ -490,6 +502,7 @@ static struct {
   // VM specific options to the standalone dart program.
   { "--compile_all", ProcessCompileAllOption },
   { "--enable-vm-service", ProcessEnableVmServiceOption },
+  { "--disable-service-origin-check", ProcessDisableServiceOriginCheckOption },
   { "--observe", ProcessObserveOption },
   { "--shutdown", ProcessShutdownOption },
   { "--snapshot=", ProcessSnapshotFilenameOption },
@@ -766,7 +779,8 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
     bool skip_library_load = run_app_snapshot;
     if (!VmService::Setup(vm_service_server_ip,
                           vm_service_server_port,
-                          skip_library_load)) {
+                          skip_library_load,
+                          vm_service_dev_mode)) {
       *error = strdup(VmService::GetErrorMessage());
       return NULL;
     }

@@ -19,7 +19,8 @@ int _port;
 String _ip;
 // Should the HTTP server auto start?
 bool _autoStart;
-
+// Should the HTTP server run in devmode?
+bool _originCheckDisabled;
 bool _isWindows = false;
 var _signalWatch;
 var _signalSubscription;
@@ -35,7 +36,7 @@ _lazyServerBoot() {
   // Lazily create service.
   var service = new VMService();
   // Lazily create server.
-  server = new Server(service, _ip, _port);
+  server = new Server(service, _ip, _port, _originCheckDisabled);
 }
 
 Future cleanupCallback() async {

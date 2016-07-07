@@ -105,21 +105,59 @@ class Server {
   final VMService _service;
   final String _ip;
   final int _port;
-
+  final bool _originCheckDisabled;
+  final List<String> _allowedOrigins = <String>[];
   HttpServer _server;
   bool get running => _server != null;
   bool _displayMessages = false;
 
-  Server(this._service, this._ip, this._port) {
+  Server(this._service, this._ip, this._port, this._originCheckDisabled) {
     _displayMessages = (_ip != '127.0.0.1' || _port != 8181);
   }
 
-  void _requestHandler(HttpRequest request) {
-    // Allow cross origin requests with 'observatory' header.
-    request.response.headers.add('Access-Control-Allow-Origin', '*');
-    request.response.headers.add('Access-Control-Allow-Headers',
-                                 'Observatory-Version');
+  void _addOrigin(String host, String port) {
+    String origin = 'http://$host:$port';
+    _allowedOrigins.add(origin);
+  }
 
+  bool _isAllowedOrigin(String origin) {
+    for (String allowedOrigin in _allowedOrigins) {
+      if (origin.startsWith(allowedOrigin)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool _originCheck(HttpRequest request) {
+    if (_originCheckDisabled) {
+      // Always allow.
+      return true;
+    }
+    // First check the web-socket specific origin.
+    List<String> origins = request.headers["Sec-WebSocket-Origin"];
+    if (origins == null) {
+      // Fall back to the general Origin field.
+      origins = request.headers["Origin"];
+    }
+    if (origins == null) {
+      // No origin sent. This is a non-browser client or a same-origin request.
+      return true;
+    }
+    for (String origin in origins) {
+      if (_isAllowedOrigin(origin)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void _requestHandler(HttpRequest request) {
+    if (!_originCheck(request)) {
+      // This is a cross origin attempt to connect
+      request.response.close();
+      return;
+    }
     if (request.method != 'GET') {
       // Not a GET request. Do nothing.
       request.response.close();
@@ -165,6 +203,9 @@ class Server {
       return new Future.value(this);
     }
 
+    // Clear allowed origins.
+    _allowedOrigins.clear();
+
     var address = new InternetAddress(_ip);
     // Startup HTTP server.
     return HttpServer.bind(address, _port).then((s) {
@@ -172,6 +213,12 @@ class Server {
       _server.listen(_requestHandler, cancelOnError: true);
       var ip = _server.address.address.toString();
       var port = _server.port.toString();
+      // Add the numeric ip and host name to our allowed origins.
+      _addOrigin(ip, port);
+      _addOrigin(_server.address.host.toString(), port);
+      // Explicitly add localhost and 127.0.0.1.
+      _addOrigin('localhost', port);
+      _addOrigin('127.0.0.1', port);
       if (_displayMessages) {
         print('Observatory listening on http://$ip:$port');
       }
