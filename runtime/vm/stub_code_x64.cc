@@ -783,7 +783,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Set up arguments for the Dart call.
   Label push_arguments;
   Label done_push_arguments;
-  __ testq(RBX, RBX);  // check if there are arguments.
   __ j(ZERO, &done_push_arguments, Assembler::kNearJump);
   __ movq(RAX, Immediate(0));
   __ Bind(&push_arguments);
@@ -2093,8 +2092,12 @@ void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
   // R10: arguments descriptor (result).
   // RDI: cache buckets array.
   // RBX: mask.
-  __ movq(RCX, RAX);
-  __ imulq(RCX, Immediate(MegamorphicCache::kSpreadFactor));
+
+  // Compute the table index.
+  ASSERT(MegamorphicCache::kSpreadFactor == 7);
+  // Use leaq and subq multiply with 7 == 8 - 1.
+  __ leaq(RCX, Address(RAX, TIMES_8, 0));
+  __ subq(RCX, RAX);
 
   Label loop, update, load_target_function;
   __ jmp(&loop);
@@ -2108,8 +2111,10 @@ void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
   __ movq(RDX, FieldAddress(RDI, RCX, TIMES_8, base));
 
   ASSERT(kIllegalCid == 0);
+  // Check for the uncommon case, a miss in the cache.
   __ testq(RDX, RDX);
   __ j(ZERO, &load_target_function, Assembler::kNearJump);
+
   __ cmpq(RDX, RAX);
   __ j(NOT_EQUAL, &update, Assembler::kNearJump);
 
@@ -2132,8 +2137,69 @@ void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
 //  CODE_REG: target Code
 //  R10: arguments descriptor
 void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
-  EmitMegamorphicLookup(assembler);
+  // Jump if receiver is a smi.
+  Label smi_case;
+  __ testq(RDI, Immediate(kSmiTagMask));
+  // Jump out of line for smi case.
+  __ j(ZERO, &smi_case, Assembler::kNearJump);
+
+  // Loads the cid of the object.
+  __ LoadClassId(RAX, RDI);
+
+  Label cid_loaded;
+  __ Bind(&cid_loaded);
+  __ movq(R9, FieldAddress(RBX, MegamorphicCache::mask_offset()));
+  __ movq(RDI, FieldAddress(RBX, MegamorphicCache::buckets_offset()));
+  // R10: arguments descriptor (result).
+  // RDI: cache buckets array.
+  // RBX: mask.
+
+  // Tag cid as a smi.
+  __ addq(RAX, RAX);
+
+  // Compute the table index.
+  ASSERT(MegamorphicCache::kSpreadFactor == 7);
+  // Use leaq and subq multiply with 7 == 8 - 1.
+  __ leaq(RCX, Address(RAX, TIMES_8, 0));
+  __ subq(RCX, RAX);
+
+  Label loop;
+  __ Bind(&loop);
+  __ andq(RCX, R9);
+
+  const intptr_t base = Array::data_offset();
+  // RCX is smi tagged, but table entries are two words, so TIMES_8.
+  Label probe_failed;
+  __ cmpq(RAX, FieldAddress(RDI, RCX, TIMES_8, base));
+  __ j(NOT_EQUAL, &probe_failed, Assembler::kNearJump);
+
+  Label load_target;
+  __ Bind(&load_target);
+  // Call the target found in the cache.  For a class id match, this is a
+  // proper target for the given name and arguments descriptor.  If the
+  // illegal class id was found, the target is a cache miss handler that can
+  // be invoked as a normal Dart function.
+  __ movq(RAX, FieldAddress(RDI, RCX, TIMES_8, base + kWordSize));
+  __ movq(R10,
+          FieldAddress(RBX, MegamorphicCache::arguments_descriptor_offset()));
+  __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
+  __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
+
   __ ret();
+
+  // Probe failed, check if it is a miss.
+  __ Bind(&probe_failed);
+  __ cmpq(FieldAddress(RDI, RCX, TIMES_8, base), Immediate(kIllegalCid));
+  __ j(ZERO, &load_target, Assembler::kNearJump);
+
+  // Try next extry in the table.
+  __ AddImmediate(RCX, Immediate(Smi::RawValue(1)));
+  __ jmp(&loop);
+
+  // Load cid for the Smi case.
+  __ Bind(&smi_case);
+  __ movq(RAX, Immediate(kSmiCid));
+  __ jmp(&cid_loaded);
 }
 
 

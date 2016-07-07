@@ -2101,13 +2101,16 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
 void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
   __ LoadTaggedClassIdMayBeSmi(R0, R0);
   // R0: class ID of the receiver (smi).
-  __ ldr(R4, FieldAddress(R5, MegamorphicCache::arguments_descriptor_offset()));
   __ ldr(R2, FieldAddress(R5, MegamorphicCache::buckets_offset()));
   __ ldr(R1, FieldAddress(R5, MegamorphicCache::mask_offset()));
   // R2: cache buckets array.
   // R1: mask.
-  __ LoadImmediate(TMP, MegamorphicCache::kSpreadFactor);
-  __ mul(R3, R0, TMP);
+
+  // Compute the table index.
+  ASSERT(MegamorphicCache::kSpreadFactor == 7);
+  // Use lsl and sub to multiply with 7 == 8 - 1.
+  __ LslImmediate(R3, R0, 3);
+  __ sub(R3, R3, Operand(R0));
   // R3: probe.
 
   Label loop, update, load_target_function;
@@ -2135,6 +2138,7 @@ void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
   // be invoked as a normal Dart function.
   __ add(TMP, R2, Operand(R3, LSL, 3));
   __ ldr(R0, FieldAddress(TMP, base + kWordSize));
+  __ ldr(R4, FieldAddress(R5, MegamorphicCache::arguments_descriptor_offset()));
   __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
   __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
 }
@@ -2148,8 +2152,52 @@ void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
 //  CODE_REG: target Code
 //  R4: arguments descriptor
 void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
-  EmitMegamorphicLookup(assembler);
+  __ LoadTaggedClassIdMayBeSmi(R0, R0);
+  // R0: class ID of the receiver (smi).
+  __ ldr(R2, FieldAddress(R5, MegamorphicCache::buckets_offset()));
+  __ ldr(R1, FieldAddress(R5, MegamorphicCache::mask_offset()));
+  // R2: cache buckets array.
+  // R1: mask.
+
+  // Compute the table index.
+  ASSERT(MegamorphicCache::kSpreadFactor == 7);
+  // Use lsl and sub to multiply with 7 == 8 - 1.
+  __ LslImmediate(R3, R0, 3);
+  __ sub(R3, R3, Operand(R0));
+  // R3: probe.
+  Label loop;
+  __ Bind(&loop);
+  __ and_(R3, R3, Operand(R1));
+
+  const intptr_t base = Array::data_offset();
+  // R3 is smi tagged, but table entries are 16 bytes, so LSL 3.
+  __ add(TMP, R2, Operand(R3, LSL, 3));
+  __ ldr(R6, FieldAddress(TMP, base));
+  Label probe_failed;
+  __ CompareRegisters(R6, R0);
+  __ b(&probe_failed, NE);
+
+  Label load_target;
+  __ Bind(&load_target);
+  // Call the target found in the cache.  For a class id match, this is a
+  // proper target for the given name and arguments descriptor.  If the
+  // illegal class id was found, the target is a cache miss handler that can
+  // be invoked as a normal Dart function.
+  __ ldr(R0, FieldAddress(TMP, base + kWordSize));
+  __ ldr(R4, FieldAddress(R5, MegamorphicCache::arguments_descriptor_offset()));
+  __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
+  __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
   __ ret();
+
+  // Probe failed, check if it is a miss.
+  __ Bind(&probe_failed);
+  ASSERT(kIllegalCid == 0);
+  __ tst(R6, Operand(R6));
+  __ b(&load_target, EQ);  // branch if miss.
+
+  // Try next extry in the table.
+  __ AddImmediate(R3, R3, Smi::RawValue(1));
+  __ b(&loop);
 }
 
 

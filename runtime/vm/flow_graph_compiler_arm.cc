@@ -1343,7 +1343,8 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   }
   __ LoadObject(R9, cache);
   if (FLAG_use_megamorphic_stub) {
-    __ BranchLink(*StubCode::MegamorphicLookup_entry());
+    __ ldr(LR, Address(THR, Thread::megamorphic_lookup_entry_point_offset()));
+    __ blx(LR);
   } else {
     StubCode::EmitMegamorphicLookup(assembler());
   }

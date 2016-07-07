@@ -2029,8 +2029,12 @@ void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
   // EDI: cache buckets array.
   // EBX: mask.
   __ pushl(ECX);  // Spill MegamorphicCache.
-  __ movl(ECX, EAX);
-  __ imull(ECX, Immediate(MegamorphicCache::kSpreadFactor));
+
+  // Compute the table index.
+  ASSERT(MegamorphicCache::kSpreadFactor == 7);
+  // Use leal and subl multiply with 7 == 8 - 1.
+  __ leal(ECX, Address(EAX, TIMES_8, 0));
+  __ subl(ECX, EAX);
   // ECX: probe.
 
   Label loop, update, load_target_function;
@@ -2070,10 +2074,68 @@ void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
 //  EBX: target entry point
 //  EDX: argument descriptor
 void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
-  EmitMegamorphicLookup(assembler);
-  __ ret();
-}
+  // Jump if receiver is a smi.
+  Label smi_case;
+  // Check if object (in tmp) is a Smi.
+  __ testl(EBX, Immediate(kSmiTagMask));
+  // Jump out of line for smi case.
+  __ j(ZERO, &smi_case, Assembler::kNearJump);
 
+  // Loads the cid of the instance.
+  __ LoadClassId(EAX, EBX);
+
+  Label cid_loaded;
+  __ Bind(&cid_loaded);
+  __ movl(EBX, FieldAddress(ECX, MegamorphicCache::mask_offset()));
+  __ movl(EDI, FieldAddress(ECX, MegamorphicCache::buckets_offset()));
+  // EDI: cache buckets array.
+  // EBX: mask.
+
+  // Tag cid as a smi.
+  __ addl(EAX, EAX);
+
+  // Compute the table index.
+  ASSERT(MegamorphicCache::kSpreadFactor == 7);
+  // Use leal and subl multiply with 7 == 8 - 1.
+  __ leal(EDX, Address(EAX, TIMES_8, 0));
+  __ subl(EDX, EAX);
+
+  Label loop;
+  __ Bind(&loop);
+  __ andl(EDX, EBX);
+
+  const intptr_t base = Array::data_offset();
+  Label probe_failed;
+  // EDX is smi tagged, but table entries are two words, so TIMES_4.
+  __ cmpl(EAX, FieldAddress(EDI, EDX, TIMES_4, base));
+  __ j(NOT_EQUAL, &probe_failed, Assembler::kNearJump);
+
+  Label load_target;
+  __ Bind(&load_target);
+  // Call the target found in the cache.  For a class id match, this is a
+  // proper target for the given name and arguments descriptor.  If the
+  // illegal class id was found, the target is a cache miss handler that can
+  // be invoked as a normal Dart function.
+  __ movl(EAX, FieldAddress(EDI, EDX, TIMES_4, base + kWordSize));
+  __ movl(EDX,
+          FieldAddress(ECX, MegamorphicCache::arguments_descriptor_offset()));
+  __ movl(EBX, FieldAddress(EAX, Function::entry_point_offset()));
+  __ ret();
+
+  __ Bind(&probe_failed);
+  // Probe failed, check if it is a miss.
+  __ cmpl(FieldAddress(EDI, EDX, TIMES_4, base), Immediate(kIllegalCid));
+  __ j(ZERO, &load_target, Assembler::kNearJump);
+
+  // Try next extry in the table.
+  __ AddImmediate(EDX, Immediate(Smi::RawValue(1)));
+  __ jmp(&loop);
+
+  // Load cid for the Smi case.
+  __ Bind(&smi_case);
+  __ movl(EAX, Immediate(kSmiCid));
+  __ jmp(&cid_loaded);
+}
 
 // Called from switchable IC calls.
 //  EBX: receiver

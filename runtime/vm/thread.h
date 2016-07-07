@@ -105,6 +105,8 @@ class Zone;
     StubCode::UpdateStoreBuffer_entry()->EntryPoint(), 0)                      \
   V(uword, call_to_runtime_entry_point_,                                       \
     StubCode::CallToRuntime_entry()->EntryPoint(), 0)                          \
+  V(uword, megamorphic_lookup_entry_point_,                                    \
+    StubCode::MegamorphicLookup_entry()->EntryPoint(), 0)                      \
 
 #endif
 
