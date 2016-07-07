@@ -1729,6 +1729,34 @@ class Let extends Expression {
   }
 }
 
+class BlockExpression extends Expression {
+  Block body;
+  Expression value;
+
+  BlockExpression(this.body, this.value) {
+    body?.parent = this;
+    value?.parent = this;
+  }
+
+  accept(ExpressionVisitor v) => v.visitBlockExpression(this);
+
+  visitChildren(Visitor v) {
+    body?.accept(v);
+    value?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (body != null) {
+      body = body.accept(v);
+      body?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept(v);
+      value?.parent = this;
+    }
+  }
+}
+
 // ------------------------------------------------------------------------
 //                              STATEMENTS
 // ------------------------------------------------------------------------
@@ -2240,8 +2268,11 @@ class TryFinally extends Statement {
 class YieldStatement extends Statement {
   Expression expression;
   bool isYieldStar;
+  bool isNative;
 
-  YieldStatement(this.expression, {this.isYieldStar: false}) {
+  YieldStatement(this.expression,
+      {this.isYieldStar: false,
+      this.isNative: false}) {
     expression?.parent = this;
   }
 
