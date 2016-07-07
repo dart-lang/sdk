@@ -2267,13 +2267,28 @@ class TryFinally extends Statement {
 /// Statement of form `yield x` or `yield* x`.
 class YieldStatement extends Statement {
   Expression expression;
-  bool isYieldStar;
-  bool isNative;
+  int flags = 0;
 
   YieldStatement(this.expression,
-      {this.isYieldStar: false,
-      this.isNative: false}) {
+      {bool isYieldStar: false,
+       bool isNative: false}) {
     expression?.parent = this;
+    this.isYieldStar = isYieldStar;
+    this.isNative = isNative;
+  }
+
+  static const int FlagYieldStar = 1 << 0;
+  static const int FlagNative = 1 << 1;
+
+  bool get isYieldStar => flags & FlagYieldStar != 0;
+  bool get isNative => flags & FlagNative != 0;
+
+  void set isYieldStar(bool value) {
+    flags = value ? (flags | FlagYieldStar) : (flags & ~FlagYieldStar);
+  }
+
+  void set isNative(bool value) {
+    flags = value ? (flags | FlagNative) : (flags & ~FlagNative);
   }
 
   accept(StatementVisitor v) => v.visitYieldStatement(this);

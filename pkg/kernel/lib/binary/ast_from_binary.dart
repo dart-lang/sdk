@@ -581,6 +581,10 @@ class BinaryBuilder {
         var body = readExpression();
         variableStack.length = stackHeight;
         return new Let(variable, body);
+      case Tag.BlockExpression:
+        var body = readBlock();
+        var expression = readExpression();
+        return new BlockExpression(body, expression);
       default:
         throw fail('Invalid expression tag: $tag');
     }
@@ -619,10 +623,7 @@ class BinaryBuilder {
       case Tag.ExpressionStatement:
         return new ExpressionStatement(readExpression());
       case Tag.Block:
-        int stackHeight = variableStack.length;
-        var body = readStatementList();
-        variableStack.length = stackHeight;
-        return new Block(body);
+        return readBlock();
       case Tag.EmptyStatement:
         return new EmptyStatement();
       case Tag.AssertStatement:
@@ -686,7 +687,8 @@ class BinaryBuilder {
       case Tag.YieldStatement:
         int flags = readByte();
         return new YieldStatement(readExpression(),
-            isYieldStar: flags & 0x1 != 0);
+            isYieldStar: flags & YieldStatement.FlagYieldStar != 0,
+            isNative: flags & YieldStatement.FlagNative != 0);
       case Tag.VariableDeclaration:
         var variable = readVariableDeclaration();
         variableStack.add(variable); // Will be popped by the enclosing scope.
@@ -713,6 +715,13 @@ class BinaryBuilder {
     var body = readStatement();
     variableStack.length = variableStackHeight;
     return new Catch(exception, body, guard: guard, stackTrace: stackTrace);
+  }
+
+  Block readBlock() {
+    int stackHeight = variableStack.length;
+    var body = readStatementList();
+    variableStack.length = stackHeight;
+    return new Block(body);
   }
 
   List<DartType> readDartTypeList() {
