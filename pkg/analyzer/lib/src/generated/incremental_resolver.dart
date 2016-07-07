@@ -870,6 +870,10 @@ class PoorMansIncrementalResolver {
     // parse results
     _sourceEntry.setValueIncremental(PARSE_ERRORS, _newParseErrors, true);
     _sourceEntry.setValueIncremental(PARSED_UNIT, _oldUnit, false);
+    // referenced names
+    ReferencedNames referencedNames = new ReferencedNames(_unitSource);
+    new ReferencedNamesBuilder(referencedNames).build(_oldUnit);
+    _sourceEntry.setValueIncremental(REFERENCED_NAMES, referencedNames, false);
   }
 
   /**

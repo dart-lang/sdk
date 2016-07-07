@@ -3103,6 +3103,97 @@ class C {}
     expect(context.getErrors(b).errors, hasLength(1));
   }
 
+  void test_sequence_inBodyChange_addRef_deltaChange() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {
+}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main(A a) {
+}
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(b).errors, hasLength(0));
+    // Update b.dart: in-body incremental change - start referencing 'foo'.
+    //   Should update referenced names.
+    context.setContents(
+        b,
+        r'''
+import 'a.dart';
+main(A a) {
+  a.foo;
+}
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(b).errors, hasLength(1));
+    // Update a.dart: add A.foo
+    //   b.dart is invalid, because it references 'foo'.
+    context.setContents(
+        a,
+        r'''
+class A {
+  int foo;
+}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
+    // No errors after analysis.
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(b).errors, hasLength(0));
+  }
+
+  void test_sequence_inBodyChange_removeRef_deltaChange() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {
+}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main(A a) {
+  a.foo;
+}
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(b).errors, hasLength(1));
+    // Update b.dart: in-body incremental change - stop referencing 'foo'.
+    //   Should update referenced names.
+    context.setContents(
+        b,
+        r'''
+import 'a.dart';
+main(A a) {
+}
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(b).errors, hasLength(0));
+    // Update a.dart: add A.foo
+    //   b.dart is still valid, because it does references 'foo' anymore.
+    context.setContents(
+        a,
+        r'''
+class A {
+  int foo;
+}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertValidAllLibraryUnitResults(b);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+  }
+
   void test_sequence_noChange_thenChange() {
     Source a = addSource(
         '/a.dart',
