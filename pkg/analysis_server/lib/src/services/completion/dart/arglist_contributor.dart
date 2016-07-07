@@ -96,15 +96,6 @@ bool _isEditingNamedArgLabel(DartCompletionRequest request) {
 }
 
 /**
- * Determine if the completion target is an emtpy argument list.
- */
-bool _isEmptyArgList(DartCompletionRequest request) {
-  AstNode node = request.target.containingNode;
-  return node is ArgumentList &&
-      node.leftParenthesis.next == node.rightParenthesis;
-}
-
-/**
  * Determine if the completion target is in the middle or beginning of the list
  * of named parameters and is not preceded by a comma. This method assumes that
  * _isAppendingToArgList has been called and is false.
@@ -217,46 +208,6 @@ class ArgListContributor extends DartCompletionContributor {
     return EMPTY_LIST;
   }
 
-  void _addArgListSuggestion(Iterable<ParameterElement> requiredParam) {
-    // DEPRECATED... argument lists are no longer suggested.
-    // See https://github.com/dart-lang/sdk/issues/25197
-
-    // String _getParamType(ParameterElement param) {
-    //   DartType type = param.type;
-    //   if (type != null) {
-    //     return type.displayName;
-    //   }
-    //   return 'dynamic';
-    // }
-
-    // StringBuffer completion = new StringBuffer('(');
-    // List<String> paramNames = new List<String>();
-    // List<String> paramTypes = new List<String>();
-    // for (ParameterElement param in requiredParam) {
-    //   String name = param.name;
-    //   if (name != null && name.length > 0) {
-    //     if (completion.length > 1) {
-    //       completion.write(', ');
-    //     }
-    //     completion.write(name);
-    //     paramNames.add(name);
-    //     paramTypes.add(_getParamType(param));
-    //   }
-    // }
-    // completion.write(')');
-    // CompletionSuggestion suggestion = new CompletionSuggestion(
-    //     CompletionSuggestionKind.ARGUMENT_LIST,
-    //     DART_RELEVANCE_HIGH,
-    //     completion.toString(),
-    //     completion.length,
-    //     0,
-    //     false,
-    //     false);
-    // suggestion.parameterNames = paramNames;
-    // suggestion.parameterTypes = paramTypes;
-    // suggestions.add(suggestion);
-  }
-
   void _addDefaultParamSuggestions(Iterable<ParameterElement> parameters,
       [bool appendComma = false]) {
     Iterable<String> namedArgs = _namedArgs(request);
@@ -295,10 +246,6 @@ class ArgListContributor extends DartCompletionContributor {
     Iterable<ParameterElement> requiredParam = parameters.where(
         (ParameterElement p) => p.parameterKind == ParameterKind.REQUIRED);
     int requiredCount = requiredParam.length;
-    if (requiredCount > 0 && _isEmptyArgList(request)) {
-      _addArgListSuggestion(requiredParam);
-      return;
-    }
     // TODO (jwren) _isAppendingToArgList can be split into two cases (with and
     // without preceded), then _isAppendingToArgList,
     // _isInsertingToArgListWithNoSynthetic and
