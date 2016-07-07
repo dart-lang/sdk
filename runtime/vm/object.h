@@ -8531,9 +8531,7 @@ RawClass* Object::clazz() const {
 
 
 DART_FORCE_INLINE void Object::SetRaw(RawObject* value) {
-  // NOTE: The assignment "raw_ = value" should be the first statement in
-  // this function. Also do not use 'value' in this function after the
-  // assignment (use 'raw_' instead).
+  NoSafepointScope no_safepoint_scope;
   raw_ = value;
   if ((reinterpret_cast<uword>(value) & kSmiTagMask) == kSmiTag) {
     set_vtable(Smi::handle_vtable_);
