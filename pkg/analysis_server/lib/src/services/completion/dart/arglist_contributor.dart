@@ -19,6 +19,12 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 int _argCount(DartCompletionRequest request) {
   AstNode node = request.target.containingNode;
   if (node is ArgumentList) {
+    if (request.target.entity == node.rightParenthesis) {
+      // Parser ignores trailing commas
+      if (node.rightParenthesis.previous?.lexeme == ',') {
+        return node.arguments.length + 1;
+      }
+    }
     return node.arguments.length;
   }
   return 0;
