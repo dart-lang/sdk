@@ -1341,8 +1341,16 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     ASSERT(frame != NULL);
     const Code& code = Code::ZoneHandle(frame->LookupDartCode());
     ASSERT(!code.IsNull());
+    ASSERT(!code.is_optimized());
     const Function& function = Function::Handle(code.function());
     ASSERT(!function.IsNull());
+
+    // If the code of the frame does not match the function's unoptimized code,
+    // we bail out since the code was reset by an isolate reload.
+    if (code.raw() != function.unoptimized_code()) {
+      return;
+    }
+
     // Since the code is referenced from the frame and the ZoneHandle,
     // it cannot have been removed from the function.
     ASSERT(function.HasCode());
