@@ -1919,7 +1919,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               {
                 ReferencedNames referencedNames = new ReferencedNames(source);
                 new ReferencedNamesBuilder(referencedNames).build(oldUnit);
-                dartDelta.addChangedElements(referencedNames);
+                dartDelta.addChangedElements(referencedNames, librarySource);
               }
               // Invalidate using the prepared DartDelta.
               entry.setState(CONTENT, CacheState.INVALID, delta: dartDelta);
