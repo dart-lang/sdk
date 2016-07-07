@@ -23,7 +23,6 @@
 namespace dart {
 
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
-DECLARE_FLAG(bool, use_megamorphic_stub);
 
 
 void MegamorphicSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -1349,12 +1348,8 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     __ Comment("Slow case: megamorphic call");
   }
   __ LoadObject(S5, cache);
-  if (FLAG_use_megamorphic_stub) {
-    __ lw(T9, Address(THR, Thread::megamorphic_lookup_entry_point_offset()));
-    __ jalr(T9);
-  } else  {
-    StubCode::EmitMegamorphicLookup(assembler());
-  }
+  __ lw(T9, Address(THR, Thread::megamorphic_lookup_entry_point_offset()));
+  __ jalr(T9);
   __ jalr(T1);
 
   __ Bind(&done);

@@ -43,7 +43,6 @@ DEFINE_FLAG(int, optimization_counter_scale, 2000,
 DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
 DEFINE_FLAG(bool, trace_inlining_intervals, false,
     "Inlining interval diagnostics");
-DEFINE_FLAG(bool, use_megamorphic_stub, true, "Out of line megamorphic lookup");
 
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(charp, deoptimize_filter);

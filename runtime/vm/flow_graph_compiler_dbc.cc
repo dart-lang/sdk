@@ -27,7 +27,6 @@ DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 DEFINE_FLAG(bool, unbox_doubles, true, "Optimize double arithmetic.");
 DECLARE_FLAG(bool, enable_simd_inline);
-DECLARE_FLAG(bool, use_megamorphic_stub);
 DECLARE_FLAG(charp, optimization_filter);
 
 void MegamorphicSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {

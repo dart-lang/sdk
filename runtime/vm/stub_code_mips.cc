@@ -2212,7 +2212,14 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
 }
 
 
-void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
+// Called from megamorphic calls.
+//  T0: receiver
+//  S5: MegamorphicCache (preserved)
+// Result:
+//  T1: target entry point
+//  CODE_REG: target Code
+//  S4: arguments descriptor
+void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   __ LoadTaggedClassIdMayBeSmi(T0, T0);
   // T0: class ID of the receiver (smi).
   __ lw(S4, FieldAddress(S5, MegamorphicCache::arguments_descriptor_offset()));
@@ -2253,18 +2260,6 @@ void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
 
   __ lw(T1, FieldAddress(T0, Function::entry_point_offset()));
   __ lw(CODE_REG, FieldAddress(T0, Function::code_offset()));
-}
-
-
-// Called from megamorphic calls.
-//  T0: receiver
-//  S5: MegamorphicCache (preserved)
-// Result:
-//  T1: target entry point
-//  CODE_REG: target Code
-//  S4: arguments descriptor
-void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
-  EmitMegamorphicLookup(assembler);
   __ Ret();
 }
 

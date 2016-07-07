@@ -29,7 +29,6 @@ DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 
 DECLARE_FLAG(bool, enable_simd_inline);
-DECLARE_FLAG(bool, use_megamorphic_stub);
 
 
 void MegamorphicSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -1319,11 +1318,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     __ Comment("Slow case: megamorphic call");
   }
   __ LoadObject(ECX, cache);
-  if (FLAG_use_megamorphic_stub) {
-    __ call(Address(THR, Thread::megamorphic_lookup_entry_point_offset()));
-  } else  {
-    StubCode::EmitMegamorphicLookup(assembler());
-  }
+  __ call(Address(THR, Thread::megamorphic_lookup_entry_point_offset()));
   __ call(EBX);
 
   __ Bind(&done);

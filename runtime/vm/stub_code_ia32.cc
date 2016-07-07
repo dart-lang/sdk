@@ -2021,52 +2021,6 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
 }
 
 
-void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
-  __ LoadTaggedClassIdMayBeSmi(EAX, EBX);
-  // EAX: class ID of the receiver (smi).
-  __ movl(EDI, FieldAddress(ECX, MegamorphicCache::buckets_offset()));
-  __ movl(EBX, FieldAddress(ECX, MegamorphicCache::mask_offset()));
-  // EDI: cache buckets array.
-  // EBX: mask.
-  __ pushl(ECX);  // Spill MegamorphicCache.
-
-  // Compute the table index.
-  ASSERT(MegamorphicCache::kSpreadFactor == 7);
-  // Use leal and subl multiply with 7 == 8 - 1.
-  __ leal(ECX, Address(EAX, TIMES_8, 0));
-  __ subl(ECX, EAX);
-  // ECX: probe.
-
-  Label loop, update, load_target_function;
-  __ jmp(&loop);
-
-  __ Bind(&update);
-  __ addl(ECX, Immediate(Smi::RawValue(1)));
-  __ Bind(&loop);
-  __ andl(ECX, EBX);
-  const intptr_t base = Array::data_offset();
-  // ECX is smi tagged, but table entries are two words, so TIMES_4.
-  __ movl(EDX, FieldAddress(EDI, ECX, TIMES_4, base));
-
-  ASSERT(kIllegalCid == 0);
-  __ testl(EDX, EDX);
-  __ j(ZERO, &load_target_function, Assembler::kNearJump);
-  __ cmpl(EDX, EAX);
-  __ j(NOT_EQUAL, &update, Assembler::kNearJump);
-
-  __ Bind(&load_target_function);
-  // Call the target found in the cache.  For a class id match, this is a
-  // proper target for the given name and arguments descriptor.  If the
-  // illegal class id was found, the target is a cache miss handler that can
-  // be invoked as a normal Dart function.
-  __ movl(EAX, FieldAddress(EDI, ECX, TIMES_4, base + kWordSize));
-  __ popl(ECX);  // Restore MegamorphicCache.
-  __ movl(EDX,
-          FieldAddress(ECX, MegamorphicCache::arguments_descriptor_offset()));
-  __ movl(EBX, FieldAddress(EAX, Function::entry_point_offset()));
-}
-
-
 // Called from megamorphic calls.
 //  EBX: receiver
 //  ECX: MegamorphicCache (preserved)

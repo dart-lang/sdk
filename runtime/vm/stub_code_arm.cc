@@ -2048,51 +2048,6 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
 }
 
 
-void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
-  __ LoadTaggedClassIdMayBeSmi(R0, R0);
-  // R0: receiver cid as Smi.
-  __ ldr(R2, FieldAddress(R9, MegamorphicCache::buckets_offset()));
-  __ ldr(R1, FieldAddress(R9, MegamorphicCache::mask_offset()));
-  // R2: cache buckets array.
-  // R1: mask.
-
-  // Compute the table index.
-  ASSERT(MegamorphicCache::kSpreadFactor == 7);
-  // Use reverse substract to multiply with 7 == 8 - 1.
-  __ rsb(R3, R0, Operand(R0, LSL, 3));
-  // R3: probe.
-
-  Label loop, update, load_target_function;
-  __ b(&loop);
-
-  __ Bind(&update);
-  __ add(R3, R3, Operand(Smi::RawValue(1)));
-  __ Bind(&loop);
-  __ and_(R3, R3, Operand(R1));
-  const intptr_t base = Array::data_offset();
-  // R3 is smi tagged, but table entries are two words, so LSL 2.
-  __ add(IP, R2, Operand(R3, LSL, 2));
-  __ ldr(R6, FieldAddress(IP, base));
-
-  ASSERT(kIllegalCid == 0);
-  __ tst(R6, Operand(R6));
-  __ b(&load_target_function, EQ);
-  __ cmp(R6, Operand(R0));
-  __ b(&update, NE);
-
-  __ Bind(&load_target_function);
-  // Call the target found in the cache.  For a class id match, this is a
-  // proper target for the given name and arguments descriptor.  If the
-  // illegal class id was found, the target is a cache miss handler that can
-  // be invoked as a normal Dart function.
-  __ add(IP, R2, Operand(R3, LSL, 2));
-  __ ldr(R0, FieldAddress(IP, base + kWordSize));
-  __ ldr(R4, FieldAddress(R9, MegamorphicCache::arguments_descriptor_offset()));
-  __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
-  __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
-}
-
-
 // Called from megamorphic calls.
 //  R0: receiver
 //  R9: MegamorphicCache (preserved)

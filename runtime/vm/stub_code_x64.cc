@@ -2082,53 +2082,6 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
 }
 
 
-void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
-  __ LoadTaggedClassIdMayBeSmi(RAX, RDI);
-  // RAX: class ID of the receiver (smi).
-  __ movq(R10,
-          FieldAddress(RBX, MegamorphicCache::arguments_descriptor_offset()));
-  __ movq(RDI, FieldAddress(RBX, MegamorphicCache::buckets_offset()));
-  __ movq(R9, FieldAddress(RBX, MegamorphicCache::mask_offset()));
-  // R10: arguments descriptor (result).
-  // RDI: cache buckets array.
-  // RBX: mask.
-
-  // Compute the table index.
-  ASSERT(MegamorphicCache::kSpreadFactor == 7);
-  // Use leaq and subq multiply with 7 == 8 - 1.
-  __ leaq(RCX, Address(RAX, TIMES_8, 0));
-  __ subq(RCX, RAX);
-
-  Label loop, update, load_target_function;
-  __ jmp(&loop);
-
-  __ Bind(&update);
-  __ AddImmediate(RCX, Immediate(Smi::RawValue(1)));
-  __ Bind(&loop);
-  __ andq(RCX, R9);
-  const intptr_t base = Array::data_offset();
-  // RCX is smi tagged, but table entries are two words, so TIMES_8.
-  __ movq(RDX, FieldAddress(RDI, RCX, TIMES_8, base));
-
-  ASSERT(kIllegalCid == 0);
-  // Check for the uncommon case, a miss in the cache.
-  __ testq(RDX, RDX);
-  __ j(ZERO, &load_target_function, Assembler::kNearJump);
-
-  __ cmpq(RDX, RAX);
-  __ j(NOT_EQUAL, &update, Assembler::kNearJump);
-
-  __ Bind(&load_target_function);
-  // Call the target found in the cache.  For a class id match, this is a
-  // proper target for the given name and arguments descriptor.  If the
-  // illegal class id was found, the target is a cache miss handler that can
-  // be invoked as a normal Dart function.
-  __ movq(RAX, FieldAddress(RDI, RCX, TIMES_8, base + kWordSize));
-  __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
-  __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
-}
-
-
 // Called from megamorphic calls.
 //  RDI: receiver
 //  RBX: MegamorphicCache (preserved)
@@ -2150,9 +2103,8 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   __ Bind(&cid_loaded);
   __ movq(R9, FieldAddress(RBX, MegamorphicCache::mask_offset()));
   __ movq(RDI, FieldAddress(RBX, MegamorphicCache::buckets_offset()));
-  // R10: arguments descriptor (result).
+  // R9: mask.
   // RDI: cache buckets array.
-  // RBX: mask.
 
   // Tag cid as a smi.
   __ addq(RAX, RAX);

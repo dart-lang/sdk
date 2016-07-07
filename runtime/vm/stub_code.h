@@ -155,8 +155,6 @@ class StubCode : public AllStatic {
 
   static const intptr_t kNoInstantiator = 0;
 
-  static void EmitMegamorphicLookup(Assembler* assembler);
-
  private:
   friend class MegamorphicCacheTable;
 
