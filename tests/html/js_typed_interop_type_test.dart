@@ -1,17 +1,25 @@
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@JS()
+library js_typed_interop_type_test;
+
 import 'dart:html';
 import 'package:js/js.dart';
 import 'package:expect/expect.dart';
 
 @JS()
 class A {
-  get foo;
+  var foo;
 
   external A(var foo);
 }
 
 @JS()
 class B {
-  get foo;
+  var foo;
 
   external B(var foo);
 }
@@ -94,7 +102,8 @@ function B(foo) {
 
 void expectValueOrTypeError(f(), value) {
   try {
-    String i = 0; // Test for checked mode.
+    var i = 0;
+    String s = i; // Test for checked mode.
     Expect.equals(f(), value);
   } on TypeError catch (error) {
     Expect.throws(f, (ex) => ex is TypeError);
