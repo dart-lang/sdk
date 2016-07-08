@@ -198,6 +198,10 @@ void checkElements(
                 localFunction1, localFunction2,
                 'enclosingClass',
                 localFunction1.enclosingClass, localFunction2.enclosingClass);
+            testResolvedAstEquivalence(
+                localFunction1.resolvedAst,
+                localFunction2.resolvedAst,
+                const CheckStrategy());
           });
     }
   }
