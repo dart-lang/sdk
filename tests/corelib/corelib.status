@@ -162,7 +162,7 @@ data_resource_test: RuntimeError # Issue 23825 (not implemented yet).
 file_resource_test: Skip, OK # VM specific test, uses dart:io.
 http_resource_test: Skip, OK # VM specific test, uses dart:io.
 
-[ $runtime != vm && $runtime != dart_precompiled && $compiler != dart2analyzer && $cps_ir == false ]
+[ $compiler == dart2js && $browser == false ]
 package_resource_test: RuntimeError # Issue 23825 (not implemented yet).
 
 [ $mode == debug ]
@@ -173,7 +173,6 @@ int_parse_radix_test/*: Pass, Slow
 big_integer_parsed_mul_div_vm_test: Pass, Slow
 
 [ $compiler == dart2js && $cps_ir ]
-package_resource_test: Crash # Surprisingly null object in type propagation.
 regexp/pcre_test: Crash # Stack Overflow in LoopHierarchy.
 core_runtime_types_test: Pass, RuntimeError # Issue 25795.
 
@@ -183,9 +182,6 @@ core_runtime_types_test: Pass, RuntimeError # Issue 25795.
 [ $compiler == dart2js && $cps_ir && $host_checked ]
 regexp/pcre_test: Crash # Stack Overflow
 collection_removes_test: Crash # Issue 25911
-
-[ $compiler == dart2js && $host_checked ]
-package_resource_test: Crash # Issue 25911
 
 [ $noopt || $compiler == precompiler ]
 # Stacktraces in precompilation omit inlined frames.
