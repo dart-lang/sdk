@@ -47,7 +47,6 @@ abstract class ExpressionVisitor<R> {
   R visitBoolLiteral(BoolLiteral node) => defaultBasicLiteral(node);
   R visitNullLiteral(NullLiteral node) => defaultBasicLiteral(node);
   R visitLet(Let node) => defaultExpression(node);
-  R visitBlockExpression(BlockExpression node) => defaultExpression(node);
 }
 
 abstract class StatementVisitor<R> {
@@ -154,7 +153,6 @@ class TreeVisitor<R> implements ExpressionVisitor<R>,
   R visitBoolLiteral(BoolLiteral node) => defaultBasicLiteral(node);
   R visitNullLiteral(NullLiteral node) => defaultBasicLiteral(node);
   R visitLet(Let node) => defaultExpression(node);
-  R visitBlockExpression(BlockExpression node) => defaultExpression(node);
 
   // Statements
   R defaultStatement(Statement node) => defaultTreeNode(node);

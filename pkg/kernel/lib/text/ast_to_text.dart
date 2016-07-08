@@ -866,13 +866,6 @@ class Printer extends Visitor<Null> {
     writeExpression(node.body);
   }
 
-  visitBlockExpression(BlockExpression node) {
-    writeWord('do:');
-    writeNode(node.body);
-    writeWord('done:');
-    writeExpression(node.value);
-  }
-
   defaultExpression(Expression node) {
     writeWord('${node.runtimeType}');
   }
@@ -1122,13 +1115,7 @@ class Printer extends Visitor<Null> {
 
   visitYieldStatement(YieldStatement node) {
     writeIndentation();
-    if (node.isYieldStar) {
-      writeWord('yield*');
-    } else if (node.isNative) {
-      writeWord('[yield]');
-    } else {
-      writeWord('yield');
-    }
+    writeWord('yield');
     writeExpression(node.expression);
     endLine(';');
   }
@@ -1371,7 +1358,6 @@ class Precedence extends ExpressionVisitor<int> {
   int visitStaticGet(StaticGet node) => PRIMARY;
   int visitStaticSet(StaticSet node) => EXPRESSION;
   int visitLet(Let node) => EXPRESSION;
-  int visitBlockExpression(BlockExpression node) => EXPRESSION;
 }
 
 String procedureKindToString(ProcedureKind kind) {
