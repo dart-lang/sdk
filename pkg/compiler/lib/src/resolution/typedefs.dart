@@ -4,6 +4,8 @@
 
 library dart2js.resolution.typedefs;
 
+import 'dart:developer';
+
 import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../dart_types.dart';
@@ -67,7 +69,7 @@ class TypedefCyclicVisitor extends BaseDartTypeVisitor {
   Link<TypeVariableElement> seenTypeVariables =
       const Link<TypeVariableElement>();
 
-  TypedefCyclicVisitor(this.reporter, TypedefElement this.element);
+  TypedefCyclicVisitor(this.reporter, this.element);
 
   visitType(DartType type, _) {
     // Do nothing.
@@ -115,7 +117,9 @@ class TypedefCyclicVisitor extends BaseDartTypeVisitor {
       seenTypedefs = seenTypedefs.prepend(typedefElement);
       seenTypedefsCount++;
       type.visitChildren(this, null);
-      typedefElement.aliasCache.accept(this, null);
+      if (!typedefElement.isMalformed) {
+        typedefElement.aliasCache.accept(this, null);
+      }
       seenTypedefs = seenTypedefs.tail;
       seenTypedefsCount--;
     }

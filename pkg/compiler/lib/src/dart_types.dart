@@ -845,6 +845,10 @@ class TypedefType extends GenericType {
   void computeUnaliased(Resolution resolution) {
     if (_unaliased == null) {
       element.ensureResolved(resolution);
+      if (element.isMalformed) {
+        _unaliased = const DynamicType();
+        return;
+      }
       element.checkCyclicReference(resolution);
       element.alias.computeUnaliased(resolution);
       _unaliased = element.alias.unaliased.substByContext(this);
