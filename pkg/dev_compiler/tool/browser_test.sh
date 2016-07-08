@@ -34,4 +34,4 @@ if [[ "$OSTYPE" == "linux-gnu" ]] && [[ -z "$CHROME_CANARY_BIN" ]]; then
 fi
 
 npm install
-npm test
+npm test | tee test_output.txt
