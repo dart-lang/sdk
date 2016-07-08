@@ -300,6 +300,14 @@ abstract class TestSuite {
       return;
     }
 
+    if (configuration['hot_reload']) {
+      // Handle reload special cases.
+      if (expectations.contains(Expectation.COMPILETIME_ERROR)) {
+        // Skip reloading tests with expected compilation errors.
+        return;
+      }
+    }
+
     // Update Summary report
     if (configuration['report']) {
       if (testCase.expectCompileError &&
