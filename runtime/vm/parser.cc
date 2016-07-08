@@ -12230,6 +12230,7 @@ StaticGetterNode* Parser::RunStaticFieldInitializer(
     // not been evaluated. If the field is const, call the static getter method
     // to evaluate the expression and canonicalize the value.
     if (field.is_const()) {
+      NoReloadScope no_reload_scope(isolate(), thread());
       field.SetStaticValue(Object::transition_sentinel());
       const int kNumArguments = 0;  // no arguments.
       const Function& func = Function::Handle(Z,
@@ -12287,6 +12288,7 @@ RawObject* Parser::EvaluateConstConstructorCall(
     const TypeArguments& type_arguments,
     const Function& constructor,
     ArgumentListNode* arguments) {
+  NoReloadScope no_reload_scope(isolate(), thread());
   // Factories have one extra argument: the type arguments.
   // Constructors have 1 extra arguments: receiver.
   const int kNumExtraArgs = 1;
@@ -13801,6 +13803,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
 
 
 String& Parser::Interpolate(const GrowableArray<AstNode*>& values) {
+  NoReloadScope no_reload_scope(isolate(), thread());
   const Class& cls = Class::Handle(
       Z, Library::LookupCoreClass(Symbols::StringBase()));
   ASSERT(!cls.IsNull());
@@ -14148,6 +14151,7 @@ AstNode* Parser::ParsePrimary() {
 // be a compile time constant.
 const Instance& Parser::EvaluateConstExpr(TokenPosition expr_pos,
                                           AstNode* expr) {
+  NoReloadScope no_reload_scope(isolate(), thread());
   if (expr->IsLiteralNode()) {
     return expr->AsLiteralNode()->literal();
   } else if (expr->IsLoadLocalNode() &&
