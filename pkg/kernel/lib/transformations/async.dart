@@ -1,10 +1,13 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 library kernel.transformations.async;
 
-import 'package:kernel/checks.dart' as checks;
-import 'package:kernel/kernel.dart';
+import '../checks.dart' as checks;
+import '../kernel.dart';
+
+import 'continuation.dart';
 
 abstract class ProxiedTreeVisitor<R> extends Visitor<R> {
   R visitProxyExpression(ProxyExpression node) => defaultExpression(node);
@@ -63,7 +66,7 @@ class ProxyExpressionRemover extends ProxiedTreeTransformer {
 /// of statements inside an expression.
 ///
 class ExpressionLifter extends Transformer {
-  final AsyncTransformer asyncTransformer;
+  final AsyncRewriterBase continuationRewriter;
 
   /// Function that is being transformed - to detect recursing into
   /// nested FunctionNodes and use appropriate state.
@@ -85,7 +88,13 @@ class ExpressionLifter extends Transformer {
       new VariableDeclaration(':async-result');
   final List<VariableDeclaration> variables = <VariableDeclaration>[];
 
-  ExpressionLifter(this.asyncTransformer, this.function);
+  ExpressionLifter(this.continuationRewriter, this.function);
+
+  Expression rewrite(Expression expression) {
+    // TODO(vegorov) avoid inserting unnecessary proxies.
+    expression = expression.accept(this);
+    return expression.accept(new ProxyExpressionRemover());
+  }
 
   VariableDeclaration allocateTemporary(int index) {
     for (var i = variables.length; i <= index; i++) {
@@ -114,6 +123,17 @@ class ExpressionLifter extends Transformer {
         expr.dependencyBoundary = pendingStatements.length;
       }
     }
+  }
+
+  emitYield(Expression futureReturningExpression) {
+    var arguments = new Arguments([
+        futureReturningExpression,
+        new VariableGet(continuationRewriter.thenContinuationVariable),
+        new VariableGet(continuationRewriter.catchErrorContinuationVariable),
+    ]);
+    emit(new ExpressionStatement(new StaticInvocation(
+            continuationRewriter.helper.awaitHelper, arguments)));
+    emit(new YieldStatement(new NullLiteral(), isNative: true));
   }
 
   emit(Statement stmt) {
@@ -147,7 +167,8 @@ class ExpressionLifter extends Transformer {
     shouldWrap = curShouldWrap;
 
     pendingExpressions.removeLast();
-    emit(new YieldStatement(operand, isNative: true));
+
+    emitYield(operand);
 
     return finishExpression(new VariableGet(asyncResult), curShouldWrap);
   }
@@ -237,42 +258,11 @@ class ExpressionLifter extends Transformer {
     return stmt;
   }
 
-  TreeNode visitFunctionNode(FunctionNode node) {
-    if (node != function) {
-      // Transform recursively (using fresh instances of ExpressionLifter if
-      // necessary).
-      return asyncTransformer.visitFunctionNode(node);
-    }
-
-    node = super.visitFunctionNode(node);
-
-    // TODO(vegorov) these variables should actually be injected into
-    // the enclosing context.
-    if (variables.length > 0) {
-      // TODO(vegorov) support functions which have a single expression as
-      // their body.
-      (node.body as Block)
-          .statements
-          .insertAll(0, [asyncResult]..addAll(variables));
-    }
-
-    // TODO(vegorov) avoid inserting unnecessary proxies.
-    return node.accept(new ProxyExpressionRemover());
+  visitFunctionNode(FunctionNode node) {
+    var nestedRewriter = new RecursiveContinuationRewriter(
+        continuationRewriter.helper);
+    return node.accept(nestedRewriter);
   }
-}
 
-class AsyncTransformer extends Transformer {
-  TreeNode visitFunctionNode(FunctionNode node) {
-    if (node.asyncMarker != AsyncMarker.Async) {
-      return super.visitFunctionNode(node);
-    }
-
-    return new ExpressionLifter(this, node).visitFunctionNode(node);
-  }
-}
-
-Program liftExpressions(Program program) {
-  program = program.accept(new AsyncTransformer());
-  program.accept(new checks.CheckParentPointers());
-  return program;
+  visitDefaultStatement(node) => throw 'UNREACHABLE';
 }
