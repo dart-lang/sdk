@@ -443,6 +443,8 @@ class Printer extends Visitor<Null> {
         return 'async';
       case AsyncMarker.AsyncStar:
         return 'async*';
+      case AsyncMarker.SyncYielding:
+        return 'yielding';
       default:
         return '<Invalid async marker: $marker>';
     }

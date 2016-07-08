@@ -897,7 +897,8 @@ enum AsyncMarker {
   Sync,
   SyncStar,
   Async,
-  AsyncStar
+  AsyncStar,
+  SyncYielding,
 }
 
 // ------------------------------------------------------------------------

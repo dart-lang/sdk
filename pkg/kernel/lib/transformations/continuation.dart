@@ -65,7 +65,8 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
     final function = new FunctionNode(
         buildClosureBody(),
         positionalParameters: [iteratorVariable],
-        requiredParameterCount: 1);
+        requiredParameterCount: 1,
+        asyncMarker: AsyncMarker.SyncYielding);
     final closureFunction =
         new FunctionDeclaration(nestedClosureVariable, function);
 
@@ -144,7 +145,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     final function = new FunctionNode(
         buildWrappedBody(),
         positionalParameters: parameters,
-        requiredParameterCount: 0);
+        requiredParameterCount: 0,
+        asyncMarker: AsyncMarker.SyncYielding);
 
     // The await expression lifter might have created a number of
     // [VariableDeclarations].
