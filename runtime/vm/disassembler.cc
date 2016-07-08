@@ -250,37 +250,39 @@ void Disassembler::DisassembleCodeHelper(
   }
   THR_Print("}\n");
 
-  THR_Print("Variable Descriptors for function '%s' {\n",
-            function_fullname);
-  const LocalVarDescriptors& var_descriptors =
-      LocalVarDescriptors::Handle(code.GetLocalVarDescriptors());
-  intptr_t var_desc_length =
-      var_descriptors.IsNull() ? 0 : var_descriptors.Length();
-  String& var_name = String::Handle();
-  for (intptr_t i = 0; i < var_desc_length; i++) {
-    var_name = var_descriptors.GetName(i);
-    RawLocalVarDescriptors::VarInfo var_info;
-    var_descriptors.GetInfo(i, &var_info);
-    const int8_t kind = var_info.kind();
-    if (kind == RawLocalVarDescriptors::kSavedCurrentContext) {
-      THR_Print("  saved current CTX reg offset %d\n", var_info.index());
-    } else {
-      if (kind == RawLocalVarDescriptors::kContextLevel) {
-        THR_Print("  context level %d scope %d", var_info.index(),
-            var_info.scope_id);
-      } else if (kind == RawLocalVarDescriptors::kStackVar) {
-        THR_Print("  stack var '%s' offset %d",
-          var_name.ToCString(), var_info.index());
+  if (FLAG_print_variable_descriptors) {
+    THR_Print("Variable Descriptors for function '%s' {\n",
+              function_fullname);
+    const LocalVarDescriptors& var_descriptors =
+        LocalVarDescriptors::Handle(code.GetLocalVarDescriptors());
+    intptr_t var_desc_length =
+        var_descriptors.IsNull() ? 0 : var_descriptors.Length();
+    String& var_name = String::Handle();
+    for (intptr_t i = 0; i < var_desc_length; i++) {
+      var_name = var_descriptors.GetName(i);
+      RawLocalVarDescriptors::VarInfo var_info;
+      var_descriptors.GetInfo(i, &var_info);
+      const int8_t kind = var_info.kind();
+      if (kind == RawLocalVarDescriptors::kSavedCurrentContext) {
+        THR_Print("  saved current CTX reg offset %d\n", var_info.index());
       } else {
-        ASSERT(kind == RawLocalVarDescriptors::kContextVar);
-        THR_Print("  context var '%s' level %d offset %d",
-            var_name.ToCString(), var_info.scope_id, var_info.index());
+        if (kind == RawLocalVarDescriptors::kContextLevel) {
+          THR_Print("  context level %d scope %d", var_info.index(),
+              var_info.scope_id);
+        } else if (kind == RawLocalVarDescriptors::kStackVar) {
+          THR_Print("  stack var '%s' offset %d",
+            var_name.ToCString(), var_info.index());
+        } else {
+          ASSERT(kind == RawLocalVarDescriptors::kContextVar);
+          THR_Print("  context var '%s' level %d offset %d",
+              var_name.ToCString(), var_info.scope_id, var_info.index());
+        }
+        THR_Print(" (valid %s-%s)\n", var_info.begin_pos.ToCString(),
+                                      var_info.end_pos.ToCString());
       }
-      THR_Print(" (valid %s-%s)\n", var_info.begin_pos.ToCString(),
-                                    var_info.end_pos.ToCString());
     }
+    THR_Print("}\n");
   }
-  THR_Print("}\n");
 
   THR_Print("Exception Handlers for function '%s' {\n", function_fullname);
   const ExceptionHandlers& handlers =

@@ -138,6 +138,8 @@ R(print_ssa_liveranges, false, bool, false,                                    \
   "Print live ranges after allocation.")                                       \
 C(print_stop_message, false, false, bool, false,                               \
   "Print stop message.")                                                       \
+D(print_variable_descriptors, bool, false,                                     \
+  "Print variable descriptors in disassembly.")                                \
 R(profiler, false, bool, !USING_DBC,                                           \
   "Enable the profiler.")                                                      \
 P(reorder_basic_blocks, bool, true,                                            \
