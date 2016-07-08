@@ -79,6 +79,9 @@ const List<TestData> DATA = const [
         const { const {} :
           'MapConstant(<int, int>{IntConstant(0): IntConstant(1), '
                                  'IntConstant(2): IntConstant(3)})' }),
+    const ConstantData('const <int, int>{0: 1, 0: 2}',
+        const { const {} :
+        'MapConstant(<int, int>{IntConstant(0): IntConstant(2)})' }),
     const ConstantData(
         'const bool.fromEnvironment("foo", defaultValue: false)',
         const { const {} : 'BoolConstant(false)',

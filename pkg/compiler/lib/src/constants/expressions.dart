@@ -482,11 +482,20 @@ class MapConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
+    Map<ConstantValue, ConstantValue> valueMap =
+        <ConstantValue, ConstantValue>{};
+    for (int index = 0; index < keys.length; index++) {
+      ConstantValue key =
+          keys[index].evaluate(environment, constantSystem);
+      ConstantValue value =
+          values[index].evaluate(environment, constantSystem);
+      valueMap[key] = value;
+    }
     return constantSystem.createMap(
         environment.compiler,
         type,
-        keys.map((k) => k.evaluate(environment, constantSystem)).toList(),
-        values.map((v) => v.evaluate(environment, constantSystem)).toList());
+        valueMap.keys.toList(),
+        valueMap.values.toList());
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
