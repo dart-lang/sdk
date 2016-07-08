@@ -581,6 +581,12 @@ class BinaryPrinter extends Visitor {
     writeNode(node.body);
   }
 
+  visitBlockExpression(BlockExpression node) {
+    writeByte(Tag.BlockExpression);
+    writeNodeList(node.body.statements);
+    writeNode(node.value);
+  }
+
   writeStatementOrEmpty(Statement node) {
     if (node == null) {
       writeByte(Tag.EmptyStatement);
@@ -702,7 +708,7 @@ class BinaryPrinter extends Visitor {
 
   visitYieldStatement(YieldStatement node) {
     writeByte(Tag.YieldStatement);
-    writeByte(node.isYieldStar ? 1 : 0);
+    writeByte(node.flags);
     writeNode(node.expression);
   }
 

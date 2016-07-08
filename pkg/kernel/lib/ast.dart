@@ -509,15 +509,15 @@ class Field extends Member {
   bool get isStatic => flags & FlagStatic != 0;
 
   void set isFinal(bool value) {
-    flags = value ? (flags | FlagFinal) : (flags & ~FlagFinal);
+    flags = _updateFlag(value, flags, FlagFinal);
   }
 
   void set isConst(bool value) {
-    flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
+    flags = _updateFlag(value, flags, FlagConst);
   }
 
   void set isStatic(bool value) {
-    flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
+    flags = _updateFlag(value, flags, FlagStatic);
   }
 
   /// True if the field is neither final nor const.
@@ -576,11 +576,11 @@ class Constructor extends Member {
   bool get isExternal => flags & FlagExternal != 0;
 
   void set isConst(bool value) {
-    flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
+    flags = _updateFlag(value, flags, FlagConst);
   }
 
   void set isExternal(bool value) {
-    flags = value ? (flags | FlagExternal) : (flags & ~FlagExternal);
+    flags = _updateFlag(value, flags, FlagExternal);
   }
 
   bool get isInstanceMember => false;
@@ -655,19 +655,19 @@ class Procedure extends Member {
   bool get isConst => flags & FlagConst != 0;
 
   void set isStatic(bool value) {
-    flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
+    flags = _updateFlag(value, flags, FlagStatic);
   }
 
   void set isAbstract(bool value) {
-    flags = value ? (flags | FlagAbstract) : (flags & ~FlagAbstract);
+    flags = _updateFlag(value, flags, FlagAbstract);
   }
 
   void set isExternal(bool value) {
-    flags = value ? (flags | FlagExternal) : (flags & ~FlagExternal);
+    flags = _updateFlag(value, flags, FlagExternal);
   }
 
   void set isConst(bool value) {
-    flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
+    flags = _updateFlag(value, flags, FlagConst);
   }
 
   bool get isInstanceMember => !isStatic;
@@ -1729,6 +1729,34 @@ class Let extends Expression {
   }
 }
 
+class BlockExpression extends Expression {
+  Block body;
+  Expression value;
+
+  BlockExpression(this.body, this.value) {
+    body?.parent = this;
+    value?.parent = this;
+  }
+
+  accept(ExpressionVisitor v) => v.visitBlockExpression(this);
+
+  visitChildren(Visitor v) {
+    body?.accept(v);
+    value?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (body != null) {
+      body = body.accept(v);
+      body?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept(v);
+      value?.parent = this;
+    }
+  }
+}
+
 // ------------------------------------------------------------------------
 //                              STATEMENTS
 // ------------------------------------------------------------------------
@@ -2239,10 +2267,28 @@ class TryFinally extends Statement {
 /// Statement of form `yield x` or `yield* x`.
 class YieldStatement extends Statement {
   Expression expression;
-  bool isYieldStar;
+  int flags = 0;
 
-  YieldStatement(this.expression, {this.isYieldStar: false}) {
+  YieldStatement(this.expression,
+      {bool isYieldStar: false,
+       bool isNative: false}) {
     expression?.parent = this;
+    this.isYieldStar = isYieldStar;
+    this.isNative = isNative;
+  }
+
+  static const int FlagYieldStar = 1 << 0;
+  static const int FlagNative = 1 << 1;
+
+  bool get isYieldStar => flags & FlagYieldStar != 0;
+  bool get isNative => flags & FlagNative != 0;
+
+  void set isYieldStar(bool value) {
+    flags = _updateFlag(value, flags, FlagYieldStar);
+  }
+
+  void set isNative(bool value) {
+    flags = _updateFlag(value, flags, FlagNative);
   }
 
   accept(StatementVisitor v) => v.visitYieldStatement(this);
@@ -2312,11 +2358,11 @@ class VariableDeclaration extends Statement {
   bool get isConst => flags & FlagConst != 0;
 
   void set isFinal(bool value) {
-    flags = value ? (flags | FlagFinal) : (flags & ~FlagFinal);
+    flags = _updateFlag(value, flags, FlagFinal);
   }
 
   void set isConst(bool value) {
-    flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
+    flags = _updateFlag(value, flags, FlagConst);
   }
 
   accept(StatementVisitor v) => v.visitVariableDeclaration(this);
@@ -2787,4 +2833,8 @@ class _ChildReplacer extends Transformer {
       return node;
     }
   }
+}
+
+_updateFlag(bool value, int flags, int mask) {
+  return value ? (flags | mask) : (flags & ~mask);
 }
