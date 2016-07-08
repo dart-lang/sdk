@@ -260,6 +260,7 @@ class Unparser extends Indentation implements Visitor {
       write(' ');
     }
     unparseFunctionName(node.name);
+    visit(node.typeVariables);
     visit(node.parameters);
     if (node.initializers != null) {
       space();

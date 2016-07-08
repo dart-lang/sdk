@@ -564,7 +564,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       reporter.reportErrorMessage(node.name,
           MessageKind.NAMED_FUNCTION_EXPRESSION, {'name': node.name});
     }
-    visit(node.returnType);
     String name;
     if (node.name == null) {
       name = "";
