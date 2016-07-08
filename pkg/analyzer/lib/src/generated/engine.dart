@@ -1249,7 +1249,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool enableTiming = false;
 
   @override
-  bool enableTrailingCommas = false;
+  bool enableTrailingCommas = true;
 
   /**
    * A flag indicating whether errors, warnings and hints should be generated
