@@ -424,13 +424,12 @@ class Parser {
     listener.beginFormalParameters(begin);
     expect('(', token);
     int parameterCount = 0;
-    if (optional(')', token.next)) {
-      listener.endFormalParameters(parameterCount, begin, token.next);
-      return token.next.next;
-    }
     do {
-      ++parameterCount;
       token = token.next;
+      if (optional(')', token)) {
+        break;
+      }
+      ++parameterCount;
       String value = token.stringValue;
       if (identical(value, '[')) {
         token = parseOptionalFormalParameters(token, false);
@@ -495,11 +494,23 @@ class Parser {
     int parameterCount = 0;
     do {
       token = token.next;
+      if (isNamed && optional('}', token)) {
+        break;
+      } else if (!isNamed && optional(']', token)) {
+        break;
+      }
       var type =
           isNamed ? FormalParameterType.NAMED : FormalParameterType.POSITIONAL;
       token = parseFormalParameter(token, type);
       ++parameterCount;
     } while (optional(',', token));
+    if (parameterCount == 0) {
+      listener.reportError(
+          token,
+          isNamed
+              ? MessageKind.EMPTY_NAMED_PARAMETER_LIST
+              : MessageKind.EMPTY_OPTIONAL_PARAMETER_LIST);
+    }
     listener.endOptionalFormalParameters(parameterCount, begin, token);
     if (isNamed) {
       return expect('}', token);
@@ -2565,6 +2576,10 @@ class Parser {
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
     do {
+      if (optional(')', token.next)) {
+        token = token.next;
+        break;
+      }
       Token colon = null;
       if (optional(':', token.next.next)) {
         token = parseIdentifier(token.next);

@@ -7,8 +7,9 @@
 
 # Trailing commas are so far supported by:
 # - The VM (vm, dartium, drt, precompiler+dart_precompiled)
+# - dart2js
 # Remaining targets still fail on arg_param_trailing_comma_test/none.
-[($compiler != none && $compiler != precompiler) || ($runtime != vm && $runtime != dartium && $runtime != drt && $runtime != dart_precompiled)]
+[ $compiler == dart2analyzer ]
 arg_param_trailing_comma_test/none: Fail # Issue 26644
 
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) ]

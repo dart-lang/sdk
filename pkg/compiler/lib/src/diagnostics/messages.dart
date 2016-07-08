@@ -186,9 +186,11 @@ enum MessageKind {
   DUPLICATED_RESOURCE,
   EMPTY_CATCH_DECLARATION,
   EMPTY_ENUM_DECLARATION,
+  EMPTY_NAMED_PARAMETER_LIST,
+  EMPTY_OPTIONAL_PARAMETER_LIST,
   EMPTY_HIDE,
-  EQUAL_MAP_ENTRY_KEY,
   EMPTY_SHOW,
+  EQUAL_MAP_ENTRY_KEY,
   EXISTING_DEFINITION,
   EXISTING_LABEL,
   EXPECTED_IDENTIFIER_NOT_RESERVED_WORD,
@@ -876,6 +878,36 @@ export 'dart:core' show Foo;
 
 main() {}"""
             },
+          ]),
+
+      MessageKind.EMPTY_OPTIONAL_PARAMETER_LIST: const MessageTemplate(
+          MessageKind.EMPTY_OPTIONAL_PARAMETER_LIST,
+          "Optional parameter lists cannot be empty.",
+          howToFix: "Try adding an optional parameter to the list.",
+          examples: const [
+            const {
+              'main.dart': """
+foo([]) {}
+
+main() {
+  foo();
+}"""
+            }
+          ]),
+
+      MessageKind.EMPTY_NAMED_PARAMETER_LIST: const MessageTemplate(
+          MessageKind.EMPTY_NAMED_PARAMETER_LIST,
+          "Named parameter lists cannot be empty.",
+          howToFix: "Try adding a named parameter to the list.",
+          examples: const [
+            const {
+              'main.dart': """
+foo({}) {}
+
+main() {
+  foo();
+}"""
+            }
           ]),
 
       MessageKind.NOT_A_TYPE: const MessageTemplate(

@@ -41,7 +41,7 @@ void afterFunsigX(void f(),) {}                       /// none: continued
 void afterFunsigY([void f(),]) {}                     /// none: continued
 void afterFunsigZ({void f(),}) {}                     /// none: continued
 void afterFunsigDefaultValueY([void f() = topy,]) {}  /// none: continued
-void afterFunsigDefaultValueZ({void f() : topt,}) {}  /// none: continued
+void afterFunsigDefaultValueZ({void f() : topz,}) {}  /// none: continued
 
 class C {
   C();
@@ -77,8 +77,8 @@ class C {
 
 main() {
   testCalls();                                        /// none: continued
-  // Make sure the Bad class is checked.
-  new Bad().method();
+  // Make sure the cases are checked.
+  testBadCalls();
 }
 
 void testCalls() {
@@ -124,7 +124,7 @@ void testCalls() {
   c + x;                                              /// none: continued
   c[x] = y;                                           /// none: continued
 
-  // Call with ekstra comma (not possible for setters and operators).
+  // Call with extra comma (not possible for setters and operators).
   topx(x, );                                          /// none: continued
   topy(y, );                                          /// none: continued
   topxy(x, y, );                                      /// none: continued
@@ -169,7 +169,6 @@ void testCalls() {
   argfxz(topxz);                                      /// none: continued
 }
 
-
 // Invalid syntax. This was invalid syntax before the addition of trailing
 // commas too, and should stay that way.
 void topBadEmpty(,) {}                           /// 1: compile-time error
@@ -199,6 +198,7 @@ void set topSetBadStart(, a) {}                  /// 24: compile-time error
 void set topSetBadEnd(a,,) {}                    /// 25: compile-time error
 void set topSetBadMiddle(a,, b) {}               /// 26: compile-time error
 class Bad {
+  Bad() {}
   Bad.empty(,) {}                                /// 27: compile-time error
   Bad.start(, a) {}                              /// 28: compile-time error
   Bad.end(a,,) {}                                /// 29: compile-time error
@@ -399,3 +399,164 @@ typedef void BadNamStart({, a});                 /// 207: compile-time error
 typedef void BadNamEnd({a,,});                   /// 208: compile-time error
 typedef void BadNamStart({a},);                  /// 209: compile-time error
 typedef void BadNamMiddle({a,, b});              /// 210: compile-time error
+
+void testBadCalls() {
+  topBadEmpty();                                 /// 1: continued
+  topBadStart();                                 /// 2: continued
+  topBadEnd();                                   /// 3: continued
+  topBadMiddle();                                /// 4: continued
+  topBadPosEmpty();                              /// 5: continued
+  topBadPosEmpty();                              /// 6: continued
+  topBadPosEmpty();                              /// 7: continued
+  topBadPosEmpty();                              /// 8: continued
+  topBadPosStart();                              /// 9: continued
+  topBadPosStart();                              /// 10: continued
+  topBadPosEnd();                                /// 11: continued
+  topBadPosStart();                              /// 12: continued
+  topBadPosMiddle();                             /// 13: continued
+  topBadNamEmpty();                              /// 14: continued
+  topBadNamEmpty();                              /// 15: continued
+  topBadNamEmpty();                              /// 16: continued
+  topBadNamEmpty();                              /// 17: continued
+  topBadNamStart();                              /// 18: continued
+  topBadNamStart();                              /// 19: continued
+  topBadNamEnd();                                /// 20: continued
+  topBadNamStart();                              /// 21: continued
+  topBadNamMiddle();                             /// 22: continued
+  topSetBadEmpty = 1;                            /// 23: continued
+  topSetBadStart = 1;                            /// 24: continued
+  topSetBadEnd = 1;                              /// 25: continued
+  topSetBadMiddle = 1;                           /// 26: continued
+  new Bad.empty();                               /// 27: continued
+  new Bad.start();                               /// 28: continued
+  new Bad.end();                                 /// 29: continued
+  new Bad.middle();                              /// 30: continued
+  new Bad.posEmpty();                            /// 31: continued
+  new Bad.posEmpty();                            /// 32: continued
+  new Bad.posEmpty();                            /// 33: continued
+  new Bad.posEmpty();                            /// 34: continued
+  new Bad.posStart();                            /// 35: continued
+  new Bad.posStart();                            /// 36: continued
+  new Bad.posEnd();                              /// 37: continued
+  new Bad.posStart();                            /// 38: continued
+  new Bad.PosMiddle();                           /// 39: continued
+  new Bad.namEmpty();                            /// 40: continued
+  new Bad.namEmpty();                            /// 41: continued
+  new Bad.namEmpty();                            /// 42: continued
+  new Bad.namEmpty();                            /// 43: continued
+  new Bad.namStart();                            /// 44: continued
+  new Bad.namStart();                            /// 45: continued
+  new Bad.namEnd();                              /// 46: continued
+  new Bad.namStart();                            /// 47: continued
+  new Bad.namMiddle();                           /// 48: continued
+  Bad.staticBadEmpty();                          /// 49: continued
+  Bad.staticBadStart();                          /// 50: continued
+  Bad.staticBadEnd();                            /// 51: continued
+  Bad.staticBadMiddle();                         /// 52: continued
+  Bad.staticBadPosEmpty();                       /// 53: continued
+  Bad.staticBadPosEmpty();                       /// 54: continued
+  Bad.staticBadPosEmpty();                       /// 55: continued
+  Bad.staticBadPosEmpty();                       /// 56: continued
+  Bad.staticBadPosStart();                       /// 57: continued
+  Bad.staticBadPosStart();                       /// 58: continued
+  Bad.staticBadPosEnd();                         /// 59: continued
+  Bad.staticBadPosStart();                       /// 60: continued
+  Bad.staticBadPosMiddle();                      /// 61: continued
+  Bad.staticBadNamEmpty();                       /// 62: continued
+  Bad.staticBadNamEmpty();                       /// 63: continued
+  Bad.staticBadNamEmpty();                       /// 64: continued
+  Bad.staticBadNamEmpty();                       /// 65: continued
+  Bad.staticBadNamStart();                       /// 66: continued
+  Bad.staticBadNamStart();                       /// 67: continued
+  Bad.staticBadNamEnd();                         /// 68: continued
+  Bad.staticBadNamStart();                       /// 69: continued
+  Bad.staticBadNamMiddle();                      /// 70: continued
+  Bad.staticSetBadEmpty = 1;                     /// 71: continued
+  Bad.staticSetBadStart = 1;                     /// 72: continued
+  Bad.staticSetBadEnd = 1;                       /// 73: continued
+  Bad.staticSetBadMiddle = 1;                    /// 74: continued
+
+  var bad = new Bad();
+  bad.instanceBadEmpty();                        /// 75: continued
+  bad.instanceBadStart();                        /// 76: continued
+  bad.instanceBadEnd();                          /// 77: continued
+  bad.instanceBadMiddle();                       /// 78: continued
+  bad.instanceBadPosEmpty();                     /// 79: continued
+  bad.instanceBadPosEmpty();                     /// 80: continued
+  bad.instanceBadPosEmpty();                     /// 81: continued
+  bad.instanceBadPosEmpty();                     /// 82: continued
+  bad.instanceBadPosStart();                     /// 83: continued
+  bad.instanceBadPosStart();                     /// 84: continued
+  bad.instanceBadPosEnd();                       /// 85: continued
+  bad.instanceBadPosStart();                     /// 86: continued
+  bad.instanceBadPosMiddle();                    /// 87: continued
+  bad.instanceBadNamEmpty();                     /// 88: continued
+  bad.instanceBadNamEmpty();                     /// 89: continued
+  bad.instanceBadNamEmpty();                     /// 90: continued
+  bad.instanceBadNamEmpty();                     /// 91: continued
+  bad.instanceBadNamStart();                     /// 92: continued
+  bad.instanceBadNamStart();                     /// 93: continued
+  bad.instanceBadNamEnd();                       /// 94: continued
+  bad.instanceBadNamStart();                     /// 95: continued
+  bad.instanceBadNamMiddle();                    /// 96: continued
+  bad.instanceSetBadEmpty = 1;                   /// 97: continued
+  bad.instanceSetBadStart = 1;                   /// 98: continued
+  bad.instanceSetBadEnd = 1;                     /// 99: continued
+  bad.instanceSetBadMiddle = 1;                  /// 100: continued
+  bad * bad;                                     /// 101: continued
+  bad * bad;                                     /// 102: continued
+  bad * bad;                                     /// 103: continued
+  bad[1] = 1;                                    /// 104: continued
+  bad[1] = 1;                                    /// 105: continued
+  bad[1] = 1;                                    /// 106: continued
+  bad[1] = 1;                                    /// 107: continued
+
+  // This covers tests 108-166
+  bad.method();
+
+  bad.f(() {});                                  /// 167: compile-time error
+  bad.f(() {});                                  /// 168: compile-time error
+  bad.f(() {});                                  /// 169: compile-time error
+  bad.f(() {});                                  /// 170: compile-time error
+  bad.f(() {});                                  /// 171: compile-time error
+  bad.f(() {});                                  /// 172: compile-time error
+  bad.f(() {});                                  /// 173: compile-time error
+  bad.f(() {});                                  /// 174: compile-time error
+  bad.f(() {});                                  /// 175: compile-time error
+  bad.f(() {});                                  /// 176: compile-time error
+  bad.f(() {});                                  /// 177: compile-time error
+  bad.f(() {});                                  /// 178: compile-time error
+  bad.f(() {});                                  /// 179: compile-time error
+  bad.f(() {});                                  /// 180: compile-time error
+  bad.f(() {});                                  /// 181: compile-time error
+  bad.f(() {});                                  /// 182: compile-time error
+  bad.f(() {});                                  /// 183: compile-time error
+  bad.f(() {});                                  /// 184: compile-time error
+  bad.f(() {});                                  /// 185: compile-time error
+  bad.f(() {});                                  /// 186: compile-time error
+  bad.f(() {});                                  /// 187: compile-time error
+  bad.f(() {});                                  /// 188: compile-time error
+
+  BadEmpty x;                                    /// 189: compile-time error
+  BadStart x;                                    /// 190: compile-time error
+  BadEnd x;                                      /// 191: compile-time error
+  BadMiddle x;                                   /// 192: compile-time error
+  BadPosEmpty x;                                 /// 193: compile-time error
+  BadPosEmpty x;                                 /// 194: compile-time error
+  BadPosEmpty x;                                 /// 195: compile-time error
+  BadPosEmpty x;                                 /// 196: compile-time error
+  BadPosStart x;                                 /// 197: compile-time error
+  BadPosStart x;                                 /// 198: compile-time error
+  BadPosEnd x;                                   /// 199: compile-time error
+  BadPosStart x;                                 /// 200: compile-time error
+  BadPosMiddle x;                                /// 201: compile-time error
+  BadNamEmpty x;                                 /// 202: compile-time error
+  BadNamEmpty x;                                 /// 203: compile-time error
+  BadNamEmpty x;                                 /// 204: compile-time error
+  BadNamEmpty x;                                 /// 205: compile-time error
+  BadNamStart x;                                 /// 206: compile-time error
+  BadNamStart x;                                 /// 207: compile-time error
+  BadNamEnd x;                                   /// 208: compile-time error
+  BadNamStart x;                                 /// 209: compile-time error
+  BadNamMiddle x;                                /// 210: compile-time error
+}
