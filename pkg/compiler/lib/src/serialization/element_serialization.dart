@@ -556,6 +556,7 @@ class FunctionSerializer implements ElementSerializer {
       encoder.setElement(
           Key.EXECUTABLE_CONTEXT, localFunction.executableContext);
     }
+    encoder.setTypes(Key.TYPE_VARIABLES, element.typeVariables);
   }
 }
 

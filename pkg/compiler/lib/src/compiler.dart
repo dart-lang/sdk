@@ -851,7 +851,7 @@ abstract class Compiler implements LibraryLoaderListener {
           }
         }
 
-        if (options.resolveOnly) {
+        if (options.resolveOnly && !compilationFailed) {
           reporter.log('Serializing to ${options.resolutionOutput}');
           serialization
               .serializeToSink(userOutputProvider.createEventSink('', 'data'),

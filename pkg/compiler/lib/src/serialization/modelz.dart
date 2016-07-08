@@ -788,6 +788,8 @@ abstract class ParametersMixin
           namedParameterTypes.add(parameter.type);
         }
       }
+      List<DartType> typeVariables =
+          _decoder.getTypes(Key.TYPE_VARIABLES, isOptional: true);
 
       FunctionType type = new FunctionType(
           this,
@@ -797,6 +799,7 @@ abstract class ParametersMixin
           namedParameters,
           namedParameterTypes);
       _functionSignature = new FunctionSignatureX(
+          typeVariables: typeVariables,
           requiredParameters: requiredParameters,
           requiredParameterCount: requiredParameterCount,
           optionalParameters: optionalParameters,
@@ -1873,7 +1876,7 @@ class TypedefElementZ extends DeserializedElementZ
 class TypeVariableElementZ extends DeserializedElementZ
     with AnalyzableElementMixin, AstElementMixinZ, TypedElementMixin
     implements TypeVariableElement {
-  TypeDeclarationElement _typeDeclaration;
+  GenericElement _typeDeclaration;
   TypeVariableType _type;
   DartType _bound;
   Name _memberName;
@@ -1910,7 +1913,7 @@ class TypeVariableElementZ extends DeserializedElementZ
   int get index => _decoder.getInt(Key.INDEX);
 
   @override
-  TypeDeclarationElement get typeDeclaration {
+  GenericElement get typeDeclaration {
     if (_typeDeclaration == null) {
       _typeDeclaration = _decoder.getElement(Key.TYPE_DECLARATION);
     }

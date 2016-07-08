@@ -61,6 +61,8 @@ class Key {
   static const Key IS_EXTERNAL = const Key('isExternal');
   static const Key IS_FINAL = const Key('isFinal');
   static const Key IS_INJECTED = const Key('isInjected');
+  static const Key IS_METHOD_TYPE_VARIABLE_TYPE =
+      const Key('isMethodTypeVariableType');
   static const Key IS_NAMED = const Key('isNamed');
   static const Key IS_OPERATOR = const Key('isOperator');
   static const Key IS_OPTIONAL = const Key('isOptional');

@@ -527,7 +527,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
 
   /// Creates a copy of the [CompilerOptions] where the provided non-null
   /// option values replace existing.
-  CompilerOptions copy(
+  static CompilerOptions copy(CompilerOptions options,
       {entryPoint,
       libraryRoot,
       packageRoot,
@@ -583,71 +583,76 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       useStartupEmitter,
       verbose}) {
     return new CompilerOptions._(
-        entryPoint ?? this.entryPoint,
-        libraryRoot ?? this.libraryRoot,
-        packageRoot ?? this.packageRoot,
-        packageConfig ?? this.packageConfig,
-        packagesDiscoveryProvider ?? this.packagesDiscoveryProvider,
-        environment ?? this.environment,
-        allowMockCompilation: allowMockCompilation ?? this.allowMockCompilation,
+        entryPoint ?? options.entryPoint,
+        libraryRoot ?? options.libraryRoot,
+        packageRoot ?? options.packageRoot,
+        packageConfig ?? options.packageConfig,
+        packagesDiscoveryProvider ?? options.packagesDiscoveryProvider,
+        environment ?? options.environment,
+        allowMockCompilation:
+            allowMockCompilation ?? options.allowMockCompilation,
         allowNativeExtensions:
-            allowNativeExtensions ?? this.allowNativeExtensions,
-        analyzeAll: analyzeAll ?? this.analyzeAll,
-        analyzeMain: analyzeMain ?? this.analyzeMain,
-        analyzeOnly: analyzeOnly ?? this.analyzeOnly,
+            allowNativeExtensions ?? options.allowNativeExtensions,
+        analyzeAll: analyzeAll ?? options.analyzeAll,
+        analyzeMain: analyzeMain ?? options.analyzeMain,
+        analyzeOnly: analyzeOnly ?? options.analyzeOnly,
         analyzeSignaturesOnly:
-            analyzeSignaturesOnly ?? this.analyzeSignaturesOnly,
-        buildId: buildId ?? this.buildId,
-        dart2dartMultiFile: dart2dartMultiFile ?? this.dart2dartMultiFile,
-        deferredMapUri: deferredMapUri ?? this.deferredMapUri,
-        fatalWarnings: fatalWarnings ?? this.fatalWarnings,
-        terseDiagnostics: terseDiagnostics ?? this.terseDiagnostics,
-        suppressWarnings: suppressWarnings ?? this.suppressWarnings,
-        suppressHints: suppressHints ?? this.suppressHints,
+            analyzeSignaturesOnly ?? options.analyzeSignaturesOnly,
+        buildId: buildId ?? options.buildId,
+        dart2dartMultiFile: dart2dartMultiFile ?? options.dart2dartMultiFile,
+        deferredMapUri: deferredMapUri ?? options.deferredMapUri,
+        fatalWarnings: fatalWarnings ?? options.fatalWarnings,
+        terseDiagnostics: terseDiagnostics ?? options.terseDiagnostics,
+        suppressWarnings: suppressWarnings ?? options.suppressWarnings,
+        suppressHints: suppressHints ?? options.suppressHints,
         shownPackageWarnings:
-            shownPackageWarnings ?? this._shownPackageWarnings,
-        disableInlining: disableInlining ?? this.disableInlining,
-        disableTypeInference: disableTypeInference ?? this.disableTypeInference,
-        dumpInfo: dumpInfo ?? this.dumpInfo,
-        emitJavaScript: emitJavaScript ?? this.emitJavaScript,
-        enableAssertMessage: enableAssertMessage ?? this.enableAssertMessage,
+            shownPackageWarnings ?? options._shownPackageWarnings,
+        disableInlining: disableInlining ?? options.disableInlining,
+        disableTypeInference:
+            disableTypeInference ?? options.disableTypeInference,
+        dumpInfo: dumpInfo ?? options.dumpInfo,
+        emitJavaScript: emitJavaScript ?? options.emitJavaScript,
+        enableAssertMessage: enableAssertMessage ?? options.enableAssertMessage,
         enableGenericMethodSyntax:
-            enableGenericMethodSyntax ?? this.enableGenericMethodSyntax,
+            enableGenericMethodSyntax ?? options.enableGenericMethodSyntax,
         enableInitializingFormalAccess: enableInitializingFormalAccess ??
-            this.enableInitializingFormalAccess,
+            options.enableInitializingFormalAccess,
         enableExperimentalMirrors:
-            enableExperimentalMirrors ?? this.enableExperimentalMirrors,
-        enableMinification: enableMinification ?? this.enableMinification,
-        enableNativeLiveTypeAnalysis:
-            enableNativeLiveTypeAnalysis ?? this.enableNativeLiveTypeAnalysis,
-        enableTypeAssertions: enableTypeAssertions ?? this.enableTypeAssertions,
-        enableUserAssertions: enableUserAssertions ?? this.enableUserAssertions,
+            enableExperimentalMirrors ?? options.enableExperimentalMirrors,
+        enableMinification: enableMinification ?? options.enableMinification,
+        enableNativeLiveTypeAnalysis: enableNativeLiveTypeAnalysis ??
+            options.enableNativeLiveTypeAnalysis,
+        enableTypeAssertions:
+            enableTypeAssertions ?? options.enableTypeAssertions,
+        enableUserAssertions:
+            enableUserAssertions ?? options.enableUserAssertions,
         generateCodeWithCompileTimeErrors: generateCodeWithCompileTimeErrors ??
-            this.generateCodeWithCompileTimeErrors,
-        generateSourceMap: generateSourceMap ?? this.generateSourceMap,
+            options.generateCodeWithCompileTimeErrors,
+        generateSourceMap: generateSourceMap ?? options.generateSourceMap,
         hasIncrementalSupport:
-            hasIncrementalSupport ?? this.hasIncrementalSupport,
-        outputUri: outputUri ?? this.outputUri,
-        platformConfigUri: platformConfigUri ?? this.platformConfigUri,
-        preserveComments: preserveComments ?? this.preserveComments,
-        preserveUris: preserveUris ?? this.preserveUris,
-        resolutionInputs: resolutionInputs ?? this.resolutionInputs,
-        resolutionOutput: resolutionOutput ?? this.resolutionOutput,
-        resolveOnly: resolveOnly ?? this.resolveOnly,
-        sourceMapUri: sourceMapUri ?? this.sourceMapUri,
-        strips: strips ?? this.strips,
-        testMode: testMode ?? this.testMode,
-        trustJSInteropTypeAnnotations:
-            trustJSInteropTypeAnnotations ?? this.trustJSInteropTypeAnnotations,
-        trustPrimitives: trustPrimitives ?? this.trustPrimitives,
-        trustTypeAnnotations: trustTypeAnnotations ?? this.trustTypeAnnotations,
+            hasIncrementalSupport ?? options.hasIncrementalSupport,
+        outputUri: outputUri ?? options.outputUri,
+        platformConfigUri: platformConfigUri ?? options.platformConfigUri,
+        preserveComments: preserveComments ?? options.preserveComments,
+        preserveUris: preserveUris ?? options.preserveUris,
+        resolutionInputs: resolutionInputs ?? options.resolutionInputs,
+        resolutionOutput: resolutionOutput ?? options.resolutionOutput,
+        resolveOnly: resolveOnly ?? options.resolveOnly,
+        sourceMapUri: sourceMapUri ?? options.sourceMapUri,
+        strips: strips ?? options.strips,
+        testMode: testMode ?? options.testMode,
+        trustJSInteropTypeAnnotations: trustJSInteropTypeAnnotations ??
+            options.trustJSInteropTypeAnnotations,
+        trustPrimitives: trustPrimitives ?? options.trustPrimitives,
+        trustTypeAnnotations:
+            trustTypeAnnotations ?? options.trustTypeAnnotations,
         useContentSecurityPolicy:
-            useContentSecurityPolicy ?? this.useContentSecurityPolicy,
-        useCpsIr: useCpsIr ?? this.useCpsIr,
-        useFrequencyNamer: useFrequencyNamer ?? this.useFrequencyNamer,
-        useNewSourceInfo: useNewSourceInfo ?? this.useNewSourceInfo,
-        useStartupEmitter: useStartupEmitter ?? this.useStartupEmitter,
-        verbose: verbose ?? this.verbose);
+            useContentSecurityPolicy ?? options.useContentSecurityPolicy,
+        useCpsIr: useCpsIr ?? options.useCpsIr,
+        useFrequencyNamer: useFrequencyNamer ?? options.useFrequencyNamer,
+        useNewSourceInfo: useNewSourceInfo ?? options.useNewSourceInfo,
+        useStartupEmitter: useStartupEmitter ?? options.useStartupEmitter,
+        verbose: verbose ?? options.verbose);
   }
 
   /// Returns `true` if warnings and hints are shown for all packages.

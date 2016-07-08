@@ -562,7 +562,9 @@ class TypeEquivalence implements DartTypeVisitor<bool, DartType> {
   @override
   bool visitTypeVariableType(TypeVariableType type, TypeVariableType other) {
     return strategy.testElements(
-        type, other, 'element', type.element, other.element);
+        type, other, 'element', type.element, other.element) &&
+        strategy.test(type, other, 'is MethodTypeVariableType',
+            type is MethodTypeVariableType, other is MethodTypeVariableType);
   }
 
   @override

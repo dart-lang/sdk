@@ -36,6 +36,8 @@ get asyncGetter async {}
 get asyncStarGetter async* {}
 get syncStarGetter sync* {}
 
+genericMethod<T>() {}
+
 ''',
   'a.dart': '''
 ''',
@@ -73,7 +75,7 @@ main(List<String> arguments) {
     CompilationResult result = await runCompiler(
         memorySourceFiles: sourceFiles,
         entryPoint: entryPoint,
-        options: [Flags.analyzeAll]);
+        options: [Flags.analyzeAll, Flags.genericMethodSyntax]);
     Compiler compiler = result.compiler;
     testSerialization(
         compiler.libraryLoader.libraries,
@@ -647,6 +649,8 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1, element2, 'functionSignature.orderedOptionalParameters',
         element1.functionSignature.orderedOptionalParameters,
         element2.functionSignature.orderedOptionalParameters);
+    checkTypeLists(element1, element2, 'typeVariables',
+        element1.typeVariables, element2.typeVariables);
   }
 
   @override
