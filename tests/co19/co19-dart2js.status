@@ -3,6 +3,15 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js ]
+# Trailing commas are now allowed by the language - issue #26644
+Language/Functions/Formal_Parameters/syntax_t12: MissingCompileTimeError
+Language/Functions/Formal_Parameters/syntax_t05: MissingCompileTimeError
+Language/Functions/Formal_Parameters/syntax_t04: MissingCompileTimeError
+Language/Expressions/Function_Invocation/Actual_Argument_List_Evaluation/syntax_t05: MissingCompileTimeError
+Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t05: MissingCompileTimeError
+Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t10: MissingCompileTimeError
+Language/Expressions/Method_Invocation/Super_Invocation/syntax_t05: MissingCompileTimeError
+
 Language/Classes/Constructors/Generative_Constructors/execution_of_a_superinitializer_t01: RuntimeError # compiler cancelled: cannot resolve type T
 Language/Classes/Constructors/Generative_Constructors/execution_of_a_superinitializer_t01: RuntimeError, OK # co19 issue 258
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: fail # Issue 13363
