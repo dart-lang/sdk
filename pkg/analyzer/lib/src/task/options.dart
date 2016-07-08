@@ -49,9 +49,6 @@ class AnalyzerOptions {
   static const String enableSuperMixins = 'enableSuperMixins';
   static const String enableTrailingCommas = 'enableTrailingCommas';
 
-  /// This option is deprecated.
-  static const String enableConditionalDirectives =
-      "enableConditionalDirectives";
   static const String errors = 'errors';
   static const String exclude = 'exclude';
   static const String language = 'language';
@@ -83,10 +80,10 @@ class AnalyzerOptions {
   /// Supported `analyzer` language configuration options.
   static const List<String> languageOptions = const [
     enableAsync,
-    enableConditionalDirectives,
     enableGenericMethods,
     enableStrictCallChecks,
-    enableSuperMixins
+    enableSuperMixins,
+    enableTrailingCommas
   ];
 }
 
