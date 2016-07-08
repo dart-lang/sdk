@@ -674,12 +674,6 @@ const char* Dart::FeaturesString(Snapshot::Kind kind) {
 #elif defined(TARGET_ARCH_DBC64)
     buffer.AddString(" dbc64");
 #endif
-  } else if (Snapshot::IsFull(kind)) {
-#if defined(ARCH_IS_32BIT)
-  buffer.AddString(" 32");
-#else
-  buffer.AddString(" 64");
-#endif
   }
 
   return buffer.Steal();

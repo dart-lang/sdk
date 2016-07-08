@@ -12,6 +12,7 @@
 #include "vm/exceptions.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
+#include "vm/hash_map.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
@@ -83,13 +84,32 @@ class DeserializationCluster : public ZoneAllocated {
 };
 
 
-enum {
-  kRefTagSize = 1,
-  kRefTagShift = 1,
-  kRefTagMask = 1,
-  kSmiRefTag = 0x0,
-  kHeapRefTag = 0x1,
+class SmiObjectIdPair {
+ public:
+  SmiObjectIdPair() : smi_(NULL), id_(0) { }
+  RawSmi* smi_;
+  intptr_t id_;
+
+  bool operator==(const SmiObjectIdPair& other) const {
+    return (smi_ == other.smi_) && (id_ == other.id_);
+  }
 };
+
+
+class SmiObjectIdPairTrait {
+ public:
+  typedef RawSmi* Key;
+  typedef intptr_t Value;
+  typedef SmiObjectIdPair Pair;
+
+  static Key KeyOf(Pair kv) { return kv.smi_; }
+  static Value ValueOf(Pair kv) { return kv.id_; }
+  static inline intptr_t Hashcode(Key key) { return Smi::Value(key); }
+  static inline bool IsKeyEqual(Pair kv, Key key) { return kv.smi_ == key; }
+};
+
+
+typedef DirectChainedHashMap<SmiObjectIdPairTrait> SmiObjectIdMap;
 
 
 class Serializer : public StackResource {
@@ -114,13 +134,36 @@ class Serializer : public StackResource {
 
   void AssignRef(RawObject* object) {
     ASSERT(next_ref_index_ != 0);
-    heap_->SetObjectId(object, next_ref_index_);
-    ASSERT(heap_->GetObjectId(object) == next_ref_index_);
+    if (object->IsHeapObject()) {
+      heap_->SetObjectId(object, next_ref_index_);
+      ASSERT(heap_->GetObjectId(object) == next_ref_index_);
+    } else {
+      RawSmi* smi = Smi::RawCast(object);
+      SmiObjectIdPair* existing_pair = smi_ids_.Lookup(smi);
+      if (existing_pair != NULL) {
+        ASSERT(existing_pair->id_ == 1);
+        existing_pair->id_ = next_ref_index_;
+      } else {
+        SmiObjectIdPair new_pair;
+        new_pair.smi_ = smi;
+        new_pair.id_ = next_ref_index_;
+        smi_ids_.Insert(new_pair);
+      }
+    }
     next_ref_index_++;
   }
 
   void Push(RawObject* object) {
     if (!object->IsHeapObject()) {
+      RawSmi* smi = Smi::RawCast(object);
+      if (smi_ids_.Lookup(smi) == NULL) {
+        SmiObjectIdPair pair;
+        pair.smi_ = smi;
+        pair.id_ = 1;
+        smi_ids_.Insert(pair);
+        stack_.Add(object);
+        num_written_objects_++;
+      }
       return;
     }
 
@@ -180,9 +223,12 @@ class Serializer : public StackResource {
 
   void WriteRef(RawObject* object) {
     if (!object->IsHeapObject()) {
-      ASSERT(static_cast<intptr_t>(kSmiRefTag) ==
-             static_cast<intptr_t>(kSmiTag));
-      Write<intptr_t>(reinterpret_cast<intptr_t>(object));
+      RawSmi* smi = Smi::RawCast(object);
+      intptr_t id = smi_ids_.Lookup(smi)->id_;
+      if (id == 0) {
+        FATAL("Missing ref");
+      }
+      Write<int32_t>(id);
       return;
     }
 
@@ -200,7 +246,7 @@ class Serializer : public StackResource {
       }
       FATAL("Missing ref");
     }
-    Write<intptr_t>((id << kRefTagShift) | kHeapRefTag);
+    Write<int32_t>(id);
   }
 
   void WriteTokenPosition(TokenPosition pos) {
@@ -234,6 +280,7 @@ class Serializer : public StackResource {
   intptr_t num_base_objects_;
   intptr_t num_written_objects_;
   intptr_t next_ref_index_;
+  SmiObjectIdMap smi_ids_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(Serializer);
 };
@@ -300,13 +347,8 @@ class Deserializer : public StackResource {
   }
 
   RawObject* ReadRef() {
-    intptr_t index = Read<intptr_t>();
-    if ((index & kRefTagMask) == kSmiRefTag) {
-      ASSERT(static_cast<intptr_t>(kSmiRefTag) ==
-             static_cast<intptr_t>(kSmiTag));
-      return reinterpret_cast<RawSmi*>(index);
-    }
-    return Ref(index >> kRefTagShift);
+    int32_t index = Read<int32_t>();
+    return Ref(index);
   }
 
   TokenPosition ReadTokenPosition() {

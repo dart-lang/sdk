@@ -1326,6 +1326,7 @@ class Class : public Object {
   void DisableAllocationStub() const;
 
   RawArray* constants() const;
+  void set_constants(const Array& value) const;
 
   intptr_t FindInvocationDispatcherFunctionIndex(const Function& needle) const;
   RawFunction* InvocationDispatcherFunctionFromIndex(intptr_t idx) const;
@@ -1458,8 +1459,6 @@ class Class : public Object {
   void set_user_name(const String& value) const;
   RawString* GenerateUserVisibleName() const;
   void set_state_bits(intptr_t bits) const;
-
-  void set_constants(const Array& value) const;
 
   void set_canonical_type(const Type& value) const;
   RawType* canonical_type() const;
