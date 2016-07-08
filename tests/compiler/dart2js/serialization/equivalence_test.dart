@@ -27,7 +27,7 @@ import 'test_helper.dart';
 
 const TEST_SOURCES = const <String, String>{
   'main.dart': '''
-import 'a.dart' deferred as a;
+import 'deferred_library.dart' deferred as prefix;
 
 asyncMethod() async {}
 asyncStarMethod() async* {}
@@ -38,8 +38,14 @@ get syncStarGetter sync* {}
 
 genericMethod<T>() {}
 
+class Class1 {
+  factory Class1.deferred() = prefix.DeferredClass;
+  factory Class1.unresolved() = Unresolved;
+}
 ''',
-  'a.dart': '''
+  'deferred_library.dart': '''
+class DeferredClass {
+}
 ''',
 };
 
@@ -690,6 +696,17 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1.isRedirectingFactory, element2.isRedirectingFactory);
     checkElementIdentities(element1, element2, 'effectiveTarget',
         element1.effectiveTarget, element2.effectiveTarget);
+    if (element1.isRedirectingFactory) {
+      checkElementIdentities(element1, element2, 'immediateRedirectionTarget',
+          element1.immediateRedirectionTarget,
+          element2.immediateRedirectionTarget);
+      checkElementIdentities(element1, element2, 'redirectionDeferredPrefix',
+          element1.redirectionDeferredPrefix,
+          element2.redirectionDeferredPrefix);
+      check(element1, element2, 'isEffectiveTargetMalformed',
+          element1.isEffectiveTargetMalformed,
+          element2.isEffectiveTargetMalformed);
+    }
     checkElementIdentities(element1, element2, 'definingConstructor',
         element1.definingConstructor, element2.definingConstructor);
     check(
@@ -830,5 +847,12 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
           'loadLibrary', element1.loadLibrary, element2.loadLibrary);
     }
     // TODO(johnniwinther): Check members.
+  }
+
+  @override
+  void visitErroneousElement(
+      ErroneousElement element1, ErroneousElement element2) {
+    check(element1, element2, 'messageKind',
+        element1.messageKind, element2.messageKind);
   }
 }

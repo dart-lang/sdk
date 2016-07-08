@@ -454,6 +454,8 @@ class ConstructorSerializer implements ElementSerializer {
                 .computeEffectiveTargetType(element.enclosingClass.thisType));
         encoder.setElement(Key.IMMEDIATE_REDIRECTION_TARGET,
             element.immediateRedirectionTarget);
+        encoder.setBool(Key.EFFECTIVE_TARGET_IS_MALFORMED,
+            element.isEffectiveTargetMalformed);
         if (element.redirectionDeferredPrefix != null) {
           encoder.setElement(Key.PREFIX, element.redirectionDeferredPrefix);
         }

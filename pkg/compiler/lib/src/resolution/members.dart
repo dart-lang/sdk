@@ -3608,11 +3608,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     ConstructorResult result =
         resolveRedirectingFactory(node, inConstContext: isConstConstructor);
     ConstructorElement redirectionTarget = result.element;
-    constructor.immediateRedirectionTarget = redirectionTarget;
-
-    if (result.isDeferred) {
-      constructor.redirectionDeferredPrefix = result.prefix;
-    }
+    constructor.setImmediateRedirectionTarget(
+        redirectionTarget, result.isDeferred ? result.prefix : null);
 
     registry.setRedirectingTargetConstructor(node, redirectionTarget);
     switch (result.kind) {

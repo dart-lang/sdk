@@ -398,8 +398,18 @@ class ErroneousConstructorElementX extends ErroneousElementX
   }
 
   @override
-  set immediateRedirectionTarget(_) {
-    throw new UnsupportedError("immediateRedirectionTarget=");
+  get _immediateRedirectionTarget {
+    throw new UnsupportedError("_immediateRedirectionTarget");
+  }
+
+  @override
+  set _immediateRedirectionTarget(_) {
+    throw new UnsupportedError("_immediateRedirectionTarget=");
+  }
+
+  @override
+  setImmediateRedirectionTarget(a, b) {
+    throw new UnsupportedError("setImmediateRedirectionTarget");
   }
 
   @override
@@ -428,8 +438,13 @@ class ErroneousConstructorElementX extends ErroneousElementX
   }
 
   @override
-  set redirectionDeferredPrefix(_) {
-    throw new UnsupportedError("redirectionDeferredPrefix=");
+  get _redirectionDeferredPrefix {
+    throw new UnsupportedError("_redirectionDeferredPrefix");
+  }
+
+  @override
+  set _redirectionDeferredPrefix(_) {
+    throw new UnsupportedError("_redirectionDeferredPrefix=");
   }
 }
 
@@ -2197,8 +2212,10 @@ abstract class ConstructorElementX extends FunctionElementX
       String name, ElementKind kind, Modifiers modifiers, Element enclosing)
       : super(name, kind, modifiers, enclosing);
 
-  FunctionElement immediateRedirectionTarget;
-  PrefixElement redirectionDeferredPrefix;
+  ConstructorElement _immediateRedirectionTarget;
+  PrefixElement _redirectionDeferredPrefix;
+
+  ConstructorElementX get patch => super.patch;
 
   bool get isRedirectingFactory => immediateRedirectionTarget != null;
 
@@ -2211,45 +2228,93 @@ abstract class ConstructorElementX extends FunctionElementX
   DartType _effectiveTargetType;
   bool _isEffectiveTargetMalformed;
 
-  bool get hasEffectiveTarget => effectiveTargetInternal != null;
+  bool get hasEffectiveTarget {
+    if (isPatched) {
+      return patch.hasEffectiveTarget;
+    }
+    return effectiveTargetInternal != null;
+  }
+
+  void setImmediateRedirectionTarget(
+      ConstructorElement target, PrefixElement prefix) {
+    if (isPatched) {
+      patch.setImmediateRedirectionTarget(target, prefix);
+    } else {
+      assert(invariant(this, _immediateRedirectionTarget == null,
+          message: "Immediate redirection target has already been "
+              "set on $this."));
+      _immediateRedirectionTarget = target;
+      _redirectionDeferredPrefix = prefix;
+    }
+  }
+
+  ConstructorElement get immediateRedirectionTarget {
+    if (isPatched) {
+      return patch.immediateRedirectionTarget;
+    }
+    return _immediateRedirectionTarget;
+  }
+
+  PrefixElement get redirectionDeferredPrefix {
+    if (isPatched) {
+      return patch.redirectionDeferredPrefix;
+    }
+    return _redirectionDeferredPrefix;
+  }
 
   void setEffectiveTarget(ConstructorElement target, DartType type,
       {bool isMalformed: false}) {
-    assert(invariant(this, target != null,
-        message: 'No effective target provided for $this.'));
-    assert(invariant(this, effectiveTargetInternal == null,
-        message: 'Effective target has already been computed for $this.'));
-    effectiveTargetInternal = target;
-    _effectiveTargetType = type;
-    _isEffectiveTargetMalformed = isMalformed;
+    if (isPatched) {
+      patch.setEffectiveTarget(target, type, isMalformed: isMalformed);
+    } else {
+      assert(invariant(this, target != null,
+          message: 'No effective target provided for $this.'));
+      assert(invariant(this, effectiveTargetInternal == null,
+          message: 'Effective target has already been computed for $this.'));
+      assert(invariant(this, !target.isMalformed || isMalformed,
+          message: 'Effective target is not marked as malformed for $this: '
+              'target=$target, type=$type, isMalformed: $isMalformed'));
+      assert(invariant(this, isMalformed || type.isInterfaceType,
+          message: 'Effective target type is not an interface type for $this: '
+              'target=$target, type=$type, isMalformed: $isMalformed'));
+      effectiveTargetInternal = target;
+      _effectiveTargetType = type;
+      _isEffectiveTargetMalformed = isMalformed;
+    }
   }
 
   ConstructorElement get effectiveTarget {
-    if (Elements.isMalformed(immediateRedirectionTarget)) {
-      return immediateRedirectionTarget;
-    }
-    assert(!isRedirectingFactory || effectiveTargetInternal != null);
-    if (isRedirectingFactory) {
-      return effectiveTargetInternal;
-    }
     if (isPatched) {
-      return effectiveTargetInternal ?? this;
+      return patch.effectiveTarget;
+    }
+    if (isRedirectingFactory) {
+      assert(effectiveTargetInternal != null);
+      return effectiveTargetInternal;
     }
     return this;
   }
 
-  InterfaceType get effectiveTargetType {
+  DartType get effectiveTargetType {
+    if (isPatched) {
+      return patch.effectiveTargetType;
+    }
     assert(invariant(this, _effectiveTargetType != null,
         message: 'Effective target type has not yet been computed for $this.'));
     return _effectiveTargetType;
   }
 
-  InterfaceType computeEffectiveTargetType(InterfaceType newType) {
+  DartType computeEffectiveTargetType(InterfaceType newType) {
+    if (isPatched) {
+      return patch.computeEffectiveTargetType(newType);
+    }
     if (!isRedirectingFactory) return newType;
     return effectiveTargetType.substByContext(newType);
   }
 
   bool get isEffectiveTargetMalformed {
+    if (isPatched) {
+      return patch.isEffectiveTargetMalformed;
+    }
     if (!isRedirectingFactory) return false;
     assert(invariant(this, _isEffectiveTargetMalformed != null,
         message: 'Malformedness has not yet been computed for $this.'));

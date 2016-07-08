@@ -516,6 +516,13 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
             element1, element2, 'name', element1.name, element2.name) &&
         visit(element1.library, element2.library);
   }
+
+  @override
+  bool visitErroneousElement(
+      ErroneousElement element1, ErroneousElement element2) {
+    return strategy.test(element1, element2, 'messageKind',
+        element1.messageKind, element2.messageKind);
+  }
 }
 
 /// Visitor that checks for equivalence of [DartType]s.

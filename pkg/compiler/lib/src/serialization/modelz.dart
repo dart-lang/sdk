@@ -1298,9 +1298,10 @@ class FactoryConstructorElementZ extends ConstructorElementZ {
 }
 
 class RedirectingFactoryConstructorElementZ extends ConstructorElementZ {
-  InterfaceType _effectiveTargetType;
+  DartType _effectiveTargetType;
   ConstructorElement _immediateRedirectionTarget;
   PrefixElement _redirectionDeferredPrefix;
+  bool _effectiveTargetIsMalformed;
 
   RedirectingFactoryConstructorElementZ(ObjectDecoder decoder) : super(decoder);
 
@@ -1317,10 +1318,18 @@ class RedirectingFactoryConstructorElementZ extends ConstructorElementZ {
       if (_effectiveTarget == null) {
         _effectiveTarget = this;
         _effectiveTargetType = enclosingClass.thisType;
+        _effectiveTargetIsMalformed = false;
       } else {
         _effectiveTargetType = _decoder.getType(Key.EFFECTIVE_TARGET_TYPE);
+        _effectiveTargetIsMalformed =
+            _decoder.getBool(Key.EFFECTIVE_TARGET_IS_MALFORMED);
       }
     }
+  }
+
+  bool get isEffectiveTargetMalformed {
+    _ensureEffectiveTarget();
+    return _effectiveTargetIsMalformed;
   }
 
   @override
@@ -1330,7 +1339,7 @@ class RedirectingFactoryConstructorElementZ extends ConstructorElementZ {
   }
 
   @override
-  InterfaceType computeEffectiveTargetType(InterfaceType newType) {
+  DartType computeEffectiveTargetType(InterfaceType newType) {
     _ensureEffectiveTarget();
     return _effectiveTargetType.substByContext(newType);
   }

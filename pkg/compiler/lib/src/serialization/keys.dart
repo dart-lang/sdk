@@ -29,6 +29,8 @@ class Key {
   static const Key DYNAMIC_USES = const Key('dynamic-uses');
   static const Key EFFECTIVE_TARGET = const Key('effectiveTarget');
   static const Key EFFECTIVE_TARGET_TYPE = const Key('effectiveTargetType');
+  static const Key EFFECTIVE_TARGET_IS_MALFORMED =
+      const Key('effectiveTargetIsMalformed');
   static const Key ELEMENT = const Key('element');
   static const Key ELEMENTS = const Key('elements');
   static const Key ENCLOSING = const Key('enclosing');

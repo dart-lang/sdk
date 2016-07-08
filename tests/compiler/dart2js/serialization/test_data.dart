@@ -122,7 +122,7 @@ main() {
   },
   expectedWarningCount: 1),
 
-  const Test('Impliment Comparable with incompatible parameter types', const {
+  const Test('Implement Comparable with incompatible parameter types', const {
     'main.dart': r'''
 class Class implements Comparable<Class> {
   int compareTo(String other) => 0;
@@ -134,7 +134,7 @@ main() {
   expectedWarningCount: 1,
   expectedInfoCount: 1),
 
-  const Test('Impliment Comparable with incompatible parameter count', const {
+  const Test('Implement Comparable with incompatible parameter count', const {
     'main.dart': r'''
 class Class implements Comparable {
   bool compareTo(a, b) => true;

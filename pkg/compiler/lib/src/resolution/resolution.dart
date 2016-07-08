@@ -448,11 +448,11 @@ class ResolverTask extends CompilerTask {
 
   void resolveRedirectionChain(ConstructorElement constructor, Spannable node) {
     ConstructorElement target = constructor;
-    InterfaceType targetType;
-    List<Element> seen = new List<Element>();
+    DartType targetType;
+    List<ConstructorElement> seen = new List<ConstructorElement>();
     bool isMalformed = false;
     // Follow the chain of redirections and check for cycles.
-    while (target.isRedirectingFactory || target.isPatched) {
+    while (target.isRedirectingFactory) {
       if (target.hasEffectiveTarget) {
         // We found a constructor that already has been processed.
         // TODO(johnniwinther): Should `effectiveTargetType` be part of the
@@ -466,12 +466,7 @@ class ResolverTask extends CompilerTask {
         break;
       }
 
-      Element nextTarget;
-      if (target.isPatched) {
-        nextTarget = target.patch;
-      } else {
-        nextTarget = target.immediateRedirectionTarget;
-      }
+      Element nextTarget = target.immediateRedirectionTarget;
 
       if (seen.contains(nextTarget)) {
         reporter.reportErrorMessage(
@@ -503,16 +498,14 @@ class ResolverTask extends CompilerTask {
     // substitution of the target type with respect to the factory type.
     while (!seen.isEmpty) {
       ConstructorElementX factory = seen.removeLast();
-      TreeElements treeElements = factory.treeElements;
-      assert(invariant(node, treeElements != null,
-          message: 'No TreeElements cached for $factory.'));
-      if (!factory.isPatched) {
-        FunctionExpression functionNode = factory.node;
-        RedirectingFactoryBody redirectionNode = functionNode.body;
-        DartType factoryType = treeElements.getType(redirectionNode);
-        if (!factoryType.isDynamic) {
-          targetType = targetType.substByContext(factoryType);
-        }
+      ResolvedAst resolvedAst = factory.resolvedAst;
+      assert(invariant(node, resolvedAst != null,
+          message: 'No ResolvedAst for $factory.'));
+      FunctionExpression functionNode = resolvedAst.node;
+      RedirectingFactoryBody redirectionNode = resolvedAst.body;
+      DartType factoryType = resolvedAst.elements.getType(redirectionNode);
+      if (!factoryType.isDynamic) {
+        targetType = targetType.substByContext(factoryType);
       }
       factory.setEffectiveTarget(target, targetType, isMalformed: isMalformed);
     }
