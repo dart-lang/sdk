@@ -68,6 +68,7 @@ vars = {
   "idl_parser_rev": "@7fbe68cab90c38147dee4f48c30ad0d496c17915",
   "initialize_rev": "@595d501a92c3716395ad2d81f9aabdb9f90879b6",
   "intl_tag": "@0.13.0",
+  "isolate_tag": "@0.2.2",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@2.0.0",
   "linter_rev": "@7ca3aab6ca45b988440e425c187993a533fbe27e",
@@ -222,6 +223,8 @@ deps = {
       (Var("github_dartlang") % "initialize") + Var("initialize_rev"),
   Var("dart_root") + "/third_party/pkg/intl":
       (Var("github_mirror") % "intl") + Var("intl_tag"),
+  Var("dart_root") + "/third_party/pkg/isolate":
+      (Var("github_dartlang") % "isolate") + Var("isolate_tag"),
   Var("dart_root") + "/third_party/pkg/json_rpc_2":
       (Var("github_mirror") % "json_rpc_2") + Var("json_rpc_2_tag"),
   Var("dart_root") + "/third_party/pkg/linter":
