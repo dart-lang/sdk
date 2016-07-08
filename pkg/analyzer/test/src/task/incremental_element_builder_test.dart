@@ -1854,13 +1854,15 @@ class _ClassDeltaHelper {
   final String name;
 
   ClassElementDelta delta;
-  ClassElement element;
+  ClassElementImpl element;
+  int oldVersion;
   List<ClassMember> oldMembers;
   List<ClassMember> newMembers;
 
   _ClassDeltaHelper(this.name);
 
   void initNew(CompilationUnit newUnit, CompilationUnitElementDelta unitDelta) {
+    expect(element.version, isNot(oldVersion));
     ClassDeclaration newClass = _findClassNode(newUnit, name);
     expect(newClass, isNotNull);
     newMembers = newClass.members.toList();
@@ -1872,6 +1874,7 @@ class _ClassDeltaHelper {
     ClassDeclaration oldClass = _findClassNode(oldUnit, name);
     expect(oldClass, isNotNull);
     element = oldClass.element;
+    oldVersion = element.version;
     oldMembers = oldClass.members.toList();
   }
 

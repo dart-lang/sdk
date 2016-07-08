@@ -334,6 +334,7 @@ class IncrementalCompilationUnitElementBuilder {
     classElement.constructors = classElementHolder.constructors;
     classElement.fields = newFields.values.toList();
     classElement.methods = classElementHolder.methods;
+    classElement.version++;
     classElementHolder.validate();
     // Ensure at least a default synthetic constructor.
     if (classElement.constructors.isEmpty) {

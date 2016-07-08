@@ -474,6 +474,13 @@ class ClassElementImpl extends AbstractClassElementImpl
   bool _hasBeenInferred = false;
 
   /**
+   * The version of this element. The version is changed when the element is
+   * incrementally updated, so that its lists of constructors, accessors and
+   * methods might be different.
+   */
+  int version = 0;
+
+  /**
    * Initialize a newly created class element to have the given [name] at the
    * given [offset] in the file that contains the declaration of this element.
    */

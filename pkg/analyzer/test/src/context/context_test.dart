@@ -3136,6 +3136,43 @@ class C {}
     expect(context.getErrors(b).errors, hasLength(1));
   }
 
+  void test_sequence_class_removeMethod_overridden() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {
+  void foo() {}
+}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+class B extends A {
+  @override
+  void foo() {}
+}
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(b).errors, hasLength(0));
+    // Update a.dart: remove add A.foo.
+    //   b.dart has a new hint, because B.foo does not override anything
+    context.setContents(
+        a,
+        r'''
+class A {
+}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
+
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(b).errors, hasLength(1));
+  }
+
   void test_sequence_inBodyChange_addRef_deltaChange() {
     Source a = addSource(
         '/a.dart',

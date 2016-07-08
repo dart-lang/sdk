@@ -593,6 +593,9 @@ class ClassElementForLink_Class extends ClassElementForLink
   }
 
   @override
+  int get version => 0;
+
+  @override
   DartType buildType(
       DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices) {
     int numTypeParameters = _unlinkedClass.typeParameters.length;
