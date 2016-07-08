@@ -544,6 +544,8 @@ class FunctionSerializer implements ElementSerializer {
     if (element.isFunction) {
       encoder.setBool(Key.IS_OPERATOR, element.isOperator);
       encoder.setEnum(Key.ASYNC_MARKER, element.asyncMarker);
+    } else if (element.isGetter) {
+      encoder.setEnum(Key.ASYNC_MARKER, element.asyncMarker);
     }
     SerializerUtil.serializeParentRelation(element, encoder);
     encoder.setBool(Key.IS_EXTERNAL, element.isExternal);

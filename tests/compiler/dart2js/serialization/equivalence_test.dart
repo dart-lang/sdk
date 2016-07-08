@@ -28,6 +28,14 @@ import 'test_helper.dart';
 const TEST_SOURCES = const <String, String>{
   'main.dart': '''
 import 'a.dart' deferred as a;
+
+asyncMethod() async {}
+asyncStarMethod() async* {}
+syncStarMethod() sync* {}
+get asyncGetter async {}
+get asyncStarGetter async* {}
+get syncStarGetter sync* {}
+
 ''',
   'a.dart': '''
 ''',

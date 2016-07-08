@@ -1712,7 +1712,9 @@ abstract class GetterElementZ extends DeserializedElementZ
   bool get isAbstract => _decoder.getBool(Key.IS_ABSTRACT);
 
   @override
-  AsyncMarker get asyncMarker => AsyncMarker.SYNC;
+  AsyncMarker get asyncMarker {
+    return _decoder.getEnum(Key.ASYNC_MARKER, AsyncMarker.values);
+  }
 }
 
 class TopLevelGetterElementZ extends GetterElementZ with LibraryMemberMixin {
