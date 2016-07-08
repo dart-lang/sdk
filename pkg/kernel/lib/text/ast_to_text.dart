@@ -153,6 +153,7 @@ class Printer extends Visitor<Null> {
   final Annotator annotator;
   ImportTable importTable;
   int indentation = 0;
+  int column = 0;
 
   static int SPACE = 0;
   static int WORD = 1;
@@ -303,6 +304,7 @@ class Printer extends Visitor<Null> {
 
   void write(String string) {
     sink.write(string);
+    column += string.length;
   }
 
   void writeSpace([String string = ' ']) {
@@ -396,6 +398,7 @@ class Printer extends Visitor<Null> {
     }
     write('\n');
     state = SPACE;
+    column = 0;
   }
 
   void writeFunction(FunctionNode function,
@@ -870,10 +873,30 @@ class Printer extends Visitor<Null> {
   }
 
   visitBlockExpression(BlockExpression node) {
-    writeWord('do:');
-    writeNode(node.body);
-    writeWord('done:');
+    int savedColumn = column;
+
+    var savedState = state;
+    int savedIndentation = indentation;
+    String spaces = ' ' * savedColumn;
+
+    writeWord('|{');
+    endLine();
+    state = SPACE;
+    indentation = (savedColumn + 4) ~/ 2;
+    for (var statement in node.body.statements) {
+      statement.accept(this);
+    }
+    endLine();
+    write('$spaces   => ');
     writeExpression(node.value);
+    endLine();
+    write('$spaces');
+
+    indentation = savedIndentation;
+    state = savedState;
+    column = savedColumn;
+
+    write('}| ');
   }
 
   defaultExpression(Expression node) {
