@@ -590,45 +590,45 @@ class Elements {
   static String operatorNameToIdentifier(String name) {
     if (name == null) {
       return name;
-    } else if (identical(name, '==')) {
+    } else if (name == '==') {
       return r'operator$eq';
-    } else if (identical(name, '~')) {
+    } else if (name == '~') {
       return r'operator$not';
-    } else if (identical(name, '[]')) {
+    } else if (name == '[]') {
       return r'operator$index';
-    } else if (identical(name, '[]=')) {
+    } else if (name == '[]=') {
       return r'operator$indexSet';
-    } else if (identical(name, '*')) {
+    } else if (name == '*') {
       return r'operator$mul';
-    } else if (identical(name, '/')) {
+    } else if (name == '/') {
       return r'operator$div';
-    } else if (identical(name, '%')) {
+    } else if (name == '%') {
       return r'operator$mod';
-    } else if (identical(name, '~/')) {
+    } else if (name == '~/') {
       return r'operator$tdiv';
-    } else if (identical(name, '+')) {
+    } else if (name == '+') {
       return r'operator$add';
-    } else if (identical(name, '<<')) {
+    } else if (name == '<<') {
       return r'operator$shl';
-    } else if (identical(name, '>>')) {
+    } else if (name == '>>') {
       return r'operator$shr';
-    } else if (identical(name, '>=')) {
+    } else if (name == '>=') {
       return r'operator$ge';
-    } else if (identical(name, '>')) {
+    } else if (name == '>') {
       return r'operator$gt';
-    } else if (identical(name, '<=')) {
+    } else if (name == '<=') {
       return r'operator$le';
-    } else if (identical(name, '<')) {
+    } else if (name == '<') {
       return r'operator$lt';
-    } else if (identical(name, '&')) {
+    } else if (name == '&') {
       return r'operator$and';
-    } else if (identical(name, '^')) {
+    } else if (name == '^') {
       return r'operator$xor';
-    } else if (identical(name, '|')) {
+    } else if (name == '|') {
       return r'operator$or';
-    } else if (identical(name, '-')) {
+    } else if (name == '-') {
       return r'operator$sub';
-    } else if (identical(name, 'unary-')) {
+    } else if (name == 'unary-') {
       return r'operator$negate';
     } else {
       return name;

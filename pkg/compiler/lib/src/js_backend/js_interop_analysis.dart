@@ -8,11 +8,7 @@ library compiler.src.js_backend.js_interop_analysis;
 import '../common.dart';
 import '../constants/values.dart'
     show ConstantValue, ConstructedConstantValue, StringConstantValue;
-import '../dart_types.dart'
-    show
-        DartType,
-        DynamicType,
-        FunctionType;
+import '../dart_types.dart' show DartType, DynamicType, FunctionType;
 import '../diagnostics/messages.dart' show MessageKind;
 import '../elements/elements.dart'
     show
@@ -195,9 +191,7 @@ class JsInteropAnalysis {
     // TODO(jacobr): consider using codegenWorld.isChecks to determine the
     // range of positional arguments that need to be supported by JavaScript
     // function types.
-    return new FunctionType.synthesized(
-      const DynamicType(),
-      [],
-      new List<DartType>.filled(16, const DynamicType()));
+    return new FunctionType.synthesized(const DynamicType(), [],
+        new List<DartType>.filled(16, const DynamicType()));
   }
 }

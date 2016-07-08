@@ -546,6 +546,24 @@ test() {}
     'c.dart': '''
 ''',
   }, expectedErrorCount: 1),
+
+  const Test('Closure in operator function', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  test();
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+class C {
+  operator ==(other) => () {};
+}
+
+test() => new C() == null;
+''',
+  }),
 ];
 
 class Test {

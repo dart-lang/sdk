@@ -485,17 +485,12 @@ class MapConstantExpression extends ConstantExpression {
     Map<ConstantValue, ConstantValue> valueMap =
         <ConstantValue, ConstantValue>{};
     for (int index = 0; index < keys.length; index++) {
-      ConstantValue key =
-          keys[index].evaluate(environment, constantSystem);
-      ConstantValue value =
-          values[index].evaluate(environment, constantSystem);
+      ConstantValue key = keys[index].evaluate(environment, constantSystem);
+      ConstantValue value = values[index].evaluate(environment, constantSystem);
       valueMap[key] = value;
     }
-    return constantSystem.createMap(
-        environment.compiler,
-        type,
-        valueMap.keys.toList(),
-        valueMap.values.toList());
+    return constantSystem.createMap(environment.compiler, type,
+        valueMap.keys.toList(), valueMap.values.toList());
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
