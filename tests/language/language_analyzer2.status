@@ -85,9 +85,6 @@ malbounded_redirecting_factory2_test/none: fail # Issue 11578
 # test issue 11579, assignment, no setter
 getter_no_setter_test/none: fail
 
-# test issue 11584, positional arguments cannot be used for named parameters
-compile_time_constant_e_test: fail # Test Issue 11584
-
 # test issue 11585, static warning, not negative test
 constructor3_negative_test: fail
 constructor_call_wrong_argument_count_negative_test: fail

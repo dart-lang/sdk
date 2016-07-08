@@ -5,6 +5,7 @@
 [ $compiler == dart2js ]
 getter_setter_in_lib_test: Fail # Issue 23288
 method_name_test: Fail # issue 25574
+setter4_test: CompileTimeError # issue 13639
 
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
 tearoff_basic_test: Skip # Tear-off not supported
@@ -102,8 +103,7 @@ ref_before_declaration_test/04: MissingCompileTimeError
 ref_before_declaration_test/05: MissingCompileTimeError
 ref_before_declaration_test/06: MissingCompileTimeError
 
-regress_22976_test/01: CompileTimeError # Issue 23132
-regress_22976_test/02: CompileTimeError # Issue 23132
+regress_22976_test: CompileTimeError # Issue 23132
 
 if_null_assignment_behavior_test/13: Crash # Issue 23491
 if_null_assignment_behavior_test/14: Crash # Issue 23491
