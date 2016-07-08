@@ -457,6 +457,18 @@ class A {
 ''',
   }),
 
+  const Test('Index set if null', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() => m(null, null, null);
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+m(a, b, c) => a[b] ??= c;
+''',
+  }),
+
   const Test('If-null expression in constant constructor', const {
     'main.dart': '''
 import 'a.dart';

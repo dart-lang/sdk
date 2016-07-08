@@ -1504,7 +1504,7 @@ class IndexSetIfNullStructure<R, A> implements SendStructure<R, A> {
   IndexSetIfNullStructure(this.semantics);
 
   @override
-  SendStructureKind get kind => SendStructureKind.INDEX_SET;
+  SendStructureKind get kind => SendStructureKind.INDEX_SET_IF_NULL;
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
