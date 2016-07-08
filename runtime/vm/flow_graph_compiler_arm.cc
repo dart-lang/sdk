@@ -1055,13 +1055,8 @@ void FlowGraphCompiler::CompileGraph() {
   // No such checking code is generated if only fixed parameters are declared,
   // unless we are in debug mode or unless we are compiling a closure.
   if (num_copied_params == 0) {
-#ifdef DEBUG
-    ASSERT(!parsed_function().function().HasOptionalParameters());
-    const bool check_arguments = !flow_graph().IsCompiledForOsr();
-#else
     const bool check_arguments =
         function.IsClosureFunction() && !flow_graph().IsCompiledForOsr();
-#endif
     if (check_arguments) {
       __ Comment("Check argument count");
       // Check that exactly num_fixed arguments are passed in.
@@ -1074,14 +1069,10 @@ void FlowGraphCompiler::CompileGraph() {
       __ cmp(R0, Operand(R1));
       __ b(&correct_num_arguments, EQ);
       __ Bind(&wrong_num_arguments);
-      if (function.IsClosureFunction()) {
-        ASSERT(assembler()->constant_pool_allowed());
-        __ LeaveDartFrame(kKeepCalleePP);  // Arguments are still on the stack.
-        __ Branch(*StubCode::CallClosureNoSuchMethod_entry());
-        // The noSuchMethod call may return to the caller, but not here.
-      } else {
-        __ Stop("Wrong number of arguments");
-      }
+      ASSERT(assembler()->constant_pool_allowed());
+      __ LeaveDartFrame(kKeepCalleePP);  // Arguments are still on the stack.
+      __ Branch(*StubCode::CallClosureNoSuchMethod_entry());
+      // The noSuchMethod call may return to the caller, but not here.
       __ Bind(&correct_num_arguments);
     }
   } else if (!flow_graph().IsCompiledForOsr()) {
@@ -1428,7 +1419,12 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     intptr_t deopt_id,
     TokenPosition token_pos,
     LocationSummary* locs) {
-  __ LoadObject(R4, arguments_descriptor);
+  ASSERT(!function.IsClosureFunction());
+  if (function.HasOptionalParameters()) {
+    __ LoadObject(R4, arguments_descriptor);
+  } else {
+    __ LoadImmediate(R4, 0);  // GC safe smi zero because of stub.
+  }
   // Do not use the code from the function, but let the code be patched so that
   // we can record the outgoing edges to other code.
   GenerateStaticDartCall(deopt_id,
