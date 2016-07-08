@@ -39,9 +39,12 @@ DEFINE_NATIVE_ENTRY(Object_equals, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Object_getHash, 1) {
-  const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  // Please note that no handle is created for the argument.
+  // This is safe since the argument is only used in a tail call.
+  // The performance benefit is more than 5% when using hashCode.
   Heap* heap = isolate->heap();
-  return Smi::New(heap->GetHash(instance.raw()));
+  ASSERT(arguments->NativeArgAt(0)->IsDartInstance());
+  return Smi::New(heap->GetHash(arguments->NativeArgAt(0)));
 }
 
 
