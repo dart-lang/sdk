@@ -7,7 +7,9 @@ library dart2js.serialization.util;
 import '../common.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
+import '../diagnostics/messages.dart';
 import '../elements/elements.dart';
+import '../elements/modelx.dart' show WrappedMessage;
 import '../resolution/access_semantics.dart';
 import '../resolution/operators.dart';
 import '../resolution/send_structure.dart';
@@ -525,4 +527,64 @@ Element deserializeElementReference(
             "'${elementName}' from $context."));
   }
   return element;
+}
+
+void serializeMessageArguments(
+    ObjectEncoder encoder, Key key, Map<String, dynamic> messageArguments) {
+  if (messageArguments.isNotEmpty) {
+    MapEncoder mapEncoder = encoder.createMap(Key.ARGUMENTS);
+    messageArguments.forEach((String key, var value) {
+      mapEncoder.setString(key, Message.convertToString(value));
+    });
+  }
+}
+
+Map<String, String> deserializeMessageArguments(
+    ObjectDecoder decoder, Key key) {
+  Map<String, String> arguments = <String, String>{};
+  MapDecoder mapDecoder = decoder.getMap(key, isOptional: true);
+  if (mapDecoder != null) {
+    mapDecoder.forEachKey((String key) {
+      arguments[key] = mapDecoder.getString(key);
+    });
+  }
+  return arguments;
+}
+
+void serializeSourceSpan(ObjectEncoder encoder, SourceSpan sourceSpan) {
+  encoder.setUri(Key.URI, sourceSpan.uri, sourceSpan.uri);
+  encoder.setInt(Key.OFFSET, sourceSpan.begin);
+  encoder.setInt(Key.LENGTH, sourceSpan.end - sourceSpan.begin);
+}
+
+SourceSpan deserializeSourceSpan(ObjectDecoder decoder) {
+  Uri uri = decoder.getUri(Key.URI);
+  int offset = decoder.getInt(Key.OFFSET);
+  int length = decoder.getInt(Key.LENGTH);
+  return new SourceSpan(uri, offset, offset + length);
+}
+
+void serializeWrappedMessage(
+    ObjectEncoder encoder, Key key, WrappedMessage message) {
+  ObjectEncoder object = encoder.createObject(key);
+  if (message.sourceSpan != null) {
+    serializeSourceSpan(
+        object.createObject(Key.SOURCE_SPAN), message.sourceSpan);
+  }
+  object.setEnum(Key.KIND, message.messageKind);
+  serializeMessageArguments(object, Key.ARGUMENTS, message.messageArguments);
+}
+
+WrappedMessage deserializeWrappedMessage(ObjectDecoder decoder, Key key) {
+  ObjectDecoder object = decoder.getObject(key);
+  SourceSpan sourceSpan;
+  ObjectDecoder sourceSpanDecoder =
+      object.getObject(Key.SOURCE_SPAN, isOptional: true);
+  if (sourceSpanDecoder != null) {
+    sourceSpan = deserializeSourceSpan(sourceSpanDecoder);
+  }
+  MessageKind messageKind = object.getEnum(Key.KIND, MessageKind.values);
+  Map<String, dynamic> messageArguments =
+      deserializeMessageArguments(object, Key.ARGUMENTS);
+  return new WrappedMessage(sourceSpan, messageKind, messageArguments);
 }

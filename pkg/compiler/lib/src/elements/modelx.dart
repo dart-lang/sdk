@@ -452,7 +452,7 @@ class ErroneousConstructorElementX extends ErroneousElementX
 class WrappedMessage {
   /// The message position. If [:null:] the position of the reference to the
   /// [WarnOnUseElementX] is used.
-  final Spannable spannable;
+  final SourceSpan sourceSpan;
 
   /**
    * The message to report on resolving a wrapped element.
@@ -464,7 +464,7 @@ class WrappedMessage {
    */
   final Map messageArguments;
 
-  WrappedMessage(this.spannable, this.messageKind, this.messageArguments);
+  WrappedMessage(this.sourceSpan, this.messageKind, this.messageArguments);
 }
 
 class WarnOnUseElementX extends ElementX implements WarnOnUseElement {
@@ -477,21 +477,21 @@ class WarnOnUseElementX extends ElementX implements WarnOnUseElement {
   /// The element whose usage cause a warning.
   final Element wrappedElement;
 
-  WarnOnUseElementX(WrappedMessage this.warning, WrappedMessage this.info,
-      Element enclosingElement, Element wrappedElement)
+  WarnOnUseElementX(
+      this.warning, this.info, Element enclosingElement, Element wrappedElement)
       : this.wrappedElement = wrappedElement,
         super(wrappedElement.name, ElementKind.WARN_ON_USE, enclosingElement);
 
   Element unwrap(DiagnosticReporter reporter, Spannable usageSpannable) {
     var unwrapped = wrappedElement;
     if (warning != null) {
-      Spannable spannable = warning.spannable;
+      Spannable spannable = warning.sourceSpan;
       if (spannable == null) spannable = usageSpannable;
       DiagnosticMessage warningMessage = reporter.createMessage(
           spannable, warning.messageKind, warning.messageArguments);
       List<DiagnosticMessage> infos = <DiagnosticMessage>[];
       if (info != null) {
-        Spannable spannable = info.spannable;
+        Spannable spannable = info.sourceSpan;
         if (spannable == null) spannable = usageSpannable;
         infos.add(reporter.createMessage(
             spannable, info.messageKind, info.messageArguments));

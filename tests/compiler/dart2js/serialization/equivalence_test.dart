@@ -27,6 +27,7 @@ import 'test_helper.dart';
 
 const TEST_SOURCES = const <String, String>{
   'main.dart': '''
+import 'library.dart';
 import 'deferred_library.dart' deferred as prefix;
 
 asyncMethod() async {}
@@ -46,6 +47,9 @@ class Class1 {
   'deferred_library.dart': '''
 class DeferredClass {
 }
+''',
+  'library.dart': '''
+class Type {}
 ''',
 };
 
