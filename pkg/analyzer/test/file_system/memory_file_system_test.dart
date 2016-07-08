@@ -615,6 +615,13 @@ class MemoryResourceProviderTest {
     }, throwsA(new isInstanceOf<ArgumentError>()));
   }
 
+  test_getModificationTimes() async {
+    File file = provider.newFile('/test.dart', '');
+    Source source = file.createSource();
+    List<int> times = await provider.getModificationTimes([source]);
+    expect(times, [source.modificationStamp]);
+  }
+
   test_watch_createFile() {
     String rootPath = '/my/path';
     provider.newFolder(rootPath);

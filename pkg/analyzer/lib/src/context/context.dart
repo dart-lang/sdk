@@ -158,6 +158,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   List<Source> _priorityOrder = <Source>[];
 
+  CacheConsistencyValidatorImpl _cacheConsistencyValidator;
+
   /**
    * A map from all sources for which there are futures pending to a list of
    * the corresponding PendingFuture objects.  These sources will be analyzed
@@ -346,6 +348,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     driver.reset();
   }
+
+  CacheConsistencyValidator get cacheConsistencyValidator =>
+      _cacheConsistencyValidator ??= new CacheConsistencyValidatorImpl(this);
 
   @override
   set contentCache(ContentCache value) {
@@ -1375,61 +1380,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  bool validateCacheConsistency() {
-    int consistencyCheckStart = JavaSystem.nanoTime();
-    HashSet<Source> changedSources = new HashSet<Source>();
-    HashSet<Source> missingSources = new HashSet<Source>();
-    for (Source source in _privatePartition.sources) {
-      CacheEntry entry = _privatePartition.get(source);
-      int sourceTime = getModificationStamp(source);
-      if (sourceTime != entry.modificationTime) {
-        changedSources.add(source);
-        PerformanceStatistics
-            .cacheConsistencyValidationStatistics.numOfModified++;
-      }
-      if (entry.exception != null) {
-        if (!exists(source)) {
-          missingSources.add(source);
-          PerformanceStatistics
-              .cacheConsistencyValidationStatistics.numOfModified++;
-        }
-      }
-    }
-    for (Source source in changedSources) {
-      _sourceChanged(source);
-    }
-    int removalCount = 0;
-    for (Source source in missingSources) {
-      if (getLibrariesContaining(source).isEmpty &&
-          getLibrariesDependingOn(source).isEmpty) {
-        _removeFromCache(source);
-        removalCount++;
-      }
-    }
-    int consistencyCheckEnd = JavaSystem.nanoTime();
-    if (changedSources.length > 0 || missingSources.length > 0) {
-      StringBuffer buffer = new StringBuffer();
-      buffer.write("Consistency check took ");
-      buffer.write((consistencyCheckEnd - consistencyCheckStart) / 1000000.0);
-      buffer.writeln(" ms and found");
-      buffer.write("  ");
-      buffer.write(changedSources.length);
-      buffer.writeln(" inconsistent entries");
-      buffer.write("  ");
-      buffer.write(missingSources.length);
-      buffer.write(" missing sources (");
-      buffer.write(removalCount);
-      buffer.writeln(" removed");
-      for (Source source in missingSources) {
-        buffer.write("    ");
-        buffer.writeln(source.fullName);
-      }
-      _logInformation(buffer.toString());
-    }
-    return changedSources.length > 0;
-  }
-
-  @override
   void visitContentCache(ContentCacheVisitor visitor) {
     _contentCache.accept(visitor);
   }
@@ -2098,6 +2048,83 @@ class AnalysisFutureHelper<T> {
       _context.dartWorkManager.addPriorityResult(_target, _descriptor);
     }
     return pendingFuture.future;
+  }
+}
+
+class CacheConsistencyValidatorImpl implements CacheConsistencyValidator {
+  final AnalysisContextImpl context;
+
+  CacheConsistencyValidatorImpl(this.context);
+
+  @override
+  List<Source> getSourcesToComputeModificationTimes() {
+    List<Source> sources = <Source>[];
+    for (Source source in context._privatePartition.sources) {
+      if (context._contentCache.getModificationStamp(source) == null) {
+        sources.add(source);
+      }
+    }
+    return sources;
+  }
+
+  @override
+  bool sourceModificationTimesComputed(List<Source> sources, List<int> times) {
+    int consistencyCheckStart = JavaSystem.nanoTime();
+    HashSet<Source> changedSources = new HashSet<Source>();
+    HashSet<Source> missingSources = new HashSet<Source>();
+    for (int i = 0; i < sources.length; i++) {
+      Source source = sources[i];
+      int sourceTime = times[i];
+      if (sourceTime != null) {
+        CacheEntry entry = context._privatePartition.get(source);
+        if (entry != null) {
+          if (sourceTime != entry.modificationTime) {
+            changedSources.add(source);
+            PerformanceStatistics
+                .cacheConsistencyValidationStatistics.numOfModified++;
+          }
+          if (entry.exception != null) {
+            if (sourceTime == -1) {
+              missingSources.add(source);
+              PerformanceStatistics
+                  .cacheConsistencyValidationStatistics.numOfModified++;
+            }
+          }
+        }
+      }
+    }
+    for (Source source in changedSources) {
+      context._sourceChanged(source);
+    }
+    int removalCount = 0;
+    for (Source source in missingSources) {
+      if (context.getLibrariesContaining(source).isEmpty &&
+          context.getLibrariesDependingOn(source).isEmpty) {
+        context._removeFromCache(source);
+        removalCount++;
+      }
+    }
+    int consistencyCheckEnd = JavaSystem.nanoTime();
+    if (changedSources.length > 0 || missingSources.length > 0) {
+      StringBuffer buffer = new StringBuffer();
+      buffer.write("Consistency check took ");
+      buffer.write((consistencyCheckEnd - consistencyCheckStart) / 1000000.0);
+      buffer.writeln(" ms and found");
+      buffer.write("  ");
+      buffer.write(changedSources.length);
+      buffer.writeln(" inconsistent entries");
+      buffer.write("  ");
+      buffer.write(missingSources.length);
+      buffer.write(" missing sources (");
+      buffer.write(removalCount);
+      buffer.writeln(" removed");
+      for (Source source in missingSources) {
+        buffer.write("    ");
+        buffer.writeln(source.fullName);
+      }
+      context._logInformation(buffer.toString());
+    }
+    return changedSources.length > 0;
   }
 }
 

@@ -377,6 +377,15 @@ class FolderTest extends _BaseTest {
 
 @reflectiveTest
 class PhysicalResourceProviderTest extends _BaseTest {
+  test_getModificationTimes() async {
+    PhysicalResourceProvider provider = PhysicalResourceProvider.INSTANCE;
+    String path = join(tempPath, 'file1.txt');
+    new io.File(path).writeAsStringSync('');
+    Source source = provider.getFile(path).createSource();
+    List<int> times = await provider.getModificationTimes([source]);
+    expect(times, [source.modificationStamp]);
+  }
+
   void test_getStateLocation_uniqueness() {
     PhysicalResourceProvider provider = PhysicalResourceProvider.INSTANCE;
     String idOne = 'one';

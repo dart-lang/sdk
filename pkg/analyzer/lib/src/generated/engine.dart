@@ -629,14 +629,6 @@ abstract class AnalysisContext {
    * so that the default contents will be returned.
    */
   void setContents(Source source, String contents);
-
-  /**
-   * Check the cache for any invalid entries (entries whose modification time
-   * does not match the modification time of the source associated with the
-   * entry). Invalid entries will be marked as invalid so that the source will
-   * be re-analyzed. Return `true` if at least one entry was invalid.
-   */
-  bool validateCacheConsistency();
 }
 
 /**
@@ -1572,6 +1564,31 @@ class CacheConsistencyValidationStatistics {
 }
 
 /**
+ * Interface for cache consistency validation in an [InternalAnalysisContext].
+ */
+abstract class CacheConsistencyValidator {
+  /**
+   * Return sources for which the contexts needs to know modification times.
+   */
+  List<Source> getSourcesToComputeModificationTimes();
+
+  /**
+   * Notify the validator that modification [times] were computed for [sources].
+   * If a source does not exist, its modification time is `-1`.
+   *
+   * It's up to the validator and the context how to use this information,
+   * the list of sources the context has might have been changed since the
+   * previous invocation of [getSourcesToComputeModificationTimes].
+   *
+   * Check the cache for any invalid entries (entries whose modification time
+   * does not match the modification time of the source associated with the
+   * entry). Invalid entries will be marked as invalid so that the source will
+   * be re-analyzed. Return `true` if at least one entry was invalid.
+   */
+  bool sourceModificationTimesComputed(List<Source> sources, List<int> times);
+}
+
+/**
  * The possible states of cached data.
  */
 class CacheState extends Enum<CacheState> {
@@ -2054,6 +2071,11 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * about the source.
    */
   AnalysisCache get analysisCache;
+
+  /**
+   * The cache consistency validator for this context.
+   */
+  CacheConsistencyValidator get cacheConsistencyValidator;
 
   /**
    * Allow the client to supply its own content cache.  This will take the

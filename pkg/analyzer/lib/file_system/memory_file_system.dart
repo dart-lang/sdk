@@ -80,6 +80,14 @@ class MemoryResourceProvider implements ResourceProvider {
   Folder getFolder(String path) => newFolder(path);
 
   @override
+  Future<List<int>> getModificationTimes(List<Source> sources) async {
+    return sources.map((source) {
+      String path = source.fullName;
+      return _pathToTimestamp[path] ?? -1;
+    }).toList();
+  }
+
+  @override
   Resource getResource(String path) {
     path = pathContext.normalize(path);
     Resource resource = _pathToResource[path];

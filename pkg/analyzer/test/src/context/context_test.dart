@@ -401,7 +401,6 @@ main() {
     expect(context.getResolvedCompilationUnit2(source, source), unit);
     // remove overlay
     context.setContents(source, null);
-    context.validateCacheConsistency();
     _analyzeAll_assertFinished();
     expect(context.getResolvedCompilationUnit2(source, source), unit);
   }
@@ -432,6 +431,51 @@ import 'libB.dart';''';
       listener.assertEvent(wereSourcesRemovedOrDeleted: true);
       listener.assertNoMoreEvents();
     });
+  }
+
+  void test_cacheConsistencyValidator_computed() {
+    CacheConsistencyValidator validator = context.cacheConsistencyValidator;
+    // Add sources.
+    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+    String path1 = '/test1.dart';
+    String path2 = '/test2.dart';
+    Source source1 = resourceProvider.newFile(path1, '// 1-1').createSource();
+    Source source2 = resourceProvider.newFile(path2, '// 2-1').createSource();
+    context.applyChanges(
+        new ChangeSet()..addedSource(source1)..addedSource(source2));
+    // Same modification times.
+    expect(
+        validator.sourceModificationTimesComputed([source1, source2],
+            [source1.modificationStamp, source2.modificationStamp]),
+        isFalse);
+    // Different modification times.
+    expect(
+        validator.sourceModificationTimesComputed([source1, source2],
+            [source1.modificationStamp + 1, source2.modificationStamp]),
+        isTrue);
+  }
+
+  void test_cacheConsistencyValidator_getSources() {
+    CacheConsistencyValidator validator = context.cacheConsistencyValidator;
+    // Add sources.
+    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+    String path1 = '/test1.dart';
+    String path2 = '/test2.dart';
+    Source source1 = resourceProvider.newFile(path1, '// 1-1').createSource();
+    Source source2 = resourceProvider.newFile(path2, '// 2-1').createSource();
+    context.applyChanges(
+        new ChangeSet()..addedSource(source1)..addedSource(source2));
+    // No overlays.
+    expect(validator.getSourcesToComputeModificationTimes(),
+        unorderedEquals([source1, source2]));
+    // Add an overlay.
+    context.setContents(source1, '// 1-2');
+    expect(validator.getSourcesToComputeModificationTimes(),
+        unorderedEquals([source2]));
+    // Remove an overlay.
+    context.setContents(source1, null);
+    expect(validator.getSourcesToComputeModificationTimes(),
+        unorderedEquals([source1, source2]));
   }
 
   void test_computeDocumentationComment_class_block() {
