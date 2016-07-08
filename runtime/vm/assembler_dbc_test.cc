@@ -1650,6 +1650,91 @@ ASSEMBLER_TEST_RUN(TestSmiFalse, test) {
 }
 
 
+//  - TestCids rA, D
+//
+//    The next D instructions must be Nops whose D field encodes a class id. If
+//    the class id of FP[rA] matches, jump to PC + N + 1 if the matching Nop's
+//    A != 0 or PC + N + 2 if the matching Nop's A = 0. If no match is found,
+//    jump to PC + N.
+ASSEMBLER_TEST_GENERATE(TestCidsTrue, assembler) {
+  Label true_branch, no_match_branch;
+  __ Frame(2);
+  __ LoadConstant(0, Object::Handle(String::New("Hi", Heap::kOld)));
+  const intptr_t num_cases = 2;
+  __ TestCids(0, num_cases);
+  __ Nop(0, static_cast<uint16_t>(kSmiCid));            // Smi    => false
+  __ Nop(1, static_cast<uint16_t>(kOneByteStringCid));  // String => true
+  __ Jump(&no_match_branch);
+  __ Jump(&true_branch);
+  __ LoadConstant(1, Smi::Handle(Smi::New(0)));  // false branch
+  __ Return(1);
+  __ Bind(&true_branch);
+  __ LoadConstant(1, Smi::Handle(Smi::New(1)));
+  __ Return(1);
+  __ Bind(&no_match_branch);
+  __ LoadConstant(1, Smi::Handle(Smi::New(2)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(TestCidsTrue, test) {
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(TestCidsFalse, assembler) {
+  Label true_branch, no_match_branch;
+  __ Frame(2);
+  __ LoadConstant(0, Object::Handle(Smi::New(42)));
+  const intptr_t num_cases = 2;
+  __ TestCids(0, num_cases);
+  __ Nop(0, static_cast<uint16_t>(kSmiCid));            // Smi    => false
+  __ Nop(1, static_cast<uint16_t>(kOneByteStringCid));  // String => true
+  __ Jump(&no_match_branch);
+  __ Jump(&true_branch);
+  __ LoadConstant(1, Smi::Handle(Smi::New(0)));  // false branch
+  __ Return(1);
+  __ Bind(&true_branch);
+  __ LoadConstant(1, Smi::Handle(Smi::New(1)));
+  __ Return(1);
+  __ Bind(&no_match_branch);
+  __ LoadConstant(1, Smi::Handle(Smi::New(2)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(TestCidsFalse, test) {
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(TestCidsNoMatch, assembler) {
+  Label true_branch, no_match_branch;
+  __ Frame(2);
+  __ LoadConstant(0, Object::Handle(Array::New(1, Heap::kOld)));
+  const intptr_t num_cases = 2;
+  __ TestCids(0, num_cases);
+  __ Nop(0, static_cast<uint16_t>(kSmiCid));            // Smi    => false
+  __ Nop(1, static_cast<uint16_t>(kOneByteStringCid));  // String => true
+  __ Jump(&no_match_branch);
+  __ Jump(&true_branch);
+  __ LoadConstant(1, Smi::Handle(Smi::New(0)));  // false branch
+  __ Return(1);
+  __ Bind(&true_branch);
+  __ LoadConstant(1, Smi::Handle(Smi::New(1)));
+  __ Return(1);
+  __ Bind(&no_match_branch);
+  __ LoadConstant(1, Smi::Handle(Smi::New(2)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(TestCidsNoMatch, test) {
+  EXPECT_EQ(2, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+
 //  - CheckSmi rA
 //
 //    If FP[rA] is a Smi, then skip the next instruction.

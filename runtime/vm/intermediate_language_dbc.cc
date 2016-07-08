@@ -30,7 +30,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 
 // List of instructions that are still unimplemented by DBC backend.
 #define FOR_EACH_UNIMPLEMENTED_INSTRUCTION(M)                                  \
-  M(IndirectGoto)                                                              \
   M(LoadCodeUnits)                                                             \
   M(LoadUntagged)                                                              \
   M(AllocateUninitializedContext)                                              \
@@ -51,7 +50,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(Box)                                                                       \
   M(Unbox)                                                                     \
   M(BoxInt64)                                                                  \
-  M(CaseInsensitiveCompareUC16)                                                \
   M(BinaryMintOp)                                                              \
   M(ShiftMintOp)                                                               \
   M(UnaryMintOp)                                                               \
@@ -82,7 +80,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(Int32x4SetFlag)                                                            \
   M(Int32x4ToFloat32x4)                                                        \
   M(BinaryInt32x4Op)                                                           \
-  M(TestCids)                                                                  \
   M(BinaryFloat64x2Op)                                                         \
   M(Float64x2Zero)                                                             \
   M(Float64x2Constructor)                                                      \
@@ -97,7 +94,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(ShiftUint32Op)                                                             \
   M(UnaryUint32Op)                                                             \
   M(UnboxedIntConverter)                                                       \
-  M(GrowRegExpStack)                                                           \
   M(BoxInteger32)                                                              \
   M(UnboxInteger32)                                                            \
   M(CheckedSmiOp)                                                              \
@@ -105,6 +101,12 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(RelationalOp)                                                              \
   M(EqualityCompare)                                                           \
   M(LoadIndexed)
+
+// List of instructions that are not used by DBC.
+#define FOR_EACH_UNREACHABLE_INSTRUCTION(M)                                    \
+  M(CaseInsensitiveCompareUC16)                                                \
+  M(GrowRegExpStack)                                                           \
+  M(IndirectGoto)
 
 // Location summaries actually are not used by the unoptimizing DBC compiler
 // because we don't allocate any registers.
@@ -145,9 +147,21 @@ static LocationSummary* CreateLocationSummary(
     return NULL;                                                               \
   }                                                                            \
 
+#define DEFINE_UNREACHABLE_MAKE_LOCATION_SUMMARY(Name)                         \
+  LocationSummary* Name##Instr::MakeLocationSummary(Zone* zone, bool opt)      \
+      const {                                                                  \
+    UNREACHABLE();                                                             \
+    return NULL;                                                               \
+  }                                                                            \
+
 #define DEFINE_UNIMPLEMENTED_EMIT_NATIVE_CODE(Name)                            \
   void Name##Instr::EmitNativeCode(FlowGraphCompiler* compiler) {              \
     UNIMPLEMENTED();                                                           \
+  }
+
+#define DEFINE_UNREACHABLE_EMIT_NATIVE_CODE(Name)                              \
+  void Name##Instr::EmitNativeCode(FlowGraphCompiler* compiler) {              \
+    UNREACHABLE();                                                             \
   }
 
 #define DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(Name)                            \
@@ -168,7 +182,14 @@ FOR_EACH_UNIMPLEMENTED_INSTRUCTION(DEFINE_UNIMPLEMENTED)
 
 #undef DEFINE_UNIMPLEMENTED
 
-DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(TestCids)
+#define DEFINE_UNREACHABLE(Name)                                               \
+  DEFINE_UNREACHABLE_MAKE_LOCATION_SUMMARY(Name)                               \
+  DEFINE_UNREACHABLE_EMIT_NATIVE_CODE(Name)                                    \
+
+FOR_EACH_UNREACHABLE_INSTRUCTION(DEFINE_UNREACHABLE)
+
+#undef DEFINE_UNREACHABLE
+
 DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(RelationalOp)
 DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(EqualityCompare)
 
@@ -541,6 +562,62 @@ EMIT_NATIVE_CODE(TestSmi,
                  LocationSummary::kNoCall) {
   // Never emitted outside of the BranchInstr.
   UNREACHABLE();
+}
+
+
+Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
+                                           BranchLabels labels) {
+  ASSERT((kind() == Token::kIS) || (kind() == Token::kISNOT));
+  const Register value = locs()->in(0).reg();
+  const intptr_t true_result = (kind() == Token::kIS) ? 1 : 0;
+
+  const ZoneGrowableArray<intptr_t>& data = cid_results();
+  const intptr_t num_cases = data.length() / 2;
+  ASSERT(num_cases <= 255);
+  __ TestCids(value, num_cases);
+
+  bool result = false;
+  for (intptr_t i = 0; i < data.length(); i += 2) {
+    const intptr_t test_cid = data[i];
+    result = data[i + 1] == true_result;
+    __ Nop(result ? 1 : 0, compiler->ToEmbeddableCid(test_cid, this));
+  }
+
+  // No match found, deoptimize or false.
+  if (CanDeoptimize()) {
+    compiler->EmitDeopt(deopt_id(),
+                        ICData::kDeoptTestCids,
+                        licm_hoisted_ ? ICData::kHoisted : 0);
+  } else {
+    Label* target = result ? labels.false_label : labels.true_label;
+    __ Jump(target);
+  }
+
+  return NEXT_IS_TRUE;
+}
+
+
+void TestCidsInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                   BranchInstr* branch) {
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  EmitBranchOnCondition(compiler, true_condition, labels);
+}
+
+
+EMIT_NATIVE_CODE(TestCids, 1, Location::RequiresRegister(),
+                 LocationSummary::kNoCall) {
+  Register result_reg = locs()->out(0).reg();
+  Label is_true, is_false, done;
+  BranchLabels labels = { &is_true, &is_false, &is_false };
+  EmitComparisonCode(compiler, labels);
+  __ Jump(&is_true);
+  __ Bind(&is_false);
+  __ LoadConstant(result_reg, Bool::False());
+  __ Jump(&done);
+  __ Bind(&is_true);
+  __ LoadConstant(result_reg, Bool::True());
+  __ Bind(&done);
 }
 
 

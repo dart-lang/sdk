@@ -2058,6 +2058,27 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(TestCids, A_D);
+    const intptr_t cid = SimulatorHelpers::GetClassId(FP[rA]);
+    const intptr_t num_cases = rD;
+    for (intptr_t i = 0; i < num_cases; i++) {
+      ASSERT(Bytecode::DecodeOpcode(pc[i]) == Bytecode::kNop);
+      intptr_t test_target = Bytecode::DecodeA(pc[i]);
+      intptr_t test_cid = Bytecode::DecodeD(pc[i]);
+      if (cid == test_cid) {
+        if (test_target != 0) {
+          pc += 1;  // Match true.
+        } else {
+          pc += 2;  // Match false.
+        }
+        break;
+      }
+    }
+    pc += num_cases;
+    DISPATCH();
+  }
+
+  {
     BYTECODE(CheckSmi, 0);
     intptr_t obj = reinterpret_cast<intptr_t>(FP[rA]);
     if ((obj & kSmiTagMask) == kSmiTag) {

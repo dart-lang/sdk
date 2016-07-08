@@ -376,6 +376,13 @@ namespace dart {
 //    If FP[rA] & FP[rD] != 0, then skip the next instruction. FP[rA] and FP[rD]
 //    must be Smis.
 //
+//  - TestCids rA, D
+//
+//    The next D instructions must be Nops whose D field encodes a class id. If
+//    the class id of FP[rA] matches, jump to PC + N + 1 if the matching Nop's
+//    A != 0 or PC + N + 2 if the matching Nop's A = 0. If no match is found,
+//    jump to PC + N.
+//
 //  - CheckSmi rA
 //
 //    If FP[rA] is a Smi, then skip the next instruction.
@@ -460,7 +467,7 @@ namespace dart {
 //
 #define BYTECODES_LIST(V)                              \
   V(Trap,                            0, ___, ___, ___) \
-  V(Nop,                             D, lit, ___, ___) \
+  V(Nop,                           A_D, num, lit, ___) \
   V(Compile,                         0, ___, ___, ___) \
   V(HotCheck,                      A_D, num, num, ___) \
   V(Intrinsic,                       A, num, ___, ___) \
@@ -547,6 +554,7 @@ namespace dart {
   V(AssertAssignable,                D, num, lit, ___) \
   V(AssertBoolean,                   A, num, ___, ___) \
   V(TestSmi,                       A_D, reg, reg, ___) \
+  V(TestCids,                      A_D, reg, num, ___) \
   V(CheckSmi,                        A, reg, ___, ___) \
   V(CheckClassId,                  A_D, reg, num, ___) \
   V(CheckDenseSwitch,              A_D, reg, num, ___) \
