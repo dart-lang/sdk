@@ -1500,6 +1500,8 @@ class ForwardingConstructorElementZ extends ElementZ
 
 abstract class MemberElementMixin
     implements DeserializedElementZ, MemberElement {
+  final List<FunctionElement> nestedClosures = <FunctionElement>[];
+
   @override
   MemberElement get memberContext => this;
 
@@ -1507,10 +1509,12 @@ abstract class MemberElementMixin
   Name get memberName => new Name(name, library);
 
   @override
-  List<FunctionElement> get nestedClosures => <FunctionElement>[];
+  bool get isInjected => _decoder.getBool(Key.IS_INJECTED);
 
   @override
-  bool get isInjected => _decoder.getBool(Key.IS_INJECTED);
+  void forgetElement() {
+    nestedClosures.clear();
+  }
 }
 
 abstract class FieldElementZ extends DeserializedElementZ
@@ -1635,6 +1639,9 @@ abstract class LocalExecutableMixin
 
   @override
   Element get enclosingElement => executableContext;
+
+  @override
+  Element get enclosingClass => memberContext.enclosingClass;
 
   @override
   ExecutableElement get executableContext {

@@ -182,6 +182,24 @@ void checkElements(
         "$element1.variablesUsedInTryOrGenerator",
         areLocalsEquivalent,
         verbose: verbose);
+    if (element1 is MemberElement && element2 is MemberElement) {
+      MemberElement member1 = element1.implementation;
+      MemberElement member2 = element2.implementation;
+      checkSets(
+          member1.nestedClosures,
+          member2.nestedClosures,
+          "$member1.nestedClosures",
+          areElementsEquivalent,
+          verbose: verbose,
+          onSameElement: (a, b) {
+            LocalFunctionElement localFunction1 = a.expression;
+            LocalFunctionElement localFunction2 = b.expression;
+            checkElementIdentities(
+                localFunction1, localFunction2,
+                'enclosingClass',
+                localFunction1.enclosingClass, localFunction2.enclosingClass);
+          });
+    }
   }
   JavaScriptBackend backend1 = compiler1.backend;
   JavaScriptBackend backend2 = compiler2.backend;
