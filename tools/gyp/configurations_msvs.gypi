@@ -116,6 +116,7 @@
             'Optimization': '2',
             'InlineFunctionExpansion': '2',
             'EnableIntrinsicFunctions': 'true',
+            'EnableFunctionLevelLinking': 'true',
             'FavorSizeOrSpeed': '0',
             'ExceptionHandling': '0',
             'RuntimeTypeInfo': 'false',
