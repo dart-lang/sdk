@@ -1553,6 +1553,25 @@ class ApplyChangesStatus {
 }
 
 /**
+ * Statistics about cache consistency validation.
+ */
+class CacheConsistencyValidationStatistics {
+  /**
+   * Number of sources which were modified, but the context was not notified
+   * about it, so this fact was detected only during cache consistency
+   * validation.
+   */
+  int numOfModified = 0;
+
+  /**
+   * Number of sources which were deleted, but the context was not notified
+   * about it, so this fact was detected only during cache consistency
+   * validation.
+   */
+  int numOfDeleted = 0;
+}
+
+/**
  * The possible states of cached data.
  */
 class CacheState extends Enum<CacheState> {
@@ -2332,6 +2351,13 @@ class PerformanceStatistics {
    * The [PerformanceTag] for time spent in summaries support.
    */
   static PerformanceTag summary = new PerformanceTag('summary');
+
+  /**
+   * Statistics about cache consistency validation.
+   */
+  static final CacheConsistencyValidationStatistics
+      cacheConsistencyValidationStatistics =
+      new CacheConsistencyValidationStatistics();
 }
 
 /**

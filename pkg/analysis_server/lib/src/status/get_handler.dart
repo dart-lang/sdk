@@ -812,6 +812,30 @@ class GetHandler {
                 classes: [null, "right"]);
           }
           buffer.write('</table>');
+
+          {
+            buffer.write('<p><b>Cache consistency statistics</b></p>');
+            buffer.write(
+                '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
+            _writeRow(buffer, ['Name', 'Count'], header: true);
+            _writeRow(buffer, [
+              'Modified',
+              PerformanceStatistics
+                  .cacheConsistencyValidationStatistics.numOfModified
+            ], classes: [
+              null,
+              "right"
+            ]);
+            _writeRow(buffer, [
+              'Deleted',
+              PerformanceStatistics
+                  .cacheConsistencyValidationStatistics.numOfDeleted
+            ], classes: [
+              null,
+              "right"
+            ]);
+            buffer.write('</table>');
+          }
         }, (StringBuffer buffer) {
           //
           // Write task model timing information.

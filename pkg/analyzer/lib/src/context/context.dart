@@ -1379,15 +1379,19 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     int consistencyCheckStart = JavaSystem.nanoTime();
     HashSet<Source> changedSources = new HashSet<Source>();
     HashSet<Source> missingSources = new HashSet<Source>();
-    for (Source source in _cache.sources) {
-      CacheEntry entry = _cache.get(source);
+    for (Source source in _privatePartition.sources) {
+      CacheEntry entry = _privatePartition.get(source);
       int sourceTime = getModificationStamp(source);
       if (sourceTime != entry.modificationTime) {
         changedSources.add(source);
+        PerformanceStatistics
+            .cacheConsistencyValidationStatistics.numOfModified++;
       }
       if (entry.exception != null) {
         if (!exists(source)) {
           missingSources.add(source);
+          PerformanceStatistics
+              .cacheConsistencyValidationStatistics.numOfModified++;
         }
       }
     }
