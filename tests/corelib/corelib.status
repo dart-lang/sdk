@@ -41,6 +41,7 @@ symbol_reserved_word_test/07: MissingCompileTimeError # bug 11669, 19972
 symbol_reserved_word_test/10: MissingCompileTimeError # bug 11669, 19972
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+package_resource_test: RuntimeError # Issue 26842
 symbol_reserved_word_test/02: RuntimeError # bug 20191 / dartium/drt cannot detect CompileTimeErrors
 symbol_reserved_word_test/05: RuntimeError # bug 20191 / dartium/drt cannot detect CompileTimeErrors
 symbol_reserved_word_test/04: Fail # bug 11669, 19972 / dartium/drt cannot detect CompileTimeErrors
@@ -163,7 +164,7 @@ file_resource_test: Skip, OK # VM specific test, uses dart:io.
 http_resource_test: Skip, OK # VM specific test, uses dart:io.
 
 [ $compiler == dart2js && $browser == false ]
-package_resource_test: RuntimeError # Issue 23825 (not implemented yet).
+package_resource_test: RuntimeError # Issue 26842
 
 [ $mode == debug ]
 regexp/pcre_test: Pass, Slow # Timeout. Issue 22008
