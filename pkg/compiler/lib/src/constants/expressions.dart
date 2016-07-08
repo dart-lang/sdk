@@ -663,7 +663,7 @@ class ConcatenateConstantExpression extends ConstantExpression {
     for (ConstantExpression expression in expressions) {
       ConstantValue value = expression.evaluate(environment, constantSystem);
       DartString valueString;
-      if (value.isNum || value.isBool) {
+      if (value.isNum || value.isBool || value.isNull) {
         PrimitiveConstantValue primitive = value;
         valueString =
             new DartString.literal(primitive.primitiveValue.toString());

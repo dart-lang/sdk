@@ -61,6 +61,8 @@ const List<TestData> DATA = const [
     const ConstantData('identical(0, 1)',
                        const { const {} : 'BoolConstant(false)' }),
     const ConstantData('"a" "b"', const { const {} : 'StringConstant("ab")' }),
+    const ConstantData(r'"${null}"',
+        const { const {} : 'StringConstant("null")' }),
     const ConstantData('identical',
         const { const {} : 'FunctionConstant(identical)' }),
     const ConstantData('true ? 0 : 1', const { const {} : 'IntConstant(0)' }),
