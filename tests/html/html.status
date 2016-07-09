@@ -26,6 +26,9 @@ input_element_test/attributes: Fail # Issue 21555
 wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant to Dartium
 js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
 mirrors_js_typed_interop_test: Pass, Slow
+js_type_test/dynamic-null-not-Foo: Fail  # Issue 26838
+js_type_test/dynamic-String-not-Foo: Fail  # Issue 26838
+js_type_test/dynamic-String-not-dynamic-Foo: Fail  # Issue 26838
 
 
 [ $compiler == dart2js && $checked ]
