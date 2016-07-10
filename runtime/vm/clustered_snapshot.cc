@@ -1613,7 +1613,7 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
           break;
         }
         case ObjectPool::kImmediate: {
-          s->Write<int32_t>(entry.raw_value_);
+          s->Write<intptr_t>(entry.raw_value_);
           break;
         }
         case ObjectPool::kNativeEntry: {
@@ -1679,7 +1679,7 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
             entry.raw_obj_ = d->ReadRef();
             break;
           case ObjectPool::kImmediate:
-            entry.raw_value_ = d->Read<int32_t>();
+            entry.raw_value_ = d->Read<intptr_t>();
             break;
           case ObjectPool::kNativeEntry: {
 #if !defined(TARGET_ARCH_DBC)
