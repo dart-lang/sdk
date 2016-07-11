@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules.iterable_contains_unrelated_type;
+library linter.src.rules.list_remove_unrelated_type;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -10,15 +10,15 @@ import 'package:linter/src/linter.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 import 'package:linter/src/util/unrelated_types_visitor.dart';
 
-const _desc = r'Invocation of Iterable<E>.contains with references of unrelated'
+const _desc = r'Invocation of List<E>.remove with references of unrelated'
     r' types.';
 
 const _details = r'''
 
-**DON'T** Invoke `contains` on `Iterable` with an instance of different type than
+**DON'T** Invoke `remove` on `List` with an instance of different type than
 the parameter type since it will invoke `==` on its elements and most likely will
 return `false`. Strictly speaking it could evaluate to true since in Dart it
-is possible for an Iterable to contain elements of type unrelated to its
+is possible for an List to contain elements of type unrelated to its
 parameter type, but this practice also should be avoided.
 
 **BAD:**
@@ -48,9 +48,9 @@ void someFunction8() {
 
 **BAD:**
 ```
-abstract class SomeIterable<E> implements Iterable<E> {}
+abstract class SomeList<E> implements List<E> {}
 
-abstract class MyClass implements SomeIterable<int> {
+abstract class MyClass implements SomeList<int> {
   bool badMethod(String thing) => this.contains(thing); // LINT
 }
 ```
@@ -123,12 +123,12 @@ class DerivedClass3 extends ClassBase implements Mixin {}
 ```
 ''';
 
-class IterableContainsUnrelatedType extends LintRule {
+class ListRemoveUnrelatedType extends LintRule {
   _Visitor _visitor;
 
-  IterableContainsUnrelatedType()
+  ListRemoveUnrelatedType()
       : super(
-      name: 'iterable_contains_unrelated_type',
+      name: 'list_remove_unrelated_type',
       description: _desc,
       details: _details,
       group: Group.errors,
@@ -141,7 +141,7 @@ class IterableContainsUnrelatedType extends LintRule {
 }
 
 class _Visitor extends UnrelatedTypesVisitor {
-  static final _DEFINITION = new InterfaceTypeDefinition('Iterable', 'dart.core');
+  static final _DEFINITION = new InterfaceTypeDefinition('List', 'dart.core');
 
   _Visitor(LintRule rule) : super(rule);
 
@@ -149,5 +149,5 @@ class _Visitor extends UnrelatedTypesVisitor {
   InterfaceTypeDefinition get definition => _DEFINITION;
 
   @override
-  String get methodName => 'contains';
+  String get methodName => 'remove';
 }
