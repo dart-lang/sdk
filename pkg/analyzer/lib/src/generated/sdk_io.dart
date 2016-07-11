@@ -108,6 +108,20 @@ abstract class AbstractDartSdk implements DartSdk {
     _useSummary = use;
   }
 
+  /**
+   * Add the extensions from one or more sdk extension files to this sdk. The
+   * [extensions] should be a table mapping the names of extensions to the paths
+   * where those extensions can be found.
+   */
+  void addExtensions(Map<String, String> extensions) {
+    extensions.forEach((String uri, String path) {
+      String shortName = uri.substring(uri.indexOf(':') + 1);
+      SdkLibraryImpl library = new SdkLibraryImpl(shortName);
+      library.path = path;
+      libraryMap.setLibrary(uri, library);
+    });
+  }
+
   @override
   Source fromFileUri(Uri uri) {
     JavaFile file = new JavaFile.fromUri(uri);

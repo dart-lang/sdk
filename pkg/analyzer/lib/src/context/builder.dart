@@ -189,7 +189,6 @@ class ContextBuilder {
     List<UriResolver> resolvers = <UriResolver>[];
     resolvers.add(new DartUriResolver(findSdk(packageMap, options)));
     if (packageMap != null) {
-      resolvers.add(new SdkExtUriResolver(packageMap));
       resolvers.add(new PackageMapUriResolver(resourceProvider, packageMap));
     }
     resolvers.add(new ResourceUriResolver(resourceProvider));
@@ -202,23 +201,53 @@ class ContextBuilder {
   DartSdk findSdk(
       Map<String, List<Folder>> packageMap, AnalysisOptions options) {
     if (packageMap != null) {
+      // TODO(brianwilkerson) Fix it so that we don't have to create a resolver
+      // to figure out what the extensions are.
+      SdkExtUriResolver extResolver = new SdkExtUriResolver(packageMap);
+      List<String> extFilePaths = extResolver.extensionFilePaths;
       EmbedderYamlLocator locator = new EmbedderYamlLocator(packageMap);
       Map<Folder, YamlMap> embedderYamls = locator.embedderYamls;
       EmbedderSdk embedderSdk = new EmbedderSdk(embedderYamls);
       if (embedderSdk.sdkLibraries.length > 0) {
+        //
+        // There is an embedder file that defines the content of the SDK and
+        // there might be an extension file that extends it.
+        //
         List<String> paths = <String>[];
         for (Folder folder in embedderYamls.keys) {
           paths.add(folder
               .getChildAssumingFile(EmbedderYamlLocator.EMBEDDER_FILE_NAME)
               .path);
         }
+        paths.addAll(extFilePaths);
         SdkDescription description = new SdkDescription(paths, options);
         DartSdk dartSdk = sdkManager.getSdk(description, () {
+          if (extFilePaths.isNotEmpty) {
+            embedderSdk.addExtensions(extResolver.urlMappings);
+          }
           embedderSdk.analysisOptions = options;
           embedderSdk.useSummary = sdkManager.canUseSummaries;
           return embedderSdk;
         });
         return dartSdk;
+      } else if (extFilePaths != null) {
+        //
+        // We have an extension file, but no embedder file.
+        //
+        String sdkPath = sdkManager.defaultSdkDirectory;
+        List<String> paths = <String>[sdkPath];
+        paths.addAll(extFilePaths);
+        SdkDescription description = new SdkDescription(paths, options);
+        return sdkManager.getSdk(description, () {
+          DirectoryBasedDartSdk sdk =
+              new DirectoryBasedDartSdk(new JavaFile(sdkPath));
+          if (extFilePaths.isNotEmpty) {
+            embedderSdk.addExtensions(extResolver.urlMappings);
+          }
+          sdk.analysisOptions = options;
+          sdk.useSummary = sdkManager.canUseSummaries;
+          return sdk;
+        });
       }
     }
     String sdkPath = sdkManager.defaultSdkDirectory;
