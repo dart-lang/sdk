@@ -685,6 +685,26 @@ class A {
     expect(helper.delta.removedMethods, unorderedEquals([oldElementA]));
   }
 
+  test_classDelta_null_abstractKeyword_add() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+class A {}
+''',
+        r'''
+abstract class A {}
+''');
+  }
+
+  test_classDelta_null_abstractKeyword_remove() {
+    _verifyNoClassDeltaForTheLast(
+        r'''
+abstract class A {}
+''',
+        r'''
+class A {}
+''');
+  }
+
   test_classDelta_null_extendsClause_add() {
     _verifyNoClassDeltaForTheLast(
         r'''

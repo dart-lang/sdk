@@ -155,7 +155,9 @@ class IncrementalCompilationUnitElementBuilder {
       ClassDeclaration oldClass, ClassDeclaration newClass) {
     // If the class hierarchy or type parameters are changed,
     // then the class changed too much - don't compute the delta.
-    if (TokenUtils.getFullCode(newClass.typeParameters) !=
+    if (newClass.abstractKeyword != null && oldClass.abstractKeyword == null ||
+        newClass.abstractKeyword == null && oldClass.abstractKeyword != null ||
+        TokenUtils.getFullCode(newClass.typeParameters) !=
             TokenUtils.getFullCode(oldClass.typeParameters) ||
         TokenUtils.getFullCode(newClass.extendsClause) !=
             TokenUtils.getFullCode(oldClass.extendsClause) ||
