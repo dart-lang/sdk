@@ -207,3 +207,9 @@ issue_24243_parent_isolate_test: Skip # Requires checked mode
 
 [ $compiler == precompiler && $runtime == dart_precompiled && $system == android ]
 *: Skip # Issue #26373
+
+[ $hot_reload ]
+deferred_in_isolate_test: SkipByDesign # Requires deferred libraries
+deferred_in_isolate2_test: SkipByDesign # Requires deferred libraries
+function_send_test: SkipByDesign # Closure identity
+issue_21398_parent_isolate2_test: SkipByDesign # Requires deferred libraries

@@ -377,7 +377,6 @@ convert/utf85_test: Pass, Timeout
 mirrors/accessor_cache_overflow_test: Skip
 
 [ $hot_reload ]
-convert/chunked_conversion_utf88_test: Pass, Timeout
-convert/streamed_conversion_json_utf8_decode_test: Fail, Crash
 async/multiple_timer_test: Pass, Fail # Timing related
+async/stream_transformer_test: SkipByDesign # Closure identity
 mirrors/*: Skip # Issue 26836

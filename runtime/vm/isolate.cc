@@ -1718,7 +1718,7 @@ void Isolate::Shutdown() {
     }
   }
 
-  if (FLAG_check_reloaded &&
+  if (FLAG_check_reloaded && is_runnable() &&
       (this != Dart::vm_isolate()) &&
       !ServiceIsolate::IsServiceIsolateDescendant(this)) {
     if (!HasAttemptedReload()) {
