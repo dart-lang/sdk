@@ -36,10 +36,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let MapOfSymbol$dynamic = () => (MapOfSymbol$dynamic = dart.constFn(core.Map$(core.Symbol, dart.dynamic)))();
   let MapOfString$int = () => (MapOfString$int = dart.constFn(core.Map$(core.String, core.int)))();
   let ListOfString = () => (ListOfString = dart.constFn(core.List$(core.String)))();
-  let JSArrayOfFormatter = () => (JSArrayOfFormatter = dart.constFn(_interceptors.JSArray$(_debugger.Formatter)))();
   let JSArrayOfNameValuePair = () => (JSArrayOfNameValuePair = dart.constFn(_interceptors.JSArray$(_debugger.NameValuePair)))();
+  let JSArrayOfFormatter = () => (JSArrayOfFormatter = dart.constFn(_interceptors.JSArray$(_debugger.Formatter)))();
   let LinkedHashSetOfNameValuePair = () => (LinkedHashSetOfNameValuePair = dart.constFn(collection.LinkedHashSet$(_debugger.NameValuePair)))();
   let SetOfString = () => (SetOfString = dart.constFn(core.Set$(core.String)))();
+  let IterableOfNameValuePair = () => (IterableOfNameValuePair = dart.constFn(core.Iterable$(_debugger.NameValuePair)))();
   let ListOfNameValuePair = () => (ListOfNameValuePair = dart.constFn(core.List$(_debugger.NameValuePair)))();
   let JSArrayOfJsonMLFormatter = () => (JSArrayOfJsonMLFormatter = dart.constFn(_interceptors.JSArray$(_debugger.JsonMLFormatter)))();
   let JSArray = () => (JSArray = dart.constFn(_interceptors.JSArray$()))();
@@ -481,9 +482,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let dynamicToList = () => (dynamicToList = dart.constFn(dart.definiteFunctionType(core.List, [dart.dynamic])))();
   let TypeToString = () => (TypeToString = dart.constFn(dart.definiteFunctionType(core.String, [core.Type])))();
   let dynamicAndStringTobool = () => (dynamicAndStringTobool = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic, core.String])))();
+  let dynamicAnddynamicTodynamic$ = () => (dynamicAnddynamicTodynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic])))();
   let dynamicTobool$ = () => (dynamicTobool$ = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic])))();
   let dynamicAnddynamicTovoid = () => (dynamicAnddynamicTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [dart.dynamic, dart.dynamic])))();
-  let IterableSpanToListOfNameValuePair = () => (IterableSpanToListOfNameValuePair = dart.constFn(dart.definiteFunctionType(ListOfNameValuePair(), [_debugger.IterableSpan])))();
   let VoidTodynamic$ = () => (VoidTodynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   let StringAndString__Todynamic = () => (StringAndString__Todynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.String, core.String], [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic])))();
   let VoidToIsolateContext = () => (VoidToIsolateContext = dart.constFn(dart.definiteFunctionType(_foreign_helper.IsolateContext, [])))();
@@ -497,7 +498,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let FunctionTovoid = () => (FunctionTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.Function])))();
   let StringAndStringToString = () => (StringAndStringToString = dart.constFn(dart.definiteFunctionType(core.String, [core.String, core.String])))();
   let TypeAndStringTodynamic = () => (TypeAndStringTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.Type, core.String])))();
-  let dynamicAnddynamicTodynamic$ = () => (dynamicAnddynamicTodynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic])))();
   let ListOfEToListOfE = () => (ListOfEToListOfE = dart.constFn(dart.definiteFunctionType(E => [core.List$(E), [core.List$(E)]])))();
   let StringTovoid = () => (StringTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.String])))();
   let _IsolateContextAndFunctionTodynamic = () => (_IsolateContextAndFunctionTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [_isolate_helper._IsolateContext, core.Function])))();
@@ -2441,17 +2441,48 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({new: dart.definiteFunctionType(_debugger.MapEntry, [], {key: core.Object, value: core.Object})})
   });
   _debugger.IterableSpan = class IterableSpan extends core.Object {
-    new(opts) {
-      let start = opts && 'start' in opts ? opts.start : null;
-      let end = opts && 'end' in opts ? opts.end : null;
-      let iterable = opts && 'iterable' in opts ? opts.iterable : null;
+    new(start, end, iterable) {
       this.start = start;
       this.end = end;
       this.iterable = iterable;
     }
+    get length() {
+      return dart.notNull(this.end) - dart.notNull(this.start);
+    }
+    get maxPowerOfSubsetSize() {
+      return (dart.notNull(math.log(core.num._check(dart.dsend(this.length, '-', 0.5)))) / dart.notNull(math.log(_debugger._maxSpanLength)))[dartx.truncate]();
+    }
+    get subsetSize() {
+      return math.pow(_debugger._maxSpanLength, core.num._check(this.maxPowerOfSubsetSize));
+    }
+    asMap() {
+      return this.iterable[dartx.skip](this.start)[dartx.take](core.int._check(this.length))[dartx.toList]()[dartx.asMap]();
+    }
+    children() {
+      let ret = JSArrayOfNameValuePair().of([]);
+      if (dart.test(dart.dsend(this.length, '<=', _debugger._maxSpanLength))) {
+        dart.dsend(this.asMap(), 'forEach', dart.fn((i, element) => {
+          ret[dartx.add](new _debugger.NameValuePair({name: dart.toString(dart.dsend(i, '+', this.start)), value: element}));
+        }, dynamicAnddynamicTodynamic$()));
+      } else {
+        for (let i = this.start; dart.notNull(i) < dart.notNull(this.end); i = dart.notNull(i) + dart.notNull(core.int._check(this.subsetSize))) {
+          let subSpan = new _debugger.IterableSpan(i, dart.asInt(math.min(core.num)(this.end, core.num._check(dart.dsend(this.subsetSize, '+', i)))), this.iterable);
+          if (dart.equals(subSpan.length, 1)) {
+            ret[dartx.add](new _debugger.NameValuePair({name: dart.toString(i), value: this.iterable[dartx.elementAt](i)}));
+          } else {
+            ret[dartx.add](new _debugger.NameValuePair({name: dart.str`[${i}...${dart.notNull(subSpan.end) - 1}]`, value: subSpan, hideName: true}));
+          }
+        }
+      }
+      return ret;
+    }
   };
   dart.setSignature(_debugger.IterableSpan, {
-    constructors: () => ({new: dart.definiteFunctionType(_debugger.IterableSpan, [], {start: core.int, end: core.int, iterable: core.Iterable})})
+    constructors: () => ({new: dart.definiteFunctionType(_debugger.IterableSpan, [core.int, core.int, core.Iterable])}),
+    methods: () => ({
+      asMap: dart.definiteFunctionType(dart.dynamic, []),
+      children: dart.definiteFunctionType(dart.dynamic, [])
+    })
   });
   _debugger.ClassMetadata = class ClassMetadata extends core.Object {
     new(object) {
@@ -2536,11 +2567,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _debugger.JsonMLFormatter = class JsonMLFormatter extends core.Object {
     new(simpleFormatter) {
       this[_simpleFormatter] = simpleFormatter;
+      this.customFormattersOn = false;
     }
     setMaxSpanLengthForTestingOnly(spanLength) {
       _debugger._maxSpanLength = spanLength;
     }
     header(object, config) {
+      this.customFormattersOn = true;
       if (dart.equals(config, _debugger.JsonMLConfig.skipDart) || dart.test(_debugger.isNativeJavaScriptObject(object))) {
         return null;
       }
@@ -2800,7 +2833,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     children(object) {
       let ret = LinkedHashSetOfNameValuePair().new();
-      ret.addAll(_debugger.childrenHelper(new _debugger.IterableSpan({start: 0, end: core.int._check(dart.dload(object, 'length')), iterable: core.Iterable._check(object)})));
+      ret.addAll(IterableOfNameValuePair()._check(new _debugger.IterableSpan(0, core.int._check(dart.dload(object, 'length')), core.Iterable._check(object)).children()));
       this.addMetadataChildren(object, ret);
       return ret.toList();
     }
@@ -2909,14 +2942,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return _debugger.IterableSpan.is(object);
     }
     preview(object) {
-      let entry = _debugger.IterableSpan._check(object);
       return dart.str`[${dart.dload(object, 'start')}...${dart.dsend(dart.dload(object, 'end'), '-', 1)}]`;
     }
     hasChildren(object) {
       return true;
     }
     children(object) {
-      return _debugger.childrenHelper(_debugger.IterableSpan._check(object));
+      return ListOfNameValuePair()._check(dart.dsend(object, 'children'));
     }
   };
   _debugger.IterableSpanFormatter[dart.implements] = () => [_debugger.Formatter];
@@ -2928,29 +2960,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
     })
   });
-  _debugger.childrenHelper = function(span) {
-    let length = dart.notNull(span.end) - dart.notNull(span.start);
-    let ret = ListOfNameValuePair().new();
-    if (length <= dart.notNull(_debugger._maxSpanLength)) {
-      for (let i = span.start; dart.notNull(i) < dart.notNull(span.end); i = dart.notNull(i) + 1) {
-        ret[dartx.add](new _debugger.NameValuePair({name: dart.toString(i), value: span.iterable[dartx.elementAt](i)}));
-      }
-    } else {
-      let maxPowerOfSubsetSize = (dart.notNull(math.log(length - 0.5)) / dart.notNull(math.log(_debugger._maxSpanLength)))[dartx.truncate]();
-      let subsetSize = math.pow(_debugger._maxSpanLength, maxPowerOfSubsetSize);
-      for (let i = span.start; dart.notNull(i) < dart.notNull(span.end); i = dart.notNull(i) + dart.notNull(dart.asInt(subsetSize))) {
-        let endIndex = math.min(core.num)(span.end, dart.notNull(subsetSize) + dart.notNull(i));
-        if (dart.notNull(endIndex) - dart.notNull(i) == 1)
-          ret[dartx.add](new _debugger.NameValuePair({name: dart.toString(i), value: span.iterable[dartx.elementAt](i)}));
-        else {
-          let entryWrapper = new _debugger.IterableSpan({start: i, end: dart.asInt(endIndex), iterable: span.iterable});
-          ret[dartx.add](new _debugger.NameValuePair({name: dart.str`[${i}...${dart.notNull(endIndex) - 1}]`, value: entryWrapper, hideName: true}));
-        }
-      }
-    }
-    return ret;
-  };
-  dart.lazyFn(_debugger.childrenHelper, () => IterableSpanToListOfNameValuePair());
   _debugger.registerDevtoolsFormatter = function() {
     let formatters = JSArrayOfJsonMLFormatter().of([_debugger._devtoolsFormatter]);
     dart.global.devtoolsFormatters = formatters;
