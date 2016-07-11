@@ -295,6 +295,37 @@ class VMService extends MessageRouter {
     return encodeSuccess(message);
   }
 
+  Future<String> _spawnUri(Message message) async {
+    var token = message.params['token'];
+    if (token == null) {
+      return encodeMissingParamError(message, 'token');
+    }
+    if (token is! String) {
+      return encodeInvalidParamError(message, 'token');
+    }
+    var uri = message.params['uri'];
+    if (uri == null) {
+      return encodeMissingParamError(message, 'uri');
+    }
+    if (uri is! String) {
+      return encodeInvalidParamError(message, 'uri');
+    }
+    var args = message.params['args'];
+    if (args != null &&
+        args is! List<String>) {
+      return encodeInvalidParamError(message, 'args');
+    }
+    var msg = message.params['message'];
+
+    Isolate.spawnUri(Uri.parse(uri), args, msg).then((isolate) {
+      _spawnUriNotify(isolate.controlPort, token);
+    }).catchError((e) {
+      _spawnUriNotify(e.toString(), token);
+    });
+
+    return encodeSuccess(message);
+  }
+
   // TODO(johnmccutchan): Turn this into a command line tool that uses the
   // service library.
   Future<String> _getCrashDump(Message message) async {
@@ -367,6 +398,9 @@ class VMService extends MessageRouter {
     if (message.method == 'streamCancel') {
       return _streamCancel(message);
     }
+    if (message.method == '_spawnUri') {
+      return _spawnUri(message);
+    }
     if (_devfs.shouldHandleMessage(message)) {
       return _devfs.handleMessage(message);
     }
@@ -404,3 +438,6 @@ external void _vmCancelStream(String streamId);
 
 /// Get the bytes to the tar archive.
 external Uint8List _requestAssets();
+
+/// Notify the vm service that an isolate has been spawned via rpc.
+external void _spawnUriNotify(obj, String token);

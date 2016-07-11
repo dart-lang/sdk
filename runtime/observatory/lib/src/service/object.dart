@@ -1886,6 +1886,7 @@ class ServiceEvent extends ServiceObject {
   static const kIsolateExit            = 'IsolateExit';
   static const kIsolateUpdate          = 'IsolateUpdate';
   static const kIsolateReload          = 'IsolateReload';
+  static const kIsolateSpawn           = 'IsolateSpawn';
   static const kServiceExtensionAdded  = 'ServiceExtensionAdded';
   static const kPauseStart             = 'PauseStart';
   static const kPauseExit              = 'PauseExit';
@@ -1929,6 +1930,8 @@ class ServiceEvent extends ServiceObject {
   @observable String extensionKind;
   @observable Map extensionData;
   @observable List timelineEvents;
+  @observable String spawnToken;
+  @observable String spawnError;
 
   int chunkIndex, chunkCount, nodeCount;
 
@@ -2010,6 +2013,12 @@ class ServiceEvent extends ServiceObject {
     }
     if (map['timelineEvents'] != null) {
       timelineEvents = map['timelineEvents'];
+    }
+    if (map['spawnToken'] != null) {
+      spawnToken = map['spawnToken'];
+    }
+    if (map['spawnError'] != null) {
+      spawnError = map['spawnError'];
     }
   }
 
