@@ -671,8 +671,7 @@ class Parser : public ValueObject {
   ClosureNode* CreateImplicitClosureNode(const Function& func,
                                          TokenPosition token_pos,
                                          AstNode* receiver);
-  static void AddFormalParamsToFunction(const ParamList* params,
-                                        const Function& func);
+  void AddFormalParamsToFunction(const ParamList* params, const Function& func);
   void AddFormalParamsToScope(const ParamList* params, LocalScope* scope);
 
   SequenceNode* ParseConstructor(const Function& func);

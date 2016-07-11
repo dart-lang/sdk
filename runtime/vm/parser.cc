@@ -7397,6 +7397,12 @@ void Parser::AddFormalParamsToFunction(const ParamList* params,
     ParamDesc& param_desc = (*params->parameters)[i];
     func.SetParameterTypeAt(i, *param_desc.type);
     func.SetParameterNameAt(i, *param_desc.name);
+    if (param_desc.is_field_initializer && !func.IsGenerativeConstructor()) {
+      // Redirecting constructors are detected later in ParseConstructor.
+      ReportError(param_desc.name_pos,
+                  "only generative constructors may have "
+                  "initializing formal parameters");
+    }
   }
 }
 
