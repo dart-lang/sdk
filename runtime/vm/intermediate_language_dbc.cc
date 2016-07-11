@@ -97,10 +97,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(BoxInteger32)                                                              \
   M(UnboxInteger32)                                                            \
   M(CheckedSmiOp)                                                              \
-  M(CheckArrayBound)                                                           \
-  M(RelationalOp)                                                              \
-  M(EqualityCompare)                                                           \
-  M(LoadIndexed)
 
 // List of instructions that are not used by DBC.
 #define FOR_EACH_UNREACHABLE_INSTRUCTION(M)                                    \
@@ -189,9 +185,6 @@ FOR_EACH_UNIMPLEMENTED_INSTRUCTION(DEFINE_UNIMPLEMENTED)
 FOR_EACH_UNREACHABLE_INSTRUCTION(DEFINE_UNREACHABLE)
 
 #undef DEFINE_UNREACHABLE
-
-DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(RelationalOp)
-DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(EqualityCompare)
 
 
 EMIT_NATIVE_CODE(InstanceOf, 2, Location::SameAsFirstInput(),
@@ -399,14 +392,25 @@ static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
                                   Condition true_condition,
                                   BranchLabels labels) {
   if (true_condition == NEXT_IS_TRUE) {
+    // NEXT_IS_TRUE indicates that the preceeding test expects the true case
+    // to be in the subsequent instruction, which it skips if the test fails.
     __ Jump(labels.true_label);
     if (labels.fall_through != labels.false_label) {
+      // The preceeding Jump instruction will be skipped if the test fails.
+      // If we aren't falling through to the false case, then we have to do
+      // a Jump to it here.
       __ Jump(labels.false_label);
     }
   } else {
     ASSERT(true_condition == NEXT_IS_FALSE);
+    // NEXT_IS_FALSE indicates that the preceeing test has been flipped and
+    // expects the false case to be in the subsequent instruction, which it
+    // skips if the test succeeds.
     __ Jump(labels.false_label);
     if (labels.fall_through != labels.true_label) {
+      // The preceeding Jump instruction will be skipped if the test succeeds.
+      // If we aren't falling through to the true case, then we have to do
+      // a Jump to it here.
       __ Jump(labels.true_label);
     }
   }
@@ -652,6 +656,20 @@ EMIT_NATIVE_CODE(StoreIndexed, 3) {
 }
 
 
+EMIT_NATIVE_CODE(LoadIndexed, 2, Location::RequiresRegister()) {
+  ASSERT(compiler->is_optimizing());
+  if (class_id() != kArrayCid) {
+    Unsupported(compiler);
+    UNREACHABLE();
+  }
+  const Register array = locs()->in(0).reg();
+  const Register index = locs()->in(1).reg();
+  const Register result = locs()->out(0).reg();
+
+  __ LoadIndexed(result, array, index);
+}
+
+
 EMIT_NATIVE_CODE(StringInterpolate,
                  1, Location::RegisterLocation(0),
                  LocationSummary::kCall) {
@@ -717,7 +735,6 @@ EMIT_NATIVE_CODE(StringToCharCode,
   const Register result = locs()->out(0).reg();  // Result char code is a smi.
   __ StringToCharCode(result, str);
 }
-
 
 
 EMIT_NATIVE_CODE(AllocateObject,
@@ -818,10 +835,10 @@ EMIT_NATIVE_CODE(CatchBlockEntry, 0) {
 
 EMIT_NATIVE_CODE(Throw, 0, Location::NoLocation(), LocationSummary::kCall) {
   __ Throw(0);
-  compiler->RecordSafepoint(locs());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
                                  deopt_id(),
                                  token_pos());
+  compiler->RecordAfterCall(this);
   __ Trap();
 }
 
@@ -829,10 +846,10 @@ EMIT_NATIVE_CODE(Throw, 0, Location::NoLocation(), LocationSummary::kCall) {
 EMIT_NATIVE_CODE(ReThrow, 0, Location::NoLocation(), LocationSummary::kCall) {
   compiler->SetNeedsStacktrace(catch_try_index());
   __ Throw(1);
-  compiler->RecordSafepoint(locs());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
                                  deopt_id(),
                                  token_pos());
+  compiler->RecordAfterCall(this);
   __ Trap();
 }
 
@@ -1205,6 +1222,139 @@ EMIT_NATIVE_CODE(UnarySmiOp, 1, Location::RequiresRegister()) {
     default:
       UNREACHABLE();
   }
+}
+
+
+static Token::Kind FlipCondition(Token::Kind kind) {
+  switch (kind) {
+    case Token::kEQ: return Token::kNE;
+    case Token::kNE: return Token::kEQ;
+    case Token::kLT: return Token::kGTE;
+    case Token::kGT: return Token::kLTE;
+    case Token::kLTE: return Token::kGT;
+    case Token::kGTE: return Token::kLT;
+    default:
+      UNREACHABLE();
+      return Token::kNE;
+  }
+}
+
+
+static Bytecode::Opcode OpcodeForCondition(Token::Kind kind) {
+  switch (kind) {
+    case Token::kEQ: return Bytecode::kIfEqStrict;
+    case Token::kNE: return Bytecode::kIfNeStrict;
+    case Token::kLT: return Bytecode::kIfLt;
+    case Token::kGT: return Bytecode::kIfGt;
+    case Token::kLTE: return Bytecode::kIfLe;
+    case Token::kGTE: return Bytecode::kIfGe;
+    default:
+      UNREACHABLE();
+      return Bytecode::kTrap;
+  }
+}
+
+
+static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
+                                     LocationSummary* locs,
+                                     Token::Kind kind,
+                                     BranchLabels labels) {
+  const Register left = locs->in(0).reg();
+  const Register right = locs->in(1).reg();
+  Token::Kind comparison = kind;
+  Condition condition = NEXT_IS_TRUE;
+  if (labels.fall_through != labels.false_label) {
+    // If we aren't falling through to the false label, we can save a Jump
+    // instruction in the case that the true case is the fall through by
+    // flipping the sense of the test such that the instruction following the
+    // test is the Jump to the false label.
+    condition = NEXT_IS_FALSE;
+    comparison = FlipCondition(kind);
+  }
+  __ Emit(Bytecode::Encode(OpcodeForCondition(comparison), left, right));
+  return condition;
+}
+
+
+Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
+                                                   BranchLabels labels) {
+  if (operation_cid() == kSmiCid) {
+    return EmitSmiComparisonOp(compiler, locs(), kind(), labels);
+  } else {
+    ASSERT(operation_cid() == kDoubleCid);
+    Unsupported(compiler);
+    UNREACHABLE();
+    return NEXT_IS_FALSE;
+  }
+}
+
+
+EMIT_NATIVE_CODE(EqualityCompare, 2, Location::RequiresRegister()) {
+  ASSERT(compiler->is_optimizing());
+  ASSERT((kind() == Token::kEQ) || (kind() == Token::kNE));
+  Label is_true, is_false;
+  // These labels are not used. They are arranged so that EmitComparisonCode
+  // emits a test that executes the following instruction when the test
+  // succeeds.
+  BranchLabels labels = { &is_true, &is_false, &is_false };
+  const Register result = locs()->out(0).reg();
+  __ LoadConstant(result, Bool::False());
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  ASSERT(true_condition == NEXT_IS_TRUE);
+  __ LoadConstant(result, Bool::True());
+}
+
+
+void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                          BranchInstr* branch) {
+  ASSERT((kind() == Token::kNE) || (kind() == Token::kEQ));
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  EmitBranchOnCondition(compiler, true_condition, labels);
+}
+
+
+Condition RelationalOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
+                                                BranchLabels labels) {
+  if (operation_cid() == kSmiCid) {
+    return EmitSmiComparisonOp(compiler, locs(), kind(), labels);
+  } else {
+    ASSERT(operation_cid() == kDoubleCid);
+    Unsupported(compiler);
+    UNREACHABLE();
+    return NEXT_IS_FALSE;
+  }
+}
+
+
+EMIT_NATIVE_CODE(RelationalOp, 2, Location::RequiresRegister()) {
+  ASSERT(compiler->is_optimizing());
+  Label is_true, is_false;
+  BranchLabels labels = { &is_true, &is_false, &is_false };
+  const Register result = locs()->out(0).reg();
+  __ LoadConstant(result, Bool::False());
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  ASSERT(true_condition == NEXT_IS_TRUE);
+  __ LoadConstant(result, Bool::True());
+}
+
+
+void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                       BranchInstr* branch) {
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  EmitBranchOnCondition(compiler, true_condition, labels);
+}
+
+
+EMIT_NATIVE_CODE(CheckArrayBound, 2) {
+  const Register length = locs()->in(kLengthPos).reg();
+  const Register index = locs()->in(kIndexPos).reg();
+  __ IfULe(length, index);
+  compiler->EmitDeopt(deopt_id(),
+                      ICData::kDeoptCheckArrayBound,
+                      (generalized_ ? ICData::kGeneralized : 0) |
+                      (licm_hoisted_ ? ICData::kHoisted : 0));
 }
 
 }  // namespace dart

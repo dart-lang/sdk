@@ -228,6 +228,12 @@ namespace dart {
 //    Cond is Eq or Ne. Skips the next instruction unless the given condition
 //    holds.
 //
+//  - If<Cond> rA, rD
+//
+//    Cond is Le, Lt, Ge, Gt, or unsigned variants ULe, ULt, UGe, UGt.
+//    Skips the next instruction unless FP[rA] <Cond> FP[rD]. Assumes that
+//    FP[rA] and FP[rD] are Smis.
+//
 //  - CreateArrayTOS
 //
 //    Allocate array of length SP[0] with type arguments SP[-1].
@@ -249,6 +255,11 @@ namespace dart {
 //
 //    Store rC into array rA at index rB. No typechecking is done.
 //    rA is assumed to be a RawArray, rB to be a smi.
+//
+//  - LoadIndexed rA, rB, rC
+//
+//    Loads from array FP[rB] at index FP[rC] into FP[rA]. No typechecking is
+//    done. FP[rB] is assumed to be a RawArray, and to contain a Smi at FP[rC].
 //
 //  - StoreField rA, B, rC
 //
@@ -524,6 +535,14 @@ namespace dart {
   V(IfEqStrictNumTOS,                0, ___, ___, ___) \
   V(IfNeStrict,                    A_D, reg, reg, ___) \
   V(IfEqStrict,                    A_D, reg, reg, ___) \
+  V(IfLe,                          A_D, reg, reg, ___) \
+  V(IfLt,                          A_D, reg, reg, ___) \
+  V(IfGe,                          A_D, reg, reg, ___) \
+  V(IfGt,                          A_D, reg, reg, ___) \
+  V(IfULe,                         A_D, reg, reg, ___) \
+  V(IfULt,                         A_D, reg, reg, ___) \
+  V(IfUGe,                         A_D, reg, reg, ___) \
+  V(IfUGt,                         A_D, reg, reg, ___) \
   V(IfNeStrictNum,                 A_D, reg, reg, ___) \
   V(IfEqStrictNum,                 A_D, reg, reg, ___) \
   V(IfEqNull,                        A, reg, ___, ___) \
@@ -533,6 +552,7 @@ namespace dart {
   V(AllocateT,                       0, ___, ___, ___) \
   V(StoreIndexedTOS,                 0, ___, ___, ___) \
   V(StoreIndexed,                A_B_C, reg, reg, reg) \
+  V(LoadIndexed,                 A_B_C, reg, reg, reg) \
   V(StoreField,                  A_B_C, reg, num, reg) \
   V(StoreFieldTOS,                   D, num, ___, ___) \
   V(LoadField,                   A_B_C, reg, reg, num) \

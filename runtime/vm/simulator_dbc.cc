@@ -2215,6 +2215,86 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(IfLe, A_D);
+    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rA]);
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rD]);
+    if (lhs > rhs) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfLt, A_D);
+    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rA]);
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rD]);
+    if (lhs >= rhs) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfGe, A_D);
+    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rA]);
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rD]);
+    if (lhs < rhs) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfGt, A_D);
+    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rA]);
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rD]);
+    if (lhs <= rhs) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfULe, A_D);
+    const uintptr_t lhs = reinterpret_cast<uintptr_t>(FP[rA]);
+    const uintptr_t rhs = reinterpret_cast<uintptr_t>(FP[rD]);
+    if (lhs > rhs) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfULt, A_D);
+    const uintptr_t lhs = reinterpret_cast<uintptr_t>(FP[rA]);
+    const uintptr_t rhs = reinterpret_cast<uintptr_t>(FP[rD]);
+    if (lhs >= rhs) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfUGe, A_D);
+    const uintptr_t lhs = reinterpret_cast<uintptr_t>(FP[rA]);
+    const uintptr_t rhs = reinterpret_cast<uintptr_t>(FP[rD]);
+    if (lhs < rhs) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfUGt, A_D);
+    const uintptr_t lhs = reinterpret_cast<uintptr_t>(FP[rA]);
+    const uintptr_t rhs = reinterpret_cast<uintptr_t>(FP[rD]);
+    if (lhs <= rhs) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
     BYTECODE(IfEqStrictNum, A_D);
     RawObject* lhs = FP[rA];
     RawObject* rhs = FP[rD];
@@ -2275,11 +2355,9 @@ RawObject* Simulator::Call(const Code& code,
   {
     BYTECODE(StoreIndexedTOS, 0);
     SP -= 3;
-    RawArray* array = static_cast<RawArray*>(SP[1]);
-    RawSmi* index = static_cast<RawSmi*>(SP[2]);
+    RawArray* array = RAW_CAST(Array, SP[1]);
+    RawSmi* index = RAW_CAST(Smi, SP[2]);
     RawObject* value = SP[3];
-    ASSERT(array->GetClassId() == kArrayCid);
-    ASSERT(!index->IsHeapObject());
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
     array->StorePointer(array->ptr()->data() + Smi::Value(index), value);
     DISPATCH();
@@ -2287,13 +2365,20 @@ RawObject* Simulator::Call(const Code& code,
 
   {
     BYTECODE(StoreIndexed, A_B_C);
-    RawArray* array = static_cast<RawArray*>(FP[rA]);
-    RawSmi* index = static_cast<RawSmi*>(FP[rB]);
+    RawArray* array = RAW_CAST(Array, FP[rA]);
+    RawSmi* index = RAW_CAST(Smi, FP[rB]);
     RawObject* value = FP[rC];
-    ASSERT(array->GetClassId() == kArrayCid);
-    ASSERT(!index->IsHeapObject());
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
     array->StorePointer(array->ptr()->data() + Smi::Value(index), value);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexed, A_B_C);
+    RawArray* array = RAW_CAST(Array, FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
+    FP[rA] = array->ptr()->data()[Smi::Value(index)];
     DISPATCH();
   }
 
