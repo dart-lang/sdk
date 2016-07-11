@@ -371,8 +371,8 @@ class FixProcessor {
     doSourceChange_addElementEdit(change, target, edit);
   }
 
-  void _addFix(FixKind kind, List args) {
-    if (change.edits.isEmpty) {
+  void _addFix(FixKind kind, List args, {bool importsOnly: false}) {
+    if (change.edits.isEmpty && !importsOnly) {
       return;
     }
     // configure Change
@@ -1427,40 +1427,11 @@ class FixProcessor {
     _addFix(DartFixKind.REPLACE_RETURN_TYPE_FUTURE, []);
   }
 
-  void _addFix_importLibrary(FixKind kind, String importPath) {
-    CompilationUnitElement libraryUnitElement =
-        unitLibraryElement.definingCompilationUnit;
-    CompilationUnit libraryUnit = getParsedUnit(libraryUnitElement);
-    // prepare new import location
-    int offset = 0;
-    String prefix;
-    String suffix;
-    {
-      // if no directives
-      prefix = '';
-      suffix = eol;
-      CorrectionUtils libraryUtils = new CorrectionUtils(libraryUnit);
-      // after last directive in library
-      for (Directive directive in libraryUnit.directives) {
-        if (directive is LibraryDirective || directive is ImportDirective) {
-          offset = directive.end;
-          prefix = eol;
-          suffix = '';
-        }
-      }
-      // if still beginning of file, skip shebang and line comments
-      if (offset == 0) {
-        CorrectionUtils_InsertDesc desc = libraryUtils.getInsertDescTop();
-        offset = desc.offset;
-        prefix = desc.prefix;
-        suffix = '${desc.suffix}$eol';
-      }
-    }
-    // insert new import
-    String importSource = "${prefix}import '$importPath';$suffix";
-    _addInsertEdit(offset, importSource, libraryUnitElement);
-    // add proposal
-    _addFix(kind, [importPath]);
+  void _addFix_importLibrary(FixKind kind, LibraryElement libraryElement) {
+    librariesToImport.add(libraryElement);
+    Source librarySource = libraryElement.source;
+    String libraryUri = getLibrarySourceUri(unitLibraryElement, librarySource);
+    _addFix(kind, [libraryUri], importsOnly: true);
   }
 
   void _addFix_importLibrary_withElement(String name, ElementKind kind) {
@@ -1547,7 +1518,7 @@ class FixProcessor {
           continue;
         }
         // add import
-        _addFix_importLibrary(DartFixKind.IMPORT_LIBRARY_SDK, libraryUri);
+        _addFix_importLibrary(DartFixKind.IMPORT_LIBRARY_SDK, libraryElement);
       }
     }
     // check project libraries
@@ -1579,21 +1550,8 @@ class FixProcessor {
         if (element.kind != kind) {
           continue;
         }
-        // prepare "library" file
-        String libraryFile = librarySource.fullName;
-        // may be "package:" URI
-        {
-          String libraryPackageUri = findNonFileUri(context, libraryFile);
-          if (libraryPackageUri != null) {
-            _addFix_importLibrary(
-                DartFixKind.IMPORT_LIBRARY_PROJECT, libraryPackageUri);
-            continue;
-          }
-        }
-        // relative URI
-        String relativeFile = relative(libraryFile, from: unitLibraryFolder);
-        relativeFile = split(relativeFile).join('/');
-        _addFix_importLibrary(DartFixKind.IMPORT_LIBRARY_PROJECT, relativeFile);
+        _addFix_importLibrary(
+            DartFixKind.IMPORT_LIBRARY_PROJECT, libraryElement);
       }
     }
   }

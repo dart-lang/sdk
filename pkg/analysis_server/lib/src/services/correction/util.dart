@@ -61,8 +61,8 @@ void addLibraryImports(SourceChange change, LibraryElement targetLibrary,
   }
   // insert imports
   for (LibraryElement library in libraries) {
-    String importPath = getLibrarySourceUri(targetLibrary, library.source);
-    String importCode = "${prefix}import '$importPath';$suffix";
+    String importUri = getLibrarySourceUri(targetLibrary, library.source);
+    String importCode = "${prefix}import '$importUri';$suffix";
     doSourceChange_addElementEdit(
         change, targetLibrary, new SourceEdit(offset, 0, importCode));
   }
