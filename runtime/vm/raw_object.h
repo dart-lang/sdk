@@ -995,9 +995,10 @@ class RawScript : public RawObject {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->url_); }
   RawString* url_;
+  RawArray* compile_time_constants_;
   RawTokenStream* tokens_;
   RawString* source_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->source_); }
+  RawObject** to() {return reinterpret_cast<RawObject**>(&ptr()->source_); }
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kAppNoJIT:

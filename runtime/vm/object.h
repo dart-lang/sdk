@@ -3396,6 +3396,11 @@ class Script : public Object {
   // The load time in milliseconds since epoch.
   int64_t load_timestamp() const { return raw_ptr()->load_timestamp_; }
 
+  RawArray* compile_time_constants() const {
+    return raw_ptr()->compile_time_constants_;
+  }
+  void set_compile_time_constants(const Array& value) const;
+
   RawTokenStream* tokens() const { return raw_ptr()->tokens_; }
 
   void Tokenize(const String& private_key,

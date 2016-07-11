@@ -112,9 +112,6 @@ class IsolateReloadContext {
 
   void ClearReplacedObjectBits();
 
-  void BuildCleanScriptSet();
-  void FilterCompileTimeConstants();
-
   // atomic_install:
   void MarkAllFunctionsForRecompilation();
   void ResetUnoptimizedICsOnStack();
@@ -158,8 +155,6 @@ class IsolateReloadContext {
   RawObject** from() { return reinterpret_cast<RawObject**>(&script_uri_); }
   RawString* script_uri_;
   RawError* error_;
-  RawArray* clean_scripts_set_storage_;
-  RawArray* compile_time_constants_;
   RawArray* old_classes_set_storage_;
   RawArray* class_map_storage_;
   RawArray* old_libraries_set_storage_;

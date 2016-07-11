@@ -440,11 +440,11 @@ class ObjectStore {
     return OFFSET_OF(ObjectStore, library_load_error_table_);
   }
 
-  RawArray* compile_time_constants() const {
-    return compile_time_constants_;
+  RawArray* vm_compile_time_constants() const {
+    return vm_compile_time_constants_;
   }
-  void set_compile_time_constants(const Array& value) {
-    compile_time_constants_ = value.raw();
+  void set_vm_compile_time_constants(const Array& value) {
+    vm_compile_time_constants_ = value.raw();
   }
 
   RawArray* unique_dynamic_targets() const {
@@ -579,7 +579,7 @@ class ObjectStore {
   V(RawTypedData*, empty_uint32_array_)                                        \
   V(RawFunction*, handle_message_function_)                                    \
   V(RawArray*, library_load_error_table_)                                      \
-  V(RawArray*, compile_time_constants_)                                        \
+  V(RawArray*, vm_compile_time_constants_)                                     \
   V(RawArray*, unique_dynamic_targets_)                                        \
   V(RawGrowableObjectArray*, token_objects_)                                   \
   V(RawArray*, token_objects_map_)                                             \
@@ -598,7 +598,7 @@ OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD)
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kCore:
-        return reinterpret_cast<RawObject**>(&compile_time_constants_);
+        return reinterpret_cast<RawObject**>(&vm_compile_time_constants_);
       case Snapshot::kAppWithJIT:
       case Snapshot::kAppNoJIT:
         return to();

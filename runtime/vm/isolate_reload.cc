@@ -183,8 +183,6 @@ IsolateReloadContext::IsolateReloadContext(Isolate* isolate, bool test_mode)
       num_saved_libs_(-1),
       script_uri_(String::null()),
       error_(Error::null()),
-      clean_scripts_set_storage_(Array::null()),
-      compile_time_constants_(Array::null()),
       old_classes_set_storage_(Array::null()),
       class_map_storage_(Array::null()),
       old_libraries_set_storage_(Array::null()),
@@ -193,8 +191,6 @@ IsolateReloadContext::IsolateReloadContext(Isolate* isolate, bool test_mode)
       saved_root_library_(Library::null()),
       saved_libraries_(GrowableObjectArray::null()) {
   // Preallocate storage for maps.
-  clean_scripts_set_storage_ =
-      HashTables::New<UnorderedHashSet<ScriptUrlSetTraits> >(4);
   old_classes_set_storage_ =
       HashTables::New<UnorderedHashSet<ClassMapTraits> >(4);
   class_map_storage_ =
@@ -476,86 +472,6 @@ void IsolateReloadContext::CheckpointLibraries() {
 }
 
 
-void IsolateReloadContext::BuildCleanScriptSet() {
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(object_store()->libraries());
-
-  UnorderedHashSet<ScriptUrlSetTraits>
-      clean_scripts_set(clean_scripts_set_storage_);
-
-  Library& lib = Library::Handle();
-  Array& scripts = Array::Handle();
-  Script& script = Script::Handle();
-  String& script_url = String::Handle();
-  for (intptr_t lib_idx = 0; lib_idx < libs.Length(); lib_idx++) {
-    lib = Library::RawCast(libs.At(lib_idx));
-    ASSERT(!lib.IsNull());
-    ASSERT(IsCleanLibrary(lib));
-    scripts = lib.LoadedScripts();
-    ASSERT(!scripts.IsNull());
-    for (intptr_t script_idx = 0; script_idx < scripts.Length(); script_idx++) {
-      script = Script::RawCast(scripts.At(script_idx));
-      ASSERT(!script.IsNull());
-      script_url = script.url();
-      ASSERT(!script_url.IsNull());
-      bool already_present = clean_scripts_set.Insert(script_url);
-      ASSERT(!already_present);
-    }
-  }
-
-  clean_scripts_set_storage_ = clean_scripts_set.Release().raw();
-}
-
-
-void IsolateReloadContext::FilterCompileTimeConstants() {
-  // Save the compile time constants array.
-  compile_time_constants_ = I->object_store()->compile_time_constants();
-  // Clear the compile time constants array. This will be repopulated
-  // in the loop below.
-  I->object_store()->set_compile_time_constants(Array::Handle());
-
-  if (compile_time_constants_ == Array::null()) {
-    // Nothing to do.
-    return;
-  }
-
-  // Iterate over the saved compile time constants map.
-  ConstantsMap old_constants(compile_time_constants_);
-  ConstantsMap::Iterator it(&old_constants);
-
-  Array& key = Array::Handle();
-  String& url = String::Handle();
-  Smi& token_pos = Smi::Handle();
-  Instance& value = Instance::Handle();
-
-  // We filter the compile time constants map so that after it only contains
-  // constants from scripts contained in this set.
-  UnorderedHashSet<ScriptUrlSetTraits>
-      clean_scripts_set(clean_scripts_set_storage_);
-
-  while (it.MoveNext()) {
-    const intptr_t entry = it.Current();
-    ASSERT(entry != -1);
-    key = Array::RawCast(old_constants.GetKey(entry));
-    ASSERT(!key.IsNull());
-    url = String::RawCast(key.At(0));
-    ASSERT(!url.IsNull());
-    if (clean_scripts_set.ContainsKey(url)) {
-      // We've found a cached constant from a clean script, add it to the
-      // compile time constants map again.
-      token_pos = Smi::RawCast(key.At(1));
-      TokenPosition tp(token_pos.Value());
-      // Use ^= because this might be null.
-      value ^= old_constants.GetPayload(entry, 0);
-      Parser::InsertCachedConstantValue(url, tp, value);
-    }
-  }
-
-  old_constants.Release();
-  clean_scripts_set.Release();
-}
-
-
 // While reloading everything we do must be reversible so that we can abort
 // safely if the reload fails. This function stashes things to the side and
 // prepares the isolate for the reload attempt.
@@ -563,8 +479,6 @@ void IsolateReloadContext::Checkpoint() {
   TIMELINE_SCOPE(Checkpoint);
   CheckpointClasses();
   CheckpointLibraries();
-  BuildCleanScriptSet();
-  FilterCompileTimeConstants();
 }
 
 
@@ -614,8 +528,6 @@ void IsolateReloadContext::RollbackLibraries() {
 
 
 void IsolateReloadContext::Rollback() {
-  I->object_store()->set_compile_time_constants(
-      Array::Handle(compile_time_constants_));
   RollbackClasses();
   RollbackLibraries();
 }

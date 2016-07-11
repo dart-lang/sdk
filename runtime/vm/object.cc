@@ -8687,6 +8687,11 @@ RawString* Script::GenerateSource() const {
 }
 
 
+void Script::set_compile_time_constants(const Array& value) const {
+  StorePointer(&raw_ptr()->compile_time_constants_, value.raw());
+}
+
+
 RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
   Zone* zone = Thread::Current()->zone();
   const GrowableObjectArray& info =

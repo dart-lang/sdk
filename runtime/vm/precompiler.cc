@@ -241,7 +241,7 @@ void Precompiler::DoCompileAll(
 
       // Clear these before dropping classes as they may hold onto otherwise
       // dead instances of classes we will remove.
-      I->object_store()->set_compile_time_constants(Array::null_array());
+      I->object_store()->set_vm_compile_time_constants(Array::null_array());
       I->object_store()->set_unique_dynamic_targets(Array::null_array());
       Class& null_class = Class::Handle(Z);
       I->object_store()->set_future_class(null_class);
