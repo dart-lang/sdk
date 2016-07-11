@@ -2058,13 +2058,7 @@ class CacheConsistencyValidatorImpl implements CacheConsistencyValidator {
 
   @override
   List<Source> getSourcesToComputeModificationTimes() {
-    List<Source> sources = <Source>[];
-    for (Source source in context._privatePartition.sources) {
-      if (context._contentCache.getModificationStamp(source) == null) {
-        sources.add(source);
-      }
-    }
-    return sources;
+    return context._privatePartition.sources.toList();
   }
 
   @override
@@ -2074,21 +2068,30 @@ class CacheConsistencyValidatorImpl implements CacheConsistencyValidator {
     HashSet<Source> missingSources = new HashSet<Source>();
     for (int i = 0; i < sources.length; i++) {
       Source source = sources[i];
+      // When a source is in the content cache,
+      // its modification time in the file system does not matter.
+      if (context._contentCache.getModificationStamp(source) != null) {
+        continue;
+      }
+      // When we were not able to compute the modification time in the
+      // file system, there is nothing to compare with, so skip the source.
       int sourceTime = times[i];
-      if (sourceTime != null) {
-        CacheEntry entry = context._privatePartition.get(source);
-        if (entry != null) {
-          if (sourceTime != entry.modificationTime) {
-            changedSources.add(source);
+      if (sourceTime == null) {
+        continue;
+      }
+      // Compare with the modification time in the cache entry.
+      CacheEntry entry = context._privatePartition.get(source);
+      if (entry != null) {
+        if (sourceTime != entry.modificationTime) {
+          changedSources.add(source);
+          PerformanceStatistics
+              .cacheConsistencyValidationStatistics.numOfModified++;
+        }
+        if (entry.exception != null) {
+          if (sourceTime == -1) {
+            missingSources.add(source);
             PerformanceStatistics
                 .cacheConsistencyValidationStatistics.numOfModified++;
-          }
-          if (entry.exception != null) {
-            if (sourceTime == -1) {
-              missingSources.add(source);
-              PerformanceStatistics
-                  .cacheConsistencyValidationStatistics.numOfModified++;
-            }
           }
         }
       }

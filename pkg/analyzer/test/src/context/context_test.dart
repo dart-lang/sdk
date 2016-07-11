@@ -448,6 +448,13 @@ import 'libB.dart';''';
         validator.sourceModificationTimesComputed([source1, source2],
             [source1.modificationStamp, source2.modificationStamp]),
         isFalse);
+    // Add overlay
+    context.setContents(source1, '// 1-2');
+    expect(
+        validator.sourceModificationTimesComputed([source1, source2],
+            [source1.modificationStamp + 1, source2.modificationStamp]),
+        isFalse);
+    context.setContents(source1, null);
     // Different modification times.
     expect(
         validator.sourceModificationTimesComputed([source1, source2],
@@ -465,15 +472,7 @@ import 'libB.dart';''';
     Source source2 = resourceProvider.newFile(path2, '// 2-1').createSource();
     context.applyChanges(
         new ChangeSet()..addedSource(source1)..addedSource(source2));
-    // No overlays.
-    expect(validator.getSourcesToComputeModificationTimes(),
-        unorderedEquals([source1, source2]));
-    // Add an overlay.
-    context.setContents(source1, '// 1-2');
-    expect(validator.getSourcesToComputeModificationTimes(),
-        unorderedEquals([source2]));
-    // Remove an overlay.
-    context.setContents(source1, null);
+    // Verify.
     expect(validator.getSourcesToComputeModificationTimes(),
         unorderedEquals([source1, source2]));
   }
