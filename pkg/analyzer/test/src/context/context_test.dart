@@ -2892,6 +2892,88 @@ class B extends A {}
     _assertInvalid(b, LIBRARY_ERRORS_READY);
   }
 
+  void test_class_method_remove_notUsed_instantiated() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+abstract class I {
+ void foo();
+}
+class A implements I {
+ void foo() {}
+}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main() {
+  new A();
+}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: remove 'A.foo'.
+    //   b.dart is valid because it does not reference 'foo'.
+    //     The class 'A' has a warning, but it is still not abstract.
+    context.setContents(
+        a,
+        r'''
+abstract class I {
+ void fo();
+}
+class A implements I {
+}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+
+    _assertValidForDependentLibrary(b);
+    _assertValidAllLibraryUnitResults(b);
+    _assertValidAllResolution(b);
+    _assertValidAllErrors(b);
+  }
+
+  void test_class_method_remove_subclass() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+abstract class I {
+ void foo();
+}
+class A implements I {
+ void foo() {}
+}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+class B extends A {}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: remove A.bar, add A.bar2.
+    //   b.dart
+    //     Resolution is valid because 'foo' is not referenced.
+    //     HINTS are invalid because 'B' might have invalid @override.
+    //     VERIFY_ERRORS are invalid because 'B' might not implement something.
+    //     Other errors are also invalid.
+    context.setContents(
+        a,
+        r'''
+abstract class I {
+ void foo();
+}
+class A implements I {
+}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+
+    _assertValidForDependentLibrary(b);
+    _assertValidAllResolution(b);
+    _assertInvalidHintsVerifyErrors(b);
+  }
+
   void test_class_private_member() {
     Source a = addSource(
         '/a.dart',
@@ -2939,54 +3021,6 @@ class A {
     _assertValidForDependentLibrary(b);
     _assertValidAllLibraryUnitResults(b);
     _assertValid(b, LIBRARY_ERRORS_READY);
-  }
-
-  void test_class_super_makeAbstract_instantiate() {
-    Source a = addSource(
-        '/a.dart',
-        r'''
-abstract class I {
- void m();
-}
-class A implements I {
- void m() {}
-}
-''');
-    Source b = addSource(
-        '/b.dart',
-        r'''
-import 'a.dart';
-class B extends A {}
-''');
-    Source c = addSource(
-        '/c.dart',
-        r'''
-import 'b.dart';
-main() {
-  new B();
-}
-''');
-    _performPendingAnalysisTasks();
-    // Update a.dart: remove A.bar, add A.bar2.
-    //   b.dart is valid, because it doesn't references 'bar' or 'bar2'.
-    context.setContents(
-        a,
-        r'''
-abstract class I {
- void m();
-}
-class A implements I {
- void m2() {}
-}
-''');
-    _assertValidForChangedLibrary(a);
-    _assertInvalid(a, LIBRARY_ERRORS_READY);
-
-    _assertValidForDependentLibrary(b);
-    _assertInvalid(b, LIBRARY_ERRORS_READY);
-
-    _assertValidForDependentLibrary(c);
-    _assertInvalid(c, LIBRARY_ERRORS_READY);
   }
 
   void test_private_class() {
@@ -3166,8 +3200,8 @@ class A {
     _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
     _assertValidForDependentLibrary(b);
-    _assertInvalid(b, LIBRARY_ERRORS_READY);
-    _assertInvalidUnits(b, RESOLVED_UNIT4);
+    _assertValidAllResolution(b);
+    _assertInvalidHintsVerifyErrors(b);
 
     _performPendingAnalysisTasks();
     expect(context.getErrors(b).errors, hasLength(1));
@@ -3342,8 +3376,8 @@ class B {
     _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
     _assertValidForDependentLibrary(b);
-    _assertInvalid(b, LIBRARY_ERRORS_READY);
-    _assertInvalidUnits(b, RESOLVED_UNIT4);
+    _assertValidAllResolution(b);
+    _assertValidAllErrors(b);
     // The a.dart's unit and element are the same.
     {
       LibrarySpecificUnit target = new LibrarySpecificUnit(a, a);
@@ -3612,8 +3646,8 @@ main() {
 ''');
     _performPendingAnalysisTasks();
     // Update a.dart: remove A.m, add A.m2.
-    //   b.dart is invalid, because B extends A.
-    //   c.dart is invalid, because 'main' references B.
+    //   b.dart has valid resolution, and invalid errors.
+    //   c.dart is invalid, because 'main' references 'm'.
     context.setContents(
         a,
         r'''
@@ -3625,9 +3659,8 @@ class A {
     _assertInvalid(a, LIBRARY_ERRORS_READY);
 
     _assertValidForDependentLibrary(b);
-    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT4);
-    _assertInvalidUnits(b, RESOLVED_UNIT4);
-    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertValidAllResolution(b);
+    _assertInvalidHintsVerifyErrors(b);
 
     _assertValidForDependentLibrary(c);
     _assertInvalidLibraryElements(c, LIBRARY_ELEMENT5);
@@ -3675,12 +3708,9 @@ class A {
 ''');
     _assertInvalid(a, LIBRARY_ERRORS_READY);
 
-    // TODO(scheglov) In theory b.dart is not affected, because it does not
-    // call A.m, does not override it, etc.
     _assertValidForDependentLibrary(b);
-    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT4);
-    _assertInvalidUnits(b, RESOLVED_UNIT4);
-    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertValidAllResolution(b);
+    _assertInvalidHintsVerifyErrors(b);
 
     _assertValidForDependentLibrary(c);
     _assertInvalidLibraryElements(c, LIBRARY_ELEMENT5);
@@ -3693,6 +3723,18 @@ class A {
     if (actual != CacheState.INVALID) {
       fail("cache state of $target $descriptor: wanted INVALID, got: $actual");
     }
+  }
+
+  /**
+   * Assert that [VERIFY_ERRORS] and other error results that include it,
+   * are invalid.
+   */
+  void _assertInvalidHintsVerifyErrors(Source unit) {
+    _assertUnitInvalid(unit, HINTS);
+    _assertUnitInvalid(unit, VERIFY_ERRORS);
+    _assertUnitInvalid(unit, LIBRARY_UNIT_ERRORS);
+    _assertInvalid(unit, DART_ERRORS);
+    _assertInvalid(unit, LIBRARY_ERRORS_READY);
   }
 
   /**
@@ -3749,6 +3791,18 @@ class A {
         reason: '$descriptor in $target');
   }
 
+  /**
+   * Assert that all error results for the given [unit] are valid.
+   */
+  void _assertValidAllErrors(Source unit) {
+    for (ListResultDescriptor<AnalysisError> result in ERROR_SOURCE_RESULTS) {
+      _assertValid(unit, result);
+    }
+    for (ListResultDescriptor<AnalysisError> result in ERROR_UNIT_RESULTS) {
+      _assertUnitValid(unit, result);
+    }
+  }
+
   void _assertValidAllLibraryUnitResults(Source source, {Source library}) {
     for (ResultDescriptor<LibraryElement> result in LIBRARY_ELEMENT_RESULTS) {
       _assertValid(source, result);
@@ -3758,6 +3812,14 @@ class A {
     for (ResultDescriptor<CompilationUnit> result in RESOLVED_UNIT_RESULTS) {
       _assertValid(target, result);
     }
+  }
+
+  void _assertValidAllResolution(Source unit) {
+    _assertValidUnits(unit, null);
+    _assertUnitValidTaskResults(unit, ResolveUnitTypeNamesTask.DESCRIPTOR);
+    _assertUnitValidTaskResults(unit, ResolveUnitTask.DESCRIPTOR);
+    _assertValidTaskResults(unit, ResolveLibraryReferencesTask.DESCRIPTOR);
+    _assertValidTaskResults(unit, ResolveLibraryTask.DESCRIPTOR);
   }
 
   void _assertValidForAnyLibrary(Source source) {
@@ -3790,6 +3852,18 @@ class A {
   void _assertValidTaskResults(AnalysisTarget target, TaskDescriptor task) {
     for (ResultDescriptor result in task.results) {
       _assertValid(target, result);
+    }
+  }
+
+  void _assertValidUnits(Source unit, ResultDescriptor<CompilationUnit> last,
+      {Source library}) {
+    var target = new LibrarySpecificUnit(library ?? unit, unit);
+    bool foundLast = false;
+    for (ResultDescriptor<CompilationUnit> result in RESOLVED_UNIT_RESULTS) {
+      if (!foundLast) {
+        _assertValid(target, result);
+      }
+      foundLast = foundLast || result == last;
     }
   }
 

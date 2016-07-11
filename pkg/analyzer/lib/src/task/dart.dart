@@ -327,6 +327,33 @@ final ResultDescriptor<bool> CREATED_RESOLVED_UNIT9 =
     new ResultDescriptor<bool>('CREATED_RESOLVED_UNIT9', false);
 
 /**
+ * All [AnalysisError]s results for [Source]s.
+ */
+final List<ListResultDescriptor<AnalysisError>> ERROR_SOURCE_RESULTS =
+    <ListResultDescriptor<AnalysisError>>[
+  BUILD_DIRECTIVES_ERRORS,
+  BUILD_LIBRARY_ERRORS,
+  PARSE_ERRORS,
+  SCAN_ERRORS,
+];
+
+/**
+ * All [AnalysisError]s results in for [LibrarySpecificUnit]s.
+ */
+final List<ListResultDescriptor<AnalysisError>> ERROR_UNIT_RESULTS =
+    <ListResultDescriptor<AnalysisError>>[
+  HINTS,
+  LIBRARY_UNIT_ERRORS,
+  LINTS,
+  RESOLVE_TYPE_BOUNDS_ERRORS,
+  RESOLVE_TYPE_NAMES_ERRORS,
+  RESOLVE_UNIT_ERRORS,
+  STRONG_MODE_ERRORS,
+  VARIABLE_REFERENCE_ERRORS,
+  VERIFY_ERRORS
+];
+
+/**
  * The sources representing the export closure of a library.
  * The [Source]s include only library sources, not their units.
  *
@@ -2487,12 +2514,18 @@ class DartDelta extends Delta {
   /**
    * The cache of libraries in which all results are invalid.
    */
-  final Set<Source> librariesWithInvalidResults = new Set<Source>();
+  final Set<Source> librariesWithAllInvalidResults = new Set<Source>();
 
   /**
    * The cache of libraries in which all results are valid.
    */
-  final Set<Source> librariesWithValidResults = new Set<Source>();
+  final Set<Source> librariesWithAllValidResults = new Set<Source>();
+
+  /**
+   * The cache of libraries with all, but [HINTS] and [VERIFY_ERRORS] results
+   * are valid.
+   */
+  final Set<Source> libraryWithInvalidErrors = new Set<Source>();
 
   DartDelta(Source source) : super(source);
 
@@ -2553,22 +2586,19 @@ class DartDelta extends Delta {
     nameChanged(librarySource, element.name);
   }
 
-  bool hasAffectedReferences(ReferencedNames references, Source refLibrary) {
-    // Verify errors must be recomputed when a superclass changes.
+  bool hasAffectedHintsVerifyErrors(
+      ReferencedNames references, Source refLibrary) {
     for (String superName in references.superToSubs.keys) {
       if (isChangedOrClass(refLibrary, superName)) {
-        _log(() => '$refLibrary is affected because '
+        _log(() => '$refLibrary hints/verify errors are affected because '
             '${references.superToSubs[superName]} subclasses $superName');
         return true;
       }
     }
-    // Verify errors must be recomputed when an instantiated class changes.
-    for (String name in references.instantiatedNames) {
-      if (isChangedOrClass(refLibrary, name)) {
-        _log(() => '$refLibrary is affected because $name is instantiated');
-        return true;
-      }
-    }
+    return false;
+  }
+
+  bool hasAffectedReferences(ReferencedNames references, Source refLibrary) {
     // Resolution must be performed when a referenced element changes.
     for (String name in references.names) {
       if (isChangedOrClassMember(refLibrary, name)) {
@@ -2678,11 +2708,19 @@ class DartDelta extends Delta {
     // Handle in-library results only for now.
     if (targetLibrary != null) {
       // Use cached library results.
-      if (librariesWithInvalidResults.contains(targetLibrary)) {
+      if (librariesWithAllInvalidResults.contains(targetLibrary)) {
         return DeltaResult.INVALIDATE;
       }
-      if (librariesWithValidResults.contains(targetLibrary)) {
+      if (librariesWithAllValidResults.contains(targetLibrary)) {
         return DeltaResult.STOP;
+      }
+      // The library is almost, but not completely valid.
+      // Some error results are invalid.
+      if (libraryWithInvalidErrors.contains(targetLibrary)) {
+        if (descriptor == HINTS || descriptor == VERIFY_ERRORS) {
+          return DeltaResult.INVALIDATE_NO_DELTA;
+        }
+        return DeltaResult.KEEP_CONTINUE;
       }
       // Compute the library result.
       ReferencedNames referencedNames =
@@ -2692,10 +2730,14 @@ class DartDelta extends Delta {
       }
       addChangedElements(referencedNames, targetLibrary);
       if (hasAffectedReferences(referencedNames, targetLibrary)) {
-        librariesWithInvalidResults.add(targetLibrary);
+        librariesWithAllInvalidResults.add(targetLibrary);
         return DeltaResult.INVALIDATE;
       }
-      librariesWithValidResults.add(targetLibrary);
+      if (hasAffectedHintsVerifyErrors(referencedNames, targetLibrary)) {
+        libraryWithInvalidErrors.add(targetLibrary);
+        return DeltaResult.KEEP_CONTINUE;
+      }
+      librariesWithAllValidResults.add(targetLibrary);
       return DeltaResult.STOP;
     }
     // We don't know what to do with the given target, invalidate it.
