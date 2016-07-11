@@ -3961,58 +3961,6 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ Ret();
 }
 
-
-ASSEMBLER_TEST_GENERATE(ComputeRange, assembler) {
-  Label miss, done;
-  __ mov(R1, Operand(R0));
-  __ ComputeRange(R0, R1, R2, &miss);
-  __ b(&done);
-
-  __ Bind(&miss);
-  __ LoadImmediate(R0, -1);
-
-  __ Bind(&done);
-  __ Ret();
-}
-
-
-ASSEMBLER_TEST_RUN(ComputeRange, test) {
-  typedef intptr_t (*ComputeRange)(intptr_t value) DART_UNUSED;
-
-#define RANGE_OF(v)                                              \
-  (EXECUTE_TEST_CODE_INTPTR_INTPTR(                              \
-    ComputeRange, test->entry(), reinterpret_cast<intptr_t>(v)))
-
-  EXPECT_EQ(0, RANGE_OF(Smi::New(0)));
-  EXPECT_EQ(0, RANGE_OF(Smi::New(1)));
-  EXPECT_EQ(ICData::kSignedRangeBit, RANGE_OF(Smi::New(-1)));
-  EXPECT_EQ(0, RANGE_OF(Smi::New(Smi::kMaxValue)));
-  EXPECT_EQ(ICData::kSignedRangeBit, RANGE_OF(Smi::New(Smi::kMinValue)));
-
-  EXPECT_EQ(ICData::kInt32RangeBit, RANGE_OF(Integer::New(Smi::kMaxValue + 1)));
-  EXPECT_EQ(ICData::kInt32RangeBit | ICData::kSignedRangeBit,
-            RANGE_OF(Integer::New(Smi::kMinValue - 1)));
-  EXPECT_EQ(ICData::kInt32RangeBit, RANGE_OF(Integer::New(kMaxInt32)));
-  EXPECT_EQ(ICData::kInt32RangeBit | ICData::kSignedRangeBit,
-            RANGE_OF(Integer::New(kMinInt32)));
-
-  EXPECT_EQ(ICData::kUint32RangeBit,
-            RANGE_OF(Integer::New(static_cast<int64_t>(kMaxInt32) + 1)));
-  EXPECT_EQ(ICData::kUint32RangeBit,
-            RANGE_OF(Integer::New(kMaxUint32)));
-
-  EXPECT_EQ(ICData::kInt64RangeBit,
-            RANGE_OF(Integer::New(static_cast<int64_t>(kMaxUint32) + 1)));
-  EXPECT_EQ(ICData::kInt64RangeBit,
-            RANGE_OF(Integer::New(static_cast<int64_t>(kMinInt32) - 1)));
-  EXPECT_EQ(ICData::kInt64RangeBit, RANGE_OF(Integer::New(kMaxInt64)));
-  EXPECT_EQ(ICData::kInt64RangeBit, RANGE_OF(Integer::New(kMinInt64)));
-
-  EXPECT_EQ(-1, RANGE_OF(Bool::True().raw()));
-
-#undef RANGE_OF
-}
-
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM

@@ -3673,48 +3673,6 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
 }
 
 
-void Assembler::ComputeRange(Register result, Register value, Label* not_mint) {
-  Label done, not_smi;
-  testl(value, Immediate(kSmiTagMask));
-  j(NOT_ZERO, &not_smi, Assembler::kNearJump);
-
-  sarq(value, Immediate(32));  // Take the tag into account.
-  movq(result, Immediate(ICData::kUint32RangeBit));  // Uint32
-  cmpq(value, Immediate(1));
-  j(EQUAL, &done, Assembler::kNearJump);
-
-  movq(result, Immediate(ICData::kInt32RangeBit));
-  subq(result, value);  // 10 (positive int32), 11 (negative int32)
-  negq(value);
-  cmpq(value, Immediate(1));
-  j(BELOW_EQUAL, &done);
-
-  // On 64-bit we don't need to track sign of smis outside of the Int32 range.
-  // Just pretend they are all signed.
-  movq(result, Immediate(ICData::kSignedRangeBit));
-  jmp(&done);
-
-  Bind(&not_smi);
-  CompareClassId(value, kMintCid);
-  j(NOT_EQUAL, not_mint);
-  movq(result, Immediate(ICData::kInt64RangeBit));
-
-  Bind(&done);
-}
-
-
-void Assembler::UpdateRangeFeedback(Register value,
-                                    intptr_t index,
-                                    Register ic_data,
-                                    Register scratch,
-                                    Label* miss) {
-  ASSERT(ICData::IsValidRangeFeedbackIndex(index));
-  ComputeRange(scratch, value, miss);
-  shll(scratch, Immediate(ICData::RangeFeedbackShift(index)));
-  orl(FieldAddress(ic_data, ICData::state_bits_offset()), scratch);
-}
-
-
 Address Assembler::ElementAddressForIntIndex(bool is_external,
                                              intptr_t cid,
                                              intptr_t index_scale,

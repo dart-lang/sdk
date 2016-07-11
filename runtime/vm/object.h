@@ -1860,7 +1860,6 @@ class ICData : public Object {
     V(CheckClass)                                                              \
     V(CheckArrayBound)                                                         \
     V(AtCall)                                                                  \
-    V(Uint32Load)                                                              \
     V(GuardField)                                                              \
     V(TestCids)                                                                \
     V(NumReasons)                                                              \
@@ -2054,78 +2053,6 @@ class ICData : public Object {
   void GetUsedCidsForTwoArgs(GrowableArray<intptr_t>* first,
                              GrowableArray<intptr_t>* second) const;
 
-  // Range feedback tracking functionality.
-
-  // For arithmetic operations we store range information for inputs and the
-  // result. The goal is to discover:
-  //
-  //    - on 32-bit platforms:
-  //         - when Mint operation is actually a int32/uint32 operation;
-  //         - when Smi operation produces non-smi results;
-  //
-  //    - on 64-bit platforms:
-  //         - when Smi operation is actually int32/uint32 operation;
-  //         - when Mint operation produces non-smi results;
-  //
-  enum RangeFeedback {
-    kSmiRange,
-    kInt32Range,
-    kUint32Range,
-    kInt64Range
-  };
-
-  // We use 4 bits per operand/result feedback. Our lattice allows us to
-  // express the following states:
-  //
-  //   - usmi   0000 [used only on 32bit platforms]
-  //   - smi    0001
-  //   - uint31 0010
-  //   - int32  0011
-  //   - uint32 0100
-  //   - int33  x1x1
-  //   - int64  1xxx
-  //
-  // DecodeRangeFeedbackAt() helper maps these states into the RangeFeedback
-  // enumeration.
-  enum RangeFeedbackLatticeBits {
-    kSignedRangeBit = 1 << 0,
-    kInt32RangeBit = 1 << 1,
-    kUint32RangeBit = 1 << 2,
-    kInt64RangeBit = 1 << 3,
-    kBitsPerRangeFeedback = 4,
-    kRangeFeedbackMask = (1 << kBitsPerRangeFeedback) - 1,
-    kRangeFeedbackSlots = 3
-  };
-
-  static bool IsValidRangeFeedbackIndex(intptr_t index) {
-    return (0 <= index) && (index < kRangeFeedbackSlots);
-  }
-
-  static intptr_t RangeFeedbackShift(intptr_t index) {
-    return (index * kBitsPerRangeFeedback) + kRangeFeedbackPos;
-  }
-
-  static const char* RangeFeedbackToString(RangeFeedback feedback) {
-    switch (feedback) {
-      case kSmiRange:
-        return "smi";
-      case kInt32Range:
-        return "int32";
-      case kUint32Range:
-        return "uint32";
-      case kInt64Range:
-        return "int64";
-      default:
-        UNREACHABLE();
-        return "?";
-    }
-  }
-
-  // It is only meaningful to interpret range feedback stored in the ICData
-  // when all checks are Mint or Smi.
-  bool HasRangeFeedback() const;
-  RangeFeedback DecodeRangeFeedbackAt(intptr_t idx) const;
-
   void PrintToJSONArray(const JSONArray& jsarray,
                         TokenPosition token_pos,
                         bool is_static_call) const;
@@ -2168,9 +2095,7 @@ class ICData : public Object {
     kNumArgsTestedSize = 2,
     kDeoptReasonPos = kNumArgsTestedPos + kNumArgsTestedSize,
     kDeoptReasonSize = kLastRecordedDeoptReason + 1,
-    kRangeFeedbackPos = kDeoptReasonPos + kDeoptReasonSize,
-    kRangeFeedbackSize = kBitsPerRangeFeedback * kRangeFeedbackSlots,
-    kStaticCallPos = kRangeFeedbackPos + kRangeFeedbackSize,
+    kStaticCallPos = kDeoptReasonPos + kDeoptReasonSize,
     kStaticCallSize = 1,
   };
 
@@ -2182,11 +2107,6 @@ class ICData : public Object {
                                           uint32_t,
                                           ICData::kDeoptReasonPos,
                                           ICData::kDeoptReasonSize> {};
-  class RangeFeedbackBits : public BitField<uint32_t,
-                                            uint32_t,
-                                            ICData::kRangeFeedbackPos,
-                                            ICData::kRangeFeedbackSize> {};
-
   class StaticCallBit : public BitField<uint32_t,
                                         bool,
                                         ICData::kStaticCallPos,

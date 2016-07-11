@@ -826,49 +826,6 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
 }
 
 
-void Assembler::ComputeRange(Register result,
-                             Register value,
-                             Label* miss) {
-  const Register hi = TMP;
-  const Register lo = CMPRES2;
-
-  Label done;
-  srl(result, value, kBitsPerWord - 1);
-  andi(CMPRES1, value, Immediate(kSmiTagMask));
-  beq(CMPRES1, ZR, &done);
-
-  LoadClassId(CMPRES1, value);
-  BranchNotEqual(CMPRES1, Immediate(kMintCid), miss);
-  LoadFieldFromOffset(hi, value, Mint::value_offset() + kWordSize);
-  LoadFieldFromOffset(lo, value, Mint::value_offset());
-  sra(lo, lo, kBitsPerWord - 1);
-
-  LoadImmediate(result, ICData::kInt32RangeBit);
-
-  beq(hi, lo, &done);
-  delay_slot()->subu(result, result, hi);
-
-  beq(hi, ZR, &done);
-  delay_slot()->addiu(result, ZR, Immediate(ICData::kUint32RangeBit));
-  LoadImmediate(result, ICData::kInt64RangeBit);
-  Bind(&done);
-}
-
-
-void Assembler::UpdateRangeFeedback(Register value,
-                                    intptr_t index,
-                                    Register ic_data,
-                                    Register scratch,
-                                    Label* miss) {
-  ASSERT(ICData::IsValidRangeFeedbackIndex(index));
-  ComputeRange(scratch, value, miss);
-  LoadFieldFromOffset(TMP, ic_data, ICData::state_bits_offset());
-  sll(scratch, scratch, ICData::RangeFeedbackShift(index));
-  or_(TMP, TMP, scratch);
-  StoreFieldToOffset(TMP, ic_data, ICData::state_bits_offset());
-}
-
-
 void Assembler::EnterFrame() {
   ASSERT(!in_delay_slot_);
   addiu(SP, SP, Immediate(-2 * kWordSize));

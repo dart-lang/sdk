@@ -1921,47 +1921,6 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
 }
 
 
-void Assembler::ComputeRange(Register result,
-                             Register value,
-                             Register scratch,
-                             Label* not_mint) {
-  const Register hi = TMP;
-  const Register lo = scratch;
-
-  Label done;
-  mov(result, Operand(value, LSR, kBitsPerWord - 1));
-  tst(value, Operand(kSmiTagMask));
-  b(&done, EQ);
-  CompareClassId(value, kMintCid, result);
-  b(not_mint, NE);
-  ldr(hi, FieldAddress(value, Mint::value_offset() + kWordSize));
-  ldr(lo, FieldAddress(value, Mint::value_offset()));
-  rsb(result, hi, Operand(ICData::kInt32RangeBit));
-  cmp(hi, Operand(lo, ASR, kBitsPerWord - 1));
-  b(&done, EQ);
-  LoadImmediate(result, ICData::kUint32RangeBit);  // Uint32
-  tst(hi, Operand(hi));
-  LoadImmediate(result, ICData::kInt64RangeBit, NE);  // Int64
-  Bind(&done);
-}
-
-
-void Assembler::UpdateRangeFeedback(Register value,
-                                    intptr_t index,
-                                    Register ic_data,
-                                    Register scratch1,
-                                    Register scratch2,
-                                    Label* miss) {
-  ASSERT(ICData::IsValidRangeFeedbackIndex(index));
-  ComputeRange(scratch1, value, scratch2, miss);
-  ldr(scratch2, FieldAddress(ic_data, ICData::state_bits_offset()));
-  orr(scratch2,
-      scratch2,
-      Operand(scratch1, LSL, ICData::RangeFeedbackShift(index)));
-  str(scratch2, FieldAddress(ic_data, ICData::state_bits_offset()));
-}
-
-
 static bool CanEncodeBranchOffset(int32_t offset) {
   ASSERT(Utils::IsAligned(offset, 4));
   return Utils::IsInt(Utils::CountOneBits(kBranchOffsetMask), offset);

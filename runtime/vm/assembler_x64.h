@@ -861,14 +861,6 @@ class Assembler : public ValueObject {
     sarq(reg, Immediate(kSmiTagSize));
   }
 
-  void ComputeRange(Register result, Register value, Label* miss);
-  void UpdateRangeFeedback(Register value,
-                           intptr_t index,
-                           Register ic_data,
-                           Register scratch,
-                           Label* miss);
-
-  int PreferredLoopAlignment() { return 16; }
   void Align(int alignment, intptr_t offset);
   void Bind(Label* label);
   void Jump(Label* label) { jmp(label); }

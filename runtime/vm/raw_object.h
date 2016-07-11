@@ -1501,8 +1501,7 @@ class RawICData : public RawObject {
     return NULL;
   }
   int32_t deopt_id_;     // Deoptimization id corresponding to this IC.
-  uint32_t state_bits_;  // Number of arguments tested in IC, deopt reasons,
-                         // range feedback.
+  uint32_t state_bits_;  // Number of arguments tested in IC, deopt reasons.
 #if defined(TAG_IC_DATA)
   intptr_t tag_;  // Debugging, verifying that the icdata is assigned to the
                   // same instruction again. Store -1 or Instruction::Tag.
