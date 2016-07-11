@@ -3177,18 +3177,6 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(ArgumentCount() == 2);
       compiler->EmitInstanceCall(*stub_entry, *call_ic_data, ArgumentCount(),
                                  deopt_id(), token_pos(), locs());
-    } else if (FLAG_ic_range_profiling &&
-               (Token::IsBinaryArithmeticOperator(token_kind()) ||
-                Token::IsUnaryArithmeticOperator(token_kind()))) {
-      ASSERT(Token::IsUnaryArithmeticOperator(token_kind()) ==
-                 (ArgumentCount() == 1));
-      ASSERT(Token::IsBinaryArithmeticOperator(token_kind()) ==
-                 (ArgumentCount() == 2));
-      const StubEntry* stub_entry = (ArgumentCount() == 1)
-          ? StubCode::UnaryRangeCollectingInlineCache_entry()
-          : StubCode::BinaryRangeCollectingInlineCache_entry();
-      compiler->EmitInstanceCall(*stub_entry, *call_ic_data, ArgumentCount(),
-                                 deopt_id(), token_pos(), locs());
     } else {
       compiler->GenerateInstanceCall(deopt_id(),
                                      token_pos(),

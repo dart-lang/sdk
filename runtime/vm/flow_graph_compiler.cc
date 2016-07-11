@@ -86,7 +86,6 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_background_compilation = false;
     FLAG_always_megamorphic_calls = true;
     FLAG_fields_may_be_reset = true;
-    FLAG_ic_range_profiling = false;
     FLAG_interpret_irregexp = true;
     FLAG_lazy_dispatchers = false;
     FLAG_link_natives_lazily = true;

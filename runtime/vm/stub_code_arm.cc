@@ -1533,24 +1533,6 @@ void StubCode::GenerateSmiEqualInlineCacheStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateUnaryRangeCollectingInlineCacheStub(
-    Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, R8);
-  GenerateNArgsCheckInlineCacheStub(assembler, 1,
-      kInlineCacheMissHandlerOneArgRuntimeEntry,
-      Token::kILLEGAL);
-}
-
-
-void StubCode::GenerateBinaryRangeCollectingInlineCacheStub(
-    Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, R8);
-  GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-      Token::kILLEGAL);
-}
-
-
 void StubCode::GenerateOneArgOptimizedCheckInlineCacheStub(
     Assembler* assembler) {
   GenerateOptimizedUsageCounterIncrement(assembler);

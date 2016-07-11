@@ -1485,24 +1485,6 @@ void StubCode::GenerateSmiEqualInlineCacheStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateUnaryRangeCollectingInlineCacheStub(
-    Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, EBX);
-  GenerateNArgsCheckInlineCacheStub(assembler, 1,
-      kInlineCacheMissHandlerOneArgRuntimeEntry,
-      Token::kILLEGAL);
-}
-
-
-void StubCode::GenerateBinaryRangeCollectingInlineCacheStub(
-    Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, EBX);
-  GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-      Token::kILLEGAL);
-}
-
-
 // Use inline cache data array to invoke the target or continue in inline
 // cache miss handler. Stub for 1-argument check (receiver class).
 //  EDI: function which counter needs to be incremented.

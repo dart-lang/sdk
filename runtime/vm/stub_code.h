@@ -54,8 +54,6 @@ class Deserializer;
   V(SmiAddInlineCache)                                                         \
   V(SmiSubInlineCache)                                                         \
   V(SmiEqualInlineCache)                                                       \
-  V(UnaryRangeCollectingInlineCache)                                           \
-  V(BinaryRangeCollectingInlineCache)                                          \
   V(OneArgOptimizedCheckInlineCache)                                           \
   V(TwoArgsOptimizedCheckInlineCache)                                          \
   V(ZeroArgsUnoptimizedStaticCall)                                             \
