@@ -26,7 +26,9 @@ ArgParser parser = new ArgParser()
 main(List<String> args) {
   ArgResults result = parser.parse(args);
 
-  if (result.rest.length != 1) throw 'Exactly one input file expected';
+  if (result.rest.length != 1) {
+    throw "Usage:\n${parser.usage}";
+  }
 
   var input = result.rest.first;
   var output = result['out'];

@@ -17,6 +17,10 @@ Program tranformProgram(Program program) {
 
 class RecursiveContinuationRewriter extends Transformer {
   final HelperNodes helper;
+  final VariableDeclaration asyncJumpVariable =
+      new VariableDeclaration(":await_jump_var", initializer: new IntLiteral(0));
+  final VariableDeclaration asyncContextVariable =
+      new VariableDeclaration(":await_ctx_var");
 
   RecursiveContinuationRewriter(this.helper);
 
@@ -34,6 +38,8 @@ class RecursiveContinuationRewriter extends Transformer {
         return new AsyncFunctionRewriter(helper, node).rewrite();
       case AsyncMarker.AsyncStar:
         return new AsyncStarFunctionRewriter(helper, node).rewrite();
+      case AsyncMarker.SyncYielding:
+        throw "unreachable";
     }
   }
 }
@@ -75,7 +81,11 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
     final returnStatement = new ReturnStatement(new ConstructorInvocation(
         helper.syncIterableConstructor, arguments));
 
-    enclosingFunction.body = new Block([closureFunction, returnStatement]);
+    enclosingFunction.body = new Block([
+      asyncJumpVariable,
+      asyncContextVariable,
+      closureFunction,
+      returnStatement]);
     enclosingFunction.body.parent = enclosingFunction;
     enclosingFunction.asyncMarker = AsyncMarker.Sync;
     return enclosingFunction;
@@ -125,7 +135,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   AsyncRewriterBase(helper, enclosingFunction)
       : super(helper, enclosingFunction);
 
-  setupAsyncConinuations(List<Statement> statements) {
+  setupAsyncContinuations(List<Statement> statements) {
     expressionRewriter = new ExpressionLifter(this, enclosingFunction);
 
     // var :async_op_then;
@@ -134,11 +144,17 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     // var :async_op_error;
     statements.add(catchErrorContinuationVariable);
 
+    // var :async_jump_var
+    statements.add(asyncJumpVariable);
+
+    // var :async_ctx_var
+    statements.add(asyncContextVariable);
+
     // :async_op([:result, :exception, :stack_trace]) {
     //     modified <node.body>;
     // }
     final parameters = [
-        new VariableDeclaration(':result'),
+        expressionRewriter.asyncResult,
         new VariableDeclaration(':exception'),
         new VariableDeclaration(':stack_trace'),
     ];
@@ -152,7 +168,6 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     // [VariableDeclarations].
     // TODO(kustermann): If we didn't need any variables we should not emit
     // these.
-    statements.add(expressionRewriter.asyncResult);
     statements.addAll(expressionRewriter.variables);
 
     // Now add the closure function itself.
@@ -216,11 +231,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   Statement buildCatchBody(Statement exceptionVariable,
                            Statement stackTraceVariable);
 
-  visitExpressionStatement(ExpressionStatement node) {
-    var transformedExpression = expressionRewriter.rewrite(node.expression);
-    node.expression = transformedExpression;
-    transformedExpression.parent = node;
-    return node;
+  defaultExpression(TreeNode node) {
+    return expressionRewriter.rewrite(node);
   }
 }
 
@@ -237,7 +249,7 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
     controllerVariable = new VariableDeclaration(":controller");
     statements.add(controllerVariable);
 
-    super.setupAsyncConinuations(statements);
+    super.setupAsyncContinuations(statements);
 
     // :controller = new _AsyncController(:async_op);
     var arguments = new Arguments([new VariableGet(nestedClosureVariable)]);
@@ -323,7 +335,7 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
         isFinal: true);
     statements.add(completerVariable);
 
-    super.setupAsyncConinuations(statements);
+    super.setupAsyncContinuations(statements);
 
     // new Future.microtask(:async_op);
     var newMicrotaskStatement = new ExpressionStatement(
@@ -370,13 +382,19 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     } else {
       transformedExpression = expressionRewriter.rewrite(node.expression);
     }
+
+    // Note: transformed expression can't be used directly as part of the
+    // method invocation because it might contain yield points and
+    // expression stack might not be empty.
+    var resultVar = new VariableDeclaration(':async-temp',
+                                            initializer: transformedExpression);
     var completeCompleter = new ExpressionStatement(
         new MethodInvocation(
           new VariableGet(completerVariable),
           new Name("complete", helper.asyncLibrary),
-          new Arguments([transformedExpression])));
+          new Arguments([new VariableGet(resultVar)])));
     var returnStatement = new ReturnStatement(new NullLiteral());
-    return new Block([completeCompleter, returnStatement]);
+    return new Block([resultVar, completeCompleter, returnStatement]);
   }
 }
 

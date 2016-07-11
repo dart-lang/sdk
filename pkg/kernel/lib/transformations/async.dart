@@ -85,7 +85,7 @@ class ExpressionLifter extends Transformer {
   final List<ProxyExpression> pendingExpressions = <ProxyExpression>[];
   final List<Statement> pendingStatements = <Statement>[];
   final VariableDeclaration asyncResult =
-      new VariableDeclaration(':async-result');
+      new VariableDeclaration(':result');
   final List<VariableDeclaration> variables = <VariableDeclaration>[];
 
   ExpressionLifter(this.continuationRewriter, this.function);
