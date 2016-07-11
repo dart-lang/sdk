@@ -483,12 +483,14 @@ class AudioNode extends EventTarget {
   void disconnect([destination_OR_output, int output, int input]) native;
 
   @DomName('AudioNode.connect')
-  void connectNode(AudioNode destination, [int output = 0, int input = 0]) =>
-      _connect(destination, output, input);
+  void connectNode(AudioNode destination, [int output = 0, int input = 0]) {
+    _connect(destination, output, input);
+  }
 
   @DomName('AudioNode.connect')
-  void connectParam(AudioParam destination, [int output = 0]) =>
-      _connect(destination, output);
+  void connectParam(AudioParam destination, [int output = 0]) {
+    _connect(destination, output);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
