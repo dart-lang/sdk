@@ -632,6 +632,12 @@ class Isolate : public BaseIsolate {
 
   void StopBackgroundCompiler();
 
+  intptr_t reload_every_n_stack_overflow_checks() const {
+    return reload_every_n_stack_overflow_checks_;
+  }
+
+  void MaybeIncreaseReloadEveryNStackOverflowChecks();
+
  private:
   friend class Dart;  // Init, InitOnce, Shutdown.
   friend class IsolateKillerVisitor;  // Kill().
@@ -815,6 +821,8 @@ class Isolate : public BaseIsolate {
   // Has a reload ever been attempted?
   bool has_attempted_reload_;
   intptr_t no_reload_scope_depth_;  // we can only reload when this is 0.
+  // Per-isolate copy of FLAG_reload_every.
+  intptr_t reload_every_n_stack_overflow_checks_;
   IsolateReloadContext* reload_context_;
 
 #define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \

@@ -206,15 +206,3 @@ http_resource_test: Skip # Resolve URI not supported yet in product mode.
 
 [ $arch == simdbc || $arch == simdbc64 ]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
-
-[ $hot_reload ]
-big_integer_huge_mul_vm_test: Pass, Timeout
-big_integer_parsed_mul_div_vm_test: Pass, Timeout
-collection_length_test: Fail, Crash
-hash_map2_test: Pass, Crash
-queue_test: Pass, Crash
-regexp/regexp_test: Pass, Fail, Crash
-uri_parse_test: Pass, Timeout
-uri_test: Pass, RuntimeError
-data_uri_test: Pass, RuntimeError
-int_parse_radix_test: Pass, Timeout

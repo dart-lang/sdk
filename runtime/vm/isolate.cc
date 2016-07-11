@@ -53,9 +53,14 @@ namespace dart {
 DECLARE_FLAG(bool, print_metrics);
 DECLARE_FLAG(bool, timing);
 DECLARE_FLAG(bool, trace_service);
-DECLARE_FLAG(bool, trace_reload);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
+
+// Reload flags.
 DECLARE_FLAG(bool, check_reloaded);
+DECLARE_FLAG(int, reload_every);
+DECLARE_FLAG(bool, reload_every_back_off);
+DECLARE_FLAG(bool, trace_reload);
+
 
 NOT_IN_PRODUCT(
 static void CheckedModeHandler(bool value) {
@@ -833,6 +838,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       spawn_count_(0),
       has_attempted_reload_(false),
       no_reload_scope_depth_(0),
+      reload_every_n_stack_overflow_checks_(FLAG_reload_every),
       reload_context_(NULL) {
   NOT_IN_PRODUCT(FlagsCopyFrom(api_flags));
   // TODO(asiva): A Thread is not available here, need to figure out
@@ -1639,6 +1645,21 @@ void Isolate::StopBackgroundCompiler() {
   // Wait until all background compilation has finished.
   if (background_compiler_ != NULL) {
     BackgroundCompiler::Stop(this);
+  }
+}
+
+
+void Isolate::MaybeIncreaseReloadEveryNStackOverflowChecks() {
+  if (FLAG_reload_every_back_off) {
+    if (reload_every_n_stack_overflow_checks_ < 5000) {
+      reload_every_n_stack_overflow_checks_ += 100;
+    } else {
+      reload_every_n_stack_overflow_checks_ *= 2;
+    }
+    // Cap the value.
+    if (reload_every_n_stack_overflow_checks_ > 1000000) {
+      reload_every_n_stack_overflow_checks_ = 1000000;
+    }
   }
 }
 

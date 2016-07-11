@@ -446,12 +446,12 @@ static bool ProcessHotReloadTestModeOption(const char* arg,
   // Identity reload.
   vm_options->AddArgument("--identity_reload");
   // Start reloading quickly.
-  vm_options->AddArgument("--reload_every=10");
+  vm_options->AddArgument("--reload_every=5");
   // Reload from optimized and unoptimized code.
   vm_options->AddArgument("--reload_every_optimized=false");
   // Reload less frequently as time goes on.
   vm_options->AddArgument("--reload_every_back_off");
-  // Ensure that an isolate has reloaded once.
+  // Ensure that every isolate has reloaded once before exiting.
   vm_options->AddArgument("--check_reloaded");
 
   return true;

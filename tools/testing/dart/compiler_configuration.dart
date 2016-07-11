@@ -180,10 +180,6 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
     }
     if (hotReload) {
       args.add('--hot-reload-test-mode');
-      // Remove the following once known bugs with background compilation
-      // and OSR are fixed.
-      args.add('--no-background-compilation');
-      args.add('--no-osr');
     }
     return args
       ..addAll(vmOptions)

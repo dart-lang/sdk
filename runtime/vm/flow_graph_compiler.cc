@@ -354,7 +354,7 @@ bool FlowGraphCompiler::CanOSRFunction() const {
 bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
   if ((FLAG_stacktrace_every > 0) ||
       (FLAG_deoptimize_every > 0) ||
-      (FLAG_reload_every > 0)) {
+      (isolate()->reload_every_n_stack_overflow_checks() > 0)) {
     return true;
   }
   if (FLAG_stacktrace_filter != NULL &&

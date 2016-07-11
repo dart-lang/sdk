@@ -1242,9 +1242,11 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   bool do_deopt = false;
   bool do_stacktrace = false;
   bool do_reload = false;
+  const intptr_t isolate_reload_every =
+      isolate->reload_every_n_stack_overflow_checks();
   if ((FLAG_deoptimize_every > 0) ||
       (FLAG_stacktrace_every > 0) ||
-      (FLAG_reload_every > 0)) {
+      (isolate_reload_every > 0)) {
     // TODO(turnidge): To make --deoptimize_every and
     // --stacktrace-every faster we could move this increment/test to
     // the generated code.
@@ -1257,14 +1259,14 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
         (count % FLAG_stacktrace_every) == 0) {
       do_stacktrace = true;
     }
-    if ((FLAG_reload_every > 0) &&
-        (count % FLAG_reload_every) == 0) {
+    if ((isolate_reload_every > 0) &&
+        (count % isolate_reload_every) == 0) {
       do_reload = isolate->CanReload();
     }
   }
   if ((FLAG_deoptimize_filter != NULL) ||
       (FLAG_stacktrace_filter != NULL) ||
-      FLAG_reload_every_optimized) {
+       FLAG_reload_every_optimized) {
     DartFrameIterator iterator;
     StackFrame* frame = iterator.NextFrame();
     ASSERT(frame != NULL);
@@ -1297,9 +1299,9 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     DeoptimizeFunctionsOnStack();
   }
   if (do_reload) {
-    if (FLAG_reload_every_back_off) {
-      FLAG_reload_every *= 2;
-    }
+    // Maybe adjust the rate of future reloads.
+    isolate->MaybeIncreaseReloadEveryNStackOverflowChecks();
+    // Issue a reload.
     NOT_IN_PRODUCT(isolate->ReloadSources();)
   }
   if (FLAG_support_debugger && do_stacktrace) {
