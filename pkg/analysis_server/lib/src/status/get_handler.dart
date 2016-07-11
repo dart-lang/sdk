@@ -1659,7 +1659,7 @@ class GetHandler {
         AnalysisServer server = _server.analysisServer;
         MemoryUseData data = new MemoryUseData();
         data.processAnalysisServer(server);
-        Map<Type, HashSet> instances = data.instances;
+        Map<Type, Set> instances = data.instances;
         List<Type> types = instances.keys.toList();
         types.sort((Type left, Type right) =>
             left.toString().compareTo(right.toString()));
