@@ -21,6 +21,7 @@ import 'package:analysis_server/src/services/completion/completion_performance.d
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
+import 'package:analysis_server/src/status/memory_use.dart';
 import 'package:analysis_server/src/status/validator.dart';
 import 'package:analysis_server/src/utilities/average.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -258,6 +259,11 @@ class GetHandler {
   static const String ELEMENT_PATH = '/element';
 
   /**
+   * The path used to request an analysis of the memory use of the analyzer.
+   */
+  static const String MEMORY_USE_PATH = '/memoryUse';
+
+  /**
    * The path used to request an overlay contents.
    */
   static const String OVERLAY_PATH = '/overlay';
@@ -390,6 +396,8 @@ class GetHandler {
       _returnDiagnosticInfo(request);
     } else if (path == ELEMENT_PATH) {
       _returnElement(request);
+    } else if (path == MEMORY_USE_PATH) {
+      _returnMemoryUsage(request);
     } else if (path == OVERLAY_PATH) {
       _returnOverlayContents(request);
     } else if (path == OVERLAYS_PATH) {
@@ -1644,6 +1652,55 @@ class GetHandler {
     });
   }
 
+  void _returnMemoryUsage(HttpRequest request) {
+    _writeResponse(request, (StringBuffer buffer) {
+      _writePage(buffer, 'Analysis Server - Memory Use', [],
+          (StringBuffer buffer) {
+        AnalysisServer server = _server.analysisServer;
+        MemoryUseData data = new MemoryUseData();
+        data.processAnalysisServer(server);
+        Map<Type, HashSet> instances = data.instances;
+        List<Type> types = instances.keys.toList();
+        types.sort((Type left, Type right) =>
+            left.toString().compareTo(right.toString()));
+
+        buffer.write('<h3>Instance Counts (reachable from contexts)</h3>');
+        buffer.write('<table>');
+        _writeRow(buffer, ['Count', 'Class name'], header: true);
+        types.forEach((Type type) {
+          _writeRow(buffer, [instances[type].length, type],
+              classes: ['right', null]);
+        });
+        buffer.write('</table>');
+
+        void writeCountMap(String title, Map<Type, int> counts) {
+          List<Type> classNames = counts.keys.toList();
+          classNames.sort((Type left, Type right) =>
+              left.toString().compareTo(right.toString()));
+
+          buffer.write('<h3>$title</h3>');
+          buffer.write('<table>');
+          _writeRow(buffer, ['Count', 'Class name'], header: true);
+          classNames.forEach((Type type) {
+            _writeRow(buffer, [counts[type], type], classes: ['right', null]);
+          });
+          buffer.write('</table>');
+        }
+        writeCountMap('Directly Held AST Nodes', data.directNodeCounts);
+        writeCountMap('Indirectly Held AST Nodes', data.indirectNodeCounts);
+        writeCountMap('Directly Held Elements', data.elementCounts);
+
+        buffer.write('<h3>Other Data</h3>');
+        buffer.write('<p>');
+        buffer.write(data.uniqueTargetedResults.length);
+        buffer.write(' non-equal TargetedResults</p>');
+        buffer.write('<p>');
+        buffer.write(data.uniqueLSUs.length);
+        buffer.write(' non-equal LibrarySpecificUnits</p>');
+      });
+    });
+  }
+
   void _returnOverlayContents(HttpRequest request) {
     String path = request.requestedUri.queryParameters[PATH_PARAM];
     if (path == null) {
@@ -2228,6 +2285,7 @@ class GetHandler {
     int length = keys.length;
     buffer.write('{');
     for (int i = 0; i < length; i++) {
+      buffer.write('<br>');
       String key = keys[i];
       if (i > 0) {
         buffer.write(', ');
@@ -2236,7 +2294,7 @@ class GetHandler {
       buffer.write(' = ');
       buffer.write(map[key]);
     }
-    buffer.write('}');
+    buffer.write('<br>}');
   }
 
   /**
@@ -2289,6 +2347,7 @@ class GetHandler {
         'table.column {border: 0px solid black; width: 100%; table-layout: fixed;}');
     buffer.write('td.column {vertical-align: top; width: 50%;}');
     buffer.write('td.right {text-align: right;}');
+    buffer.write('th {text-align: left;}');
     buffer.write('</style>');
     buffer.write('</head>');
 
@@ -2447,6 +2506,9 @@ class GetHandler {
       buffer.write('<p>');
       buffer.write(makeLink(DIAGNOSTIC_PATH, {}, 'General diagnostics'));
       buffer.write('</p>');
+      buffer.write('<p>');
+      buffer.write(makeLink(MEMORY_USE_PATH, {}, 'Memory usage'));
+      buffer.write(' <small>(long running)</small></p>');
     }, (StringBuffer buffer) {
       _writeSubscriptionList(buffer, ServerService.VALUES, services);
     });
