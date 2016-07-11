@@ -523,7 +523,7 @@ class Driver implements CommandLineStarter {
   _PackageInfo _findPackages(CommandLineOptions options) {
     if (packageResolverProvider != null) {
       // The resolver provider will do all the work later.
-      return null;
+      return new _PackageInfo(null, null);
     }
 
     Packages packages;
