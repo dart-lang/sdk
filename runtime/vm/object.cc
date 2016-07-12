@@ -16729,7 +16729,8 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
         }
       } else if (!type_args.IsSubvectorEquivalent(other_type_args,
                                                   from_index,
-                                                  num_type_params)) {
+                                                  num_type_params,
+                                                  trail)) {
         return false;
       }
 #ifdef DEBUG
