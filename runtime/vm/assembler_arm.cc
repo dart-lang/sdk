@@ -3237,6 +3237,18 @@ void Assembler::LeaveStubFrame() {
 }
 
 
+#ifndef PRODUCT
+void Assembler::MaybeTraceAllocation(intptr_t cid,
+                                     Register temp_reg,
+                                     Label* trace) {
+  LoadAllocationStatsAddress(temp_reg, cid);
+  const uword state_offset = ClassHeapStats::state_offset();
+  ldr(temp_reg, Address(temp_reg, state_offset));
+  tst(temp_reg, Operand(ClassHeapStats::TraceAllocationMask()));
+  b(trace, NE);
+}
+
+
 void Assembler::LoadAllocationStatsAddress(Register dest,
                                            intptr_t cid) {
   ASSERT(dest != kNoRegister);
@@ -3248,17 +3260,6 @@ void Assembler::LoadAllocationStatsAddress(Register dest,
       Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
   ldr(dest, Address(dest, table_offset));
   AddImmediate(dest, class_offset);
-}
-
-
-void Assembler::MaybeTraceAllocation(intptr_t cid,
-                                     Register temp_reg,
-                                     Label* trace) {
-  LoadAllocationStatsAddress(temp_reg, cid);
-  const uword state_offset = ClassHeapStats::state_offset();
-  ldr(temp_reg, Address(temp_reg, state_offset));
-  tst(temp_reg, Operand(ClassHeapStats::TraceAllocationMask()));
-  b(trace, NE);
 }
 
 
@@ -3298,6 +3299,7 @@ void Assembler::IncrementAllocationStatsWithSize(Register stats_addr_reg,
   add(TMP, TMP, Operand(size_reg));
   str(TMP, size_address);
 }
+#endif  // !PRODUCT
 
 
 void Assembler::TryAllocate(const Class& cls,

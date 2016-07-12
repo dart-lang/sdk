@@ -1845,6 +1845,7 @@ RawObject* Object::Allocate(intptr_t cls_id,
     Exceptions::Throw(thread, exception);
     UNREACHABLE();
   }
+#ifndef PRODUCT
   ClassTable* class_table = isolate->class_table();
   if (space == Heap::kNew) {
     class_table->UpdateAllocatedNew(cls_id, size);
@@ -1855,6 +1856,7 @@ RawObject* Object::Allocate(intptr_t cls_id,
   if (FLAG_profiler && cls.TraceAllocation(isolate)) {
     Profiler::SampleAllocation(thread, cls_id);
   }
+#endif  // !PRODUCT
   NoSafepointScope no_safepoint;
   InitializeObject(address, cls_id, size, (isolate == Dart::vm_isolate()));
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
@@ -2808,12 +2810,17 @@ void Class::DisableAllCHAOptimizedCode() {
 
 
 bool Class::TraceAllocation(Isolate* isolate) const {
+#ifndef PRODUCT
   ClassTable* class_table = isolate->class_table();
   return class_table->TraceAllocationFor(id());
+#else
+  return false;
+#endif
 }
 
 
 void Class::SetTraceAllocation(bool trace_allocation) const {
+#ifndef PRODUCT
   Isolate* isolate = Isolate::Current();
   const bool changed = trace_allocation != this->TraceAllocation(isolate);
   if (changed) {
@@ -2821,6 +2828,9 @@ void Class::SetTraceAllocation(bool trace_allocation) const {
     class_table->SetTraceAllocationFor(id(), trace_allocation);
     DisableAllocationStub();
   }
+#else
+  UNREACHABLE();
+#endif
 }
 
 

@@ -1243,6 +1243,23 @@ void Assembler::LeaveStubFrame() {
 }
 
 
+#ifndef PRODUCT
+void Assembler::MaybeTraceAllocation(intptr_t cid,
+                                     Register temp_reg,
+                                     Label* trace) {
+  ASSERT(cid > 0);
+  intptr_t state_offset = ClassTable::StateOffsetFor(cid);
+  LoadIsolate(temp_reg);
+  intptr_t table_offset =
+      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  ldr(temp_reg, Address(temp_reg, table_offset));
+  AddImmediate(temp_reg, temp_reg, state_offset);
+  ldr(temp_reg, Address(temp_reg, 0));
+  tsti(temp_reg, Immediate(ClassHeapStats::TraceAllocationMask()));
+  b(trace, NE);
+}
+
+
 void Assembler::UpdateAllocationStats(intptr_t cid,
                                       Heap::Space space) {
   ASSERT(cid > 0);
@@ -1282,22 +1299,7 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
   add(TMP, TMP, Operand(size_reg));
   str(TMP, Address(TMP2, size_field_offset));
 }
-
-
-void Assembler::MaybeTraceAllocation(intptr_t cid,
-                                     Register temp_reg,
-                                     Label* trace) {
-  ASSERT(cid > 0);
-  intptr_t state_offset = ClassTable::StateOffsetFor(cid);
-  LoadIsolate(temp_reg);
-  intptr_t table_offset =
-      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
-  ldr(temp_reg, Address(temp_reg, table_offset));
-  AddImmediate(temp_reg, temp_reg, state_offset);
-  ldr(temp_reg, Address(temp_reg, 0));
-  tsti(temp_reg, Immediate(ClassHeapStats::TraceAllocationMask()));
-  b(trace, NE);
-}
+#endif  // !PRODUCT
 
 
 void Assembler::TryAllocate(const Class& cls,

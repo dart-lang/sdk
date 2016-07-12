@@ -2569,6 +2569,7 @@ void Assembler::Bind(Label* label) {
 }
 
 
+#ifndef PRODUCT
 void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Register temp_reg,
                                      Label* trace,
@@ -2626,6 +2627,7 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
   intptr_t size_offset = ClassTable::SizeOffsetFor(cid, space == Heap::kNew);
   addl(Address(temp_reg, size_offset), Immediate(size_in_bytes));
 }
+#endif  // !PRODUCT
 
 
 void Assembler::TryAllocate(const Class& cls,

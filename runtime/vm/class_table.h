@@ -20,6 +20,7 @@ template<typename T> class MallocGrowableArray;
 class ObjectPointerVisitor;
 class RawClass;
 
+#ifndef PRODUCT
 template<typename T>
 class AllocStats {
  public:
@@ -142,7 +143,7 @@ class ClassHeapStats {
   intptr_t old_pre_new_gc_size_;
   intptr_t state_;
 };
-
+#endif  // !PRODUCT
 
 class ClassTable {
  public:
@@ -194,15 +195,16 @@ class ClassTable {
   void Validate();
 
   void Print();
-#ifndef PRODUCT
-  void PrintToJSONObject(JSONObject* object);
-#endif
 
   // Used by the generated code.
   static intptr_t table_offset() {
     return OFFSET_OF(ClassTable, table_);
   }
 
+  // Used by the generated code.
+  static intptr_t ClassOffsetFor(intptr_t cid);
+
+#ifndef PRODUCT
   // Called whenever a class is allocated in the runtime.
   void UpdateAllocatedNew(intptr_t cid, intptr_t size);
   void UpdateAllocatedOld(intptr_t cid, intptr_t size);
@@ -213,9 +215,6 @@ class ClassTable {
   void ResetCountersNew();
   // Called immediately after a new GC.
   void UpdatePromoted();
-
-  // Used by the generated code.
-  static intptr_t ClassOffsetFor(intptr_t cid);
 
   // Used by the generated code.
   ClassHeapStats** TableAddressFor(intptr_t cid);
@@ -234,6 +233,9 @@ class ClassTable {
 
   void AllocationProfilePrintJSON(JSONStream* stream);
   void ResetAllocationAccumulators();
+
+  void PrintToJSONObject(JSONObject* object);
+#endif  // !PRODUCT
 
   // Deallocates table copies. Do not call during concurrent access to table.
   void FreeOldTables();
@@ -257,14 +259,15 @@ class ClassTable {
   RawClass** table_;
   MallocGrowableArray<RawClass**>* old_tables_;
 
+#ifndef PRODUCT
   ClassHeapStats* class_heap_stats_table_;
-
   ClassHeapStats* predefined_class_heap_stats_table_;
 
   // May not have updated size for variable size classes.
   ClassHeapStats* PreliminaryStatsAt(intptr_t cid);
   void UpdateLiveOld(intptr_t cid, intptr_t size, intptr_t count = 1);
   void UpdateLiveNew(intptr_t cid, intptr_t size);
+#endif  // !PRODUCT
 
   DISALLOW_COPY_AND_ASSIGN(ClassTable);
 };

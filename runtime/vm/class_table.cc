@@ -19,9 +19,7 @@ DEFINE_FLAG(bool, print_class_table, false, "Print initial class table.");
 
 ClassTable::ClassTable()
     : top_(kNumPredefinedCids), capacity_(0), table_(NULL),
-      old_tables_(new MallocGrowableArray<RawClass**>()),
-      class_heap_stats_table_(NULL),
-      predefined_class_heap_stats_table_(NULL) {
+      old_tables_(new MallocGrowableArray<RawClass**>()) {
   if (Dart::vm_isolate() == NULL) {
     capacity_ = initial_capacity_;
     table_ = reinterpret_cast<RawClass**>(
@@ -39,17 +37,22 @@ ClassTable::ClassTable()
     table_[kForwardingCorpse] = vm_class_table->At(kForwardingCorpse);
     table_[kDynamicCid] = vm_class_table->At(kDynamicCid);
     table_[kVoidCid] = vm_class_table->At(kVoidCid);
+
+#ifndef PRODUCT
     class_heap_stats_table_ = reinterpret_cast<ClassHeapStats*>(
         calloc(capacity_, sizeof(ClassHeapStats)));  // NOLINT
     for (intptr_t i = 0; i < capacity_; i++) {
       class_heap_stats_table_[i].Initialize();
     }
+#endif  // !PRODUCT
   }
+#ifndef PRODUCT
   predefined_class_heap_stats_table_ = reinterpret_cast<ClassHeapStats*>(
         calloc(kNumPredefinedCids, sizeof(ClassHeapStats)));  // NOLINT
   for (intptr_t i = 0; i < kNumPredefinedCids; i++) {
     predefined_class_heap_stats_table_[i].Initialize();
   }
+#endif  // !PRODUCT
 }
 
 
@@ -57,9 +60,9 @@ ClassTable::ClassTable(ClassTable* original)
     : top_(original->top_),
       capacity_(original->top_),
       table_(original->table_),
-      old_tables_(NULL),
-      class_heap_stats_table_(NULL),
-      predefined_class_heap_stats_table_(NULL) {
+      old_tables_(NULL) {
+  NOT_IN_PRODUCT(class_heap_stats_table_ = NULL);
+  NOT_IN_PRODUCT(predefined_class_heap_stats_table_ = NULL);
 }
 
 
@@ -68,12 +71,12 @@ ClassTable::~ClassTable() {
     FreeOldTables();
     delete old_tables_;
     free(table_);
-    free(predefined_class_heap_stats_table_);
-    free(class_heap_stats_table_);
+    NOT_IN_PRODUCT(free(predefined_class_heap_stats_table_));
+    NOT_IN_PRODUCT(free(class_heap_stats_table_));
   } else {
     // This instance was a shallow copy. It doesn't own any memory.
-    ASSERT(predefined_class_heap_stats_table_ == NULL);
-    ASSERT(class_heap_stats_table_ == NULL);
+    NOT_IN_PRODUCT(ASSERT(predefined_class_heap_stats_table_ == NULL));
+    NOT_IN_PRODUCT(ASSERT(class_heap_stats_table_ == NULL));
   }
 }
 
@@ -85,6 +88,7 @@ void ClassTable::FreeOldTables() {
 }
 
 
+#ifndef PRODUCT
 void ClassTable::SetTraceAllocationFor(intptr_t cid, bool trace) {
   ClassHeapStats* stats = PreliminaryStatsAt(cid);
   stats->set_trace_allocation(trace);
@@ -95,6 +99,7 @@ bool ClassTable::TraceAllocationFor(intptr_t cid) {
   ClassHeapStats* stats = PreliminaryStatsAt(cid);
   return stats->trace_allocation();
 }
+#endif  // !PRODUCT
 
 
 void ClassTable::Register(const Class& cls) {
@@ -120,17 +125,19 @@ void ClassTable::Register(const Class& cls) {
       RawClass** new_table = reinterpret_cast<RawClass**>(
           malloc(new_capacity * sizeof(RawClass*)));  // NOLINT
       memmove(new_table, table_, capacity_ * sizeof(RawClass*));
+#ifndef PRODUCT
       ClassHeapStats* new_stats_table = reinterpret_cast<ClassHeapStats*>(
           realloc(class_heap_stats_table_,
                   new_capacity * sizeof(ClassHeapStats)));  // NOLINT
+#endif
       for (intptr_t i = capacity_; i < new_capacity; i++) {
         new_table[i] = NULL;
-        new_stats_table[i].Initialize();
+        NOT_IN_PRODUCT(new_stats_table[i].Initialize());
       }
       capacity_ = new_capacity;
       old_tables_->Add(table_);
       table_ = new_table;  // TODO(koda): This should use atomics.
-      class_heap_stats_table_ = new_stats_table;
+      NOT_IN_PRODUCT(class_heap_stats_table_ = new_stats_table);
     }
     ASSERT(top_ < capacity_);
     if (!Class::is_valid_id(top_)) {
@@ -156,17 +163,19 @@ void ClassTable::AllocateIndex(intptr_t index) {
     RawClass** new_table = reinterpret_cast<RawClass**>(
         malloc(new_capacity * sizeof(RawClass*)));  // NOLINT
     memmove(new_table, table_, capacity_ * sizeof(RawClass*));
+#ifndef PRODUCT
     ClassHeapStats* new_stats_table = reinterpret_cast<ClassHeapStats*>(
         realloc(class_heap_stats_table_,
                 new_capacity * sizeof(ClassHeapStats)));  // NOLINT
+#endif
     for (intptr_t i = capacity_; i < new_capacity; i++) {
       new_table[i] = NULL;
-      new_stats_table[i].Initialize();
+      NOT_IN_PRODUCT(new_stats_table[i].Initialize());
     }
     capacity_ = new_capacity;
     old_tables_->Add(table_);
     table_ = new_table;  // TODO(koda): This should use atomics.
-    class_heap_stats_table_ = new_stats_table;
+    NOT_IN_PRODUCT(class_heap_stats_table_ = new_stats_table);
     ASSERT(capacity_increment_ >= 1);
   }
 
@@ -252,7 +261,6 @@ void ClassTable::PrintToJSONObject(JSONObject* object) {
     }
   }
 }
-#endif  // PRODUCT
 
 
 void ClassHeapStats::Initialize() {
@@ -332,7 +340,6 @@ void ClassHeapStats::UpdatePromotedAfterNewGC() {
 }
 
 
-#ifndef PRODUCT
 void ClassHeapStats::PrintToJSONObject(const Class& cls,
                                        JSONObject* obj) const {
   if (!FLAG_support_service) {
@@ -369,7 +376,6 @@ void ClassHeapStats::PrintToJSONObject(const Class& cls,
   obj->AddProperty("promotedInstances", promoted_count);
   obj->AddProperty("promotedBytes", promoted_size);
 }
-#endif
 
 
 void ClassTable::UpdateAllocatedNew(intptr_t cid, intptr_t size) {
@@ -496,7 +502,6 @@ intptr_t ClassTable::SizeOffsetFor(intptr_t cid, bool is_new_space) {
 }
 
 
-#ifndef PRODUCT
 void ClassTable::AllocationProfilePrintJSON(JSONStream* stream) {
   if (!FLAG_support_service) {
     return;
@@ -538,7 +543,6 @@ void ClassTable::AllocationProfilePrintJSON(JSONStream* stream) {
     }
   }
 }
-#endif
 
 
 void ClassTable::ResetAllocationAccumulators() {
@@ -566,6 +570,7 @@ void ClassTable::UpdateLiveNew(intptr_t cid, intptr_t size) {
   ASSERT(size >= 0);
   stats->post_gc.AddNew(size);
 }
+#endif  // !PRODUCT
 
 
 }  // namespace dart

@@ -124,14 +124,14 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       new_addr = ForwardedAddr(header);
     } else {
       intptr_t size = raw_obj->Size();
-      intptr_t cid = raw_obj->GetClassId();
-      ClassTable* class_table = isolate()->class_table();
+      NOT_IN_PRODUCT(intptr_t cid = raw_obj->GetClassId());
+      NOT_IN_PRODUCT(ClassTable* class_table = isolate()->class_table());
       // Check whether object should be promoted.
       if (scavenger_->survivor_end_ <= raw_addr) {
         // Not a survivor of a previous scavenge. Just copy the object into the
         // to space.
         new_addr = scavenger_->TryAllocate(size);
-        class_table->UpdateLiveNew(cid, size);
+        NOT_IN_PRODUCT(class_table->UpdateLiveNew(cid, size));
       } else {
         // TODO(iposva): Experiment with less aggressive promotion. For example
         // a coin toss determines if an object is promoted or whether it should
@@ -146,11 +146,11 @@ class ScavengerVisitor : public ObjectPointerVisitor {
           // be traversed later.
           scavenger_->PushToPromotedStack(new_addr);
           bytes_promoted_ += size;
-          class_table->UpdateAllocatedOld(cid, size);
+          NOT_IN_PRODUCT(class_table->UpdateAllocatedOld(cid, size));
         } else {
           // Promotion did not succeed. Copy into the to space instead.
           new_addr = scavenger_->TryAllocate(size);
-          class_table->UpdateLiveNew(cid, size);
+          NOT_IN_PRODUCT(class_table->UpdateLiveNew(cid, size));
         }
       }
       // During a scavenge we always succeed to at least copy all of the

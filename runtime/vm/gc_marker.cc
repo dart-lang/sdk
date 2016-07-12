@@ -666,6 +666,7 @@ class MarkTask : public ThreadPool::Task {
 
 template<class MarkingVisitorType>
 void GCMarker::FinalizeResultsFrom(MarkingVisitorType* visitor) {
+#ifndef PRODUCT
   {
     MutexLocker ml(&stats_mutex_);
     marked_bytes_ += visitor->marked_bytes();
@@ -680,6 +681,7 @@ void GCMarker::FinalizeResultsFrom(MarkingVisitorType* visitor) {
       }
     }
   }
+#endif  // !PRODUCT
   visitor->Finalize();
 }
 
