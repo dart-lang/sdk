@@ -454,6 +454,10 @@ DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 1) {
 
 
 DEFINE_NATIVE_ENTRY(VMService_spawnUriNotify, 2) {
+#ifndef PRODUCT
+  if (!FLAG_support_service) {
+    return Object::null();
+  }
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, result, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, token, arguments->NativeArgAt(1));
 
@@ -482,8 +486,9 @@ DEFINE_NATIVE_ENTRY(VMService_spawnUriNotify, 2) {
     spawn_event.set_spawn_error(&String::Cast(result));
     Service::HandleEvent(&spawn_event);
   }
-
+#else
   return Object::null();
+#endif
 }
 
 }  // namespace dart
