@@ -246,6 +246,10 @@ vm/optimized_guarded_field_isolates_test: Skip # Issue #26373
 issue23244_test: Skip # Issue #26373
 
 [ $hot_reload ]
+bound_closure_equality_test: SkipByDesign # Closure identity
+cha_deopt1_test: SkipByDesign # Requires deferred libraries
+cha_deopt2_test: SkipByDesign # Requires deferred libraries
+cha_deopt3_test: SkipByDesign # Requires deferred libraries
 deferred_closurize_load_library_test: SkipByDesign # Requires deferred libraries
 deferred_constant_list_test: SkipByDesign # Requires deferred libraries
 deferred_constraints_constants_test: SkipByDesign # Requires deferred libraries
@@ -263,5 +267,6 @@ deferred_shadow_load_library_test: SkipByDesign # Requires deferred libraries
 deferred_shared_and_unshared_classes_test: SkipByDesign # Requires deferred libraries
 deferred_static_seperate_test: SkipByDesign # Requires deferred libraries
 deferred_type_dependency_test: SkipByDesign # Requires deferred libraries
+issue_1751477_test: SkipByDesign # Requires deferred libraries
 regress_23408_test: SkipByDesign # Requires deferred libraries
 tearoff_basic_test: SkipByDesign # Requires deferred libraries
