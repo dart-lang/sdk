@@ -116,8 +116,13 @@ class Server {
   }
 
   void _addOrigin(String host, String port) {
-    String origin = 'http://$host:$port';
-    _allowedOrigins.add(origin);
+    if (port == null) {
+      String origin = 'http://$host';
+      _allowedOrigins.add(origin);
+    } else {
+      String origin = 'http://$host:$port';
+      _allowedOrigins.add(origin);
+    }
   }
 
   bool _isAllowedOrigin(String origin) {
@@ -216,9 +221,10 @@ class Server {
       // Add the numeric ip and host name to our allowed origins.
       _addOrigin(ip, port);
       _addOrigin(_server.address.host.toString(), port);
-      // Explicitly add localhost and 127.0.0.1.
-      _addOrigin('localhost', port);
-      _addOrigin('127.0.0.1', port);
+      // Explicitly add localhost and 127.0.0.1 on any port (necessary for
+      // adb port forwarding).
+      _addOrigin('127.0.0.1', null);
+      _addOrigin('localhost', null);
       if (_displayMessages) {
         print('Observatory listening on http://$ip:$port');
       }
