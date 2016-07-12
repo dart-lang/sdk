@@ -157,11 +157,11 @@ Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t04: RuntimeEr
 [ $noopt || $compiler == precompiler || $mode == product ]
 Language/Metadata/*: SkipByDesign # Uses dart:mirrors
 Language/Expressions/Null/instance_of_class_null_t01: Skip # Uses dart:mirrors
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01: Skip # Eager loading
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: Skip # Eager loading
 
 [ $runtime == dart_precompiled || $runtime == dart_app ]
 LibTest/isolate/Isolate/spawnUri*: Skip # Isolate.spawnUri
-Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01: CompileTimeError # spawnUri
-Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: RuntimeError # spawnUri
 Language/Libraries_and_Scripts/Imports/deferred_import_t02: RuntimeError # Unsupported
 
 [ $noopt || $compiler == precompiler ]

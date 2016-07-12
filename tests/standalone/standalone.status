@@ -319,7 +319,7 @@ typed_array_int64_uint64_test: Skip # Issue #26376
 oom_error_stacktrace_test: Skip # Issue #26377
 out_of_memory_test: Skip # Issue #26377
 
-[ $runtime == dart_precompiled ]
+[ $runtime == vm || $runtime == dart_app || $runtime == dart_precompiled ]
 deferred_transitive_import_error_test: Skip # Contains intentional errors.
 
 [ $hot_reload ]
