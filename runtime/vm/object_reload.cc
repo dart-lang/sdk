@@ -220,7 +220,7 @@ void Class::ReplaceEnum(const Class& old_enum) const {
 
   // Grab 'values' from |old_enum|.
   const Field& old_enum_values_field = Field::Handle(
-      old_enum.LookupStaticField(Symbols::Values()));
+      old_enum.LookupStaticFieldAllowPrivate(Symbols::Values()));
   ASSERT(!old_enum_values_field.IsNull());
   const Array& old_enum_values =
       Array::Handle(Array::RawCast(old_enum_values_field.StaticValue()));
@@ -236,7 +236,7 @@ void Class::ReplaceEnum(const Class& old_enum) const {
 
   // Grab values from |this|.
   const Field& enum_values_field = Field::Handle(
-      LookupStaticField(Symbols::Values()));
+      LookupStaticFieldAllowPrivate(Symbols::Values()));
   ASSERT(!enum_values_field.IsNull());
   Array& enum_values =
       Array::Handle(Array::RawCast(enum_values_field.StaticValue()));
@@ -290,7 +290,7 @@ void Class::ReplaceEnum(const Class& old_enum) const {
                                           enum_class_name.Length() + 1);
       ASSERT(!enum_field_name.IsNull());
       // Grab the static field.
-      enum_field = LookupStaticField(enum_field_name);
+      enum_field = LookupStaticFieldAllowPrivate(enum_field_name);
       ASSERT(!enum_field.IsNull());
       // Use old value with updated index.
       enum_field.SetStaticValue(Instance::Cast(enum_value), true);
