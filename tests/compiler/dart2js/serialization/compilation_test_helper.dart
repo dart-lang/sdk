@@ -6,7 +6,7 @@ library dart2js.serialization_compilation_test;
 
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/filenames.dart';
 import '../memory_compiler.dart';
 import 'helper.dart';
@@ -44,11 +44,15 @@ Future compile(
   print('compile ${id}${testDescription}');
   print('------------------------------------------------------------------');
   OutputCollector outputCollector = new OutputCollector();
+  List<String> options = [];
+  if (test.checkedMode) {
+    options.add(Flags.enableCheckedMode);
+  }
   await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: sourceFiles,
       resolutionInputs: resolutionInputs,
-      options: [],
+      options: options,
       outputProvider: outputCollector);
   if (verbose) {
     print(outputCollector.getOutput('', 'js'));

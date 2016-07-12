@@ -1746,7 +1746,8 @@ class SsaBuilder extends ast.Visitor
   }
 
   HGraph buildCheckedSetter(VariableElement field) {
-    openFunction(field, field.node);
+    ResolvedAst resolvedAst = field.resolvedAst;
+    openFunction(field, resolvedAst.node);
     HInstruction thisInstruction = localsHandler.readThis();
     // Use dynamic type because the type computed by the inferrer is
     // narrowed to the type annotation.

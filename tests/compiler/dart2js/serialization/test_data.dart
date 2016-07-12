@@ -576,6 +576,24 @@ class C {
 test() => new C() == null;
 ''',
   }),
+
+  const Test('Checked setter', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  test();
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+class C {
+  set foo(int i) {}
+}
+
+test() => new C().foo = 0;
+''',
+  }, checkedMode: true),
 ];
 
 class Test {
@@ -587,6 +605,7 @@ class Test {
   final int expectedWarningCount;
   final int expectedHintCount;
   final int expectedInfoCount;
+  final bool checkedMode;
 
   const Test(
       this.name,
@@ -596,5 +615,6 @@ class Test {
       this.expectedErrorCount: 0,
       this.expectedWarningCount: 0,
       this.expectedHintCount: 0,
-      this.expectedInfoCount: 0});
+      this.expectedInfoCount: 0,
+      this.checkedMode: false});
 }

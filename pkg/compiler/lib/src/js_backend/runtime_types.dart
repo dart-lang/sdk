@@ -150,7 +150,7 @@ class _RuntimeTypes implements RuntimeTypes {
   @override
   void registerRtiDependency(Element element, Element dependency) {
     // We're not dealing with typedef for now.
-    if (!element.isClass || !dependency.isClass) return;
+    if (element == null || !element.isClass || !dependency.isClass) return;
     Set<ClassElement> classes =
         rtiDependencies.putIfAbsent(element, () => new Set<ClassElement>());
     classes.add(dependency);

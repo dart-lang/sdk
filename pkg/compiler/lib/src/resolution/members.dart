@@ -370,11 +370,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   TypeResult visitTypeAnnotation(TypeAnnotation node) {
-    DartType type = resolveTypeAnnotation(node);
-    if (inCheckContext) {
-      registry.registerTypeUse(new TypeUse.checkedModeCheck(type));
-    }
-    return new TypeResult(type);
+    return new TypeResult(resolveTypeAnnotation(node));
   }
 
   bool isNamedConstructor(Send node) => node.receiver != null;
@@ -457,11 +453,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             compiler.resolver.constantCompiler.compileConstant(parameter);
       });
     });
-    if (inCheckContext) {
-      functionSignature.forEachParameter((ParameterElement element) {
-        registry.registerTypeUse(new TypeUse.checkedModeCheck(element.type));
-      });
-    }
+    functionSignature.forEachParameter((ParameterElement element) {
+      registry.registerTypeUse(new TypeUse.checkedModeCheck(element.type));
+    });
   }
 
   ResolutionResult visitAssert(Assert node) {
@@ -4061,9 +4055,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     DartType type = typeResolver.resolveTypeAnnotation(this, node,
         malformedIsError: malformedIsError,
         deferredIsMalformed: deferredIsMalformed);
-    if (inCheckContext) {
-      registry.registerTypeUse(new TypeUse.checkedModeCheck(type));
-    }
+    registry.registerTypeUse(new TypeUse.checkedModeCheck(type));
     return type;
   }
 
