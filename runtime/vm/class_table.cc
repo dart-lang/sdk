@@ -20,6 +20,8 @@ DEFINE_FLAG(bool, print_class_table, false, "Print initial class table.");
 ClassTable::ClassTable()
     : top_(kNumPredefinedCids), capacity_(0), table_(NULL),
       old_tables_(new MallocGrowableArray<RawClass**>()) {
+  NOT_IN_PRODUCT(class_heap_stats_table_ = NULL);
+  NOT_IN_PRODUCT(predefined_class_heap_stats_table_ = NULL);
   if (Dart::vm_isolate() == NULL) {
     capacity_ = initial_capacity_;
     table_ = reinterpret_cast<RawClass**>(
