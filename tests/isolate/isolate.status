@@ -213,3 +213,4 @@ deferred_in_isolate_test: SkipByDesign # Requires deferred libraries
 deferred_in_isolate2_test: SkipByDesign # Requires deferred libraries
 function_send_test: SkipByDesign # Closure identity
 issue_21398_parent_isolate2_test: SkipByDesign # Requires deferred libraries
+message3_test/fun: SkipByDesign # Closure identity

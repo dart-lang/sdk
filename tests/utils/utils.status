@@ -20,3 +20,7 @@ dummy_compiler_test: Slow, Pass
 [ $compiler == dart2js && $cps_ir && $host_checked ]
 dummy_compiler_test: Crash # Issue 24485
 recursive_import_test: Crash # Issue 24485
+
+[ $hot_reload ]
+recursive_import_test: Slow # Running dart2js under frequent reloads is slow.
+dummy_compiler_test: Slow # Running dart2js under frequent reloads is slow.

@@ -325,3 +325,12 @@ deferred_transitive_import_error_test: Skip # Contains intentional errors.
 [ $hot_reload ]
 deferred_transitive_import_error_test: SkipByDesign # Uses deferred imports.
 package/*: SkipByDesign # Launches VMs in interesting ways.
+
+[ $builder_tag == no_ipv6 ]
+io/http_bind_test: Skip
+io/raw_datagram_socket_test: Skip
+io/socket_source_address_test: Skip
+io/socket_bind_test: Skip
+io/http_proxy_advanced_test: Skip
+io/http_ipv6_test: Skip
+io/socket_ipv6_test: Skip
