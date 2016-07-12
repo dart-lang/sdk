@@ -442,7 +442,7 @@ class FullSnapshotWriter {
   intptr_t isolate_snapshot_size_;
   ForwardList* forward_list_;
   InstructionsWriter* instructions_writer_;
-  Array& scripts_;
+  Array& token_streams_;
   Array& saved_symbol_table_;
   Array& new_vm_symbol_table_;
 

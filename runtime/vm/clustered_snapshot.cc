@@ -4810,27 +4810,27 @@ void Deserializer::ReadFullSnapshot(ObjectStore* object_store) {
 }
 
 
-// An object visitor which will iterate over all the script objects in the heap
-// and either count them or collect them into an array. This is used during
-// full snapshot generation of the VM isolate to write out all script
-// objects and their accompanying token streams.
-class ScriptVisitor : public ObjectVisitor {
+// An object visitor which will iterate over all the token stream objects in the
+// heap and either count them or collect them into an array. This is used during
+// full snapshot generation of the VM isolate to write out all token streams so
+// they will be shared across all isolates.
+class SnapshotTokenStreamVisitor : public ObjectVisitor {
  public:
-  explicit ScriptVisitor(Thread* thread) :
+  explicit SnapshotTokenStreamVisitor(Thread* thread) :
       objHandle_(Object::Handle(thread->zone())),
       count_(0),
-      scripts_(NULL) {}
+      token_streams_(NULL) {}
 
-  ScriptVisitor(Thread* thread, const Array* scripts) :
+  SnapshotTokenStreamVisitor(Thread* thread, const Array* token_streams) :
       objHandle_(Object::Handle(thread->zone())),
       count_(0),
-      scripts_(scripts) {}
+      token_streams_(token_streams) {}
 
   void VisitObject(RawObject* obj) {
-    if (obj->IsScript()) {
-      if (scripts_ != NULL) {
+    if (obj->IsTokenStream()) {
+      if (token_streams_ != NULL) {
         objHandle_ = obj;
-        scripts_->SetAt(count_, objHandle_);
+        token_streams_->SetAt(count_, objHandle_);
       }
       count_ += 1;
     }
@@ -4841,7 +4841,7 @@ class ScriptVisitor : public ObjectVisitor {
  private:
   Object& objHandle_;
   intptr_t count_;
-  const Array* scripts_;
+  const Array* token_streams_;
 };
 
 
@@ -4858,7 +4858,7 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
       vm_isolate_snapshot_size_(0),
       isolate_snapshot_size_(0),
       instructions_writer_(instructions_writer),
-      scripts_(Array::Handle(zone())),
+      token_streams_(Array::Handle(zone())),
       saved_symbol_table_(Array::Handle(zone())),
       new_vm_symbol_table_(Array::Handle(zone())) {
   ASSERT(isolate_snapshot_buffer_ != NULL);
@@ -4881,16 +4881,16 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
     NOT_IN_PRODUCT(TimelineDurationScope tds(thread(),
         Timeline::GetIsolateStream(), "PrepareNewVMIsolate"));
 
-    // Collect all the script objects and their accompanying token stream
-    // objects into an array so that we can write it out as part of the VM
-    // isolate snapshot. We first count the number of script objects, allocate
-    // an array and then fill it up with the script objects.
-    ScriptVisitor scripts_counter(thread());
-    heap()->IterateOldObjects(&scripts_counter);
-    Dart::vm_isolate()->heap()->IterateOldObjects(&scripts_counter);
-    intptr_t count = scripts_counter.count();
-    scripts_ = Array::New(count, Heap::kOld);
-    ScriptVisitor script_visitor(thread(), &scripts_);
+    // Collect all the token stream objects into an array so that we can write
+    // it out as part of the VM isolate snapshot. We first count the number of
+    // token streams, allocate an array and then fill it up with the token
+    // streams.
+    SnapshotTokenStreamVisitor token_streams_counter(thread());
+    heap()->IterateOldObjects(&token_streams_counter);
+    Dart::vm_isolate()->heap()->IterateOldObjects(&token_streams_counter);
+    intptr_t count = token_streams_counter.count();
+    token_streams_ = Array::New(count, Heap::kOld);
+    SnapshotTokenStreamVisitor script_visitor(thread(), &token_streams_);
     heap()->IterateOldObjects(&script_visitor);
     Dart::vm_isolate()->heap()->IterateOldObjects(&script_visitor);
     ASSERT(script_visitor.count() == count);
@@ -4917,7 +4917,7 @@ FullSnapshotWriter::~FullSnapshotWriter() {
     saved_symbol_table_ = Array::null();
   }
   new_vm_symbol_table_ = Array::null();
-  scripts_ = Array::null();
+  token_streams_ = Array::null();
 }
 
 
@@ -4938,11 +4938,11 @@ intptr_t FullSnapshotWriter::WriteVmIsolateSnapshot() {
   /*
    * Now Write out the following
    * - the symbol table
-   * - all the scripts and token streams for these scripts
+   * - all the token streams
    * - the stub code (precompiled snapshots only)
    **/
   intptr_t num_objects = serializer.WriteVMSnapshot(new_vm_symbol_table_,
-                                                    scripts_);
+                                                    token_streams_);
   serializer.FillHeader(serializer.kind());
 
   vm_isolate_snapshot_size_ = serializer.bytes_written();
