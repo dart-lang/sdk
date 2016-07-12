@@ -588,6 +588,152 @@ class C2 implements A, B {
 ''');
   }
 
+  void test_constructors_inferFromArguments() {
+    var unit = checkFile('''
+class C<T> {
+  T t;
+  C(this.t);
+}
+
+var x = /*info:INFERRED_TYPE_ALLOCATION*/new C(42);
+
+// Don't infer if we had a context type.
+num y;
+C<int> c_int = /*info:INFERRED_TYPE_ALLOCATION*/new C(/*info:DOWN_CAST_IMPLICIT*/y);
+
+// These hints are not reported because we resolve with a null error listener.
+C<num> c_num = /*pass should be info:INFERRED_TYPE_ALLOCATION*/new C(123);
+C<num> c_num2 = (/*pass should be info:INFERRED_TYPE_ALLOCATION*/new C(456))
+    ..t = /*error:INVALID_ASSIGNMENT*/1.0;
+
+// Down't infer from explicit dynamic.
+var c_dynamic = new C<dynamic>(42);
+
+main() {
+  x.t = /*error:INVALID_ASSIGNMENT*/'hello';
+}
+''');
+    var vars = unit.topLevelVariables;
+    expect(vars[0].type.toString(), 'C<int>');
+    expect(vars.firstWhere((e) => e.name == 'c_int').type.toString(), 'C<int>');
+    expect(vars.firstWhere((e) => e.name == 'c_num').type.toString(), 'C<num>');
+    expect(vars.firstWhere((e) => e.name == 'c_dynamic').type.toString(),
+        'C<dynamic>');
+  }
+
+  void test_constructors_inferFromArguments_const() {
+    var unit = checkFile('''
+class C<T> {
+  final T t;
+  const C(this.t);
+}
+
+var x = /*info:INFERRED_TYPE_ALLOCATION*/const C(42);
+''');
+    expect(unit.topLevelVariables[0].type.toString(), 'C<int>');
+  }
+
+  void test_constructors_inferFromArguments_factory() {
+    var unit = checkFile('''
+class C<T> {
+  T t;
+
+  C._();
+
+  factory C(T t) {
+    var x = new C<T>._();
+    x.t = t;
+    return x;
+  }
+}
+
+var x = /*info:INFERRED_TYPE_ALLOCATION*/new C(42);
+
+main() {
+  x.t = /*error:INVALID_ASSIGNMENT*/'hello';
+}
+''');
+    expect(unit.topLevelVariables[0].type.toString(), 'C<int>');
+  }
+
+  void test_constructors_inferFromArguments_named() {
+    var unit = checkFile('''
+class C<T> {
+  T t;
+  C.named(List<T> t);
+}
+
+var x = /*info:INFERRED_TYPE_ALLOCATION*/new C.named(<int>[]);
+
+main() {
+  x.t = /*error:INVALID_ASSIGNMENT*/'hello';
+}
+''');
+    expect(unit.topLevelVariables[0].type.toString(), 'C<int>');
+  }
+
+  void test_constructors_inferFromArguments_namedFactory() {
+    var unit = checkFile('''
+class C<T> {
+  T t;
+  C();
+
+  factory C.named(T t) {
+    var x = new C<T>();
+    x.t = t;
+    return x;
+  }
+}
+
+var x = /*info:INFERRED_TYPE_ALLOCATION*/new C.named(42);
+
+main() {
+  x.t = /*error:INVALID_ASSIGNMENT*/'hello';
+}
+''');
+    expect(unit.topLevelVariables[0].type.toString(), 'C<int>');
+  }
+
+  void test_constructors_inferFromArguments_redirecting() {
+    var unit = checkFile('''
+class C<T> {
+  T t;
+  C(this.t);
+  C.named(List<T> t) : this(t[0]);
+}
+
+var x = /*info:INFERRED_TYPE_ALLOCATION*/new C.named(<int>[42]);
+
+main() {
+  x.t = /*error:INVALID_ASSIGNMENT*/'hello';
+}
+''');
+    expect(unit.topLevelVariables[0].type.toString(), 'C<int>');
+  }
+
+  void test_constructors_inferFromArguments_redirectingFactory() {
+    var unit = checkFile('''
+abstract class C<T> {
+  T get t;
+  void set t(T x);
+
+  factory C(T t) = CImpl<T>;
+}
+
+class CImpl<T> implements C<T> {
+  T t;
+  CImpl(this.t);
+}
+
+var x = /*info:INFERRED_TYPE_ALLOCATION*/new C(42);
+
+main() {
+  x.t = /*error:INVALID_ASSIGNMENT*/'hello';
+}
+''');
+    expect(unit.topLevelVariables[0].type.toString(), 'C<int>');
+  }
+
   void test_doNotInferOverriddenFieldsThatExplicitlySayDynamic_infer() {
     checkFile('''
 class A {
@@ -1073,8 +1219,8 @@ void main() {
     A<int, String> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new D.named(
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3);
   }
-  { // Currently we only allow variable constraints.  Test that we reject.
-    A<C<int>, String> a0 = /*error:STATIC_TYPE_ERROR*/new E("hello");
+  {
+    A<C<int>, String> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new E("hello");
   }
   { // Check named and optional arguments
     A<int, String> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new F(3, "hello",

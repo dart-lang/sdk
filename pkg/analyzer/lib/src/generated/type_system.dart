@@ -167,8 +167,7 @@ class StrongTypeSystemImpl extends TypeSystem {
     }
 
     // Try to infer and instantiate the resulting type.
-    var resultType =
-        inferringTypeSystem._infer(fnType, allowPartialSolution: false);
+    var resultType = inferringTypeSystem._infer(fnType);
 
     // If the instantiation failed (because some type variable constraints
     // could not be solved, in other words, we could not find a valid subtype),
@@ -240,14 +239,7 @@ class StrongTypeSystemImpl extends TypeSystem {
           argumentTypes[i], correspondingParameterTypes[i]);
     }
 
-    // We are okay inferring some type variables and not others.
-    //
-    // This lets our return type be as precise as possible, which will help
-    // make any type information resulting from it more precise.
-    //
-    // This is simply a heuristic: the code is incorrect, and we'll issue an
-    // error on this call, to indicate that types don't match.
-    return inferringTypeSystem._infer(fnType, allowPartialSolution: true);
+    return inferringTypeSystem._infer(fnType);
   }
 
   /**
@@ -1282,7 +1274,7 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
 
   /// Given the constraints that were given by calling [isSubtypeOf], find the
   /// instantiation of the generic function that satisfies these constraints.
-  FunctionType _infer(FunctionType fnType, {bool allowPartialSolution: false}) {
+  FunctionType _infer(FunctionType fnType) {
     List<TypeParameterType> fnTypeParams =
         TypeParameterTypeImpl.getTypes(fnType.typeFormals);
 
@@ -1335,16 +1327,8 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
               bound.upper.substitute2(inferredTypes, fnTypeParams)) ||
           !isSubtypeOf(bound.lower.substitute2(inferredTypes, fnTypeParams),
               inferredTypes[i])) {
-        // Unless a partial solution was requested, bail.
-        if (!allowPartialSolution) {
-          return null;
-        }
-
-        inferredTypes[i] = DynamicTypeImpl.instance;
-        if (typeParam.element.bound != null) {
-          inferredTypes[i] =
-              typeParam.element.bound.substitute2(inferredTypes, fnTypeParams);
-        }
+        // Inference failed. Bail.
+        return null;
       }
     }
 

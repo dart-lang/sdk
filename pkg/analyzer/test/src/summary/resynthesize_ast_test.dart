@@ -157,6 +157,51 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
+  void test_constructors_inferFromArguments() {
+    // TODO(jmesserly): does this need to be implemented in AST summaries?
+    // The test might need a change as well to not be based on local variable
+    // types, which don't seem to be available.
+    super.test_constructors_inferFromArguments();
+  }
+
+  @override
+  @failingTest
+  void test_constructors_inferFromArguments_const() {
+    super.test_constructors_inferFromArguments_const();
+  }
+
+  @override
+  @failingTest
+  void test_constructors_inferFromArguments_factory() {
+    super.test_constructors_inferFromArguments_factory();
+  }
+
+  @override
+  @failingTest
+  void test_constructors_inferFromArguments_named() {
+    super.test_constructors_inferFromArguments_named();
+  }
+
+  @override
+  @failingTest
+  void test_constructors_inferFromArguments_namedFactory() {
+    super.test_constructors_inferFromArguments_namedFactory();
+  }
+
+  @override
+  @failingTest
+  void test_constructors_inferFromArguments_redirecting() {
+    super.test_constructors_inferFromArguments_redirecting();
+  }
+
+  @override
+  @failingTest
+  void test_constructors_inferFromArguments_redirectingFactory() {
+    super.test_constructors_inferFromArguments_redirectingFactory();
+  }
+
+  @override
+  @failingTest
   void test_genericMethods_inferJSBuiltin() {
     super.test_genericMethods_inferJSBuiltin();
   }

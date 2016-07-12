@@ -6723,6 +6723,16 @@ class ResolverVisitor extends ScopedVisitor {
       if (contextType is InterfaceType &&
           contextType.typeArguments != null &&
           contextType.typeArguments.length > 0) {
+        // TODO(jmesserly): for generic methods we use the
+        // StrongTypeSystemImpl.inferGenericFunctionCall, which appears to
+        // be a tad more powerful than matchTypes.
+        //
+        // For example it can infer this case:
+        //
+        //     class E<S, T> extends A<C<S>, T> { ... }
+        //     A<C<int>, String> a0 = /*infer<int, String>*/new E("hello");
+        //
+        // See _inferArgumentTypesFromContext in this file for use of it.
         List<DartType> targs =
             inferenceContext.matchTypes(classTypeName.type, contextType);
         if (targs != null && targs.any((t) => !t.isDynamic)) {

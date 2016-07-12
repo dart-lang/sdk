@@ -798,7 +798,6 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
         A<int, String> a1 = new D.named(3);
       }
       void test8() {
-        // Currently we only allow variable constraints.  Test that we reject.
         A<C<int>, String> a0 = new E("hello");
       }
       void test9() { // Check named and optional arguments
@@ -921,7 +920,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     {
       List<Statement> statements =
           AstFinder.getStatementsInTopLevelFunction(unit, "test8");
-      hasType(assertEOf([_isDynamic, _isDynamic]), rhs(statements[0]));
+      hasType(assertEOf([_isInt, _isString]), rhs(statements[0]));
     }
 
     {
