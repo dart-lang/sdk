@@ -283,7 +283,7 @@ class LocalsHandler {
         (LocalVariableElement from, BoxFieldElement to) {
       // The [from] can only be a parameter for function-scopes and not
       // loop scopes.
-      if (from.isParameter && !element.isGenerativeConstructorBody) {
+      if (from.isRegularParameter && !element.isGenerativeConstructorBody) {
         // Now that the redirection is set up, the update to the local will
         // write the parameter value into the box.
         // Store the captured parameter in the box. Get the current value

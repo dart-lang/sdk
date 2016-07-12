@@ -277,7 +277,7 @@ class PlaceholderCollector extends Visitor {
       }
       return false;
     }
-    if (element.isParameter &&
+    if (element.isRegularParameter &&
         !isTypedefParameter(element) &&
         isNamedOptionalParameter()) {
       currentFunctionScope.registerParameter(node);

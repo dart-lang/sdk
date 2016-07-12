@@ -611,7 +611,7 @@ class ParameterSerializer implements ElementSerializer {
   const ParameterSerializer();
 
   SerializedElementKind getSerializedKind(Element element) {
-    if (element.isParameter) {
+    if (element.isRegularParameter) {
       return SerializedElementKind.PARAMETER;
     } else if (element.isInitializingFormal) {
       return SerializedElementKind.INITIALIZING_FORMAL;

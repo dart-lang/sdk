@@ -660,7 +660,7 @@ class JavaScriptBackend extends Backend {
   }
 
   bool usedByBackend(Element element) {
-    if (element.isParameter ||
+    if (element.isRegularParameter ||
         element.isInitializingFormal ||
         element.isField) {
       if (usedByBackend(element.enclosingElement)) return true;
@@ -669,7 +669,7 @@ class JavaScriptBackend extends Backend {
   }
 
   bool invokedReflectively(Element element) {
-    if (element.isParameter || element.isInitializingFormal) {
+    if (element.isRegularParameter || element.isInitializingFormal) {
       ParameterElement parameter = element;
       if (invokedReflectively(parameter.functionDeclaration)) return true;
     }

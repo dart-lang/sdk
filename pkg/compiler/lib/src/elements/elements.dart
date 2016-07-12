@@ -254,17 +254,21 @@ abstract class Element implements Entity {
   /// explicit getter and/or setter.
   bool get isAbstractField;
 
-  /// `true` if this element is formal parameter either from a constructor,
-  /// method, or typedef declaration or from an inlined function typed
+  /// `true` if this element is a formal parameter from a constructor,
+  /// a method, a typedef declaration, or from an inlined function typed
   /// parameter.
   ///
   /// This property is `false` if this element is an initializing formal.
   /// See [isInitializingFormal].
-  bool get isParameter;
+  bool get isRegularParameter;
 
   /// `true` if this element is an initializing formal of constructor, that
   /// is a formal of the form `this.foo`.
   bool get isInitializingFormal;
+
+  /// `true` if this element is a formal parameter, either regular or
+  /// initializing.
+  bool get isParameter => isRegularParameter || isInitializingFormal;
 
   /// `true` if this element represents a resolution error.
   bool get isError;

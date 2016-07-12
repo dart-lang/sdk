@@ -344,7 +344,7 @@ abstract class ElementTypeInformation extends TypeInformation {
   bool disableInferenceForClosures = true;
 
   factory ElementTypeInformation(Element element, TypeInformationSystem types) {
-    if (element.isParameter || element.isInitializingFormal) {
+    if (element.isRegularParameter || element.isInitializingFormal) {
       ParameterElement parameter = element;
       if (parameter.functionDeclaration.isInstanceMember) {
         return new ParameterTypeInformation._instanceMember(element, types);
@@ -601,7 +601,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
   bool isTearOffClosureParameter = false;
 
   void tagAsTearOffClosureParameter(TypeGraphInferrerEngine inferrer) {
-    assert(element.isParameter);
+    assert(element.isRegularParameter);
     isTearOffClosureParameter = true;
     // We have to add a flow-edge for the default value (if it exists), as we
     // might not see all call-sites and thus miss the use of it.

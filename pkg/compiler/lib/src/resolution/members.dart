@@ -112,7 +112,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   bool isPotentiallyMutableTarget(Element target) {
     if (target == null) return false;
-    return (target.isVariable || target.isParameter) &&
+    return (target.isVariable || target.isRegularParameter) &&
         !(target.isFinal || target.isConst);
   }
 
@@ -879,7 +879,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   /// Compute the [AccessSemantics] corresponding to a local access of [target].
   AccessSemantics computeLocalAccessSemantics(
       Spannable node, LocalElement target) {
-    if (target.isParameter) {
+    if (target.isRegularParameter) {
       if (target.isFinal || target.isConst) {
         return new StaticAccess.finalParameter(target);
       } else {
@@ -2559,7 +2559,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult handleLocalUpdate(Send node, Name name, Element element) {
     AccessSemantics semantics;
     ErroneousElement error;
-    if (element.isParameter) {
+    if (element.isRegularParameter) {
       if (element.isFinal) {
         error = reportAndCreateErroneousElement(node.selector, name.text,
             MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER, {'name': name});
