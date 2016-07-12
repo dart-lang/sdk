@@ -192,21 +192,13 @@ Language/Expressions/Object_Identity/double_t02: RuntimeError # Issue #26374
 LibTest/typed_data/Float32x4/operator_division_A01_t02: RuntimeError # Issue #26675
 
 [ $hot_reload ]
-LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Pass, Crash
-LibTest/collection/HashSet/HashSet_class_A01_t01: Crash
-LibTest/collection/IterableBase/IterableBase_class_A01_t02: Crash
-LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: Crash
-LibTest/collection/LinkedList/iterator_current_A01_t01: Crash
-LibTest/collection/ListBase/ListBase_class_A01_t01: Pass, Timeout, Crash
+LibTest/collection/ListBase/ListBase_class_A01_t01: Pass, Timeout
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
-LibTest/collection/ListMixin/ListMixin_class_A01_t01: Pass, Timeout, Crash
+LibTest/collection/ListMixin/ListMixin_class_A01_t01: Pass, Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Timeout
-LibTest/collection/ListQueue/ListQueue_class_A01_t01: Pass, Crash
-LibTest/collection/Queue/Queue_class_A01_t01: Pass, Crash
-LibTest/core/List/List.from_A01_t01: Crash
-LibTest/core/List/List_class_A01_t01: Pass, Crash
-LibTest/core/List/List_class_A01_t02: Pass, Timeout, Crash
+LibTest/core/List/List_class_A01_t02: Pass, Timeout
 LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
-LibTest/core/Set/IterableBase_A01_t01: Pass, Crash
 LibTest/core/Uri/Uri_A06_t03: Pass, Timeout
 LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
+LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: SkipByDesign # Requires deferred libraries
+
