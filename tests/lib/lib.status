@@ -377,6 +377,23 @@ convert/utf85_test: Pass, Timeout
 mirrors/accessor_cache_overflow_test: Skip
 
 [ $hot_reload ]
-async/multiple_timer_test: Pass, Fail # Timing related
 async/stream_transformer_test: SkipByDesign # Closure identity
-mirrors/*: Skip # Issue 26836
+mirrors/closurization_equivalence_test: SkipByDesign # Method equality
+mirrors/fake_function_with_call_test: SkipByDesign # Method equality
+
+async/multiple_timer_test: Pass, Fail # Timing related
+
+mirrors/generic_bounded_by_type_parameter_test/02: Fail # Type equality - Issue 26869
+mirrors/typedef_reflected_type_test/01: Fail # Type equality - Issue 26869
+mirrors/generic_bounded_test/02: Fail # Type equality - Issue 26869
+mirrors/generic_bounded_by_type_parameter_test/02: Fail # Type equality - Issue 26869
+mirrors/typedef_reflected_type_test/01: Fail # Type equality - Issue 26869
+
+mirrors/library_enumeration_deferred_loading_test: Fail # Deferred loading
+mirrors/library_import_deferred_loading_test: Fail # Deferred loading
+mirrors/typedef_deferred_library_test: Fail # Deferred loading
+mirrors/deferred_mirrors_update_test: Fail # Deferred loading
+mirrors/deferred_mirrors_metadata_test: Fail # Deferred loading
+mirrors/deferred_mirrors_metatarget_test: Fail # Deferred loading
+
+mirrors/metadata_scope_test/none: Fail # Constant equality - Issue 26868
