@@ -2659,7 +2659,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
       }
     }
     resolvers.addAll(disposition.createPackageUriResolvers(resourceProvider));
-    resolvers.add(new ResourceUriResolver(PhysicalResourceProvider.INSTANCE));
+    resolvers.add(new ResourceUriResolver(resourceProvider));
     currentContext.analysisOptions = options;
     currentContext.sourceFactory =
         new SourceFactory(resolvers, disposition.packages);

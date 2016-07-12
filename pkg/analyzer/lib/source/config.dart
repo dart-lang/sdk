@@ -91,7 +91,8 @@ class PubspecConfiguration extends AnalysisConfiguration {
               Uri pragma = new Uri.file('config/${descriptor.pragma}.yaml',
                   windows: false);
               Uri optionsUri = uri.resolveUri(pragma);
-              File file = resourceProvider.getFile(optionsUri.toFilePath());
+              String path = resourceProvider.pathContext.fromUri(optionsUri);
+              File file = resourceProvider.getFile(path);
               if (file.exists) {
                 return optionsProvider.getOptionsFromFile(file);
               }
