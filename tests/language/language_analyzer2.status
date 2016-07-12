@@ -124,9 +124,6 @@ unresolved_top_level_var_negative_test: fail # Issue 12163
 # test issue 12191, ambiguous import is always warning now
 prefix3_negative_test: fail # Issue 12191
 
-# test issue 12289, assignment in assert statement
-type_error_test: fail # Issue 12289
-
 # test issue 12381, It is compile-time error to invoke not existing function
 issue11724_test: fail # Issue 12381
 

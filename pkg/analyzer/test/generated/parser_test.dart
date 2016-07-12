@@ -717,26 +717,6 @@ class ErrorParserTest extends ParserTestCase {
         [ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT]);
   }
 
-  void test_assertDoesNotTakeAssignment() {
-    parse4("parseAssertStatement", "assert(b = true);",
-        [ParserErrorCode.ASSERT_DOES_NOT_TAKE_ASSIGNMENT]);
-  }
-
-  void test_assertDoesNotTakeCascades() {
-    parse4("parseAssertStatement", "assert(new A()..m());",
-        [ParserErrorCode.ASSERT_DOES_NOT_TAKE_CASCADE]);
-  }
-
-  void test_assertDoesNotTakeRethrow() {
-    parse4("parseAssertStatement", "assert(rethrow);",
-        [ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW]);
-  }
-
-  void test_assertDoesNotTakeThrow() {
-    parse4("parseAssertStatement", "assert(throw x);",
-        [ParserErrorCode.ASSERT_DOES_NOT_TAKE_THROW]);
-  }
-
   void test_breakOutsideOfLoop_breakInDoStatement() {
     parse4("parseDoStatement", "do {break;} while (x);");
   }

@@ -4357,25 +4357,12 @@ class Parser {
    * This method assumes that the current token matches `Keyword.ASSERT`.
    *
    *     assertStatement ::=
-   *         'assert' '(' conditionalExpression ')' ';'
+   *         'assert' '(' expression [',' expression] ')' ';'
    */
   AssertStatement _parseAssertStatement() {
     Token keyword = getAndAdvance();
     Token leftParen = _expect(TokenType.OPEN_PAREN);
     Expression expression = parseExpression2();
-    if (expression is AssignmentExpression) {
-      _reportErrorForNode(
-          ParserErrorCode.ASSERT_DOES_NOT_TAKE_ASSIGNMENT, expression);
-    } else if (expression is CascadeExpression) {
-      _reportErrorForNode(
-          ParserErrorCode.ASSERT_DOES_NOT_TAKE_CASCADE, expression);
-    } else if (expression is ThrowExpression) {
-      _reportErrorForNode(
-          ParserErrorCode.ASSERT_DOES_NOT_TAKE_THROW, expression);
-    } else if (expression is RethrowExpression) {
-      _reportErrorForNode(
-          ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW, expression);
-    }
     Token comma;
     Expression message;
     if (_matches(TokenType.COMMA)) {
@@ -9895,22 +9882,6 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode ANNOTATION_ON_ENUM_CONSTANT =
       const ParserErrorCode('ANNOTATION_ON_ENUM_CONSTANT',
           "Enum constants cannot have annotations");
-
-  static const ParserErrorCode ASSERT_DOES_NOT_TAKE_ASSIGNMENT =
-      const ParserErrorCode('ASSERT_DOES_NOT_TAKE_ASSIGNMENT',
-          "Assert cannot be called on an assignment");
-
-  static const ParserErrorCode ASSERT_DOES_NOT_TAKE_CASCADE =
-      const ParserErrorCode(
-          'ASSERT_DOES_NOT_TAKE_CASCADE', "Assert cannot be called on cascade");
-
-  static const ParserErrorCode ASSERT_DOES_NOT_TAKE_THROW =
-      const ParserErrorCode(
-          'ASSERT_DOES_NOT_TAKE_THROW', "Assert cannot be called on throws");
-
-  static const ParserErrorCode ASSERT_DOES_NOT_TAKE_RETHROW =
-      const ParserErrorCode('ASSERT_DOES_NOT_TAKE_RETHROW',
-          "Assert cannot be called on rethrows");
 
   /**
    * 16.32 Identifier Reference: It is a compile-time error if any of the
