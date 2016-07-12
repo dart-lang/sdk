@@ -1769,6 +1769,69 @@ main(List<String> items) {
 ''');
   }
 
+  test_convertToGetter_BAD_noInitializer() async {
+    resolveTestUnit('''
+class A {
+  final int foo;
+}
+''');
+    await assertNoAssistAt('foo', DartAssistKind.CONVERT_INTO_GETTER);
+  }
+
+  test_convertToGetter_BAD_notFinal() async {
+    resolveTestUnit('''
+class A {
+  int foo = 1;
+}
+''');
+    await assertNoAssistAt('foo', DartAssistKind.CONVERT_INTO_GETTER);
+  }
+
+  test_convertToGetter_BAD_notSingleField() async {
+    resolveTestUnit('''
+class A {
+  final int foo = 1, bar = 2;
+}
+''');
+    await assertNoAssistAt('foo', DartAssistKind.CONVERT_INTO_GETTER);
+  }
+
+  test_convertToGetter_OK() async {
+    resolveTestUnit('''
+const myAnnotation = const Object();
+class A {
+  @myAnnotation
+  final int foo = 1 + 2;
+}
+''');
+    await assertHasAssistAt(
+        'foo =',
+        DartAssistKind.CONVERT_INTO_GETTER,
+        '''
+const myAnnotation = const Object();
+class A {
+  @myAnnotation
+  int get foo => 1 + 2;
+}
+''');
+  }
+
+  test_convertToGetter_OK_noType() async {
+    resolveTestUnit('''
+class A {
+  final foo = 42;
+}
+''');
+    await assertHasAssistAt(
+        'foo =',
+        DartAssistKind.CONVERT_INTO_GETTER,
+        '''
+class A {
+  get foo => 42;
+}
+''');
+  }
+
   test_convertToIsNot_BAD_is_alreadyIsNot() async {
     resolveTestUnit('''
 main(p) {

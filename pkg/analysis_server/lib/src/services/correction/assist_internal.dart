@@ -98,6 +98,7 @@ class AssistProcessor {
     _addProposal_addTypeAnnotation_VariableDeclaration();
     _addProposal_assignToLocalVariable();
     _addProposal_convertIntoFinalField();
+    _addProposal_convertIntoGetter();
     _addProposal_convertDocumentationIntoBlock();
     _addProposal_convertDocumentationIntoLine();
     _addProposal_convertToBlockFunctionBody();
@@ -543,6 +544,50 @@ class AssistProcessor {
       _addReplaceEdit(rangeStartEnd(beginNodeToReplace, getter), code);
       _addAssist(DartAssistKind.CONVERT_INTO_FINAL_FIELD, []);
     }
+  }
+
+  void _addProposal_convertIntoGetter() {
+    // Find the enclosing field declaration.
+    FieldDeclaration fieldDeclaration;
+    for (AstNode n = node; n != null; n = n.parent) {
+      if (n is FieldDeclaration) {
+        fieldDeclaration = n;
+        break;
+      }
+      if (n is SimpleIdentifier ||
+          n is VariableDeclaration ||
+          n is VariableDeclarationList ||
+          n is TypeName ||
+          n is TypeArgumentList) {
+        continue;
+      }
+      break;
+    }
+    if (fieldDeclaration == null) {
+      return;
+    }
+    // The field must be final and has only one variable.
+    VariableDeclarationList fieldList = fieldDeclaration.fields;
+    if (!fieldList.isFinal || fieldList.variables.length != 1) {
+      return;
+    }
+    VariableDeclaration field = fieldList.variables.first;
+    // Prepare the initializer.
+    Expression initializer = field.initializer;
+    if (initializer == null) {
+      return;
+    }
+    // Add proposal.
+    String code = '';
+    if (fieldList.type != null) {
+      code += _getNodeText(fieldList.type) + ' ';
+    }
+    code += 'get';
+    code += ' ' + _getNodeText(field.name);
+    code += ' => ' + _getNodeText(initializer);
+    code += ';';
+    _addReplaceEdit(rangeStartEnd(fieldList.keyword, fieldDeclaration), code);
+    _addAssist(DartAssistKind.CONVERT_INTO_GETTER, []);
   }
 
   void _addProposal_convertToBlockFunctionBody() {
