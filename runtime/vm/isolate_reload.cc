@@ -190,17 +190,9 @@ IsolateReloadContext::IsolateReloadContext(Isolate* isolate, bool test_mode)
       become_map_storage_(Array::null()),
       saved_root_library_(Library::null()),
       saved_libraries_(GrowableObjectArray::null()) {
-  // Preallocate storage for maps.
-  old_classes_set_storage_ =
-      HashTables::New<UnorderedHashSet<ClassMapTraits> >(4);
-  class_map_storage_ =
-      HashTables::New<UnorderedHashMap<ClassMapTraits> >(4);
-  old_libraries_set_storage_ =
-      HashTables::New<UnorderedHashSet<LibraryMapTraits> >(4);
-  library_map_storage_ =
-      HashTables::New<UnorderedHashMap<LibraryMapTraits> >(4);
-  become_map_storage_ =
-      HashTables::New<UnorderedHashMap<BecomeMapTraits> >(4);
+  // NOTE: DO NOT ALLOCATE ANY RAW OBJECTS HERE. The IsolateReloadContext is not
+  // associated with the isolate yet and if a GC is triggered here the raw
+  // objects will not be properly accounted for.
 }
 
 
@@ -234,11 +226,24 @@ void IsolateReloadContext::ReportSuccess() {
 void IsolateReloadContext::StartReload() {
   TIMELINE_SCOPE(Reload);
   Thread* thread = Thread::Current();
+  ASSERT(isolate() == thread->isolate());
 
   // Grab root library before calling CheckpointBeforeReload.
   const Library& root_lib = Library::Handle(object_store()->root_library());
   ASSERT(!root_lib.IsNull());
   const String& root_lib_url = String::Handle(root_lib.url());
+
+  // Preallocate storage for maps.
+  old_classes_set_storage_ =
+      HashTables::New<UnorderedHashSet<ClassMapTraits> >(4);
+  class_map_storage_ =
+      HashTables::New<UnorderedHashMap<ClassMapTraits> >(4);
+  old_libraries_set_storage_ =
+      HashTables::New<UnorderedHashSet<LibraryMapTraits> >(4);
+  library_map_storage_ =
+      HashTables::New<UnorderedHashMap<LibraryMapTraits> >(4);
+  become_map_storage_ =
+      HashTables::New<UnorderedHashMap<BecomeMapTraits> >(4);
 
   // Disable the background compiler while we are performing the reload.
   BackgroundCompiler::Disable();
