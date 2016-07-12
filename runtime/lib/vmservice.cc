@@ -486,9 +486,8 @@ DEFINE_NATIVE_ENTRY(VMService_spawnUriNotify, 2) {
     spawn_event.set_spawn_error(&String::Cast(result));
     Service::HandleEvent(&spawn_event);
   }
-#else
-  return Object::null();
 #endif
+  return Object::null();
 }
 
 }  // namespace dart
