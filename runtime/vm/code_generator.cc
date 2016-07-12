@@ -1319,8 +1319,10 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     intptr_t num_frames = stack->Length();
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = stack->FrameAt(i);
+#ifndef DART_PRECOMPILED_RUNTIME
       // Ensure that we have unoptimized code.
       frame->function().EnsureHasCompiledUnoptimizedCode();
+#endif
       // Variable locations and number are unknown when precompiling.
       const int num_vars =
          FLAG_precompiled_runtime ? 0 : frame->NumLocalVariables();
