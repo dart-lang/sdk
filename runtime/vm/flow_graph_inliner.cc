@@ -634,7 +634,9 @@ class CallSiteInliner : public ValueObject {
 
     // Don't inline any intrinsified functions in precompiled mode
     // to reduce code size and make sure we use the intrinsic code.
-    if (FLAG_precompiled_mode && function.is_intrinsic()) {
+    if (FLAG_precompiled_mode &&
+        function.is_intrinsic() &&
+        !inliner_->AlwaysInline(function)) {
       TRACE_INLINING(THR_Print("     Bailout: intrinisic\n"));
       PRINT_INLINING_TREE("intrinsic",
           &call_data->caller, &function, call_data->call);
