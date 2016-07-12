@@ -326,8 +326,8 @@ main() {
         'future in',
         DartAssistKind.ADD_TYPE_ANNOTATION,
         '''
-import 'my_lib.dart';
 import 'dart:async';
+import 'my_lib.dart';
 main() {
   for (Future<int> future in getFutures()) {
   }
@@ -466,8 +466,8 @@ main() {
         'v =',
         DartAssistKind.ADD_TYPE_ANNOTATION,
         '''
-import 'my_lib.dart';
 import 'dart:async';
+import 'my_lib.dart';
 main() {
   Future<int> v = getFutureInt();
 }
@@ -515,8 +515,8 @@ main() {
           resultCode,
           '''
 library my_app;
-import 'my_lib.dart';
 import 'dart:async';
+import 'my_lib.dart';
 part 'test.dart';
 ''');
     }
@@ -556,8 +556,8 @@ main() {
         'v =',
         DartAssistKind.ADD_TYPE_ANNOTATION,
         '''
-import 'ccc/lib_b.dart';
 import 'aa/bbb/lib_a.dart';
+import 'ccc/lib_b.dart';
 main() {
   MyClass v = newMyClass();
 }

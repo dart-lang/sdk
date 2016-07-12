@@ -708,8 +708,8 @@ main(B b) {
     await assertHasFix(
         DartFixKind.CHANGE_TO_STATIC_ACCESS,
         '''
-import 'libB.dart';
 import 'libA.dart';
+import 'libB.dart';
 main(B b) {
   A.foo();
 }
@@ -779,8 +779,8 @@ main(B b) {
     await assertHasFix(
         DartFixKind.CHANGE_TO_STATIC_ACCESS,
         '''
-import 'libB.dart';
 import 'libA.dart';
+import 'libB.dart';
 main(B b) {
   A.foo;
 }
@@ -1239,8 +1239,8 @@ class C extends B {
     await assertHasFix(
         DartFixKind.CREATE_CONSTRUCTOR_SUPER,
         '''
-import 'libB.dart';
 import 'libA.dart';
+import 'libB.dart';
 class C extends B {
   C(A a) : super(a);
 }
@@ -1563,8 +1563,8 @@ main(C c) {
     await assertHasFix(
         DartFixKind.CREATE_FIELD,
         '''
-import 'libB.dart';
 import 'libA.dart';
+import 'libB.dart';
 class C {
   A test;
 }
@@ -2802,8 +2802,8 @@ main() {
     await assertHasFix(
         DartFixKind.CREATE_FUNCTION,
         '''
-import 'libB.dart';
 import 'libA.dart';
+import 'libB.dart';
 main() {
   useFunction(test);
 }
@@ -2976,6 +2976,7 @@ int main() async {
         DartFixKind.REPLACE_RETURN_TYPE_FUTURE,
         '''
 library main;
+
 import 'dart:async';
 Future<int> main() async {
 }
@@ -3111,8 +3112,8 @@ main () {
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT,
         '''
-import 'b.dart' show Two;
 import 'a.dart';
+import 'b.dart' show Two;
 main () {
   new Two();
   new One();
@@ -4131,8 +4132,8 @@ main() {
     await assertHasFix(
         DartFixKind.CREATE_FUNCTION,
         '''
-import 'lib.dart';
 import 'dart:async';
+import 'lib.dart';
 main() {
   test(getFuture());
 }

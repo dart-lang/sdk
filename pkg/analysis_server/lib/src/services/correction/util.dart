@@ -33,38 +33,91 @@ void addLibraryImports(SourceChange change, LibraryElement targetLibrary,
     Set<LibraryElement> libraries) {
   CompilationUnitElement libUnitElement = targetLibrary.definingCompilationUnit;
   CompilationUnit libUnit = getParsedUnit(libUnitElement);
-  // prepare new import location
-  int offset = 0;
-  String prefix;
-  String suffix;
-  {
-    // if no directives
-    prefix = '';
-    CorrectionUtils libraryUtils = new CorrectionUtils(libUnit);
-    String eol = libraryUtils.endOfLine;
-    suffix = eol;
-    // after last directive in library
-    for (Directive directive in libUnit.directives) {
-      if (directive is LibraryDirective || directive is ImportDirective) {
-        offset = directive.end;
-        prefix = eol;
-        suffix = '';
-      }
-    }
-    // if still at the beginning of the file, skip shebang and line comments
-    if (offset == 0) {
-      CorrectionUtils_InsertDesc desc = libraryUtils.getInsertDescTop();
-      offset = desc.offset;
-      prefix = desc.prefix;
-      suffix = desc.suffix + eol;
+  CorrectionUtils libUtils = new CorrectionUtils(libUnit);
+  String eol = libUtils.endOfLine;
+  // Prepare information about existing imports.
+  LibraryDirective libraryDirective;
+  List<_ImportDirectiveInfo> importDirectives = <_ImportDirectiveInfo>[];
+  for (Directive directive in libUnit.directives) {
+    if (directive is LibraryDirective) {
+      libraryDirective = directive;
+    } else if (directive is ImportDirective) {
+      importDirectives.add(new _ImportDirectiveInfo(
+          directive.uriContent, directive.offset, directive.end));
     }
   }
-  // insert imports
-  for (LibraryElement library in libraries) {
-    String importUri = getLibrarySourceUri(targetLibrary, library.source);
-    String importCode = "${prefix}import '$importUri';$suffix";
-    doSourceChange_addElementEdit(
-        change, targetLibrary, new SourceEdit(offset, 0, importCode));
+
+  // Prepare all URIs to import.
+  List<String> uriList = libraries
+      .map((library) => getLibrarySourceUri(targetLibrary, library.source))
+      .toList();
+  uriList.sort((a, b) => a.compareTo(b));
+
+  // Insert imports: between existing imports.
+  if (importDirectives.isNotEmpty) {
+    bool isFirstPackage = true;
+    for (String importUri in uriList) {
+      bool inserted = false;
+      bool isPackage = importUri.startsWith('package:');
+      bool isAfterDart = false;
+      for (_ImportDirectiveInfo existingImport in importDirectives) {
+        if (existingImport.uri.startsWith('dart:')) {
+          isAfterDart = true;
+        }
+        if (existingImport.uri.startsWith('package:')) {
+          isFirstPackage = false;
+        }
+        if (importUri.compareTo(existingImport.uri) < 0) {
+          String importCode = "import '$importUri';$eol";
+          doSourceChange_addElementEdit(change, targetLibrary,
+              new SourceEdit(existingImport.offset, 0, importCode));
+          inserted = true;
+          break;
+        }
+      }
+      if (!inserted) {
+        String importCode = "${eol}import '$importUri';";
+        if (isPackage && isFirstPackage && isAfterDart) {
+          importCode = eol + importCode;
+        }
+        doSourceChange_addElementEdit(change, targetLibrary,
+            new SourceEdit(importDirectives.last.end, 0, importCode));
+      }
+      if (isPackage) {
+        isFirstPackage = false;
+      }
+    }
+    return;
+  }
+
+  // Insert imports: after the library directive.
+  if (libraryDirective != null) {
+    String prefix = eol + eol;
+    for (String importUri in uriList) {
+      String importCode = "${prefix}import '$importUri';";
+      prefix = eol;
+      doSourceChange_addElementEdit(change, targetLibrary,
+          new SourceEdit(libraryDirective.end, 0, importCode));
+    }
+    return;
+  }
+
+  // If still at the beginning of the file, skip shebang and line comments.
+  {
+    CorrectionUtils_InsertDesc desc = libUtils.getInsertDescTop();
+    int offset = desc.offset;
+    for (int i = 0; i < uriList.length; i++) {
+      String importUri = uriList[i];
+      String importCode = "import '$importUri';$eol";
+      if (i == 0) {
+        importCode = desc.prefix + importCode;
+      }
+      if (i == uriList.length - 1) {
+        importCode = importCode + desc.suffix;
+      }
+      doSourceChange_addElementEdit(
+          change, targetLibrary, new SourceEdit(offset, 0, importCode));
+    }
   }
 }
 
@@ -1464,6 +1517,14 @@ class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {
         parent is PrefixedIdentifier && parent.identifier == node ||
         parent is PropertyAccess && parent.target == node;
   }
+}
+
+class _ImportDirectiveInfo {
+  final String uri;
+  final int offset;
+  final int end;
+
+  _ImportDirectiveInfo(this.uri, this.offset, this.end);
 }
 
 /**
