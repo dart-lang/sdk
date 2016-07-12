@@ -97,6 +97,7 @@ class AssistProcessor {
     _addProposal_addTypeAnnotation_SimpleFormalParameter();
     _addProposal_addTypeAnnotation_VariableDeclaration();
     _addProposal_assignToLocalVariable();
+    _addProposal_convertIntoFinalField();
     _addProposal_convertDocumentationIntoBlock();
     _addProposal_convertDocumentationIntoLine();
     _addProposal_convertToBlockFunctionBody();
@@ -479,6 +480,69 @@ class AssistProcessor {
     }
     // add proposal
     _addAssist(DartAssistKind.CONVERT_DOCUMENTATION_INTO_LINE, []);
+  }
+
+  void _addProposal_convertIntoFinalField() {
+    // Find the enclosing getter.
+    MethodDeclaration getter;
+    for (AstNode n = node; n != null; n = n.parent) {
+      if (n is MethodDeclaration) {
+        getter = n;
+        break;
+      }
+      if (n is SimpleIdentifier || n is TypeName || n is TypeArgumentList) {
+        continue;
+      }
+      break;
+    }
+    if (getter == null || !getter.isGetter) {
+      return;
+    }
+    // Check that there is no corresponding setter.
+    {
+      ExecutableElement element = getter.element;
+      if (element == null) {
+        return;
+      }
+      Element enclosing = element.enclosingElement;
+      if (enclosing is ClassElement) {
+        if (enclosing.getSetter(element.name) != null) {
+          return;
+        }
+      }
+    }
+    // Try to find the returned expression.
+    Expression expression;
+    {
+      FunctionBody body = getter.body;
+      if (body is ExpressionFunctionBody) {
+        expression = body.expression;
+      } else if (body is BlockFunctionBody) {
+        List<Statement> statements = body.block.statements;
+        if (statements.length == 1) {
+          Statement statement = statements.first;
+          if (statement is ReturnStatement) {
+            expression = statement.expression;
+          }
+        }
+      }
+    }
+    // Use the returned expression as the field initializer.
+    if (expression != null) {
+      AstNode beginNodeToReplace = getter.name;
+      String code = 'final';
+      if (getter.returnType != null) {
+        beginNodeToReplace = getter.returnType;
+        code += ' ' + _getNodeText(getter.returnType);
+      }
+      code += ' ' + _getNodeText(getter.name);
+      if (expression is! NullLiteral) {
+        code += ' = ' + _getNodeText(expression);
+      }
+      code += ';';
+      _addReplaceEdit(rangeStartEnd(beginNodeToReplace, getter), code);
+      _addAssist(DartAssistKind.CONVERT_INTO_FINAL_FIELD, []);
+    }
   }
 
   void _addProposal_convertToBlockFunctionBody() {
