@@ -1680,7 +1680,7 @@ static bool IsSupportedByteArrayViewCid(intptr_t cid) {
 bool JitOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
-  if ((ic_data.NumberOfUsedChecks() == 0) || !ic_data.HasOneTarget()) {
+  if (ic_data.NumberOfUsedChecks() != 1) {
     // No type feedback collected or multiple targets found.
     return false;
   }
@@ -1696,14 +1696,13 @@ bool JitOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       (recognized_kind == MethodRecognizer::kExternalOneByteStringCodeUnitAt) ||
       (recognized_kind == MethodRecognizer::kExternalTwoByteStringCodeUnitAt) ||
       (recognized_kind == MethodRecognizer::kGrowableArraySetData) ||
-      (recognized_kind == MethodRecognizer::kGrowableArraySetLength)) {
-      ASSERT(ic_data.NumberOfChecks() == 1);
+      (recognized_kind == MethodRecognizer::kGrowableArraySetLength) ||
+      (recognized_kind == MethodRecognizer::kSmi_bitAndFromSmi)) {
     return FlowGraphInliner::TryReplaceInstanceCallWithInline(
         flow_graph_, current_iterator(), call);
   }
 
-  if ((recognized_kind == MethodRecognizer::kStringBaseCharAt) &&
-      (ic_data.NumberOfChecks() == 1)) {
+  if (recognized_kind == MethodRecognizer::kStringBaseCharAt) {
       ASSERT((class_ids[0] == kOneByteStringCid) ||
              (class_ids[0] == kTwoByteStringCid) ||
              (class_ids[0] == kExternalOneByteStringCid) ||
@@ -1712,7 +1711,7 @@ bool JitOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         flow_graph_, current_iterator(), call);
   }
 
-  if ((class_ids[0] == kOneByteStringCid) && (ic_data.NumberOfChecks() == 1)) {
+  if (class_ids[0] == kOneByteStringCid) {
     if (recognized_kind == MethodRecognizer::kOneByteStringSetAt) {
       // This is an internal method, no need to check argument types nor
       // range.
@@ -1735,8 +1734,7 @@ bool JitOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   }
 
   if (CanUnboxDouble() &&
-      (recognized_kind == MethodRecognizer::kIntegerToDouble) &&
-      (ic_data.NumberOfChecks() == 1)) {
+      (recognized_kind == MethodRecognizer::kIntegerToDouble)) {
     if (class_ids[0] == kSmiCid) {
       AddReceiverCheck(call);
       ReplaceCall(call,
@@ -1805,34 +1803,21 @@ bool JitOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     }
   }
 
-  if (IsSupportedByteArrayViewCid(class_ids[0]) &&
-      (ic_data.NumberOfChecks() == 1)) {
+  if (IsSupportedByteArrayViewCid(class_ids[0])) {
     return FlowGraphInliner::TryReplaceInstanceCallWithInline(
         flow_graph_, current_iterator(), call);
   }
 
-  if ((class_ids[0] == kFloat32x4Cid) && (ic_data.NumberOfChecks() == 1)) {
+  if (class_ids[0] == kFloat32x4Cid) {
     return TryInlineFloat32x4Method(call, recognized_kind);
   }
 
-  if ((class_ids[0] == kInt32x4Cid) && (ic_data.NumberOfChecks() == 1)) {
+  if (class_ids[0] == kInt32x4Cid) {
     return TryInlineInt32x4Method(call, recognized_kind);
   }
 
-  if ((class_ids[0] == kFloat64x2Cid) && (ic_data.NumberOfChecks() == 1)) {
+  if (class_ids[0] == kFloat64x2Cid) {
     return TryInlineFloat64x2Method(call, recognized_kind);
-  }
-
-  if (recognized_kind == MethodRecognizer::kSmi_bitAndFromSmi) {
-    AddReceiverCheck(call);
-    BinarySmiOpInstr* op =
-        new(Z) BinarySmiOpInstr(
-            Token::kBIT_AND,
-            new(Z) Value(call->ArgumentAt(0)),
-            new(Z) Value(call->ArgumentAt(1)),
-            call->deopt_id());
-    ReplaceCall(call, op);
-    return true;
   }
 
   return false;
