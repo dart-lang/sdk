@@ -16,6 +16,8 @@ namespace bin {
 
 // Development flag.
 static bool trace_loader = false;
+// Keep in sync with loader.dart.
+static const intptr_t _Dart_kImportExtension = 9;
 
 Loader::Loader(IsolateData* isolate_data)
     : port_(ILLEGAL_PORT),
@@ -152,6 +154,29 @@ void Loader::Init(const char* package_root,
 }
 
 
+void Loader::SendImportExtensionRequest(Dart_Handle url,
+                                        Dart_Handle library_url) {
+  // This port delivers loading messages to the service isolate.
+  Dart_Port loader_port = Builtin::LoadPort();
+  ASSERT(loader_port != ILLEGAL_PORT);
+
+
+  Dart_Handle request = Dart_NewList(6);
+  Dart_ListSetAt(request, 0, trace_loader ? Dart_True() : Dart_False());
+  Dart_ListSetAt(request, 1, Dart_NewInteger(Dart_GetMainPortId()));
+  Dart_ListSetAt(request, 2, Dart_NewInteger(_Dart_kImportExtension));
+  Dart_ListSetAt(request, 3, Dart_NewSendPort(port_));
+
+  Dart_ListSetAt(request, 4, url);
+  Dart_ListSetAt(request, 5, library_url);
+
+  if (Dart_Post(loader_port, request)) {
+    MonitorLocker ml(monitor_);
+    pending_operations_++;
+  }
+}
+
+
 // Forward a request from the tag handler to the service isolate.
 void Loader::SendRequest(Dart_LibraryTag tag,
                          Dart_Handle url,
@@ -229,6 +254,15 @@ static bool LibraryHandleError(Dart_Handle library, Dart_Handle error) {
 }
 
 
+static bool IsWindowsHost() {
+#if defined(TARGET_OS_WINDOWS)
+  return true;
+#else  // defined(TARGET_OS_WINDOWS)
+  return false;
+#endif  // defined(TARGET_OS_WINDOWS)
+}
+
+
 bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
   // We have to copy everything we care about out of |result| because after
   // dropping the lock below |result| may no longer valid.
@@ -257,6 +291,30 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
     return false;
   }
 
+
+  if (result->tag == _Dart_kImportExtension) {
+    ASSERT(library_uri != Dart_Null());
+    Dart_Handle library = Dart_LookupLibrary(library_uri);
+    ASSERT(!Dart_IsError(library));
+    const char* lib_path_str = reinterpret_cast<const char*>(result->payload);
+    const char* extension_uri = reinterpret_cast<const char*>(result->uri);
+    const char* extension_path = DartUtils::RemoveScheme(extension_uri);
+    if (strchr(extension_path, '/') != NULL ||
+        (IsWindowsHost() && strchr(extension_path, '\\') != NULL)) {
+      loader->error_ = DartUtils::NewError(
+          "Relative paths for dart extensions are not supported: '%s'",
+          extension_path);
+      return false;
+    }
+    Dart_Handle result = Extensions::LoadExtension(lib_path_str,
+                                                   extension_path,
+                                                   library);
+    if (Dart_IsError(result)) {
+      loader->error_ = result;
+      return false;
+    }
+    return true;
+  }
 
   // Check for payload and load accordingly.
   bool is_snapshot = false;
@@ -352,15 +410,6 @@ bool Loader::ProcessQueueLocked(ProcessResult process_result) {
   }
   results_length_ = 0;
   return !hit_error;
-}
-
-
-static bool IsWindowsHost() {
-#if defined(TARGET_OS_WINDOWS)
-  return true;
-#else  // defined(TARGET_OS_WINDOWS)
-  return false;
-#endif  // defined(TARGET_OS_WINDOWS)
 }
 
 
@@ -465,7 +514,7 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   }
 
   if (DartUtils::IsDartExtensionSchemeURL(url_string)) {
-    // Load a native code shared library to use in a native extension
+    // Handle early error cases for dart-ext: imports.
     if (tag != Dart_kImportTag) {
       return DartUtils::NewError("Dart extensions must use import: '%s'",
                                  url_string);
@@ -474,19 +523,6 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     if (Dart_IsError(library_url)) {
       return library_url;
     }
-    Dart_Handle library_file_path = DartUtils::LibraryFilePath(library_url);
-    const char* lib_path_str = NULL;
-    Dart_StringToCString(library_file_path, &lib_path_str);
-    const char* extension_path = DartUtils::RemoveScheme(url_string);
-    if (strchr(extension_path, '/') != NULL ||
-        (IsWindowsHost() && strchr(extension_path, '\\') != NULL)) {
-      return DartUtils::NewError(
-          "Relative paths for dart extensions are not supported: '%s'",
-          extension_path);
-    }
-    return Extensions::LoadExtension(lib_path_str,
-                                     extension_path,
-                                     library);
   }
 
   IsolateData* isolate_data =
@@ -523,10 +559,15 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   ASSERT(loader != NULL);
   ASSERT(isolate_data->HasLoader());
 
-  loader->SendRequest(tag,
-                      url,
-                      (library != Dart_Null()) ?
-                          Dart_LibraryUrl(library) : Dart_Null());
+  if (DartUtils::IsDartExtensionSchemeURL(url_string)) {
+    loader->SendImportExtensionRequest(url, Dart_LibraryUrl(library));
+  } else {
+    loader->SendRequest(tag,
+                        url,
+                        (library != Dart_Null()) ?
+                            Dart_LibraryUrl(library) : Dart_Null());
+  }
+
 
   if (blocking_call) {
     // The outer invocation of the tag handler will block here until all nested

@@ -339,6 +339,25 @@ void _sendResourceResponse(SendPort sp,
   sp.send(msg);
 }
 
+// Send a response to the requesting isolate.
+void _sendExtensionImportResponse(SendPort sp,
+                                  Uri uri,
+                                  String libraryUrl,
+                                  String resolvedUri) {
+  var msg = new List(4);
+  int tag = _Dart_kImportExtension;
+  if (resolvedUri == null) {
+    // We could not resolve the dart-ext: uri.
+    tag = -tag;
+    resolvedUri = 'Could not resolve "$uri" from "$libraryUrl"';
+  }
+  msg[0] = tag;
+  msg[1] = uri.toString();
+  msg[2] = libraryUrl;
+  msg[3] = resolvedUri;
+  sp.send(msg);
+}
+
 void _loadHttp(SendPort sp,
                int tag,
                Uri uri,
@@ -880,6 +899,7 @@ const _Dart_kResourceLoad = 5;         // Resource class support.
 const _Dart_kGetPackageRootUri = 6;    // Uri of the packages/ directory.
 const _Dart_kGetPackageConfigUri = 7;  // Uri of the .packages file.
 const _Dart_kResolvePackageUri = 8;    // Resolve a package: uri.
+const _Dart_kImportExtension = 9;      // Import a dart-ext: file.
 
 // External entry point for loader requests.
 _processLoadRequest(request) {
@@ -989,6 +1009,57 @@ _processLoadRequest(request) {
         }
         sp.send(resolvedUri);
       });
+    break;
+    case _Dart_kImportExtension:
+      Uri uri = Uri.parse(request[4]);
+      String libraryUri = request[5];
+      // Strip any filename off of the libraryUri's path.
+      int index = libraryUri.lastIndexOf('/');
+      var path;
+      if (index == -1) {
+        path = './';
+      } else {
+        path = libraryUri.substring(0, index + 1);
+      }
+      var pathUri = Uri.parse(path);
+      switch (pathUri.scheme) {
+        case '':
+        case 'file':
+          _sendExtensionImportResponse(sp, uri, libraryUri,
+                                       pathUri.toFilePath());
+        break;
+        case 'data':
+        case 'http':
+        case 'https':
+          _sendExtensionImportResponse(sp, uri, libraryUri,
+                                       pathUri.toString());
+        break;
+        case 'package':
+          // Start package resolution.
+          loaderState._triggerPackageResolution(() {
+            // Attempt to find the fully resolved uri of [path].
+            Uri resolvedUri;
+            try {
+              resolvedUri = loaderState._resolvePackageUri(pathUri);
+            } catch (e, s) {
+              if (traceLoading) {
+                _log("Exception ($e) when resolving package URI: $uri");
+              }
+              resolvedUri = null;
+            }
+            _sendExtensionImportResponse(sp,
+                                         uri,
+                                         libraryUri,
+                                         resolvedUri.toString());
+          });
+        break;
+        default:
+          if (traceLoading) {
+            _log('Unknown scheme (${pathUri.scheme}) in $pathUri.');
+          }
+          _sendExtensionImportResponse(sp, uri, libraryUri, null);
+        break;
+      }
     break;
     default:
       _log('Unknown loader request tag=$tag from $isolateId');
