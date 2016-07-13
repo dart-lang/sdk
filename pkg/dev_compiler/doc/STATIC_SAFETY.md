@@ -418,7 +418,7 @@ code where a field definition in a subclass shadows the field
 
 ## Optional Features
 
-### Disable implicit casts (experimental)
+### Disable implicit casts
 
 This is an optional feature of strong mode. It disables implicit down casts. For example:
 
@@ -455,7 +455,7 @@ Or pass `--no-implicit-casts` to Dart Analyzer:
 dartanalyzer --strong --no-implicit-casts my_app.dart
 ```
 
-### Disable implicit dynamic (experimental)
+### Disable implicit dynamic
 
 This is an optional feature of analyzer, intended primarily for use with strong mode's inference.
 It rejects implicit uses of `dynamic` that strong mode inference fails to fill in with a concrete type,
