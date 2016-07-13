@@ -1299,10 +1299,16 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     DeoptimizeFunctionsOnStack();
   }
   if (do_reload) {
+#ifndef PRODUCT
     // Maybe adjust the rate of future reloads.
     isolate->MaybeIncreaseReloadEveryNStackOverflowChecks();
     // Issue a reload.
-    NOT_IN_PRODUCT(isolate->ReloadSources();)
+    isolate->ReloadSources();
+    const Error& error = Error::Handle(isolate->sticky_reload_error());
+    if (!error.IsNull()) {
+      FATAL1("*** Isolate reload failed: %s\n", error.ToErrorCString());
+    }
+#endif
   }
   if (FLAG_support_debugger && do_stacktrace) {
     String& var_name = String::Handle();

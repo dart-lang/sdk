@@ -323,7 +323,7 @@ out_of_memory_test: Skip # Issue #26377
 deferred_transitive_import_error_test: Skip # Contains intentional errors.
 
 [ $hot_reload ]
-deferred_transitive_import_error_test: SkipByDesign # Uses deferred imports.
+deferred_transitive_import_error_test: Crash # Uses deferred imports.
 package/*: SkipByDesign # Launches VMs in interesting ways.
 
 [ $builder_tag == no_ipv6 ]

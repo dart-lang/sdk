@@ -527,6 +527,22 @@ bool Class::CanReload(const Class& replacement) const {
 
 
 bool Library::CanReload(const Library& replacement) const {
+  // TODO(26878): If the replacement library uses deferred loading,
+  // reject it.  We do not yet support reloading deferred libraries.
+  LibraryPrefix& prefix = LibraryPrefix::Handle();
+  LibraryPrefixIterator it(replacement);
+  while (it.HasNext()) {
+    prefix = it.GetNext();
+    if (prefix.is_deferred_load()) {
+      const String& lib_url = String::Handle(replacement.url());
+      const String& prefix_name = String::Handle(prefix.name());
+      IRC->ReportError(String::Handle(String::NewFormatted(
+          "Reloading support for deferred loading has not yet been implemented:"
+          " library '%s' has deferred import '%s'",
+          lib_url.ToCString(), prefix_name.ToCString())));
+      return false;
+    }
+  }
   return true;
 }
 

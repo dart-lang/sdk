@@ -389,12 +389,13 @@ mirrors/generic_bounded_test/02: Fail # Type equality - Issue 26869
 mirrors/generic_bounded_by_type_parameter_test/02: Fail # Type equality - Issue 26869
 mirrors/typedef_reflected_type_test/01: Fail # Type equality - Issue 26869
 
-mirrors/library_enumeration_deferred_loading_test: Fail # Deferred loading
-mirrors/library_import_deferred_loading_test: Fail # Deferred loading
-mirrors/typedef_deferred_library_test: Fail # Deferred loading
-mirrors/deferred_mirrors_update_test: Fail # Deferred loading
-mirrors/deferred_mirrors_metadata_test: Fail # Deferred loading
-mirrors/deferred_mirrors_metatarget_test: Crash, Fail # Deferred loading
-mirrors/load_library_test: Fail # Deferred loading
+mirrors/library_enumeration_deferred_loading_test: Crash # Deferred loading
+mirrors/library_imports_deferred_test: Crash # Deferred loading
+mirrors/library_import_deferred_loading_test: Crash # Deferred loading
+mirrors/typedef_deferred_library_test: Crash # Deferred loading
+mirrors/deferred_mirrors_update_test: Crash # Deferred loading
+mirrors/deferred_mirrors_metadata_test: Crash # Deferred loading
+mirrors/deferred_mirrors_metatarget_test: Crash # Deferred loading
+mirrors/load_library_test: Crash # Deferred loading
 
 mirrors/metadata_scope_test/none: Fail # Constant equality - Issue 26868

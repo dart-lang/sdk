@@ -727,24 +727,47 @@ bool IsolateReloadContext::ValidateReload() {
     return false;
   }
 
-  // Already built.
-  ASSERT(class_map_storage_ != Array::null());
-  UnorderedHashMap<ClassMapTraits> map(class_map_storage_);
-  UnorderedHashMap<ClassMapTraits>::Iterator it(&map);
-  Class& cls = Class::Handle();
-  Class& new_cls = Class::Handle();
-  while (it.MoveNext()) {
-    const intptr_t entry = it.Current();
-    new_cls = Class::RawCast(map.GetKey(entry));
-    cls = Class::RawCast(map.GetPayload(entry, 0));
-    if (new_cls.raw() != cls.raw()) {
-      if (!cls.CanReload(new_cls)) {
-        map.Release();
-        return false;
+  // Validate libraries.
+  {
+    ASSERT(library_map_storage_ != Array::null());
+    UnorderedHashMap<LibraryMapTraits> map(library_map_storage_);
+    UnorderedHashMap<LibraryMapTraits>::Iterator it(&map);
+    Library& lib = Library::Handle();
+    Library& new_lib = Library::Handle();
+    while (it.MoveNext()) {
+      const intptr_t entry = it.Current();
+      new_lib = Library::RawCast(map.GetKey(entry));
+      lib = Library::RawCast(map.GetPayload(entry, 0));
+      if (new_lib.raw() != lib.raw()) {
+        if (!lib.CanReload(new_lib)) {
+          map.Release();
+          return false;
+        }
       }
     }
+    map.Release();
   }
-  map.Release();
+
+  // Validate classes.
+  {
+    ASSERT(class_map_storage_ != Array::null());
+    UnorderedHashMap<ClassMapTraits> map(class_map_storage_);
+    UnorderedHashMap<ClassMapTraits>::Iterator it(&map);
+    Class& cls = Class::Handle();
+    Class& new_cls = Class::Handle();
+    while (it.MoveNext()) {
+      const intptr_t entry = it.Current();
+      new_cls = Class::RawCast(map.GetKey(entry));
+      cls = Class::RawCast(map.GetPayload(entry, 0));
+      if (new_cls.raw() != cls.raw()) {
+        if (!cls.CanReload(new_cls)) {
+          map.Release();
+          return false;
+        }
+      }
+    }
+    map.Release();
+  }
   return true;
 }
 

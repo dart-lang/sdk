@@ -194,7 +194,32 @@ Language/Expressions/Object_Identity/double_t02: RuntimeError # Issue #26374
 LibTest/typed_data/Float32x4/operator_division_A01_t02: RuntimeError # Issue #26675
 
 [ $hot_reload ]
-LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: SkipByDesign # Requires deferred libraries
+Language/Expressions/Assignment/prefix_object_t02: Crash # Requires deferred libraries
+Language/Expressions/Constants/constant_constructor_t03: Crash # Requires deferred libraries
+Language/Expressions/Constants/identifier_denotes_a_constant_t06: Crash # Requires deferred libraries
+Language/Expressions/Constants/identifier_denotes_a_constant_t07: Crash # Requires deferred libraries
+Language/Expressions/Constants/static_constant_t06: Crash # Requires deferred libraries
+Language/Expressions/Constants/static_constant_t07: Crash # Requires deferred libraries
+Language/Expressions/Constants/top_level_function_t04: Crash # Requires deferred libraries
+Language/Expressions/Constants/top_level_function_t05: Crash # Requires deferred libraries
+Language/Expressions/Instance_Creation/Const/deferred_type_t01: Crash # Requires deferred libraries
+Language/Expressions/Instance_Creation/Const/deferred_type_t02: Crash # Requires deferred libraries
+Language/Expressions/Instance_Creation/New/evaluation_t19: Crash # Requires deferred libraries
+Language/Expressions/Instance_Creation/New/evaluation_t20: Crash # Requires deferred libraries
+Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/method_identical_t03: SkipByDesign # Relies on closure identity
+Language/Expressions/Property_Extraction/Anonymous_Constructor_Extraction/deferred_type_t01: Crash # Requires deferred libraries
+Language/Expressions/Property_Extraction/Named_Constructor_Extraction/deferred_type_t01: Crash # Requires deferred libraries
+Language/Expressions/Type_Cast/evaluation_t10: Crash # Requires deferred libraries
+Language/Expressions/Type_Test/evaluation_t10: Crash # Requires deferred libraries
+Language/Libraries_and_Scripts/Imports/deferred_import_t01: Crash # Requires deferred libraries
+Language/Libraries_and_Scripts/Imports/deferred_import_t02: Crash # Requires deferred libraries
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01: Crash # Requires deferred libraries
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: Crash # Requires deferred libraries
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t03: Crash # Requires deferred libraries
+Language/Libraries_and_Scripts/Imports/static_type_t01: Crash # Requires deferred libraries
+Language/Types/Dynamic_Type_System/deferred_type_error_t01: Crash # Requires deferred libraries
+Language/Types/Static_Types/deferred_type_t01: Crash # Requires deferred libraries
+LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Crash # Requires deferred libraries
 LibTest/collection/ListBase/ListBase_class_A01_t01: Pass, Timeout
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: Pass, Timeout
@@ -203,4 +228,3 @@ LibTest/core/List/List_class_A01_t02: Pass, Timeout
 LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
 LibTest/core/Uri/Uri_A06_t03: Pass, Timeout
 LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
-Language/Libraries_and_Scripts/Imports/deferred_import_t02: SkipByDesign # Requires deferred libraries
