@@ -102,6 +102,18 @@ bool _isEditingNamedArgLabel(DartCompletionRequest request) {
 }
 
 /**
+ * Return `true` if the [request] is inside of a [NamedExpression] name.
+ */
+bool _isInNamedExpression(DartCompletionRequest request) {
+  Object entity = request.target.entity;
+  if (entity is NamedExpression) {
+    Label name = entity.name;
+    return name.offset < request.offset && request.offset < name.end;
+  }
+  return false;
+}
+
+/**
  * Determine if the completion target is in the middle or beginning of the list
  * of named parameters and is not preceded by a comma. This method assumes that
  * _isAppendingToArgList has been called and is false.
@@ -216,19 +228,28 @@ class ArgListContributor extends DartCompletionContributor {
 
   void _addDefaultParamSuggestions(Iterable<ParameterElement> parameters,
       [bool appendComma = false]) {
+    bool appendColon = !_isInNamedExpression(request);
     Iterable<String> namedArgs = _namedArgs(request);
     for (ParameterElement param in parameters) {
       if (param.parameterKind == ParameterKind.NAMED) {
         _addNamedParameterSuggestion(request, namedArgs, param.name,
-            param.type?.displayName, appendComma);
+            param.type?.displayName, appendColon, appendComma);
       }
     }
   }
 
-  void _addNamedParameterSuggestion(DartCompletionRequest request,
-      List<String> namedArgs, String name, String paramType, bool appendComma) {
+  void _addNamedParameterSuggestion(
+      DartCompletionRequest request,
+      List<String> namedArgs,
+      String name,
+      String paramType,
+      bool appendColon,
+      bool appendComma) {
     if (name != null && name.length > 0 && !namedArgs.contains(name)) {
-      String completion = '$name: ';
+      String completion = name;
+      if (appendColon) {
+        completion += ': ';
+      }
       if (appendComma) {
         completion += ',';
       }
