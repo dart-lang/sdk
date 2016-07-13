@@ -418,7 +418,7 @@ code where a field definition in a subclass shadows the field
 
 ## Optional Features
 
-### Disable implicit casts
+### Disable implicit casts (experimental)
 
 This is an optional feature of strong mode. It disables implicit down casts. For example:
 
@@ -440,7 +440,8 @@ main() {
 }
 ```
 
-Configure this for your project by editing .analysis_options:
+This option is experimental and may be changed or removed in the future. Feedback is appreciated! Contact us at our [mailing list](https://groups.google.com/a/dartlang.org/forum/#!forum/dev-compiler).
+Try it out in your project by editing .analysis_options:
 
 ```yaml
 analyzer:
@@ -454,7 +455,7 @@ Or pass `--no-implicit-casts` to Dart Analyzer:
 dartanalyzer --strong --no-implicit-casts my_app.dart
 ```
 
-### Disable implicit dynamic
+### Disable implicit dynamic (experimental)
 
 This is an optional feature of analyzer, intended primarily for use with strong mode's inference.
 It rejects implicit use of `dynamic`, requiring it to be written explicitly. For example:
@@ -501,7 +502,8 @@ class C extends Iterable<dynamic> { /* ... */ }
 It is designed to prevent accidental use of `dynamic` in code that does not intend to use it. It will lead to 
 more verbose dynamic code, so it may not be advisable for your code depending on its goals.
 
-Configure this for your project by editing .analysis_options:
+This option is experimental and may be changed or removed in the future. Feedback is appreciated! Contact us at our [mailing list](https://groups.google.com/a/dartlang.org/forum/#!forum/dev-compiler).
+Try it out in your project by editing .analysis_options:
 
 ```yaml
 analyzer:
