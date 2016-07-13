@@ -306,13 +306,13 @@ void Metric::Cleanup() {
   if (FLAG_print_metrics) {
     // Create a zone to allocate temporary strings in.
     StackZone sz(Thread::Current());
-    OS::Print("Printing metrics for VM\n");
+    OS::PrintErr("Printing metrics for VM\n");
     Metric* current = Metric::vm_head();
     while (current != NULL) {
-      OS::Print("%s\n", current->ToString());
+      OS::PrintErr("%s\n", current->ToString());
       current = current->next();
     }
-    OS::Print("\n");
+    OS::PrintErr("\n");
   }
 }
 

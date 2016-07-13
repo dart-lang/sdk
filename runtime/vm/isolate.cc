@@ -1630,13 +1630,13 @@ void Isolate::LowLevelShutdown() {
   }
   if (FLAG_print_metrics) {
     LogBlock lb;
-    THR_Print("Printing metrics for %s\n", name());
+    OS::PrintErr("Printing metrics for %s\n", name());
 #define ISOLATE_METRIC_PRINT(type, variable, name, unit)                       \
-  THR_Print("%s\n", metric_##variable##_.ToString());
+  OS::PrintErr("%s\n", metric_##variable##_.ToString());
 
     ISOLATE_METRIC_LIST(ISOLATE_METRIC_PRINT);
 #undef ISOLATE_METRIC_PRINT
-    THR_Print("\n");
+    OS::PrintErr("\n");
   }
 }
 
