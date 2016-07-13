@@ -103,6 +103,10 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   visitFieldDeclaration(FieldDeclaration node) {
+    if (node.isStatic) {
+      return;
+    }
+
     node.fields.variables.forEach((VariableDeclaration variable) {
       PropertyAccessorElement field = _getOverriddenMember(variable.element);
       if (field != null) {
