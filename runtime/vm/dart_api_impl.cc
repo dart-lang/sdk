@@ -5867,13 +5867,52 @@ DART_EXPORT Dart_Handle Dart_SetServiceStreamCallbacks(
 }
 
 
+DART_EXPORT int64_t Dart_TimelineGetMicros() {
+  return OS::GetCurrentMonotonicMicros();
+}
+
+
+#if defined(PRODUCT)
 DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
                                                   const char* event_kind,
                                                   const uint8_t* bytes,
                                                   intptr_t bytes_length) {
-#if defined(PRODUCT)
   return Api::Success();
+}
+
+
+DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
+  return;
+}
+
+
+DART_EXPORT void Dart_SetEmbedderTimelineCallbacks(
+    Dart_EmbedderTimelineStartRecording start_recording,
+    Dart_EmbedderTimelineStopRecording stop_recording) {
+  return;
+}
+
+
+DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
+                                             void* user_data) {
+  return false;
+}
+
+
+DART_EXPORT void Dart_TimelineEvent(const char* label,
+                                    int64_t timestamp0,
+                                    int64_t timestamp1_or_async_id,
+                                    Dart_Timeline_Event_Type type,
+                                    intptr_t argument_count,
+                                    const char** argument_names,
+                                    const char** argument_values) {
+  return;
+}
 #else  // defined(PRODUCT)
+DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
+                                                  const char* event_kind,
+                                                  const uint8_t* bytes,
+                                                  intptr_t bytes_length) {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
   if (stream_id == NULL) {
@@ -5892,12 +5931,6 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
   Service::SendEmbedderEvent(I, stream_id, event_kind,
                              bytes, bytes_length);
   return Api::Success();
-#endif  // defined(PRODUCT)
-}
-
-
-DART_EXPORT int64_t Dart_TimelineGetMicros() {
-  return OS::GetCurrentMonotonicMicros();
 }
 
 
@@ -6125,6 +6158,7 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
   }
   event->Complete();
 }
+#endif  // defined(PRODUCT)
 
 
 DART_EXPORT void Dart_SetThreadName(const char* name) {
