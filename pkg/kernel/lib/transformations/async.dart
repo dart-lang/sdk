@@ -133,7 +133,8 @@ class ExpressionLifter extends Transformer {
     ]);
     emit(new ExpressionStatement(new StaticInvocation(
             continuationRewriter.helper.awaitHelper, arguments)));
-    emit(new YieldStatement(new NullLiteral(), isNative: true));
+
+    emit(continuationRewriter.createContinuationPoint());
   }
 
   emit(Statement stmt) {

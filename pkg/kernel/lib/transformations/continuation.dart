@@ -4,6 +4,8 @@
 
 library kernel.transformations.continuation;
 
+import 'dart:math' as math;
+
 import '../ast.dart';
 import '../visitor.dart';
 
@@ -47,13 +49,65 @@ class RecursiveContinuationRewriter extends Transformer {
 abstract class ContinuationRewriterBase extends RecursiveContinuationRewriter {
   final FunctionNode enclosingFunction;
 
-  ContinuationRewriterBase(HelperNodes helper, this.enclosingFunction)
+  int currentTryDepth;  // Nesting depth for try-blocks.
+  int currentCatchDepth = 0;  // Nesting depth for catch-blocks.
+  int capturedTryDepth = 0;  // Deepest yield point within a try-block.
+  int capturedCatchDepth = 0;  // Deepest yield point within a catch-block.
+
+  ContinuationRewriterBase(HelperNodes helper,
+                           this.enclosingFunction,
+                           {this.currentTryDepth: 0})
       : super(helper);
 
   Statement createContinuationPoint([value]) {
     if (value == null) value = new NullLiteral();
+    capturedTryDepth = math.max(capturedTryDepth, currentTryDepth);
+    capturedCatchDepth = math.max(capturedCatchDepth, currentCatchDepth);
     return new YieldStatement(value, isNative: true);
   }
+
+  TreeNode visitTryCatch(TryCatch node) {
+    if (node.body != null) {
+      currentTryDepth++;
+      node.body = node.body.accept(this);
+      node.body?.parent = node;
+      currentTryDepth--;
+    }
+
+    currentCatchDepth++;
+    transformList(node.catches, this, node);
+    currentCatchDepth--;
+    return node;
+  }
+
+  TreeNode visitTryFinally(TryFinally node) {
+    if (node.body != null) {
+      currentTryDepth++;
+      node.body = node.body.accept(this);
+      node.body?.parent = node;
+      currentTryDepth--;
+    }
+    if (node.finalizer != null) {
+      node.finalizer = node.finalizer.accept(this);
+      node.finalizer?.parent = node;
+    }
+    return node;
+  }
+
+  Iterable<VariableDeclaration> createCapturedTryVariables() =>
+      new Iterable.generate(capturedTryDepth, (depth) =>
+        new VariableDeclaration(":saved_try_context_var${depth}"));
+
+  Iterable<VariableDeclaration> createCapturedCatchVariables() =>
+      new Iterable.generate(capturedCatchDepth).expand((depth) => [
+        new VariableDeclaration(":exception${depth}"),
+        new VariableDeclaration(":stack_trace${depth}"),
+      ]);
+
+  List<VariableDeclaration> variableDeclarations() =>
+      [asyncJumpVariable, asyncContextVariable]
+        ..addAll(createCapturedTryVariables())
+        ..addAll(createCapturedCatchVariables());
 }
 
 class SyncStarFunctionRewriter extends ContinuationRewriterBase {
@@ -81,11 +135,9 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
     final returnStatement = new ReturnStatement(new ConstructorInvocation(
         helper.syncIterableConstructor, arguments));
 
-    enclosingFunction.body = new Block([
-      asyncJumpVariable,
-      asyncContextVariable,
-      closureFunction,
-      returnStatement]);
+    enclosingFunction.body = new Block([]
+      ..addAll(variableDeclarations())
+      ..addAll([closureFunction, returnStatement]));
     enclosingFunction.body.parent = enclosingFunction;
     enclosingFunction.asyncMarker = AsyncMarker.Sync;
     return enclosingFunction;
@@ -133,7 +185,9 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   ExpressionLifter expressionRewriter;
 
   AsyncRewriterBase(helper, enclosingFunction)
-      : super(helper, enclosingFunction);
+     // Body is wrapped in the try-catch so initial currentTryDepth is 1.
+     : super(helper, enclosingFunction, currentTryDepth: 1) {
+  }
 
   setupAsyncContinuations(List<Statement> statements) {
     expressionRewriter = new ExpressionLifter(this, enclosingFunction);
@@ -143,12 +197,6 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
 
     // var :async_op_error;
     statements.add(catchErrorContinuationVariable);
-
-    // var :async_jump_var
-    statements.add(asyncJumpVariable);
-
-    // var :async_ctx_var
-    statements.add(asyncContextVariable);
 
     // :async_op([:result, :exception, :stack_trace]) {
     //     modified <node.body>;
@@ -168,6 +216,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     // [VariableDeclarations].
     // TODO(kustermann): If we didn't need any variables we should not emit
     // these.
+    statements.addAll(variableDeclarations());
     statements.addAll(expressionRewriter.variables);
 
     // Now add the closure function itself.
@@ -185,7 +234,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
 
     // :async_op_error = _asyncErrorWrapperHelper(asyncBody);
     final boundCatchErrorClosure = new StaticInvocation(
-        helper.asyncThenWrapper,
+        helper.asyncErrorWrapper,
         new Arguments([new VariableGet(nestedClosureVariable)]));
     final catchErrorClosureVariableAssign =
         new ExpressionStatement(new VariableSet(
@@ -204,7 +253,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     var completeErrorStatement =
         buildCatchBody(exceptionVariable, stackTraceVariable);
 
-    var catchBody = new Block([completeErrorStatement]);
+    var catchBody = new Block(<Statement>[completeErrorStatement]);
     var catches = [new Catch(exceptionVariable,
                              catchBody,
                              stackTrace: stackTraceVariable)];
