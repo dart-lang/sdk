@@ -416,6 +416,105 @@ code where a field definition in a subclass shadows the field
   allocated.  Users should prefer explicit getters and setters in such
   cases.  See [issue 52](https://github.com/dart-lang/dev_compiler/issues/52).
 
+## Optional Features
+
+### Disable implicit casts
+
+This is an optional feature of strong mode. It disables implicit down casts. For example:
+
+```dart
+main() {
+  num n = 0.5;
+  int x = n; // error: invalid assignment
+  int y = n as int; // ok at compile time, might fail when run
+}
+```
+
+Casts from `dynamic` must be explicit as well:
+
+```dart
+main() {
+  dynamic d = 'hi';
+  int x = d; // error: invalid assignment
+  int y = d as int; // ok at compile time, might fail when run
+}
+```
+
+Configure this for your project by editing .analysis_options:
+
+```yaml
+analyzer:
+  strong-mode:
+    implicit-casts: False
+```
+
+Or pass `--no-implicit-casts` to Dart Analyzer:
+
+```
+dartanalyzer --strong --no-implicit-casts my_app.dart
+```
+
+### Disable implicit dynamic
+
+This is an optional feature of analyzer, intended primarily for use with strong mode's inference.
+It rejects implicit use of `dynamic`, requiring it to be written explicitly. For example:
+
+```dart
+main() {
+  var x; // error: implicit dynamic
+  var i = 123; // okay, inferred to be `int x`
+  dynamic y; // okay, declared as dynamic
+}
+```
+
+This also affects: parameters, return types, fields, creating objects with generic type, generic functions/methods, and
+supertypes:
+
+```dart
+// error: parameters and return types are implicit dynamic
+f(x) => x + 42;
+dynamic f(dynamic x) => x + 42; // okay
+int f(int x) => x + 42; // okay
+
+class C {
+  var f; // error: implicit dynamic field
+  dynamic f; // okay
+}
+
+main() {
+  var x = []; // error: implicit List<dynamic>
+  var y = [42]; // okay: List<int>
+  var z = <dynamic>[]; // okay: List<dynamic>
+  
+  T genericFn<T>() => null;
+  genericFn(); // error: implicit genericFn<dynamic>
+  genericFn<dynamic>(); // okay
+  int x = genericFn(); // okay, inferred genericFn<int>
+}
+
+// error: implicit supertype Iterable<dynamic>
+class C extends Iterable { /* ... */ }
+// okay
+class C extends Iterable<dynamic> { /* ... */ }
+```
+
+It is designed to prevent accidental use of `dynamic` in code that does not intend to use it. It will lead to 
+more verbose dynamic code, so it may not be advisable for your code depending on its goals.
+
+Configure this for your project by editing .analysis_options:
+
+```yaml
+analyzer:
+  strong-mode:
+    implicit-dynamic: False
+```
+
+Or pass `--no-implicit-dynamic` to Dart Analyzer:
+
+```
+dartanalyzer --strong --no-implicit-dynamic my_app.dart
+```
+
 ### Open Items
 
 - Is / As restrictions: Dart's `is` and `as` checks are unsound for certain types
