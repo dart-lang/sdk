@@ -1069,7 +1069,11 @@
       ],
       'sources': [
         'fuchsia_test.cc',
+        'log_android.cc',
         'log_fuchsia.cc',  # TODO(zra): Move to libdart_builtin when ready.
+        'log_linux.cc',
+        'log_macos.cc',
+        'log_win.cc',
       ],
     },
     {
