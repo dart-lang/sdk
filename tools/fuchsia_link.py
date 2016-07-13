@@ -105,8 +105,8 @@ def main():
 
   if link_target == 'target':
     # Add and remove libraries as listed in configurations_fuchsia.gypi
-    libs_to_rm = ['-lrt', '-lpthread', '-ldl']
-    libs_to_add = [fuchsia_libgcc, '-lc',]
+    libs_to_rm = ['-lrt', '-lpthread']
+    libs_to_add = [fuchsia_libgcc, '-lc', '-ldl', '-lm']
 
     # Add crtn_fuchsia to end if we are linking an executable.
     if link_type == 'executable':

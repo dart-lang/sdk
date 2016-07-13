@@ -486,7 +486,7 @@ DEFINE_NATIVE_ENTRY(VMService_spawnUriNotify, 2) {
     spawn_event.set_spawn_error(&String::Cast(result));
     Service::HandleEvent(&spawn_event);
   }
-#endif
+#endif  // PRODUCT
   return Object::null();
 }
 
