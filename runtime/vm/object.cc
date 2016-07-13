@@ -5282,7 +5282,6 @@ bool Function::HasCode() const {
 
 void Function::ClearCode() const {
   ASSERT(Thread::Current()->IsMutatorThread());
-  ASSERT((usage_counter() != 0) || (ic_data_array() == Array::null()));
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
   SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
 }

@@ -2733,8 +2733,8 @@ class Function : public Object {
   void set_modifier(RawFunction::AsyncModifier value) const;
 
   // 'was_compiled' is true if the function was compiled once in this
-  // VM instantiation. It independent from presence of type feedback
-  // (ic_data_array) and code, whihc may be loaded from a snapshot.
+  // VM instantiation. It is independent from presence of type feedback
+  // (ic_data_array) and code, which may be loaded from a snapshot.
   void set_was_compiled(bool value) const {
     StoreNonPointer(&raw_ptr()->was_compiled_, value ? 1 : 0);
   }
