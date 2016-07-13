@@ -1325,10 +1325,9 @@ DART_EXPORT void* Dart_CurrentIsolateData() {
 
 DART_EXPORT void* Dart_IsolateData(Dart_Isolate isolate) {
   if (isolate == NULL) {
-    FATAL1("%s expects argument 'isolate' to be non-null.",  CURRENT_FUNC);
+    FATAL1("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);
   }
   // TODO(16615): Validate isolate parameter.
-  NoSafepointScope no_safepoint_scope;
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
   return iso->init_callback_data();
 }
