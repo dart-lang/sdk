@@ -132,10 +132,6 @@ static const int kErrorExitCode = 255;
 // Exit code indicating a vm restart request.  Never returned to the user.
 static const int kRestartRequestExitCode = 1000;
 
-// Global flag that is used to indicate that the VM should do a clean
-// shutdown.
-static bool do_vm_shutdown = true;
-
 static void ErrorExit(int exit_code, const char* format, ...) {
   va_list arguments;
   va_start(arguments, format);
@@ -155,9 +151,7 @@ static void ErrorExit(int exit_code, const char* format, ...) {
     free(error);
   }
 
-  if (do_vm_shutdown) {
-    EventHandler::Stop();
-  }
+  EventHandler::Stop();
   Platform::Exit(exit_code);
 }
 
@@ -458,33 +452,6 @@ static bool ProcessHotReloadTestModeOption(const char* arg,
 }
 
 
-static bool ProcessShutdownOption(const char* arg,
-                                  CommandLineOptions* vm_options) {
-  ASSERT(arg != NULL);
-  if (*arg == '\0') {
-    do_vm_shutdown = true;
-    vm_options->AddArgument("--shutdown");
-    return true;
-  }
-
-  if ((*arg != '=') && (*arg != ':')) {
-    return false;
-  }
-
-  if (strcmp(arg + 1, "true") == 0) {
-    do_vm_shutdown = true;
-    vm_options->AddArgument("--shutdown");
-    return true;
-  } else if (strcmp(arg + 1, "false") == 0) {
-    do_vm_shutdown = false;
-    vm_options->AddArgument("--no-shutdown");
-    return true;
-  }
-
-  return false;
-}
-
-
 static struct {
   const char* option_name;
   bool (*process)(const char* option, CommandLineOptions* vm_options);
@@ -504,7 +471,6 @@ static struct {
   { "--enable-vm-service", ProcessEnableVmServiceOption },
   { "--disable-service-origin-check", ProcessDisableServiceOriginCheckOption },
   { "--observe", ProcessObserveOption },
-  { "--shutdown", ProcessShutdownOption },
   { "--snapshot=", ProcessSnapshotFilenameOption },
   { "--snapshot-kind=", ProcessSnapshotKindOption },
   { "--run-app-snapshot=", ProcessRunAppSnapshotOption },
@@ -1391,9 +1357,7 @@ bool RunMainIsolate(const char* script_name,
       Log::PrintErr("VM cleanup failed: %s\n", error);
       free(error);
     }
-    if (do_vm_shutdown) {
-      EventHandler::Stop();
-    }
+    EventHandler::Stop();
     Platform::Exit((exit_code != 0) ? exit_code : kErrorExitCode);
   }
   delete [] isolate_name;
@@ -1667,6 +1631,8 @@ void main(int argc, char** argv) {
 
   Thread::InitOnce();
 
+  Loader::InitOnce();
+
   if (!DartUtils::SetOriginalWorkingDirectory()) {
     OSError err;
     fprintf(stderr, "Error determining current directory: %s\n", err.message());
@@ -1731,9 +1697,7 @@ void main(int argc, char** argv) {
       DartUtils::EntropySource,
       GetVMServiceAssetsArchiveCallback);
   if (error != NULL) {
-    if (do_vm_shutdown) {
-      EventHandler::Stop();
-    }
+    EventHandler::Stop();
     fprintf(stderr, "VM initialization failed: %s\n", error);
     fflush(stderr);
     free(error);
@@ -1758,9 +1722,7 @@ void main(int argc, char** argv) {
     Log::PrintErr("VM cleanup failed: %s\n", error);
     free(error);
   }
-  if (do_vm_shutdown) {
-    EventHandler::Stop();
-  }
+  EventHandler::Stop();
 
   // Free copied argument strings if converted.
   if (argv_converted) {
