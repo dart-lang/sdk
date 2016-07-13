@@ -104,7 +104,7 @@ R(marker_tasks, USING_MULTICORE ? 2 : 0, int, USING_MULTICORE ? 2 : 0,         \
 P(max_polymorphic_checks, int, 4,                                              \
   "Maximum number of polymorphic check, otherwise it is megamorphic.")         \
 P(max_equality_polymorphic_checks, int, 32,                                    \
-    "Maximum number of polymorphic checks in equality operator,")              \
+  "Maximum number of polymorphic checks in equality operator,")                \
 P(merge_sin_cos, bool, false,                                                  \
   "Merge sin/cos into sincos")                                                 \
 P(new_gen_ext_limit, int, 64,                                                  \
@@ -182,8 +182,6 @@ P(use_field_guards, bool, !USING_DBC,                                          \
   "Use field guards and track field types")                                    \
 C(use_osr, false, true, bool, true,                                            \
   "Use OSR")                                                                   \
-R(verbose_dev, false, bool, false,                                             \
-  "Enables verbose messages during development.")                              \
 P(verbose_gc, bool, false,                                                     \
   "Enables verbose GC.")                                                       \
 P(verbose_gc_hdr, int, 40,                                                     \
