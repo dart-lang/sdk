@@ -458,7 +458,8 @@ dartanalyzer --strong --no-implicit-casts my_app.dart
 ### Disable implicit dynamic (experimental)
 
 This is an optional feature of analyzer, intended primarily for use with strong mode's inference.
-It rejects implicit use of `dynamic`, requiring it to be written explicitly. For example:
+It rejects implicit uses of `dynamic` that strong mode inference fails to fill in with a concrete type,
+ensuring that all types are either successfully inferred or explicitly written. For example:
 
 ```dart
 main() {
@@ -499,8 +500,7 @@ class C extends Iterable { /* ... */ }
 class C extends Iterable<dynamic> { /* ... */ }
 ```
 
-It is designed to prevent accidental use of `dynamic` in code that does not intend to use it. It will lead to 
-more verbose dynamic code, so it may not be advisable for your code depending on its goals.
+This feature is to prevent accidental use of `dynamic` in code that does not intend to use it.
 
 This option is experimental and may be changed or removed in the future. Feedback is appreciated! Contact us at our [mailing list](https://groups.google.com/a/dartlang.org/forum/#!forum/dev-compiler).
 Try it out in your project by editing .analysis_options:
