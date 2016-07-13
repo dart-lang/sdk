@@ -1204,6 +1204,7 @@ int main(int argc, char** argv) {
   }
 
   Thread::InitOnce();
+  Loader::InitOnce();
   DartUtils::SetOriginalWorkingDirectory();
   // Start event handler.
   TimerUtils::InitOnce();
