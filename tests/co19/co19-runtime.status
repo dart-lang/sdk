@@ -194,6 +194,7 @@ Language/Expressions/Object_Identity/double_t02: RuntimeError # Issue #26374
 LibTest/typed_data/Float32x4/operator_division_A01_t02: RuntimeError # Issue #26675
 
 [ $hot_reload ]
+LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: SkipByDesign # Requires deferred libraries
 LibTest/collection/ListBase/ListBase_class_A01_t01: Pass, Timeout
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: Pass, Timeout
@@ -202,5 +203,4 @@ LibTest/core/List/List_class_A01_t02: Pass, Timeout
 LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
 LibTest/core/Uri/Uri_A06_t03: Pass, Timeout
 LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
-LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: SkipByDesign # Requires deferred libraries
-
+Language/Libraries_and_Scripts/Imports/deferred_import_t02: SkipByDesign # Requires deferred libraries

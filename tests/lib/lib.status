@@ -394,6 +394,7 @@ mirrors/library_import_deferred_loading_test: Fail # Deferred loading
 mirrors/typedef_deferred_library_test: Fail # Deferred loading
 mirrors/deferred_mirrors_update_test: Fail # Deferred loading
 mirrors/deferred_mirrors_metadata_test: Fail # Deferred loading
-mirrors/deferred_mirrors_metatarget_test: Fail # Deferred loading
+mirrors/deferred_mirrors_metatarget_test: Crash, Fail # Deferred loading
+mirrors/load_library_test: Fail # Deferred loading
 
 mirrors/metadata_scope_test/none: Fail # Constant equality - Issue 26868
