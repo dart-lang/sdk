@@ -12145,34 +12145,16 @@ void Parser::InsertCachedConstantValue(const Script& script,
                                        const Instance& value) {
   ASSERT(Thread::Current()->IsMutatorThread());
   const intptr_t kInitialConstMapSize = 16;
-  if (script.InVMHeap()) {
-    // For scripts in the vm heap, their constants are in a shared
-    // per-isolate map.
-    Isolate* isolate = Isolate::Current();
-    const String& url = String::Handle(script.url());
-    UrlAndPosKey key(url, token_pos);
-    if (isolate->object_store()->vm_compile_time_constants() == Array::null()) {
-      isolate->object_store()->set_vm_compile_time_constants(
-          Array::Handle(HashTables::New<VMConstantsMap>(
-              kInitialConstMapSize, Heap::kNew)));
-    }
-    VMConstantsMap constants(
-        isolate->object_store()->vm_compile_time_constants());
-    constants.InsertNewOrGetValue(key, value);
-    isolate->object_store()->set_vm_compile_time_constants(constants.Release());
-  } else {
-    // For scripts which are not in the vm heap, their constants are
-    // stored in the script itself.
-    if (script.compile_time_constants() == Array::null()) {
-      const Array& array =
-          Array::Handle(HashTables::New<ConstantsMap>(kInitialConstMapSize,
-                                                      Heap::kNew));
-      script.set_compile_time_constants(array);
-    }
-    ConstantsMap constants(script.compile_time_constants());
-    constants.InsertNewOrGetValue(token_pos, value);
-    script.set_compile_time_constants(constants.Release());
+  ASSERT(!script.InVMHeap());
+  if (script.compile_time_constants() == Array::null()) {
+    const Array& array =
+        Array::Handle(HashTables::New<ConstantsMap>(kInitialConstMapSize,
+                                                    Heap::kNew));
+    script.set_compile_time_constants(array);
   }
+  ConstantsMap constants(script.compile_time_constants());
+  constants.InsertNewOrGetValue(token_pos, value);
+  script.set_compile_time_constants(constants.Release());
 }
 
 
@@ -12189,34 +12171,16 @@ void Parser::CacheConstantValue(TokenPosition token_pos,
 
 bool Parser::GetCachedConstant(TokenPosition token_pos, Instance* value) {
   bool is_present = false;
-  if (script_.InVMHeap()) {
-    // For scripts in the vm heap, their constants are in a shared
-    // per-isolate map.
-    if (isolate()->object_store()->vm_compile_time_constants() ==
-        Array::null()) {
-      return false;
-    }
-    UrlAndPosKey key(String::Handle(Z, script_.url()), token_pos);
-    VMConstantsMap constants(
-        isolate()->object_store()->vm_compile_time_constants());
-    *value ^= constants.GetOrNull(key, &is_present);
-    // Mutator compiler thread may add constants while background compiler
-    // is running, and thus change the value of 'vm_compile_time_constants';
-    // do not assert that 'vm_compile_time_constants' has not changed.
-    constants.Release();
-  } else {
-    // For scripts which are not in the vm heap, their constants are
-    // stored in the script itself.
-    if (script_.compile_time_constants() == Array::null()) {
-      return false;
-    }
-    ConstantsMap constants(script_.compile_time_constants());
-    *value ^= constants.GetOrNull(token_pos, &is_present);
-    // Mutator compiler thread may add constants while background compiler
-    // is running, and thus change the value of 'compile_time_constants';
-    // do not assert that 'compile_time_constants' has not changed.
-    constants.Release();
+  ASSERT(!script_.InVMHeap());
+  if (script_.compile_time_constants() == Array::null()) {
+    return false;
   }
+  ConstantsMap constants(script_.compile_time_constants());
+  *value ^= constants.GetOrNull(token_pos, &is_present);
+  // Mutator compiler thread may add constants while background compiler
+  // is running, and thus change the value of 'compile_time_constants';
+  // do not assert that 'compile_time_constants' has not changed.
+  constants.Release();
   if (FLAG_compiler_stats && is_present) {
     thread_->compiler_stats()->num_const_cache_hits++;
   }
