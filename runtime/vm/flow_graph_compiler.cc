@@ -84,7 +84,6 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_inlining_constant_arguments_min_size_threshold = 30;
 
     FLAG_background_compilation = false;
-    FLAG_always_megamorphic_calls = true;
     FLAG_fields_may_be_reset = true;
     FLAG_interpret_irregexp = true;
     FLAG_lazy_dispatchers = false;
@@ -1194,12 +1193,6 @@ void FlowGraphCompiler::GenerateInstanceCall(
     ic_data = ic_data.AsUnaryClassChecks();
     EmitSwitchableInstanceCall(ic_data, argument_count,
                                deopt_id, token_pos, locs);
-    return;
-  }
-  if (FLAG_always_megamorphic_calls) {
-    EmitMegamorphicInstanceCall(ic_data_in, argument_count,
-                                deopt_id, token_pos, locs,
-                                CatchClauseNode::kInvalidTryIndex);
     return;
   }
   ASSERT(!ic_data.IsNull());
