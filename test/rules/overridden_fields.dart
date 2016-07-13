@@ -154,3 +154,11 @@ class A extends B {}
 class B extends A {
   int field;
 }
+
+class StaticsNo {
+  static int a;
+}
+
+class VerifyStatic extends StaticsNo {
+  static int a;
+}
