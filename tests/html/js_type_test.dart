@@ -6,16 +6,11 @@ library jsTest;
 
 import 'dart:html';
 
-import 'package:js/js.dart';
-
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_individual_config.dart';
 import 'package:expect/expect.dart' show NoInline, AssumeDynamic;
 
-@JS()
-class Foo {
-  external factory Foo();
-}
+import 'js_type_test_lib.dart';
 
 class Bar {}
 
