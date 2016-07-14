@@ -265,7 +265,8 @@ class LineInfo {
    */
   int getOffsetOfLine(int lineNumber) {
     if (lineNumber < 0 || lineNumber >= lineCount) {
-      throw new ArgumentError('Invalid line number: $lineNumber');
+      throw new ArgumentError(
+          'Invalid line number: $lineNumber; must be between 0 and ${lineCount - 1}');
     }
     return _lineStarts[lineNumber];
   }
