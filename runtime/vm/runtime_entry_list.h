@@ -33,7 +33,6 @@ namespace dart {
   V(OptimizeInvokedFunction)                                                   \
   V(TraceICCall)                                                               \
   V(PatchStaticCall)                                                           \
-  V(RangeError)                                                                \
   V(ReThrow)                                                                   \
   V(StackOverflow)                                                             \
   V(Throw)                                                                     \

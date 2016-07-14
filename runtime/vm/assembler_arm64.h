@@ -1219,11 +1219,6 @@ class Assembler : public ValueObject {
     LslImmediate(dst, src, kSmiTagSize);
   }
 
-  void BranchIfNotSmi(Register reg, Label* label) {
-    tsti(reg, Immediate(kSmiTagMask));
-    b(label, NE);
-  }
-
   void Branch(const StubEntry& stub_entry,
               Register pp,
               Patchability patchable = kNotPatchable);

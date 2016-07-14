@@ -512,7 +512,6 @@ class EmbeddedArray<T, 0> {
   M(ShiftMintOp)                                                               \
   M(UnaryMintOp)                                                               \
   M(CheckArrayBound)                                                           \
-  M(GenericCheckBound)                                                         \
   M(Constraint)                                                                \
   M(StringToCharCode)                                                          \
   M(OneByteStringFromCharCode)                                                 \
@@ -7926,35 +7925,6 @@ class CheckArrayBoundInstr : public TemplateInstruction<2, NoThrow, Pure> {
   bool licm_hoisted_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckArrayBoundInstr);
-};
-
-
-class GenericCheckBoundInstr : public TemplateInstruction<2, Throws, NoCSE> {
- public:
-  GenericCheckBoundInstr(Value* length, Value* index, intptr_t deopt_id)
-      : TemplateInstruction(deopt_id) {
-    SetInputAt(kLengthPos, length);
-    SetInputAt(kIndexPos, index);
-  }
-
-  Value* length() const { return inputs_[kLengthPos]; }
-  Value* index() const { return inputs_[kIndexPos]; }
-
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
-
-  DECLARE_INSTRUCTION(GenericCheckBound)
-
-  virtual bool CanDeoptimize() const { return true; }
-
-  // Give a name to the location/input indices.
-  enum {
-    kLengthPos = 0,
-    kIndexPos = 1
-  };
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(GenericCheckBoundInstr);
 };
 
 

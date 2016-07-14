@@ -5847,7 +5847,8 @@ void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                         ICData::kDeoptCheckSmi,
                                         licm_hoisted_ ? ICData::kHoisted : 0);
-  __ BranchIfNotSmi(value, deopt);
+  __ testl(value, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, deopt);
 }
 
 
@@ -5867,20 +5868,6 @@ void CheckClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass);
   __ cmpl(value, Immediate(Smi::RawValue(cid_)));
   __ j(NOT_ZERO, deopt);
-}
-
-
-LocationSummary* GenericCheckBoundInstr::MakeLocationSummary(Zone* zone,
-                                                             bool opt) const {
-  // Only needed for AOT.
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-void GenericCheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Only needed for AOT.
-  UNIMPLEMENTED();
 }
 
 
@@ -5923,12 +5910,8 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  const intptr_t index_cid = index()->Type()->ToCid();
   if (length_loc.IsConstant()) {
     Register index = index_loc.reg();
-    if (index_cid != kSmiCid) {
-      __ BranchIfNotSmi(index, deopt);
-    }
     const Smi& length = Smi::Cast(length_loc.constant());
     if (length.Value() == Smi::kMaxValue) {
       __ testl(index, index);
@@ -5950,17 +5933,11 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else if (length_loc.IsStackSlot()) {
     Register index = index_loc.reg();
     const Address& length = length_loc.ToStackSlotAddress();
-    if (index_cid != kSmiCid) {
-      __ BranchIfNotSmi(index, deopt);
-    }
     __ cmpl(index, length);
     __ j(ABOVE_EQUAL, deopt);
   } else {
     Register index = index_loc.reg();
     Register length = length_loc.reg();
-    if (index_cid != kSmiCid) {
-      __ BranchIfNotSmi(index, deopt);
-    }
     __ cmpl(length, index);
     __ j(BELOW_EQUAL, deopt);
   }

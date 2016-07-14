@@ -907,11 +907,6 @@ class Assembler : public ValueObject {
     b(is_smi, CC);
   }
 
-  void BranchIfNotSmi(Register reg, Label* label) {
-    tst(reg, Operand(kSmiTagMask));
-    b(label, NE);
-  }
-
   void CheckCodePointer();
 
   // Function frame setup and tear down.

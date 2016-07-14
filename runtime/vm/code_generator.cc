@@ -91,35 +91,6 @@ DEFINE_RUNTIME_ENTRY(TraceFunctionExit, 1) {
 }
 
 
-DEFINE_RUNTIME_ENTRY(RangeError, 2) {
-  const Instance& length = Instance::CheckedHandle(arguments.ArgAt(0));
-  const Instance& index = Instance::CheckedHandle(arguments.ArgAt(1));
-  if (!length.IsInteger()) {
-    // Throw: new ArgumentError.value(length, "length", "is not an integer");
-    const Array& args = Array::Handle(Array::New(3));
-    args.SetAt(0, length);
-    args.SetAt(1, Symbols::Length());
-    args.SetAt(2, String::Handle(String::New("is not an integer")));
-    Exceptions::ThrowByType(Exceptions::kArgumentValue, args);
-  }
-  if (!index.IsInteger()) {
-    // Throw: new ArgumentError.value(index, "index", "is not an integer");
-    const Array& args = Array::Handle(Array::New(3));
-    args.SetAt(0, index);
-    args.SetAt(1, Symbols::Index());
-    args.SetAt(2, String::Handle(String::New("is not an integer")));
-    Exceptions::ThrowByType(Exceptions::kArgumentValue, args);
-  }
-  // Throw: new RangeError.range(index, 0, length, "length");
-  const Array& args = Array::Handle(Array::New(4));
-  args.SetAt(0, index);
-  args.SetAt(1, Integer::Handle(Integer::New(0)));
-  args.SetAt(2, length);
-  args.SetAt(3, Symbols::Length());
-  Exceptions::ThrowByType(Exceptions::kRange, args);
-}
-
-
 // Allocation of a fixed length array of given element type.
 // This runtime entry is never called for allocating a List of a generic type,
 // because a prior run time call instantiates the element type if necessary.

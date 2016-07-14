@@ -2674,9 +2674,6 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           sinking->DetachMaterializations();
         }
 
-        // Replace bounds check instruction with a generic one.
-        optimizer.ReplaceArrayBoundChecks();
-
         // Compute and store graph informations (call & instruction counts)
         // to be later used by the inliner.
         FlowGraphInliner::CollectGraphInfo(flow_graph, true);

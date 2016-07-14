@@ -27,7 +27,6 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
 
   virtual void VisitJoinEntry(JoinEntryInstr* instr);
   virtual void VisitCheckSmi(CheckSmiInstr* instr);
-  virtual void VisitCheckArrayBound(CheckArrayBoundInstr* instr);
   virtual void VisitCheckClass(CheckClassInstr* instr);
   virtual void VisitCheckClassId(CheckClassIdInstr* instr);
   virtual void VisitGuardFieldClass(GuardFieldClassInstr* instr);

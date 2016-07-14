@@ -1472,11 +1472,6 @@ class Assembler : public ValueObject {
     sra(dst, src, kSmiTagSize);
   }
 
-  void BranchIfNotSmi(Register reg, Label* label) {
-    andi(CMPRES1, reg, Immediate(kSmiTagMask));
-    bne(CMPRES1, ZR, label);
-  }
-
   void LoadFromOffset(Register reg, Register base, int32_t offset) {
     ASSERT(!in_delay_slot_);
     if (Utils::IsInt(kImmBits, offset)) {
