@@ -53,6 +53,8 @@
     'thread.h',
     'thread_android.cc',
     'thread_android.h',
+    'thread_fuchsia.cc',
+    'thread_fuchsia.h',
     'thread_linux.cc',
     'thread_linux.h',
     'thread_macos.cc',
