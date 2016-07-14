@@ -501,7 +501,9 @@ class ObjectStore {
 
   static void Init(Isolate* isolate);
 
+#ifndef PRODUCT
   void PrintToJSONObject(JSONObject* jsobj);
+#endif
 
  private:
   ObjectStore();

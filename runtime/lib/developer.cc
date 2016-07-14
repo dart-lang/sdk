@@ -34,14 +34,19 @@ DEFINE_NATIVE_ENTRY(Developer_debugger, 2) {
 
 DEFINE_NATIVE_ENTRY(Developer_inspect, 1) {
   GET_NATIVE_ARGUMENT(Instance, inspectee, arguments->NativeArgAt(0));
+#ifndef PRODUCT
   if (FLAG_support_service) {
     Service::SendInspectEvent(isolate, inspectee);
   }
+#endif  // !PRODUCT
   return inspectee.raw();
 }
 
 
 DEFINE_NATIVE_ENTRY(Developer_log, 8) {
+#if defined(PRODUCT)
+  return Object::null();
+#else
   if (!FLAG_support_service) {
     return Object::null();
   }
@@ -63,10 +68,14 @@ DEFINE_NATIVE_ENTRY(Developer_log, 8) {
                         error,
                         stack_trace);
   return Object::null();
+#endif  // PRODUCT
 }
 
 
 DEFINE_NATIVE_ENTRY(Developer_postEvent, 2) {
+#if defined(PRODUCT)
+  return Object::null();
+#else
   if (!FLAG_support_service) {
     return Object::null();
   }
@@ -74,19 +83,27 @@ DEFINE_NATIVE_ENTRY(Developer_postEvent, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, event_data, arguments->NativeArgAt(1));
   Service::SendExtensionEvent(isolate, event_kind, event_data);
   return Object::null();
+#endif  // PRODUCT
 }
 
 
 DEFINE_NATIVE_ENTRY(Developer_lookupExtension, 1) {
+#if defined(PRODUCT)
+  return Object::null();
+#else
   if (!FLAG_support_service) {
     return Object::null();
   }
   GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(0));
   return isolate->LookupServiceExtensionHandler(name);
+#endif  // PRODUCT
 }
 
 
 DEFINE_NATIVE_ENTRY(Developer_registerExtension, 2) {
+#if defined(PRODUCT)
+  return Object::null();
+#else
   if (!FLAG_support_service) {
     return Object::null();
   }
@@ -100,6 +117,7 @@ DEFINE_NATIVE_ENTRY(Developer_registerExtension, 2) {
     isolate->RegisterServiceExtensionHandler(name, handler);
   }
   return Object::null();
+#endif  // PRODUCT
 }
 
 }  // namespace dart

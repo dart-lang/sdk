@@ -207,8 +207,10 @@ class IsolateMessageHandler : public MessageHandler {
   const char* name() const;
   void MessageNotify(Message::Priority priority);
   MessageStatus HandleMessage(Message* message);
+#ifndef PRODUCT
   void NotifyPauseOnStart();
   void NotifyPauseOnExit();
+#endif  // !PRODUCT
 
 #if defined(DEBUG)
   // Check that it is safe to access this handler.
@@ -575,6 +577,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
     }
   }
   delete message;
+#ifndef PRODUCT
   if (status == kOK) {
     const Object& result =
         Object::Handle(zone, I->InvokePendingServiceExtensionCalls());
@@ -584,10 +587,12 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
       ASSERT(result.IsNull());
     }
   }
+#endif  // !PRODUCT
   return status;
 }
 
 
+#ifndef PRODUCT
 void IsolateMessageHandler::NotifyPauseOnStart() {
   if (!FLAG_support_service) {
     return;
@@ -620,6 +625,7 @@ void IsolateMessageHandler::NotifyPauseOnExit() {
               I->name());
   }
 }
+#endif  // !PRODUCT
 
 
 #if defined(DEBUG)
@@ -960,9 +966,11 @@ Isolate* Isolate::Init(const char* name_prefix,
     }
   }
 
+#ifndef PRODUCT
   if (FLAG_support_service) {
     ObjectIdRing::Init(result);
   }
+#endif  // !PRODUCT
 
   // Add to isolate list. Shutdown and delete the isolate on failure.
   if (!AddIsolateToList(result)) {
@@ -1083,8 +1091,7 @@ void Isolate::ReloadSources(bool test_mode) {
   reload_context_ = new IsolateReloadContext(this, test_mode);
   reload_context_->StartReload();
 }
-
-#endif
+#endif  // !PRODUCT
 
 
 void Isolate::DoneFinalizing() {
@@ -1143,11 +1150,11 @@ bool Isolate::MakeRunnable() {
       event->Complete();
     }
   }
-#endif  // !PRODUCT
   if (FLAG_support_service && Service::isolate_stream.enabled()) {
     ServiceEvent runnableEvent(this, ServiceEvent::kIsolateRunnable);
     Service::HandleEvent(&runnableEvent);
   }
+#endif  // !PRODUCT
   return true;
 }
 
@@ -2102,6 +2109,7 @@ RawField* Isolate::GetDeoptimizingBoxedField() {
 }
 
 
+#ifndef PRODUCT
 RawObject* Isolate::InvokePendingServiceExtensionCalls() {
   if (!FLAG_support_service) {
     return Object::null();
@@ -2282,6 +2290,7 @@ RawInstance* Isolate::LookupServiceExtensionHandler(const String& name) {
   }
   return Instance::null();
 }
+#endif  // !PRODUCT
 
 
 void Isolate::WakePauseEventHandler(Dart_Isolate isolate) {

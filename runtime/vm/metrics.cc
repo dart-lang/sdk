@@ -67,6 +67,7 @@ Metric::~Metric() {
 }
 
 
+#ifndef PRODUCT
 static const char* UnitString(intptr_t unit) {
   switch (unit) {
     case Metric::kCounter: return "counter";
@@ -97,6 +98,7 @@ void Metric::PrintJSON(JSONStream* stream) {
   double value_as_double = static_cast<double>(Value());
   obj.AddProperty("value", value_as_double);
 }
+#endif  // !PRODUCT
 
 
 char* Metric::ValueToString(int64_t value, Unit unit) {

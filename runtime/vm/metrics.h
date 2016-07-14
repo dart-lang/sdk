@@ -56,7 +56,9 @@ class Metric {
 
   virtual ~Metric();
 
+#ifndef PRODUCT
   void PrintJSON(JSONStream* stream);
+#endif  // !PRODUCT
 
   // Returns a zone allocated string.
   static char* ValueToString(int64_t value, Unit unit);

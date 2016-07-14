@@ -731,11 +731,13 @@ void Heap::RecordAfterGC(Space space) {
   stats_.after_.old_ = old_space_.GetCurrentUsage();
   ASSERT((space == kNew && gc_new_space_in_progress_) ||
          (space == kOld && gc_old_space_in_progress_));
+#ifndef PRODUCT
   if (FLAG_support_service && Service::gc_stream.enabled()) {
     ServiceEvent event(Isolate::Current(), ServiceEvent::kGC);
     event.set_gc_stats(&stats_);
     Service::HandleEvent(&event);
   }
+#endif  // !PRODUCT
 }
 
 

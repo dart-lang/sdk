@@ -122,6 +122,7 @@ void ObjectStore::Init(Isolate* isolate) {
 }
 
 
+#ifndef PRODUCT
 void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
   if (!FLAG_support_service) {
     return;
@@ -138,6 +139,7 @@ OBJECT_STORE_FIELD_LIST(PRINT_OBJECT_STORE_FIELD);
 #undef PRINT_OBJECT_STORE_FIELD
   }
 }
+#endif  // !PRODUCT
 
 
 RawError* ObjectStore::PreallocateObjects() {

@@ -487,6 +487,7 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
 
 void Scavenger::IterateObjectIdTable(Isolate* isolate,
                                      ScavengerVisitor* visitor) {
+#ifndef PRODUCT
   if (!FLAG_support_service) {
     return;
   }
@@ -497,6 +498,7 @@ void Scavenger::IterateObjectIdTable(Isolate* isolate,
     return;
   }
   ring->VisitPointers(visitor);
+#endif  // !PRODUCT
 }
 
 
@@ -858,6 +860,7 @@ void Scavenger::WriteProtect(bool read_only) {
 }
 
 
+#ifndef PRODUCT
 void Scavenger::PrintToJSONObject(JSONObject* object) const {
   if (!FLAG_support_service) {
     return;
@@ -885,6 +888,7 @@ void Scavenger::PrintToJSONObject(JSONObject* object) const {
   space.AddProperty64("external", ExternalInWords() * kWordSize);
   space.AddProperty("time", MicrosecondsToSeconds(gc_time_micros()));
 }
+#endif  // !PRODUCT
 
 
 void Scavenger::AllocateExternal(intptr_t size) {

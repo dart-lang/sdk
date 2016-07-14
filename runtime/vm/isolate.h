@@ -583,6 +583,7 @@ class Isolate : public BaseIsolate {
   // Returns Field::null() if none available in the list.
   RawField* GetDeoptimizingBoxedField();
 
+#ifndef PRODUCT
   RawObject* InvokePendingServiceExtensionCalls();
   void AppendServiceExtensionCall(const Instance& closure,
                            const String& method_name,
@@ -593,6 +594,7 @@ class Isolate : public BaseIsolate {
   void RegisterServiceExtensionHandler(const String& name,
                                        const Instance& closure);
   RawInstance* LookupServiceExtensionHandler(const String& name);
+#endif
 
   static void VisitIsolates(IsolateVisitor* visitor);
 
