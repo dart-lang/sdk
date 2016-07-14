@@ -311,6 +311,9 @@ class ObjectPointerVisitor;
   V(TwoNewlines, "\n\n")                                                       \
   V(TwoSpaces, "  ")                                                           \
   V(_instanceOf, "_instanceOf")                                                \
+  V(_simpleInstanceOf, "_simpleInstanceOf")                                    \
+  V(_simpleInstanceOfTrue, "_simpleInstanceOfTrue")                            \
+  V(_simpleInstanceOfFalse, "_simpleInstanceOfFalse")                          \
   V(_instanceOfSmi, "_instanceOfSmi")                                          \
   V(_instanceOfNum, "_instanceOfNum")                                          \
   V(_instanceOfInt, "_instanceOfInt")                                          \

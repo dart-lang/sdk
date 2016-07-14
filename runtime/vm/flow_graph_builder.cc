@@ -1543,6 +1543,22 @@ Value* EffectGraphVisitor::BuildAssignableValue(TokenPosition token_pos,
   return Bind(BuildAssertAssignable(token_pos, value, dst_type, dst_name));
 }
 
+static bool simpleInstanceOfType(const AbstractType& type) {
+  // Bail if the type is still uninstantiated at compile time.
+  if (!type.IsInstantiated()) return false;
+
+  // Bail if the type is a function or a Dart Function type.
+  if (type.IsFunctionType() || type.IsDartFunctionType()) return false;
+
+  ASSERT(type.HasResolvedTypeClass());
+  const Class& type_class = Class::Handle(type.type_class());
+  // Bail if the type has any type parameters.
+  if (type_class.IsGeneric()) return false;
+
+  // Finally a simple class for instance of checking.
+  return true;
+}
+
 
 void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   ASSERT(Token::IsTypeTestOperator(node->kind()));
@@ -1599,33 +1615,54 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
     return;
   }
 
+  // We now know type is a real class (!num, !int, !smi, !string)
+  // and the type check could NOT be removed at compile time.
   PushArgumentInstr* push_left = PushArgument(for_left_value.value());
-  PushArgumentInstr* push_type_args = NULL;
-  if (type.IsInstantiated()) {
-    push_type_args = PushArgument(BuildNullValue(node->token_pos()));
+  if (simpleInstanceOfType(type) && (node->kind() == Token::kIS)) {
+    ASSERT(!node->right()->AsTypeNode()->type().IsNull());
+    ZoneGrowableArray<PushArgumentInstr*>* arguments =
+        new(Z) ZoneGrowableArray<PushArgumentInstr*>(2);
+    arguments->Add(push_left);
+    Value* type_const = Bind(new(Z) ConstantInstr(type));
+    arguments->Add(PushArgument(type_const));
+    const intptr_t kNumArgsChecked = 2;
+    InstanceCallInstr* call = new(Z) InstanceCallInstr(
+        node->token_pos(),
+        Library::PrivateCoreLibName(Symbols::_simpleInstanceOf()),
+        node->kind(),
+        arguments,
+        Object::null_array(),  // No argument names.
+        kNumArgsChecked,
+        owner()->ic_data_array());
+    ReturnDefinition(call);
   } else {
-    BuildTypecheckPushArguments(node->token_pos(), &push_type_args);
+    PushArgumentInstr* push_type_args = NULL;
+    if (type.IsInstantiated()) {
+      push_type_args = PushArgument(BuildNullValue(node->token_pos()));
+    } else {
+      BuildTypecheckPushArguments(node->token_pos(), &push_type_args);
+    }
+    ZoneGrowableArray<PushArgumentInstr*>* arguments =
+        new(Z) ZoneGrowableArray<PushArgumentInstr*>(4);
+    arguments->Add(push_left);
+    arguments->Add(push_type_args);
+    ASSERT(!node->right()->AsTypeNode()->type().IsNull());
+    Value* type_const = Bind(new(Z) ConstantInstr(type));
+    arguments->Add(PushArgument(type_const));
+    const Bool& negate = Bool::Get(node->kind() == Token::kISNOT);
+    Value* negate_arg = Bind(new(Z) ConstantInstr(negate));
+    arguments->Add(PushArgument(negate_arg));
+    const intptr_t kNumArgsChecked = 1;
+    InstanceCallInstr* call = new(Z) InstanceCallInstr(
+        node->token_pos(),
+        Library::PrivateCoreLibName(Symbols::_instanceOf()),
+        node->kind(),
+        arguments,
+        Object::null_array(),  // No argument names.
+        kNumArgsChecked,
+        owner()->ic_data_array());
+    ReturnDefinition(call);
   }
-  ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new(Z) ZoneGrowableArray<PushArgumentInstr*>(4);
-  arguments->Add(push_left);
-  arguments->Add(push_type_args);
-  ASSERT(!node->right()->AsTypeNode()->type().IsNull());
-  Value* type_const = Bind(new(Z) ConstantInstr(type));
-  arguments->Add(PushArgument(type_const));
-  const Bool& negate = Bool::Get(node->kind() == Token::kISNOT);
-  Value* negate_arg = Bind(new(Z) ConstantInstr(negate));
-  arguments->Add(PushArgument(negate_arg));
-  const intptr_t kNumArgsChecked = 1;
-  InstanceCallInstr* call = new(Z) InstanceCallInstr(
-      node->token_pos(),
-      Library::PrivateCoreLibName(Symbols::_instanceOf()),
-      node->kind(),
-      arguments,
-      Object::null_array(),  // No argument names.
-      kNumArgsChecked,
-      owner()->ic_data_array());
-  ReturnDefinition(call);
 }
 
 

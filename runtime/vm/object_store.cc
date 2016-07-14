@@ -89,6 +89,9 @@ ObjectStore::ObjectStore()
     lookup_port_handler_(Function::null()),
     empty_uint32_array_(TypedData::null()),
     handle_message_function_(Function::null()),
+    simple_instance_of_function_(Function::null()),
+    simple_instance_of_true_function_(Function::null()),
+    simple_instance_of_false_function_(Function::null()),
     library_load_error_table_(Array::null()),
     unique_dynamic_targets_(Array::null()),
     token_objects_(GrowableObjectArray::null()),
@@ -201,6 +204,16 @@ RawError* ObjectStore::PreallocateObjects() {
 }
 
 
+RawFunction* ObjectStore::PrivateObjectLookup(const String& name) {
+  const Library& core_lib = Library::Handle(core_library());
+  const String& mangled = String::ZoneHandle(core_lib.PrivateName(name));
+  const Class& cls = Class::Handle(object_class());
+  const Function& result = Function::Handle(cls.LookupDynamicFunction(mangled));
+  ASSERT(!result.IsNull());
+  return result.raw();
+}
+
+
 void ObjectStore::InitKnownObjects() {
 #ifdef DART_PRECOMPILED_RUNTIME
   // These objects are only needed for code generation.
@@ -227,6 +240,14 @@ void ObjectStore::InitKnownObjects() {
   const Library& internal_lib = Library::Handle(internal_library());
   cls = internal_lib.LookupClass(Symbols::Symbol());
   set_symbol_class(cls);
+
+  // Cache the core private functions used for fast instance of checks.
+  simple_instance_of_function_ =
+      PrivateObjectLookup(Symbols::_simpleInstanceOf());
+  simple_instance_of_true_function_ =
+      PrivateObjectLookup(Symbols::_simpleInstanceOfTrue());
+  simple_instance_of_false_function_ =
+      PrivateObjectLookup(Symbols::_simpleInstanceOfFalse());
 #endif
 }
 

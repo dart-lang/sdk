@@ -12848,10 +12848,20 @@ void ICData::AddTarget(const Function& target) const {
 }
 
 
+bool ICData::ValidateInterceptor(const Function& target) const {
+  ObjectStore* store = Isolate::Current()->object_store();
+  ASSERT((target.raw() == store->simple_instance_of_true_function()) ||
+         (target.raw() == store->simple_instance_of_false_function()));
+  const String& instance_of_name = String::Handle(
+      Library::PrivateCoreLibName(Symbols::_simpleInstanceOf()).raw());
+  ASSERT(target_name() == instance_of_name.raw());
+  return true;
+}
+
 void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
                       const Function& target) const {
   ASSERT(!target.IsNull());
-  ASSERT(target.name() == target_name());
+  ASSERT((target.name() == target_name()) || ValidateInterceptor(target));
   DEBUG_ASSERT(!HasCheck(class_ids));
   ASSERT(NumArgsTested() > 1);  // Otherwise use 'AddReceiverCheck'.
   ASSERT(class_ids.length() == NumArgsTested());

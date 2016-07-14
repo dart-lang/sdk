@@ -2090,6 +2090,8 @@ class ICData : public Object {
   void set_ic_data_array(const Array& value) const;
   void set_state_bits(uint32_t bits) const;
 
+  bool ValidateInterceptor(const Function& target) const;
+
   enum {
     kNumArgsTestedPos = 0,
     kNumArgsTestedSize = 2,

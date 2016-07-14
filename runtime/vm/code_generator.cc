@@ -811,6 +811,25 @@ RawFunction* InlineCacheMissHelper(
   return result.raw();
 }
 
+
+// Perform the subtype and return constant function based on the result.
+static RawFunction* ComputeTypeCheckTarget(const Instance& receiver,
+                                           const AbstractType& type,
+                                           const ArgumentsDescriptor& desc) {
+  const TypeArguments& checked_type_arguments = TypeArguments::Handle();
+  Error& error = Error::Handle();
+  bool result = receiver.IsInstanceOf(type, checked_type_arguments, &error);
+  ASSERT(error.IsNull());
+  ObjectStore* store = Isolate::Current()->object_store();
+  const Function& target
+      = Function::Handle(result
+                         ? store->simple_instance_of_true_function()
+                         : store->simple_instance_of_false_function());
+  ASSERT(!target.IsNull());
+  return target.raw();;
+}
+
+
 static RawFunction* InlineCacheMissHandler(
     const GrowableArray<const Instance*>& args,
     const ICData& ic_data) {
@@ -819,8 +838,17 @@ static RawFunction* InlineCacheMissHandler(
       arguments_descriptor(Array::Handle(ic_data.arguments_descriptor()));
   String& function_name = String::Handle(ic_data.target_name());
   ASSERT(function_name.IsSymbol());
+
   Function& target_function = Function::Handle(
       Resolver::ResolveDynamic(receiver, function_name, arguments_descriptor));
+
+  ObjectStore* store = Isolate::Current()->object_store();
+  if (target_function.raw() == store->simple_instance_of_function()) {
+    // Replace the target function with constant function.
+    const AbstractType& type = AbstractType::Cast(*args[1]);
+    target_function
+        = ComputeTypeCheckTarget(receiver, type, arguments_descriptor);
+  }
   if (target_function.IsNull()) {
     if (FLAG_trace_ic) {
       OS::PrintErr("InlineCacheMissHandler NULL function for %s receiver: %s\n",
