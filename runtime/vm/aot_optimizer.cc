@@ -2047,6 +2047,10 @@ static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
   return true;  // May deoptimize since we have not identified all 'true' tests.
 }
 
+// Tells whether the function of the call matches the core private name.
+static bool matches_core(InstanceCallInstr* call, const String& name) {
+  return call->function_name().raw() == Library::PrivateCoreLibName(name).raw();
+}
 
 // TODO(srdjan): Use ICData to check if always true or false.
 void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
@@ -2057,26 +2061,27 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   bool negate = false;
   if (call->ArgumentCount() == 2) {
     type_args = flow_graph()->constant_null();
-    if (call->function_name().raw() ==
-        Library::PrivateCoreLibName(Symbols::_instanceOfNum()).raw()) {
-      type = Type::Number();
-    } else if (call->function_name().raw() ==
-        Library::PrivateCoreLibName(Symbols::_instanceOfInt()).raw()) {
-      type = Type::IntType();
-    } else if (call->function_name().raw() ==
-        Library::PrivateCoreLibName(Symbols::_instanceOfSmi()).raw()) {
-      type = Type::SmiType();
-    } else if (call->function_name().raw() ==
-        Library::PrivateCoreLibName(Symbols::_instanceOfDouble()).raw()) {
-      type = Type::Double();
-    } else if (call->function_name().raw() ==
-        Library::PrivateCoreLibName(Symbols::_instanceOfString()).raw()) {
-      type = Type::StringType();
+    if (matches_core(call, Symbols::_simpleInstanceOf())) {
+      type =
+          AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).raw();
+      negate = false;  // Just to be sure.
     } else {
-      UNIMPLEMENTED();
+      if (matches_core(call, Symbols::_instanceOfNum())) {
+        type = Type::Number();
+      } else if (matches_core(call, Symbols::_instanceOfInt())) {
+        type = Type::IntType();
+      } else if (matches_core(call, Symbols::_instanceOfSmi())) {
+        type = Type::SmiType();
+      } else if (matches_core(call, Symbols::_instanceOfDouble())) {
+        type = Type::Double();
+      } else if (matches_core(call, Symbols::_instanceOfString())) {
+        type = Type::StringType();
+      } else {
+        UNIMPLEMENTED();
+      }
+      negate = Bool::Cast(call->ArgumentAt(1)->OriginalDefinition()
+                          ->AsConstant()->value()).value();
     }
-    negate = Bool::Cast(call->ArgumentAt(1)->OriginalDefinition()
-        ->AsConstant()->value()).value();
   } else {
     type_args = call->ArgumentAt(1);
     type = AbstractType::Cast(call->ArgumentAt(2)->AsConstant()->value()).raw();
