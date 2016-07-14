@@ -82,6 +82,10 @@ class Loader {
             const char* working_directory,
             const char* root_script_uri);
 
+  // Send a request for a dart-ext: import to the service isolate.
+  void SendImportExtensionRequest(Dart_Handle url,
+                                  Dart_Handle library_url);
+
   // Send a request from the tag handler to the service isolate.
   void SendRequest(Dart_LibraryTag tag,
                    Dart_Handle url,
