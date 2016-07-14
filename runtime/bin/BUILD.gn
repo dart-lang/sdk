@@ -5,7 +5,12 @@
 
 declare_args() {
   dart_io_support = false
-  dart_boringssl_path = "../../third_party/boringssl"
+
+  # TODO(zra, jamesr): Remove this check once we start building boringssl for
+  # the fuchsia port.
+  if (!defined(is_fuchsia) || !is_fuchsia) {
+    dart_boringssl_path = "../../third_party/boringssl"
+  }
 }
 
 
@@ -207,6 +212,7 @@ static_library("libdart_nosnapshot_with_precompiler") {
   ]
 }
 
+if (!defined(is_fuchsia) || !is_fuchsia) {
 
 executable("gen_snapshot") {
   configs += ["..:dart_config",
@@ -354,4 +360,23 @@ source_set("embedded_dart_io") {
     "..",
     "//third_party"
   ]
+}
+}  # !is_fuchsia
+
+if (defined(is_fuchsia) && is_fuchsia) {
+  executable("fuchsia_test") {
+    sources = [
+      "fuchsia_test.cc",
+      "log_fuchsia.cc",
+    ]
+
+    include_dirs = [
+      "..",
+      "../include"
+    ]
+
+    deps = [
+        ":libdart_nosnapshot"
+    ]
+  }
 }

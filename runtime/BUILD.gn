@@ -156,7 +156,7 @@ config("dart_config") {
     ]
   }
 
-  if (is_asan) {
+  if (defined(is_asan) && is_asan) {
     ldflags = [
       "-Wl,-u_sanitizer_options_link_helper",
       "-fsanitize=address",
