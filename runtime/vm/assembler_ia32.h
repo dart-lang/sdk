@@ -767,6 +767,11 @@ class Assembler : public ValueObject {
     sarl(reg, Immediate(kSmiTagSize));
   }
 
+  void BranchIfNotSmi(Register reg, Label* label) {
+    testl(reg, Immediate(kSmiTagMask));
+    j(NOT_ZERO, label);
+  }
+
   void Align(intptr_t alignment, intptr_t offset);
   void Bind(Label* label);
   void Jump(Label* label) { jmp(label); }

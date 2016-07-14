@@ -373,12 +373,6 @@ static void PrepareIndexedOp(BlockBuilder* builder,
                              Definition* array,
                              Definition* index,
                              intptr_t length_offset) {
-  TokenPosition token_pos = builder->TokenPos();
-  builder->AddInstruction(
-      new CheckSmiInstr(new Value(index),
-                        Thread::kNoDeoptId,
-                        token_pos));
-
   Definition* length = builder->AddDefinition(
       new LoadFieldInstr(new Value(array),
                          length_offset,

@@ -101,6 +101,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 // List of instructions that are not used by DBC.
 #define FOR_EACH_UNREACHABLE_INSTRUCTION(M)                                    \
   M(CaseInsensitiveCompareUC16)                                                \
+  M(GenericCheckBound)                                                         \
   M(GrowRegExpStack)                                                           \
   M(IndirectGoto)
 
@@ -1350,6 +1351,14 @@ void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 EMIT_NATIVE_CODE(CheckArrayBound, 2) {
   const Register length = locs()->in(kLengthPos).reg();
   const Register index = locs()->in(kIndexPos).reg();
+  const intptr_t index_cid = this->index()->Type()->ToCid();
+  if (index_cid != kSmiCid) {
+    __ CheckSmi(index);
+    compiler->EmitDeopt(deopt_id(),
+                        ICData::kDeoptCheckArrayBound,
+                        (generalized_ ? ICData::kGeneralized : 0) |
+                        (licm_hoisted_ ? ICData::kHoisted : 0));
+  }
   __ IfULe(length, index);
   compiler->EmitDeopt(deopt_id(),
                       ICData::kDeoptCheckArrayBound,

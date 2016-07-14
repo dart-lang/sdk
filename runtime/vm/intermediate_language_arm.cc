@@ -6111,8 +6111,7 @@ void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                         ICData::kDeoptCheckSmi,
                                         licm_hoisted_ ? ICData::kHoisted : 0);
-  __ tst(value, Operand(kSmiTagMask));
-  __ b(deopt, NE);
+  __ BranchIfNotSmi(value, deopt);
 }
 
 
@@ -6132,6 +6131,70 @@ void CheckClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass);
   __ CompareImmediate(value, Smi::RawValue(cid_));
   __ b(deopt, NE);
+}
+
+
+LocationSummary* GenericCheckBoundInstr::MakeLocationSummary(Zone* zone,
+                                                             bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new(zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  locs->set_in(kLengthPos, Location::RequiresRegister());
+  locs->set_in(kIndexPos, Location::RequiresRegister());
+  return locs;
+}
+
+
+class RangeErrorSlowPath : public SlowPathCode {
+ public:
+  RangeErrorSlowPath(GenericCheckBoundInstr* instruction, intptr_t try_index)
+      : instruction_(instruction), try_index_(try_index) { }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    if (Assembler::EmittingComments()) {
+      __ Comment("slow path check bound operation");
+    }
+    __ Bind(entry_label());
+    LocationSummary* locs = instruction_->locs();
+    __ Push(locs->in(0).reg());
+    __ Push(locs->in(1).reg());
+    compiler->GenerateRuntimeCall(instruction_->token_pos(),
+                                  instruction_->deopt_id(),
+                                  kRangeErrorRuntimeEntry,
+                                  2,
+                                  instruction_->locs());
+    compiler->RecordSafepoint(locs, /* slow_path_argument_count = */ 2);
+    compiler->pc_descriptors_list()->AddDescriptor(
+        RawPcDescriptors::kOther,
+        compiler->assembler()->CodeSize(),
+        instruction_->deopt_id(),
+        instruction_->token_pos(),
+        try_index_);
+    __ bkpt(0);
+  }
+
+ private:
+  GenericCheckBoundInstr* instruction_;
+  intptr_t try_index_;
+};
+
+
+void GenericCheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  RangeErrorSlowPath* slow_path =
+      new RangeErrorSlowPath(this, compiler->CurrentTryIndex());
+  compiler->AddSlowPathCode(slow_path);
+
+  Location length_loc = locs()->in(kLengthPos);
+  Location index_loc = locs()->in(kIndexPos);
+  Register length = length_loc.reg();
+  Register index = index_loc.reg();
+  const intptr_t index_cid = this->index()->Type()->ToCid();
+  if (index_cid != kSmiCid) {
+    __ BranchIfNotSmi(index, slow_path->entry_label());
+  }
+  __ cmp(index, Operand(length));
+  __ b(slow_path->entry_label(), CS);
 }
 
 
@@ -6168,6 +6231,7 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
+  const intptr_t index_cid = index()->Type()->ToCid();
   if (index_loc.IsConstant()) {
     const Register length = length_loc.reg();
     const Smi& index = Smi::Cast(index_loc.constant());
@@ -6176,6 +6240,9 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else if (length_loc.IsConstant()) {
     const Smi& length = Smi::Cast(length_loc.constant());
     const Register index = index_loc.reg();
+    if (index_cid != kSmiCid) {
+      __ BranchIfNotSmi(index, deopt);
+    }
     if (length.Value() == Smi::kMaxValue) {
       __ tst(index, Operand(index));
       __ b(deopt, MI);
@@ -6186,6 +6253,9 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     const Register length = length_loc.reg();
     const Register index = index_loc.reg();
+    if (index_cid != kSmiCid) {
+      __ BranchIfNotSmi(index, deopt);
+    }
     __ cmp(index, Operand(length));
     __ b(deopt, CS);
   }
