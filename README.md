@@ -1,5 +1,7 @@
 # Dart
 
+[![Join the chat at https://gitter.im/dart-lang/sdk](https://badges.gitter.im/dart-lang/sdk.svg)](https://gitter.im/dart-lang/sdk?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [Dart][website] is an open-source, scalable programming language, with robust
 libraries and runtimes, for building web, server, and mobile apps.
 
