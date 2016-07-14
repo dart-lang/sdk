@@ -50,12 +50,12 @@ int64_t OS::GetCurrentTimeMillis() {
 
 
 int64_t OS::GetCurrentTimeMicros() {
-  return _magenta_current_time() / 1000;
+  return mx_current_time() / 1000;
 }
 
 
 int64_t OS::GetCurrentMonotonicTicks() {
-  return _magenta_current_time();
+  return mx_current_time();
 }
 
 

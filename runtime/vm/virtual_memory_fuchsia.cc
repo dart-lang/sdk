@@ -25,7 +25,7 @@ void VirtualMemory::InitOnce() {
 
 
 VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
-  mx_handle_t vmo = _magenta_vm_object_create(size);
+  mx_handle_t vmo = mx_vm_object_create(size);
   if (vmo <= 0) {
     return NULL;
   }
@@ -37,9 +37,9 @@ VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
                    MX_VM_FLAG_PERM_WRITE |
                    MX_VM_FLAG_PERM_EXECUTE;
   uintptr_t addr;
-  mx_status_t status = _magenta_process_vm_map(0, vmo, 0, size, &addr, prot);
+  mx_status_t status = mx_process_vm_map(0, vmo, 0, size, &addr, prot);
   if (status != NO_ERROR) {
-    _magenta_handle_close(vmo);
+    mx_handle_close(vmo);
     FATAL("VirtualMemory::ReserveInternal FAILED");
     return NULL;
   }
@@ -53,13 +53,13 @@ VirtualMemory::~VirtualMemory() {
   if (!embedder_allocated()) {
     // TODO(zra): Use reserved_size_.
     // Issue MG-162.
-    mx_status_t status = _magenta_process_vm_unmap(
+    mx_status_t status = mx_process_vm_unmap(
         0, reinterpret_cast<uintptr_t>(address()), 0 /*reserved_size_*/);
     if (status != NO_ERROR) {
       FATAL("VirtualMemory::~VirtualMemory: unamp FAILED");
     }
 
-    status = _magenta_handle_close(handle());
+    status = mx_handle_close(handle());
     if (status != NO_ERROR) {
       FATAL("VirtualMemory::~VirtualMemory: handle_close FAILED");
     }
