@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:unittest/unittest.dart';
@@ -12,9 +13,13 @@ import 'package:unittest/unittest.dart';
 import '../../test/integration/integration_tests.dart';
 
 void printMemoryResults(String id, String description, List<int> sizes) {
+  int minMemory = sizes.fold(sizes.first, min);
+  int maxMemory = sizes.fold(sizes.first, max);
   String now = new DateTime.now().toUtc().toIso8601String();
   print('$now ========== $id');
   print('memory: $sizes');
+  print('min_memory: $minMemory');
+  print('max_memory: $maxMemory');
   print(description.trim());
   print('--------------------');
   print('');
