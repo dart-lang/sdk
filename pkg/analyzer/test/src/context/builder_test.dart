@@ -234,8 +234,8 @@ bar:/pkg/bar
       createFile(
           packageFilePath,
           '''
-a:$packageA
-b:$packageB
+a:${pathContext.toUri(packageA)}
+b:${pathContext.toUri(packageB)}
 ''');
       String asyncPath = pathContext.join(packageA, 'sdk', 'async.dart');
       String corePath = pathContext.join(packageA, 'sdk', 'core.dart');
@@ -243,14 +243,14 @@ b:$packageB
           embedderPath,
           '''
 embedded_libs:
-  "dart:async": ${pathContext.relative(asyncPath, from: packageA)}
-  "dart:core": ${pathContext.relative(corePath, from: packageA)}
+  "dart:async": ${_relativeUri(asyncPath, from: packageA)}
+  "dart:core": ${_relativeUri(corePath, from: packageA)}
 ''');
       String fooPath = pathContext.join(packageB, 'ext', 'foo.dart');
       createFile(
           extensionPath,
           '''{
-"dart:foo": "${pathContext.relative(fooPath, from: packageB)}"
+"dart:foo": "${_relativeUri(fooPath, from: packageB)}"
 }''');
       AnalysisOptionsImpl options = new AnalysisOptionsImpl();
 
@@ -266,7 +266,7 @@ embedded_libs:
 
       Source packageSource = factory.forUri('package:b/b.dart');
       expect(packageSource, isNotNull);
-      expect(packageSource.fullName, '$packageB/b.dart');
+      expect(packageSource.fullName, pathContext.join(packageB, 'b.dart'));
     });
   }
 
@@ -282,8 +282,8 @@ embedded_libs:
       createFile(
           packageFilePath,
           '''
-a:$packageA
-b:$packageB
+a:${pathContext.toUri(packageA)}
+b:${pathContext.toUri(packageB)}
 ''');
       String asyncPath = pathContext.join(packageA, 'sdk', 'async.dart');
       String corePath = pathContext.join(packageA, 'sdk', 'core.dart');
@@ -291,8 +291,8 @@ b:$packageB
           embedderPath,
           '''
 embedded_libs:
-  "dart:async": ${pathContext.relative(asyncPath, from: packageA)}
-  "dart:core": ${pathContext.relative(corePath, from: packageA)}
+  "dart:async": ${_relativeUri(asyncPath, from: packageA)}
+  "dart:core": ${_relativeUri(corePath, from: packageA)}
 ''');
       AnalysisOptionsImpl options = new AnalysisOptionsImpl();
 
@@ -304,7 +304,7 @@ embedded_libs:
 
       Source packageSource = factory.forUri('package:b/b.dart');
       expect(packageSource, isNotNull);
-      expect(packageSource.fullName, '$packageB/b.dart');
+      expect(packageSource.fullName, pathContext.join(packageB, 'b.dart'));
     });
   }
 
@@ -319,11 +319,13 @@ embedded_libs:
       String rootPath = tempDir.path;
       String projectPath = pathContext.join(rootPath, 'project');
       String packageFilePath = pathContext.join(projectPath, '.packages');
+      String packageA = pathContext.join(rootPath, 'pkgs', 'a');
+      String packageB = pathContext.join(rootPath, 'pkgs', 'b');
       createFile(
           packageFilePath,
-          r'''
-a:file:///pkgs/a
-b:file:///pkgs/b
+          '''
+a:${pathContext.toUri(packageA)}
+b:${pathContext.toUri(packageB)}
 ''');
       AnalysisOptionsImpl options = new AnalysisOptionsImpl();
 
@@ -335,7 +337,7 @@ b:file:///pkgs/b
 
       Source packageSource = factory.forUri('package:a/a.dart');
       expect(packageSource, isNotNull);
-      expect(packageSource.fullName, '/pkgs/a/a.dart');
+      expect(packageSource.fullName, pathContext.join(packageA, 'a.dart'));
     });
   }
 
@@ -357,6 +359,11 @@ b:file:///pkgs/b
     } finally {
       directory.deleteSync(recursive: true);
     }
+  }
+
+  Uri _relativeUri(String path, {String from}) {
+    String relativePath = pathContext.relative(path, from: from);
+    return pathContext.toUri(relativePath);
   }
 }
 

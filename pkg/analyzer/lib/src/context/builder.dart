@@ -25,7 +25,6 @@ import 'package:package_config/discovery.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart';
 import 'package:package_config/src/packages_impl.dart';
-import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 /**
@@ -146,7 +145,8 @@ class ContextBuilder {
     }
     Map<String, List<Folder>> folderMap = new HashMap<String, List<Folder>>();
     packages.asMap().forEach((String packagePath, Uri uri) {
-      folderMap[packagePath] = [resourceProvider.getFolder(path.fromUri(uri))];
+      String path = resourceProvider.pathContext.fromUri(uri);
+      folderMap[packagePath] = [resourceProvider.getFolder(path)];
     });
     return folderMap;
   }
