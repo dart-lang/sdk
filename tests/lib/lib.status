@@ -399,3 +399,6 @@ mirrors/deferred_mirrors_metatarget_test: Crash # Deferred loading
 mirrors/load_library_test: Crash # Deferred loading
 
 mirrors/metadata_scope_test/none: Fail # Constant equality - Issue 26868
+
+typed_data/float32x4_unbox_regress_test: Pass, Crash # Issue 26888
+math/double_pow_test: Pass, Fail # Issue 26887
