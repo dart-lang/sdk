@@ -1187,6 +1187,50 @@ TEST_CASE(IsolateReload_PendingStaticCall_NSMToDefined) {
 }
 
 
+TEST_CASE(IsolateReload_PendingSuperCall) {
+  const char* kScript =
+      "import 'test:isolate_reload_helper';\n"
+      "class S {\n"
+      "  foo() => 1;\n"
+      "}\n"
+      "class C extends S {\n"
+      "  foo() => 100;\n"
+      "  test() {\n"
+      "    var n = super.foo();\n"
+      "    reloadTest();\n"
+      "    return n + super.foo();\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  return new C().test();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+
+  const char* kReloadScript =
+      "import 'test:isolate_reload_helper';\n"
+      "class S {\n"
+      "  foo() => 10;\n"
+      "}\n"
+      "class C extends S {\n"
+      "  foo() => 100;\n"
+      "  test() {\n"
+      "    var n = super.foo();\n"
+      "    reloadTest();\n"
+      "    return n + super.foo();\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  return new C().test();\n"
+      "}\n";
+
+  TestCase::SetReloadTestScript(kReloadScript);
+
+  EXPECT_EQ(11, SimpleInvoke(lib, "main"));
+}
+
+
 TEST_CASE(IsolateReload_EnumEquality) {
   const char* kScript =
       "enum Fruit {\n"

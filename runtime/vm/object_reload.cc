@@ -556,19 +556,59 @@ void ICData::Reset() const {
       FATAL("old_target is NULL.\n");
     }
     static_call_target = &old_target;
-    if (!old_target.is_static()) {
-      // TODO(johnmccutchan): Improve this.
-      TIR_Print("Cannot rebind super-call to %s from %s\n",
-                old_target.ToCString(),
-                Object::Handle(Owner()).ToCString());
-      return;
-    }
+
     const String& selector = String::Handle(old_target.name());
-    const Class& cls = Class::Handle(old_target.Owner());
-    const Function& new_target =
-        Function::Handle(cls.LookupStaticFunction(selector));
-    if (new_target.IsNull()) {
-      // TODO(johnmccutchan): Improve this.
+    Function& new_target = Function::Handle();
+    if (!old_target.is_static()) {
+      if (old_target.kind() == RawFunction::kConstructor) {
+        return;  // Super constructor call.
+      }
+      Function& caller = Function::Handle();
+      caller ^= Owner();
+      ASSERT(!caller.is_static());
+      Class& cls = Class::Handle(caller.Owner());
+      if (cls.raw() == old_target.Owner()) {
+        // Dispatcher.
+        if (caller.IsImplicitClosureFunction()) {
+          return;  // Tear-off.
+        }
+        if (caller.kind() == RawFunction::kNoSuchMethodDispatcher) {
+          // TODO(rmacnak): noSuchMethod might have been redefined.
+          return;
+        }
+        const Function& caller_parent =
+            Function::Handle(caller.parent_function());
+        if (!caller_parent.IsNull()) {
+          if (caller_parent.kind() == RawFunction::kInvokeFieldDispatcher) {
+            return;  // Call-through-getter.
+          }
+        }
+        FATAL2("Unexpected dispatcher-like call site: %s from %s\n",
+               selector.ToCString(), caller.ToQualifiedCString());
+      }
+      // Super call.
+      cls = cls.SuperClass();
+      while (!cls.IsNull()) {
+        // TODO(rmacnak): Should use Resolver::ResolveDynamicAnyArgs to handle
+        // method-extractors and call-through-getters, but we're in a no
+        // safepoint scope here.
+        new_target = cls.LookupDynamicFunction(selector);
+        if (!new_target.IsNull()) {
+          break;
+        }
+        cls = cls.SuperClass();
+      }
+    } else {
+      // This can be incorrect if the call site was an unqualified invocation.
+      const Class& cls = Class::Handle(old_target.Owner());
+      new_target = cls.LookupStaticFunction(selector);
+    }
+
+    const Array& args_desc_array = Array::Handle(arguments_descriptor());
+    ArgumentsDescriptor args_desc(args_desc_array);
+    if (new_target.IsNull() ||
+        !new_target.AreValidArguments(args_desc, NULL)) {
+      // TODO(rmacnak): Patch to a NSME stub.
       TIR_Print("Cannot rebind static call to %s from %s\n",
                 old_target.ToCString(),
                 Object::Handle(Owner()).ToCString());
