@@ -1917,6 +1917,11 @@ main() {
     check(implicitCasts: false);
   }
 
+  void test_implicitCasts_genericMethods() {
+    addFile('var x = <String>[].map((x) => "");');
+    check(implicitCasts: false);
+  }
+
   void test_implicitDynamic_field() {
     addFile(r'''
 class C {

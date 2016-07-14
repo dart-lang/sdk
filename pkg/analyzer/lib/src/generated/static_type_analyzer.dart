@@ -93,7 +93,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     _dynamicType = _typeProvider.dynamicType;
     _overrideManager = _resolver.overrideManager;
     _promoteManager = _resolver.promoteManager;
-    _strongMode = _resolver.definingLibrary.context.analysisOptions.strongMode;
+    _strongMode = _resolver.strongMode;
   }
 
   /**

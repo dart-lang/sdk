@@ -5658,6 +5658,11 @@ class ResolverVisitor extends ScopedVisitor {
   FunctionBody _currentFunctionBody;
 
   /**
+   * Are we running in strong mode or not.
+   */
+  bool strongMode;
+
+  /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
    *
    * The [definingLibrary] is the element for the library containing the node
@@ -5679,10 +5684,11 @@ class ResolverVisitor extends ScopedVisitor {
       {Scope nameScope})
       : super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
+    AnalysisOptions options = definingLibrary.context.analysisOptions;
+    this.strongMode = options.strongMode;
     this.elementResolver = new ElementResolver(this);
     this.typeSystem = definingLibrary.context.typeSystem;
     bool strongModeHints = false;
-    AnalysisOptions options = definingLibrary.context.analysisOptions;
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
     }
@@ -6621,7 +6627,6 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.function?.accept(this);
     node.accept(elementResolver);
-    _inferFunctionExpressionsParametersTypes(node.argumentList);
     _inferArgumentTypesFromContext(node);
     node.argumentList?.accept(this);
     node.accept(typeAnalyzer);
@@ -6848,7 +6853,6 @@ class ResolverVisitor extends ScopedVisitor {
     node.target?.accept(this);
     node.typeArguments?.accept(this);
     node.accept(elementResolver);
-    _inferFunctionExpressionsParametersTypes(node.argumentList);
     _inferArgumentTypesFromContext(node);
     node.argumentList?.accept(this);
     node.accept(typeAnalyzer);
@@ -7211,6 +7215,12 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   void _inferArgumentTypesFromContext(InvocationExpression node) {
+    if (!strongMode) {
+      // Use propagated type inference for lambdas if not in strong mode.
+      _inferFunctionExpressionsParametersTypes(node.argumentList);
+      return;
+    }
+
     DartType contextType = node.staticInvokeType;
     if (contextType is FunctionType) {
       DartType originalType = node.function.staticType;
