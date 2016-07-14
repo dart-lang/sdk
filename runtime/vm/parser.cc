@@ -3387,17 +3387,6 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
     ASSERT(AbstractType::Handle(Z, func.result_type()).IsResolved());
     ASSERT(func.NumParameters() == params.parameters->length());
 
-    // Check whether the function has any field initializer formal parameters,
-    // which are not allowed in non-constructor functions.
-    if (params.has_field_initializer) {
-      for (int i = 0; i < params.parameters->length(); i++) {
-        ParamDesc& param = (*params.parameters)[i];
-        if (param.is_field_initializer) {
-          ReportError(param.name_pos,
-                      "field initializer only allowed in constructors");
-        }
-      }
-    }
     // Populate function scope with the formal parameters.
     AddFormalParamsToScope(&params, current_block_->scope);
 
