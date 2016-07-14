@@ -1694,6 +1694,142 @@ RawObject* Simulator::Call(const Code& code,
     DISPATCH();
   }
 
+#if defined(ARCH_IS_64_BIT)
+  {
+    BYTECODE(WriteIntoDouble, A_D);
+    const double value = bit_cast<double, RawObject*>(FP[rD]);
+    RawDouble* box = RAW_CAST(Double, *SP--);
+    box->ptr()->value_ = value;
+    FP[rA] = box;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(UnboxDouble, A_D);
+    const RawDouble* box = RAW_CAST(Double, FP[rD]);
+    FP[rA] = bit_cast<RawObject*, double>(box->ptr()->value_);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CheckedUnboxDouble, A_D);
+    const intptr_t box_cid = SimulatorHelpers::GetClassId(FP[rD]);
+    if (box_cid == kSmiCid) {
+      const intptr_t value = reinterpret_cast<intptr_t>(FP[rD]) >> kSmiTagSize;
+      const double result = static_cast<double>(value);
+      FP[rA] = bit_cast<RawObject*, double>(result);
+      pc++;
+    } else if (box_cid == kDoubleCid) {
+      const RawDouble* box = RAW_CAST(Double, FP[rD]);
+      FP[rA] = bit_cast<RawObject*, double>(box->ptr()->value_);
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(SmiToDouble, A_D);
+    const intptr_t value = reinterpret_cast<intptr_t>(FP[rD]) >> kSmiTagSize;
+    const double result = static_cast<double>(value);
+    FP[rA] = bit_cast<RawObject*, double>(result);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DAdd, A_B_C);
+    const double lhs = bit_cast<double, RawObject*>(FP[rB]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rC]);
+    FP[rA] = bit_cast<RawObject*, double>(lhs + rhs);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DSub, A_B_C);
+    const double lhs = bit_cast<double, RawObject*>(FP[rB]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rC]);
+    FP[rA] = bit_cast<RawObject*, double>(lhs - rhs);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DMul, A_B_C);
+    const double lhs = bit_cast<double, RawObject*>(FP[rB]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rC]);
+    FP[rA] = bit_cast<RawObject*, double>(lhs * rhs);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DDiv, A_B_C);
+    const double lhs = bit_cast<double, RawObject*>(FP[rB]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rC]);
+    const double result = lhs / rhs;
+    FP[rA] = bit_cast<RawObject*, double>(result);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DNeg, A_D);
+    const double value = bit_cast<double, RawObject*>(FP[rD]);
+    FP[rA] = bit_cast<RawObject*, double>(-value);
+    DISPATCH();
+  }
+#else  // defined(ARCH_IS_64_BIT)
+  {
+    BYTECODE(WriteIntoDouble, A_D);
+    UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(UnboxDouble, A_D);
+    UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CheckedUnboxDouble, A_D);
+    UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(SmiToDouble, A_D);
+    UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DAdd, A_B_C);
+    UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DSub, A_B_C);
+    UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DMul, A_B_C);
+    UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DDiv, A_B_C);
+    UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DNeg, A_D);
+    UNIMPLEMENTED();
+    DISPATCH();
+  }
+#endif  // defined(ARCH_IS_64_BIT)
+
   // Return and return like instructions (Instrinsic).
   {
     RawObject* result;  // result to return to the caller.
@@ -2088,8 +2224,20 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(CheckEitherNonSmi, A_D);
+    const intptr_t obj1 = reinterpret_cast<intptr_t>(FP[rA]);
+    const intptr_t obj2 = reinterpret_cast<intptr_t>(FP[rD]);
+    const intptr_t tag = (obj1 | obj2) & kSmiTagMask;
+    if (tag != kSmiTag) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
     BYTECODE(CheckClassId, A_D);
-    const intptr_t actual_cid = SimulatorHelpers::GetClassId(FP[rA]);
+    const intptr_t actual_cid =
+        reinterpret_cast<intptr_t>(FP[rA]) >> kSmiTagSize;
     const intptr_t desired_cid = rD;
     pc += (actual_cid == desired_cid) ? 1 : 0;
     DISPATCH();
@@ -2293,6 +2441,92 @@ RawObject* Simulator::Call(const Code& code,
     }
     DISPATCH();
   }
+
+#if defined(ARCH_IS_64_BIT)
+  {
+    BYTECODE(IfDEq, A_D);
+    const double lhs = bit_cast<double, RawObject*>(FP[rA]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rD]);
+    pc += (lhs == rhs) ? 0 : 1;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfDNe, A_D);
+    const double lhs = bit_cast<double, RawObject*>(FP[rA]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rD]);
+    pc += (lhs != rhs) ? 0 : 1;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfDLe, A_D);
+    const double lhs = bit_cast<double, RawObject*>(FP[rA]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rD]);
+    pc += (lhs <= rhs) ? 0 : 1;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfDLt, A_D);
+    const double lhs = bit_cast<double, RawObject*>(FP[rA]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rD]);
+    pc += (lhs < rhs) ? 0 : 1;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfDGe, A_D);
+    const double lhs = bit_cast<double, RawObject*>(FP[rA]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rD]);
+    pc += (lhs >= rhs) ? 0 : 1;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfDGt, A_D);
+    const double lhs = bit_cast<double, RawObject*>(FP[rA]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rD]);
+    pc += (lhs > rhs) ? 0 : 1;
+    DISPATCH();
+  }
+#else  // defined(ARCH_IS_64_BIT)
+  {
+    BYTECODE(IfDEq, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfDNe, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfDLe, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfDLt, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfDGe, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfDGt, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+#endif  // defined(ARCH_IS_64_BIT)
 
   {
     BYTECODE(IfEqStrictNum, A_D);
@@ -2528,6 +2762,7 @@ RawObject* Simulator::Call(const Code& code,
   return 0;
 }
 
+
 void Simulator::Longjmp(uword pc,
                         uword sp,
                         uword fp,
@@ -2564,6 +2799,5 @@ void Simulator::Longjmp(uword pc,
 }
 
 }  // namespace dart
-
 
 #endif  // defined TARGET_ARCH_DBC

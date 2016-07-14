@@ -183,10 +183,18 @@ namespace dart {
 //    the immediately following instruction is skipped. These instructions
 //    expect their operands to be Smis, but don't check that they are.
 //
+//  - DAdd, DSub, DMul, DDiv rA, rB, rC
+//
+//    Arithmetic operaions on unboxed doubles. FP[rA] <- FP[rB] op FP[rC].
+//
 //  - Neg rA , rD
 //
 //    FP[rA] <- -FP[rD]. Assumes FP[rD] is a Smi. If there is no overflow the
 //    immediately following instruction is skipped.
+//
+//  - DNeg rA, rD
+//
+//    FP[rA] <- -FP[rD]. Assumes FP[rD] is an unboxed double.
 //
 //  - BitOr, BitAnd, BitXor rA, rB, rC
 //
@@ -196,6 +204,24 @@ namespace dart {
 //  - BitNot rA, rD
 //
 //    FP[rA] <- ~FP[rD]. As above, assumes FP[rD] is a Smi.
+//
+//  - WriteIntoDouble rA, rD
+//
+//    Box the double in FP[rD] with the result in FP[rA].
+//
+//  - UnboxDouble rA, rD
+//
+//    Unbox the double in FP[rD] into FP[rA]. Assumes FP[rD] is a double.
+//
+//  - CheckedUnboxDouble rA, rD
+//
+//    Unboxes FP[rD] into FP[rA] and skips the following instruction unless
+//    FP[rD] is not a double or a Smi. When FP[rD] is a Smi, converts it to a
+//    double.
+//
+//  - SmiToDouble rA, rD
+//
+//    Convert the Smi in FP[rD] to an unboxed double in FP[rA].
 //
 //  - StoreStaticT`OS D
 //
@@ -230,9 +256,10 @@ namespace dart {
 //
 //  - If<Cond> rA, rD
 //
-//    Cond is Le, Lt, Ge, Gt, or unsigned variants ULe, ULt, UGe, UGt.
+//    Cond is Le, Lt, Ge, Gt, unsigned variants ULe, ULt, UGe, UGt, and
+//    unboxed double variants DEq, DNe, DLe, DLt, DGe, DGt.
 //    Skips the next instruction unless FP[rA] <Cond> FP[rD]. Assumes that
-//    FP[rA] and FP[rD] are Smis.
+//    FP[rA] and FP[rD] are Smis or unboxed doubles as inidcated by <Cond>.
 //
 //  - CreateArrayTOS
 //
@@ -398,9 +425,13 @@ namespace dart {
 //
 //    If FP[rA] is a Smi, then skip the next instruction.
 //
+//  - CheckEitherNonSmi rA, rD
+//
+//    If either FP[rA] or FP[rD] is not a Smi, then skip the next instruction.
+//
 //  - CheckClassId rA, D
 //
-//    If the object at FP[rA]'s class id matches the class id D, then skip the
+//    If the class id in FP[rA] matches the class id D, then skip the
 //    following instruction.
 //
 //  - CheckDenseSwitch rA, D
@@ -526,6 +557,15 @@ namespace dart {
   V(BitAnd,                      A_B_C, reg, reg, reg) \
   V(BitXor,                      A_B_C, reg, reg, reg) \
   V(BitNot,                        A_D, reg, reg, ___) \
+  V(WriteIntoDouble,               A_D, reg, reg, ___) \
+  V(UnboxDouble,                   A_D, reg, reg, ___) \
+  V(CheckedUnboxDouble,            A_D, reg, reg, ___) \
+  V(SmiToDouble,                   A_D, reg, reg, ___) \
+  V(DAdd,                        A_B_C, reg, reg, reg) \
+  V(DSub,                        A_B_C, reg, reg, reg) \
+  V(DMul,                        A_B_C, reg, reg, reg) \
+  V(DDiv,                        A_B_C, reg, reg, reg) \
+  V(DNeg,                          A_D, reg, reg, ___) \
   V(StoreStaticTOS,                  D, lit, ___, ___) \
   V(PushStatic,                      D, lit, ___, ___) \
   V(InitStaticTOS,                   0, ___, ___, ___) \
@@ -543,6 +583,12 @@ namespace dart {
   V(IfULt,                         A_D, reg, reg, ___) \
   V(IfUGe,                         A_D, reg, reg, ___) \
   V(IfUGt,                         A_D, reg, reg, ___) \
+  V(IfDNe,                         A_D, reg, reg, ___) \
+  V(IfDEq,                         A_D, reg, reg, ___) \
+  V(IfDLe,                         A_D, reg, reg, ___) \
+  V(IfDLt,                         A_D, reg, reg, ___) \
+  V(IfDGe,                         A_D, reg, reg, ___) \
+  V(IfDGt,                         A_D, reg, reg, ___) \
   V(IfNeStrictNum,                 A_D, reg, reg, ___) \
   V(IfEqStrictNum,                 A_D, reg, reg, ___) \
   V(IfEqNull,                        A, reg, ___, ___) \
@@ -576,6 +622,7 @@ namespace dart {
   V(TestSmi,                       A_D, reg, reg, ___) \
   V(TestCids,                      A_D, reg, num, ___) \
   V(CheckSmi,                        A, reg, ___, ___) \
+  V(CheckEitherNonSmi,             A_D, reg, reg, ___) \
   V(CheckClassId,                  A_D, reg, num, ___) \
   V(CheckDenseSwitch,              A_D, reg, num, ___) \
   V(CheckCids,                   A_B_C, reg, num, ___) \

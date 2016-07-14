@@ -44,7 +44,12 @@ FlowGraphCompiler::~FlowGraphCompiler() {
 
 
 bool FlowGraphCompiler::SupportsUnboxedDoubles() {
+#if defined(ARCH_IS_64_BIT)
+  return true;
+#else
+  // We use 64-bit wide stack slots to unbox doubles.
   return false;
+#endif
 }
 
 

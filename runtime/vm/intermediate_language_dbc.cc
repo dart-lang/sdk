@@ -34,30 +34,43 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(LoadUntagged)                                                              \
   M(AllocateUninitializedContext)                                              \
   M(BinaryInt32Op)                                                             \
-  M(UnaryDoubleOp)                                                             \
-  M(SmiToDouble)                                                               \
   M(Int32ToDouble)                                                             \
-  M(MintToDouble)                                                              \
   M(DoubleToInteger)                                                           \
   M(DoubleToSmi)                                                               \
   M(DoubleToDouble)                                                            \
   M(DoubleToFloat)                                                             \
   M(FloatToDouble)                                                             \
   M(UnboxedConstant)                                                           \
-  M(BinaryDoubleOp)                                                            \
   M(MathUnary)                                                                 \
   M(MathMinMax)                                                                \
-  M(Box)                                                                       \
-  M(Unbox)                                                                     \
   M(BoxInt64)                                                                  \
-  M(BinaryMintOp)                                                              \
-  M(ShiftMintOp)                                                               \
-  M(UnaryMintOp)                                                               \
   M(InvokeMathCFunction)                                                       \
   M(MergedMath)                                                                \
   M(GuardFieldClass)                                                           \
   M(GuardFieldLength)                                                          \
   M(IfThenElse)                                                                \
+  M(ExtractNthOutput)                                                          \
+  M(BinaryUint32Op)                                                            \
+  M(ShiftUint32Op)                                                             \
+  M(UnaryUint32Op)                                                             \
+  M(UnboxedIntConverter)                                                       \
+  M(BoxInteger32)                                                              \
+  M(UnboxInteger32)                                                            \
+
+// List of instructions that are not used by DBC.
+// Things we aren't planning to implement for DBC:
+// - Unboxed SIMD,
+// - Unboxed Mint,
+// - Optimized RegExps,
+// - Precompilation.
+#define FOR_EACH_UNREACHABLE_INSTRUCTION(M)                                    \
+  M(CaseInsensitiveCompareUC16)                                                \
+  M(GrowRegExpStack)                                                           \
+  M(IndirectGoto)                                                              \
+  M(MintToDouble)                                                              \
+  M(BinaryMintOp)                                                              \
+  M(ShiftMintOp)                                                               \
+  M(UnaryMintOp)                                                               \
   M(BinaryFloat32x4Op)                                                         \
   M(Simd32x4Shuffle)                                                           \
   M(Simd32x4ShuffleMix)                                                        \
@@ -89,20 +102,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(Simd64x2Shuffle)                                                           \
   M(Float64x2ZeroArg)                                                          \
   M(Float64x2OneArg)                                                           \
-  M(ExtractNthOutput)                                                          \
-  M(BinaryUint32Op)                                                            \
-  M(ShiftUint32Op)                                                             \
-  M(UnaryUint32Op)                                                             \
-  M(UnboxedIntConverter)                                                       \
-  M(BoxInteger32)                                                              \
-  M(UnboxInteger32)                                                            \
   M(CheckedSmiOp)                                                              \
-
-// List of instructions that are not used by DBC.
-#define FOR_EACH_UNREACHABLE_INSTRUCTION(M)                                    \
-  M(CaseInsensitiveCompareUC16)                                                \
-  M(GrowRegExpStack)                                                           \
-  M(IndirectGoto)
 
 // Location summaries actually are not used by the unoptimizing DBC compiler
 // because we don't allocate any registers.
@@ -1080,22 +1080,9 @@ EMIT_NATIVE_CODE(CheckSmi, 1) {
 
 
 EMIT_NATIVE_CODE(CheckEitherNonSmi, 2) {
-  intptr_t left_cid = left()->Type()->ToCid();
-  intptr_t right_cid = right()->Type()->ToCid();
   const Register left = locs()->in(0).reg();
   const Register right = locs()->in(1).reg();
-  if (this->left()->definition() == this->right()->definition()) {
-    __ CheckSmi(left);
-  } else if (left_cid == kSmiCid) {
-    __ CheckSmi(right);
-  } else if (right_cid == kSmiCid) {
-    __ CheckSmi(left);
-  } else {
-    __ CheckSmi(left);
-    compiler->EmitDeopt(deopt_id(), ICData::kDeoptBinaryDoubleOp,
-                        licm_hoisted_ ? ICData::kHoisted : 0);
-    __ CheckSmi(right);
-  }
+  __ CheckEitherNonSmi(left, right);
   compiler->EmitDeopt(deopt_id(), ICData::kDeoptBinaryDoubleOp,
                       licm_hoisted_ ? ICData::kHoisted : 0);
 }
@@ -1221,7 +1208,73 @@ EMIT_NATIVE_CODE(UnarySmiOp, 1, Location::RequiresRegister()) {
       break;
     default:
       UNREACHABLE();
+      break;
   }
+}
+
+
+EMIT_NATIVE_CODE(Box, 1, Location::RequiresRegister(), LocationSummary::kCall) {
+  ASSERT(from_representation() == kUnboxedDouble);
+  const Register value = locs()->in(0).reg();
+  const Register out = locs()->out(0).reg();
+  const intptr_t kidx = __ AddConstant(compiler->double_class());
+  __ Allocate(kidx);
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
+                                 Thread::kNoDeoptId,
+                                 token_pos());
+  compiler->RecordSafepoint(locs());
+  // __ Allocate puts the box at the top of the stack.
+  __ WriteIntoDouble(out, value);
+}
+
+
+EMIT_NATIVE_CODE(Unbox, 1, Location::RequiresRegister()) {
+  ASSERT(representation() == kUnboxedDouble);
+  const intptr_t value_cid = value()->Type()->ToCid();
+  const intptr_t box_cid = BoxCid();
+  const Register box = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  if (value_cid == box_cid) {
+    __ UnboxDouble(result, box);
+  } else if (CanConvertSmi() && (value_cid == kSmiCid)) {
+    __ SmiToDouble(result, box);
+  } else if ((value()->Type()->ToNullableCid() == box_cid) &&
+              value()->Type()->is_nullable()) {
+    __ IfEqNull(box);
+    compiler->EmitDeopt(GetDeoptId(), ICData::kDeoptCheckClass);
+    __ UnboxDouble(result, box);
+  } else {
+    __ CheckedUnboxDouble(result, box);
+    compiler->EmitDeopt(GetDeoptId(), ICData::kDeoptCheckClass);
+  }
+}
+
+
+EMIT_NATIVE_CODE(SmiToDouble, 1, Location::RequiresRegister()) {
+  const Register value = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  __ SmiToDouble(result, value);
+}
+
+
+EMIT_NATIVE_CODE(BinaryDoubleOp, 2, Location::RequiresRegister()) {
+  const Register left = locs()->in(0).reg();
+  const Register right = locs()->in(1).reg();
+  const Register result = locs()->out(0).reg();
+  switch (op_kind()) {
+    case Token::kADD: __ DAdd(result, left, right); break;
+    case Token::kSUB: __ DSub(result, left, right); break;
+    case Token::kMUL: __ DMul(result, left, right); break;
+    case Token::kDIV: __ DDiv(result, left, right); break;
+    default: UNREACHABLE();
+  }
+}
+
+
+EMIT_NATIVE_CODE(UnaryDoubleOp, 1, Location::RequiresRegister()) {
+  const Register value = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  __ DNeg(result, value);
 }
 
 
@@ -1240,7 +1293,7 @@ static Token::Kind FlipCondition(Token::Kind kind) {
 }
 
 
-static Bytecode::Opcode OpcodeForCondition(Token::Kind kind) {
+static Bytecode::Opcode OpcodeForSmiCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ: return Bytecode::kIfEqStrict;
     case Token::kNE: return Bytecode::kIfNeStrict;
@@ -1248,6 +1301,21 @@ static Bytecode::Opcode OpcodeForCondition(Token::Kind kind) {
     case Token::kGT: return Bytecode::kIfGt;
     case Token::kLTE: return Bytecode::kIfLe;
     case Token::kGTE: return Bytecode::kIfGe;
+    default:
+      UNREACHABLE();
+      return Bytecode::kTrap;
+  }
+}
+
+
+static Bytecode::Opcode OpcodeForDoubleCondition(Token::Kind kind) {
+  switch (kind) {
+    case Token::kEQ: return Bytecode::kIfDEq;
+    case Token::kNE: return Bytecode::kIfDNe;
+    case Token::kLT: return Bytecode::kIfDLt;
+    case Token::kGT: return Bytecode::kIfDGt;
+    case Token::kLTE: return Bytecode::kIfDLe;
+    case Token::kGTE: return Bytecode::kIfDGe;
     default:
       UNREACHABLE();
       return Bytecode::kTrap;
@@ -1271,7 +1339,28 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
     condition = NEXT_IS_FALSE;
     comparison = FlipCondition(kind);
   }
-  __ Emit(Bytecode::Encode(OpcodeForCondition(comparison), left, right));
+  __ Emit(Bytecode::Encode(OpcodeForSmiCondition(comparison), left, right));
+  return condition;
+}
+
+
+static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
+                                        LocationSummary* locs,
+                                        Token::Kind kind,
+                                        BranchLabels labels) {
+  const Register left = locs->in(0).reg();
+  const Register right = locs->in(1).reg();
+  Token::Kind comparison = kind;
+  Condition condition = NEXT_IS_TRUE;
+  if (labels.fall_through != labels.false_label) {
+    // If we aren't falling through to the false label, we can save a Jump
+    // instruction in the case that the true case is the fall through by
+    // flipping the sense of the test such that the instruction following the
+    // test is the Jump to the false label.
+    condition = NEXT_IS_FALSE;
+    comparison = FlipCondition(kind);
+  }
+  __ Emit(Bytecode::Encode(OpcodeForDoubleCondition(comparison), left, right));
   return condition;
 }
 
@@ -1282,9 +1371,7 @@ Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
     return EmitSmiComparisonOp(compiler, locs(), kind(), labels);
   } else {
     ASSERT(operation_cid() == kDoubleCid);
-    Unsupported(compiler);
-    UNREACHABLE();
-    return NEXT_IS_FALSE;
+    return EmitDoubleComparisonOp(compiler, locs(), kind(), labels);
   }
 }
 
@@ -1320,9 +1407,7 @@ Condition RelationalOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
     return EmitSmiComparisonOp(compiler, locs(), kind(), labels);
   } else {
     ASSERT(operation_cid() == kDoubleCid);
-    Unsupported(compiler);
-    UNREACHABLE();
-    return NEXT_IS_FALSE;
+    return EmitDoubleComparisonOp(compiler, locs(), kind(), labels);
   }
 }
 

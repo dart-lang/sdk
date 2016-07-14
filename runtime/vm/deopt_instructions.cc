@@ -1047,6 +1047,10 @@ FpuRegisterSource DeoptInfoBuilder::ToFpuRegisterSource(
   Location::Kind stack_slot_kind) {
   if (loc.IsFpuRegister()) {
     return FpuRegisterSource(FpuRegisterSource::kRegister, loc.fpu_reg());
+#if defined(TARGET_ARCH_DBC)
+  } else if (loc.IsRegister()) {
+    return FpuRegisterSource(FpuRegisterSource::kRegister, loc.reg());
+#endif
   } else {
     ASSERT((stack_slot_kind == Location::kQuadStackSlot) ||
            (stack_slot_kind == Location::kDoubleStackSlot));
