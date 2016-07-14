@@ -693,6 +693,7 @@ bool RangeAnalysis::InferRange(JoinOperator op,
     }
 
     if (!range.Equals(defn->range())) {
+#ifndef PRODUCT
       if (FLAG_support_il_printer && FLAG_trace_range_analysis) {
         THR_Print("%c [%" Pd "] %s:  %s => %s\n",
                   OpPrefix(op),
@@ -701,6 +702,7 @@ bool RangeAnalysis::InferRange(JoinOperator op,
                   Range::ToCString(defn->range()),
                   Range::ToCString(&range));
       }
+#endif  // !PRODUCT
       defn->set_range(range);
       return true;
     }

@@ -147,6 +147,7 @@ DeoptContext::~DeoptContext() {
   delete[] deferred_objects_;
   deferred_objects_ = NULL;
   deferred_objects_count_ = 0;
+#ifndef PRODUCT
   if (FLAG_support_timeline && (deopt_start_micros_ != 0)) {
     TimelineStream* compiler_stream = Timeline::GetCompilerStream();
     ASSERT(compiler_stream != NULL);
@@ -172,6 +173,7 @@ DeoptContext::~DeoptContext() {
       }
     }
   }
+#endif  // !PRODUCT
 }
 
 

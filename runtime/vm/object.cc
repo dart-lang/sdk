@@ -13779,6 +13779,7 @@ void Code::SetStubCallTargetCodeAt(uword pc, const Code& code) const {
 
 
 void Code::Disassemble(DisassemblyFormatter* formatter) const {
+#ifndef PRODUCT
   if (!FLAG_support_disassembler) {
     return;
   }
@@ -13789,6 +13790,7 @@ void Code::Disassemble(DisassemblyFormatter* formatter) const {
   } else {
     Disassembler::Disassemble(start, start + instr.size(), formatter, *this);
   }
+#endif
 }
 
 

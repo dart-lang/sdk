@@ -1130,11 +1130,13 @@ bool Isolate::MakeRunnable() {
   // isolate on thread pool for execution.
   ASSERT(object_store()->root_library() != Library::null());
   set_is_runnable(true);
+#ifndef PRODUCT
   if (FLAG_support_debugger && !ServiceIsolate::IsServiceIsolate(this)) {
     if (FLAG_pause_isolates_on_unhandled_exceptions) {
       debugger()->SetExceptionPauseInfo(kPauseOnUnhandledExceptions);
     }
   }
+#endif  // !PRODUCT
   IsolateSpawnState* state = spawn_state();
   if (state != NULL) {
     ASSERT(this == state->isolate());
