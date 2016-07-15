@@ -353,11 +353,11 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         LibrarySerializer.getCompilationUnits(element1),
         LibrarySerializer.getCompilationUnits(element2));
 
-    checkElementListIdentities(
+    checkElementLists(
         element1, element2, 'imports',
         LibrarySerializer.getImports(element1),
         LibrarySerializer.getImports(element2));
-    checkElementListIdentities(
+    checkElementLists(
         element1, element2, 'exports', element1.exports, element2.exports);
 
     checkElementListIdentities(

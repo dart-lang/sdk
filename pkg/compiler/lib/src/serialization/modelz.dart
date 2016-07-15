@@ -2286,6 +2286,9 @@ class PrefixElementZ extends DeserializedElementZ
   @override
   accept(ElementVisitor visitor, arg) => visitor.visitPrefixElement(this, arg);
 
+  @override
+  bool get isTopLevel => false;
+
   void _ensureDeferred() {
     if (_isDeferred == null) {
       _isDeferred = _decoder.getBool(Key.IS_DEFERRED);
