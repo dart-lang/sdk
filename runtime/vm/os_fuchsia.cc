@@ -15,6 +15,13 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
+DEFINE_FLAG(bool, generate_perf_events_symbols, false,
+    "Generate events symbols for profiling with perf");
+
+#endif  // !PRODUCT
+
 const char* OS::Name() {
   return "fuchsia";
 }
@@ -239,7 +246,11 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
 
 
 void OS::RegisterCodeObservers() {
-  UNIMPLEMENTED();
+#ifndef PRODUCT
+  if (FLAG_generate_perf_events_symbols) {
+    UNIMPLEMENTED();
+  }
+#endif  // !PRODUCT
 }
 
 

@@ -12,6 +12,12 @@
 #define USING_DBC false
 #endif
 
+#if defined(TARGET_OS_FUCHSIA)
+#define USING_FUCHSIA true
+#else
+#define USING_FUCHSIA false
+#endif
+
 // Don't use USING_MULTICORE outside of this file.
 #if defined(ARCH_IS_MULTI_CORE)
 #define USING_MULTICORE true
@@ -136,7 +142,7 @@ C(print_stop_message, false, false, bool, false,                               \
   "Print stop message.")                                                       \
 D(print_variable_descriptors, bool, false,                                     \
   "Print variable descriptors in disassembly.")                                \
-R(profiler, false, bool, !USING_DBC,                                           \
+R(profiler, false, bool, !USING_DBC && !USING_FUCHSIA,                         \
   "Enable the profiler.")                                                      \
 P(reorder_basic_blocks, bool, true,                                            \
   "Reorder basic blocks")                                                      \

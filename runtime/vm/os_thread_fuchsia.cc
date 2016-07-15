@@ -169,8 +169,7 @@ ThreadId OSThread::GetCurrentThreadId() {
 
 #ifndef PRODUCT
 ThreadId OSThread::GetCurrentThreadTraceId() {
-  UNIMPLEMENTED();
-  return 0;
+  return pthread_self();
 }
 #endif  // PRODUCT
 
