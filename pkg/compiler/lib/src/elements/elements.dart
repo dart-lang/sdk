@@ -940,6 +940,8 @@ abstract class LibraryElement extends Element
 abstract class PrefixElement extends Element {
   Element lookupLocalMember(String memberName);
 
+  void forEachLocalMember(void f(Element member));
+
   /// Is true if this prefix belongs to a deferred import.
   bool get isDeferred;
 

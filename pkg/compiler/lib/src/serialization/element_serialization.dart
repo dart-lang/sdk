@@ -727,6 +727,9 @@ class PrefixSerializer implements ElementSerializer {
     encoder.setElement(Key.LIBRARY, element.library);
     encoder.setElement(Key.COMPILATION_UNIT, element.compilationUnit);
     encoder.setBool(Key.IS_DEFERRED, element.isDeferred);
+    Set<Element> members = new Set<Element>();
+    element.forEachLocalMember(SerializerUtil.flattenElements(members));
+    encoder.setElements(Key.MEMBERS, members);
     if (element.isDeferred) {
       encoder.setElement(Key.IMPORT, element.deferredImport);
       encoder.setElement(Key.GETTER, element.loadLibrary);

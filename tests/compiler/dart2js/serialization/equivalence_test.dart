@@ -850,7 +850,12 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
       checkElementProperties(element1, element2,
           'loadLibrary', element1.loadLibrary, element2.loadLibrary);
     }
-    // TODO(johnniwinther): Check members.
+    element1.forEachLocalMember((Element member1) {
+      String name = member1.name;
+      Element member2 = element2.lookupLocalMember(name);
+      checkElementIdentities(element1, element2, 'lookupLocalMember:$name',
+          member1, member2);
+    });
   }
 
   @override

@@ -1262,6 +1262,8 @@ class PrefixElementX extends ElementX implements PrefixElement {
 
   Element lookupLocalMember(String memberName) => importScope[memberName];
 
+  void forEachLocalMember(f(Element member)) => importScope.forEach(f);
+
   DartType computeType(Resolution resolution) => const DynamicType();
 
   Token get position => firstPosition;

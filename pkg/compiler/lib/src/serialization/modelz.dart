@@ -236,7 +236,12 @@ class ListedContainer {
     Map<String, Element> setters = <String, Element>{};
     for (Element element in elements) {
       String name = element.name;
-      if (element.isGetter) {
+      if (element.isDeferredLoaderGetter) {
+        // Store directly.
+        // TODO(johnniwinther): Should modelx be normalized to put `loadLibrary`
+        // in an [AbstractFieldElement] instead?
+        _lookupMap[name] = element;
+      } else if (element.isGetter) {
         accessorNames.add(name);
         getters[name] = element;
         // Inserting [element] here to ensure insert order of [name].
@@ -2280,6 +2285,7 @@ class PrefixElementZ extends DeserializedElementZ
   bool _isDeferred;
   ImportElement _deferredImport;
   GetterElement _loadLibrary;
+  ListedContainer _members;
 
   PrefixElementZ(ObjectDecoder decoder) : super(decoder);
 
@@ -2319,9 +2325,23 @@ class PrefixElementZ extends DeserializedElementZ
   @override
   ElementKind get kind => ElementKind.PREFIX;
 
+  void _ensureMembers() {
+    if (_members == null) {
+      _members = new ListedContainer(
+          _decoder.getElements(Key.MEMBERS, isOptional: true));
+    }
+  }
+
   @override
   Element lookupLocalMember(String memberName) {
-    return _unsupported('lookupLocalMember');
+    _ensureMembers();
+    return _members.lookup(memberName);
+  }
+
+  @override
+  void forEachLocalMember(void f(Element member)) {
+    _ensureMembers();
+    _members.forEach(f);
   }
 }
 
