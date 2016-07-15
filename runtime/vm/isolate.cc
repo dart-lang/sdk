@@ -863,9 +863,11 @@ Isolate::~Isolate() {
   delete heap_;
   delete object_store_;
   delete api_state_;
+#ifndef PRODUCT
   if (FLAG_support_debugger) {
     delete debugger_;
   }
+#endif  // !PRODUCT
 #if defined(USING_SIMULATOR)
   delete simulator_;
 #endif
@@ -883,9 +885,11 @@ Isolate::~Isolate() {
   message_handler_ = NULL;  // Fail fast if we send messages to a dead isolate.
   ASSERT(deopt_context_ == NULL);  // No deopt in progress when isolate deleted.
   delete spawn_state_;
+#ifndef PRODUCT
   if (FLAG_support_service) {
     delete object_id_ring_;
   }
+#endif  // !PRODUCT
   object_id_ring_ = NULL;
   delete pause_loop_monitor_;
   pause_loop_monitor_ = NULL;
