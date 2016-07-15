@@ -40,7 +40,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(DoubleToDouble)                                                            \
   M(DoubleToFloat)                                                             \
   M(FloatToDouble)                                                             \
-  M(UnboxedConstant)                                                           \
   M(MathUnary)                                                                 \
   M(MathMinMax)                                                                \
   M(BoxInt64)                                                                  \
@@ -305,6 +304,25 @@ EMIT_NATIVE_CODE(Constant, 0, Location::RequiresRegister()) {
     __ LoadConstant(locs()->out(0).reg(), value());
   } else {
     __ PushConstant(value());
+  }
+}
+
+
+EMIT_NATIVE_CODE(UnboxedConstant, 0, Location::RequiresRegister()) {
+  // The register allocator drops constant definitions that have no uses.
+  if (locs()->out(0).IsInvalid()) {
+    return;
+  }
+  if (representation_ != kUnboxedDouble) {
+    Unsupported(compiler);
+    UNREACHABLE();
+  }
+  const Register result = locs()->out(0).reg();
+  if (Utils::DoublesBitEqual(Double::Cast(value()).value(), 0.0)) {
+    __ BitXor(result, result, result);
+  } else {
+    __ LoadConstant(result, value());
+    __ UnboxDouble(result, result);
   }
 }
 

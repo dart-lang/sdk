@@ -427,7 +427,18 @@ void ParallelMoveResolver::EmitMove(int index) {
   } else if (source.IsRegister() && destination.IsRegister()) {
     __ Move(destination.reg(), source.reg());
   } else if (source.IsConstant() && destination.IsRegister()) {
-    __ LoadConstant(destination.reg(), source.constant());
+    if (source.constant_instruction()->representation() == kUnboxedDouble) {
+      const Register result = destination.reg();
+      const Object& constant = source.constant();
+      if (Utils::DoublesBitEqual(Double::Cast(constant).value(), 0.0)) {
+        __ BitXor(result, result, result);
+      } else {
+        __ LoadConstant(result, constant);
+        __ UnboxDouble(result, result);
+      }
+    } else {
+      __ LoadConstant(destination.reg(), source.constant());
+    }
   } else {
     compiler_->Bailout("Unsupported move");
     UNREACHABLE();

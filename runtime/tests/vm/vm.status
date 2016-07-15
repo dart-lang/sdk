@@ -216,6 +216,7 @@ cc/IsolateReload_LibraryImportAdded: Skip
 cc/IsolateReload_LibraryHide: Skip
 cc/IsolateReload_LibraryLookup: Skip
 cc/IsolateReload_LibraryShow: Skip
+cc/IsolateReload_PendingSuperCall: Skip
 
 [ $hot_reload ]
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
