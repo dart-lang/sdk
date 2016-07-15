@@ -360,6 +360,7 @@ void AssemblerTest::Assemble() {
   code_ = Code::FinalizeCode(function, assembler_);
   code_.set_owner(function);
   code_.set_exception_handlers(Object::empty_exception_handlers());
+#ifndef PRODUCT
   if (FLAG_disassemble) {
     OS::Print("Code for test '%s' {\n", name_);
     const Instructions& instructions =
@@ -368,6 +369,7 @@ void AssemblerTest::Assemble() {
     Disassembler::Disassemble(start, start + assembler_->CodeSize());
     OS::Print("}\n");
   }
+#endif  // !PRODUCT
 }
 
 
