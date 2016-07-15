@@ -243,14 +243,6 @@ override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
 stack_trace_test: Fail, OK # Stack trace not preserved in minified code.
 regress_21795_test: RuntimeError # Issue 12605
 
-[ $compiler == dart2js && $runtime == d8 && $system == windows ]
-# Detection of d8 runtime does not work on Windows so the runtime result is
-# unreliable; at the time of writing, 32 passed, 31 failed with runtime error.
-# Marked with Pass,RuntimeError to avoid undetected compile-time failures.
-*deferred*: Pass,RuntimeError # Issue 17458
-cha_deopt*: Pass,RuntimeError # Issue 17458
-regress_22443_test: Pass,RuntimeError # Issue 17458
-
 [ $compiler == dart2js && $cps_ir == false ]
 accessor_conflict_export2_test: Crash # Issue 25626
 accessor_conflict_export_test: Crash # Issue 25626
