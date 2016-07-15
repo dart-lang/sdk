@@ -304,7 +304,12 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
         return false;
     }
     const char* extension_uri = reinterpret_cast<const char*>(result->uri);
-    const char* lib_path = DartUtils::RemoveScheme(lib_uri);
+    const char* lib_path = NULL;
+    if (strncmp(lib_uri, "file://", 7) == 0) {
+      lib_path = DartUtils::RemoveScheme(lib_uri);
+    } else {
+      lib_path = lib_uri;
+    }
     const char* extension_path = DartUtils::RemoveScheme(extension_uri);
     if (strchr(extension_path, '/') != NULL ||
         (IsWindowsHost() && strchr(extension_path, '\\') != NULL)) {
