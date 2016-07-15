@@ -321,13 +321,46 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
 
     'TransitionEvent': 'TransitionEvent,WebKitTransitionEvent',
 
-    'WebGLLoseContext': 'WebGLLoseContext,WebGLExtensionLoseContext',
-
     'CSSKeyframeRule':
         'CSSKeyframeRule,MozCSSKeyframeRule,WebKitCSSKeyframeRule',
 
     'CSSKeyframesRule':
         'CSSKeyframesRule,MozCSSKeyframesRule,WebKitCSSKeyframesRule',
+
+    # webgl extensions are sometimes named directly after the getExtension
+    # parameter (e.g on Firefox).
+
+    'ANGLEInstancedArrays': 'ANGLEInstancedArrays,ANGLE_instanced_arrays',
+    'EXTsRGB': 'EXTsRGB,EXT_sRGB',
+    'EXTBlendMinMax': 'EXTBlendMinMax,EXT_blend_min_max',
+    'EXTFragDepth': 'EXTFragDepth,EXT_frag_depth',
+    'EXTShaderTextureLOD': 'EXTShaderTextureLOD,EXT_shader_texture_lod',
+    'EXTTextureFilterAnisotropic':
+        'EXTTextureFilterAnisotropic,EXT_texture_filter_anisotropic',
+    'OESElementIndexUint': 'OESElementIndexUint,OES_element_index_uint',
+    'OESStandardDerivatives': 'OESStandardDerivatives,OES_standard_derivatives',
+    'OESTextureFloat': 'OESTextureFloat,OES_texture_float',
+    'OESTextureFloatLinear': 'OESTextureFloatLinear,OES_texture_float_linear',
+    'OESTextureHalfFloat': 'OESTextureHalfFloat,OES_texture_half_float',
+    'OESTextureHalfFloatLinear':
+        'OESTextureHalfFloatLinear,OES_texture_half_float_linear',
+    'OESVertexArrayObject':
+        'OESVertexArrayObject,OES_vertex_array_object',
+    'WebGLCompressedTextureATC':
+        'WebGLCompressedTextureATC,WEBGL_compressed_texture_atc',
+    'WebGLCompressedTextureETC1':
+        'WebGLCompressedTextureETC1,WEBGL_compressed_texture_etc1',
+    'WebGLCompressedTexturePVRTC':
+        'WebGLCompressedTexturePVRTC,WEBGL_compressed_texture_pvrtc',
+    'WebGLCompressedTextureS3TC':
+        'WebGLCompressedTextureS3TC,WEBGL_compressed_texture_s3tc',
+    'WebGLDebugRendererInfo': 'WebGLDebugRendererInfo,WEBGL_debug_renderer_info',
+    'WebGLDebugShaders': 'WebGLDebugShaders,WEBGL_debug_shaders',
+    'WebGLDepthTexture': 'WebGLDepthTexture,WEBGL_depth_texture',
+    'WebGLDrawBuffers': 'WebGLDrawBuffers,WEBGL_draw_buffers',
+    'WebGLLoseContext':
+        'WebGLLoseContext,WebGLExtensionLoseContext,WEBGL_lose_context',
+
 
 }, dart2jsOnly=True)
 
