@@ -18,6 +18,7 @@ const char* kPrecompiledDataSymbolName = "_kDataSnapshot";
 
 void* Extensions::LoadExtensionLibrary(const char* library_file) {
   SetLastError(0);
+  fprintf(stderr, "trying to load %s\n", library_file);
   return LoadLibraryW(StringUtilsWin::Utf8ToWide(library_file));
 }
 
