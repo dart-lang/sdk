@@ -1072,8 +1072,9 @@ void Isolate::DoneLoading() {
 
 bool Isolate::CanReload() const {
 #ifndef PRODUCT
-  return (!ServiceIsolate::IsServiceIsolateDescendant(this) &&
-          is_runnable() && !IsReloading() && no_reload_scope_depth_ == 0);
+  return !ServiceIsolate::IsServiceIsolateDescendant(this) &&
+         is_runnable() && !IsReloading() && (no_reload_scope_depth_ == 0) &&
+         IsolateCreationEnabled();
 #else
   return false;
 #endif
@@ -2436,6 +2437,12 @@ void Isolate::DisableIsolateCreation() {
 void Isolate::EnableIsolateCreation() {
   MonitorLocker ml(isolates_list_monitor_);
   creation_enabled_ = true;
+}
+
+
+bool Isolate::IsolateCreationEnabled() {
+  MonitorLocker ml(isolates_list_monitor_);
+  return creation_enabled_;
 }
 
 

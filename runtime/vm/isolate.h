@@ -631,6 +631,7 @@ class Isolate : public BaseIsolate {
 
   static void DisableIsolateCreation();
   static void EnableIsolateCreation();
+  static bool IsolateCreationEnabled();
 
   void StopBackgroundCompiler();
 
