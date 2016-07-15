@@ -4732,6 +4732,10 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   TRACE_PARSER("ParseEnumDefinition");
   INC_STAT(thread(), num_classes_parsed, 1);
 
+  const Class& helper_class =
+      Class::Handle(Z, Library::LookupCoreClass(Symbols::_EnumHelper()));
+  ASSERT(!helper_class.IsNull());
+
   SkipMetadata();
   ExpectToken(Token::kENUM);
 
@@ -4743,9 +4747,9 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   const Type& int_type = Type::Handle(Z, Type::IntType());
   index_field = Field::New(Symbols::Index(),
                            false,  // Not static.
-                           true,  // Field is final.
+                           true,   // Field is final.
                            false,  // Not const.
-                           true,  // Is reflectable.
+                           true,   // Is reflectable.
                            cls,
                            int_type,
                            cls.token_pos());
@@ -4771,18 +4775,12 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   AddFormalParamsToFunction(&params, getter);
   enum_members.AddFunction(getter);
 
-  GrowableObjectArray& enum_names = GrowableObjectArray::Handle(Z,
-      GrowableObjectArray::New(8, Heap::kOld));
-  const String& name_prefix =
-      String::Handle(String::Concat(enum_name, Symbols::Dot()));
-
   ASSERT(IsIdentifier());
   ASSERT(CurrentLiteral()->raw() == cls.Name());
 
   ConsumeToken();  // Enum type name.
   ExpectToken(Token::kLBRACE);
   Field& enum_value = Field::Handle(Z);
-  String& enum_value_name = String::Handle(Z);
   intptr_t i = 0;
   GrowableArray<String*> declared_names(8);
 
@@ -4830,24 +4828,12 @@ void Parser::ParseEnumDefinition(const Class& cls) {
     enum_value.RecordStore(ordinal_value);
     i++;
 
-    // For the user-visible name of the enumeration value, we need to
-    // unmangle private names.
-    if (enum_ident->CharAt(0) == '_') {
-      *enum_ident = String::ScrubName(*enum_ident);
-    }
-    enum_value_name = Symbols::FromConcat(T, name_prefix, *enum_ident);
-    enum_names.Add(enum_value_name, Heap::kOld);
-
     ConsumeToken();  // Enum value name.
     if (CurrentToken() == Token::kCOMMA) {
       ConsumeToken();
     }
   }
   ExpectToken(Token::kRBRACE);
-
-  const Class& helper_class =
-      Class::Handle(Z, Library::LookupCoreClass(Symbols::_EnumHelper()));
-  ASSERT(!helper_class.IsNull());
 
   // Add static field 'const List values'.
   Field& values_field = Field::ZoneHandle(Z);
@@ -4867,16 +4853,35 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   values_field.SetStaticValue(values_array, true);
   values_field.RecordStore(values_array);
 
-  // Create a static field that contains the list of enumeration names.
-  // Clone the _enum_names field from the helper class.
-  Field& names_field = Field::Handle(Z,
-      helper_class.LookupStaticFieldAllowPrivate(Symbols::_EnumNames()));
-  ASSERT(!names_field.IsNull());
-  names_field = names_field.Clone(cls);
-  enum_members.AddField(names_field);
-  const Array& names_array = Array::Handle(Array::MakeArray(enum_names));
-  names_field.SetStaticValue(names_array, true);
-  names_field.RecordStore(names_array);
+  // Clone the _name field from the helper class.
+  Field& _name_field = Field::Handle(Z,
+      helper_class.LookupInstanceFieldAllowPrivate(Symbols::_name()));
+  ASSERT(!_name_field.IsNull());
+  _name_field = _name_field.Clone(cls);
+  enum_members.AddField(_name_field);
+
+  // Add an implicit getter function for the _name field. We use the field's
+  // name directly here so that the private key matches those of the other
+  // cloned helper functions and fields.
+  const Type& string_type = Type::Handle(Z, Type::StringType());
+  const String& name_getter_name = String::Handle(Z,
+      Field::GetterSymbol(String::Handle(_name_field.name())));
+  Function& name_getter = Function::Handle(Z);
+  name_getter = Function::New(name_getter_name,
+                              RawFunction::kImplicitGetter,
+                              /* is_static = */ false,
+                              /* is_const = */ true,
+                              /* is_abstract = */ false,
+                              /* is_external = */ false,
+                              /* is_native = */ false,
+                              cls,
+                              cls.token_pos());
+  name_getter.set_result_type(string_type);
+  name_getter.set_is_debuggable(false);
+  ParamList name_params;
+  name_params.AddReceiver(&Object::dynamic_type(), cls.token_pos());
+  AddFormalParamsToFunction(&name_params, name_getter);
+  enum_members.AddFunction(name_getter);
 
   // Clone the toString() function from the helper class.
   Function& to_string_func = Function::Handle(Z,

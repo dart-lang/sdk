@@ -1194,7 +1194,8 @@ class Class : public Object {
   RawField* LookupInstanceField(const String& name) const;
   RawField* LookupStaticField(const String& name) const;
   RawField* LookupField(const String& name) const;
-  RawField* LookupFieldAllowPrivate(const String& name) const;
+  RawField* LookupFieldAllowPrivate(const String& name,
+                                    bool instance_only = false) const;
   RawField* LookupInstanceFieldAllowPrivate(const String& name) const;
   RawField* LookupStaticFieldAllowPrivate(const String& name) const;
 

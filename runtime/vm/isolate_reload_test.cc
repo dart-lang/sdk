@@ -1445,95 +1445,6 @@ TEST_CASE(IsolateReload_EnumDelete) {
       "}\n"
       "var x;\n"
       "main() {\n"
-      "  return Fruit.Apple.toString();\n"
-      "}\n";
-
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-
-  EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
-
-  // Delete 'Cantalope'.
-
-  const char* kReloadScript =
-      "enum Fruit {\n"
-      "  Apple,\n"
-      "  Banana,\n"
-      "}\n"
-      "var x;\n"
-      "main() {\n"
-      "  String r = '${Fruit.Apple.index}/${Fruit.Apple} ';\n"
-      "  r += '${Fruit.Banana.index}/${Fruit.Banana} ';\n"
-      "  r += '${Fruit.Cantalope.index}/${Fruit.Cantalope}';\n"
-      "  return r;\n"
-      "}\n";
-
-  lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID(lib);
-
-  EXPECT_STREQ("0/Fruit.Apple 1/Fruit.Banana 2/Fruit.Cantalope",
-               SimpleInvokeStr(lib, "main"));
-}
-
-
-TEST_CASE(IsolateReload_EnumComplex) {
-  const char* kScript =
-      "enum Fruit {\n"
-      "  Apple,\n"
-      "  Banana,\n"
-      "  Cantalope,\n"
-      "}\n"
-      "var x;\n"
-      "var y;\n"
-      "var z;\n"
-      "main() {\n"
-      "  x = Fruit.Apple;\n"
-      "  y = Fruit.Banana;\n"
-      "  z = Fruit.Cantalope;\n"
-      "  return Fruit.Apple.toString();\n"
-      "}\n";
-
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-
-  EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
-
-  // Delete 'Cantalope'. Add 'Dragon'. Move 'Apple' and 'Banana'.
-
-  const char* kReloadScript =
-      "enum Fruit {\n"
-      "  Dragon,\n"
-      "  Apple,\n"
-      "  Banana,\n"
-      "}\n"
-      "var x;\n"
-      "var y;\n"
-      "var z;\n"
-      "main() {\n"
-      "  String r = '';\n"
-      "  r += '${identical(x, Fruit.Apple)}';\n"
-      "  r += ' ${identical(y, Fruit.Banana)}';\n"
-      "  r += ' ${identical(z, Fruit.Cantalope)}';\n"
-      "  r += ' ${Fruit.Dragon}';\n"
-      "  return r;\n"
-      "}\n";
-
-  lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID(lib);
-
-  EXPECT_STREQ("true true true Fruit.Dragon", SimpleInvokeStr(lib, "main"));
-}
-
-
-TEST_CASE(IsolateReload_EnumValuesArray) {
-  const char* kScript =
-      "enum Fruit {\n"
-      "  Cantalope,\n"
-      "  Apple,\n"
-      "  Banana,\n"
-      "}\n"
-      "var x;\n"
-      "main() {\n"
       "  x = Fruit.Cantalope;\n"
       "  return Fruit.Apple.toString();\n"
       "}\n";
@@ -1543,31 +1454,24 @@ TEST_CASE(IsolateReload_EnumValuesArray) {
 
   EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
 
-  // Delete 'Cantalope'.
+  // Delete 'Cantalope' but make sure that we can still invoke toString,
+  // and access the hashCode and index properties.
 
   const char* kReloadScript =
       "enum Fruit {\n"
+      "  Apple,\n"
       "  Banana,\n"
-      "  Apple\n"
       "}\n"
       "var x;\n"
-      "bool identityCheck(Fruit f) {\n"
-      "  return identical(Fruit.values[f.index], f);\n"
-      "}\n"
       "main() {\n"
-      "  if ((x is Fruit) && identical(x, Fruit.Cantalope)) {\n"
-      "    String r = '${identityCheck(Fruit.Apple)}';\n"
-      "    r += ' ${identityCheck(Fruit.Banana)}';\n"
-      "    r += ' ${identityCheck(Fruit.Cantalope)}';\n"
-      "    r += ' ${identityCheck(x)}';\n"
-      "    return r;\n"
-      "  }\n"
+      "  String r = '$x ${x.hashCode is int} ${x.index}';\n"
+      "  return r;\n"
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
 
-  EXPECT_STREQ("true true true true",
+  EXPECT_STREQ("Fruit.Cantalope true 2",
                SimpleInvokeStr(lib, "main"));
 }
 

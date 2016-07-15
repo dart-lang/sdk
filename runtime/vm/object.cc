@@ -4199,7 +4199,8 @@ RawField* Class::LookupField(const String& name, MemberKind kind) const {
 }
 
 
-RawField* Class::LookupFieldAllowPrivate(const String& name) const {
+RawField* Class::LookupFieldAllowPrivate(const String& name,
+                                         bool instance_only) const {
   // Use slow string compare, ignoring privacy name mangling.
   Thread* thread = Thread::Current();
   if (EnsureIsFinalized(thread) != Error::null()) {
@@ -4217,6 +4218,10 @@ RawField* Class::LookupFieldAllowPrivate(const String& name) const {
   for (intptr_t i = 0; i < len; i++) {
     field ^= flds.At(i);
     field_name ^= field.name();
+    if (field.is_static() && instance_only) {
+      // If we only care about instance fields, skip statics.
+      continue;
+    }
     if (String::EqualsIgnoringPrivateKey(field_name, name)) {
       return field.raw();
     }
@@ -4226,7 +4231,7 @@ RawField* Class::LookupFieldAllowPrivate(const String& name) const {
 
 
 RawField* Class::LookupInstanceFieldAllowPrivate(const String& name) const {
-  Field& field = Field::Handle(LookupFieldAllowPrivate(name));
+  Field& field = Field::Handle(LookupFieldAllowPrivate(name, true));
   if (!field.IsNull() && !field.is_static()) {
     return field.raw();
   }

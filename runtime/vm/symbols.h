@@ -396,6 +396,7 @@ class ObjectPointerVisitor;
   V(_runPendingImmediateCallback, "_runPendingImmediateCallback")              \
   V(DartLibrary, "dart.library.")                                              \
   V(DartLibraryMirrors, "dart.library.mirrors")                                \
+  V(_name, "_name")                                                            \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

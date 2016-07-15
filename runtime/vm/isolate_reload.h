@@ -10,6 +10,7 @@
 #include "vm/log.h"
 
 DECLARE_FLAG(bool, trace_reload);
+DECLARE_FLAG(bool, trace_reload_verbose);
 
 // 'Trace Isolate Reload' TIR_Print
 #if defined(_MSC_VER)
@@ -18,6 +19,15 @@ DECLARE_FLAG(bool, trace_reload);
 #else
 #define TIR_Print(format, ...) \
     if (FLAG_trace_reload) Log::Current()->Print(format, ##__VA_ARGS__)
+#endif
+
+// 'Verbose Trace Isolate Reload' VTIR_Print
+#if defined(_MSC_VER)
+#define VTIR_Print(format, ...) \
+    if (FLAG_trace_reload_verbose) Log::Current()->Print(format, __VA_ARGS__)
+#else
+#define VTIR_Print(format, ...) \
+    if (FLAG_trace_reload_verbose) Log::Current()->Print(format, ##__VA_ARGS__)
 #endif
 
 namespace dart {
@@ -145,7 +155,8 @@ class IsolateReloadContext {
 
   void AddStaticFieldMapping(const Field& old_field, const Field& new_field);
 
-  void AddBecomeMapping(const Object& old, const Object& nue);
+  void AddBecomeMapping(const Object& old, const Object& neu);
+  void AddEnumBecomeMapping(const Object& old, const Object& neu);
 
   void RebuildDirectSubclasses();
 
@@ -160,12 +171,13 @@ class IsolateReloadContext {
   RawArray* old_libraries_set_storage_;
   RawArray* library_map_storage_;
   RawArray* become_map_storage_;
+  RawGrowableObjectArray* become_enum_mappings_;
   RawLibrary* saved_root_library_;
   RawGrowableObjectArray* saved_libraries_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&saved_libraries_); }
 
   friend class Isolate;
-  friend class Class;  // AddStaticFieldMapping.
+  friend class Class;  // AddStaticFieldMapping, AddEnumBecomeMapping.
 };
 
 }  // namespace dart

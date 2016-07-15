@@ -24,6 +24,8 @@
 namespace dart {
 
 DEFINE_FLAG(bool, trace_reload, false, "Trace isolate reloading");
+DEFINE_FLAG(bool, trace_reload_verbose, false,
+            "trace isolate reloading verbose");
 DEFINE_FLAG(bool, identity_reload, false, "Enable checks for identity reload.");
 DEFINE_FLAG(int, reload_every, 0, "Reload every N stack overflow checks.");
 DEFINE_FLAG(bool, reload_every_optimized, true, "Only from optimized code.");
@@ -117,6 +119,8 @@ class BecomeMapTraits {
       return String::HashRawSymbol(Class::Cast(obj).Name());
     } else if (obj.IsField()) {
       return String::HashRawSymbol(Field::Cast(obj).name());
+    } else if (obj.IsInstance()) {
+      return Smi::Handle(Smi::RawCast(Instance::Cast(obj).HashCode())).Value();
     }
     return 0;
   }
@@ -188,6 +192,7 @@ IsolateReloadContext::IsolateReloadContext(Isolate* isolate, bool test_mode)
       old_libraries_set_storage_(Array::null()),
       library_map_storage_(Array::null()),
       become_map_storage_(Array::null()),
+      become_enum_mappings_(GrowableObjectArray::null()),
       saved_root_library_(Library::null()),
       saved_libraries_(GrowableObjectArray::null()) {
   // NOTE: DO NOT ALLOCATE ANY RAW OBJECTS HERE. The IsolateReloadContext is not
@@ -244,6 +249,9 @@ void IsolateReloadContext::StartReload() {
       HashTables::New<UnorderedHashMap<LibraryMapTraits> >(4);
   become_map_storage_ =
       HashTables::New<UnorderedHashMap<BecomeMapTraits> >(4);
+  // Keep a separate array for enum mappings to avoid having to invoke
+  // hashCode on the instances.
+  become_enum_mappings_ = GrowableObjectArray::New(Heap::kOld);
 
   // Disable the background compiler while we are performing the reload.
   BackgroundCompiler::Disable();
@@ -602,8 +610,9 @@ void IsolateReloadContext::Commit() {
           ASSERT(new_cls.is_enum_class() == cls.is_enum_class());
           if (new_cls.is_enum_class() && new_cls.is_finalized()) {
             new_cls.ReplaceEnum(cls);
+          } else {
+            new_cls.CopyStaticFieldValues(cls);
           }
-          new_cls.CopyStaticFieldValues(cls);
           cls.PatchFieldsAndFunctions();
         }
       }
@@ -646,7 +655,7 @@ void IsolateReloadContext::Commit() {
         I->object_store()->libraries());
     for (intptr_t i = 0; i < libs.Length(); i++) {
       lib = Library::RawCast(libs.At(i));
-      TIR_Print("Lib '%s' at index %" Pd "\n", lib.ToCString(), i);
+      VTIR_Print("Lib '%s' at index %" Pd "\n", lib.ToCString(), i);
       lib.set_index(i);
     }
 
@@ -660,8 +669,11 @@ void IsolateReloadContext::Commit() {
   }
 
   {
+    const GrowableObjectArray& become_enum_mappings =
+        GrowableObjectArray::Handle(become_enum_mappings_);
     UnorderedHashMap<BecomeMapTraits> become_map(become_map_storage_);
-    intptr_t replacement_count = become_map.NumOccupied();
+    intptr_t replacement_count = become_map.NumOccupied() +
+                                 become_enum_mappings.Length() / 2;
     const Array& before =
         Array::Handle(Array::New(replacement_count, Heap::kOld));
     const Array& after =
@@ -674,6 +686,13 @@ void IsolateReloadContext::Commit() {
       obj = become_map.GetKey(entry);
       before.SetAt(replacement_index, obj);
       obj = become_map.GetPayload(entry, 0);
+      after.SetAt(replacement_index, obj);
+      replacement_index++;
+    }
+    for (intptr_t i = 0; i < become_enum_mappings.Length(); i += 2) {
+      obj = become_enum_mappings.At(i);
+      before.SetAt(replacement_index, obj);
+      obj = become_enum_mappings.At(i + 1);
       after.SetAt(replacement_index, obj);
       replacement_index++;
     }
@@ -1066,6 +1085,16 @@ void IsolateReloadContext::AddBecomeMapping(const Object& old,
   bool update = become_map.UpdateOrInsert(old, neu);
   ASSERT(!update);
   become_map_storage_ = become_map.Release().raw();
+}
+
+
+void IsolateReloadContext::AddEnumBecomeMapping(const Object& old,
+                                                const Object& neu) {
+  const GrowableObjectArray& become_enum_mappings =
+      GrowableObjectArray::Handle(become_enum_mappings_);
+  become_enum_mappings.Add(old);
+  become_enum_mappings.Add(neu);
+  ASSERT((become_enum_mappings.Length() % 2) == 0);
 }
 
 

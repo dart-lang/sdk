@@ -4,6 +4,7 @@
 
 #include "vm/object.h"
 
+#include "vm/hash_table.h"
 #include "vm/isolate_reload.h"
 #include "vm/log.h"
 #include "vm/resolver.h"
@@ -14,6 +15,7 @@ namespace dart {
 #ifndef PRODUCT
 
 DECLARE_FLAG(bool, trace_reload);
+DECLARE_FLAG(bool, trace_reload_verbose);
 DECLARE_FLAG(bool, two_args_smi_icd);
 
 #define IRC (Isolate::Current()->reload_context())
@@ -141,6 +143,8 @@ void Class::CopyStaticFieldValues(const Class& old_cls) const {
 
 void Class::CopyCanonicalConstants(const Class& old_cls) const {
   if (is_enum_class()) {
+    // We do not copy enum classes's canonical constants because we explicitly
+    // become the old enum values to the new enum values.
     return;
   }
 #if defined(DEBUG)
@@ -171,31 +175,47 @@ void Class::CopyCanonicalType(const Class& old_cls) const {
 }
 
 
-static intptr_t IndexOfEnum(const Array& enum_names, const String& name) {
-  ASSERT(!enum_names.IsNull());
-  ASSERT(!name.IsNull());
-  String& enum_name = String::Handle();
-  for (intptr_t i = 0; i < enum_names.Length(); i++) {
-    enum_name = String::RawCast(enum_names.At(i));
-    ASSERT(!enum_name.IsNull());
-    if (enum_name.Equals(name)) {
-      return i;
-    }
+class EnumMapTraits {
+ public:
+  static bool ReportStats() { return false; }
+  static const char* Name() { return "EnumMapTraits"; }
+
+  static bool IsMatch(const Object& a, const Object& b) {
+    return a.raw() == b.raw();
   }
 
-  return -1;
-}
+  static uword Hash(const Object& obj) {
+    ASSERT(obj.IsString());
+    return String::Cast(obj).Hash();
+  }
+};
 
 
-static void UpdateEnumIndex(const Instance& enum_value,
-                            const Field& enum_index_field,
-                            const intptr_t index) {
-  enum_value.SetField(enum_index_field, Smi::Handle(Smi::New(index)));
-}
-
-
-// TODO(johnmccutchan): The code in the class finalizer canonicalizes all
-// instances and the values array. We probably should do the same thing.
+// Given an old enum class, add become mappings from old values to new values.
+// Some notes about how we reload enums below:
+//
+// When an enum is reloaded the following three things can happen, possibly
+// simultaneously.
+//
+// 1) A new enum value is added.
+//   This case is handled automatically.
+// 2) Enum values are reordered.
+//   We pair old and new enums and the old enums 'become' the new ones so
+//   the ordering is always correct (i.e. enum indicies match slots in values
+//   array)
+// 3) An existing enum value is removed.
+//   We leave old enum values that have no mapping to the reloaded class
+//   in the heap. This means that if a programmer does the following:
+//   enum Foo { A, B }; var x = Foo.A;
+//   *reload*
+//   enum Foo { B };
+//   *reload*
+//   enum Foo { A, B }; expect(identical(x, Foo.A));
+//   The program will fail because we were not able to pair Foo.A on the second
+//   reload.
+//
+//   Deleted enum values still in the heap continue to function but their
+//   index field will not be valid.
 void Class::ReplaceEnum(const Class& old_enum) const {
   // We only do this for finalized enum classes.
   ASSERT(is_enum_class());
@@ -204,160 +224,98 @@ void Class::ReplaceEnum(const Class& old_enum) const {
   ASSERT(old_enum.is_finalized());
 
   Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   IsolateReloadContext* reload_context = Isolate::Current()->reload_context();
   ASSERT(reload_context != NULL);
 
-  TIR_Print("ReplaceEnum `%s` (%" Pd " and %" Pd ")\n",
-            ToCString(), id(), old_enum.id());
+  Array& enum_fields = Array::Handle(zone);
+  Field& field = Field::Handle(zone);
+  String& enum_ident = String::Handle();
+  Instance& old_enum_value = Instance::Handle(zone);
+  Instance& enum_value = Instance::Handle(zone);
 
-  // Grab '_enum_names' from |old_enum|.
-  const Field& old_enum_names_field = Field::Handle(
-      old_enum.LookupStaticFieldAllowPrivate(Symbols::_EnumNames()));
-  ASSERT(!old_enum_names_field.IsNull());
-  const Array& old_enum_names =
-      Array::Handle(Array::RawCast(old_enum_names_field.StaticValue()));
-  ASSERT(!old_enum_names.IsNull());
+  Array& enum_map_storage = Array::Handle(zone,
+      HashTables::New<UnorderedHashMap<EnumMapTraits> >(4));
+  ASSERT(!enum_map_storage.IsNull());
 
-  // Grab 'values' from |old_enum|.
-  const Field& old_enum_values_field = Field::Handle(
-      old_enum.LookupStaticFieldAllowPrivate(Symbols::Values()));
-  ASSERT(!old_enum_values_field.IsNull());
-  const Array& old_enum_values =
-      Array::Handle(Array::RawCast(old_enum_values_field.StaticValue()));
-  ASSERT(!old_enum_values.IsNull());
+  TIR_Print("Replacing enum `%s`\n", String::Handle(Name()).ToCString());
 
-  // Grab _enum_names from |this|.
-  const Field& enum_names_field = Field::Handle(
-      LookupStaticFieldAllowPrivate(Symbols::_EnumNames()));
-  ASSERT(!enum_names_field.IsNull());
-  Array& enum_names =
-      Array::Handle(Array::RawCast(enum_names_field.StaticValue()));
-  ASSERT(!enum_names.IsNull());
-
-  // Grab values from |this|.
-  const Field& enum_values_field = Field::Handle(
-      LookupStaticFieldAllowPrivate(Symbols::Values()));
-  ASSERT(!enum_values_field.IsNull());
-  Array& enum_values =
-      Array::Handle(Array::RawCast(enum_values_field.StaticValue()));
-  ASSERT(!enum_values.IsNull());
-
-  // Grab the |index| field.
-  const Field& index_field =
-      Field::Handle(old_enum.LookupInstanceField(Symbols::Index()));
-  ASSERT(!index_field.IsNull());
-
-  // Build list of enum from |old_enum| that aren't present in |this|.
-  // This array holds pairs: (name, value).
-  const GrowableObjectArray& to_add =
-      GrowableObjectArray::Handle(GrowableObjectArray::New(Heap::kOld));
-  const String& enum_class_name = String::Handle(UserVisibleName());
-  String& enum_name = String::Handle();
-  String& enum_field_name = String::Handle();
-  Object& enum_value = Object::Handle();
-  Field& enum_field = Field::Handle();
-
-  TIR_Print("New version of enum has %" Pd " elements\n",
-            enum_values.Length());
-  TIR_Print("Old version of enum had %" Pd " elements\n",
-            old_enum_values.Length());
-
-  for (intptr_t i = 0; i < old_enum_names.Length(); i++) {
-    enum_name = String::RawCast(old_enum_names.At(i));
-    const intptr_t index_in_new_cls = IndexOfEnum(enum_names, enum_name);
-    if (index_in_new_cls < 0) {
-      // Doesn't exist in new enum, add.
-      TIR_Print("Adding enum value `%s` to %s\n",
-                enum_name.ToCString(),
-                this->ToCString());
-      enum_value = old_enum_values.At(i);
-      ASSERT(!enum_value.IsNull());
-      to_add.Add(enum_name);
-      to_add.Add(enum_value);
-    } else {
-      // Exists in both the new and the old.
-      TIR_Print("Moving enum value `%s` to %" Pd "\n",
-                enum_name.ToCString(),
-                index_in_new_cls);
-      // Grab old value.
-      enum_value = old_enum_values.At(i);
-      // Update index to the be new index.
-      UpdateEnumIndex(Instance::Cast(enum_value),
-                      index_field,
-                      index_in_new_cls);
-      // Chop off the 'EnumClass.'
-      enum_field_name = String::SubString(enum_name,
-                                          enum_class_name.Length() + 1);
-      ASSERT(!enum_field_name.IsNull());
-      // Grab the static field.
-      enum_field = LookupStaticFieldAllowPrivate(enum_field_name);
-      ASSERT(!enum_field.IsNull());
-      // Use old value with updated index.
-      enum_field.SetStaticValue(Instance::Cast(enum_value), true);
-      enum_values.SetAt(index_in_new_cls, enum_value);
-      enum_names.SetAt(index_in_new_cls, enum_name);
+  {
+    UnorderedHashMap<EnumMapTraits> enum_map(enum_map_storage.raw());
+    // Build a map of all enum name -> old enum instance.
+    enum_fields = old_enum.fields();
+    for (intptr_t i = 0; i < enum_fields.Length(); i++) {
+      field = Field::RawCast(enum_fields.At(i));
+      enum_ident = field.name();
+      if (!field.is_static()) {
+        // Enum instances are only held in static fields.
+        continue;
+      }
+      if (enum_ident.Equals(Symbols::Values())) {
+        // Non-enum instance.
+        continue;
+      }
+      old_enum_value = field.StaticValue();
+      ASSERT(!old_enum_value.IsNull());
+      VTIR_Print("Element %s being added to mapping\n", enum_ident.ToCString());
+      bool update = enum_map.UpdateOrInsert(enum_ident, old_enum_value);
+      VTIR_Print("Element %s added to mapping\n", enum_ident.ToCString());
+      ASSERT(!update);
     }
+    // The storage given to the map may have been reallocated, remember the new
+    // address.
+    enum_map_storage = enum_map.Release().raw();
   }
 
-  if (to_add.Length() == 0) {
-    // Nothing to do.
-    TIR_Print("Found no missing enums in %s\n", ToCString());
-    return;
+  bool enums_deleted = false;
+  {
+    UnorderedHashMap<EnumMapTraits> enum_map(enum_map_storage.raw());
+    // Add a become mapping from the old instances to the new instances.
+    enum_fields = fields();
+    for (intptr_t i = 0; i < enum_fields.Length(); i++) {
+      field = Field::RawCast(enum_fields.At(i));
+      enum_ident = field.name();
+      if (!field.is_static()) {
+        // Enum instances are only held in static fields.
+        continue;
+      }
+      if (enum_ident.Equals(Symbols::Values())) {
+        // Non-enum instance.
+        continue;
+      }
+      enum_value = field.StaticValue();
+      ASSERT(!enum_value.IsNull());
+      old_enum_value ^= enum_map.GetOrNull(enum_ident);
+      if (old_enum_value.IsNull()) {
+        VTIR_Print("New element %s was not found in mapping\n",
+                   enum_ident.ToCString());
+      } else {
+        VTIR_Print("Adding element `%s` to become mapping\n",
+                   enum_ident.ToCString());
+        bool removed = enum_map.Remove(enum_ident);
+        ASSERT(removed);
+        reload_context->AddEnumBecomeMapping(old_enum_value, enum_value);
+      }
+    }
+    enums_deleted = enum_map.NumOccupied() > 0;
+    // The storage given to the map may have been reallocated, remember the new
+    // address.
+    enum_map_storage = enum_map.Release().raw();
   }
 
-  // Grow the values and enum_names arrays.
-  const intptr_t offset = enum_names.Length();
-  const intptr_t num_to_add = to_add.Length() / 2;
-  ASSERT(offset == enum_values.Length());
-  enum_names = Array::Grow(enum_names,
-                           enum_names.Length() + num_to_add,
-                           Heap::kOld);
-  enum_values = Array::Grow(enum_values,
-                            enum_values.Length() + num_to_add,
-                            Heap::kOld);
-
-  // Install new names and values into the grown arrays. Also, update
-  // the index of the new enum values and add static fields for the new
-  // enum values.
-  Field& enum_value_field = Field::Handle();
-  for (intptr_t i = 0; i < num_to_add; i++) {
-    const intptr_t target_index = offset + i;
-    enum_name = String::RawCast(to_add.At(i * 2));
-    enum_value = to_add.At(i * 2 + 1);
-
-    // Update the enum value's index into the new arrays.
-    TIR_Print("Updating index of %s in %s to %" Pd "\n",
-              enum_name.ToCString(),
-              ToCString(),
-              target_index);
-    UpdateEnumIndex(Instance::Cast(enum_value), index_field, target_index);
-
-    enum_names.SetAt(target_index, enum_name);
-    enum_values.SetAt(target_index, enum_value);
-
-    // Install new static field into class.
-    // Chop off the 'EnumClass.'
-    enum_field_name = String::SubString(enum_name,
-                                        enum_class_name.Length() + 1);
-    ASSERT(!enum_field_name.IsNull());
-    enum_field_name = Symbols::New(thread, enum_field_name);
-    enum_value_field = Field::New(enum_field_name,
-                                  /* is_static = */ true,
-                                  /* is_final = */ true,
-                                  /* is_const = */ true,
-                                  /* is_reflectable = */ true,
-                                  *this,
-                                  Object::dynamic_type(),
-                                  token_pos());
-    enum_value_field.set_has_initializer(false);
-    enum_value_field.SetStaticValue(Instance::Cast(enum_value), true);
-    enum_value_field.RecordStore(Instance::Cast(enum_value));
-    AddField(enum_value_field);
+  if (enums_deleted && FLAG_trace_reload_verbose) {
+    // TODO(johnmccutchan): Add this to the reload 'notices' list.
+    VTIR_Print("The following enum values were deleted and are forever lost in "
+               "the heap:\n");
+    UnorderedHashMap<EnumMapTraits> enum_map(enum_map_storage.raw());
+    UnorderedHashMap<EnumMapTraits>::Iterator it(&enum_map);
+    while (it.MoveNext()) {
+      const intptr_t entry = it.Current();
+      enum_ident = String::RawCast(enum_map.GetKey(entry));
+      ASSERT(!enum_ident.IsNull());
+    }
+    enum_map.Release();
   }
-
-  // Replace the arrays stored in the static fields.
-  enum_names_field.SetStaticValue(enum_names, true);
-  enum_values_field.SetStaticValue(enum_values, true);
 }
 
 
@@ -609,9 +567,9 @@ void ICData::Reset() const {
     if (new_target.IsNull() ||
         !new_target.AreValidArguments(args_desc, NULL)) {
       // TODO(rmacnak): Patch to a NSME stub.
-      TIR_Print("Cannot rebind static call to %s from %s\n",
-                old_target.ToCString(),
-                Object::Handle(Owner()).ToCString());
+      VTIR_Print("Cannot rebind static call to %s from %s\n",
+                 old_target.ToCString(),
+                 Object::Handle(Owner()).ToCString());
       return;
     }
     ClearAndSetStaticTarget(new_target);
