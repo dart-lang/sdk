@@ -648,6 +648,8 @@ class Driver implements CommandLineStarter {
     contextOptions.generateSdkErrors = options.showSdkWarnings;
     contextOptions.lint = options.lints;
     contextOptions.strongMode = options.strongMode;
+    contextOptions.implicitCasts = options.implicitCasts;
+    contextOptions.implicitDynamic = options.implicitDynamic;
     return contextOptions;
   }
 

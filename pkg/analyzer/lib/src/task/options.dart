@@ -55,6 +55,10 @@ class AnalyzerOptions {
   static const String plugins = 'plugins';
   static const String strong_mode = 'strong-mode';
 
+  // Strong mode options, see AnalysisOptionsImpl for documentation.
+  static const String implicitCasts = 'implicit-casts';
+  static const String implicitDynamic = 'implicit-dynamic';
+
   /// Ways to say `ignore`.
   static const List<String> ignoreSynonyms = const ['ignore', 'false'];
 
@@ -428,9 +432,8 @@ class _OptionsProcessor {
     if (analyzer is Map) {
       // Process strong mode option.
       var strongMode = analyzer[AnalyzerOptions.strong_mode];
-      if (strongMode is bool) {
-        options.strongMode = strongMode;
-      }
+      _applyStrongOptions(options, strongMode);
+
       // Process language options.
       var language = analyzer[AnalyzerOptions.language];
       _applyLanguageOptions(options, language);
@@ -524,12 +527,19 @@ class _OptionsProcessor {
   }
 
   void setStrongMode(AnalysisContext context, Object strongMode) {
-    bool strong = strongMode is bool ? strongMode : false;
-    if (context.analysisOptions.strongMode != strong) {
+    if (strongMode is Map) {
       AnalysisOptionsImpl options =
           new AnalysisOptionsImpl.from(context.analysisOptions);
-      options.strongMode = strong;
+      _applyStrongOptions(options, strongMode);
       context.analysisOptions = options;
+    } else {
+      strongMode = strongMode is bool ? strongMode : false;
+      if (context.analysisOptions.strongMode != strongMode) {
+        AnalysisOptionsImpl options =
+            new AnalysisOptionsImpl.from(context.analysisOptions);
+        options.strongMode = strongMode;
+        context.analysisOptions = options;
+      }
     }
   }
 
@@ -560,6 +570,35 @@ class _OptionsProcessor {
     } else if (configs is Map) {
       configs
           .forEach((key, value) => _applyLanguageOption(options, key, value));
+    }
+  }
+
+  void _applyStrongOptions(AnalysisOptionsImpl options, Object config) {
+    if (config is YamlMap) {
+      options.strongMode = true;
+      config.nodes.forEach((k, v) {
+        if (k is YamlScalar && v is YamlScalar) {
+          _applyStrongModeOption(options, k.value?.toString(), v.value);
+        }
+      });
+    } else if (config is Map) {
+      options.strongMode = true;
+      config.forEach((k, v) => _applyStrongModeOption(options, k, v));
+    } else {
+      options.strongMode = config is bool ? config : false;
+    }
+  }
+
+  void _applyStrongModeOption(
+      AnalysisOptionsImpl options, Object feature, Object value) {
+    bool boolValue = toBool(value);
+    if (boolValue != null) {
+      if (feature == AnalyzerOptions.implicitCasts) {
+        options.implicitCasts = boolValue;
+      }
+      if (feature == AnalyzerOptions.implicitDynamic) {
+        options.implicitDynamic = boolValue;
+      }
     }
   }
 }
