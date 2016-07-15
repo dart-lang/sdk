@@ -332,7 +332,7 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
 
     'ANGLEInstancedArrays': 'ANGLEInstancedArrays,ANGLE_instanced_arrays',
     'EXTsRGB': 'EXTsRGB,EXT_sRGB',
-    'EXTBlendMinMax': 'EXTBlendMinMax,EXT_blend_min_max',
+    'EXTBlendMinMax': 'EXTBlendMinMax,EXT_blend_minmax',
     'EXTFragDepth': 'EXTFragDepth,EXT_frag_depth',
     'EXTShaderTextureLOD': 'EXTShaderTextureLOD,EXT_shader_texture_lod',
     'EXTTextureFilterAnisotropic':
@@ -731,7 +731,7 @@ class OperationInfo(object):
               # Events fired need use a JSFunction not a anonymous closure to
               # insure the event can really be removed.
               parameters.append('js.allowInterop(%s)' % p.name)
-# These commented out cases don't actually generate any code.              
+# These commented out cases don't actually generate any code.
 #          elif dart_js_interop and type_id == 'FontFaceSetForEachCallback':
               # forEach is supported in the DOM for FontFaceSet as it iterates
               # over the Javascript Object the callback parameters are also

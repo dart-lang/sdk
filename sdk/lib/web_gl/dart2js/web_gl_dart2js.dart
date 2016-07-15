@@ -847,7 +847,7 @@ class EXTsRgb extends Interceptor {
 @DocsEditable()
 @DomName('EXTBlendMinMax')
 @Experimental() // untriaged
-@Native("EXTBlendMinMax,EXT_blend_min_max")
+@Native("EXTBlendMinMax,EXT_blend_minmax")
 class ExtBlendMinMax extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ExtBlendMinMax._() { throw new UnsupportedError("Not supported"); }
