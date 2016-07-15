@@ -82,6 +82,10 @@ class SyntheticLocal extends Local {
   final String name;
   final ExecutableElement executableContext;
 
+  // Avoid slow Object.hashCode.
+  final int hashCode = _nextHashCode = (_nextHashCode + 1).toUnsigned(30);
+  static int _nextHashCode = 0;
+
   SyntheticLocal(this.name, this.executableContext);
 
   toString() => 'SyntheticLocal($name)';

@@ -298,6 +298,8 @@ class VoidType extends DartType {
   }
 
   String toString() => name;
+
+  int get hashCode => 6007;
 }
 
 class MalformedType extends DartType {
@@ -323,8 +325,8 @@ class MalformedType extends DartType {
    */
   final List<DartType> typeArguments;
 
-  final int hashCode = (nextHash++) & 0x3fffffff;
-  static int nextHash = 43765;
+  final int hashCode = _nextHash = (_nextHash + 1).toUnsigned(30);
+  static int _nextHash = 43765;
 
   MalformedType(this.element, this.userProvidedBadType,
       [this.typeArguments = null]);

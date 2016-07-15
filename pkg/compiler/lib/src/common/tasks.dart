@@ -211,6 +211,9 @@ class Measurer {
   /// Whether measurement of tasks is enabled.
   final bool enableTaskMeasurements;
 
+  static int _hashCodeGenerator = 197;
+  final int hashCode = _hashCodeGenerator++;
+
   Measurer({this.enableTaskMeasurements: false});
 
   /// The currently running task, that is, the task whose [Stopwatch] is

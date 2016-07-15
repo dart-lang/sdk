@@ -255,6 +255,9 @@ class BoxLocal extends Local {
   final String name;
   final ExecutableElement executableContext;
 
+  final int hashCode = _nextHashCode = (_nextHashCode + 10007).toUnsigned(30);
+  static int _nextHashCode = 0;
+
   BoxLocal(this.name, this.executableContext);
 
   String toString() => 'BoxLocal($name)';
@@ -326,7 +329,7 @@ class BoxFieldElement extends ElementX
 /// A local variable used encode the direct (uncaptured) references to [this].
 class ThisLocal extends Local {
   final ExecutableElement executableContext;
-  final hashCode = ++ElementX.elementHashCode;
+  final hashCode = ElementX.newHashCode();
 
   ThisLocal(this.executableContext);
 

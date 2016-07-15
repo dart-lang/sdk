@@ -139,7 +139,7 @@ class TreeElementMapping extends TreeElements {
   /// Map from nodes to native data.
   Map<Node, dynamic> _nativeData;
 
-  final int hashCode = ++_hashCodeCounter;
+  final int hashCode = _hashCodeCounter = (_hashCodeCounter + 1).toUnsigned(30);
   static int _hashCodeCounter = 0;
 
   TreeElementMapping(this.analyzedElement);

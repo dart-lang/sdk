@@ -1049,8 +1049,8 @@ class Substitution {
 class TypeCheck {
   final ClassElement cls;
   final Substitution substitution;
-  final int hashCode = (nextHash++) & 0x3fffffff;
-  static int nextHash = 49;
+  final int hashCode = _nextHash = (_nextHash + 100003).toUnsigned(30);
+  static int _nextHash = 0;
 
   TypeCheck(this.cls, this.substitution);
 }

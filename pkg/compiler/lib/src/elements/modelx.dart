@@ -39,12 +39,14 @@ import 'visitor.dart' show ElementVisitor;
 abstract class DeclarationSite {}
 
 abstract class ElementX extends Element with ElementCommon {
-  static int elementHashCode = 0;
+  static int _elementHashCode = 0;
+  static int newHashCode() =>
+      _elementHashCode = (_elementHashCode + 1).toUnsigned(30);
 
   final String name;
   final ElementKind kind;
   final Element enclosingElement;
-  final int hashCode = ++elementHashCode;
+  final int hashCode = newHashCode();
   List<MetadataAnnotation> metadataInternal;
 
   ElementX(this.name, this.kind, this.enclosingElement) {
@@ -3191,6 +3193,8 @@ class JumpTargetX implements JumpTarget {
   bool isBreakTarget = false;
   bool isContinueTarget = false;
 
+  final int hashCode = ElementX.newHashCode();
+
   JumpTargetX(this.statement, this.nestingLevel, this.executableContext);
 
   String get name => "target";
@@ -3289,6 +3293,8 @@ abstract class MetadataAnnotationX implements MetadataAnnotation {
   Token get beginToken;
 
   Token get endToken;
+
+  final int hashCode = ElementX.newHashCode();
 
   MetadataAnnotationX([this.resolutionState = STATE_NOT_STARTED]);
 

@@ -101,12 +101,7 @@ abstract class ConstantExpression {
 
   int _computeHashCode();
 
-  int get hashCode {
-    if (_hashCode == null) {
-      _hashCode = _computeHashCode();
-    }
-    return _hashCode;
-  }
+  int get hashCode => _hashCode ??= _computeHashCode();
 
   bool _equals(ConstantExpression other);
 
