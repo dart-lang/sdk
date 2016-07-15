@@ -2748,4 +2748,26 @@ bool AotOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
 }
 
 
+void AotOptimizer::ReplaceArrayBoundChecks() {
+  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    ForwardInstructionIterator it(block_it.Current());
+    current_iterator_ = &it;
+    for (; !it.Done(); it.Advance()) {
+      CheckArrayBoundInstr* check = it.Current()->AsCheckArrayBound();
+      if (check != NULL) {
+        GenericCheckBoundInstr* new_check = new(Z) GenericCheckBoundInstr(
+            new(Z) Value(check->length()->definition()),
+            new(Z) Value(check->index()->definition()),
+            check->deopt_id());
+        flow_graph_->InsertBefore(check, new_check,
+                                  check->env(), FlowGraph::kEffect);
+        current_iterator()->RemoveCurrentFromGraph();
+      }
+    }
+  }
+}
+
+
 }  // namespace dart

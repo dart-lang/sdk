@@ -46,6 +46,8 @@ class AotOptimizer : public FlowGraphVisitor {
   // Merge instructions (only per basic-block).
   void TryOptimizePatterns();
 
+  void ReplaceArrayBoundChecks();
+
   virtual void VisitStaticCall(StaticCallInstr* instr);
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
   virtual void VisitLoadCodeUnits(LoadCodeUnitsInstr* instr);

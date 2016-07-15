@@ -2047,15 +2047,6 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
                                        Definition** array,
                                        Definition* index,
                                        Instruction** cursor) {
-  // Insert index smi check.
-  *cursor = flow_graph->AppendTo(
-      *cursor,
-      new(Z) CheckSmiInstr(new(Z) Value(index),
-                           call->deopt_id(),
-                           call->token_pos()),
-      call->env(),
-      FlowGraph::kEffect);
-
   // Insert array length load and bounds check.
   LoadFieldInstr* length =
       new(Z) LoadFieldInstr(
@@ -2520,15 +2511,6 @@ static intptr_t PrepareInlineByteArrayBaseOp(
     Definition** array,
     Definition* byte_index,
     Instruction** cursor) {
-  // Insert byte_index smi check.
-  *cursor = flow_graph->AppendTo(*cursor,
-                                 new(Z) CheckSmiInstr(
-                                     new(Z) Value(byte_index),
-                                     call->deopt_id(),
-                                     call->token_pos()),
-                                 call->env(),
-                                 FlowGraph::kEffect);
-
   LoadFieldInstr* length =
       new(Z) LoadFieldInstr(
           new(Z) Value(*array),
@@ -2829,15 +2811,6 @@ static Definition* PrepareInlineStringIndexOp(
     Definition* str,
     Definition* index,
     Instruction* cursor) {
-
-  cursor = flow_graph->AppendTo(cursor,
-                                new(Z) CheckSmiInstr(
-                                    new(Z) Value(index),
-                                    call->deopt_id(),
-                                    call->token_pos()),
-                                call->env(),
-                                FlowGraph::kEffect);
-
   // Load the length of the string.
   // Treat length loads as mutable (i.e. affected by side effects) to avoid
   // hoisting them since we can't hoist the preceding class-check. This
