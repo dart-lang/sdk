@@ -205,8 +205,8 @@ abstract class AbstractAnalysisServerIntegrationTest
   /**
    * Start [server].
    */
-  Future startServer({int servicesPort}) =>
-      server.start(servicesPort: servicesPort);
+  Future startServer({int servicesPort, bool checked: true}) =>
+      server.start(servicesPort: servicesPort, checked: checked);
 
   /**
    * After every test, the server is stopped and [sourceDirectory] is deleted.
@@ -601,6 +601,7 @@ class Server {
       int diagnosticPort,
       bool profileServer: false,
       int servicesPort,
+      bool checked: true,
       bool useAnalysisHighlight2: false}) {
     if (_process != null) {
       throw new Exception('Process already started');
@@ -627,7 +628,9 @@ class Server {
     if (Platform.packageRoot != null) {
       arguments.add('--package-root=${Platform.packageRoot}');
     }
-    arguments.add('--checked');
+    if (checked) {
+      arguments.add('--checked');
+    }
     arguments.add(serverPath);
     if (diagnosticPort != null) {
       arguments.add('--port');
