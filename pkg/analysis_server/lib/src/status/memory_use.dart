@@ -165,6 +165,12 @@ class MemoryUseData {
   Map<Type, Set> instances = new HashMap<Type, Set>();
 
   /**
+   * A table mapping classes to the classes of objects from which they were
+   * reached.
+   */
+  Map<Type, Set<Type>> ownerMap = new HashMap<Type, Set<Type>>();
+
+  /**
    * A set of all the library specific units, using equality rather than
    * identity in order to determine whether re-using equal instances would save
    * significant space.
@@ -177,6 +183,12 @@ class MemoryUseData {
    * space.
    */
   Set<TargetedResult> uniqueTargetedResults = new HashSet<TargetedResult>();
+
+  /**
+   * A set containing all of the analysis targets for which the key in the
+   * cache partition is not the same instance as the target stored in the entry.
+   */
+  Set<AnalysisTarget> mismatchedTargets = new HashSet<AnalysisTarget>();
 
   /**
    * A table mapping the types of AST nodes to the number of instances being
@@ -205,63 +217,70 @@ class MemoryUseData {
    * Traverse an analysis [server] to compute memory usage data.
    */
   void processAnalysisServer(AnalysisServer server) {
-    _recordInstance(server);
+    _recordInstance(server, null);
     Iterable<AnalysisContext> contexts = server.analysisContexts;
     for (AnalysisContextImpl context in contexts) {
-      _processAnalysisContext(context);
+      _processAnalysisContext(context, server);
     }
     DartSdkManager manager = server.sdkManager;
     List<SdkDescription> descriptors = manager.sdkDescriptors;
     for (SdkDescription descriptor in descriptors) {
-      _processAnalysisContext(manager.getSdk(descriptor, () => null).context);
+      _processAnalysisContext(
+          manager.getSdk(descriptor, () => null).context, manager);
     }
   }
 
-  void _processAnalysisContext(AnalysisContextImpl context) {
-    _recordInstance(context);
-    _recordInstance(context.analysisCache);
-    Map<AnalysisTarget, CacheEntry> map =
-        context.privateAnalysisCachePartition.entryMap;
+  void _processAnalysisContext(AnalysisContextImpl context, Object owner) {
+    _recordInstance(context, owner);
+    _recordInstance(context.analysisCache, context);
+    CachePartition partition = context.privateAnalysisCachePartition;
+    Map<AnalysisTarget, CacheEntry> map = partition.entryMap;
     map.forEach((AnalysisTarget target, CacheEntry entry) {
-      _processAnalysisTarget(target);
-      _processCacheEntry(entry);
+      _processAnalysisTarget(target, partition);
+      _processCacheEntry(entry, partition);
+      if (!identical(entry.target, target)) {
+        mismatchedTargets.add(target);
+      }
     });
   }
 
-  void _processAnalysisTarget(AnalysisTarget target) {
-    _recordInstance(target);
+  void _processAnalysisTarget(AnalysisTarget target, Object owner) {
+    _recordInstance(target, owner);
   }
 
-  void _processCacheEntry(CacheEntry entry) {
-    _recordInstance(entry);
+  void _processCacheEntry(CacheEntry entry, Object owner) {
+    _recordInstance(entry, owner);
     List<ResultDescriptor> descriptors = entry.nonInvalidResults;
     for (ResultDescriptor descriptor in descriptors) {
-      _recordInstance(descriptor);
-      _processResultData(entry.getResultDataOrNull(descriptor));
+      _recordInstance(descriptor, entry);
+      _processResultData(entry.getResultDataOrNull(descriptor), entry);
     }
   }
 
-  void _processResultData(ResultData resultData) {
-    _recordInstance(resultData);
+  void _processResultData(ResultData resultData, Object owner) {
+    _recordInstance(resultData, owner);
     if (resultData != null) {
-      _recordInstance(resultData.state);
-      _recordInstance(resultData.value, onFirstOccurrence: (Object object) {
+      _recordInstance(resultData.state, resultData);
+      _recordInstance(resultData.value, resultData,
+          onFirstOccurrence: (Object object) {
         if (object is AstNode) {
           object.accept(new AstNodeCounter(directNodeCounts));
         } else if (object is Element) {
           object.accept(new ElementCounter(elementCounts, indirectNodeCounts));
         }
       });
-      resultData.dependedOnResults.forEach(_processTargetedResult);
-      resultData.dependentResults.forEach(_processTargetedResult);
+      resultData.dependedOnResults.forEach((TargetedResult result) =>
+          _processTargetedResult(result, resultData));
+      resultData.dependentResults.forEach((TargetedResult result) =>
+          _processTargetedResult(result, resultData));
     }
   }
 
-  void _processTargetedResult(TargetedResult result) {
-    _recordInstance(result);
+  void _processTargetedResult(TargetedResult result, Object owner) {
+    _recordInstance(result, owner);
     uniqueTargetedResults.add(result);
-    _recordInstance(result.target);
-    _recordInstance(result.result);
+    _recordInstance(result.target, result);
+    _recordInstance(result.result, result);
   }
 
   /**
@@ -273,7 +292,7 @@ class MemoryUseData {
    * [onFirstOccurrence] function will not be executed if the instance is not
    * recorded.
    */
-  void _recordInstance(Object instance,
+  void _recordInstance(Object instance, Object owner,
       {void onFirstOccurrence(Object object)}) {
     Type type = instance.runtimeType;
     Set instanceSet = instances.putIfAbsent(type, () => new HashSet.identity());
@@ -285,6 +304,9 @@ class MemoryUseData {
         instances[type] = InfiniteSet.instance;
       }
     }
+    ownerMap
+        .putIfAbsent(instance.runtimeType, () => new HashSet<Type>())
+        .add(owner.runtimeType);
     if (instance is LibrarySpecificUnit) {
       uniqueLSUs.add(instance);
     }

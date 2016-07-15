@@ -1660,43 +1660,72 @@ class GetHandler {
         MemoryUseData data = new MemoryUseData();
         data.processAnalysisServer(server);
         Map<Type, Set> instances = data.instances;
-        List<Type> types = instances.keys.toList();
-        types.sort((Type left, Type right) =>
+        List<Type> instanceTypes = instances.keys.toList();
+        instanceTypes.sort((Type left, Type right) =>
+            left.toString().compareTo(right.toString()));
+        Map<Type, Set> ownerMap = data.ownerMap;
+        List<Type> ownerTypes = ownerMap.keys.toList();
+        ownerTypes.sort((Type left, Type right) =>
             left.toString().compareTo(right.toString()));
 
-        buffer.write('<h3>Instance Counts (reachable from contexts)</h3>');
-        buffer.write('<table>');
-        _writeRow(buffer, ['Count', 'Class name'], header: true);
-        types.forEach((Type type) {
-          _writeRow(buffer, [instances[type].length, type],
-              classes: ['right', null]);
-        });
-        buffer.write('</table>');
-
-        void writeCountMap(String title, Map<Type, int> counts) {
-          List<Type> classNames = counts.keys.toList();
-          classNames.sort((Type left, Type right) =>
-              left.toString().compareTo(right.toString()));
-
-          buffer.write('<h3>$title</h3>');
+        _writeTwoColumns(buffer, (StringBuffer buffer) {
+          buffer.write('<h3>Instance Counts (reachable from contexts)</h3>');
           buffer.write('<table>');
           _writeRow(buffer, ['Count', 'Class name'], header: true);
-          classNames.forEach((Type type) {
-            _writeRow(buffer, [counts[type], type], classes: ['right', null]);
+          instanceTypes.forEach((Type type) {
+            _writeRow(buffer, [instances[type].length, type],
+                classes: ['right', null]);
           });
           buffer.write('</table>');
-        }
-        writeCountMap('Directly Held AST Nodes', data.directNodeCounts);
-        writeCountMap('Indirectly Held AST Nodes', data.indirectNodeCounts);
-        writeCountMap('Directly Held Elements', data.elementCounts);
 
-        buffer.write('<h3>Other Data</h3>');
-        buffer.write('<p>');
-        buffer.write(data.uniqueTargetedResults.length);
-        buffer.write(' non-equal TargetedResults</p>');
-        buffer.write('<p>');
-        buffer.write(data.uniqueLSUs.length);
-        buffer.write(' non-equal LibrarySpecificUnits</p>');
+          buffer.write(
+              '<h3>Ownership (which classes of objects hold on to others)</h3>');
+          buffer.write('<table>');
+          _writeRow(buffer, ['Referenced Type', 'Referencing Types'],
+              header: true);
+          ownerTypes.forEach((Type type) {
+            List<String> referencingTypes =
+                ownerMap[type].map((Type type) => type.toString()).toList();
+            referencingTypes.sort();
+            _writeRow(buffer, [type, referencingTypes.join('<br>')]);
+          });
+          buffer.write('</table>');
+
+          buffer.write('<h3>Other Data</h3>');
+          buffer.write('<p>');
+          buffer.write(data.uniqueTargetedResults.length);
+          buffer.write(' non-equal TargetedResults</p>');
+          buffer.write('<p>');
+          buffer.write(data.uniqueLSUs.length);
+          buffer.write(' non-equal LibrarySpecificUnits</p>');
+          int count = data.mismatchedTargets.length;
+          buffer.write('<p>');
+          buffer.write(count);
+          buffer.write(' mismatched targets</p>');
+          if (count < 100) {
+            for (AnalysisTarget target in data.mismatchedTargets) {
+              buffer.write(target);
+              buffer.write('<br>');
+            }
+          }
+        }, (StringBuffer buffer) {
+          void writeCountMap(String title, Map<Type, int> counts) {
+            List<Type> classNames = counts.keys.toList();
+            classNames.sort((Type left, Type right) =>
+                left.toString().compareTo(right.toString()));
+
+            buffer.write('<h3>$title</h3>');
+            buffer.write('<table>');
+            _writeRow(buffer, ['Count', 'Class name'], header: true);
+            classNames.forEach((Type type) {
+              _writeRow(buffer, [counts[type], type], classes: ['right', null]);
+            });
+            buffer.write('</table>');
+          }
+          writeCountMap('Directly Held AST Nodes', data.directNodeCounts);
+          writeCountMap('Indirectly Held AST Nodes', data.indirectNodeCounts);
+          writeCountMap('Directly Held Elements', data.elementCounts);
+        });
       });
     });
   }
@@ -2347,7 +2376,8 @@ class GetHandler {
         'table.column {border: 0px solid black; width: 100%; table-layout: fixed;}');
     buffer.write('td.column {vertical-align: top; width: 50%;}');
     buffer.write('td.right {text-align: right;}');
-    buffer.write('th {text-align: left;}');
+    buffer.write('th {text-align: left; vertical-align:top;}');
+    buffer.write('tr {vertical-align:top;}');
     buffer.write('</style>');
     buffer.write('</head>');
 
