@@ -10,7 +10,9 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/deferred_load.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
@@ -29,9 +31,19 @@ main(List<String> args) {
         await serializeDartCore(arguments: arguments);
     if (arguments.filename != null) {
       Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.filename));
+      print('----------------------------------------------------------------');
+      print('serialize ${entryPoint}');
+      print('----------------------------------------------------------------');
+      SerializationResult result = await serialize(
+          entryPoint,
+          memorySourceFiles: serializedData.toMemorySourceFiles(),
+          resolutionInputs: serializedData.toUris(),
+          dataUri: Uri.parse('memory:test.data'));
       await checkModels(entryPoint,
-          sourceFiles: serializedData.toMemorySourceFiles(),
-          resolutionInputs: serializedData.toUris());
+          sourceFiles: serializedData.toMemorySourceFiles(
+              result.serializedData.toMemorySourceFiles()),
+          resolutionInputs: serializedData.toUris(
+              result.serializedData.toUris()));
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
       await arguments.forEachTest(serializedData, TESTS, checkModels);
@@ -59,6 +71,8 @@ Future checkModels(
   compilerNormal.phase = Compiler.PHASE_DONE_RESOLVING;
   compilerNormal.world.populate();
   compilerNormal.backend.onResolutionComplete();
+  compilerNormal.deferredLoadTask.onResolutionComplete(
+      compilerNormal.mainFunction);
 
   print('------------------------------------------------------------------');
   print('compile deserialized ${id}${testDescription}');
@@ -72,6 +86,8 @@ Future checkModels(
   compilerDeserialized.phase = Compiler.PHASE_DONE_RESOLVING;
   compilerDeserialized.world.populate();
   compilerDeserialized.backend.onResolutionComplete();
+  compilerDeserialized.deferredLoadTask.onResolutionComplete(
+      compilerDeserialized.mainFunction);
 
   checkAllImpacts(
       compilerNormal, compilerDeserialized,
@@ -130,6 +146,10 @@ Future checkModels(
   Expect.equals(compilerNormal.hasIsolateSupport,
       compilerDeserialized.hasIsolateSupport,
       "Compiler.hasIsolateSupport mismatch");
+  Expect.equals(
+      compilerNormal.deferredLoadTask.isProgramSplit,
+      compilerDeserialized.deferredLoadTask.isProgramSplit,
+      "isProgramSplit mismatch");
 }
 
 void checkElements(
@@ -211,6 +231,8 @@ void checkElements(
       backend1.inlineCache.getCurrentCacheDecisionForTesting(element1),
       backend2.inlineCache.getCurrentCacheDecisionForTesting(element2),
       "Inline cache decision mismatch for $element1 vs $element2");
+
+  checkOutputUnits(compiler1, compiler2, element1, element2);
 }
 
 void checkMixinUses(
@@ -324,4 +346,19 @@ String nodeToString(Node node) {
     return '(${node.runtimeType}) ${text.substring(0, 37)}...';
   }
   return '(${node.runtimeType}) $text';
+}
+
+void checkOutputUnits(Compiler compiler1, Compiler compiler2, Element element1,
+    Element element2) {
+  OutputUnit outputUnit1 =
+      compiler1.deferredLoadTask.outputUnitForElement(element1);
+  OutputUnit outputUnit2 =
+      compiler2.deferredLoadTask.outputUnitForElement(element2);
+  check(outputUnit1, outputUnit2,
+      'OutputUnit.isMainOutput for $element1 vs $element2',
+      outputUnit1.isMainOutput, outputUnit2.isMainOutput);
+  checkSetEquivalence(outputUnit1, outputUnit2,
+      'OutputUnit.imports for $element1 vs $element2',
+      outputUnit1.imports, outputUnit2.imports,
+      (a, b) => areElementsEquivalent(a.declaration, b.declaration));
 }

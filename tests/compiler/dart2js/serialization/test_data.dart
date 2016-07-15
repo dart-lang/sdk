@@ -594,6 +594,43 @@ class C {
 test() => new C().foo = 0;
 ''',
   }, checkedMode: true),
+
+  const Test('Deferred access', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  test();
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+import 'b.dart' deferred as b;
+
+test() => b.loadLibrary().then((_) => b.test2());
+''',
+    'b.dart': '''
+test2() {}
+''',
+  }),
+
+  const Test('Deferred access of dart:core', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  test();
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+import "dart:core" deferred as core;
+
+test() {
+  core.loadLibrary().then((_) => null);
+}
+''',
+  }),
 ];
 
 class Test {

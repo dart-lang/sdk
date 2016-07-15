@@ -293,8 +293,52 @@ class LibrarySerializer implements ElementSerializer {
     encoder.setElements(Key.IMPORTS, getImports(element));
     encoder.setElements(Key.EXPORTS, element.exports);
 
-    encoder.setElements(Key.IMPORT_SCOPE, getImportedElements(element));
+    List<Element> importedElements = getImportedElements(element);
+    encoder.setElements(Key.IMPORT_SCOPE, importedElements);
     encoder.setElements(Key.EXPORT_SCOPE, getExportedElements(element));
+
+    Map<Element, Iterable<ImportElement>> importsForMap =
+        <Element, Iterable<ImportElement>>{};
+
+    /// Map imports for [importedElement] in importsForMap.
+    ///
+    /// Imports are mapped to [AbstractFieldElement] which are not serialized
+    /// so we use getter (or setter if there is no getter) as the key.
+    void addImportsForElement(Element importedElement) {
+      Element key = importedElement;
+      if (importedElement.isDeferredLoaderGetter) {
+        // Use [importedElement].
+      } else if (importedElement.isGetter) {
+        GetterElement getter = importedElement;
+        importedElement = getter.abstractField;
+      } else if (importedElement.isSetter) {
+        SetterElement setter = importedElement;
+        if (setter.getter != null) {
+          return;
+        }
+        importedElement = setter.abstractField;
+      }
+      importsForMap.putIfAbsent(
+          key, () => element.getImportsFor(importedElement));
+    }
+
+    for (ImportElement import in getImports(element)) {
+      if (import.prefix != null) {
+        Set<Element> importedElements = new Set<Element>();
+        import.prefix.forEachLocalMember(
+            SerializerUtil.flattenElements(importedElements));
+        importedElements.forEach(addImportsForElement);
+      }
+    }
+    importedElements.forEach(addImportsForElement);
+
+    ListEncoder importsForEncoder = encoder.createList(Key.IMPORTS_FOR);
+    importsForMap
+        .forEach((Element importedElement, Iterable<ImportElement> imports) {
+      ObjectEncoder objectEncoder = importsForEncoder.createObject();
+      objectEncoder.setElement(Key.ELEMENT, importedElement);
+      objectEncoder.setElements(Key.IMPORTS, imports);
+    });
   }
 }
 

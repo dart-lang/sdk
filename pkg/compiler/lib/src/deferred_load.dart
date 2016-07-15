@@ -978,6 +978,10 @@ class _DeferredImport {
 
   /// Computes a suggestive name for this import.
   String computeImportDeferName(Compiler compiler) => 'main';
+
+  ImportElement get declaration => null;
+
+  String toString() => 'main';
 }
 
 /// A node in the deferred import graph defined by a deferred import directive.
@@ -1024,4 +1028,6 @@ class _DeclaredDeferredImport implements _DeferredImport {
   }
 
   int get hashCode => declaration.hashCode * 17;
+
+  String toString() => '$declaration';
 }

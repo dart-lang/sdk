@@ -548,7 +548,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
             handler.registerDependency(
                 library,
                 new SyntheticImportElement(
-                    library.entryCompilationUnit, Uris.dart_core),
+                    library.entryCompilationUnit, Uris.dart_core, coreLibrary),
                 coreLibrary);
           });
         }

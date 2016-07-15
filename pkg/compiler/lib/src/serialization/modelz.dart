@@ -196,7 +196,7 @@ class MappedContainer {
     String setterName = '$name,=';
     bool hasSetterId = members.containsKey(setterName);
     Element element;
-    Element setterElement;
+    SetterElement setterElement;
     if (!hasId && !hasSetterId) {
       _lookupCache[name] = null;
       return null;
@@ -334,7 +334,18 @@ class AbstractFieldElementZ extends ElementZ
   final GetterElementZ getter;
   final SetterElementZ setter;
 
-  AbstractFieldElementZ(this.name, this.getter, this.setter) {
+  factory AbstractFieldElementZ(
+      String name, GetterElement getter, SetterElement setter) {
+    if (getter?.abstractField != null) {
+      return getter.abstractField;
+    } else if (setter?.abstractField != null) {
+      return setter.abstractField;
+    } else {
+      return new AbstractFieldElementZ._(name, getter, setter);
+    }
+  }
+
+  AbstractFieldElementZ._(this.name, this.getter, this.setter) {
     if (getter != null) {
       getter.abstractField = this;
       getter.setter = setter;
@@ -398,6 +409,7 @@ class LibraryElementZ extends DeserializedElementZ
   List<ExportElement> _exports;
   ListedContainer _exportsMap;
   ListedContainer _importsMap;
+  Map<Element, List<ImportElement>> _importsFor;
 
   LibraryElementZ(ObjectDecoder decoder) : super(decoder);
 
@@ -497,7 +509,28 @@ class LibraryElementZ extends DeserializedElementZ
 
   void _ensureImports() {
     if (_importsMap == null) {
-      _importsMap = new ListedContainer(_decoder.getElements(Key.IMPORT_SCOPE));
+      _importsMap = new ListedContainer(
+          _decoder.getElements(Key.IMPORT_SCOPE, isOptional: true));
+      _importsFor = <Element, List<ImportElement>>{};
+
+      ListDecoder importsDecoder = _decoder.getList(Key.IMPORTS_FOR);
+      for (int index = 0; index < importsDecoder.length; index++) {
+        ObjectDecoder objectDecoder = importsDecoder.getObject(index);
+        Element key = objectDecoder.getElement(Key.ELEMENT);
+        List<ImportElement> imports =
+            objectDecoder.getElements(Key.IMPORTS, isOptional: true);
+
+        // Imports are mapped to [AbstractFieldElement] which are not serialized
+        // so we use getter (or setter if there is no getter) as the key.
+        Element importedElement = key;
+        if (key.isDeferredLoaderGetter) {
+          // Use as [importedElement].
+        } else if (key.isAccessor) {
+          AccessorElement accessor = key;
+          importedElement = accessor.abstractField;
+        }
+        _importsFor[importedElement] = imports;
+      }
     }
   }
 
@@ -509,9 +542,8 @@ class LibraryElementZ extends DeserializedElementZ
 
   @override
   Iterable<ImportElement> getImportsFor(Element element) {
-    // TODO(johnniwinther): Serialize this to support deferred access to
-    // serialized entities.
-    return <ImportElement>[];
+    _ensureImports();
+    return _importsFor[element] ?? const <ImportElement>[];
   }
 
   String toString() {

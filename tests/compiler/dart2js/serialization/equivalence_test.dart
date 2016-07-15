@@ -47,6 +47,11 @@ class Class1 {
   'deferred_library.dart': '''
 class DeferredClass {
 }
+
+get getter => 0;
+set setter(_) {}
+get property => 0;
+set property(_) {}
 ''',
   'library.dart': '''
 class Type {}
@@ -297,6 +302,9 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
 
   void visit(Element element1, Element element2) {
     if (element1 == null && element2 == null) return;
+    if (element1 == null || element2 == null) {
+      throw currentCheck;
+    }
     element1 = element1.declaration;
     element2 = element2.declaration;
     if (element1 == element2) return;
@@ -360,15 +368,28 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
     checkElementLists(
         element1, element2, 'exports', element1.exports, element2.exports);
 
+    List<Element> imported1 = LibrarySerializer.getImportedElements(element1);
+    List<Element> imported2 = LibrarySerializer.getImportedElements(element2);
     checkElementListIdentities(
-        element1, element2, 'importScope',
-        LibrarySerializer.getImportedElements(element1),
-        LibrarySerializer.getImportedElements(element2));
+        element1, element2, 'importScope', imported1, imported2);
 
     checkElementListIdentities(
         element1, element2, 'exportScope',
         LibrarySerializer.getExportedElements(element1),
         LibrarySerializer.getExportedElements(element2));
+
+    for (int index = 0; index < imported1.length; index++) {
+      checkImportsFor(element1, element2, imported1[index], imported2[index]);
+    }
+  }
+
+  void checkImportsFor(Element element1, Element element2,
+      Element import1, Element import2) {
+    List<ImportElement> imports1 = element1.library.getImportsFor(import1);
+    List<ImportElement> imports2 = element2.library.getImportsFor(import2);
+    checkElementListIdentities(
+        element1, element2, 'importsFor($import1/$import2)',
+        imports1, imports2);
   }
 
   @override
@@ -855,6 +876,7 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
       Element member2 = element2.lookupLocalMember(name);
       checkElementIdentities(element1, element2, 'lookupLocalMember:$name',
           member1, member2);
+      checkImportsFor(element1, element2, member1, member2);
     });
   }
 

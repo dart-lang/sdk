@@ -153,16 +153,15 @@ Future<SerializationResult> serialize(Uri entryPoint,
   if (dataUri == null) {
     dataUri = Uri.parse('memory:${DEFAULT_DATA_FILE_NAME}');
   }
+  OutputCollector outputCollector = new OutputCollector();
   Compiler compiler = compilerFor(
-      options: [Flags.analyzeAll],
+      options: [Flags.resolveOnly],
       memorySourceFiles: memorySourceFiles,
-      resolutionInputs: resolutionInputs);
-  compiler.serialization.supportSerialization = true;
+      resolutionInputs: resolutionInputs,
+      outputProvider: outputCollector);
   await compiler.run(entryPoint);
-  BufferedEventSink sink = new BufferedEventSink();
-  compiler.serialization.serializeToSink(
-      sink, compiler.libraryLoader.libraries);
-  SerializedData serializedData = new SerializedData(dataUri, sink.text);
+  SerializedData serializedData = new SerializedData(
+      dataUri, outputCollector.getOutput('', 'data'));
   return new SerializationResult(compiler, serializedData);
 }
 

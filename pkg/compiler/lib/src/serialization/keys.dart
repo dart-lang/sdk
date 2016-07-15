@@ -51,6 +51,7 @@ class Key {
   static const Key IMPACTS = const Key('impacts');
   static const Key IMPORT = const Key('import');
   static const Key IMPORTS = const Key('imports');
+  static const Key IMPORTS_FOR = const Key('importsFor');
   static const Key IMPORT_SCOPE = const Key('import-scope');
   static const Key INDEX = const Key('index');
   static const Key INFO = const Key('info');

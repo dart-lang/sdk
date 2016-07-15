@@ -945,8 +945,11 @@ class ImportElementX extends LibraryDependencyElementX
 }
 
 class SyntheticImportElement extends ImportElementX {
-  SyntheticImportElement(CompilationUnitElement enclosingElement, Uri uri)
-      : super(enclosingElement, null, uri);
+  SyntheticImportElement(CompilationUnitElement enclosingElement, Uri uri,
+      LibraryElement libraryDependency)
+      : super(enclosingElement, null, uri) {
+    this.libraryDependency = libraryDependency;
+  }
 
   @override
   Token get position => library.position;
