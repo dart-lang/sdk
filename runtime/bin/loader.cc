@@ -296,8 +296,15 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
     ASSERT(library_uri != Dart_Null());
     Dart_Handle library = Dart_LookupLibrary(library_uri);
     ASSERT(!Dart_IsError(library));
-    const char* lib_path_str = reinterpret_cast<const char*>(result->payload);
+    const char* lib_uri = reinterpret_cast<const char*>(result->payload);
+    if (strncmp(lib_uri, "http://", 7) == 0 ||
+        strncmp(lib_uri, "https://", 8) == 0) {
+      loader->error_ =
+        Dart_NewApiError("Cannot load native extensions over http: or https:");
+        return false;
+    }
     const char* extension_uri = reinterpret_cast<const char*>(result->uri);
+    const char* lib_path = DartUtils::RemoveScheme(lib_uri);
     const char* extension_path = DartUtils::RemoveScheme(extension_uri);
     if (strchr(extension_path, '/') != NULL ||
         (IsWindowsHost() && strchr(extension_path, '\\') != NULL)) {
@@ -306,7 +313,7 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
           extension_path);
       return false;
     }
-    Dart_Handle result = Extensions::LoadExtension(lib_path_str,
+    Dart_Handle result = Extensions::LoadExtension(lib_path,
                                                    extension_path,
                                                    library);
     if (Dart_IsError(result)) {
