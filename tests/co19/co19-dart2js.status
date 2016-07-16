@@ -1878,9 +1878,9 @@ LayoutTests/fast/canvas/getPutImageDataPairTest_t01: RuntimeError # Please triag
 LayoutTests/fast/canvas/rgba-parsing_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/WebGLContextEvent_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/context-attributes-alpha-depth-stencil-antialias-t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/context-destroyed-crash_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/context-lost-restored_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/context-lost_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/context-destroyed-crash_t01: Pass, RuntimeError # Issue 26898
+LayoutTests/fast/canvas/webgl/context-lost-restored_t01: Pass, RuntimeError # Issue 26898
+LayoutTests/fast/canvas/webgl/context-lost_t01: Pass, RuntimeError # Issue 26898
 LayoutTests/fast/canvas/webgl/renderer-and-vendor-strings_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-array-buffer-view_t01: Skip # Times out.
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image_t01: RuntimeError # Please triage this failure
