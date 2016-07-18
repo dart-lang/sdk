@@ -3312,6 +3312,30 @@ int B = _A + 1;
     _assertInvalid(b, LIBRARY_ERRORS_READY);
   }
 
+  void test_sequence_add_annotation() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+const myAnnotation = const Object();
+class A {}
+''');
+    _performPendingAnalysisTasks();
+    // Add a new annotation.
+    context.setContents(
+        a,
+        r'''
+const myAnnotation = const Object();
+@myAnnotation
+class A {}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    // Analysis is done successfully.
+    _performPendingAnalysisTasks();
+    _assertValid(a, LIBRARY_ERRORS_READY);
+    _assertValid(a, READY_RESOLVED_UNIT);
+  }
+
   void test_sequence_applyChanges_changedSource() {
     Source a = addSource(
         '/a.dart',

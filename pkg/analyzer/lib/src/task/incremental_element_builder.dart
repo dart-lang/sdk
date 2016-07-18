@@ -162,6 +162,12 @@ class IncrementalCompilationUnitElementBuilder {
     ConstantFinder finder = new ConstantFinder();
     oldUnit.accept(finder);
     unitConstants.addAll(finder.constantsToCompute);
+    // Update annotation constants to using the old unit element.
+    for (ConstantEvaluationTarget constant in unitConstants) {
+      if (constant is ElementAnnotationImpl) {
+        constant.compilationUnit = unitElement;
+      }
+    }
   }
 
   ClassElementDelta _processClassMembers(

@@ -2533,7 +2533,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /**
    * The compilation unit in which this annotation appears.
    */
-  final CompilationUnitElementImpl compilationUnit;
+  CompilationUnitElementImpl compilationUnit;
 
   /**
    * The AST of the annotation itself, cloned from the resolved AST for the

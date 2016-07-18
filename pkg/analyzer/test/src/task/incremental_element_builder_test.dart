@@ -1649,6 +1649,18 @@ class A {
 ''');
   }
 
+  test_update_annotation_add() {
+    _buildOldUnit(r'''
+const myAnnotation = const Object();
+foo() {}
+''');
+    _buildNewUnit(r'''
+const myAnnotation = const Object();
+@myAnnotation
+foo() {}
+''');
+  }
+
   test_update_beforeClassWithDelta_nameOffset() {
     _buildOldUnit(r'''
 class A {}
@@ -1865,6 +1877,16 @@ class _BuiltElementsValidator extends AstComparator {
       ClassDeclaration classNode =
           actual.getAncestor((n) => n is ClassDeclaration);
       expect(element.enclosingElement, same(classNode.element));
+    }
+    // ElementAnnotationImpl must use the enclosing CompilationUnitElement.
+    if (actual is Annotation) {
+      AstNode parent = actual.parent;
+      if (parent is Declaration) {
+        ElementAnnotationImpl actualElement = actual.elementAnnotation;
+        CompilationUnitElement enclosingUnitElement =
+            parent.element.getAncestor((a) => a is CompilationUnitElement);
+        expect(actualElement.compilationUnit, same(enclosingUnitElement));
+      }
     }
     // Identifiers like 'a.b' in 'new a.b()' might be rewritten if resolver
     // sees that 'a' is actually a class name, so 'b' is a constructor name.
