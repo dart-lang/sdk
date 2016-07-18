@@ -14,6 +14,8 @@
 namespace dart {
 namespace bin {
 
+char* Directory::system_temp_path_override_ = NULL;
+
 void FUNCTION_NAME(Directory_Current)(Dart_NativeArguments args) {
   const char* current = Directory::Current();
   if (current != NULL) {
@@ -183,6 +185,17 @@ void FUNCTION_NAME(Directory_SetAsyncDirectoryListerPointer)(
   if (Dart_IsError(result)) {
     Log::PrintErr("SetAsyncDirectoryListerPointer failed\n");
     Dart_PropagateError(result);
+  }
+}
+
+
+void Directory::SetSystemTemp(const char* path) {
+  if (system_temp_path_override_ != NULL) {
+    free(system_temp_path_override_);
+    system_temp_path_override_ = NULL;
+  }
+  if (path != NULL) {
+    system_temp_path_override_ = strdup(path);
   }
 }
 
