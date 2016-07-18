@@ -2223,7 +2223,7 @@ class CompileTimeErrorCode extends ErrorCode {
    */
   static const CompileTimeErrorCode REFERENCED_BEFORE_DECLARATION =
       const CompileTimeErrorCode('REFERENCED_BEFORE_DECLARATION',
-          "Local variables cannot be referenced before they are declared");
+          "Local variable '{0}' cannot be referenced before it is declared");
 
   /**
    * 12.8.1 Rethrow: It is a compile-time error if an expression of the form
