@@ -1110,8 +1110,15 @@ class ElementResolver extends SimpleAstVisitor<Object> {
               node,
               [element.name]);
         } else {
-          _recordUndefinedNode(_resolver.enclosingClass,
-              StaticWarningCode.UNDEFINED_IDENTIFIER, node, [node.name]);
+          if (node.name == "await" && _resolver.enclosingFunction != null) {
+            _recordUndefinedNode(_resolver.enclosingClass,
+                StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT,
+                node,
+                [_resolver.enclosingFunction.displayName]);
+          } else {
+            _recordUndefinedNode(_resolver.enclosingClass,
+                StaticWarningCode.UNDEFINED_IDENTIFIER, node, [node.name]);
+          }
         }
       }
     }

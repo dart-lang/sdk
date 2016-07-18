@@ -5756,6 +5756,13 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode('UNDEFINED_IDENTIFIER', "Undefined name '{0}'");
 
   /**
+   * If the identifer is 'await', be helpful about it.
+   */
+  static const StaticWarningCode UNDEFINED_IDENTIFIER_AWAIT =
+      const StaticWarningCode('UNDEFINED_IDENTIFIER_AWAIT',
+          "Undefined name 'await'; did you mean to add the 'async' marker to '{0}'?");
+
+  /**
    * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub></i>,
    * <i>1<=i<=l</i>, must have a corresponding named parameter in the set
    * {<i>p<sub>n+1</sub></i> &hellip; <i>p<sub>n+k</sub></i>} or a static
