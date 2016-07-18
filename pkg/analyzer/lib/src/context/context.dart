@@ -1825,21 +1825,25 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     // (For example, in getLibrariesContaining.)
     entry.setState(CONTENT, CacheState.FLUSHED);
 
-    if (oldContents != null) {
-      // Fast path if the content is the same as it was last time.
-      try {
-        TimestampedData<String> fileContents = getContents(source);
-        if (fileContents.data == oldContents) {
-          int time = fileContents.modificationTime;
-          for (CacheEntry entry in _entriesFor(source)) {
-            entry.modificationTime = time;
-          }
-          return;
-        }
-      } catch (e) {
-        entry.modificationTime = -1;
+    // Prepare the new contents.
+    TimestampedData<String> fileContents;
+    try {
+      fileContents = getContents(source);
+    } catch (e) {}
+
+    // Update 'modificationTime' - we are going to update the entry.
+    {
+      int time = fileContents?.modificationTime ?? -1;
+      for (CacheEntry entry in _entriesFor(source)) {
+        entry.modificationTime = time;
       }
     }
+
+    // Fast path if the contents is the same as it was last time.
+    if (oldContents != null && fileContents?.data == oldContents) {
+      return;
+    }
+
     // We need to invalidate the cache.
     {
       if (analysisOptions.finerGrainedInvalidation &&

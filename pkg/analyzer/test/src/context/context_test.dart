@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/cancelable_future.dart';
@@ -277,6 +278,26 @@ int b = aa;''';
       listener.assertEvent(wereSourcesAdded: true, changedSources: [source]);
       listener.assertNoMoreEvents();
     });
+  }
+
+  void test_applyChanges_changedSource_updateModificationTime() {
+    String path = '/test.dart';
+    File file = resourceProvider.newFile(path, 'var V = 1;');
+    Source source = file.createSource();
+    context.applyChanges(new ChangeSet()..addedSource(source));
+    // Analyze all.
+    _analyzeAll_assertFinished();
+    expect(context.analysisCache.getState(source, RESOLVED_UNIT),
+        CacheState.INVALID);
+    // Update the file and notify the context about the change.
+    resourceProvider.updateFile(path, 'var V = 2;');
+    context.applyChanges(new ChangeSet()..changedSource(source));
+    // The analysis results are invalidated.
+    // We have seen the new contents, so 'modificationTime' is also updated.
+    expect(context.analysisCache.getState(source, RESOLVED_UNIT),
+        CacheState.INVALID);
+    expect(
+        context.getCacheEntry(source).modificationTime, file.modificationStamp);
   }
 
   void test_applyChanges_empty() {
@@ -2122,7 +2143,7 @@ library expectedToFindSemicolon
     if (context.analysisOptions.finerGrainedInvalidation) {
       expect(source.readCount, 7);
     } else {
-      expect(source.readCount, 4);
+      expect(source.readCount, 5);
     }
   }
 
