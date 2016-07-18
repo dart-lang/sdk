@@ -115,28 +115,28 @@ typedef Future TestFunction(
      bool verbose});
 
 Future<SerializedData> serializeDartCore(
-    {Arguments arguments: const Arguments()}) async {
-  Uri uri = Uri.parse('memory:${arguments.serializedDataFileName}');
-  print('------------------------------------------------------------------');
-  print('serialize dart:core');
-  print('------------------------------------------------------------------');
-  SerializedData serializedData;
-  if (arguments.loadSerializedData) {
-    File file = new File(arguments.serializedDataFileName);
-    if (file.existsSync()) {
-      print('Loading data from $file');
-      serializedData = new SerializedData(uri, file.readAsStringSync());
+    {Arguments arguments: const Arguments()}) {
+  return measure('dart:core', 'serialize', () async {
+    Uri uri = Uri.parse('memory:${arguments.serializedDataFileName}');
+    SerializedData serializedData;
+    if (arguments.loadSerializedData) {
+      File file = new File(arguments.serializedDataFileName);
+      if (file.existsSync()) {
+        print('Loading data from $file');
+        serializedData = new SerializedData(uri, file.readAsStringSync());
+      }
+    } else {
+      SerializationResult result =
+          await serialize(Uris.dart_core, dataUri: uri);
+      serializedData = result.serializedData;
     }
-  } else {
-    SerializationResult result = await serialize(Uris.dart_core, dataUri: uri);
-    serializedData = result.serializedData;
-  }
-  if (arguments.saveSerializedData) {
-    File file = new File(arguments.serializedDataFileName);
-    print('Saving data to $file');
-    file.writeAsStringSync(serializedData.data);
-  }
-  return serializedData;
+    if (arguments.saveSerializedData) {
+      File file = new File(arguments.serializedDataFileName);
+      print('Saving data to $file');
+      file.writeAsStringSync(serializedData.data);
+    }
+    return serializedData;
+  });
 }
 
 class SerializationResult {
@@ -235,4 +235,60 @@ Future<List<SerializedData>> preserializeData(
       Uri.parse('memory:additional.data'),
       outputCollector.getOutput('', 'data'));
   return <SerializedData>[serializedData, additionalSerializedData];
+}
+
+class MeasurementResult {
+  final String title;
+  final String taskTitle;
+  final int elapsedMilliseconds;
+
+  MeasurementResult(this.title, this.taskTitle, this.elapsedMilliseconds);
+}
+
+final List<MeasurementResult> measurementResults = <MeasurementResult>[];
+
+/// Print all store [measurementResults] grouped by title and sorted by
+/// decreasing execution time.
+void printMeasurementResults() {
+  Map<String, int> totals = <String, int>{};
+
+  for (MeasurementResult result in measurementResults) {
+    totals.putIfAbsent(result.title, () => 0);
+    totals[result.title] += result.elapsedMilliseconds;
+  }
+
+  List<String> sorted = totals.keys.toList();
+  sorted.sort((a, b) => -totals[a].compareTo(totals[b]));
+
+  int paddingLength = '${totals[sorted.first]}'.length;
+
+  String pad(int value) {
+    String text = '$value';
+    return '${' ' * (paddingLength - text.length)}$text';
+  }
+
+  print('================================================================');
+  print('Summary:');
+  for (String task in sorted) {
+    int time = totals[task];
+    print('${pad(time)}ms $task');
+  }
+
+  measurementResults.clear();
+}
+
+/// Measure execution of [task], print the result and store it in
+/// [measurementResults] for a summary.
+Future measure(String title, String taskTitle, Future task()) async {
+  Stopwatch stopwatch = new Stopwatch()..start();
+  print('================================================================');
+  print('$taskTitle: $title');
+  print('----------------------------------------------------------------');
+  var result = await task();
+  stopwatch.stop();
+  int elapsedMilliseconds = stopwatch.elapsedMilliseconds;
+  print('$taskTitle: $title: ${elapsedMilliseconds}ms');
+  measurementResults.add(
+      new MeasurementResult(title, taskTitle, elapsedMilliseconds));
+  return result;
 }

@@ -27,6 +27,7 @@ main(List<String> args) {
     } else {
       await arguments.forEachTest(serializedData, TESTS, analyze);
     }
+    printMeasurementResults();
   });
 }
 
@@ -39,27 +40,27 @@ Future analyze(
      bool verbose: false}) async {
   String testDescription = test != null ? test.name : '${entryPoint}';
   String id = index != null ? '$index: ' : '';
-  print('------------------------------------------------------------------');
-  print('analyze ${id}${testDescription}');
-  print('------------------------------------------------------------------');
-  DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
-  await runCompiler(
-      entryPoint: entryPoint,
-      resolutionInputs: resolutionInputs,
-      memorySourceFiles: sourceFiles,
-      options: [Flags.analyzeOnly],
-      diagnosticHandler: diagnosticCollector);
-  if (test != null) {
-    Expect.equals(test.expectedErrorCount, diagnosticCollector.errors.length,
-        "Unexpected error count.");
-    Expect.equals(
-        test.expectedWarningCount,
-        diagnosticCollector.warnings.length,
-        "Unexpected warning count.");
-    Expect.equals(test.expectedHintCount, diagnosticCollector.hints.length,
-        "Unexpected hint count.");
-    Expect.equals(test.expectedInfoCount, diagnosticCollector.infos.length,
-        "Unexpected info count.");
-  }
+  String title = '${id}${testDescription}';
+  await measure(title, 'analyze', () async {
+    DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
+    await runCompiler(
+        entryPoint: entryPoint,
+        resolutionInputs: resolutionInputs,
+        memorySourceFiles: sourceFiles,
+        options: [Flags.analyzeOnly],
+        diagnosticHandler: diagnosticCollector);
+    if (test != null) {
+      Expect.equals(test.expectedErrorCount, diagnosticCollector.errors.length,
+          "Unexpected error count.");
+      Expect.equals(
+          test.expectedWarningCount,
+          diagnosticCollector.warnings.length,
+          "Unexpected warning count.");
+      Expect.equals(test.expectedHintCount, diagnosticCollector.hints.length,
+          "Unexpected hint count.");
+      Expect.equals(test.expectedInfoCount, diagnosticCollector.infos.length,
+          "Unexpected info count.");
+    }
+  });
 }
 

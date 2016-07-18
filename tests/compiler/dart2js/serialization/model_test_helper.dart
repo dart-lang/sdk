@@ -31,14 +31,14 @@ main(List<String> args) {
         await serializeDartCore(arguments: arguments);
     if (arguments.filename != null) {
       Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.filename));
-      print('----------------------------------------------------------------');
-      print('serialize ${entryPoint}');
-      print('----------------------------------------------------------------');
-      SerializationResult result = await serialize(
-          entryPoint,
-          memorySourceFiles: serializedData.toMemorySourceFiles(),
-          resolutionInputs: serializedData.toUris(),
-          dataUri: Uri.parse('memory:test.data'));
+      SerializationResult result = await measure(
+          '${entryPoint}', 'serialize', () {
+        return serialize(
+            entryPoint,
+            memorySourceFiles: serializedData.toMemorySourceFiles(),
+            resolutionInputs: serializedData.toUris(),
+            dataUri: Uri.parse('memory:test.data'));
+      });
       await checkModels(entryPoint,
           sourceFiles: serializedData.toMemorySourceFiles(
               result.serializedData.toMemorySourceFiles()),
@@ -48,6 +48,7 @@ main(List<String> args) {
       Uri entryPoint = Uri.parse('memory:main.dart');
       await arguments.forEachTest(serializedData, TESTS, checkModels);
     }
+    printMeasurementResults();
   });
 }
 
@@ -60,96 +61,101 @@ Future checkModels(
      bool verbose: false}) async {
   String testDescription = test != null ? test.name : '${entryPoint}';
   String id = index != null ? '$index: ' : '';
-  print('------------------------------------------------------------------');
-  print('compile normal ${id}${testDescription}');
-  print('------------------------------------------------------------------');
-  Compiler compilerNormal = compilerFor(
-      memorySourceFiles: sourceFiles,
-      options: [Flags.analyzeOnly]);
-  compilerNormal.resolution.retainCachesForTesting = true;
-  await compilerNormal.run(entryPoint);
-  compilerNormal.phase = Compiler.PHASE_DONE_RESOLVING;
-  compilerNormal.world.populate();
-  compilerNormal.backend.onResolutionComplete();
-  compilerNormal.deferredLoadTask.onResolutionComplete(
-      compilerNormal.mainFunction);
+  String title = '${id}${testDescription}';
+  Compiler compilerNormal = await measure(
+      title, 'compile normal', () async {
+    Compiler compilerNormal = compilerFor(
+        memorySourceFiles: sourceFiles,
+        options: [Flags.analyzeOnly]);
+    compilerNormal.resolution.retainCachesForTesting = true;
+    await compilerNormal.run(entryPoint);
+    compilerNormal.phase = Compiler.PHASE_DONE_RESOLVING;
+    compilerNormal.world.populate();
+    compilerNormal.backend.onResolutionComplete();
+    compilerNormal.deferredLoadTask.onResolutionComplete(
+        compilerNormal.mainFunction);
+    return compilerNormal;
+  });
 
-  print('------------------------------------------------------------------');
-  print('compile deserialized ${id}${testDescription}');
-  print('------------------------------------------------------------------');
-  Compiler compilerDeserialized = compilerFor(
-      memorySourceFiles: sourceFiles,
-      resolutionInputs: resolutionInputs,
-      options: [Flags.analyzeOnly]);
-  compilerDeserialized.resolution.retainCachesForTesting = true;
-  await compilerDeserialized.run(entryPoint);
-  compilerDeserialized.phase = Compiler.PHASE_DONE_RESOLVING;
-  compilerDeserialized.world.populate();
-  compilerDeserialized.backend.onResolutionComplete();
-  compilerDeserialized.deferredLoadTask.onResolutionComplete(
-      compilerDeserialized.mainFunction);
+  Compiler compilerDeserialized = await measure(
+      title, 'compile deserialized', () async {
+    Compiler compilerDeserialized = compilerFor(
+        memorySourceFiles: sourceFiles,
+        resolutionInputs: resolutionInputs,
+        options: [Flags.analyzeOnly]);
+    compilerDeserialized.resolution.retainCachesForTesting = true;
+    await compilerDeserialized.run(entryPoint);
+    compilerDeserialized.phase = Compiler.PHASE_DONE_RESOLVING;
+    compilerDeserialized.world.populate();
+    compilerDeserialized.backend.onResolutionComplete();
+    compilerDeserialized.deferredLoadTask.onResolutionComplete(
+        compilerDeserialized.mainFunction);
+    return compilerDeserialized;
+  });
 
-  checkAllImpacts(
-      compilerNormal, compilerDeserialized,
-      verbose: verbose);
+  return measure(title, 'check models', () async {
+    checkAllImpacts(
+        compilerNormal, compilerDeserialized,
+        verbose: verbose);
 
-  checkSets(
-      compilerNormal.resolverWorld.directlyInstantiatedClasses,
-      compilerDeserialized.resolverWorld.directlyInstantiatedClasses,
-      "Directly instantiated classes mismatch",
-      areElementsEquivalent,
-      verbose: verbose);
+    checkSets(
+        compilerNormal.resolverWorld.directlyInstantiatedClasses,
+        compilerDeserialized.resolverWorld.directlyInstantiatedClasses,
+        "Directly instantiated classes mismatch",
+        areElementsEquivalent,
+        verbose: verbose);
 
-  checkSets(
-      compilerNormal.resolverWorld.instantiatedTypes,
-      compilerDeserialized.resolverWorld.instantiatedTypes,
-      "Instantiated types mismatch",
-      areTypesEquivalent,
-      verbose: verbose);
+    checkSets(
+        compilerNormal.resolverWorld.instantiatedTypes,
+        compilerDeserialized.resolverWorld.instantiatedTypes,
+        "Instantiated types mismatch",
+        areTypesEquivalent,
+        verbose: verbose);
 
-  checkSets(
-      compilerNormal.resolverWorld.isChecks,
-      compilerDeserialized.resolverWorld.isChecks,
-      "Is-check mismatch",
-      areTypesEquivalent,
-      verbose: verbose);
+    checkSets(
+        compilerNormal.resolverWorld.isChecks,
+        compilerDeserialized.resolverWorld.isChecks,
+        "Is-check mismatch",
+        areTypesEquivalent,
+        verbose: verbose);
 
-  checkSets(
-      compilerNormal.enqueuer.resolution.processedElements,
-      compilerDeserialized.enqueuer.resolution.processedElements,
-      "Processed element mismatch",
-      areElementsEquivalent,
-      onSameElement: (a, b) {
-        checkElements(
-            compilerNormal, compilerDeserialized, a, b, verbose: verbose);
-      },
-      verbose: verbose);
+    checkSets(
+        compilerNormal.enqueuer.resolution.processedElements,
+        compilerDeserialized.enqueuer.resolution.processedElements,
+        "Processed element mismatch",
+        areElementsEquivalent,
+        onSameElement: (a, b) {
+          checkElements(
+              compilerNormal, compilerDeserialized, a, b, verbose: verbose);
+        },
+        verbose: verbose);
 
-  checkClassHierarchyNodes(
-      compilerNormal,
-      compilerDeserialized,
-      compilerNormal.world.getClassHierarchyNode(
-          compilerNormal.coreClasses.objectClass),
-      compilerDeserialized.world.getClassHierarchyNode(
-          compilerDeserialized.coreClasses.objectClass),
-      verbose: verbose);
+    checkClassHierarchyNodes(
+        compilerNormal,
+        compilerDeserialized,
+        compilerNormal.world.getClassHierarchyNode(
+            compilerNormal.coreClasses.objectClass),
+        compilerDeserialized.world.getClassHierarchyNode(
+            compilerDeserialized.coreClasses.objectClass),
+        verbose: verbose);
 
-  Expect.equals(compilerNormal.enabledInvokeOn,
-      compilerDeserialized.enabledInvokeOn,
-      "Compiler.enabledInvokeOn mismatch");
-  Expect.equals(compilerNormal.enabledFunctionApply,
-      compilerDeserialized.enabledFunctionApply,
-      "Compiler.enabledFunctionApply mismatch");
-  Expect.equals(compilerNormal.enabledRuntimeType,
-      compilerDeserialized.enabledRuntimeType,
-      "Compiler.enabledRuntimeType mismatch");
-  Expect.equals(compilerNormal.hasIsolateSupport,
-      compilerDeserialized.hasIsolateSupport,
-      "Compiler.hasIsolateSupport mismatch");
-  Expect.equals(
-      compilerNormal.deferredLoadTask.isProgramSplit,
-      compilerDeserialized.deferredLoadTask.isProgramSplit,
-      "isProgramSplit mismatch");
+    Expect.equals(compilerNormal.enabledInvokeOn,
+        compilerDeserialized.enabledInvokeOn,
+        "Compiler.enabledInvokeOn mismatch");
+    Expect.equals(compilerNormal.enabledFunctionApply,
+        compilerDeserialized.enabledFunctionApply,
+        "Compiler.enabledFunctionApply mismatch");
+    Expect.equals(compilerNormal.enabledRuntimeType,
+        compilerDeserialized.enabledRuntimeType,
+        "Compiler.enabledRuntimeType mismatch");
+    Expect.equals(compilerNormal.hasIsolateSupport,
+        compilerDeserialized.hasIsolateSupport,
+        "Compiler.hasIsolateSupport mismatch");
+    Expect.equals(
+        compilerNormal.deferredLoadTask.isProgramSplit,
+        compilerDeserialized.deferredLoadTask.isProgramSplit,
+        "isProgramSplit mismatch");
+  });
 }
 
 void checkElements(

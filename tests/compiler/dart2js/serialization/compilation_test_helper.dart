@@ -28,6 +28,7 @@ main(List<String> args) {
       Uri entryPoint = Uri.parse('memory:main.dart');
       await arguments.forEachTest(serializedData, TESTS, compile);
     }
+    printMeasurementResults();
   });
 }
 
@@ -40,20 +41,20 @@ Future compile(
      bool verbose: false}) async {
   String testDescription = test != null ? test.name : '${entryPoint}';
   String id = index != null ? '$index: ' : '';
-  print('------------------------------------------------------------------');
-  print('compile ${id}${testDescription}');
-  print('------------------------------------------------------------------');
+  String title = '${id}${testDescription}';
   OutputCollector outputCollector = new OutputCollector();
-  List<String> options = [];
-  if (test.checkedMode) {
-    options.add(Flags.enableCheckedMode);
-  }
-  await runCompiler(
-      entryPoint: entryPoint,
-      memorySourceFiles: sourceFiles,
-      resolutionInputs: resolutionInputs,
-      options: options,
-      outputProvider: outputCollector);
+  await measure(title, 'compile', () async {
+    List<String> options = [];
+    if (test.checkedMode) {
+      options.add(Flags.enableCheckedMode);
+    }
+    await runCompiler(
+        entryPoint: entryPoint,
+        memorySourceFiles: sourceFiles,
+        resolutionInputs: resolutionInputs,
+        options: options,
+        outputProvider: outputCollector);
+  });
   if (verbose) {
     print(outputCollector.getOutput('', 'js'));
   }
