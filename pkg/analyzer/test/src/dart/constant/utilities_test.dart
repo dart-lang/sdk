@@ -183,7 +183,7 @@ class ConstantFinderTest {
   }
 
   List<ConstantEvaluationTarget> _findConstants() {
-    ConstantFinder finder = new ConstantFinder(_context, _source, _source);
+    ConstantFinder finder = new ConstantFinder();
     _node.accept(finder);
     List<ConstantEvaluationTarget> constants = finder.constantsToCompute;
     expect(constants, isNotNull);

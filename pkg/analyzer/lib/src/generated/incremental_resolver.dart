@@ -295,9 +295,9 @@ class IncrementalResolver {
     // compute values
     {
       CompilationUnit unit = node.getAncestor((n) => n is CompilationUnit);
-      ConstantValueComputer computer = new ConstantValueComputer(_context,
+      ConstantValueComputer computer = new ConstantValueComputer(
           _typeProvider, _context.declaredVariables, null, _typeSystem);
-      computer.add(unit, _source, _librarySource);
+      computer.add(unit);
       computer.computeValues();
     }
     // validate

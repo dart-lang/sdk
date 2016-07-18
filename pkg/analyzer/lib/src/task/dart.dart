@@ -1102,8 +1102,7 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
     //
     // Prepare constants.
     //
-    ConstantFinder constantFinder =
-        new ConstantFinder(context, source, librarySpecificUnit.library);
+    ConstantFinder constantFinder = new ConstantFinder();
     unit.accept(constantFinder);
     List<ConstantEvaluationTarget> constants =
         constantFinder.constantsToCompute.toList();

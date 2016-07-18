@@ -23,7 +23,6 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
-import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/type_system.dart'
     show TypeSystem, TypeSystemImpl;
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -930,15 +929,13 @@ class ConstantValueComputer {
    */
   final ConstantEvaluationEngine evaluationEngine;
 
-  final AnalysisContext _context;
-
   /**
    * Initialize a newly created constant value computer. The [typeProvider] is
    * the type provider used to access known types. The [declaredVariables] is
    * the set of variables declared on the command line using '-D'.
    */
-  ConstantValueComputer(this._context, TypeProvider typeProvider,
-      DeclaredVariables declaredVariables,
+  ConstantValueComputer(
+      TypeProvider typeProvider, DeclaredVariables declaredVariables,
       [ConstantEvaluationValidator validator, TypeSystem typeSystem])
       : evaluationEngine = new ConstantEvaluationEngine(
             typeProvider, declaredVariables,
@@ -948,9 +945,8 @@ class ConstantValueComputer {
    * Add the constants in the given compilation [unit] to the list of constants
    * whose value needs to be computed.
    */
-  void add(CompilationUnit unit, Source source, Source librarySource) {
-    ConstantFinder constantFinder =
-        new ConstantFinder(_context, source, librarySource);
+  void add(CompilationUnit unit) {
+    ConstantFinder constantFinder = new ConstantFinder();
     unit.accept(constantFinder);
     _constantsToCompute.addAll(constantFinder.constantsToCompute);
   }

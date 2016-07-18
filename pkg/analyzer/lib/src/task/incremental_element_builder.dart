@@ -159,8 +159,7 @@ class IncrementalCompilationUnitElementBuilder {
   }
 
   void _findConstants() {
-    ConstantFinder finder =
-        new ConstantFinder(unitElement.context, unitSource, librarySource);
+    ConstantFinder finder = new ConstantFinder();
     oldUnit.accept(finder);
     unitConstants.addAll(finder.constantsToCompute);
   }
