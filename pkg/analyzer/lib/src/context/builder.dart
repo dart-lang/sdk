@@ -8,6 +8,7 @@ import 'dart:collection';
 import 'dart:core' hide Resource;
 import 'dart:io' as io;
 
+import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
@@ -75,27 +76,37 @@ class ContextBuilder {
 
   /**
    * The file path of the .packages file that should be used in place of any
-   * file found using the normal (Package Specification DEP) lookup mechanism.
+   * file found using the normal (Package Specification DEP) lookup mechanism,
+   * or `null` if the normal lookup mechanism should be used.
    */
   String defaultPackageFilePath;
 
   /**
    * The file path of the packages directory that should be used in place of any
-   * file found using the normal (Package Specification DEP) lookup mechanism.
+   * file found using the normal (Package Specification DEP) lookup mechanism,
+   * or `null` if the normal lookup mechanism should be used.
    */
   String defaultPackagesDirectoryPath;
 
   /**
    * The file path of the analysis options file that should be used in place of
-   * any file in the root directory.
+   * any file in the root directory or a parent of the root directory, or `null`
+   * if the normal lookup mechanism should be used.
    */
   String defaultAnalysisOptionsFilePath;
 
   /**
    * The default analysis options that should be used unless some or all of them
-   * are overridden in the analysis options file.
+   * are overridden in the analysis options file, or `null` if the default
+   * defaults should be used.
    */
   AnalysisOptions defaultOptions;
+
+  /**
+   * A table mapping variable names to values for the declared variables, or
+   * `null` if no additional variables should be declared.
+   */
+  Map<String, String> declaredVariables;
 
   /**
    * Initialize a newly created builder to be ready to build a context rooted in
@@ -103,17 +114,36 @@ class ContextBuilder {
    */
   ContextBuilder(this.resourceProvider, this.sdkManager, this.contentCache);
 
-  AnalysisContext buildContext(String rootDirectoryPath) {
+  /**
+   * Return an analysis context that is configured correctly to analyze code in
+   * the directory with the given [path].
+   *
+   * *Note:* This method is not yet fully implemented and should not be used.
+   */
+  AnalysisContext buildContext(String path) {
     // TODO(brianwilkerson) Split getAnalysisOptions so we can capture the
     // option map and use it to run the options processors.
-    AnalysisOptions options = getAnalysisOptions(rootDirectoryPath);
+    AnalysisOptions options = getAnalysisOptions(path);
     InternalAnalysisContext context =
         AnalysisEngine.instance.createAnalysisContext();
     context.contentCache = contentCache;
-    context.sourceFactory = createSourceFactory(rootDirectoryPath, options);
+    context.sourceFactory = createSourceFactory(path, options);
     context.analysisOptions = options;
     //_processAnalysisOptions(context, optionMap);
+    declareVariables(context);
     return context;
+  }
+
+  Map<String, List<Folder>> convertPackagesToMap(Packages packages) {
+    if (packages == null || packages == Packages.noPackages) {
+      return null;
+    }
+    Map<String, List<Folder>> folderMap = new HashMap<String, List<Folder>>();
+    packages.asMap().forEach((String packagePath, Uri uri) {
+      String path = resourceProvider.pathContext.fromUri(uri);
+      folderMap[packagePath] = [resourceProvider.getFolder(path)];
+    });
+    return folderMap;
   }
 
 //  void _processAnalysisOptions(
@@ -139,16 +169,14 @@ class ContextBuilder {
 //    }
 //  }
 
-  Map<String, List<Folder>> convertPackagesToMap(Packages packages) {
-    if (packages == null || packages == Packages.noPackages) {
-      return null;
+  /**
+   * Return an analysis options object containing the default option values.
+   */
+  AnalysisOptions createDefaultOptions() {
+    if (defaultOptions == null) {
+      return new AnalysisOptionsImpl();
     }
-    Map<String, List<Folder>> folderMap = new HashMap<String, List<Folder>>();
-    packages.asMap().forEach((String packagePath, Uri uri) {
-      String path = resourceProvider.pathContext.fromUri(uri);
-      folderMap[packagePath] = [resourceProvider.getFolder(path)];
-    });
-    return folderMap;
+    return new AnalysisOptionsImpl.from(defaultOptions);
   }
 
   Packages createPackageMap(String rootDirectoryPath) {
@@ -196,7 +224,21 @@ class ContextBuilder {
   }
 
   /**
-   * Use the given [packageMap] and [options] to locate the SDK.
+   * Add any [declaredVariables] to the list of declared variables used by the
+   * given [context].
+   */
+  void declareVariables(InternalAnalysisContext context) {
+    if (declaredVariables != null && declaredVariables.isNotEmpty) {
+      DeclaredVariables contextVariables = context.declaredVariables;
+      declaredVariables.forEach((String variableName, String value) {
+        contextVariables.define(variableName, value);
+      });
+    }
+  }
+
+  /**
+   * Return the SDK that should be used to analyze code. Use the given
+   * [packageMap] and [options] to locate the SDK.
    */
   DartSdk findSdk(
       Map<String, List<Folder>> packageMap, AnalysisOptions options) {
@@ -261,9 +303,13 @@ class ContextBuilder {
     });
   }
 
-  AnalysisOptions getAnalysisOptions(String rootDirectoryPath) {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl.from(defaultOptions);
-    File optionsFile = getOptionsFile(rootDirectoryPath);
+  /**
+   * Return the analysis options that should be used when analyzing code in the
+   * directory with the given [path].
+   */
+  AnalysisOptions getAnalysisOptions(String path) {
+    AnalysisOptionsImpl options = createDefaultOptions();
+    File optionsFile = getOptionsFile(path);
     if (optionsFile != null) {
       Map<String, YamlNode> fileOptions =
           new AnalysisOptionsProvider().getOptionsFromFile(optionsFile);
@@ -272,11 +318,15 @@ class ContextBuilder {
     return options;
   }
 
-  File getOptionsFile(String rootDirectoryPath) {
+  /**
+   * Return the analysis options file that should be used when analyzing code in
+   * the directory with the given [path].
+   */
+  File getOptionsFile(String path) {
     if (defaultAnalysisOptionsFilePath != null) {
       return resourceProvider.getFile(defaultAnalysisOptionsFilePath);
     }
-    Folder root = resourceProvider.getFolder(rootDirectoryPath);
+    Folder root = resourceProvider.getFolder(path);
     for (Folder folder = root; folder != null; folder = folder.parent) {
       File file =
           folder.getChildAssumingFile(AnalysisEngine.ANALYSIS_OPTIONS_FILE);

@@ -98,6 +98,11 @@ const Map<String, LibraryInfo> libraries = const {
     builder = new ContextBuilder(resourceProvider, sdkManager, contentCache);
   }
 
+  @failingTest
+  void test_buildContext() {
+    fail('Incomplete test');
+  }
+
   void test_createPackageMap_fromPackageDirectory_explicit() {
     withTempDir((io.Directory tempDir) {
       // Use a package directory that is outside the project directory.
@@ -346,6 +351,30 @@ b:${pathContext.toUri(packageB)}
     fail('Incomplete test');
   }
 
+  @failingTest
+  void test_findSdk_embedder_extensions() {
+    // See test_createSourceFactory_noProvider_packages_embedder_extensions
+    fail('Incomplete test');
+  }
+
+  @failingTest
+  void test_findSdk_embedder_noExtensions() {
+    // See test_createSourceFactory_noProvider_packages_embedder_noExtensions
+    fail('Incomplete test');
+  }
+
+  @failingTest
+  void test_findSdk_noEmbedder_extensions() {
+    // See test_createSourceFactory_noProvider_packages_noEmbedder_extensions
+    fail('Incomplete test');
+  }
+
+  @failingTest
+  void test_findSdk_noEmbedder_noExtensions() {
+    // See test_createSourceFactory_noProvider_packages_noEmbedder_noExtensions
+    fail('Incomplete test');
+  }
+
   /**
    * Execute the [test] function with a temporary [directory]. The test function
    * can perform any disk operations within the directory and the directory (and
@@ -423,9 +452,130 @@ class ContextBuilderTest_WithoutDisk extends EngineTestCase {
     expect(result[barName][0].path, barPath);
   }
 
-  @failingTest
-  void test_findSdkResolver() {
-    fail('Incomplete test');
+  void test_createDefaultOptions_default() {
+    // Invert a subset of the options to ensure that the default options are
+    // being returned.
+    AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
+    defaultOptions.dart2jsHint = !defaultOptions.dart2jsHint;
+    defaultOptions.enableAssertMessage = !defaultOptions.enableAssertMessage;
+    defaultOptions.enableAsync = !defaultOptions.enableAsync;
+    defaultOptions.enableGenericMethods = !defaultOptions.enableGenericMethods;
+    defaultOptions.enableStrictCallChecks =
+        !defaultOptions.enableStrictCallChecks;
+    defaultOptions.enableSuperMixins = !defaultOptions.enableSuperMixins;
+    builder.defaultOptions = defaultOptions;
+    AnalysisOptions options = builder.createDefaultOptions();
+    _expectEqualOptions(options, defaultOptions);
+  }
+
+  void test_createDefaultOptions_noDefault() {
+    AnalysisOptions options = builder.createDefaultOptions();
+    _expectEqualOptions(options, new AnalysisOptionsImpl());
+  }
+
+  void test_declareVariables_emptyMap() {
+    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+    Iterable<String> expected = context.declaredVariables.variableNames;
+    builder.declaredVariables = <String, String>{};
+
+    builder.declareVariables(context);
+    expect(context.declaredVariables.variableNames, unorderedEquals(expected));
+  }
+
+  void test_declareVariables_nonEmptyMap() {
+    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+    List<String> expected = context.declaredVariables.variableNames.toList();
+    expect(expected, isNot(contains('a')));
+    expect(expected, isNot(contains('b')));
+    expected.addAll(['a', 'b']);
+    builder.declaredVariables = <String, String>{'a': 'a', 'b': 'b'};
+
+    builder.declareVariables(context);
+    expect(context.declaredVariables.variableNames, unorderedEquals(expected));
+  }
+
+  void test_declareVariables_null() {
+    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+    Iterable<String> expected = context.declaredVariables.variableNames;
+
+    builder.declareVariables(context);
+    expect(context.declaredVariables.variableNames, unorderedEquals(expected));
+  }
+
+  void test_findSdk_noPackageMap() {
+    DartSdk sdk = builder.findSdk(null, new AnalysisOptionsImpl());
+    expect(sdk, isNotNull);
+  }
+
+  void test_getAnalysisOptions_default_noOverrides() {
+    AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
+    defaultOptions.enableGenericMethods = true;
+    builder.defaultOptions = defaultOptions;
+    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
+    expected.enableGenericMethods = true;
+    String path = '/some/directory/path';
+    String filePath = '$path/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
+    resourceProvider.newFile(
+        filePath,
+        '''
+linter:
+  rules:
+    - empty_constructor_bodies
+''');
+
+    AnalysisOptions options = builder.getAnalysisOptions(path);
+    _expectEqualOptions(options, expected);
+  }
+
+  void test_getAnalysisOptions_default_overrides() {
+    AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
+    defaultOptions.enableGenericMethods = true;
+    builder.defaultOptions = defaultOptions;
+    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
+    expected.enableAsync = true;
+    expected.enableGenericMethods = true;
+    String path = '/some/directory/path';
+    String filePath = '$path/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
+    resourceProvider.newFile(
+        filePath,
+        '''
+analyzer:
+  enableAsync : true
+''');
+
+    AnalysisOptions options = builder.getAnalysisOptions(path);
+    _expectEqualOptions(options, expected);
+  }
+
+  void test_getAnalysisOptions_noDefault_noOverrides() {
+    String path = '/some/directory/path';
+    String filePath = '$path/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
+    resourceProvider.newFile(
+        filePath,
+        '''
+linter:
+  rules:
+    - empty_constructor_bodies
+''');
+
+    AnalysisOptions options = builder.getAnalysisOptions(path);
+    _expectEqualOptions(options, new AnalysisOptionsImpl());
+  }
+
+  void test_getAnalysisOptions_noDefault_overrides() {
+    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
+    expected.enableAsync = true;
+    String path = '/some/directory/path';
+    String filePath = '$path/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
+    resourceProvider.newFile(
+        filePath,
+        '''
+analyzer:
+  enableAsync : true
+''');
+
+    AnalysisOptions options = builder.getAnalysisOptions(path);
+    _expectEqualOptions(options, expected);
   }
 
   void test_getOptionsFile_explicit() {
@@ -480,5 +630,35 @@ class ContextBuilderTest_WithoutDisk extends EngineTestCase {
     File result = builder.getOptionsFile(path);
     expect(result, isNotNull);
     expect(result.path, filePath);
+  }
+
+  void _expectEqualOptions(
+      AnalysisOptionsImpl actual, AnalysisOptionsImpl expected) {
+    // TODO(brianwilkerson) Consider moving this to AnalysisOptionsImpl.==.
+    expect(actual.analyzeFunctionBodiesPredicate,
+        same(expected.analyzeFunctionBodiesPredicate));
+    expect(actual.cacheSize, expected.cacheSize);
+    expect(actual.dart2jsHint, expected.dart2jsHint);
+    expect(actual.enableAssertMessage, expected.enableAssertMessage);
+    expect(actual.enableAsync, expected.enableAsync);
+    expect(actual.enableStrictCallChecks, expected.enableStrictCallChecks);
+    expect(actual.enableGenericMethods, expected.enableGenericMethods);
+    expect(actual.enableSuperMixins, expected.enableSuperMixins);
+    expect(actual.enableTiming, expected.enableTiming);
+    expect(actual.enableTrailingCommas, expected.enableTrailingCommas);
+    expect(actual.generateImplicitErrors, expected.generateImplicitErrors);
+    expect(actual.generateSdkErrors, expected.generateSdkErrors);
+    expect(actual.hint, expected.hint);
+    expect(actual.incremental, expected.incremental);
+    expect(actual.incrementalApi, expected.incrementalApi);
+    expect(actual.incrementalValidation, expected.incrementalValidation);
+    expect(actual.lint, expected.lint);
+    expect(actual.preserveComments, expected.preserveComments);
+    expect(actual.strongMode, expected.strongMode);
+    expect(actual.strongModeHints, expected.strongModeHints);
+    expect(actual.implicitCasts, expected.implicitCasts);
+    expect(actual.implicitDynamic, expected.implicitDynamic);
+    expect(actual.trackCacheDependencies, expected.trackCacheDependencies);
+    expect(actual.finerGrainedInvalidation, expected.finerGrainedInvalidation);
   }
 }
