@@ -2805,6 +2805,182 @@ class B extends A {
     _assertValid(b, LIBRARY_ERRORS_READY);
   }
 
+  void test_class_constructor_named_changeName() {
+    // Update a.dart: change A.named() to A.named2().
+    //   b.dart is invalid, because it references A.named().
+    _verifyTwoLibrariesInvalidatesResolution(
+        r'''
+class A {
+  A.named();
+}
+''',
+        r'''
+class A {
+  A.named2();
+}
+''',
+        r'''
+import 'a.dart';
+main() {
+  new A.named();
+}
+''');
+  }
+
+  void test_class_constructor_named_parameters_add() {
+    // Update a.dart: add a new parameter to A.named().
+    //   b.dart is invalid, because it references A.named().
+    _verifyTwoLibrariesInvalidatesResolution(
+        r'''
+class A {
+  A.named();
+}
+''',
+        r'''
+class A {
+  A.named(int p);
+}
+''',
+        r'''
+import 'a.dart';
+main() {
+  new A.named();
+}
+''');
+  }
+
+  void test_class_constructor_named_parameters_remove() {
+    // Update a.dart: remove a new parameter of A.named().
+    //   b.dart is invalid, because it references A.named().
+    _verifyTwoLibrariesInvalidatesResolution(
+        r'''
+class A {
+  A.named(int p);
+}
+''',
+        r'''
+class A {
+  A.named();
+}
+''',
+        r'''
+import 'a.dart';
+main() {
+  new A.named();
+}
+''');
+  }
+
+  void test_class_constructor_named_remove_notUsed() {
+    // Update a.dart: remove A.foo().
+    //   b.dart is valid, because it does not reference A.foo().
+    _verifyTwoLibrariesAllValid(
+        r'''
+class A {
+  A.foo();
+  A.bar();
+}
+''',
+        r'''
+class A {
+  A.bar();
+}
+''',
+        r'''
+import 'a.dart';
+main() {
+  new A.bar();
+}
+''');
+  }
+
+  void test_class_constructor_named_remove_used() {
+    // Update a.dart: remove A.named().
+    //   b.dart is invalid, because it references A.named().
+    _verifyTwoLibrariesInvalidatesResolution(
+        r'''
+class A {
+  A.named();
+}
+''',
+        r'''
+class A {
+}
+''',
+        r'''
+import 'a.dart';
+main() {
+  new A.named();
+}
+''');
+  }
+
+  void test_class_constructor_unnamed_parameters_remove() {
+    // Update a.dart: change A().
+    //   b.dart is invalid, because it references A().
+    _verifyTwoLibrariesInvalidatesResolution(
+        r'''
+class A {
+  A(int a, int b);
+}
+''',
+        r'''
+class A {
+  A(int a);
+}
+''',
+        r'''
+import 'a.dart';
+main() {
+  new A(1, 2);
+}
+''');
+  }
+
+  void test_class_constructor_unnamed_remove_notUsed() {
+    // Update a.dart: remove A().
+    //   b.dart is invalid, because it instantiates A.
+    _verifyTwoLibrariesInvalidatesResolution(
+        r'''
+class A {
+  A();
+  A.named();
+}
+''',
+        r'''
+class A {
+  A.named();
+}
+''',
+        r'''
+import 'a.dart';
+main() {
+  new A.named();
+}
+''');
+  }
+
+  void test_class_constructor_unnamed_remove_used() {
+    // Update a.dart: remove A.named().
+    //   b.dart is invalid, because it references A.named().
+    _verifyTwoLibrariesInvalidatesResolution(
+        r'''
+class A {
+  A();
+}
+''',
+        r'''
+class A {
+}
+''',
+        r'''
+import 'a.dart';
+main() {
+  new A();
+}
+''');
+  }
+
   void test_class_method_change_notUsed() {
     Source a = addSource(
         '/a.dart',
@@ -3893,6 +4069,32 @@ class A {
         fail('Analysis did not terminate.');
       }
     }
+  }
+
+  void _verifyTwoLibrariesAllValid(
+      String firstCodeA, String secondCodeA, String codeB) {
+    Source a = addSource('/a.dart', firstCodeA);
+    Source b = addSource('/b.dart', codeB);
+    _performPendingAnalysisTasks();
+    context.setContents(a, secondCodeA);
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertValidAllResolution(b);
+    _assertValidAllErrors(b);
+  }
+
+  void _verifyTwoLibrariesInvalidatesResolution(
+      String firstCodeA, String secondCodeA, String codeB) {
+    Source a = addSource('/a.dart', firstCodeA);
+    Source b = addSource('/b.dart', codeB);
+    _performPendingAnalysisTasks();
+    context.setContents(a, secondCodeA);
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
   }
 }
 

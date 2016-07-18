@@ -34,6 +34,7 @@ class ClassElementDelta {
 
   final List<ConstructorElement> addedConstructors = <ConstructorElement>[];
   final List<ConstructorElement> removedConstructors = <ConstructorElement>[];
+  bool hasUnnamedConstructorChange = false;
 
   final List<MethodElement> addedMethods = <MethodElement>[];
   final List<MethodElement> removedMethods = <MethodElement>[];
@@ -344,7 +345,11 @@ class IncrementalCompilationUnitElementBuilder {
           new ConstructorElementImpl.forNode(null);
       constructor.synthetic = true;
       classElement.constructors = <ConstructorElement>[constructor];
+      classDelta.addedConstructors.add(constructor);
     }
+    classDelta.hasUnnamedConstructorChange =
+        classDelta.addedConstructors.any((c) => c.name == '') ||
+            classDelta.removedConstructors.any((c) => c.name == '');
     // OK
     return classDelta;
   }

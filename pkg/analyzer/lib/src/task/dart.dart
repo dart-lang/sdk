@@ -2606,6 +2606,18 @@ class DartDelta extends Delta {
         return true;
       }
     }
+    // Resolution must be performed when the unnamed constructor of
+    // an instantiated class is added/changed/removed.
+    // TODO(scheglov) Use only instantiations with default constructor.
+    for (String name in references.instantiatedNames) {
+      for (ClassElementDelta classDelta in changedClasses.values) {
+        if (classDelta.name == name && classDelta.hasUnnamedConstructorChange) {
+          _log(() =>
+              '$refLibrary is affected by the default constructor of $name');
+          return true;
+        }
+      }
+    }
     return false;
   }
 

@@ -66,6 +66,7 @@ class A {
     ClassElement classElement = helper.element;
     expect(classElement.constructors, unorderedEquals([newConstructorElement]));
     // verify delta
+    expect(helper.delta.hasUnnamedConstructorChange, isTrue);
     expect(helper.delta.addedConstructors,
         unorderedEquals([newConstructorElement]));
     expect(helper.delta.removedConstructors,
@@ -99,8 +100,70 @@ class A {
       expect(constructors[0].isSynthetic, isTrue);
     }
     // verify delta
-    expect(helper.delta.addedConstructors, unorderedEquals([]));
+    expect(helper.delta.hasUnnamedConstructorChange, isTrue);
+    expect(helper.delta.addedConstructors,
+        unorderedEquals([classElement.unnamedConstructor]));
     expect(helper.delta.removedConstructors, unorderedEquals([oldElementA]));
+    expect(helper.delta.addedAccessors, isEmpty);
+    expect(helper.delta.removedAccessors, isEmpty);
+    expect(helper.delta.addedMethods, isEmpty);
+    expect(helper.delta.removedMethods, isEmpty);
+  }
+
+  test_classDelta_constructor_1to1_unnamed_addParameter() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+class A {
+  A();
+}
+''');
+    helper.initOld(oldUnit);
+    ConstructorElement oldConstructor = helper.element.unnamedConstructor;
+    _buildNewUnit(r'''
+class A {
+  A(int p);
+}
+''');
+    helper.initNew(newUnit, unitDelta);
+    ClassElement classElement = helper.element;
+    ConstructorElement newConstructor = classElement.unnamedConstructor;
+    expect(classElement.constructors, [newConstructor]);
+    // verify delta
+    expect(helper.delta.hasUnnamedConstructorChange, isTrue);
+    expect(helper.delta.addedConstructors, unorderedEquals([newConstructor]));
+    expect(helper.delta.removedConstructors, unorderedEquals([oldConstructor]));
+    expect(helper.delta.addedAccessors, isEmpty);
+    expect(helper.delta.removedAccessors, isEmpty);
+    expect(helper.delta.addedMethods, isEmpty);
+    expect(helper.delta.removedMethods, isEmpty);
+  }
+
+  test_classDelta_constructor_1to1_unnamed_removeParameter() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+class A {
+  final int a;
+  final int b;
+  A(this.a, this.b);
+}
+''');
+    helper.initOld(oldUnit);
+    ConstructorElement oldConstructor = helper.element.unnamedConstructor;
+    _buildNewUnit(r'''
+class A {
+  final int a;
+  final int b;
+  A(this.a);
+}
+''');
+    helper.initNew(newUnit, unitDelta);
+    ClassElement classElement = helper.element;
+    ConstructorElement newConstructor = classElement.unnamedConstructor;
+    expect(classElement.constructors, [newConstructor]);
+    // verify delta
+    expect(helper.delta.hasUnnamedConstructorChange, isTrue);
+    expect(helper.delta.addedConstructors, unorderedEquals([newConstructor]));
+    expect(helper.delta.removedConstructors, unorderedEquals([oldConstructor]));
     expect(helper.delta.addedAccessors, isEmpty);
     expect(helper.delta.removedAccessors, isEmpty);
     expect(helper.delta.addedMethods, isEmpty);
@@ -161,6 +224,7 @@ class A {
 }
 ''');
     helper.initNew(newUnit, unitDelta);
+    expect(helper.delta.hasUnnamedConstructorChange, isFalse);
     // nodes
     ClassMember nodeB = helper.newMembers[0];
     expect(nodeB, same(helper.oldMembers[1]));
