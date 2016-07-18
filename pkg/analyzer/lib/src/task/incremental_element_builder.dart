@@ -12,10 +12,12 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/dart.dart';
 
 /**
  * The change of a single [ClassElement].
@@ -100,6 +102,9 @@ class IncrementalCompilationUnitElementBuilder {
   final CompilationUnit newUnit;
   final ElementHolder unitElementHolder = new ElementHolder();
 
+  final List<ConstantEvaluationTarget> unitConstants =
+      <ConstantEvaluationTarget>[];
+
   /**
    * The change between element models of [oldUnit] and [newUnit].
    */
@@ -130,6 +135,7 @@ class IncrementalCompilationUnitElementBuilder {
     _processDirectives();
     _processUnitMembers();
     _replaceUnitContents(oldUnit, newUnit);
+    _findConstants();
     newUnit.element = unitElement;
     unitElement.setCodeRange(0, newUnit.endToken.end);
   }
@@ -150,6 +156,13 @@ class IncrementalCompilationUnitElementBuilder {
     } else if (element is TopLevelVariableElement) {
       unitElementHolder.addTopLevelVariable(element);
     }
+  }
+
+  void _findConstants() {
+    ConstantFinder finder =
+        new ConstantFinder(unitElement.context, unitSource, librarySource);
+    oldUnit.accept(finder);
+    unitConstants.addAll(finder.constantsToCompute);
   }
 
   ClassElementDelta _processClassMembers(

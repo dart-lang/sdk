@@ -17,6 +17,7 @@ import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -3585,6 +3586,47 @@ class B {
     _performPendingAnalysisTasks();
     expect(context.getErrors(a).errors, hasLength(0));
     expect(context.getErrors(b).errors, hasLength(0));
+  }
+
+  void test_sequence_unitConstants() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+const A = 1;
+const B = 2;
+const C = 3;
+''');
+    _performPendingAnalysisTasks();
+    LibrarySpecificUnit unitA = new LibrarySpecificUnit(a, a);
+    expect(context.getResult(unitA, COMPILATION_UNIT_CONSTANTS), hasLength(3));
+    // Update and
+    context.setContents(
+        a,
+        r'''
+const A = 1;
+const B = 2;
+const D = 4;
+main() {
+  const V = 42;
+}
+''');
+    List<ConstantEvaluationTarget> constants =
+        context.getResult(unitA, COMPILATION_UNIT_CONSTANTS);
+    expect(constants, hasLength(4));
+    // Perform analysis, compute constant values.
+    _performPendingAnalysisTasks();
+    // Validate const variable values.
+    Map<String, ConstVariableElement> constVariables =
+        <String, ConstVariableElement>{};
+    constants.forEach((c) {
+      if (c is ConstVariableElement) {
+        constVariables[c.name] = c;
+      }
+    });
+    expect(constVariables['A'].evaluationResult.value.toIntValue(), 1);
+    expect(constVariables['B'].evaluationResult.value.toIntValue(), 2);
+    expect(constVariables['D'].evaluationResult.value.toIntValue(), 4);
+    expect(constVariables['V'].evaluationResult.value.toIntValue(), 42);
   }
 
   void test_sequence_useAnyResolvedUnit() {

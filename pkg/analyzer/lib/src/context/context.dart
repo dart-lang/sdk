@@ -1868,6 +1868,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             builder.build();
             CompilationUnitElementDelta unitDelta = builder.unitDelta;
             if (!unitDelta.hasDirectiveChange) {
+              unitEntry.setValueIncremental(
+                  COMPILATION_UNIT_CONSTANTS, builder.unitConstants, false);
               DartDelta dartDelta = new DartDelta(source);
               dartDelta.hasDirectiveChange = unitDelta.hasDirectiveChange;
               unitDelta.addedDeclarations.forEach(dartDelta.elementChanged);
