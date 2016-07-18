@@ -169,7 +169,10 @@ class SerializedData {
   final Uri uri;
   final String data;
 
-  SerializedData(this.uri, this.data);
+  SerializedData(this.uri, this.data) {
+    assert(uri != null);
+    assert(data != null);
+  }
 
   Map<String, String> toMemorySourceFiles([Map<String, String> input]) {
     Map<String, String> sourceFiles = <String, String>{};
@@ -200,13 +203,6 @@ class SerializedData {
   }
 }
 
-String extractSerializedData(
-    Compiler compiler, Iterable<LibraryElement> libraries) {
-  BufferedEventSink sink = new BufferedEventSink();
-  compiler.serialization.serializeToSink(sink, libraries);
-  return sink.text;
-}
-
 Future<List<SerializedData>> preserializeData(
     SerializedData serializedData, Test test) async {
   if (test == null ||
@@ -223,19 +219,20 @@ Future<List<SerializedData>> preserializeData(
   if (test.unserializedSourceFiles != null) {
     sourceFiles.addAll(test.unserializedSourceFiles);
   }
+  OutputCollector outputCollector = new OutputCollector();
   Compiler compiler = compilerFor(
       memorySourceFiles: sourceFiles,
       resolutionInputs: serializedData.toUris(),
-      options: [Flags.analyzeOnly, Flags.analyzeMain]);
+      options: [Flags.resolveOnly],
+      outputProvider: outputCollector);
   compiler.librariesToAnalyzeWhenRun = uriList;
-  compiler.serialization.supportSerialization = true;
   await compiler.run(null);
   List<LibraryElement> libraries = <LibraryElement>[];
   for (Uri uri in uriList) {
     libraries.add(compiler.libraryLoader.lookupLibrary(uri));
   }
-  SerializedData additionalSerializedData =
-      new SerializedData(Uri.parse('memory:additional.data'),
-      extractSerializedData(compiler, libraries));
+  SerializedData additionalSerializedData = new SerializedData(
+      Uri.parse('memory:additional.data'),
+      outputCollector.getOutput('', 'data'));
   return <SerializedData>[serializedData, additionalSerializedData];
 }

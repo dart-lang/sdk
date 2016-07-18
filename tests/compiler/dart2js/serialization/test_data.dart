@@ -631,6 +631,18 @@ test() {
 }
 ''',
   }),
+
+  const Test('Use of dart:indexed_db', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+import 'dart:indexed_db';
+''',
+  }),
 ];
 
 class Test {
