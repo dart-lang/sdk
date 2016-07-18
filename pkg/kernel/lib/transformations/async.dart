@@ -244,6 +244,29 @@ class ExpressionLifter extends Transformer {
   TreeNode visitConditionalExpression(TreeNode node) =>
       visitLazyExpression(node);
 
+  TreeNode visitLet(Let let) {
+    // We need to handle [Let] specially in order to *keep* the
+    // [VariableDeclaration] (which other nodes refer to) but rewrite the
+    // expression using the await-expression rewriter.
+
+    final shouldWrapThis = shouldWrap;
+    shouldWrap = true;
+
+    // Translate the expression.
+    int stackHeight = pendingExpressions.length;
+    let.variable.initializer = let.variable.initializer.accept(this);
+    let.variable.initializer.parent = let.variable;
+    pendingExpressions.length = stackHeight;
+
+    // Translate the body.
+    var resultBody = let.body.accept(this);
+    let.body = resultBody;
+    let.body.parent = let.body;
+    pendingExpressions.length = stackHeight;
+
+    return finishExpression(let, shouldWrapThis);
+  }
+
   TreeNode defaultStatement(Statement stmt) {
     assert(pendingExpressions.length == 0);
     assert(pendingStatements.length == 0);
