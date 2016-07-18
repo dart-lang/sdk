@@ -7,6 +7,7 @@
 
 #include "vm/os.h"
 
+#include <errno.h>
 #include <magenta/syscalls.h>
 #include <magenta/types.h>
 
@@ -240,8 +241,21 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
 
 
 bool OS::StringToInt64(const char* str, int64_t* value) {
-  UNIMPLEMENTED();
-  return false;
+  ASSERT(str != NULL && strlen(str) > 0 && value != NULL);
+  int32_t base = 10;
+  char* endptr;
+  int i = 0;
+  if (str[0] == '-') {
+    i = 1;
+  }
+  if ((str[i] == '0') &&
+      (str[i + 1] == 'x' || str[i + 1] == 'X') &&
+      (str[i + 2] != '\0')) {
+    base = 16;
+  }
+  errno = 0;
+  *value = strtoll(str, &endptr, base);
+  return ((errno == 0) && (endptr != str) && (*endptr == 0));
 }
 
 

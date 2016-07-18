@@ -365,6 +365,9 @@ source_set("embedded_dart_io") {
 
 if (defined(is_fuchsia) && is_fuchsia) {
   executable("fuchsia_test") {
+    configs += ["..:dart_config",
+                "..:dart_product_config",
+                "..:dart_precompiled_runtime_config"]
     sources = [
       "fuchsia_test.cc",
       "log_fuchsia.cc",
