@@ -4207,7 +4207,7 @@ class _SimpleUri implements Uri {
     if (fragment != null) {
       fragment = _Uri._makeFragment(fragment, 0, fragment.length);
     } else if (_fragmentStart < _uri.length) {
-      fragment = _uri.substring(_fragmentStart);
+      fragment = _uri.substring(_fragmentStart + 1);
     }
 
     return new _Uri._internal(
