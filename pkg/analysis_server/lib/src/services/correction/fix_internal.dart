@@ -293,17 +293,17 @@ class FixProcessor {
       _addFix_updateConstructor_forUninitializedFinalFields();
     }
     if (errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER) {
-      bool isAsync = _addFix_addAsync();
-      if (!isAsync) {
-        _addFix_undefinedClassAccessor_useSimilar();
-        _addFix_createClass();
-        _addFix_createField();
-        _addFix_createGetter();
-        _addFix_createFunction_forFunctionType();
-        _addFix_importLibrary_withType();
-        _addFix_importLibrary_withTopLevelVariable();
-        _addFix_createLocalVariable();
-      }
+      _addFix_undefinedClassAccessor_useSimilar();
+      _addFix_createClass();
+      _addFix_createField();
+      _addFix_createGetter();
+      _addFix_createFunction_forFunctionType();
+      _addFix_importLibrary_withType();
+      _addFix_importLibrary_withTopLevelVariable();
+      _addFix_createLocalVariable();
+    }
+    if (errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT) {
+      _addFix_addAsync();
     }
     if (errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE) {
       _addFix_illegalAsyncReturnType();
@@ -397,14 +397,12 @@ class FixProcessor {
    */
   bool _addFix_addAsync() {
     AstNode node = this.node;
-    if (_isAwaitNode()) {
-      FunctionBody body = node.getAncestor((n) => n is FunctionBody);
-      if (body != null && body.keyword == null) {
-        _addReplaceEdit(rf.rangeStartLength(body, 0), 'async ');
-        _replaceReturnTypeWithFuture(body);
-        _addFix(DartFixKind.ADD_ASYNC, []);
-        return true;
-      }
+    FunctionBody body = node.getAncestor((n) => n is FunctionBody);
+    if (body != null && body.keyword == null) {
+      _addReplaceEdit(rf.rangeStartLength(body, 0), 'async ');
+      _replaceReturnTypeWithFuture(body);
+      _addFix(DartFixKind.ADD_ASYNC, []);
+      return true;
     }
     return false;
   }

@@ -5756,7 +5756,7 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode('UNDEFINED_IDENTIFIER', "Undefined name '{0}'");
 
   /**
-   * If the identifer is 'await', be helpful about it.
+   * If the identifier is 'await', be helpful about it.
    */
   static const StaticWarningCode UNDEFINED_IDENTIFIER_AWAIT =
       const StaticWarningCode('UNDEFINED_IDENTIFIER_AWAIT',
