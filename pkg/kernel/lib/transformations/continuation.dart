@@ -280,6 +280,66 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   Statement buildCatchBody(Statement exceptionVariable,
                            Statement stackTraceVariable);
 
+  visitForInStatement(ForInStatement node) {
+    if (node.isAsync) {
+      // Transform
+      //
+      //   await for (var variable in <stream-expression>) { ... }
+      //
+      // To:
+      //
+      //   {
+      //     var :for-iterator = new StreamIterator(<stream-expression>);
+      //     try {
+      //       while (await :for-iterator.moveNext()) {
+      //         var <variable> = :for-iterator.current;
+      //         ...
+      //       }
+      //     } finally {
+      //       :for-iterator.cancel();
+      //     }
+      //   }
+      var iteratorVariable = new VariableDeclaration(
+          ':for-iterator',
+          initializer: new ConstructorInvocation(
+            helper.streamIteratorConstructor,
+            new Arguments([expressionRewriter.rewrite(node.iterable)])));
+
+      // await iterator.moveNext()
+      var condition = new AwaitExpression(new MethodInvocation(
+            new VariableGet(iteratorVariable),
+            new Name('moveNext'),
+            new Arguments([])));
+
+      // var <variable> = iterator.current;
+      var valueVariable = node.variable;
+      valueVariable.initializer = new PropertyGet(
+          new VariableGet(iteratorVariable),
+          new Name('current'));
+      valueVariable.initializer.parent = valueVariable;
+
+      var whileBody = new Block([valueVariable, node.body]);
+      var tryBody = new WhileStatement(condition, whileBody);
+
+      // iterator.cancel();
+      var tryFinalizer = new ExpressionStatement(
+          new MethodInvocation(
+            new VariableGet(iteratorVariable),
+            new Name('cancel'),
+            new Arguments([])));
+
+      var tryFinally = new TryFinally(tryBody, tryFinalizer);
+
+      var block = new Block([
+          iteratorVariable,
+          tryFinally,
+      ]);
+      return block.accept(this);
+    } else {
+      return super.visitForInStatement(node);
+    }
+  }
+
   defaultExpression(TreeNode node) {
     return expressionRewriter.rewrite(node);
   }
@@ -455,6 +515,7 @@ class HelperNodes {
   final Procedure futureMicrotaskConstructor;
   final Constructor streamControllerConstructor;
   final Constructor syncIterableConstructor;
+  final Constructor streamIteratorConstructor;
   final Procedure asyncThenWrapper;
   final Procedure asyncErrorWrapper;
   final Procedure awaitHelper;
@@ -465,6 +526,7 @@ class HelperNodes {
       this.printProcedure,
       this.completerConstructor,
       this.syncIterableConstructor,
+      this.streamIteratorConstructor,
       this.futureMicrotaskConstructor,
       this.streamControllerConstructor,
       this.asyncThenWrapper,
@@ -513,6 +575,7 @@ class HelperNodes {
 
     var completerClass = findClass(asyncLibrary, 'Completer');
     var futureClass = findClass(asyncLibrary, 'Future');
+    var streamIteratorClass = findClass(asyncLibrary, '_StreamIteratorImpl');
     var syncIterableClass = findClass(coreLibrary, '_SyncIterable');
     var streamControllerClass = findClass(
         asyncLibrary, '_AsyncStarStreamController');
@@ -523,6 +586,7 @@ class HelperNodes {
         findProcedure(coreLibrary, 'print'),
         findFactoryConstructor(completerClass, 'sync'),
         findConstructor(syncIterableClass, ''),
+        findConstructor(streamIteratorClass , ''),
         findFactoryConstructor(futureClass, 'microtask'),
         findConstructor(streamControllerClass, ''),
         findProcedure(asyncLibrary, '_asyncThenWrapperHelper'),
