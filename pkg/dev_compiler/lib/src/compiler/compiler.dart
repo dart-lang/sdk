@@ -4,6 +4,7 @@
 
 import 'dart:collection' show HashSet;
 import 'package:args/args.dart' show ArgParser, ArgResults;
+import 'package:args/src/usage_exception.dart' show UsageException;
 import 'package:analyzer/analyzer.dart'
     show
         AnalysisError,
@@ -12,7 +13,6 @@ import 'package:analyzer/analyzer.dart'
         ErrorSeverity,
         StaticWarningCode;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/generated/java_engine.dart' show AnalysisException;
 import 'package:analyzer/src/generated/source_io.dart' show Source, SourceKind;
 import 'package:func/func.dart' show Func1;
 import 'package:path/path.dart' as path;
@@ -77,9 +77,17 @@ class ModuleCompiler {
         sourceUri = path.toUri(path.absolute(sourcePath));
       }
       Source source = context.sourceFactory.forUri2(sourceUri);
+
+      var fileUsage = 'You need to pass at least one existing .dart file as an'
+          ' argument.';
       if (source == null) {
-        throw new AnalysisException('could not create a source for $sourcePath.'
-            ' The file name is in the wrong format or was not found.');
+        throw new UsageException(
+            'Could not create a source for "$sourcePath". The file name is in'
+            ' the wrong format or was not found.',
+            fileUsage);
+      } else if (!source.exists()) {
+        throw new UsageException(
+            'Given file "$sourcePath" does not exist.', fileUsage);
       }
 
       // Ignore parts. They need to be handled in the context of their library.
