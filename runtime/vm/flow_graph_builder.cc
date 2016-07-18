@@ -899,10 +899,13 @@ Definition* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local,
           context, Context::parent_offset(), Type::ZoneHandle(Z, Type::null()),
           token_pos));
     }
-    return new(Z) LoadFieldInstr(context,
-                                 Context::variable_offset(local.index()),
-                                 local.type(),
-                                 token_pos);
+    LoadFieldInstr* load = new(Z) LoadFieldInstr(
+        context,
+        Context::variable_offset(local.index()),
+        local.type(),
+        token_pos);
+    load->set_is_immutable(local.is_final());
+    return load;
   } else {
     return new(Z) LoadLocalInstr(local, token_pos);
   }
