@@ -148,6 +148,11 @@ namespace dart {
 //    Invoke function in SP[0] with arguments SP[-(1+ArgC)], ..., SP[-1] and
 //    argument descriptor PP[D].
 //
+//  - IndirectStaticCall ArgC, D
+//
+//    Invoke the function given by the ICData in SP[0] with arguments
+//    SP[-(1+ArgC)], ..., SP[-1] and argument descriptor PP[D].
+//
 //  - InstanceCall<N> ArgC, D; InstanceCall<N>Opt ArgC, D
 //
 //    Lookup and invoke method with N checked arguments using ICData in PP[D]
@@ -528,6 +533,7 @@ namespace dart {
   V(PushConstant,                    D, lit, ___, ___) \
   V(StoreLocal,                      X, xeg, ___, ___) \
   V(PopLocal,                        X, xeg, ___, ___) \
+  V(IndirectStaticCall,            A_D, num, num, ___) \
   V(StaticCall,                    A_D, num, num, ___) \
   V(InstanceCall1,                 A_D, num, num, ___) \
   V(InstanceCall2,                 A_D, num, num, ___) \
@@ -694,6 +700,7 @@ BYTECODES_LIST(DECLARE_BYTECODE)
   DART_FORCE_INLINE static bool IsCallOpcode(Instr instr) {
     switch (DecodeOpcode(instr)) {
       case Bytecode::kStaticCall:
+      case Bytecode::kIndirectStaticCall:
       case Bytecode::kInstanceCall1:
       case Bytecode::kInstanceCall2:
       case Bytecode::kInstanceCall1Opt:

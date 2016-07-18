@@ -190,34 +190,6 @@ cc/RegenerateAllocStubs: Skip
 cc/Debug_InspectStack_Optimized: Skip
 cc/Debug_InspectStackWithClosure_Optimized: Skip
 
-# Isolate reload code assumes that all static calls have ICData attached to
-# them. However this is not the case on DBC.
-cc/IsolateReload_LiveStack: Skip
-cc/IsolateReload_StaticValuePreserved: Skip
-cc/IsolateReload_TopLevelFieldAdded: Skip
-cc/IsolateReload_ConstructorChanged: Skip
-cc/IsolateReload_ImplicitConstructorChanged: Skip
-cc/IsolateReload_MixinChanged: Skip
-cc/IsolateReload_SuperClassChanged: Skip
-cc/IsolateReload_ComplexInheritanceChange: Skip
-cc/IsolateReload_LibraryImportAdded: Skip
-cc/IsolateReload_LibraryHide: Skip
-cc/IsolateReload_LibraryLookup: Skip
-cc/IsolateReload_LibraryShow: Skip
-cc/IsolateReload_LiveStack: Skip
-cc/IsolateReload_StaticValuePreserved: Skip
-cc/IsolateReload_TopLevelFieldAdded: Skip
-cc/IsolateReload_ConstructorChanged: Skip
-cc/IsolateReload_ImplicitConstructorChanged: Skip
-cc/IsolateReload_MixinChanged: Skip
-cc/IsolateReload_SuperClassChanged: Skip
-cc/IsolateReload_ComplexInheritanceChange: Skip
-cc/IsolateReload_LibraryImportAdded: Skip
-cc/IsolateReload_LibraryHide: Skip
-cc/IsolateReload_LibraryLookup: Skip
-cc/IsolateReload_LibraryShow: Skip
-cc/IsolateReload_PendingSuperCall: Skip
-
 [ $hot_reload ]
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.

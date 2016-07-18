@@ -737,6 +737,7 @@ void IsolateReloadContext::PostCommit() {
   set_saved_root_library(Library::Handle());
   set_saved_libraries(GrowableObjectArray::Handle());
   InvalidateWorld();
+  TIR_Print("---- DONE COMMIT\n");
 }
 
 
@@ -909,6 +910,8 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
 
       if (!stub_code) {
         if (clear_code) {
+          VTIR_Print("Marking %s for recompilation, clearning code\n",
+              func.ToCString());
           ClearAllCode(func);
         } else {
           PreserveUnoptimizedCode();
@@ -954,6 +957,7 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
 
 void IsolateReloadContext::MarkAllFunctionsForRecompilation() {
   TIMELINE_SCOPE(MarkAllFunctionsForRecompilation);
+  TIR_Print("---- MARKING ALL FUNCTIONS FOR RECOMPILATION\n");
   NoSafepointScope no_safepoint;
   HeapIterationScope heap_iteration_scope;
   MarkFunctionsForRecompilation visitor(isolate_, this);
@@ -962,6 +966,7 @@ void IsolateReloadContext::MarkAllFunctionsForRecompilation() {
 
 
 void IsolateReloadContext::InvalidateWorld() {
+  TIR_Print("---- INVALIDATING WORLD\n");
   ResetMegamorphicCaches();
   DeoptimizeFunctionsOnStack();
   ResetUnoptimizedICsOnStack();

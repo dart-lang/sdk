@@ -20,6 +20,7 @@ static bool HasLoadFromPool(Instr instr) {
     case Bytecode::kLoadConstant:
     case Bytecode::kPushConstant:
     case Bytecode::kStaticCall:
+    case Bytecode::kIndirectStaticCall:
     case Bytecode::kInstanceCall1:
     case Bytecode::kInstanceCall2:
     case Bytecode::kInstanceCall1Opt:

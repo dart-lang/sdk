@@ -400,7 +400,6 @@ EMIT_NATIVE_CODE(ClosureCall,
       compiler->assembler()->AddConstant(arguments_descriptor);
   __ StaticCall(argument_count, argdesc_kidx);
   compiler->RecordAfterCall(this);
-
   if (compiler->is_optimizing()) {
     __ PopLocal(locs()->out(0).reg());
   }
@@ -702,7 +701,6 @@ EMIT_NATIVE_CODE(StringInterpolate,
   const intptr_t argdesc_kidx = __ AddConstant(arguments_descriptor);
   __ StaticCall(kArgumentCount, argdesc_kidx);
   compiler->RecordAfterCall(this);
-
   if (compiler->is_optimizing()) {
     __ PopLocal(locs()->out(0).reg());
   }

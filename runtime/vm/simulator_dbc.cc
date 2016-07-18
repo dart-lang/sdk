@@ -1374,7 +1374,7 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(StaticCall, A_D);
+    BYTECODE(IndirectStaticCall, A_D);
 
     // Check if single stepping.
     if (thread->isolate()->single_step()) {
@@ -1386,12 +1386,28 @@ RawObject* Simulator::Call(const Code& code,
     // Invoke target function.
     {
       const uint16_t argc = rA;
+      // Lookup the funciton in the ICData.
+      RawObject* ic_data_obj = SP[0];
+      RawICData* ic_data = RAW_CAST(ICData, ic_data_obj);
+      RawArray* cache = ic_data->ptr()->ic_data_->ptr();
+      SP[0] = cache->data()[ICData::TargetIndexFor(
+          ic_data->ptr()->state_bits_ & 0x3)];
       RawObject** call_base = SP - argc;
       RawObject** call_top = SP;  // *SP contains function
       argdesc = static_cast<RawArray*>(LOAD_CONSTANT(rD));
       Invoke(thread, call_base, call_top, &pp, &pc, &FP, &SP);
     }
 
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StaticCall, A_D);
+    const uint16_t argc = rA;
+    RawObject** call_base = SP - argc;
+    RawObject** call_top = SP;  // *SP contains function
+    argdesc = static_cast<RawArray*>(LOAD_CONSTANT(rD));
+    Invoke(thread, call_base, call_top, &pp, &pc, &FP, &SP);
     DISPATCH();
   }
 

@@ -3280,7 +3280,6 @@ LocationSummary* StaticCallInstr::MakeLocationSummary(Zone* zone,
 
 
 void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-#if !defined(TARGET_ARCH_DBC)
   const ICData* call_ic_data = NULL;
   if (!FLAG_propagate_ic_data || !compiler->is_optimizing() ||
       (ic_data() == NULL)) {
@@ -3306,6 +3305,8 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     call_ic_data = &ICData::ZoneHandle(ic_data()->raw());
   }
+
+#if !defined(TARGET_ARCH_DBC)
   compiler->GenerateStaticCall(deopt_id(),
                                token_pos(),
                                function(),
@@ -3321,17 +3322,20 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         Array::Handle(ic_data()->arguments_descriptor());
   const intptr_t argdesc_kidx = __ AddConstant(arguments_descriptor);
 
-  __ PushConstant(function());
-  __ StaticCall(ArgumentCount(), argdesc_kidx);
-  RawPcDescriptors::Kind kind = (compiler->is_optimizing())
-                              ? RawPcDescriptors::kOther
-                              : RawPcDescriptors::kUnoptStaticCall;
-  compiler->AddCurrentDescriptor(kind, deopt_id(), token_pos());
-
-  compiler->RecordAfterCall(this);
-
   if (compiler->is_optimizing()) {
+    __ PushConstant(function());
+    __ StaticCall(ArgumentCount(), argdesc_kidx);
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
+        deopt_id(), token_pos());
+    compiler->RecordAfterCall(this);
     __ PopLocal(locs()->out(0).reg());
+  } else {
+    const intptr_t ic_data_kidx = __ AddConstant(*call_ic_data);
+    __ PushConstant(ic_data_kidx);
+    __ IndirectStaticCall(ArgumentCount(), argdesc_kidx);
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kUnoptStaticCall,
+        deopt_id(), token_pos());
+    compiler->RecordAfterCall(this);
   }
 #endif  // !defined(TARGET_ARCH_DBC)
 }
