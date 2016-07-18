@@ -576,8 +576,20 @@ class TokenUtils {
           List<Token> newReferences = newToken.references;
           assert(oldReferences.length == newReferences.length);
           for (int i = 0; i < oldReferences.length; i++) {
-            copyTokenOffsets(offsetMap, oldReferences[i], newReferences[i],
-                oldEndToken, newEndToken);
+            Token oldToken = oldReferences[i];
+            Token newToken = newReferences[i];
+            // For [new Name] the 'Name' token is the reference.
+            // But we need to process all tokens, including 'new'.
+            while (oldToken.previous != null &&
+                oldToken.previous.type != TokenType.EOF) {
+              oldToken = oldToken.previous;
+            }
+            while (newToken.previous != null &&
+                newToken.previous.type != TokenType.EOF) {
+              newToken = newToken.previous;
+            }
+            copyTokenOffsets(
+                offsetMap, oldToken, newToken, oldEndToken, newEndToken);
           }
         }
         // Next tokens.

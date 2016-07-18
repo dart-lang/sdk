@@ -1751,6 +1751,18 @@ class A {
 ''');
   }
 
+  test_update_commentReference_new() {
+    _buildOldUnit(r'''
+/// Comment reference with new [new A].
+class A {}
+''');
+    _buildNewUnit(r'''
+class B {}
+/// Comment reference with new [new A].
+class A {}
+''');
+  }
+
   test_update_commentReference_notClosed() {
     _buildOldUnit(r'''
 /// [c)
