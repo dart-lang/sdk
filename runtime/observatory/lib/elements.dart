@@ -59,3 +59,12 @@ export 'package:observatory/src/elements/view_footer.dart';
 export 'package:observatory/src/elements/vm_connect.dart';
 export 'package:observatory/src/elements/vm_ref.dart';
 export 'package:observatory/src/elements/vm_view.dart';
+
+import 'dart:async';
+
+export 'package:observatory/src/elements/helpers/rendering_queue.dart';
+
+// Even though this function does not invoke any asynchronous operation
+// it is marked as async to allow future backward compatible changes.
+Future initElements() async {
+}
