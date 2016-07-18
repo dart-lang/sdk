@@ -228,9 +228,9 @@ class MockCompiler extends Compiler {
                                           ExecutableElement element) {
     ResolverVisitor visitor =
         new ResolverVisitor(
-            this,
+            this.resolution,
             element,
-            new ResolutionRegistry(this,
+            new ResolutionRegistry(this.backend,
                 new CollectingTreeElements(element)),
             scope: new MockTypeVariablesScope(
                 element.enclosingElement.buildScope()));
@@ -247,10 +247,10 @@ class MockCompiler extends Compiler {
     Element mockElement = new MockElement(mainApp.entryCompilationUnit);
     ResolverVisitor visitor =
         new ResolverVisitor(
-            this,
+            this.resolution,
             mockElement,
             new ResolutionRegistry(
-                this, new CollectingTreeElements(mockElement)),
+                this.backend, new CollectingTreeElements(mockElement)),
             scope: mockElement.enclosingElement.buildScope());
     visitor.scope = new MethodScope(visitor.scope, mockElement);
     return visitor;

@@ -10,7 +10,7 @@ import 'common/resolution.dart' show Resolution;
 import 'common.dart';
 import 'core_types.dart';
 import 'elements/elements.dart';
-import 'elements/modelx.dart' show TypeDeclarationElementX, ErroneousElementX;
+import 'elements/modelx.dart' show TypeDeclarationElementX;
 import 'ordered_typeset.dart' show OrderedTypeSet;
 import 'util/util.dart' show equalElements;
 

@@ -166,9 +166,6 @@ abstract class Compiler implements LibraryLoaderListener {
 
   ClassElement typedDataClass;
 
-  /// The constant for the [proxy] variable defined in dart:core.
-  ConstantValue proxyConstant;
-
   // TODO(johnniwinther): Move this to the JavaScriptBackend.
   /// The class for patch annotation defined in dart:_js_helper.
   ClassElement patchAnnotationClass;
@@ -373,7 +370,8 @@ abstract class Compiler implements LibraryLoaderListener {
   ///
   /// Override this to mock the resolver for testing.
   ResolverTask createResolverTask() {
-    return new ResolverTask(this, backend.constantCompilerTask);
+    return new ResolverTask(
+        resolution, backend.constantCompilerTask, world, measurer);
   }
 
   Universe get resolverWorld => enqueuer.resolution.universe;
@@ -386,6 +384,8 @@ abstract class Compiler implements LibraryLoaderListener {
   bool get disableTypeInference =>
       options.disableTypeInference || compilationFailed;
 
+  // TODO(het): remove this from here. Either inline at all use sites or add it
+  // to Reporter.
   void unimplemented(Spannable spannable, String methodName) {
     reporter.internalError(spannable, "$methodName not implemented.");
   }
@@ -579,17 +579,6 @@ abstract class Compiler implements LibraryLoaderListener {
         });
       }
     }).then((_) => backend.onLibrariesLoaded(loadedLibraries));
-  }
-
-  bool isProxyConstant(ConstantValue value) {
-    FieldElement field = coreLibrary.find('proxy');
-    if (field == null) return false;
-    if (!resolution.hasBeenResolved(field)) return false;
-    if (proxyConstant == null) {
-      proxyConstant = constants
-          .getConstantValue(resolver.constantCompiler.compileConstant(field));
-    }
-    return proxyConstant == value;
   }
 
   Element findRequiredElement(LibraryElement library, String name) {
@@ -1129,7 +1118,7 @@ abstract class Compiler implements LibraryLoaderListener {
     if (markCompilationAsFailed(message, kind)) {
       compilationFailed = true;
     }
-    registerCompiletimeError(currentElement, message);
+    registerCompileTimeError(currentElement, message);
   }
 
   /**
@@ -1272,7 +1261,7 @@ abstract class Compiler implements LibraryLoaderListener {
   }
 
   /// Associate [element] with a compile-time error [message].
-  void registerCompiletimeError(Element element, DiagnosticMessage message) {
+  void registerCompileTimeError(Element element, DiagnosticMessage message) {
     // The information is only needed if [generateCodeWithCompileTimeErrors].
     if (options.generateCodeWithCompileTimeErrors) {
       if (element == null) {
@@ -1553,7 +1542,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
       } else {
         errorElement = currentElement;
       }
-      compiler.registerCompiletimeError(errorElement, message);
+      compiler.registerCompileTimeError(errorElement, message);
       compiler.fatalDiagnosticReported(message, infos, kind);
     }
   }
@@ -1906,6 +1895,48 @@ class _CompilerResolution implements Resolution {
   Target get target => compiler.backend;
 
   @override
+  ResolverTask get resolver => compiler.resolver;
+
+  @override
+  ResolutionEnqueuer get enqueuer => compiler.enqueuer.resolution;
+
+  @override
+  CompilerOptions get options => compiler.options;
+
+  @override
+  IdGenerator get idGenerator => compiler.idGenerator;
+
+  @override
+  ConstantEnvironment get constants => compiler.constants;
+
+  @override
+  MirrorUsageAnalyzerTask get mirrorUsageAnalyzerTask =>
+      compiler.mirrorUsageAnalyzerTask;
+
+  @override
+  LibraryElement get coreLibrary => compiler.coreLibrary;
+
+  @override
+  FunctionElement get identicalFunction => compiler.identicalFunction;
+
+  @override
+  ClassElement get mirrorSystemClass => compiler.mirrorSystemClass;
+
+  @override
+  FunctionElement get mirrorSystemGetNameFunction =>
+      compiler.mirrorSystemGetNameFunction;
+
+  @override
+  ConstructorElement get mirrorsUsedConstructor =>
+      compiler.mirrorsUsedConstructor;
+
+  @override
+  ConstructorElement get symbolConstructor => compiler.symbolConstructor;
+
+  @override
+  ConstantValue proxyConstant;
+
+  @override
   void registerClass(ClassElement cls) {
     compiler.world.registerClass(cls);
   }
@@ -1942,6 +1973,14 @@ class _CompilerResolution implements Resolution {
     }
     computeWorldImpact(element);
   }
+
+  @override
+  void onClassResolved(ClassElement element) =>
+      compiler.onClassResolved(element);
+
+  @override
+  void registerCompileTimeError(Element element, DiagnosticMessage message) =>
+      compiler.registerCompileTimeError(element, message);
 
   @override
   bool hasResolvedAst(ExecutableElement element) {
@@ -2083,6 +2122,18 @@ class _CompilerResolution implements Resolution {
   void forgetElement(Element element) {
     _worldImpactCache.remove(element);
     _resolutionImpactCache.remove(element);
+  }
+
+  @override
+  bool isProxyConstant(ConstantValue value) {
+    FieldElement field = coreLibrary.find('proxy');
+    if (field == null) return false;
+    if (!hasBeenResolved(field)) return false;
+    if (proxyConstant == null) {
+      proxyConstant = constants
+          .getConstantValue(resolver.constantCompiler.compileConstant(field));
+    }
+    return proxyConstant == value;
   }
 }
 

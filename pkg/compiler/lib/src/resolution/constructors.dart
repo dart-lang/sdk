@@ -5,8 +5,7 @@
 library dart2js.resolution.constructors;
 
 import '../common.dart';
-import '../common/resolution.dart' show Feature;
-import '../compiler.dart' show Compiler;
+import '../common/resolution.dart' show Feature, Resolution;
 import '../constants/constructors.dart'
     show
         GenerativeConstantConstructor,
@@ -476,9 +475,9 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
   final ResolverVisitor resolver;
   final bool inConstContext;
 
-  ConstructorResolver(Compiler compiler, this.resolver,
+  ConstructorResolver(Resolution resolution, this.resolver,
       {bool this.inConstContext: false})
-      : super(compiler);
+      : super(resolution);
 
   ResolutionRegistry get registry => resolver.registry;
 

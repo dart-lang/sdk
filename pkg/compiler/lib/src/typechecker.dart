@@ -1742,7 +1742,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   DartType visitAwait(Await node) {
     DartType expressionType = analyze(node.expression);
-    if (compiler.backend.supportsAsyncAwait) {
+    if (resolution.target.supportsAsyncAwait) {
       return types.flatten(expressionType);
     } else {
       return const DynamicType();
@@ -1869,7 +1869,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   visitAsyncForIn(AsyncForIn node) {
     DartType elementType = computeForInElementType(node);
     DartType expressionType = analyze(node.expression);
-    if (compiler.backend.supportsAsyncAwait) {
+    if (resolution.target.supportsAsyncAwait) {
       DartType streamOfDynamic = coreTypes.streamType();
       if (!types.isAssignable(expressionType, streamOfDynamic)) {
         reportMessage(node.expression, MessageKind.NOT_ASSIGNABLE,

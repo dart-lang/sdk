@@ -5,7 +5,7 @@
 library dart2js.resolution.variables;
 
 import '../common.dart';
-import '../compiler.dart' show Compiler;
+import '../common/resolution.dart';
 import '../elements/modelx.dart' show LocalVariableElementX, VariableList;
 import '../tree/tree.dart';
 import '../universe/use.dart' show TypeUse;
@@ -22,8 +22,8 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
   VariableList variables;
 
   VariableDefinitionsVisitor(
-      Compiler compiler, this.definitions, this.resolver, this.variables)
-      : super(compiler) {}
+      Resolution resolution, this.definitions, this.resolver, this.variables)
+      : super(resolution);
 
   ResolutionRegistry get registry => resolver.registry;
 
@@ -45,7 +45,7 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
     // The variable is initialized to null.
     // TODO(johnniwinther): Register a feature instead.
     registry.registerTypeUse(
-        new TypeUse.instantiation(compiler.coreTypes.nullType));
+        new TypeUse.instantiation(resolution.coreTypes.nullType));
     if (definitions.modifiers.isConst) {
       if (resolver.inLoopVariable) {
         reporter.reportErrorMessage(node, MessageKind.CONST_LOOP_VARIABLE);
@@ -68,9 +68,9 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
       resolver.defineLocalVariable(link.head, element);
       resolver.addToScope(element);
       if (definitions.modifiers.isConst) {
-        compiler.enqueuer.resolution.addDeferredAction(element, () {
+        addDeferredAction(element, () {
           element.constant =
-              compiler.resolver.constantCompiler.compileConstant(element);
+              resolution.resolver.constantCompiler.compileConstant(element);
         });
       }
     }
