@@ -72,12 +72,14 @@ Future deleteDirCallback(Uri path) async {
 }
 
 Future writeFileCallback(Uri path, List<int> bytes) async {
-  var file = await new File.fromUri(path);
+  var file = new File.fromUri(path);
+  var parent_directory = file.parent;
+  await parent_directory.create(recursive: true);
   await file.writeAsBytes(bytes);
 }
 
 Future<List<int>> readFileCallback(Uri path) async {
-  var file = await new File.fromUri(path);
+  var file = new File.fromUri(path);
   return await file.readAsBytes();
 }
 
