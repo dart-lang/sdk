@@ -3312,6 +3312,48 @@ int B = _A + 1;
     _assertInvalid(b, LIBRARY_ERRORS_READY);
   }
 
+  void test_sequence_applyChanges_changedSource() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {}
+class B {}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main() {
+  new A();
+  new B();
+}
+''');
+    _performPendingAnalysisTasks();
+    resourceProvider.updateFile(
+        '/a.dart',
+        r'''
+class A2 {}
+class B {}
+''');
+    // Update a.dart: remove A, add A2.
+    //   b.dart is invalid, because it references A.
+    var changeSet = new ChangeSet()..changedSource(a);
+    context.applyChanges(changeSet);
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
+    // Analyze.
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(a).errors, hasLength(0));
+    expect(context.getErrors(b).errors, hasLength(1));
+    _assertValid(a, READY_RESOLVED_UNIT);
+    _assertValid(b, READY_RESOLVED_UNIT);
+    _assertValidAllLibraryUnitResults(a);
+    _assertValidAllLibraryUnitResults(b);
+  }
+
   void test_sequence_class_give_take() {
     Source a = addSource(
         '/a.dart',
