@@ -34606,7 +34606,6 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
     JS('void', '#.location = #', this, value);
   }
 
-
   /**
    * Called to draw an animation frame and then request the window to repaint
    * after [callback] has finished (creating the animation).
@@ -34637,7 +34636,6 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    * * [Window.cancelAnimationFrame](https://developer.mozilla.org/en-US/docs/Web/API/Window.cancelAnimationFrame)
    *   from MDN.
    */
-  @DomName('Window.cancelAnimationFrame')
   void cancelAnimationFrame(int id) {
     _ensureRequestAnimationFrame();
     _cancelAnimationFrame(id);
@@ -34693,6 +34691,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   /// The debugging console for this window.
   @DomName('Window.console')
   Console get console => Console._safeConsole;
+
 
   /**
    * Access a sandboxed file system of the specified `size`. If `persistent` is
