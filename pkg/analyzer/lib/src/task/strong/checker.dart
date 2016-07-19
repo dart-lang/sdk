@@ -720,14 +720,6 @@ class CodeChecker extends RecursiveAstVisitor {
       // analyzer error in this case.
       return;
     }
-    InterfaceType futureType = typeProvider.futureType;
-    DartType actualType = expression?.staticType;
-    if (body.isAsynchronous &&
-        !body.isGenerator &&
-        actualType is InterfaceType &&
-        actualType.element == futureType.element) {
-      type = futureType.instantiate([type]);
-    }
     // TODO(vsm): Enforce void or dynamic (to void?) when expression is null.
     if (expression != null) checkAssignment(expression, type);
   }
@@ -858,9 +850,9 @@ class CodeChecker extends RecursiveAstVisitor {
         // Stream<T> -> T
         expectedType = typeProvider.streamType;
       } else {
-        // Future<T> -> T
-        // TODO(vsm): Revisit with issue #228.
-        expectedType = typeProvider.futureType;
+        // Don't validate return type of async methods.
+        // They're handled by the runtime implementation.
+        return null;
       }
     } else {
       if (body.isGenerator) {
