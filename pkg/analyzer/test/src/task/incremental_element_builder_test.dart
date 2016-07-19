@@ -6,6 +6,7 @@ library analyzer.test.src.task.incremental_element_builder_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -1775,6 +1776,33 @@ class A {}
 ''');
   }
 
+  test_update_element_implicitAccessors_classField() {
+    _buildOldUnit(r'''
+// 0
+class A {
+  var F = 0;
+}
+''');
+    _materializeLazyElements(unitElement);
+    _buildNewUnit(r'''
+// 012
+class A {
+  var F = 0;
+}
+''');
+  }
+
+  test_update_element_implicitAccessors_topLevelVariable() {
+    _buildOldUnit(r'''
+var A = 0;
+var B = 1;
+''');
+    _materializeLazyElements(unitElement);
+    _buildNewUnit(r'''
+var B = 1;
+''');
+  }
+
   test_update_rewrittenConstructorName() {
     _buildOldUnit(r'''
 class A {
@@ -1844,6 +1872,10 @@ main() {
     expect(unitElement, isNotNull);
   }
 
+  void _materializeLazyElements(CompilationUnitElement unitElement) {
+    unitElement.accept(new _MaterializeLazyElementsVisitor());
+  }
+
   void _verifyNoClassDeltaForTheLast(String oldCode, String newCode) {
     _buildOldUnit(oldCode);
     List<CompilationUnitMember> oldMembers = oldUnit.declarations.toList();
@@ -1862,6 +1894,8 @@ main() {
  * Compares tokens and ASTs, and built elements of declared identifiers.
  */
 class _BuiltElementsValidator extends AstComparator {
+  final Set visited = new Set.identity();
+
   @override
   bool isEqualNodes(AstNode expected, AstNode actual) {
     // Elements of nodes which are children of ClassDeclaration(s) must be
@@ -1923,13 +1957,17 @@ class _BuiltElementsValidator extends AstComparator {
         expect(actual.inDeclarationContext(), isTrue);
         Element expectedElement = expected.staticElement;
         Element actualElement = actual.staticElement;
-        _verifyElement(expectedElement, actualElement, 'staticElement');
+        _verifyElement(
+            expectedElement, actualElement, 'staticElement ($expectedElement)');
       }
     }
     return true;
   }
 
   void _verifyElement(Element expected, Element actual, String desc) {
+    if (!visited.add(expected)) {
+      return;
+    }
     if (expected == null && actual == null) {
       return;
     }
@@ -1957,6 +1995,23 @@ class _BuiltElementsValidator extends AstComparator {
         expect(actualEnclosing, isNotNull, reason: '$desc enclosingElement');
         _verifyElement(expectedEnclosing, actualEnclosing,
             '${expectedEnclosing.name}.$desc');
+      }
+    }
+    // Compare implicit accessors.
+    if (expected is PropertyInducingElement &&
+        actual is PropertyInducingElement &&
+        !expected.isSynthetic) {
+      _verifyElement(expected.getter, actual.getter, '$desc getter');
+      _verifyElement(expected.setter, actual.setter, '$desc setter');
+    }
+    // Compare parameters.
+    if (expected is ExecutableElement && actual is ExecutableElement) {
+      List<ParameterElement> actualParameters = actual.parameters;
+      List<ParameterElement> expectedParameters = expected.parameters;
+      expect(actualParameters, hasLength(expectedParameters.length));
+      for (int i = 0; i < expectedParameters.length; i++) {
+        _verifyElement(
+            expectedParameters[i], actualParameters[i], '$desc parameters[$i]');
       }
     }
   }
@@ -1999,4 +2054,12 @@ class _ClassDeltaHelper {
   ClassDeclaration _findClassNode(CompilationUnit unit, String name) =>
       unit.declarations.singleWhere((unitMember) =>
           unitMember is ClassDeclaration && unitMember.name.name == name);
+}
+
+class _MaterializeLazyElementsVisitor extends GeneralizingElementVisitor {
+  @override
+  visitExecutableElement(ExecutableElement element) {
+    element.parameters;
+    super.visitExecutableElement(element);
+  }
 }

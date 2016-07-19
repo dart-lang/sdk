@@ -130,6 +130,7 @@ class IncrementalCompilationUnitElementBuilder {
    * Fills [unitDelta] with added/remove elements.
    */
   void build() {
+    _materializeLazyElements();
     new CompilationUnitBuilder()
         .buildCompilationUnit(unitSource, newUnit, librarySource);
     _processDirectives();
@@ -168,6 +169,10 @@ class IncrementalCompilationUnitElementBuilder {
         constant.compilationUnit = unitElement;
       }
     }
+  }
+
+  void _materializeLazyElements() {
+    unitElement.accept(new RecursiveElementVisitor());
   }
 
   ClassElementDelta _processClassMembers(
@@ -683,15 +688,18 @@ class _UpdateElementOffsetsVisitor extends GeneralizingElementVisitor {
     if (element is LibraryElement) {
       return;
     }
-    if (element.isSynthetic && !_isVariableInitializer(element)) {
-      return;
-    }
     if (element is ElementImpl) {
       // name offset
       {
         int oldOffset = element.nameOffset;
         int newOffset = map[oldOffset];
-        assert(newOffset != null);
+        // Some synthetic elements have new offsets, e.g. synthetic accessors
+        // of property inducing elements.  But some are purely synthetic, e.g.
+        // synthetic enum fields and their accessors.
+        if (newOffset == null) {
+          assert(element.isSynthetic);
+          return;
+        }
         element.nameOffset = newOffset;
       }
       // code range
@@ -732,10 +740,5 @@ class _UpdateElementOffsetsVisitor extends GeneralizingElementVisitor {
       }
     }
     super.visitElement(element);
-  }
-
-  static bool _isVariableInitializer(Element element) {
-    return element is FunctionElement &&
-        element.enclosingElement is VariableElement;
   }
 }
