@@ -12488,7 +12488,10 @@ const char* ICData::ToCString() const {
 
 RawFunction* ICData::Owner() const {
   Object& obj = Object::Handle(raw_ptr()->owner_);
-  if (obj.IsFunction()) {
+  if (obj.IsNull()) {
+    ASSERT(Dart::snapshot_kind() == Snapshot::kAppNoJIT);
+    return Function::null();
+  } else if (obj.IsFunction()) {
     return Function::Cast(obj).raw();
   } else {
     ICData& original = ICData::Handle();
