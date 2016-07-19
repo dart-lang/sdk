@@ -39191,7 +39191,6 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
     return completer.future;
   }
 
-
   /**
    * Called to draw an animation frame and then request the window to repaint
    * after [callback] has finished (creating the animation).
@@ -39210,51 +39209,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.requestAnimationFrame')
   int requestAnimationFrame(FrameRequestCallback callback) {
-    if (identical(Zone.current, Zone.ROOT)) {
-      return _requestAnimationFrame(callback);
-    }
-    var spec = new AnimationFrameRequestSpecification(this, callback);
-    var task = Zone.current.createTask/*<AnimationFrameTask>*/(
-        _createAnimationFrameTask, spec);
-    AnimationFrameTask._tasks[task.id] = task;
-    return task.id;
+    return _requestAnimationFrame(_wrapZone(callback));
   }
-
-  static _AnimationFrameTask _createAnimationFrameTask(
-      AnimationFrameRequestSpecification spec, Zone zone) {
-    var task;
-    var id = spec.window._requestAnimationFrame((num time) {
-      AnimationFrameTask.removeMapping(task.id);
-      zone.runTask(_runAnimationFrame, task, time);
-    });
-    var callback = zone.registerUnaryCallback(spec.callback);
-    task = new _AnimationFrameTask(id, zone, callback);
-    return task;
-  }
-
-  static void _runAnimationFrame(_AnimationFrameTask task, num time) {
-    task._callback(time);
-  }
-
-  /**
-   * Cancels an animation frame request.
-   *
-   * ## Other resources
-   *
-   * * [Window.cancelAnimationFrame](https://developer.mozilla.org/en-US/docs/Web/API/Window.cancelAnimationFrame)
-   *   from MDN.
-   */
-  @DomName('Window.cancelAnimationFrame')
-  void cancelAnimationFrame(int id) {
-    var task = AnimationFrameTask._tasks.remove(id);
-    if (task == null) {
-      // Assume that the animation frame request wasn't intercepted by a zone.
-      _cancelAnimationFrame(id);
-      return;
-    }
-    task.cancel(this);
-  }
-
 
   /**
    * Access a sandboxed file system of the specified `size`. If `persistent` is
@@ -40022,7 +39978,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
 
   @DomName('Window.cancelAnimationFrame')
   @DocsEditable()
-  void _cancelAnimationFrame(int handle) => _blink.BlinkWindow.instance.cancelAnimationFrame_Callback_1_(this, handle);
+  void cancelAnimationFrame(int handle) => _blink.BlinkWindow.instance.cancelAnimationFrame_Callback_1_(this, handle);
   
   @DomName('Window.close')
   @DocsEditable()
