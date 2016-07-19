@@ -40,7 +40,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let JSArrayOfFormatter = () => (JSArrayOfFormatter = dart.constFn(_interceptors.JSArray$(_debugger.Formatter)))();
   let LinkedHashSetOfNameValuePair = () => (LinkedHashSetOfNameValuePair = dart.constFn(collection.LinkedHashSet$(_debugger.NameValuePair)))();
   let SetOfString = () => (SetOfString = dart.constFn(core.Set$(core.String)))();
-  let IterableOfNameValuePair = () => (IterableOfNameValuePair = dart.constFn(core.Iterable$(_debugger.NameValuePair)))();
   let ListOfNameValuePair = () => (ListOfNameValuePair = dart.constFn(core.List$(_debugger.NameValuePair)))();
   let JSArrayOfJsonMLFormatter = () => (JSArrayOfJsonMLFormatter = dart.constFn(_interceptors.JSArray$(_debugger.JsonMLFormatter)))();
   let JSArray = () => (JSArray = dart.constFn(_interceptors.JSArray$()))();
@@ -482,7 +481,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let dynamicToList = () => (dynamicToList = dart.constFn(dart.definiteFunctionType(core.List, [dart.dynamic])))();
   let TypeToString = () => (TypeToString = dart.constFn(dart.definiteFunctionType(core.String, [core.Type])))();
   let dynamicAndStringTobool = () => (dynamicAndStringTobool = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic, core.String])))();
-  let dynamicAnddynamicTodynamic$ = () => (dynamicAnddynamicTodynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic])))();
+  let intAnddynamicTovoid = () => (intAnddynamicTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.int, dart.dynamic])))();
   let dynamicTobool$ = () => (dynamicTobool$ = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic])))();
   let dynamicAnddynamicTovoid = () => (dynamicAnddynamicTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [dart.dynamic, dart.dynamic])))();
   let VoidTodynamic$ = () => (VoidTodynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
@@ -498,6 +497,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let FunctionTovoid = () => (FunctionTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.Function])))();
   let StringAndStringToString = () => (StringAndStringToString = dart.constFn(dart.definiteFunctionType(core.String, [core.String, core.String])))();
   let TypeAndStringTodynamic = () => (TypeAndStringTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.Type, core.String])))();
+  let dynamicAnddynamicTodynamic$ = () => (dynamicAnddynamicTodynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic])))();
   let ListOfEToListOfE = () => (ListOfEToListOfE = dart.constFn(dart.definiteFunctionType(E => [core.List$(E), [core.List$(E)]])))();
   let StringTovoid = () => (StringTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.String])))();
   let _IsolateContextAndFunctionTodynamic = () => (_IsolateContextAndFunctionTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [_isolate_helper._IsolateContext, core.Function])))();
@@ -1318,7 +1318,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (dart.test(dart.hasMethod(obj, f))) return dart.bind(obj, f, void 0);
       return obj[f];
     }
-    return dart.noSuchMethod(obj, new dart._Invocation(core.String._check(field), [], {isGetter: true}));
+    return dart.noSuchMethod(obj, new dart.InvocationImpl(core.String._check(field), [], {isGetter: true}));
   };
   dart.dput = function(obj, field, value) {
     let f = dart._canonicalMember(obj, field);
@@ -1326,7 +1326,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     if (f != null) {
       return obj[f] = value;
     }
-    return dart.noSuchMethod(obj, new dart._Invocation(core.String._check(field), [value], {isSetter: true}));
+    return dart.noSuchMethod(obj, new dart.InvocationImpl(core.String._check(field), [value], {isSetter: true}));
   };
   dart._checkApply = function(type, actuals) {
     if (actuals.length < type.args.length) return false;
@@ -1368,7 +1368,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (args.length > 0 && args[args.length - 1].__proto__ == Object.prototype) {
         namedArgs = args.pop();
       }
-      return dart.noSuchMethod(originalTarget, new dart._Invocation(name, args, {namedArguments: namedArgs, isMethod: true}));
+      return dart.noSuchMethod(originalTarget, new dart.InvocationImpl(name, args, {namedArguments: namedArgs, isMethod: true}));
     }
     if (!(f instanceof Function)) {
       if (f != null) {
@@ -1449,7 +1449,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart._callMethod = function(obj, name, typeArgs, args, displayName) {
     let symbol = dart._canonicalMember(obj, name);
     if (symbol == null) {
-      return dart.noSuchMethod(obj, new dart._Invocation(core.String._check(displayName), core.List._check(args), {isMethod: true}));
+      return dart.noSuchMethod(obj, new dart.InvocationImpl(core.String._check(displayName), core.List._check(args), {isMethod: true}));
     }
     let f = obj != null ? obj[symbol] : null;
     let ftype = dart.getMethodType(obj, symbol);
@@ -2249,7 +2249,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.test(this.isGetter) || dart.test(this.isSetter);
     }
   };
-  dart._Invocation = class _Invocation extends core.Invocation {
+  dart.InvocationImpl = class InvocationImpl extends core.Invocation {
     new(memberName, positionalArguments, opts) {
       let namedArguments = opts && 'namedArguments' in opts ? opts.namedArguments : null;
       let isMethod = opts && 'isMethod' in opts ? opts.isMethod : false;
@@ -2260,15 +2260,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this.isGetter = isGetter;
       this.isSetter = isSetter;
       this.memberName = dart._dartSymbol(memberName);
-      this.namedArguments = dart._Invocation._namedArgsToSymbols(namedArguments);
+      this.namedArguments = dart.InvocationImpl._namedArgsToSymbols(namedArguments);
     }
     static _namedArgsToSymbols(namedArgs) {
       if (namedArgs == null) return dart.map();
       return MapOfSymbol$dynamic().fromIterable(dart.getOwnPropertyNames(namedArgs), {key: dart._dartSymbol, value: dart.fn(k => namedArgs[k], dynamicTodynamic$())});
     }
   };
-  dart.setSignature(dart._Invocation, {
-    constructors: () => ({new: dart.definiteFunctionType(dart._Invocation, [core.String, core.List], {namedArguments: dart.dynamic, isMethod: core.bool, isGetter: core.bool, isSetter: core.bool})}),
+  dart.setSignature(dart.InvocationImpl, {
+    constructors: () => ({new: dart.definiteFunctionType(dart.InvocationImpl, [core.String, core.List], {namedArguments: dart.dynamic, isMethod: core.bool, isGetter: core.bool, isSetter: core.bool})}),
     statics: () => ({_namedArgsToSymbols: dart.definiteFunctionType(core.Map$(core.Symbol, dart.dynamic), [dart.dynamic])}),
     names: ['_namedArgsToSymbols']
   });
@@ -2450,24 +2450,24 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.notNull(this.end) - dart.notNull(this.start);
     }
     get maxPowerOfSubsetSize() {
-      return (dart.notNull(math.log(core.num._check(dart.dsend(this.length, '-', 0.5)))) / dart.notNull(math.log(_debugger._maxSpanLength)))[dartx.truncate]();
+      return (dart.notNull(math.log(dart.notNull(this.length) - 0.5)) / dart.notNull(math.log(_debugger._maxSpanLength)))[dartx.truncate]();
     }
     get subsetSize() {
-      return math.pow(_debugger._maxSpanLength, core.num._check(this.maxPowerOfSubsetSize));
+      return dart.asInt(math.pow(_debugger._maxSpanLength, this.maxPowerOfSubsetSize));
     }
     asMap() {
-      return this.iterable[dartx.skip](this.start)[dartx.take](core.int._check(this.length))[dartx.toList]()[dartx.asMap]();
+      return this.iterable[dartx.skip](this.start)[dartx.take](this.length)[dartx.toList]()[dartx.asMap]();
     }
     children() {
       let ret = JSArrayOfNameValuePair().of([]);
-      if (dart.test(dart.dsend(this.length, '<=', _debugger._maxSpanLength))) {
-        dart.dsend(this.asMap(), 'forEach', dart.fn((i, element) => {
-          ret[dartx.add](new _debugger.NameValuePair({name: dart.toString(dart.dsend(i, '+', this.start)), value: element}));
-        }, dynamicAnddynamicTodynamic$()));
+      if (dart.notNull(this.length) <= dart.notNull(_debugger._maxSpanLength)) {
+        this.asMap()[dartx.forEach](dart.fn((i, element) => {
+          ret[dartx.add](new _debugger.NameValuePair({name: dart.toString(dart.notNull(i) + dart.notNull(this.start)), value: element}));
+        }, intAnddynamicTovoid()));
       } else {
-        for (let i = this.start; dart.notNull(i) < dart.notNull(this.end); i = dart.notNull(i) + dart.notNull(core.int._check(this.subsetSize))) {
-          let subSpan = new _debugger.IterableSpan(i, dart.asInt(math.min(core.num)(this.end, core.num._check(dart.dsend(this.subsetSize, '+', i)))), this.iterable);
-          if (dart.equals(subSpan.length, 1)) {
+        for (let i = this.start; dart.notNull(i) < dart.notNull(this.end); i = dart.notNull(i) + dart.notNull(this.subsetSize)) {
+          let subSpan = new _debugger.IterableSpan(i, math.min(core.int)(this.end, dart.notNull(this.subsetSize) + dart.notNull(i)), this.iterable);
+          if (subSpan.length == 1) {
             ret[dartx.add](new _debugger.NameValuePair({name: dart.toString(i), value: this.iterable[dartx.elementAt](i)}));
           } else {
             ret[dartx.add](new _debugger.NameValuePair({name: dart.str`[${i}...${dart.notNull(subSpan.end) - 1}]`, value: subSpan, hideName: true}));
@@ -2480,8 +2480,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(_debugger.IterableSpan, {
     constructors: () => ({new: dart.definiteFunctionType(_debugger.IterableSpan, [core.int, core.int, core.Iterable])}),
     methods: () => ({
-      asMap: dart.definiteFunctionType(dart.dynamic, []),
-      children: dart.definiteFunctionType(dart.dynamic, [])
+      asMap: dart.definiteFunctionType(core.Map$(core.int, dart.dynamic), []),
+      children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [])
     })
   });
   _debugger.ClassMetadata = class ClassMetadata extends core.Object {
@@ -2833,7 +2833,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     children(object) {
       let ret = LinkedHashSetOfNameValuePair().new();
-      ret.addAll(IterableOfNameValuePair()._check(new _debugger.IterableSpan(0, core.int._check(dart.dload(object, 'length')), core.Iterable._check(object)).children()));
+      ret.addAll(new _debugger.IterableSpan(0, core.int._check(dart.dload(object, 'length')), core.Iterable._check(object)).children());
       this.addMetadataChildren(object, ret);
       return ret.toList();
     }

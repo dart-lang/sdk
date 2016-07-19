@@ -13,6 +13,9 @@ dart_library.library('language/override_inheritance_no_such_method_test_03_multi
     noSuchMethod(_) {
       return null;
     }
+    method3() {
+      return this.noSuchMethod(new dart.InvocationImpl('method3', [], {isMethod: true}));
+    }
   };
   override_inheritance_no_such_method_test_03_multi.Class1[dart.implements] = () => [override_inheritance_no_such_method_test_03_multi.I];
   override_inheritance_no_such_method_test_03_multi.B = class B extends core.Object {};

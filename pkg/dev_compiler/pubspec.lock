@@ -234,7 +234,7 @@ packages:
       name: test
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.12.13+5"
+    version: "0.12.15+1"
   typed_data:
     description:
       name: typed_data
@@ -289,4 +289,4 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.9"
-sdk: ">=1.16.0 <1.19.0"
+sdk: ">=1.16.0 <1.20.0"

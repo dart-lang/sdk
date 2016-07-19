@@ -66,10 +66,12 @@ final packageUrlMappings = {
 
 final codeCoverage = Platform.environment.containsKey('COVERALLS_TOKEN');
 
+RegExp filePattern;
+
 main(List<String> arguments) {
   if (arguments == null) arguments = [];
   ArgResults args = argParser.parse(arguments);
-  var filePattern = new RegExp(args.rest.length > 0 ? args.rest[0] : '.');
+  filePattern = new RegExp(args.rest.length > 0 ? args.rest[0] : '.');
 
   var sdkDir = path.join(repoDirectory, 'gen', 'patched_sdk');
   var sdkSummaryFile =
@@ -93,7 +95,7 @@ main(List<String> arguments) {
 
   // Copy all of the test files and expanded multitest files to
   // gen/codegen_tests. We'll compile from there.
-  var testFiles = _setUpTests(testDirs, filePattern);
+  var testFiles = _setUpTests(testDirs);
 
   // Our default compiler options. Individual tests can override these.
   var defaultOptions = ['--no-source-map', '--no-summarize'];
@@ -211,10 +213,13 @@ void _buildAllPackages(ModuleCompiler compiler) {
 
     var packages = ['matcher', 'path', 'stack_trace'];
     for (var package in packages) {
+      if (!filePattern.hasMatch(package)) continue;
       test(package, () {
         _buildPackage(compiler, codegenOutputDir, codegenExpectDir, package);
       });
     }
+
+    if (!filePattern.hasMatch('unittest')) return;
 
     test('unittest', () {
       // Only build files applicable to the web - html_*.dart and its
@@ -228,6 +233,8 @@ void _buildAllPackages(ModuleCompiler compiler) {
           ]);
     });
   });
+
+  if (!filePattern.hasMatch('sunflower')) return;
 
   test('dartdevc sunflower', () {
     _buildSunflower(compiler, codegenOutputDir, codegenExpectDir);
@@ -256,6 +263,8 @@ void _buildPackages(
   var options = new CompilerOptions(sourceMap: false, summarizeApi: false);
 
   for (var uri in packageUrlMappings.keys) {
+    if (!filePattern.hasMatch(uri)) return;
+
     assert(uri.startsWith('package:'));
     var uriPath = uri.substring('package:'.length);
     var name = path.basenameWithoutExtension(uriPath);
@@ -313,12 +322,12 @@ String _moduleForLibrary(Source source) {
   throw new Exception('Module not found for library "${source.fullName}"');
 }
 
-List<String> _setUpTests(List<String> testDirs, RegExp filePattern) {
+List<String> _setUpTests(List<String> testDirs) {
   var testFiles = <String>[];
 
   for (var testDir in testDirs) {
-    for (var file in _listFiles(path.join(codegenDir, testDir), filePattern,
-        recursive: true)) {
+    for (var file
+        in _listFiles(path.join(codegenDir, testDir), recursive: true)) {
       var relativePath = path.relative(file, from: codegenDir);
       var outputPath = path.join(codegenTestDir, relativePath);
 
@@ -355,7 +364,7 @@ List<String> _setUpTests(List<String> testDirs, RegExp filePattern) {
   }
 
   // Also include the other special files that live at the top level directory.
-  for (var file in _listFiles(codegenDir, filePattern)) {
+  for (var file in _listFiles(codegenDir)) {
     var relativePath = path.relative(file, from: codegenDir);
     var outputPath = path.join(codegenTestDir, relativePath);
 
@@ -374,8 +383,7 @@ void _ensureDirectory(String dir) {
 }
 
 /// Lists all of the files within [dir] that match [filePattern].
-Iterable<String> _listFiles(String dir, RegExp filePattern,
-    {bool recursive: false}) {
+Iterable<String> _listFiles(String dir, {bool recursive: false}) {
   return new Directory(dir)
       .listSync(recursive: recursive, followLinks: false)
       .where((entry) {

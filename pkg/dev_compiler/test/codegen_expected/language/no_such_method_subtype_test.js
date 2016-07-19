@@ -23,6 +23,9 @@ dart_library.library('language/no_such_method_subtype_test', null, /* Imports */
     noSuchMethod(im) {
       return 84;
     }
+    foo() {
+      return this.noSuchMethod(new dart.InvocationImpl('foo', [], {isMethod: true}));
+    }
   };
   no_such_method_subtype_test.B[dart.implements] = () => [no_such_method_subtype_test.A];
   no_such_method_subtype_test.main = function() {

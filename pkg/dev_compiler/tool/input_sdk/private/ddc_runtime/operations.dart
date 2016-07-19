@@ -6,7 +6,7 @@
 /// generator.
 part of dart._runtime;
 
-class _Invocation extends Invocation {
+class InvocationImpl extends Invocation {
   final Symbol memberName;
   final List positionalArguments;
   final Map<Symbol, dynamic> namedArguments;
@@ -14,7 +14,7 @@ class _Invocation extends Invocation {
   final bool isGetter;
   final bool isSetter;
 
-  _Invocation(String memberName, this.positionalArguments,
+  InvocationImpl(String memberName, this.positionalArguments,
       {namedArguments,
       this.isMethod: false,
       this.isGetter: false,
@@ -39,7 +39,7 @@ dload(obj, field) {
     return JS('', '#[#]', obj, f);
   }
   return noSuchMethod(obj,
-      new _Invocation(field, JS('', '[]'), isGetter: true));
+      new InvocationImpl(field, JS('', '[]'), isGetter: true));
 }
 
 dput(obj, field, value) {
@@ -49,7 +49,7 @@ dput(obj, field, value) {
     return JS('', '#[#] = #', obj, f, value);
   }
   return noSuchMethod(obj,
-      new _Invocation(field, JS('', '[#]', value), isSetter: true));
+      new InvocationImpl(field, JS('', '[#]', value), isSetter: true));
 }
 
 /// Check that a function of a given type can be applied to
@@ -104,7 +104,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
         args[args.length - 1].__proto__ == Object.prototype) {
       namedArgs = args.pop();
     }
-    return $noSuchMethod(originalTarget, new $_Invocation(
+    return $noSuchMethod(originalTarget, new $InvocationImpl(
         $name, $args, {namedArguments: namedArgs, isMethod: true}));
   }
   if (!($f instanceof Function)) {
@@ -224,7 +224,7 @@ _callMethod(obj, name, typeArgs, args, displayName) {
   var symbol = _canonicalMember(obj, name);
   if (symbol == null) {
     return noSuchMethod(obj,
-        new _Invocation(displayName, args, isMethod: true));
+        new InvocationImpl(displayName, args, isMethod: true));
   }
   var f = obj != null ? JS('', '#[#]', obj, symbol) : null;
   var ftype = getMethodType(obj, symbol);

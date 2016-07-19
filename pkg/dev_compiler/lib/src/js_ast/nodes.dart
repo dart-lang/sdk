@@ -1175,6 +1175,7 @@ class Fun extends FunctionExpression {
   final Block body;
   @override final List<Identifier> typeParams;
   @override final TypeRef returnType;
+
   /** Whether this is a JS generator (`function*`) that may contain `yield`. */
   final bool isGenerator;
 

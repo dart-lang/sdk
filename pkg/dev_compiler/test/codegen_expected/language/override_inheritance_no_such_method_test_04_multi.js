@@ -14,6 +14,9 @@ dart_library.library('language/override_inheritance_no_such_method_test_04_multi
       if (__ === void 0) __ = null;
       return null;
     }
+    method4() {
+      return this.noSuchMethod(new dart.InvocationImpl('method4', [], {isMethod: true}));
+    }
   };
   override_inheritance_no_such_method_test_04_multi.Class1[dart.implements] = () => [override_inheritance_no_such_method_test_04_multi.I];
   dart.setSignature(override_inheritance_no_such_method_test_04_multi.Class1, {

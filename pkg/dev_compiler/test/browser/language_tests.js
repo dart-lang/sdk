@@ -259,7 +259,6 @@
       'nan_identical_test': skip_fail,
       'nested_switch_label_test': skip_fail,
       'no_such_method_empty_selector_test': fail,
-      'no_such_method_subtype_test': fail,
       'number_identifier_test_05_multi': skip_fail,
       'number_identity2_test': skip_fail,
       'numbers_test': skip_fail,

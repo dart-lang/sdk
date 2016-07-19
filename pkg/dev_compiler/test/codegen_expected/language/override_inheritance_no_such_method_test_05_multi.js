@@ -9,7 +9,11 @@ dart_library.library('language/override_inheritance_no_such_method_test_05_multi
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   override_inheritance_no_such_method_test_05_multi.A = class A extends core.Object {};
   override_inheritance_no_such_method_test_05_multi.I = class I extends core.Object {};
-  override_inheritance_no_such_method_test_05_multi.Class1 = class Class1 extends override_inheritance_no_such_method_test_05_multi.A {};
+  override_inheritance_no_such_method_test_05_multi.Class1 = class Class1 extends override_inheritance_no_such_method_test_05_multi.A {
+    method5() {
+      return this.noSuchMethod(new dart.InvocationImpl('method5', [], {isMethod: true}));
+    }
+  };
   override_inheritance_no_such_method_test_05_multi.Class1[dart.implements] = () => [override_inheritance_no_such_method_test_05_multi.I];
   override_inheritance_no_such_method_test_05_multi.B = class B extends core.Object {};
   override_inheritance_no_such_method_test_05_multi.Class2 = class Class2 extends override_inheritance_no_such_method_test_05_multi.B {};
