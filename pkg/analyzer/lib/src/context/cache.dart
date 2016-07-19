@@ -7,6 +7,7 @@ library analyzer.src.context.cache;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart'
     show ElementImpl, Modifier;
 import 'package:analyzer/src/generated/engine.dart';
@@ -1247,6 +1248,29 @@ class InvalidatedResult<V> {
 
   @override
   String toString() => '$descriptor of ${entry.target}';
+}
+
+/**
+ * A cache partition that contains all of the targets in a single package.
+ */
+class PackageCachePartition extends CachePartition {
+  /**
+   * The root of the directory representing the package.
+   */
+  final Folder packageRoot;
+
+  /**
+   * Initialize a newly created cache partition, belonging to the given
+   * [context].
+   */
+  PackageCachePartition(InternalAnalysisContext context, this.packageRoot)
+      : super(context);
+
+  @override
+  bool isResponsibleFor(AnalysisTarget target) {
+    Source source = target.source;
+    return source != null && packageRoot.contains(source.fullName);
+  }
 }
 
 /**

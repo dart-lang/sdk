@@ -4,6 +4,9 @@
 
 library analyzer.test.src.context.cache_test;
 
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -1075,6 +1078,35 @@ abstract class CachePartitionTest extends EngineTestCase {
     expect(partition.get(target), entry);
     expect(partition.remove(target), entry);
     expect(partition.get(target), isNull);
+  }
+}
+
+@reflectiveTest
+class PackageCachePartitionTest extends CachePartitionTest {
+  MemoryResourceProvider resourceProvider;
+  Folder rootFolder;
+
+  CachePartition createPartition() {
+    resourceProvider = new MemoryResourceProvider();
+    rootFolder = resourceProvider.newFolder('/package/root');
+    return new PackageCachePartition(null, rootFolder);
+  }
+
+  void test_contains_false() {
+    CachePartition partition = createPartition();
+    AnalysisTarget target = new TestSource();
+    expect(partition.isResponsibleFor(target), isFalse);
+  }
+
+  void test_contains_true() {
+    SdkCachePartition partition = new SdkCachePartition(null);
+    SourceFactory factory = new SourceFactory([
+      new PackageMapUriResolver(resourceProvider, <String, List<Folder>>{
+        'root': <Folder>[rootFolder]
+      })
+    ]);
+    AnalysisTarget target = factory.forUri("package:root/root.dart");
+    expect(partition.isResponsibleFor(target), isTrue);
   }
 }
 
