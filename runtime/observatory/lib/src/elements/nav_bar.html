@@ -46,50 +46,6 @@
   </template>
 </polymer-element>
 
-<polymer-element name="nav-menu-item" extends="observatory-element">
-  <template>
-    <style>
-      li {
-        float: none;
-        border-top: 1px solid #677;
-        border-bottom: 1px solid #556; position: relative;
-      }
-      li:hover {
-        background: #455;
-      }
-      li ul {
-        display: none;
-        position: absolute;
-        top:0;
-        left: 100%;
-        list-style: none;
-        padding: 0;
-        margin-left: 0;
-        width: auto;
-        z-index: 1000;
-        font: 400 16px 'Montserrat', sans-serif;
-        color: white;
-        background: #567;
-      }
-      li ul:after {
-        content: ""; clear: both; display: block;
-      }
-      li:hover > ul {
-        display: block;
-      }
-      li a {
-        display: block;
-        padding: 12px 12px;
-        color: white;
-        text-decoration: none;
-      }
-    </style>
-    <li><a on-click="{{ goto }}" _href="{{ gotoLink(link) }}">{{ anchor }}</a>
-      <ul><content></content></ul>
-    </li>
-  </template>
-</polymer-element>
-
 <polymer-element name="top-nav-menu">
   <template>
     <nav-menu link="/vm" anchor="Observatory" last="{{ last }}">

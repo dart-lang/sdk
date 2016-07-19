@@ -120,6 +120,8 @@
     'lib/src/elements/nav_bar.html',
     'lib/src/elements/nav/menu.dart',
     'lib/src/elements/nav/menu_wrapper.dart',
+    'lib/src/elements/nav/menu_item.dart',
+    'lib/src/elements/nav/menu_item_wrapper.dart',
     'lib/src/elements/nav/refresh.dart',
     'lib/src/elements/nav/refresh_wrapper.dart',
     'lib/src/elements/object_common.dart',

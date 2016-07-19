@@ -23,16 +23,6 @@ class NavBarElement extends ObservatoryElement {
   NavBarElement.created() : super.created();
 }
 
-@CustomTag('nav-menu-item')
-class NavMenuItemElement extends ObservatoryElement {
-  @published String link = '#';
-  @published String anchor = '---';
-
-  NavMenuItemElement.created() : super.created();
-}
-
-typedef Future RefreshCallback();
-
 @CustomTag('top-nav-menu')
 class TopNavMenuElement extends ObservatoryElement {
   @published bool last = false;
