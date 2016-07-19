@@ -312,6 +312,10 @@ class _FlutterDeviceServiceTesterRunner {
   }
 }
 
+void suppressWarning() {
+  new _FlutterDeviceServiceTesterRunner();
+}
+
 class _ServiceTesterRunner {
   void run({List<String> mainArgs,
             List<VMTest> vmTests,

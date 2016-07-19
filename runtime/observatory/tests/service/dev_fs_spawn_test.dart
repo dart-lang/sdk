@@ -10,8 +10,6 @@ import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-import 'dart:io';  // remove
-
 var tests = [
   (VM vm) async {
     // Create a new fs.
