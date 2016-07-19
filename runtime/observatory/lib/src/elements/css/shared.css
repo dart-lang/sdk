@@ -354,3 +354,20 @@ body.busy, body.busy * {
   animation: shake 0.5s;
   -webkit-animation: shake 0.5s;
 }
+
+/* view-footer */
+
+view-footer {
+  padding: 1em;
+  padding-top: 10.3em;
+  float: right;
+  align-content: right;
+}
+
+view-footer > a {
+  margin-bottom: 0.17em;
+  font-size: 90%;
+  float: right;
+  clear: both;
+  display: block;
+}

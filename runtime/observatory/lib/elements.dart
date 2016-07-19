@@ -55,16 +55,20 @@ export 'package:observatory/src/elements/service_ref.dart';
 export 'package:observatory/src/elements/service_view.dart';
 export 'package:observatory/src/elements/sliding_checkbox.dart';
 export 'package:observatory/src/elements/timeline_page.dart';
-export 'package:observatory/src/elements/view_footer.dart';
 export 'package:observatory/src/elements/vm_connect.dart';
 export 'package:observatory/src/elements/vm_ref.dart';
 export 'package:observatory/src/elements/vm_view.dart';
 
 import 'dart:async';
 
+import 'package:observatory/src/elements/view_footer.dart';
+
 export 'package:observatory/src/elements/helpers/rendering_queue.dart';
+
+export 'package:observatory/src/elements/view_footer.dart';
 
 // Even though this function does not invoke any asynchronous operation
 // it is marked as async to allow future backward compatible changes.
 Future initElements() async {
+  ViewFooterElement.tag.ensureRegistration();
 }
