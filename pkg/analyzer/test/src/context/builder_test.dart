@@ -9,7 +9,9 @@ import 'dart:io' as io;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -226,6 +228,29 @@ bar:/pkg/bar
     });
   }
 
+  void test_createSourceFactory_fileProvider() {
+    withTempDir((io.Directory tempDir) {
+      createDefaultSdk(tempDir);
+      String rootPath = tempDir.path;
+      String projectPath = pathContext.join(rootPath, 'project');
+      String packageFilePath = pathContext.join(projectPath, '.packages');
+      String packageA = pathContext.join(rootPath, 'pkgs', 'a');
+      String packageB = pathContext.join(rootPath, 'pkgs', 'b');
+      createFile(
+          packageFilePath,
+          '''
+a:${pathContext.toUri(packageA)}
+b:${pathContext.toUri(packageB)}
+''');
+      AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+      UriResolver resolver = new ResourceUriResolver(resourceProvider);
+      builder.fileResolverProvider = (folder) => resolver;
+      SourceFactoryImpl factory =
+          builder.createSourceFactory(projectPath, options);
+      expect(factory.resolvers, contains(same(resolver)));
+    });
+  }
+
   void test_createSourceFactory_noProvider_packages_embedder_extensions() {
     withTempDir((io.Directory tempDir) {
       createDefaultSdk(tempDir);
@@ -346,9 +371,18 @@ b:${pathContext.toUri(packageB)}
     });
   }
 
-  @failingTest
-  void test_createSourceFactory_provider() {
-    fail('Incomplete test');
+  void test_createSourceFactory_packageProvider() {
+    withTempDir((io.Directory tempDir) {
+      createDefaultSdk(tempDir);
+      String rootPath = tempDir.path;
+      String projectPath = pathContext.join(rootPath, 'project');
+      AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+      UriResolver resolver = new PackageMapUriResolver(resourceProvider, {});
+      builder.packageResolverProvider = (folder) => resolver;
+      SourceFactoryImpl factory =
+          builder.createSourceFactory(projectPath, options);
+      expect(factory.resolvers, contains(same(resolver)));
+    });
   }
 
   @failingTest

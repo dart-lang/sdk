@@ -75,6 +75,12 @@ class ContextBuilder {
   ResolverProvider packageResolverProvider;
 
   /**
+   * The resolver provider used to create a file: URI resolver, or `null` if
+   * the normal file URI resolver is to be used.
+   */
+  ResolverProvider fileResolverProvider;
+
+  /**
    * The file path of the .packages file that should be used in place of any
    * file found using the normal (Package Specification DEP) lookup mechanism,
    * or `null` if the normal lookup mechanism should be used.
@@ -197,17 +203,23 @@ class ContextBuilder {
 
   SourceFactory createSourceFactory(
       String rootDirectoryPath, AnalysisOptions options) {
+    Folder _folder = null;
+    Folder folder() {
+      return _folder ??= resourceProvider.getResource('.');
+    }
+    UriResolver fileResolver = fileResolverProvider == null
+        ? new ResourceUriResolver(resourceProvider)
+        : fileResolverProvider(folder());
     if (packageResolverProvider != null) {
-      Folder folder = resourceProvider.getResource('.');
-      UriResolver resolver = packageResolverProvider(folder);
-      if (resolver != null) {
+      UriResolver packageResolver = packageResolverProvider(folder());
+      if (packageResolver != null) {
         // TODO(brianwilkerson) This doesn't support either embedder files or
         // sdk extensions because we don't have a way to get the package map
         // from the resolver.
         List<UriResolver> resolvers = <UriResolver>[
           new DartUriResolver(findSdk(null, options)),
-          resolver,
-          new ResourceUriResolver(resourceProvider)
+          packageResolver,
+          fileResolver
         ];
         return new SourceFactory(resolvers);
       }
@@ -219,7 +231,7 @@ class ContextBuilder {
     if (packageMap != null) {
       resolvers.add(new PackageMapUriResolver(resourceProvider, packageMap));
     }
-    resolvers.add(new ResourceUriResolver(resourceProvider));
+    resolvers.add(fileResolver);
     return new SourceFactory(resolvers);
   }
 
