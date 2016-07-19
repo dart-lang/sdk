@@ -8,6 +8,6 @@ import 'class_hierarchy_tester.dart';
 main() {
   test('All-pairs class hierarchy tests on dart2js', () {
     testClassHierarchyOnProgram(
-        loadProgramFromBinary('test/data/dart2js.bart'));
+        loadProgramFromBinary('test/data/dart2js.dill'));
   });
 }

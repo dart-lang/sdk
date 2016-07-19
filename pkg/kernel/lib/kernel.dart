@@ -55,18 +55,18 @@ TreeNode loadProgramOrLibraryFromBinary(String path, [Repository repository]) {
 ///
 /// Throw an exception if any of the files are missing.
 ///
-/// Loading from both .dart and .bart files will not not be supported until we
+/// Loading from both .dart and .dill files will not not be supported until we
 /// get a dedicated frontend.
 void loadEverythingFromDart(AnalyzerRepository repository) {
   repository.getAnalyzerLoader().loadEverything();
 }
 
 /// Ensures that everything in [repository] is loaded into memory by loading
-/// the necessary .bart files.
+/// the necessary .dill files.
 ///
 /// Throw an exception if any of the files are missing.
 ///
-/// Loading from both .dart and .bart files will not not be supported until we
+/// Loading from both .dart and .dill files will not not be supported until we
 /// get a dedicated frontend.
 void loadEverythingFromBinary(Repository repository) {
   var loader = new BinaryLoader(repository);

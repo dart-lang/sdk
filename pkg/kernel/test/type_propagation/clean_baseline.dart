@@ -11,7 +11,7 @@ import 'dart:io';
 void main() {
   String directory = baseline_test.binaryDirectory;
   for (FileSystemEntity entity in new Directory(directory).listSync()) {
-    if (entity is File && entity.path.endsWith('.bart')) {
+    if (entity is File && entity.path.endsWith('.dill')) {
       entity.deleteSync();
     }
   }

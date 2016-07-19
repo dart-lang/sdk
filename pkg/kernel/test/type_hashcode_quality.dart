@@ -5,7 +5,7 @@ import 'package:kernel/kernel.dart';
 import 'dart:io';
 
 String usage = '''
-Usage: type_hashcode_quality FILE.bart
+Usage: type_hashcode_quality FILE.dill
 
 Counts the number of hash collisions between DartTypes in the given file.
 ''';

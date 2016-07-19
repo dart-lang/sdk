@@ -34,7 +34,7 @@ void main() {
       test(name, () {
         String dartPath = file.path;
         String shortName = pathlib.withoutExtension(name);
-        String binaryPath = '$binaryDirectory/$shortName.bart';
+        String binaryPath = '$binaryDirectory/$shortName.dill';
         String baselineTextPath = '$textDirectory/$shortName.baseline.txt';
         String currentTextPath = '$textDirectory/$shortName.current.txt';
 

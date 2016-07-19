@@ -136,10 +136,10 @@ class BinaryLoader implements BinaryReferenceLoader {
     ensureLibraryIsLoaded(member.enclosingLibrary);
   }
 
-  /// Replaces the .dart extension with .bart.
+  /// Replaces the .dart extension with .dill.
   String _translateFilename(String filename) {
     if (filename.endsWith('.dart')) {
-      return pathlib.withoutExtension(filename) + '.bart';
+      return pathlib.withoutExtension(filename) + '.dill';
     } else {
       return filename;
     }
@@ -149,8 +149,8 @@ class BinaryLoader implements BinaryReferenceLoader {
     var filename = _translateFilename(repository.resolveUri(uri));
     var file = new File(filename);
     if (!file.existsSync()) {
-      throw 'Could not find a .bart file for URI "$uri" at $filename. '
-          'Compiling from both .dart and .bart files is not supported.';
+      throw 'Could not find a .dill file for URI "$uri" at $filename. '
+          'Compiling from both .dart and .dill files is not supported.';
     }
     return file;
   }

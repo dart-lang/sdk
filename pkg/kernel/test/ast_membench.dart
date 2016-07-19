@@ -9,7 +9,7 @@ import 'dart:io';
 /// Pass --print-metrics to the Dart VM to measure the memory use.
 main(List<String> args) {
   if (args.length == 0) {
-    print('USAGE: ast_membench FILE.bart NUM_COPIES');
+    print('USAGE: ast_membench FILE.dill NUM_COPIES');
     exit(1);
   }
   String filename = args[0];

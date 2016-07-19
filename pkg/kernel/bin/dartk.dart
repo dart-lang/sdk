@@ -14,11 +14,11 @@ ArgParser parser = new ArgParser()
       abbr: 'f',
       allowed: ['text', 'bin'],
       help: 'Output format.\n'
-          '(defaults to "text" unless output file ends with ".bart")')
+          '(defaults to "text" unless output file ends with ".dill")')
   ..addOption('out',
       abbr: 'o',
       help: 'Output file.\n'
-          '(defaults to "out.bart" if format is "bin", otherwise stdout)')
+          '(defaults to "out.dill" if format is "bin", otherwise stdout)')
   ..addOption('sdk',
       defaultsTo: '/usr/lib/dart', // TODO: Locate the SDK more intelligently.
       help: 'Path to the Dart SDK.')
@@ -46,13 +46,13 @@ ArgParser parser = new ArgParser()
 String getUsage() => """
 Usage: dartk [options] FILE
 
-Convert .dart or .bart files to kernel's IR and print out its textual
+Convert .dart or .dill files to kernel's IR and print out its textual
 or binary form.
 
 Examples:
     dartk foo.dart            # print text IR for foo.dart
-    dartk foo.dart -ofoo.bart # write binary IR for foo.dart to foo.bart
-    dartk foo.bart            # print text IR for binary file foo.bart
+    dartk foo.dart -ofoo.dill # write binary IR for foo.dart to foo.dill
+    dartk foo.dill            # print text IR for binary file foo.dill
 
 Options:
 ${parser.usage}
@@ -67,7 +67,7 @@ dynamic fail(String message) {
 ArgResults options;
 
 String defaultFormat() {
-  if (options['out'] != null && options['out'].endsWith('.bart')) {
+  if (options['out'] != null && options['out'].endsWith('.dill')) {
     return 'bin';
   }
   return 'text';
@@ -75,7 +75,7 @@ String defaultFormat() {
 
 String defaultOutput() {
   if (options['format'] == 'bin') {
-    return 'out.bart';
+    return 'out.dill';
   }
   return null;
 }
@@ -179,7 +179,7 @@ main(List<String> args) {
   List<String> loadedFiles;
   Function getLoadedFiles;
 
-  if (file.endsWith('.bart')) {
+  if (file.endsWith('.dill')) {
     var node = loadProgramOrLibraryFromBinary(file, repository);
     library = node is Library ? node : null;
     program = node is Program ? node : null;

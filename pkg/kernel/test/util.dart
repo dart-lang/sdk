@@ -22,7 +22,7 @@ class Options {
   }
 
   Program loadProgram() {
-    if (inputFile.endsWith('.bart')) {
+    if (inputFile.endsWith('.dill')) {
       return loadProgramFromBinary(inputFile);
     } else {
       return loadProgramFromDart(inputFile, getRepository());

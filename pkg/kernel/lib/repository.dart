@@ -62,8 +62,8 @@ class Repository {
   }
 
   String normalizeFileExtension(String path) {
-    if (path.endsWith('.bart')) {
-      return path.substring(0, path.length - '.bart'.length) + '.dart';
+    if (path.endsWith('.dill')) {
+      return path.substring(0, path.length - '.dill'.length) + '.dart';
     } else {
       return path;
     }

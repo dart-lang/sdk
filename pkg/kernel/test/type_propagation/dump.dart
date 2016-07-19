@@ -19,7 +19,7 @@ ArgParser parser = new ArgParser()
   ..addFlag('solve', help: 'Solve the constraint system', defaultsTo: true);
 
 String get usage => """
-Usage: dump [options] FILE.bart
+Usage: dump [options] FILE.dill
 
 Options:
 ${parser.usage}

@@ -5,6 +5,6 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/checks.dart';
 
 main() {
-  Program program = loadProgramFromBinary('test/data/dart2js.bart');
+  Program program = loadProgramFromBinary('test/data/dart2js.dill');
   CheckParentPointers.check(program);
 }

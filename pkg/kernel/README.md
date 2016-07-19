@@ -27,20 +27,20 @@ Command-Line Tool
 Run `bin/dartk.dart` from the command-line to convert between .dart files
 and the serialized binary and textual formats.
 
-`dartk` expects the `.bart` extension for files in the binary format.
+`dartk` expects the `.dill` extension for files in the binary format.
 The textual format has no preferred extension right now.
 
 Example commands:
 ```bash
 dartk foo.dart            # print text IR for foo.dart
-dartk foo.dart -ofoo.bart # write binary IR for foo.dart to foo.bart
-dartk foo.bart            # print text IR for binary file foo.bart
+dartk foo.dart -ofoo.dill # write binary IR for foo.dart to foo.dill
+dartk foo.dill            # print text IR for binary file foo.dill
 ```
 
 Pass the `--link` or `-l` flag to link all transitive dependencies into one file:
 ```bash
-dartk myapp.dart -ppackages -l -omyapp.bart # Bundle everything.
-dartk myapp.bart # Print it back out in a (very, very long) textual format.
+dartk myapp.dart -ppackages -l -omyapp.dill # Bundle everything.
+dartk myapp.dill # Print it back out in a (very, very long) textual format.
 ```
 
 See [ast.dart](lib/ast.dart) for the in-memory IR, or [binary.md](binary.md) for
