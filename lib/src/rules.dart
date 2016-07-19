@@ -28,9 +28,9 @@ import 'package:linter/src/rules/empty_statements.dart';
 import 'package:linter/src/rules/hash_and_equals.dart';
 import 'package:linter/src/rules/implementation_imports.dart';
 import 'package:linter/src/rules/iterable_contains_unrelated_type.dart';
-import 'package:linter/src/rules/list_remove_unrelated_type.dart';
 import 'package:linter/src/rules/library_names.dart';
 import 'package:linter/src/rules/library_prefixes.dart';
+import 'package:linter/src/rules/list_remove_unrelated_type.dart';
 import 'package:linter/src/rules/non_constant_identifier_names.dart';
 import 'package:linter/src/rules/one_member_abstracts.dart';
 import 'package:linter/src/rules/only_throw_errors.dart';
@@ -52,6 +52,7 @@ import 'package:linter/src/rules/unawaited_futures.dart';
 import 'package:linter/src/rules/unnecessary_brace_in_string_interp.dart';
 import 'package:linter/src/rules/unnecessary_getters_setters.dart';
 import 'package:linter/src/rules/unrelated_type_equality_checks.dart';
+import 'package:linter/src/rules/whitespace_around_ops.dart';
 
 final Registry ruleRegistry = new Registry()
   ..register(new AlwaysDeclareReturnTypes())
@@ -99,8 +100,8 @@ final Registry ruleRegistry = new Registry()
   // Disabled pending fix: https://github.com/dart-lang/linter/issues/35
   //..register(new UnnecessaryGetters())
   ..register(new UnnecessaryGettersSetters())
-  ..register(new UnrelatedTypeEqualityChecks());
-
+  ..register(new UnrelatedTypeEqualityChecks())
+  ..register(new WhitespaceAroundOps());
 
 /// Registry of contributed lint rules.
 class Registry extends Object with IterableMixin<LintRule> {
