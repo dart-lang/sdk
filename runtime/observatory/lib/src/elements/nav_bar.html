@@ -137,36 +137,6 @@
   </template>
 </polymer-element>
 
-<polymer-element name="nav-refresh" extends="observatory-element">
-  <template>
-    <style>
-      .active {
-        color: #aaa;
-        cursor: wait;
-      }
-      .idle {
-        color: #000;
-      }
-      li {
-        float: right;
-        margin: 0;
-      }
-      li button {
-        margin: 3px;
-        padding: 8px;
-      }
-    </style>
-    <li>
-      <template if="{{ active }}">
-        <button class="active" on-click="{{ buttonClick }}">{{ label }}</button>
-      </template>
-      <template if="{{ !active }}">
-        <button class="idle" on-click="{{ buttonClick }}">{{ label }}</button>
-      </template>
-    </li>
-  </template>
-</polymer-element>
-
 <polymer-element name="top-nav-menu">
   <template>
     <nav-menu link="/vm" anchor="Observatory" last="{{ last }}">

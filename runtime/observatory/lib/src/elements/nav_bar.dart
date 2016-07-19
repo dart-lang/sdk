@@ -42,31 +42,6 @@ class NavMenuItemElement extends ObservatoryElement {
 
 typedef Future RefreshCallback();
 
-@CustomTag('nav-refresh')
-class NavRefreshElement extends ObservatoryElement {
-  @published RefreshCallback callback;
-  @published bool active = false;
-  @published String label = 'Refresh';
-
-  NavRefreshElement.created() : super.created();
-
-  void buttonClick(Event e, var detail, Node target) {
-    if (active) {
-      return;
-    }
-    active = true;
-    if (callback != null) {
-      callback()
-        .catchError(app.handleException)
-        .whenComplete(refreshDone);
-    }
-  }
-
-  void refreshDone() {
-    active = false;
-  }
-}
-
 @CustomTag('top-nav-menu')
 class TopNavMenuElement extends ObservatoryElement {
   @published bool last = false;

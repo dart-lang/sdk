@@ -17,6 +17,7 @@ class Notification {
 /// by the observatory_application custom element.
 class ObservatoryApplication extends Observable {
   static ObservatoryApplication app;
+  final RenderingQueue queue = new RenderingQueue();
   final _pageRegistry = new List<Page>();
   LocationManager _locationManager;
   LocationManager get locationManager => _locationManager;

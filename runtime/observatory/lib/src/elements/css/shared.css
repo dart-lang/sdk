@@ -355,6 +355,27 @@ body.busy, body.busy * {
   -webkit-animation: shake 0.5s;
 }
 
+/* nav-refresh */
+/* TODO(cbernaschina) fix nav-refresh-wrapped to nav-refresh when wrapper
+removed */
+
+nav-refresh-wrapped > li > button {
+  color: #000;
+  margin: 3px;
+  padding: 8px;
+  border-width: 2px;
+  line-height: 13px;
+  font: 400 13px 'Montserrat', sans-serif;
+}
+nav-refresh-wrapped > li > button[disabled] {
+  color: #aaa;
+  cursor: wait;
+}
+nav-refresh-wrapped > li {
+  float: right;
+  margin: 0;
+}
+
 /* view-footer */
 
 view-footer {
