@@ -1095,6 +1095,8 @@ void Isolate::ReloadSources(bool test_mode) {
   has_attempted_reload_ = true;
   reload_context_ = new IsolateReloadContext(this, test_mode);
   reload_context_->StartReload();
+  delete reload_context_;
+  reload_context_ = NULL;
 }
 #endif  // !PRODUCT
 
@@ -1115,8 +1117,6 @@ void Isolate::DoneFinalizing() {
       if (!reload_context_->has_error()) {
         reload_context_->ReportSuccess();
       }
-      delete reload_context_;
-      reload_context_ = NULL;
     }
   )
 }
