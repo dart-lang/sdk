@@ -106,6 +106,11 @@ import 'cached_patches.dart';
 final bool CHECK_JS_INVOCATIONS = true;
 
 final String _DART_RESERVED_NAME_PREFIX = r'JS$';
+// If a private class is defined to use @JS we need to inject a non-private
+// class with a name that will not cause collisions in the library so we can
+// make JSObject implement that interface even though it is in a different
+// library.
+final String escapePrivateClassPrefix = r'$JSImplClass23402893498';
 
 String _stripReservedNamePrefix(String name) =>
     name.startsWith(_DART_RESERVED_NAME_PREFIX)
@@ -340,7 +345,7 @@ bool hasDomName(mirrors.DeclarationMirror mirror) {
 
 _getJsMemberName(mirrors.DeclarationMirror mirror) {
   var name = _getJsName(mirror);
-  return name == null || name.isEmpty ? _getDeclarationName(mirror) : name;
+  return name == null || name.isEmpty ? _stripReservedNamePrefix(_getDeclarationName(mirror)) : name;
 }
 
 // TODO(jacobr): handle setters correctyl.
@@ -350,7 +355,7 @@ String _getDeclarationName(mirrors.DeclarationMirror declaration) {
     assert(name.endsWith("="));
     name = name.substring(0, name.length - 1);
   }
-  return _stripReservedNamePrefix(name);
+  return name;
 }
 
 final _JS_LIBRARY_PREFIX = "js_library";
@@ -524,6 +529,7 @@ _generateLibraryCodegen(uri, library, staticCodegen) {
         if (isDom || isJsInterop) {
           // TODO(jacobr): verify class implements JavaScriptObject.
           var className = mirrors.MirrorSystem.getName(clazz.simpleName);
+          bool isPrivate = className.startsWith('_');
           var classNameImpl = '${className}Impl';
           var sbPatch = new StringBuffer();
           if (isJsInterop) {
@@ -598,6 +604,12 @@ _generateLibraryCodegen(uri, library, staticCodegen) {
           if (isDom) {
             sbPatch.write("  static Type get instanceRuntimeType => ${classNameImpl};\n");
           }
+          if (isPrivate) {
+            sb.write("""
+class ${escapePrivateClassPrefix}${className} implements $className {}
+""");
+          }
+
           if (sbPatch.isNotEmpty) {
             var typeVariablesClause = '';
             if (!clazz.typeVariables.isEmpty) {
@@ -705,8 +717,11 @@ List<String> _generateInteropPatchFiles(List<String> libraryPaths, genCachedPatc
     var isArray = typeMirror.isSubtypeOf(listMirror);
     var isFunction = typeMirror.isSubtypeOf(functionMirror);
     var isJSObject = typeMirror.isSubtypeOf(jsObjectMirror);
+    var className = mirrors.MirrorSystem.getName(typeMirror.simpleName);
+    var isPrivate = className.startsWith('_');
+    if (isPrivate) className = '${escapePrivateClassPrefix}${className}';
     var fullName =
-        '${prefixName}.${mirrors.MirrorSystem.getName(typeMirror.simpleName)}';
+        '${prefixName}.${className}';
     (isArray ? implementsArray : implements).add(fullName);
     if (!isArray && !isFunction && !isJSObject) {
       // For DOM classes we need to be a bit more conservative at tagging them
@@ -1329,6 +1344,41 @@ class JsNative {
   static JSFunction withThis(Function f) native "JsFunction_withThisNoWrap";
 }
 
+/// Utility methods to efficiently manipulate typed JSInterop objects in cases
+/// where the name to call is not known at runtime. You should only use these
+/// methods when the same effect cannot be achieved with @JS annotations.
+/// These methods would be extension methods on JSObject if Dart supported
+/// extension methods.
+class JSNative {
+   /**
+    * WARNING: performance of this method is much worse than other methods
+    * in JSNative. Only use this method as a last resort.
+    *
+    * Recursively converts a JSON-like collection of Dart objects to a
+    * collection of JavaScript objects and returns a [JsObject] proxy to it.
+    *
+    * [object] must be a [Map] or [Iterable], the contents of which are also
+    * converted. Maps and Iterables are copied to a new JavaScript object.
+    * Primitives and other transferrable values are directly converted to their
+    * JavaScript type, and all other objects are proxied.
+    */
+  static jsify(object) {
+    if ((object is! Map) && (object is! Iterable)) {
+      throw new ArgumentError("object must be a Map or Iterable");
+    }
+    return _jsify(object);
+  }
+
+  static _jsify(object) native "JSObject_jsify";
+  static JSObject newObject() native "JSObject_newObject";
+
+  static hasProperty(JSObject o, name) => o._hasProperty(name);
+  static getProperty(JSObject o, name) => o._operator_getter(name);
+  static setProperty(JSObject o, name, value) => o._operator_setter(name, value);
+  static callMethod(JSObject o, String method, List args) => o._callMethod(method, args);
+  static instanceof(JSObject o, Function type) => o._instanceof(type);
+  static callConstructor(JSObject constructor, List args) native "JSNative_callConstructor";
+}
 
 /**
  * Proxies a JavaScript Function object.
@@ -1563,5 +1613,3 @@ JSFunction allowInteropCaptureThis(Function f) {
     return ret;
   }
 }
-
-debugPrint(_) {}
