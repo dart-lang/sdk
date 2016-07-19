@@ -61,18 +61,23 @@ export 'package:observatory/src/elements/vm_view.dart';
 
 import 'dart:async';
 
+import 'package:observatory/src/elements/nav/menu.dart';
+import 'package:observatory/src/elements/nav/menu_wrapper.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/refresh_wrapper.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 export 'package:observatory/src/elements/helpers/rendering_queue.dart';
 
+export 'package:observatory/src/elements/nav/menu.dart';
 export 'package:observatory/src/elements/nav/refresh.dart';
 export 'package:observatory/src/elements/view_footer.dart';
 
 // Even though this function does not invoke any asynchronous operation
 // it is marked as async to allow future backward compatible changes.
 Future initElements() async {
+  NavMenuElement.tag.ensureRegistration();
+  NavMenuElementWrapper.tag.ensureRegistration();
   NavRefreshElement.tag.ensureRegistration();
   NavRefreshElementWrapper.tag.ensureRegistration();
   ViewFooterElement.tag.ensureRegistration();

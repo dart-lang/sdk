@@ -46,53 +46,6 @@
   </template>
 </polymer-element>
 
-<polymer-element name="nav-menu" extends="observatory-element">
-  <template>
-    <style>
-      .menu, .spacer {
-        float: left;
-      }
-      .menu a, .spacer {
-        display: block;
-        padding: 12px 8px;
-        color: White;
-        text-decoration: none;
-      }
-      .menu:hover {
-        background: #455;
-      }
-      .menu ul {
-        display: none;
-        position: absolute;
-        top: 98%;
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        width: auto;
-        z-index: 1000;
-        font: 400 16px 'Montserrat', sans-serif;
-        color: white;
-        background: #567;
-      }
-      .menu ul:after {
-        content: ""; clear: both; display: block;
-      }
-      .menu:hover > ul {
-        display: block;
-      }
-    </style>
-
-    <li class="menu">
-      <a on-click="{{ goto }}" _href="{{ gotoLink(link) }}">{{ anchor }}</a>
-      <ul><content></content></ul>
-    </li>
-    <template if="{{ !last }}">
-      <li class="spacer">&gt;</li>
-    </template>
-
-  </template>
-</polymer-element>
-
 <polymer-element name="nav-menu-item" extends="observatory-element">
   <template>
     <style>
