@@ -32,6 +32,11 @@ testUri(String uriText, bool isAbsolute) {
     Expect.equals(uri,
                   Uri.parse(uriText + "#fragment").removeFragment());
   }
+
+  // Test uri.replace on uri with fragment
+  uri = Uri.parse('http://hello.com/fake#fragment');
+  uri = uri.replace(path: "D/E/E");
+  Expect.stringEquals('http://hello.com/D/E/E#fragment', uri.toString());
 }
 
 testEncodeDecode(String orig, String encoded) {

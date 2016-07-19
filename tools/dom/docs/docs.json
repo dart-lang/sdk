@@ -4201,7 +4201,7 @@
           "   *",
           "   * Note: Most simple HTTP requests can be accomplished using the [getString],",
           "   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this",
-          "   * `open` method is intended only for more complex HTTP requests where",
+          "   * `open` method is intended only for more complext HTTP requests where",
           "   * finer-grained control is needed.",
           "   */"
         ],
@@ -4298,7 +4298,7 @@
           "   *",
           "   * Note: Most simple HTTP requests can be accomplished using the [getString],",
           "   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this",
-          "   * `send` method is intended only for more complex HTTP requests where",
+          "   * `send` method is intended only for more complext HTTP requests where",
           "   * finer-grained control is needed.",
           "   *",
           "   * ## Other resources",

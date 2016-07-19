@@ -20997,109 +20997,6 @@ class HtmlOptionsCollection extends HtmlCollection {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * A task specification for HTTP requests.
- *
- * This specification is not available when an HTTP request is sent through
- * direct use of [HttpRequest.send]. See [HttpRequestSendTaskSpecification].
- *
- * A task created from this specification is a `Future<HttpRequest>`.
- *
- * *Experimental*. This class may disappear without notice.
- */
-class HttpRequestTaskSpecification extends TaskSpecification {
-  /// The URL of the request.
-  final String url;
-
-  /// The HTTP request method.
-  ///
-  /// By default (when `null`) this is a `"GET"` request. Alternatively, the
-  /// method can be `"POST"`, `"PUT"`, `"DELETE"`, etc.
-  final String method;
-
-  /// Whether the request should send credentials. Credentials are only useful
-  /// for cross-origin requests.
-  ///
-  /// See [HttpRequest.request] for more information.
-  final bool withCredentials;
-
-  /// The desired response format.
-  ///
-  /// Supported types are:
-  /// - `""`: (same as `"text"`),
-  /// - `"arraybuffer"`,
-  /// - `"blob"`,
-  /// - `"document"`,
-  /// - `"json"`,
-  /// - `"text"`
-  ///
-  /// When no value is provided (when equal to `null`) defaults to `""`.
-  final String responseType;
-
-  /// The desired MIME type.
-  ///
-  /// This overrides the default MIME type which is set up to transfer textual
-  /// data.
-  final String mimeType;
-
-  /// The request headers that should be sent with the request.
-  final Map<String, String> requestHeaders;
-
-  /// The data that is sent with the request.
-  ///
-  /// When data is provided (the value is not `null`), it must be a
-  /// [ByteBuffer], [Blob], [Document], [String], or [FormData].
-  final dynamic sendData;
-
-  /// The function that is invoked on progress updates. This function is
-  /// registered as an event listener on the created [HttpRequest] object, and
-  /// thus has its own task. Further invocations of the progress function do
-  /// *not* use the HTTP request task as task object.
-  ///
-  /// Creating an HTTP request automatically registers the on-progress listener.
-  final ZoneUnaryCallback<dynamic, ProgressEvent> onProgress;
-
-  HttpRequestTaskSpecification(this.url,
-      {String this.method, bool this.withCredentials, String this.responseType,
-      String this.mimeType, Map<String, String> this.requestHeaders,
-      this.sendData,
-      void this.onProgress(ProgressEvent e)});
-
-  String get name => "dart.html.http-request";
-  bool get isOneShot => true;
-}
-
-/**
- * A task specification for HTTP requests that are initiated through a direct
- * invocation of [HttpRequest.send].
- *
- * This specification serves as signal to zones that an HTTP request has been
- * initiated. The created task is the [request] object itself, and
- * no callback is ever executed in this task.
- *
- * Note that event listeners on the HTTP request are also registered in the
- * zone (although with their own task creations), and that a zone can thus
- * detect when the HTTP request returns.
- *
- * HTTP requests that are initiated through `request` methods don't use
- * this class but use [HttpRequestTaskSpecification].
- *
- * *Experimental*. This class may disappear without notice.
- */
-class HttpRequestSendTaskSpecification extends TaskSpecification {
-  final HttpRequest request;
-  final dynamic sendData;
-
-  HttpRequestSendTaskSpecification(this.request, this.sendData);
-
-  String get name => "dart.html.http-request-send";
-
-  /**
-   * No callback is ever executed in an HTTP request send task.
-   */
-  bool get isOneShot => false;
-}
-
  /**
   * A client-side XHR request for getting data from a URL,
   * formally known as XMLHttpRequest.
@@ -21287,34 +21184,7 @@ class HttpRequest extends HttpRequestEventTarget {
       {String method, bool withCredentials, String responseType,
       String mimeType, Map<String, String> requestHeaders, sendData,
       void onProgress(ProgressEvent e)}) {
-    var spec = new HttpRequestTaskSpecification(
-        url, method: method,
-        withCredentials: withCredentials,
-        responseType: responseType,
-        mimeType: mimeType,
-        requestHeaders: requestHeaders,
-        sendData: sendData,
-        onProgress: onProgress);
-
-    if (identical(Zone.current, Zone.ROOT)) {
-      return _createHttpRequestTask(spec, null);
-    }
-    return Zone.current.createTask(_createHttpRequestTask, spec);
-  }
-
-  static Future<HttpRequest> _createHttpRequestTask(
-      HttpRequestTaskSpecification spec, Zone zone) {
-    String url = spec.url;
-    String method = spec.method;
-    bool withCredentials = spec.withCredentials;
-    String responseType = spec.responseType;
-    String mimeType = spec.mimeType;
-    Map<String, String> requestHeaders = spec.requestHeaders;
-    var sendData = spec.sendData;
-    var onProgress = spec.onProgress;
-
     var completer = new Completer<HttpRequest>();
-    var task = completer.future;
 
     var xhr = new HttpRequest();
     if (method == null) {
@@ -21354,42 +21224,23 @@ class HttpRequest extends HttpRequestEventTarget {
       // redirect case will be handled by the browser before it gets to us,
       // so if we see it we should pass it through to the user.
       var unknownRedirect = xhr.status > 307 && xhr.status < 400;
-
-      var isSuccessful = accepted || fileUri || notModified || unknownRedirect;
-
-      if (zone == null && isSuccessful) {
+      
+      if (accepted || fileUri || notModified || unknownRedirect) {
         completer.complete(xhr);
-      } else if (zone == null) {
-        completer.completeError(e);
-      } else if (isSuccessful) {
-        zone.runTask((task, value) {
-          completer.complete(value);
-        }, task, xhr);
       } else {
-        zone.runTask((task, error) {
-          completer.completeError(error);
-        }, task, e);
+        completer.completeError(e);
       }
     });
 
-    if (zone == null) {
-      xhr.onError.listen(completer.completeError);
-    } else {
-      xhr.onError.listen((error) {
-        zone.runTask((task, error) {
-          completer.completeError(error);
-        }, task, error);
-      });
-    }
+    xhr.onError.listen(completer.completeError);
 
     if (sendData != null) {
-      // TODO(floitsch): should we go through 'send()' and have nested tasks?
-      xhr._send(sendData);
+      xhr.send(sendData);
     } else {
-      xhr._send();
+      xhr.send();
     }
 
-    return task;
+    return completer.future;
   }
 
   /**
@@ -21439,9 +21290,6 @@ class HttpRequest extends HttpRequestEventTarget {
         return xhr.responseText;
       });
     }
-    // TODO(floitsch): the following code doesn't go through task zones.
-    // Since 'XDomainRequest' is an IE9 feature we should probably just remove
-    // it.
   }
 
   /**
@@ -21492,7 +21340,7 @@ class HttpRequest extends HttpRequestEventTarget {
    *
    * Note: Most simple HTTP requests can be accomplished using the [getString],
    * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
-   * `open` method is intended only for more complex HTTP requests where
+   * `open` method is intended only for more complext HTTP requests where
    * finer-grained control is needed.
    */
   @DomName('XMLHttpRequest.open')
@@ -21503,36 +21351,6 @@ class HttpRequest extends HttpRequestEventTarget {
     } else {
       _blink.BlinkXMLHttpRequest.instance.open_Callback_5_(this, method, url, async, user, password);
     }
-  }
-
-  /**
-   * Sends the request with any given `data`.
-   *
-   * Note: Most simple HTTP requests can be accomplished using the [getString],
-   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
-   * `send` method is intended only for more complex HTTP requests where
-   * finer-grained control is needed.
-   *
-   * ## Other resources
-   *
-   * * [XMLHttpRequest.send](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send%28%29)
-   *   from MDN.
-   */
-  @DomName('XMLHttpRequest.send')
-  @DocsEditable()
-  void send([body_OR_data]) {
-    if (identical(Zone.current, Zone.ROOT)) {
-      _send(body_OR_data);
-    } else {
-      Zone.current.createTask(_createHttpRequestSendTask,
-          new HttpRequestSendTaskSpecification(this, body_OR_data));
-    }
-  }
-
-  static HttpRequest _createHttpRequestSendTask(
-      HttpRequestSendTaskSpecification spec, Zone zone) {
-    spec.request._send(spec.sendData);
-    return spec.request;
   }
 
   // To suppress missing implicit constructor warnings.
@@ -21838,7 +21656,7 @@ class HttpRequest extends HttpRequestEventTarget {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void overrideMimeType(String mime) => _blink.BlinkXMLHttpRequest.instance.overrideMimeType_Callback_1_(this, mime);
   
-  void _send([body_OR_data]) {
+  void send([body_OR_data]) {
     if (body_OR_data != null) {
       _blink.BlinkXMLHttpRequest.instance.send_Callback_1_(this, body_OR_data);
       return;
@@ -37844,10 +37662,10 @@ class Url extends DartHtmlDomObject implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -39313,99 +39131,6 @@ class WheelEvent extends MouseEvent {
 // BSD-style license that can be found in the LICENSE file.
 
 
-typedef void RemoveFrameRequestMapping(int id);
-
-/**
- * The task object representing animation-frame requests.
- *
- * For historical reasons, [Window.requestAnimationFrame] returns an integer
- * to users. However, zone tasks must be unique objects, and an integer can
- * therefore not be used as task object. The [Window] class thus keeps a mapping
- * from the integer ID to the corresponding task object. All zone related
- * operations work on this task object, whereas users of
- * [Window.requestAnimationFrame] only see the integer ID.
- *
- * Since this mapping takes up space, it must be removed when the
- * animation-frame task has triggered. The default implementation does this
- * automatically, but intercepting implementations of `requestAnimationFrame`
- * must make sure to call the [AnimationFrameTask.removeMapping]
- * function that is provided in the task specification.
- *
- * *Experimental*. This class may disappear without notice.
- */
-abstract class AnimationFrameTask {
-  /** The ID that is returned to users. */
-  int get id;
-
-  /** The zone in which the task will run. */
-  Zone get zone;
-
-  /**
-   * Cancels the animation-frame request.
-   *
-   * A call to [Window.cancelAnimationFrame] with an `id` argument equal to [id]
-   * forwards the request to this function.
-   *
-   * Zones that intercept animation-frame requests implement this method so
-   * that they can react to cancelation requests.
-   */
-  void cancel(Window window);
-
-  /**
-   * Maps animation-frame request IDs to their task objects.
-   */
-  static final Map<int, _AnimationFrameTask> _tasks = {};
-
-  /**
-   * Removes the mapping from [id] to [AnimationFrameTask].
-   *
-   * This function must be invoked by user-implemented animation-frame
-   * tasks, before running [callback].
-   *
-   * See [AnimationFrameTask].
-   */
-  static void removeMapping(int id) {
-    _tasks.remove(id);
-  }
-}
-
-class _AnimationFrameTask implements AnimationFrameTask {
-  final int id;
-  final Zone zone;
-  final FrameRequestCallback _callback;
-
-  _AnimationFrameTask(this.id, this.zone, this._callback);
-
-  void cancel(Window window) {
-    window._cancelAnimationFrame(this.id);
-  }
-}
-
-/**
- * The task specification for an animation-frame request.
- *
- * *Experimental*. This class may disappear without notice.
- */
-class AnimationFrameRequestSpecification implements TaskSpecification {
-  /**
-   * The window on which [Window.requestAnimationFrame] was invoked.
-   */
-  final Window window;
-
-  /**
-   * The callback that is executed when the animation-frame is ready.
-   *
-   * Note that the callback hasn't been registered in any zone when the `create`
-   * function (passed to [Zone.createTask]) is invoked.
-   */
-  final FrameRequestCallback callback;
-
-  AnimationFrameRequestSpecification(this.window, this.callback);
-
-  String get name => "dart.html.request-animation-frame";
-  bool get isOneShot => true;
-}
-
 @DocsEditable()
 /**
  * Top-level container for the current browser tab or window.
@@ -39460,10 +39185,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   Future<num> get animationFrame {
     var completer = new Completer<num>.sync();
-    requestAnimationFrame(completer.complete);
+    requestAnimationFrame((time) {
+      completer.complete(time);
+    });
     return completer.future;
   }
-
 
   /**
    * Called to draw an animation frame and then request the window to repaint
@@ -39483,51 +39209,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.requestAnimationFrame')
   int requestAnimationFrame(FrameRequestCallback callback) {
-    if (identical(Zone.current, Zone.ROOT)) {
-      return _requestAnimationFrame(callback);
-    }
-    var spec = new AnimationFrameRequestSpecification(this, callback);
-    var task = Zone.current.createTask/*<AnimationFrameTask>*/(
-        _createAnimationFrameTask, spec);
-    AnimationFrameTask._tasks[task.id] = task;
-    return task.id;
+    return _requestAnimationFrame(_wrapZone(callback));
   }
-
-  static _AnimationFrameTask _createAnimationFrameTask(
-      AnimationFrameRequestSpecification spec, Zone zone) {
-    var task;
-    var id = spec.window._requestAnimationFrame((num time) {
-      AnimationFrameTask.removeMapping(task.id);
-      zone.runTask(_runAnimationFrame, task, time);
-    });
-    var callback = zone.registerUnaryCallback(spec.callback);
-    task = new _AnimationFrameTask(id, zone, callback);
-    return task;
-  }
-
-  static void _runAnimationFrame(_AnimationFrameTask task, num time) {
-    task._callback(time);
-  }
-
-  /**
-   * Cancels an animation frame request.
-   *
-   * ## Other resources
-   *
-   * * [Window.cancelAnimationFrame](https://developer.mozilla.org/en-US/docs/Web/API/Window.cancelAnimationFrame)
-   *   from MDN.
-   */
-  @DomName('Window.cancelAnimationFrame')
-  void cancelAnimationFrame(int id) {
-    var task = AnimationFrameTask._tasks.remove(id);
-    if (task == null) {
-      // Assume that the animation frame request wasn't intercepted by a zone.
-      _cancelAnimationFrame(id);
-      return;
-    }
-    task.cancel(this);
-  }
-
 
   /**
    * Access a sandboxed file system of the specified `size`. If `persistent` is
@@ -40295,7 +39978,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
 
   @DomName('Window.cancelAnimationFrame')
   @DocsEditable()
-  void _cancelAnimationFrame(int handle) => _blink.BlinkWindow.instance.cancelAnimationFrame_Callback_1_(this, handle);
+  void cancelAnimationFrame(int handle) => _blink.BlinkWindow.instance.cancelAnimationFrame_Callback_1_(this, handle);
   
   @DomName('Window.close')
   @DocsEditable()
@@ -44809,41 +44492,6 @@ abstract class ElementStream<T extends Event> implements Stream<T> {
   StreamSubscription<T> capture(void onData(T event));
 }
 
-/// Task specification for DOM Events.
-///
-/// *Experimental*. May disappear without notice.
-class EventSubscriptionSpecification<T extends Event>
-    implements TaskSpecification {
-  @override
-  final String name;
-  @override
-  final bool isOneShot;
-
-  final EventTarget target;
-  /// The event-type of the event. For example 'click' for click events.
-  final String eventType;
-  // TODO(floitsch): the first generic argument should be 'void'.
-  final ZoneUnaryCallback<dynamic, T> onData;
-  final bool useCapture;
-
-  EventSubscriptionSpecification({this.name, this.isOneShot, this.target,
-      this.eventType, void this.onData(T event), this.useCapture});
-
-  /// Returns a copy of this instance, with every non-null argument replaced
-  /// by the given value.
-  EventSubscriptionSpecification<T> replace(
-      {String name, bool isOneShot, EventTarget target,
-       String eventType, void onData(T event), bool useCapture}) {
-    return new EventSubscriptionSpecification<T>(
-        name: name ?? this.name,
-        isOneShot: isOneShot ?? this.isOneShot,
-        target: target ?? this.target,
-        eventType: eventType ?? this.eventType,
-        onData: onData ?? this.onData,
-        useCapture: useCapture ?? this.useCapture);
-  }
-}
-
 /**
  * Adapter for exposing DOM events as Dart streams.
  */
@@ -44851,16 +44499,8 @@ class _EventStream<T extends Event> extends Stream<T> {
   final EventTarget _target;
   final String _eventType;
   final bool _useCapture;
-  /// The name that is used in the task specification.
-  final String _name;
-  /// Whether the stream can trigger multiple times.
-  final bool _isOneShot;
 
-  _EventStream(this._target, String eventType, this._useCapture,
-      {String name, bool isOneShot: false})
-      : _eventType = eventType,
-        _isOneShot = isOneShot,
-        _name = name ?? "dart.html.event.$eventType";
+  _EventStream(this._target, this._eventType, this._useCapture);
 
   // DOM events are inherently multi-subscribers.
   Stream<T> asBroadcastStream({void onListen(StreamSubscription<T> subscription),
@@ -44868,31 +44508,13 @@ class _EventStream<T extends Event> extends Stream<T> {
       => this;
   bool get isBroadcast => true;
 
-  StreamSubscription<T> _listen(
-      void onData(T event), {bool useCapture}) {
-
-    if (identical(Zone.current, Zone.ROOT)) {
-      return new _EventStreamSubscription<T>(
-          this._target, this._eventType, onData, this._useCapture,
-          Zone.current);
-    }
-
-    var specification = new EventSubscriptionSpecification<T>(
-        name: this._name, isOneShot: this._isOneShot,
-        target: this._target, eventType: this._eventType,
-        onData: onData, useCapture: useCapture);
-    // We need to wrap the _createStreamSubscription call, since a tear-off
-    // would not bind the generic type 'T'.
-    return Zone.current.createTask((spec, Zone zone) {
-      return _createStreamSubscription/*<T>*/(spec, zone);
-    }, specification);
-  }
-
   StreamSubscription<T> listen(void onData(T event),
       { Function onError,
         void onDone(),
         bool cancelOnError}) {
-    return _listen(onData, useCapture: this._useCapture);
+
+    return new _EventStreamSubscription<T>(
+        this._target, this._eventType, onData, this._useCapture);
   }
 }
 
@@ -44907,9 +44529,8 @@ bool _matchesWithAncestors(Event event, String selector) {
  */
 class _ElementEventStreamImpl<T extends Event> extends _EventStream<T>
     implements ElementStream<T> {
-  _ElementEventStreamImpl(target, eventType, useCapture,
-      {String name, bool isOneShot: false}) :
-      super(target, eventType, useCapture, name: name, isOneShot: isOneShot);
+  _ElementEventStreamImpl(target, eventType, useCapture) :
+      super(target, eventType, useCapture);
 
   Stream<T> matches(String selector) => this.where(
       (event) => _matchesWithAncestors(event, selector)).map((e) {
@@ -44917,9 +44538,9 @@ class _ElementEventStreamImpl<T extends Event> extends _EventStream<T>
         return e;
       });
 
-  StreamSubscription<T> capture(void onData(T event)) {
-    return _listen(onData, useCapture: true);
-  }
+  StreamSubscription<T> capture(void onData(T event)) =>
+    new _EventStreamSubscription<T>(
+        this._target, this._eventType, onData, true);
 }
 
 /**
@@ -44968,13 +44589,7 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
   bool get isBroadcast => true;
 }
 
-StreamSubscription/*<T>*/ _createStreamSubscription/*<T>*/(
-    EventSubscriptionSpecification/*<T>*/ spec, Zone zone) {
-  return new _EventStreamSubscription/*<T>*/(spec.target, spec.eventType,
-      spec.onData, spec.useCapture, zone);
-}
-
-// We would like this to just be EventListener<T> but that typedef cannot
+// We would like this to just be EventListener<T> but that typdef cannot
 // use generics until dartbug/26276 is fixed.
 typedef _EventListener<T extends Event>(T event);
 
@@ -44983,19 +44598,15 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   EventTarget _target;
   final String _eventType;
   EventListener _onData;
-  EventListener _domCallback;
   final bool _useCapture;
-  final Zone _zone;
 
   // TODO(jacobr): for full strong mode correctness we should write
-  // _onData = onData == null ? null : _wrapZone/*<dynamic, Event>*/((e) => onData(e as T))
+  // _onData = onData == null ? null : _wrapZone/*<Event, dynamic>*/((e) => onData(e as T))
   // but that breaks 114 co19 tests as well as multiple html tests as it is reasonable
   // to pass the wrong type of event object to an event listener as part of a
   // test.
   _EventStreamSubscription(this._target, this._eventType, void onData(T event),
-      this._useCapture, Zone zone)
-      : _zone = zone,
-        _onData = _registerZone/*<dynamic, Event>*/(zone, onData) {
+      this._useCapture) : _onData = _wrapZone/*<Event, dynamic>*/(onData) {
     _tryResume();
   }
 
@@ -45017,7 +44628,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     }
     // Remove current event listener.
     _unlisten();
-    _onData = _registerZone/*<dynamic, Event>*/(_zone, handleData);
+    _onData = _wrapZone/*<Event, dynamic>*/(handleData);
     _tryResume();
   }
 
@@ -45046,25 +44657,14 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   }
 
   void _tryResume() {
-    if (_onData == null || isPaused) return;
-    if (identical(_zone, Zone.ROOT)) {
-      _domCallback = _onData;
-    } else {
-      _domCallback = (event) {
-        _zone.runTask(_runEventNotification, this, event);
-      };
+    if (_onData != null && !isPaused) {
+      _target.addEventListener(_eventType, _onData, _useCapture);
     }
-    _target.addEventListener(_eventType, _domCallback, _useCapture);
-  }
-
-  static void _runEventNotification/*<T>*/(
-      _EventStreamSubscription/*<T>*/ subscription, /*=T*/ event) {
-    subscription._onData(event);
   }
 
   void _unlisten() {
     if (_onData != null) {
-      _target.removeEventListener(_eventType, _domCallback, _useCapture);
+      _target.removeEventListener(_eventType, _onData, _useCapture);
     }
   }
 
@@ -48256,26 +47856,31 @@ class _WrappedEvent implements Event {
 // BSD-style license that can be found in the LICENSE file.
 
 
-ZoneUnaryCallback/*<R, T>*/ _registerZone/*<R, T>*/(Zone zone,
-    ZoneUnaryCallback/*<R, T>*/ callback) {
-  // For performance reasons avoid registering if we are in the root zone.
-  if (identical(zone, Zone.ROOT)) return callback;
-  if (callback == null) return null;
-  return zone.registerUnaryCallback(callback);
-}
+// TODO(jacobr): remove these typedefs when dart:async supports generic types.
+typedef R _wrapZoneCallback<A, R>(A a);
+typedef R _wrapZoneBinaryCallback<A, B, R>(A a, B b);
 
-ZoneUnaryCallback/*<R, T>*/ _wrapZone/*<R, T>*/(ZoneUnaryCallback/*<R, T>*/ callback) {
+_wrapZoneCallback/*<A, R>*/ _wrapZone/*<A, R>*/(_wrapZoneCallback/*<A, R>*/ callback) {
   // For performance reasons avoid wrapping if we are in the root zone.
-  if (identical(Zone.current, Zone.ROOT)) return callback;
+  if (Zone.current == Zone.ROOT) return callback;
   if (callback == null) return null;
-  return Zone.current.bindUnaryCallback(callback, runGuarded: true);
+  // TODO(jacobr): we cast to _wrapZoneCallback/*<A, R>*/ to hack around missing
+  // generic method support in zones.
+  // ignore: STRONG_MODE_DOWN_CAST_COMPOSITE
+  _wrapZoneCallback/*<A, R>*/ wrapped =
+      Zone.current.bindUnaryCallback(callback, runGuarded: true);
+  return wrapped;
 }
 
-ZoneBinaryCallback/*<R, A, B>*/ _wrapBinaryZone/*<R, A, B>*/(
-    ZoneBinaryCallback/*<R, A, B>*/ callback) {
-  if (identical(Zone.current, Zone.ROOT)) return callback;
+_wrapZoneBinaryCallback/*<A, B, R>*/ _wrapBinaryZone/*<A, B, R>*/(_wrapZoneBinaryCallback/*<A, B, R>*/ callback) {
+  if (Zone.current == Zone.ROOT) return callback;
   if (callback == null) return null;
-  return Zone.current.bindBinaryCallback(callback, runGuarded: true);
+  // We cast to _wrapZoneBinaryCallback/*<A, B, R>*/ to hack around missing
+  // generic method support in zones.
+  // ignore: STRONG_MODE_DOWN_CAST_COMPOSITE
+  _wrapZoneBinaryCallback/*<A, B, R>*/ wrapped =
+      Zone.current.bindBinaryCallback(callback, runGuarded: true);
+  return wrapped;
 }
 
 /**

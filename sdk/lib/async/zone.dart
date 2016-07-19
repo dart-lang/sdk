@@ -8,13 +8,6 @@ typedef R ZoneCallback<R>();
 typedef R ZoneUnaryCallback<R, T>(T arg);
 typedef R ZoneBinaryCallback<R, T1, T2>(T1 arg1, T2 arg2);
 
-/// *Experimental*. Might disappear without warning.
-typedef T TaskCreate<T, S extends TaskSpecification>(
-    S specification, Zone zone);
-/// *Experimental*. Might disappear without warning.
-typedef void TaskRun<T, A>(T task, A arg);
-
-
 // TODO(floitsch): we are abusing generic typedefs as typedefs for generic
 // functions.
 /*ABUSE*/
@@ -40,30 +33,18 @@ typedef ZoneBinaryCallback<R, T1, T2> RegisterBinaryCallbackHandler<R, T1, T2>(
     Zone self, ZoneDelegate parent, Zone zone, R f(T1 arg1, T2 arg2));
 typedef AsyncError ErrorCallbackHandler(Zone self, ZoneDelegate parent,
     Zone zone, Object error, StackTrace stackTrace);
-/// *Experimental*. Might disappear without warning.
-/*ABUSE*/
-typedef T CreateTaskHandler<T, S extends TaskSpecification>(
-    Zone self, ZoneDelegate parent, Zone zone,
-    TaskCreate<T, S> create, S taskSpecification);
-/// *Experimental*. Might disappear without warning.
-/*ABUSE*/
-typedef void RunTaskHandler<T, A>(Zone self, ZoneDelegate parent, Zone zone,
-    TaskRun<T, A> run, T task, A arg);
 typedef void ScheduleMicrotaskHandler(
     Zone self, ZoneDelegate parent, Zone zone, void f());
-typedef void PrintHandler(
-    Zone self, ZoneDelegate parent, Zone zone, String line);
-typedef Zone ForkHandler(Zone self, ZoneDelegate parent, Zone zone,
-                         ZoneSpecification specification,
-                         Map zoneValues);
-
-// The following typedef declarations are used by functionality which
-// will be removed and replaced by tasksif the task experiment is successful.
 typedef Timer CreateTimerHandler(
     Zone self, ZoneDelegate parent, Zone zone, Duration duration, void f());
 typedef Timer CreatePeriodicTimerHandler(
     Zone self, ZoneDelegate parent, Zone zone,
     Duration period, void f(Timer timer));
+typedef void PrintHandler(
+    Zone self, ZoneDelegate parent, Zone zone, String line);
+typedef Zone ForkHandler(Zone self, ZoneDelegate parent, Zone zone,
+                         ZoneSpecification specification,
+                         Map zoneValues);
 
 /** Pair of error and stack trace. Returned by [Zone.errorCallback]. */
 class AsyncError implements Error {
@@ -75,41 +56,10 @@ class AsyncError implements Error {
   String toString() => '$error';
 }
 
-/**
- * A task specification contains the necessary information to create a task.
- *
- * See [Zone.createTask] for how a specification is used to create a task.
- *
- * Task specifications should be public and it should be possible to create
- * new instances as a user. That is, custom zones should be able to replace
- * an existing specification with a modified one.
- *
- * *Experimental*. This class might disappear without warning.
- */
-abstract class TaskSpecification {
-  /**
-   * Description of the task.
-   *
-   * This string is unused by the root-zone, but might be used for debugging,
-   * and testing. As such, it should be relatively unique in its category.
-   *
-   * As a general guideline we recommend: "package-name.library.action".
-   */
-  String get name;
-
-  /**
-   * Whether the scheduled task triggers at most once.
-   *
-   * If the task is not a one-shot task, it may need to be canceled to prevent
-   * further iterations of the task.
-   */
-  bool get isOneShot;
-}
 
 class _ZoneFunction<T extends Function> {
   final _Zone zone;
   final T function;
-
   const _ZoneFunction(this.zone, this.function);
 }
 
@@ -135,9 +85,6 @@ class _ZoneFunction<T extends Function> {
 abstract class ZoneSpecification {
   /**
    * Creates a specification with the provided handlers.
-   *
-   * The task-related parameters ([createTask] and [runTask]) are experimental
-   * and might be removed without warning.
    */
   const factory ZoneSpecification({
       HandleUncaughtErrorHandler handleUncaughtError,
@@ -149,11 +96,7 @@ abstract class ZoneSpecification {
       RegisterBinaryCallbackHandler registerBinaryCallback,
       ErrorCallbackHandler errorCallback,
       ScheduleMicrotaskHandler scheduleMicrotask,
-      CreateTaskHandler createTask,
-      RunTaskHandler runTask,
-      // TODO(floitsch): mark as deprecated once tasks are non-experimental.
       CreateTimerHandler createTimer,
-      // TODO(floitsch): mark as deprecated once tasks are non-experimental.
       CreatePeriodicTimerHandler createPeriodicTimer,
       PrintHandler print,
       ForkHandler fork
@@ -162,9 +105,6 @@ abstract class ZoneSpecification {
   /**
    * Creates a specification from [other] with the provided handlers overriding
    * the ones in [other].
-   *
-   * The task-related parameters ([createTask] and [runTask]) are experimental
-   * and might be removed without warning.
    */
   factory ZoneSpecification.from(ZoneSpecification other, {
       HandleUncaughtErrorHandler handleUncaughtError: null,
@@ -176,11 +116,7 @@ abstract class ZoneSpecification {
       RegisterBinaryCallbackHandler registerBinaryCallback: null,
       ErrorCallbackHandler errorCallback: null,
       ScheduleMicrotaskHandler scheduleMicrotask: null,
-      CreateTaskHandler createTask: null,
-      RunTaskHandler runTask: null,
-      // TODO(floitsch): mark as deprecated once tasks are non-experimental.
       CreateTimerHandler createTimer: null,
-      // TODO(floitsch): mark as deprecated once tasks are non-experimental.
       CreatePeriodicTimerHandler createPeriodicTimer: null,
       PrintHandler print: null,
       ForkHandler fork: null
@@ -196,14 +132,11 @@ abstract class ZoneSpecification {
       registerBinaryCallback: registerBinaryCallback ??
                               other.registerBinaryCallback,
       errorCallback: errorCallback ?? other.errorCallback,
-
-      createTask: createTask ?? other.createTask,
-      runTask: runTask ?? other.runTask,
-      print : print ?? other.print,
-      fork: fork ?? other.fork,
       scheduleMicrotask: scheduleMicrotask ?? other.scheduleMicrotask,
       createTimer : createTimer ?? other.createTimer,
-      createPeriodicTimer: createPeriodicTimer ?? other.createPeriodicTimer);
+      createPeriodicTimer: createPeriodicTimer ?? other.createPeriodicTimer,
+      print : print ?? other.print,
+      fork: fork ?? other.fork);
   }
 
   HandleUncaughtErrorHandler get handleUncaughtError;
@@ -215,17 +148,10 @@ abstract class ZoneSpecification {
   RegisterBinaryCallbackHandler get registerBinaryCallback;
   ErrorCallbackHandler get errorCallback;
   ScheduleMicrotaskHandler get scheduleMicrotask;
-  /// *Experimental*. Might disappear without warning.
-  CreateTaskHandler get createTask;
-  /// *Experimental*. Might disappear without warning.
-  RunTaskHandler get runTask;
+  CreateTimerHandler get createTimer;
+  CreatePeriodicTimerHandler get createPeriodicTimer;
   PrintHandler get print;
   ForkHandler get fork;
-
-  // TODO(floitsch): deprecate once tasks are non-experimental.
-  CreateTimerHandler get createTimer;
-  // TODO(floitsch): deprecate once tasks are non-experimental.
-  CreatePeriodicTimerHandler get createPeriodicTimer;
 }
 
 /**
@@ -246,14 +172,10 @@ class _ZoneSpecification implements ZoneSpecification {
     this.registerBinaryCallback: null,
     this.errorCallback: null,
     this.scheduleMicrotask: null,
-    this.createTask: null,
-    this.runTask: null,
-    this.print: null,
-    this.fork: null,
-    // TODO(floitsch): deprecate once tasks are non-experimental.
     this.createTimer: null,
-    // TODO(floitsch): deprecate once tasks are non-experimental.
-    this.createPeriodicTimer: null
+    this.createPeriodicTimer: null,
+    this.print: null,
+    this.fork: null
   });
 
   final HandleUncaughtErrorHandler handleUncaughtError;
@@ -265,15 +187,10 @@ class _ZoneSpecification implements ZoneSpecification {
   final RegisterBinaryCallbackHandler registerBinaryCallback;
   final ErrorCallbackHandler errorCallback;
   final ScheduleMicrotaskHandler scheduleMicrotask;
-  final CreateTaskHandler createTask;
-  final RunTaskHandler runTask;
+  final CreateTimerHandler createTimer;
+  final CreatePeriodicTimerHandler createPeriodicTimer;
   final PrintHandler print;
   final ForkHandler fork;
-
-  // TODO(floitsch): deprecate once tasks are non-experimental.
-  final CreateTimerHandler createTimer;
-  // TODO(floitsch): deprecate once tasks are non-experimental.
-  final CreatePeriodicTimerHandler createPeriodicTimer;
 }
 
 /**
@@ -300,23 +217,10 @@ abstract class ZoneDelegate {
       Zone zone, /*=R*/ f(/*=T1*/ arg1, /*=T2*/ arg2));
   AsyncError errorCallback(Zone zone, Object error, StackTrace stackTrace);
   void scheduleMicrotask(Zone zone, void f());
-
-  /// *Experimental*. Might disappear without notice.
-  Object/*=T*/ createTask/*<T, S extends TaskSpecification>*/(
-      Zone zone, TaskCreate/*<T, S>*/ create,
-      TaskSpecification/*=S*/ specification);
-  /// *Experimental*. Might disappear without notice.
-  void runTask/*<T, A>*/(
-      Zone zone, TaskRun/*<T, A>*/ run, Object/*=T*/ task,
-      Object/*=A*/ argument);
-
+  Timer createTimer(Zone zone, Duration duration, void f());
+  Timer createPeriodicTimer(Zone zone, Duration period, void f(Timer timer));
   void print(Zone zone, String line);
   Zone fork(Zone zone, ZoneSpecification specification, Map zoneValues);
-
-  // TODO(floitsch): deprecate once tasks are non-experimental.
-  Timer createTimer(Zone zone, Duration duration, void f());
-  // TODO(floitsch): deprecate once tasks are non-experimental.
-  Timer createPeriodicTimer(Zone zone, Duration period, void f(Timer timer));
 }
 
 /**
@@ -507,102 +411,13 @@ abstract class Zone {
   void scheduleMicrotask(void f());
 
   /**
-   * Creates a task in the current zone.
-   *
-   * A task represents an asynchronous operation or process that reports back
-   * through the event loop.
-   *
-   * This function allows the zone to intercept the initialization of the
-   * task while the [runTask] function is invoked when the task reports back.
-   *
-   * By default, in the root zone, the [create] function is invoked with the
-   * [specification] as argument. It returns a task object which is used for all
-   * future interactions between the zone and the task. The object is
-   * a unique instance representing the task. It is generally returned to
-   * whoever initiated the task.
-   * For example, the HTML library uses the returned [StreamSubscription] as
-   * task object when users register an event listener.
-   *
-   * Tasks are created when the program starts an operation that reports back
-   * through the event loop. For example, a timer or an HTTP request both
-   * return through the event loop and are therefore tasks.
-   *
-   * If the [create] function is not invoked (because a custom zone has
-   * replaced or intercepted it), then the operation is *not* started. This
-   * means that a custom zone can intercept tasks, like HTTP requests.
-   *
-   * A task goes through the following steps:
-   * - a user invokes a library function that should eventually return through
-   *   the event loop.
-   * - the library function creates a [TaskSpecification] that contains the
-   *   necessary information to start the operation, and invokes
-   *   `Zone.current.createTask` with the specification and a [create] closure.
-   *   The closure, when invoked, uses the specification to start the operation
-   *   (usually by interacting with the underlying system, or as a native
-   *   extension), and returns a task object that identifies the running task.
-   * - custom zones handle the request and (unless completely intercepted and
-   *   aborted), end up calling the root zone's [createTask] which runs the
-   *   provided `create` closure, which may have been replaced at this point.
-   * - later, the asynchronous operation returns through the event loop.
-   *   It invokes [Zone.runTask] on the zone in which the task should run
-   *   (and which was originally passed to the `create` function by
-   *   `createTask`). The [runTask] function receives the
-   *   task object, a `run` function and an argument. As before, custom zones
-   *   may intercept this call. Eventually (unless aborted), the `run` function
-   *   is invoked. This last step may happen multiple times for tasks that are
-   *   not oneshot tasks (see [ZoneSpecification.isOneShot]).
-   *
-   * Custom zones may replace the [specification] with a different one, thus
-   * modifying the task parameters. An operation that wishes to be an
-   * interceptable task must publicly specify the types that intercepting code
-   * sees:
-   * - The specification type (extending [TaskSpecification]) which holds the
-   *   information available when intercepting the `createTask` call.
-   * - The task object type, returned by `createTask` and [create]. This object
-   *   may simply be typed as [Object].
-   * - The argument type, if [runTask] takes a meaningful argument.
-   *
-   * *Experimental*. Might disappear without notice.
-   */
-  Object/*=T*/ createTask/*<T, S extends TaskSpecification>*/(
-      /*=T*/ create(TaskSpecification/*=S*/ specification, Zone zone),
-      TaskSpecification/*=S*/ specification);
-
-  /**
-   * Runs a task callback.
-   *
-   * This function is invoked when an operation, started through [createTask],
-   * generates an event.
-   *
-   * Generally, tasks schedule Dart code in the global event loop when the
-   * [createTask] function is invoked. Since the
-   * event loop does not expect any return value from the code it runs, the
-   * [runTask] function is a void function.
-   *
-   * The [task] object must be the same as the one created with [createTask].
-   *
-   * It is good practice that task operations provide a meaningful [argument],
-   * so that custom zones can interact with it. They might want to log or
-   * replace the argument before calling the [run] function.
-   *
-   * See [createTask].
-   *
-   * *Experimental*. Might disappear without notice.
-   */
-  void runTask/*<T, A>*/(
-      /*=T*/ run(/*=T*/ task, /*=A*/ argument), Object/*=T*/ task,
-      Object/*=A*/ argument);
-
-  /**
    * Creates a Timer where the callback is executed in this zone.
    */
-  // TODO(floitsch): deprecate once tasks are non-experimental.
   Timer createTimer(Duration duration, void callback());
 
   /**
    * Creates a periodic Timer where the callback is executed in this zone.
    */
-  // TODO(floitsch): deprecate once tasks are non-experimental.
   Timer createPeriodicTimer(Duration period, void callback(Timer timer));
 
   /**
@@ -708,7 +523,7 @@ class _ZoneDelegate implements ZoneDelegate {
     // TODO(floitsch): make this a generic method call on '<R>' once it's
     // supported. Remove the unnecessary cast.
     return handler(implZone, _parentDelegate(implZone), zone, f)
-        as dynamic/*=ZoneCallback<R>*/;
+        as Object/*=ZoneCallback<R>*/;
   }
 
   ZoneUnaryCallback/*<R, T>*/ registerUnaryCallback/*<R, T>*/(
@@ -719,7 +534,7 @@ class _ZoneDelegate implements ZoneDelegate {
     // TODO(floitsch): make this a generic method call on '<R, T>' once it's
     // supported. Remove the unnecessary cast.
     return handler(implZone, _parentDelegate(implZone), zone, f)
-        as dynamic/*=ZoneUnaryCallback<R, T>*/;
+        as Object/*=ZoneUnaryCallback<R, T>*/;
   }
 
   ZoneBinaryCallback/*<R, T1, T2>*/ registerBinaryCallback/*<R, T1, T2>*/(
@@ -730,7 +545,7 @@ class _ZoneDelegate implements ZoneDelegate {
     // TODO(floitsch): make this a generic method call on '<R, T1, T2>' once
     // it's supported. Remove the unnecessary cast.
     return handler(implZone, _parentDelegate(implZone), zone, f)
-        as dynamic/*=ZoneBinaryCallback<R, T1, T2>*/;
+        as Object/*=ZoneBinaryCallback<R, T1, T2>*/;
   }
 
   AsyncError errorCallback(Zone zone, Object error, StackTrace stackTrace) {
@@ -749,25 +564,18 @@ class _ZoneDelegate implements ZoneDelegate {
     handler(implZone, _parentDelegate(implZone), zone, f);
   }
 
-  Object/*=T*/ createTask/*<T, S extends TaskSpecification>*/(
-      Zone zone, TaskCreate/*<T, S>*/ create, TaskSpecification/*=S*/ specification) {
-    var implementation = _delegationTarget._createTask;
+  Timer createTimer(Zone zone, Duration duration, void f()) {
+    var implementation = _delegationTarget._createTimer;
     _Zone implZone = implementation.zone;
-    // TODO(floitsch): make the handler call a generic method call on '<T, S>'
-    // once it's supported. Remove the unnecessary cast.
-    var handler =
-        implementation.function as CreateTaskHandler/*<T, S>*/;
-    return handler(
-        implZone, _parentDelegate(implZone), zone, create, specification);
+    CreateTimerHandler handler = implementation.function;
+    return handler(implZone, _parentDelegate(implZone), zone, duration, f);
   }
 
-  void runTask/*<T, A>*/(Zone zone, TaskRun run, Object /*=T*/ task,
-      Object /*=A*/ argument) {
-    var implementation = _delegationTarget._runTask;
+  Timer createPeriodicTimer(Zone zone, Duration period, void f(Timer timer)) {
+    var implementation = _delegationTarget._createPeriodicTimer;
     _Zone implZone = implementation.zone;
-    RunTaskHandler handler = implementation.function;
-    // TODO(floitsch): make this a generic call on '<T, A>'.
-    handler(implZone, _parentDelegate(implZone), zone, run, task, argument);
+    CreatePeriodicTimerHandler handler = implementation.function;
+    return handler(implZone, _parentDelegate(implZone), zone, period, f);
   }
 
   void print(Zone zone, String line) {
@@ -784,22 +592,6 @@ class _ZoneDelegate implements ZoneDelegate {
     ForkHandler handler = implementation.function;
     return handler(
         implZone, _parentDelegate(implZone), zone, specification, zoneValues);
-  }
-
-  // TODO(floitsch): deprecate once tasks are non-experimental.
-  Timer createTimer(Zone zone, Duration duration, void f()) {
-    var implementation = _delegationTarget._createTimer;
-    _Zone implZone = implementation.zone;
-    CreateTimerHandler handler = implementation.function;
-    return handler(implZone, _parentDelegate(implZone), zone, duration, f);
-  }
-
-  // TODO(floitsch): deprecate once tasks are non-experimental.
-  Timer createPeriodicTimer(Zone zone, Duration period, void f(Timer timer)) {
-    var implementation = _delegationTarget._createPeriodicTimer;
-    _Zone implZone = implementation.zone;
-    CreatePeriodicTimerHandler handler = implementation.function;
-    return handler(implZone, _parentDelegate(implZone), zone, period, f);
   }
 }
 
@@ -818,17 +610,11 @@ abstract class _Zone implements Zone {
   _ZoneFunction<RegisterBinaryCallbackHandler> get _registerBinaryCallback;
   _ZoneFunction<ErrorCallbackHandler> get _errorCallback;
   _ZoneFunction<ScheduleMicrotaskHandler> get _scheduleMicrotask;
-  _ZoneFunction<CreateTaskHandler> get _createTask;
-  _ZoneFunction<RunTaskHandler> get _runTask;
+  _ZoneFunction<CreateTimerHandler> get _createTimer;
+  _ZoneFunction<CreatePeriodicTimerHandler> get _createPeriodicTimer;
   _ZoneFunction<PrintHandler> get _print;
   _ZoneFunction<ForkHandler> get _fork;
   _ZoneFunction<HandleUncaughtErrorHandler> get _handleUncaughtError;
-
-  // TODO(floitsch): deprecate once tasks are non-experimental.
-  _ZoneFunction<CreateTimerHandler> get _createTimer;
-  // TODO(floitsch): deprecate once tasks are non-experimental.
-  _ZoneFunction<CreatePeriodicTimerHandler> get _createPeriodicTimer;
-
   _Zone get parent;
   ZoneDelegate get _delegate;
   Map get _map;
@@ -850,16 +636,11 @@ class _CustomZone extends _Zone {
   _ZoneFunction<RegisterBinaryCallbackHandler> _registerBinaryCallback;
   _ZoneFunction<ErrorCallbackHandler> _errorCallback;
   _ZoneFunction<ScheduleMicrotaskHandler> _scheduleMicrotask;
-  _ZoneFunction<CreateTaskHandler> _createTask;
-  _ZoneFunction<RunTaskHandler> _runTask;
+  _ZoneFunction<CreateTimerHandler> _createTimer;
+  _ZoneFunction<CreatePeriodicTimerHandler> _createPeriodicTimer;
   _ZoneFunction<PrintHandler> _print;
   _ZoneFunction<ForkHandler> _fork;
   _ZoneFunction<HandleUncaughtErrorHandler> _handleUncaughtError;
-
-  // TODO(floitsch): deprecate once tasks are non-experimental.
-  _ZoneFunction<CreateTimerHandler> _createTimer;
-  // TODO(floitsch): deprecate once tasks are non-experimental.
-  _ZoneFunction<CreatePeriodicTimerHandler> _createPeriodicTimer;
 
   // A cached delegate to this zone.
   ZoneDelegate _delegateCache;
@@ -911,14 +692,13 @@ class _CustomZone extends _Zone {
         ? new _ZoneFunction<ScheduleMicrotaskHandler>(
             this, specification.scheduleMicrotask)
         : parent._scheduleMicrotask;
-    _createTask = (specification.createTask != null)
-        ? new _ZoneFunction<CreateTaskHandler>(
-            this, specification.createTask)
-        : parent._createTask;
-    _runTask = (specification.runTask != null)
-        ? new _ZoneFunction<RunTaskHandler>(
-            this, specification.runTask)
-        : parent._runTask;
+    _createTimer = (specification.createTimer != null)
+        ? new _ZoneFunction<CreateTimerHandler>(this, specification.createTimer)
+        : parent._createTimer;
+    _createPeriodicTimer = (specification.createPeriodicTimer != null)
+        ? new _ZoneFunction<CreatePeriodicTimerHandler>(
+            this, specification.createPeriodicTimer)
+        : parent._createPeriodicTimer;
     _print = (specification.print != null)
         ? new _ZoneFunction<PrintHandler>(this, specification.print)
         : parent._print;
@@ -929,16 +709,6 @@ class _CustomZone extends _Zone {
         ? new _ZoneFunction<HandleUncaughtErrorHandler>(
             this, specification.handleUncaughtError)
         : parent._handleUncaughtError;
-
-    // Deprecated fields, once tasks are non-experimental.
-    _createTimer = (specification.createTimer != null)
-        ? new _ZoneFunction<CreateTimerHandler>(
-            this, specification.createTimer)
-        : parent._createTimer;
-    _createPeriodicTimer = (specification.createPeriodicTimer != null)
-        ? new _ZoneFunction<CreatePeriodicTimerHandler>(
-            this, specification.createPeriodicTimer)
-        : parent._createPeriodicTimer;
   }
 
   /**
@@ -1089,7 +859,7 @@ class _CustomZone extends _Zone {
     // TODO(floitsch): make this a generic method call on '<R>' once it's
     // supported. Remove the unnecessary cast.
     return handler(implementation.zone, parentDelegate, this, callback)
-        as dynamic/*=ZoneCallback<R>*/;
+        as Object/*=ZoneCallback<R>*/;
   }
 
   ZoneUnaryCallback/*<R, T>*/ registerUnaryCallback/*<R, T>*/(
@@ -1101,7 +871,7 @@ class _CustomZone extends _Zone {
     // TODO(floitsch): make this a generic method call on '<R, T>' once it's
     // supported. Remove the unnecessary cast.
     return handler(implementation.zone, parentDelegate, this, callback)
-        as dynamic/*=ZoneUnaryCallback<R, T>*/;
+        as Object/*=ZoneUnaryCallback<R, T>*/;
   }
 
   ZoneBinaryCallback/*<R, T1, T2>*/ registerBinaryCallback/*<R, T1, T2>*/(
@@ -1113,7 +883,7 @@ class _CustomZone extends _Zone {
     // TODO(floitsch): make this a generic method call on '<R, T1, T2>' once
     // it's supported. Remove the unnecessary cast.
     return handler(implementation.zone, parentDelegate, this, callback)
-        as dynamic/*=ZoneBinaryCallback<R, T1, T2>*/;
+        as Object/*=ZoneBinaryCallback<R, T1, T2>*/;
   }
 
   AsyncError errorCallback(Object error, StackTrace stackTrace) {
@@ -1132,40 +902,9 @@ class _CustomZone extends _Zone {
     assert(implementation != null);
     ZoneDelegate parentDelegate = _parentDelegate(implementation.zone);
     ScheduleMicrotaskHandler handler = implementation.function;
-    handler(implementation.zone, parentDelegate, this, f);
+    return handler(implementation.zone, parentDelegate, this, f);
   }
 
-  Object/*=T*/ createTask/*<T, S extends TaskSpecification>*/(
-      TaskCreate/*<T, S>*/ create, TaskSpecification/*=S*/ specification) {
-    var implementation = this._createTask;
-    ZoneDelegate parentDelegate = _parentDelegate(implementation.zone);
-    // TODO(floitsch): make the handler call a generic method call on '<T, S>'
-    // once it's supported. Remove the unnecessary cast.
-    var handler =
-        implementation.function as CreateTaskHandler/*<T, S>*/;
-    return handler(
-        implementation.zone, parentDelegate, this, create, specification);
-  }
-
-  void runTask/*<T, A>*/(
-      TaskRun/*<T, A>*/ run, Object/*=T*/ task, Object/*=A*/ arg1) {
-    var implementation = this._runTask;
-    ZoneDelegate parentDelegate = _parentDelegate(implementation.zone);
-    RunTaskHandler handler = implementation.function;
-    // TODO(floitsch): make this a generic method call on '<T, A>' once it's
-    // supported.
-    handler(implementation.zone, parentDelegate, this, run, task, arg1);
-  }
-
-  void print(String line) {
-    var implementation = this._print;
-    assert(implementation != null);
-    ZoneDelegate parentDelegate = _parentDelegate(implementation.zone);
-    PrintHandler handler = implementation.function;
-    return handler(implementation.zone, parentDelegate, this, line);
-  }
-
-  // TODO(floitsch): deprecate once tasks are non-experimental.
   Timer createTimer(Duration duration, void f()) {
     var implementation = this._createTimer;
     assert(implementation != null);
@@ -1174,7 +913,6 @@ class _CustomZone extends _Zone {
     return handler(implementation.zone, parentDelegate, this, duration, f);
   }
 
-  // TODO(floitsch): deprecate once tasks are non-experimental.
   Timer createPeriodicTimer(Duration duration, void f(Timer timer)) {
     var implementation = this._createPeriodicTimer;
     assert(implementation != null);
@@ -1182,6 +920,14 @@ class _CustomZone extends _Zone {
     CreatePeriodicTimerHandler handler = implementation.function;
     return handler(
         implementation.zone, parentDelegate, this, duration, f);
+  }
+
+  void print(String line) {
+    var implementation = this._print;
+    assert(implementation != null);
+    ZoneDelegate parentDelegate = _parentDelegate(implementation.zone);
+    PrintHandler handler = implementation.function;
+    return handler(implementation.zone, parentDelegate, this, line);
   }
 }
 
@@ -1260,39 +1006,22 @@ void _rootScheduleMicrotask(Zone self, ZoneDelegate parent, Zone zone, f()) {
   _scheduleAsyncCallback(f);
 }
 
-Object/*=T*/ _rootCreateTask/*<T, S extends TaskSpecification>*/(
-    Zone self, ZoneDelegate parent, Zone zone,
-    TaskCreate/*<T, S>*/ create, TaskSpecification/*=S*/ specification) {
-  return create(specification, zone);
-}
-
-void _rootRunTask/*<T, A>*/(
-    Zone self, ZoneDelegate parent, Zone zone, TaskRun run/*<T, A>*/,
-    Object/*=T*/ task, Object/*=A*/ arg) {
-  if (Zone._current == zone) {
-    run(task, arg);
-    return;
-  }
-
-  Zone old = Zone._enter(zone);
-  try {
-    run(task, arg);
-  } catch (e, s) {
-    zone.handleUncaughtError/*<dynamic>*/(e, s);
-  } finally {
-    Zone._leave(old);
-  }
-}
-
 Timer _rootCreateTimer(Zone self, ZoneDelegate parent, Zone zone,
                        Duration duration, void callback()) {
-  return new Timer._task(zone, duration, callback);
+  if (!identical(_ROOT_ZONE, zone)) {
+    callback = zone.bindCallback(callback);
+  }
+  return Timer._createTimer(duration, callback);
 }
 
 Timer _rootCreatePeriodicTimer(
     Zone self, ZoneDelegate parent, Zone zone,
     Duration duration, void callback(Timer timer)) {
-  return new Timer._periodicTask(zone, duration, callback);
+  if (!identical(_ROOT_ZONE, zone)) {
+    // TODO(floitsch): the return type should be 'void'.
+    callback = zone.bindUnaryCallback/*<dynamic, Timer>*/(callback);
+  }
+  return Timer._createPeriodicTimer(duration, callback);
 }
 
 void _rootPrint(Zone self, ZoneDelegate parent, Zone zone, String line) {
@@ -1353,10 +1082,10 @@ class _RootZone extends _Zone {
   _ZoneFunction<ScheduleMicrotaskHandler> get _scheduleMicrotask =>
       const _ZoneFunction<ScheduleMicrotaskHandler>(
           _ROOT_ZONE, _rootScheduleMicrotask);
-  _ZoneFunction<CreateTaskHandler> get _createTask =>
-      const _ZoneFunction<CreateTaskHandler>(_ROOT_ZONE, _rootCreateTask);
-  _ZoneFunction<RunTaskHandler> get _runTask =>
-      const _ZoneFunction<RunTaskHandler>(_ROOT_ZONE, _rootRunTask);
+  _ZoneFunction<CreateTimerHandler> get _createTimer =>
+      const _ZoneFunction<CreateTimerHandler>(_ROOT_ZONE, _rootCreateTimer);
+  _ZoneFunction<CreatePeriodicTimerHandler> get _createPeriodicTimer =>
+      const _ZoneFunction<CreatePeriodicTimerHandler>(_ROOT_ZONE, _rootCreatePeriodicTimer);
   _ZoneFunction<PrintHandler> get _print =>
       const _ZoneFunction<PrintHandler>(_ROOT_ZONE, _rootPrint);
   _ZoneFunction<ForkHandler> get _fork =>
@@ -1364,14 +1093,6 @@ class _RootZone extends _Zone {
   _ZoneFunction<HandleUncaughtErrorHandler> get _handleUncaughtError =>
       const _ZoneFunction<HandleUncaughtErrorHandler>(
           _ROOT_ZONE, _rootHandleUncaughtError);
-
-  // TODO(floitsch): deprecate once tasks are non-experimental.
-  _ZoneFunction<CreateTimerHandler> get _createTimer =>
-      const _ZoneFunction<CreateTimerHandler>(_ROOT_ZONE, _rootCreateTimer);
-  // TODO(floitsch): deprecate once tasks are non-experimental.
-  _ZoneFunction<CreatePeriodicTimerHandler> get _createPeriodicTimer =>
-      const _ZoneFunction<CreatePeriodicTimerHandler>(
-          _ROOT_ZONE, _rootCreatePeriodicTimer);
 
   // The parent zone.
   _Zone get parent => null;
@@ -1502,16 +1223,6 @@ class _RootZone extends _Zone {
 
   void scheduleMicrotask(void f()) {
     _rootScheduleMicrotask(null, null, this, f);
-  }
-
-  Object/*=T*/ createTask/*<T, S extends TaskSpecification>*/(
-      TaskCreate/*<T, S>*/ create, TaskSpecification/*=S*/ specification) {
-    return _rootCreateTask/*<T, S>*/(null, null, this, create, specification);
-  }
-
-  void runTask/*<T, A>*/(
-      TaskRun/*<T, A>*/ run, Object/*=T*/ task, Object/*=A*/ arg) {
-    _rootRunTask/*<T, A>*/(null, null, this, run, task, arg);
   }
 
   Timer createTimer(Duration duration, void f()) {
