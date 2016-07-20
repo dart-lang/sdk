@@ -29,6 +29,7 @@ class DisassemblyFormatter {
                                   intptr_t hex_size,
                                   char* human_buffer,
                                   intptr_t human_size,
+                                  Object* object,
                                   uword pc) = 0;
 
   // Print a formatted message.
@@ -48,6 +49,7 @@ class DisassembleToStdout : public DisassemblyFormatter {
                                   intptr_t hex_size,
                                   char* human_buffer,
                                   intptr_t human_size,
+                                  Object* object,
                                   uword pc);
 
   virtual void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
@@ -70,6 +72,7 @@ class DisassembleToJSONStream : public DisassemblyFormatter {
                                   intptr_t hex_size,
                                   char* human_buffer,
                                   intptr_t human_size,
+                                  Object* object,
                                   uword pc);
 
   virtual void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
@@ -112,29 +115,14 @@ class Disassembler : public AllStatic {
     Disassemble(start, end, &stdout_formatter);
   }
 
-  // Disassemble instructions in a memory region.
-  static void DisassembleMemoryRegion(const MemoryRegion& instructions,
-                                      DisassemblyFormatter* formatter) {
-    uword start = instructions.start();
-    uword end = instructions.end();
-    Disassemble(start, end, formatter);
-  }
-
-  static void DisassembleMemoryRegion(const MemoryRegion& instructions) {
-    uword start = instructions.start();
-    uword end = instructions.end();
-    Disassemble(start, end);
-  }
-
   // Decodes one instruction.
   // Writes a hexadecimal representation into the hex_buffer and a
   // human-readable representation into the human_buffer.
   // Writes the length of the decoded instruction in bytes in out_instr_len.
   static void DecodeInstruction(char* hex_buffer, intptr_t hex_size,
                                 char* human_buffer, intptr_t human_size,
-                                int* out_instr_len, uword pc);
-
-  static bool CanFindOldObject(uword addr);
+                                int* out_instr_len, const Code& code,
+                                Object** object, uword pc);
 
   static void DisassembleCode(const Function& function, bool optimized);
   static void DisassembleCodeUnoptimized(
