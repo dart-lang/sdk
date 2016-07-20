@@ -75,6 +75,15 @@ class RenderingScheduler<T extends Renderable> implements RenderingTask {
     scheduleRendering();
   }
 
+  /// Checks for modification during attribute set.
+  /// If value changes a new rendering is scheduled.
+  /// set attr(T v) => _attr = _r.checkAndReact(_attr, v);
+  dynamic checkAndReact(dynamic oldValue, dynamic newValue) {
+    if (oldValue != newValue) dirty();
+    else scheduleNotification();
+    return newValue;
+  }
+
   /// Schedules a new rendering phase.
   void scheduleRendering() {
     if (_renderingScheduled) return;

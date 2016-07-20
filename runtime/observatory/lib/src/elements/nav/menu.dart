@@ -56,31 +56,9 @@ class NavMenuElement extends HtmlElement implements Renderable {
   String get label => _label;
   String get link => _link;
   bool get last => _last;
-  set label(String value) {
-    if (_label != value) {
-      _label = value;
-      _r.dirty();
-    } else {
-      _r.scheduleNotification();
-    }
-  }
-  set link(String value) {
-    if (_link != value) {
-      _link = value;
-      _r.dirty();
-    } else {
-      _r.scheduleNotification();
-    }
-  }
-  set last(bool value) {
-    if (_last != value) {
-      _last = value;
-      _r.dirty();
-    } else {
-      _r.scheduleNotification();
-    }
-  }
-
+  set label(String value) => _label = _r.checkAndReact(_label, value);
+  set link(String value) => _link = _r.checkAndReact(_link, value);
+  set last(bool value) => _last = _r.checkAndReact(_link, value);
 
   factory NavMenuElement(String label, {String link, bool last: false,
                              RenderingQueue queue}) {

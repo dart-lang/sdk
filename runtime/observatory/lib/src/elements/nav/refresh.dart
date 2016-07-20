@@ -27,23 +27,8 @@ class NavRefreshElement extends HtmlElement implements Renderable {
   String _label;
   bool get disabled => _disabled;
   String get label => _label;
-  set disabled(bool value) {
-    if (_disabled != value) {
-      _disabled = value;
-      _r.dirty();
-    } else {
-      _r.scheduleNotification();
-    }
-  }
-  set label(String value) {
-    if (_label != value) {
-      _label = value;
-      _r.dirty();
-    } else {
-      _r.scheduleNotification();
-    }
-  }
-
+  set disabled(bool value) => _disabled = _r.checkAndReact(_disabled, value);
+  set label(String value) => _label = _r.checkAndReact(_label, value);
 
   factory NavRefreshElement({String label: 'Refresh', bool disabled: false,
                              RenderingQueue queue}) {
