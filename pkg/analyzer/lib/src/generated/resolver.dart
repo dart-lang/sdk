@@ -10164,6 +10164,20 @@ class TypeResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  Object visitFunctionExpression(FunctionExpression node) {
+    // Clear the static element return type of closures.
+    // We need this to restore the state when closure parameter types can
+    // be propagated from invocation parameter types.
+    if (node is! FunctionDeclaration) {
+      ExecutableElement element = node.element;
+      if (element is FunctionElementImpl) {
+        element.returnType = null;
+      }
+    }
+    return super.visitFunctionExpression(node);
+  }
+
+  @override
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
     FunctionTypeAliasElementImpl element =
         node.element as FunctionTypeAliasElementImpl;

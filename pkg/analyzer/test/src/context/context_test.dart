@@ -3470,6 +3470,35 @@ class A {
     expect(context.getErrors(b).errors, hasLength(1));
   }
 
+  void test_sequence_closeParameterTypesPropagation() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+main() {
+  f((p) => 4.2);
+}
+f(c(int p)) {}
+''');
+    _performPendingAnalysisTasks();
+    LibrarySpecificUnit targetA = new LibrarySpecificUnit(a, a);
+    // Update and analyze.
+    String newCode = r'''
+newFunction() {}
+main() {
+  f((p) => 4.2);
+}
+f(c(int p)) {}
+''';
+    context.setContents(a, newCode);
+    _performPendingAnalysisTasks();
+    // Validate "(p) => 4.2" types.
+    CompilationUnit unit = context.getResult(targetA, RESOLVED_UNIT2);
+    SimpleIdentifier parameterName =
+        EngineTestCase.findSimpleIdentifier(unit, newCode, 'p) => 4.2);');
+    expect(parameterName.staticType, context.typeProvider.dynamicType);
+    expect(parameterName.propagatedType, context.typeProvider.intType);
+  }
+
   void test_sequence_inBodyChange_addRef_deltaChange() {
     Source a = addSource(
         '/a.dart',
