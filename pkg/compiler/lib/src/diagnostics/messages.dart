@@ -3703,11 +3703,6 @@ Your app imports dart:mirrors via:"""
           """
 $MIRRORS_NOT_SUPPORTED_BY_BACKEND_PADDING#{importChain}"""),
 
-      MessageKind.CALL_NOT_SUPPORTED_ON_NATIVE_CLASS: const MessageTemplate(
-          MessageKind.CALL_NOT_SUPPORTED_ON_NATIVE_CLASS,
-          "Non-supported 'call' member on a native class, or a "
-          "subclass of a native class."),
-
       MessageKind.DIRECTLY_THROWING_NSM: const MessageTemplate(
           MessageKind.DIRECTLY_THROWING_NSM,
           "This 'noSuchMethod' implementation is guaranteed to throw an "

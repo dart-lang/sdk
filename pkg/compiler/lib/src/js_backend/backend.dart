@@ -945,8 +945,6 @@ class JavaScriptBackend extends Backend {
       cls.ensureResolved(resolution);
       cls.forEachMember((ClassElement classElement, Element member) {
         if (member.name == Identifiers.call) {
-          reporter.reportErrorMessage(
-              member, MessageKind.CALL_NOT_SUPPORTED_ON_NATIVE_CLASS);
           return;
         }
         if (member.isSynthesized) return;
