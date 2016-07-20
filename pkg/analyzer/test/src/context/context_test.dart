@@ -3470,7 +3470,7 @@ class A {
     expect(context.getErrors(b).errors, hasLength(1));
   }
 
-  void test_sequence_closeParameterTypesPropagation() {
+  void test_sequence_closureParameterTypesPropagation() {
     Source a = addSource(
         '/a.dart',
         r'''
@@ -3497,6 +3497,46 @@ f(c(int p)) {}
         EngineTestCase.findSimpleIdentifier(unit, newCode, 'p) => 4.2);');
     expect(parameterName.staticType, context.typeProvider.dynamicType);
     expect(parameterName.propagatedType, context.typeProvider.intType);
+  }
+
+  void test_sequence_dependenciesWithCycles() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+const A = 1;
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'c.dart';
+const B = C1 + 1;
+''');
+    Source c = addSource(
+        '/c.dart',
+        r'''
+import 'a.dart';
+import 'b.dart';
+const C1 = A + 1;
+const C2 = B + 2;
+''');
+    Source d = addSource(
+        '/d.dart',
+        r'''
+import 'c.dart';
+const D = C2 + 1;
+''');
+    _performPendingAnalysisTasks();
+    // Update "A" constant.
+    // This should invalidate results in all sources.
+    context.setContents(
+        a,
+        r'''
+const A = 2;
+''');
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalid(c, LIBRARY_ERRORS_READY);
+    _assertInvalid(d, LIBRARY_ERRORS_READY);
   }
 
   void test_sequence_inBodyChange_addRef_deltaChange() {

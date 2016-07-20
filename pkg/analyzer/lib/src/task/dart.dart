@@ -2525,15 +2525,23 @@ class DartDelta extends Delta {
    */
   final Set<Source> libraryWithInvalidErrors = new Set<Source>();
 
+  /**
+   * This set is cleared in every [gatherEnd], and [gatherChanges] uses it
+   * to find changes in every source only once per visit process.
+   */
+  final Set<Source> currentVisitUnits = new Set<Source>();
+
   DartDelta(Source source) : super(source);
 
   /**
    * Add names that are changed in the given [references].
+   * Return `true` if any change was added.
    */
-  void addChangedElements(ReferencedNames references, Source refLibrary) {
-    bool hasProgress = true;
-    while (hasProgress) {
-      hasProgress = false;
+  bool addChangedElements(ReferencedNames references, Source refLibrary) {
+    int numberOfChanges = 0;
+    int lastNumberOfChange = -1;
+    while (numberOfChanges != lastNumberOfChange) {
+      lastNumberOfChange = numberOfChanges;
       // Classes that extend changed classes are also changed.
       // If there is a delta for a superclass, use it for the subclass.
       // Otherwise mark the subclass as "general name change".
@@ -2546,13 +2554,13 @@ class DartDelta extends Delta {
             _log(() => '$subName in $refLibrary has delta because of its '
                 'superclass $superName has delta');
             if (subDelta.superDeltas.add(superDelta)) {
-              hasProgress = true;
+              numberOfChanges++;
             }
           } else if (isChanged(refLibrary, superName)) {
             if (nameChanged(refLibrary, subName)) {
               _log(() => '$subName in $refLibrary is changed because its '
                   'superclass $superName is changed');
-              hasProgress = true;
+              numberOfChanges++;
             }
           }
         }
@@ -2567,12 +2575,13 @@ class DartDelta extends Delta {
             if (nameChanged(refLibrary, user)) {
               _log(() => '$user in $refLibrary is changed because '
                   'of $dependency in $dependencies');
-              hasProgress = true;
+              numberOfChanges++;
             }
           }
         }
       });
     }
+    return numberOfChanges != 0;
   }
 
   void classChanged(ClassElementDelta classDelta) {
@@ -2582,6 +2591,39 @@ class DartDelta extends Delta {
   void elementChanged(Element element) {
     Source librarySource = element.library.source;
     nameChanged(librarySource, element.name);
+  }
+
+  @override
+  bool gatherChanges(InternalAnalysisContext context, AnalysisTarget target,
+      ResultDescriptor descriptor, Object value) {
+    // Prepare target source.
+    Source targetUnit = target.source;
+    Source targetLibrary = target.librarySource;
+    if (target is Source) {
+      if (context.getKindOf(target) == SourceKind.LIBRARY) {
+        targetLibrary = target;
+      }
+    }
+    // We don't know what to do with the given target.
+    if (targetUnit == null || targetUnit != targetLibrary) {
+      return false;
+    }
+    // Attempt to find new changed names for the unit only once.
+    if (!currentVisitUnits.add(targetUnit)) {
+      return false;
+    }
+    // Add changes.
+    ReferencedNames referencedNames =
+        context.getResult(targetUnit, REFERENCED_NAMES);
+    if (referencedNames == null) {
+      return false;
+    }
+    return addChangedElements(referencedNames, targetLibrary);
+  }
+
+  @override
+  void gatherEnd() {
+    currentVisitUnits.clear();
   }
 
   bool hasAffectedHintsVerifyErrors(
@@ -2689,7 +2731,7 @@ class DartDelta extends Delta {
       }
     }
     // We don't know what to do with the given target, invalidate it.
-    if (targetUnit == null) {
+    if (targetUnit == null || targetUnit != targetLibrary) {
       return DeltaResult.INVALIDATE;
     }
     // Keep results that don't change: any library.
@@ -2738,7 +2780,6 @@ class DartDelta extends Delta {
       if (referencedNames == null) {
         return DeltaResult.INVALIDATE_NO_DELTA;
       }
-      addChangedElements(referencedNames, targetLibrary);
       if (hasAffectedReferences(referencedNames, targetLibrary)) {
         librariesWithAllInvalidResults.add(targetLibrary);
         return DeltaResult.INVALIDATE;
