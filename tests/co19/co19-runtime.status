@@ -194,6 +194,8 @@ Language/Expressions/Object_Identity/double_t02: RuntimeError # Issue #26374
 LibTest/typed_data/Float32x4/operator_division_A01_t02: RuntimeError # Issue #26675
 
 [ $hot_reload ]
+Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/method_identical_t03: Pass, Fail # Closure identity
+Language/Expressions/Property_Extraction/conditional_t05: Pass, Fail # Closure identity
 Language/Expressions/Assignment/prefix_object_t02: Crash # Requires deferred libraries
 Language/Expressions/Constants/constant_constructor_t03: Crash # Requires deferred libraries
 Language/Expressions/Constants/identifier_denotes_a_constant_t06: Crash # Requires deferred libraries
@@ -206,7 +208,6 @@ Language/Expressions/Instance_Creation/Const/deferred_type_t01: Crash # Requires
 Language/Expressions/Instance_Creation/Const/deferred_type_t02: Crash # Requires deferred libraries
 Language/Expressions/Instance_Creation/New/evaluation_t19: Crash # Requires deferred libraries
 Language/Expressions/Instance_Creation/New/evaluation_t20: Crash # Requires deferred libraries
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/method_identical_t03: SkipByDesign # Relies on closure identity
 Language/Expressions/Property_Extraction/Anonymous_Constructor_Extraction/deferred_type_t01: Crash # Requires deferred libraries
 Language/Expressions/Property_Extraction/Named_Constructor_Extraction/deferred_type_t01: Crash # Requires deferred libraries
 Language/Expressions/Type_Cast/evaluation_t10: Crash # Requires deferred libraries

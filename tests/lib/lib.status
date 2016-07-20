@@ -375,7 +375,7 @@ convert/utf85_test: Pass, Timeout
 mirrors/accessor_cache_overflow_test: Skip
 
 [ $hot_reload ]
-async/stream_transformer_test: SkipByDesign # Closure identity
+async/stream_transformer_test: Pass, Fail # Closure identity
 mirrors/closurization_equivalence_test: SkipByDesign # Method equality
 mirrors/fake_function_with_call_test: SkipByDesign # Method equality
 
