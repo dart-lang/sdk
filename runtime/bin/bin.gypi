@@ -682,6 +682,10 @@
           'defines': [
             'DART_IO_SECURE_SOCKET_DISABLED'
           ],
+        }, {
+          'sources': [
+            '../../third_party/root_certificates/root_certificates.cc',
+          ],
         }],
         ['OS=="win"', {
           'sources/' : [
@@ -758,6 +762,10 @@
           'defines': [
             'DART_IO_SECURE_SOCKET_DISABLED'
           ],
+        }, {
+          'sources': [
+            '../../third_party/root_certificates/root_certificates.cc',
+          ],
         }],
         ['OS != "mac" and dart_io_support==1 and dart_io_secure_socket==1', {
           'dependencies': [
@@ -817,6 +825,10 @@
         ['dart_io_support==0 or dart_io_secure_socket==0', {
           'defines': [
             'DART_IO_SECURE_SOCKET_DISABLED',
+          ],
+        }, {
+          'sources': [
+            '../../third_party/root_certificates/root_certificates.cc',
           ],
         }],
         ['OS != "mac" and dart_io_support==1 and dart_io_secure_socket==1', {

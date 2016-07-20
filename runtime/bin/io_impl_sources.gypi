@@ -47,7 +47,6 @@
     'process_unsupported.cc',
     'process_win.cc',
     'reference_counting.h',
-    '../../third_party/root_certificates/root_certificates.cc',
     'root_certificates_unsupported.cc',
     'secure_socket.h',
     'secure_socket_boringssl.cc',
