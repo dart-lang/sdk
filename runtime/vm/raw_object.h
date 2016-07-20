@@ -1171,7 +1171,6 @@ class RawObjectPool : public RawObject {
   Entry* first_entry() { return &ptr()->data()[0]; }
 
   friend class Object;
-  friend class SnapshotReader;
 };
 
 
@@ -1254,7 +1253,6 @@ class RawPcDescriptors : public RawObject {
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, intptr_t); }
 
   friend class Object;
-  friend class SnapshotReader;
 };
 
 
@@ -1271,7 +1269,6 @@ class RawCodeSourceMap : public RawObject {
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, intptr_t); }
 
   friend class Object;
-  friend class SnapshotReader;
 };
 
 
@@ -1298,8 +1295,6 @@ class RawStackmap : public RawObject {
   // Variable length data follows here (bitmap of the stack layout).
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
-
-  friend class SnapshotReader;
 };
 
 
@@ -1373,7 +1368,6 @@ class RawLocalVarDescriptors : public RawObject {
   }
 
   friend class Object;
-  friend class SnapshotReader;
 };
 
 
@@ -1403,7 +1397,6 @@ class RawExceptionHandlers : public RawObject {
   HandlerInfo* data() { OPEN_ARRAY_START(HandlerInfo, intptr_t); }
 
   friend class Object;
-  friend class SnapshotReader;
 };
 
 

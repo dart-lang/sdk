@@ -3750,8 +3750,7 @@ class Library : public Object {
   void InitClassDictionary() const;
 
   RawArray* resolved_names() const { return raw_ptr()->resolved_names_; }
-  void InitResolvedNamesCache(intptr_t size,
-                              SnapshotReader* reader = NULL) const;
+  void InitResolvedNamesCache(intptr_t size) const;
   void AllocateExportedNamesCache() const;
   void InitExportedNamesCache() const;
   static void InvalidateExportedNamesCaches();

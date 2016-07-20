@@ -642,8 +642,6 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
     }
     case kOneByteStringCid: {
       intptr_t len = ReadSmiValue();
-      intptr_t hash = ReadSmiValue();
-      USE(hash);
       uint8_t *latin1 =
           reinterpret_cast<uint8_t*>(allocator(len * sizeof(uint8_t)));
       intptr_t utf8_len = 0;
@@ -663,8 +661,6 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
     }
     case kTwoByteStringCid: {
       intptr_t len = ReadSmiValue();
-      intptr_t hash = ReadSmiValue();
-      USE(hash);
       uint16_t *utf16 = reinterpret_cast<uint16_t*>(
           allocator(len * sizeof(uint16_t)));
       intptr_t utf8_len = 0;
@@ -1203,9 +1199,8 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       WriteIndexedObject(type == Utf8::kLatin1 ? kOneByteStringCid
                                                : kTwoByteStringCid);
       WriteTags(0);
-      // Write string length, hash and content
+      // Write string length and content.
       WriteSmi(len);
-      WriteSmi(0);  // TODO(sgjesse): Hash - not written.
       if (type == Utf8::kLatin1) {
         uint8_t* latin1_str =
             reinterpret_cast<uint8_t*>(::malloc(len * sizeof(uint8_t)));

@@ -10323,18 +10323,10 @@ static RawArray* NewDictionary(intptr_t initial_size) {
 }
 
 
-void Library::InitResolvedNamesCache(intptr_t size,
-                                     SnapshotReader* reader) const {
+void Library::InitResolvedNamesCache(intptr_t size) const {
   ASSERT(Thread::Current()->IsMutatorThread());
-  if (reader == NULL) {
-    StorePointer(&raw_ptr()->resolved_names_,
-                 HashTables::New<ResolvedNamesMap>(size));
-  } else {
-    intptr_t len = ResolvedNamesMap::ArrayLengthForNumOccupied(size);
-    *reader->ArrayHandle() ^= reader->NewArray(len);
-    StorePointer(&raw_ptr()->resolved_names_,
-                 HashTables::New<ResolvedNamesMap>(*reader->ArrayHandle()));
-  }
+  StorePointer(&raw_ptr()->resolved_names_,
+               HashTables::New<ResolvedNamesMap>(size));
 }
 
 
