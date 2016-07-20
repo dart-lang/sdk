@@ -242,6 +242,24 @@ LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
 
 
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(ic_data().NumArgsTested() == 1);
+  if (!with_checks()) {
+    ASSERT(ic_data().HasOneTarget());
+    const Function& target = Function::ZoneHandle(ic_data().GetTargetAt(0));
+    const Array& arguments_descriptor =
+        Array::Handle(ArgumentsDescriptor::New(
+            instance_call()->ArgumentCount(),
+            instance_call()->argument_names()));
+    const intptr_t argdesc_kidx = __ AddConstant(arguments_descriptor);
+
+    __ PushConstant(target);
+    __ StaticCall(instance_call()->ArgumentCount(), argdesc_kidx);
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
+        deopt_id(), instance_call()->token_pos());
+    compiler->RecordAfterCall(this);
+    __ PopLocal(locs()->out(0).reg());
+    return;
+  }
   Unsupported(compiler);
   UNREACHABLE();
 }

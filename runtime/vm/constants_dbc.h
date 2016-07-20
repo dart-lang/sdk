@@ -732,7 +732,7 @@ typedef int16_t Register;
 
 const int16_t FPREG = 0;
 const int16_t SPREG = 1;
-const intptr_t kNumberOfCpuRegisters = 20;
+const intptr_t kNumberOfCpuRegisters = 32;
 const intptr_t kDartAvailableCpuRegs = -1;
 const intptr_t kNoRegister = -1;
 const intptr_t kReservedCpuRegisters = 0;
