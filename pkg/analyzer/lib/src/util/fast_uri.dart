@@ -62,7 +62,23 @@ class FastUri implements Uri {
   bool get hasFragment => false;
 
   @override
-  int get hashCode => _text.hashCode;
+  int get hashCode {
+    // This code is copied from the standard Uri implementation.
+    // It is important that Uri and FastUri generate compatible hashCodes
+    // because Uri and FastUri may be used as keys in the same map.
+    int combine(part, current) {
+      // The sum is truncated to 30 bits to make sure it fits into a Smi.
+      return (current * 31 + part.hashCode) & 0x3FFFFFFF;
+    }
+    return _hashCode ??= combine(
+        scheme,
+        combine(
+            userInfo,
+            combine(
+                host,
+                combine(port,
+                    combine(path, combine(query, combine(fragment, 1)))))));
+  }
 
   @override
   bool get hasPort => false;
