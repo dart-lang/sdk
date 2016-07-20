@@ -71,9 +71,23 @@ class BinaryBuilder {
 
   String readStringEntry() {
     int numBytes = readUInt();
+    // Utf8Decoder will skip leading BOM characters, but we must preserve them.
+    // Collect leading BOMs before passing the bytes onto Utf8Decoder.
+    int numByteOrderMarks = 0;
+    while (_byteIndex + 2 < _bytes.length &&
+        _bytes[_byteIndex] == 0xef &&
+        _bytes[_byteIndex + 1] == 0xbb &&
+        _bytes[_byteIndex + 2] == 0xbf) {
+      ++numByteOrderMarks;
+      _byteIndex += 3;
+      numBytes -= 3;
+    }
     String string =
         const Utf8Decoder().convert(_bytes, _byteIndex, _byteIndex + numBytes);
     _byteIndex += numBytes;
+    if (numByteOrderMarks > 0) {
+      return '\ufeff' * numByteOrderMarks + string;
+    }
     return string;
   }
 
@@ -638,8 +652,7 @@ class BinaryBuilder {
         var iterable = readExpression();
         var body = readStatement();
         variableStack.length = variableStackHeight;
-        return new ForInStatement(variable, iterable, body,
-            isAsync: isAsync);
+        return new ForInStatement(variable, iterable, body, isAsync: isAsync);
       case Tag.SwitchStatement:
         var expression = readExpression();
         int count = readUInt();
@@ -749,8 +762,8 @@ class BinaryBuilder {
     }
   }
 
-  List<TypeParameter> readAndPushTypeParameterList([List<TypeParameter> list,
-      TreeNode parent]) {
+  List<TypeParameter> readAndPushTypeParameterList(
+      [List<TypeParameter> list, TreeNode parent]) {
     int length = readUInt();
     if (length == 0) return list ?? <TypeParameter>[];
     if (list == null) {
