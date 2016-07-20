@@ -2,9 +2,6 @@
 
 ### Core library changes
 
-* `dart:core`
-  * Improved performance when parsing some common URIs.
-  * Fixed bug in `Uri.resolve` (SDK issue [26804](https://github.com/dart-lang/sdk/issues/26804)).
 * `dart:io`
   * Adds file locking modes `FileLock.BLOCKING_SHARED` and
     `FileLock.BLOCKING_EXCLUSIVE`.
