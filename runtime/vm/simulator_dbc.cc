@@ -1710,6 +1710,22 @@ RawObject* Simulator::Call(const Code& code,
     DISPATCH();
   }
 
+  {
+    BYTECODE(Min, A_B_C);
+    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]);
+    FP[rA] = reinterpret_cast<RawObject*>((lhs < rhs) ? lhs : rhs);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(Max, A_B_C);
+    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]);
+    FP[rA] = reinterpret_cast<RawObject*>((lhs > rhs) ? lhs : rhs);
+    DISPATCH();
+  }
+
 #if defined(ARCH_IS_64_BIT)
   {
     BYTECODE(WriteIntoDouble, A_D);
@@ -1739,6 +1755,19 @@ RawObject* Simulator::Call(const Code& code,
       const RawDouble* box = RAW_CAST(Double, FP[rD]);
       FP[rA] = bit_cast<RawObject*, double>(box->ptr()->value_);
       pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DoubleToSmi, A_D);
+    const double value = bit_cast<double, RawObject*>(FP[rD]);
+    if (!isnan(value)) {
+      const intptr_t result = static_cast<intptr_t>(value);
+      if ((result <= Smi::kMaxValue) && (result >= Smi::kMinValue)) {
+        FP[rA] = reinterpret_cast<RawObject*>(result << kSmiTagSize);
+        pc++;
+      }
     }
     DISPATCH();
   }
@@ -1790,6 +1819,29 @@ RawObject* Simulator::Call(const Code& code,
     FP[rA] = bit_cast<RawObject*, double>(-value);
     DISPATCH();
   }
+
+  {
+    BYTECODE(DSqrt, A_D);
+    const double value = bit_cast<double, RawObject*>(FP[rD]);
+    FP[rA] = bit_cast<RawObject*, double>(sqrt(value));
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DMin, A_B_C);
+    const double lhs = bit_cast<double, RawObject*>(FP[rB]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rC]);
+    FP[rA] = bit_cast<RawObject*, double>(fmin(lhs, rhs));
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DMax, A_B_C);
+    const double lhs = bit_cast<double, RawObject*>(FP[rB]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rC]);
+    FP[rA] = bit_cast<RawObject*, double>(fmax(lhs, rhs));
+    DISPATCH();
+  }
 #else  // defined(ARCH_IS_64_BIT)
   {
     BYTECODE(WriteIntoDouble, A_D);
@@ -1806,6 +1858,12 @@ RawObject* Simulator::Call(const Code& code,
   {
     BYTECODE(CheckedUnboxDouble, A_D);
     UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DoubleToSmi, A_D);
+    UNREACHABLE();
     DISPATCH();
   }
 
@@ -1842,6 +1900,24 @@ RawObject* Simulator::Call(const Code& code,
   {
     BYTECODE(DNeg, A_D);
     UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DSqrt, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DMin, A_B_C);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DMax, A_B_C);
+    UNREACHABLE();
     DISPATCH();
   }
 #endif  // defined(ARCH_IS_64_BIT)

@@ -2492,6 +2492,38 @@ ASSEMBLER_TEST_RUN(IfUGtFalse, test) {
 }
 
 
+//  - Min, Max rA, rB, rC
+//
+//    FP[rA] <- {min, max}(FP[rB], FP[rC]). Assumes that FP[rB], and FP[rC] are
+//    Smis.
+ASSEMBLER_TEST_GENERATE(Min, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(500)));
+  __ Min(2, 0, 1);
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(Min, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Max, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(5)));
+  __ Max(2, 0, 1);
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(Max, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
 #if defined(ARCH_IS_64_BIT)
 //  - UnboxDouble rA, rD
 //
@@ -2635,6 +2667,158 @@ ASSEMBLER_TEST_GENERATE(DNeg, assembler) {
 
 
 ASSEMBLER_TEST_RUN(DNeg, test) {
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DSqrt, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Double::Handle(Double::New(36.0, Heap::kOld)));
+  __ UnboxDouble(0, 0);
+  __ DSqrt(1, 0);
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(DSqrt, test) {
+  EXPECT_EQ(6.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
+}
+
+
+//  - SmiToDouble rA, rD
+//
+//    Convert the Smi in FP[rD] to an unboxed double in FP[rA].
+//
+//  - DoubleToSmi rA, rD
+//
+//    If the unboxed double in FP[rD] can be converted to a Smi in FP[rA], then
+//    this instruction does so, and skips the following instruction. Otherwise,
+//    the following instruction is not skipped.
+ASSEMBLER_TEST_GENERATE(SmiToDouble, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ SmiToDouble(1, 0);
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(SmiToDouble, test) {
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DoubleToSmi, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Double::Handle(Double::New(42.0, Heap::kOld)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ UnboxDouble(0, 0);
+  __ DoubleToSmi(1, 0);
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(DoubleToSmi, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DoubleToSmiNearMax, assembler) {
+  const double m = static_cast<double>(Smi::kMaxValue - 1000);
+  __ Frame(2);
+  __ LoadConstant(0, Double::Handle(Double::New(m, Heap::kOld)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(42)));
+  __ UnboxDouble(0, 0);
+  __ DoubleToSmi(0, 0);
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(DoubleToSmiNearMax, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DoubleToSmiNearMin, assembler) {
+  const double m = static_cast<double>(Smi::kMinValue);
+  __ Frame(2);
+  __ LoadConstant(0, Double::Handle(Double::New(m, Heap::kOld)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(42)));
+  __ UnboxDouble(0, 0);
+  __ DoubleToSmi(0, 0);
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(DoubleToSmiNearMin, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DoubleToSmiFailPos, assembler) {
+  const double pos_overflow = static_cast<double>(Smi::kMaxValue + 1);
+  __ Frame(2);
+  __ LoadConstant(0, Double::Handle(Double::New(pos_overflow, Heap::kOld)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ UnboxDouble(0, 0);
+  __ DoubleToSmi(1, 0);
+  __ LoadConstant(1, Smi::Handle(Smi::New(42)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(DoubleToSmiFailPos, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DoubleToSmiFailNeg, assembler) {
+  const double neg_overflow = static_cast<double>(Smi::kMinValue - 1000);
+  __ Frame(2);
+  __ LoadConstant(0, Double::Handle(Double::New(neg_overflow, Heap::kOld)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ UnboxDouble(0, 0);
+  __ DoubleToSmi(1, 0);
+  __ LoadConstant(1, Smi::Handle(Smi::New(42)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(DoubleToSmiFailNeg, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DMin, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Double::Handle(Double::New(42.0, Heap::kOld)));
+  __ LoadConstant(1, Double::Handle(Double::New(500.0, Heap::kOld)));
+  __ UnboxDouble(0, 0);
+  __ UnboxDouble(1, 1);
+  __ DMin(2, 0, 1);
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(DMin, test) {
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DMax, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Double::Handle(Double::New(42.0, Heap::kOld)));
+  __ LoadConstant(1, Double::Handle(Double::New(5.0, Heap::kOld)));
+  __ UnboxDouble(0, 0);
+  __ UnboxDouble(1, 1);
+  __ DMax(2, 0, 1);
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(DMax, test) {
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
 }
 

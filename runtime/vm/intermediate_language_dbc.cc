@@ -36,12 +36,9 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(BinaryInt32Op)                                                             \
   M(Int32ToDouble)                                                             \
   M(DoubleToInteger)                                                           \
-  M(DoubleToSmi)                                                               \
   M(DoubleToDouble)                                                            \
   M(DoubleToFloat)                                                             \
   M(FloatToDouble)                                                             \
-  M(MathUnary)                                                                 \
-  M(MathMinMax)                                                                \
   M(BoxInt64)                                                                  \
   M(InvokeMathCFunction)                                                       \
   M(MergedMath)                                                                \
@@ -1285,6 +1282,14 @@ EMIT_NATIVE_CODE(Unbox, 1, Location::RequiresRegister()) {
 }
 
 
+EMIT_NATIVE_CODE(DoubleToSmi, 1, Location::RequiresRegister()) {
+  const Register value = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  __ DoubleToSmi(result, value);
+  compiler->EmitDeopt(deopt_id(), ICData::kDeoptDoubleToSmi);
+}
+
+
 EMIT_NATIVE_CODE(SmiToDouble, 1, Location::RequiresRegister()) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
@@ -1310,6 +1315,45 @@ EMIT_NATIVE_CODE(UnaryDoubleOp, 1, Location::RequiresRegister()) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
   __ DNeg(result, value);
+}
+
+
+EMIT_NATIVE_CODE(MathUnary, 1, Location::RequiresRegister()) {
+  if (kind() == MathUnaryInstr::kSqrt) {
+    const Register value = locs()->in(0).reg();
+    const Register result = locs()->out(0).reg();
+    __ DSqrt(result, value);
+  } else if (kind() == MathUnaryInstr::kDoubleSquare) {
+    const Register value = locs()->in(0).reg();
+    const Register result = locs()->out(0).reg();
+    __ DMul(result, value, value);
+  } else {
+    Unsupported(compiler);
+    UNREACHABLE();
+  }
+}
+
+
+EMIT_NATIVE_CODE(MathMinMax, 2, Location::RequiresRegister()) {
+  ASSERT((op_kind() == MethodRecognizer::kMathMin) ||
+         (op_kind() == MethodRecognizer::kMathMax));
+  const Register left = locs()->in(0).reg();
+  const Register right = locs()->in(1).reg();
+  const Register result = locs()->out(0).reg();
+  if (result_cid() == kDoubleCid) {
+    if (op_kind() == MethodRecognizer::kMathMin) {
+      __ DMin(result, left, right);
+    } else {
+      __ DMax(result, left, right);
+    }
+  } else {
+    ASSERT(result_cid() == kSmiCid);
+    if (op_kind() == MethodRecognizer::kMathMin) {
+      __ Min(result, left, right);
+    } else {
+      __ Max(result, left, right);
+    }
+  }
 }
 
 

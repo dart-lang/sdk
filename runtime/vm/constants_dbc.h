@@ -188,6 +188,11 @@ namespace dart {
 //    the immediately following instruction is skipped. These instructions
 //    expect their operands to be Smis, but don't check that they are.
 //
+//  - Min, Max rA, rB, rC
+//
+//    FP[rA] <- {min, max}(FP[rB], FP[rC]). Assumes that FP[rB], and FP[rC] are
+//    Smis.
+//
 //  - DAdd, DSub, DMul, DDiv rA, rB, rC
 //
 //    Arithmetic operaions on unboxed doubles. FP[rA] <- FP[rB] op FP[rC].
@@ -200,6 +205,15 @@ namespace dart {
 //  - DNeg rA, rD
 //
 //    FP[rA] <- -FP[rD]. Assumes FP[rD] is an unboxed double.
+//
+//  - DSqrt rA, rD
+//
+//    FP[rA] <- sqrt(FP[rD]). Assumes FP[rD] is an unboxed double.
+//
+//  - DMin, DMax rA, rB, rC
+//
+//    FP[rA] <- {min, max}(FP[rB], FP[rC]). Assumes FP[rB] and FP[rC] are
+//    unboxed doubles.
 //
 //  - BitOr, BitAnd, BitXor rA, rB, rC
 //
@@ -227,6 +241,12 @@ namespace dart {
 //  - SmiToDouble rA, rD
 //
 //    Convert the Smi in FP[rD] to an unboxed double in FP[rA].
+//
+//  - DoubleToSmi rA, rD
+//
+//    If the unboxed double in FP[rD] can be converted to a Smi in FP[rA], then
+//    this instruction does so, and skips the following instruction. Otherwise,
+//    the following instruction is not skipped.
 //
 //  - StoreStaticT`OS D
 //
@@ -563,15 +583,21 @@ namespace dart {
   V(BitAnd,                      A_B_C, reg, reg, reg) \
   V(BitXor,                      A_B_C, reg, reg, reg) \
   V(BitNot,                        A_D, reg, reg, ___) \
+  V(Min,                         A_B_C, reg, reg, reg) \
+  V(Max,                         A_B_C, reg, reg, reg) \
   V(WriteIntoDouble,               A_D, reg, reg, ___) \
   V(UnboxDouble,                   A_D, reg, reg, ___) \
   V(CheckedUnboxDouble,            A_D, reg, reg, ___) \
   V(SmiToDouble,                   A_D, reg, reg, ___) \
+  V(DoubleToSmi,                   A_D, reg, reg, ___) \
   V(DAdd,                        A_B_C, reg, reg, reg) \
   V(DSub,                        A_B_C, reg, reg, reg) \
   V(DMul,                        A_B_C, reg, reg, reg) \
   V(DDiv,                        A_B_C, reg, reg, reg) \
   V(DNeg,                          A_D, reg, reg, ___) \
+  V(DSqrt,                         A_D, reg, reg, ___) \
+  V(DMin,                        A_B_C, reg, reg, reg) \
+  V(DMax,                        A_B_C, reg, reg, reg) \
   V(StoreStaticTOS,                  D, lit, ___, ___) \
   V(PushStatic,                      D, lit, ___, ___) \
   V(InitStaticTOS,                   0, ___, ___, ___) \
