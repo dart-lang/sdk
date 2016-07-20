@@ -179,6 +179,9 @@ class _PhysicalFile extends _PhysicalResource implements File {
   }
 
   @override
+  Uri toUri() => new Uri.file(path);
+
+  @override
   void writeAsBytesSync(List<int> bytes) {
     try {
       io.File file = _entry as io.File;
@@ -256,6 +259,9 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
     }
     return contains(path);
   }
+
+  @override
+  Uri toUri() => new Uri.directory(path);
 }
 
 /**

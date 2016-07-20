@@ -180,6 +180,12 @@ class FileTest extends _BaseTest {
     expect(file.exists, isTrue);
   }
 
+  void test_toUri() {
+    String path = '/foo/file.txt';
+    File file = PhysicalResourceProvider.INSTANCE.getFile(path);
+    expect(file.toUri(), new Uri.file(path));
+  }
+
   void test_shortName() {
     expect(file.shortName, 'file.txt');
   }
@@ -372,6 +378,12 @@ class FolderTest extends _BaseTest {
       expect(grandParent.path.length, lessThan(parent.path.length));
       parent = grandParent;
     }
+  }
+
+  void test_toUri() {
+    String path = '/foo/directory';
+    Folder folder = PhysicalResourceProvider.INSTANCE.getFolder(path);
+    expect(folder.toUri(), new Uri.directory(path));
   }
 }
 

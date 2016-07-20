@@ -166,6 +166,11 @@ abstract class Resource {
    * this folder.
    */
   bool isOrContains(String path);
+
+  /**
+   * Return a Uri representing this resource.
+   */
+  Uri toUri();
 }
 
 /**
