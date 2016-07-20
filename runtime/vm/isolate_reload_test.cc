@@ -544,6 +544,104 @@ TEST_CASE(IsolateReload_Generics) {
 }
 
 
+TEST_CASE(IsolateReload_TypeIdentity) {
+  const char* kScript =
+      "import 'test:isolate_reload_helper';\n"
+      "class T { }\n"
+      "getType() => T;\n"
+      "main() {\n"
+      "  var oldType = getType();\n"
+      "  reloadTest();\n"
+      "  var newType = getType();\n"
+      "  return identical(oldType, newType).toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+
+  const char* kReloadScript =
+      "import 'test:isolate_reload_helper';\n"
+      "class T extends Stopwatch { }\n"
+      "getType() => T;\n"
+      "main() {\n"
+      "  var oldType = getType();\n"
+      "  reloadTest();\n"
+      "  var newType = getType();\n"
+      "  return identical(oldType, newType).toString();\n"
+      "}\n";
+
+  TestCase::SetReloadTestScript(kReloadScript);
+
+  EXPECT_STREQ("true", SimpleInvokeStr(lib, "main"));
+}
+
+
+TEST_CASE(IsolateReload_TypeIdentityGeneric) {
+  const char* kScript =
+      "import 'test:isolate_reload_helper';\n"
+      "class T<G> { }\n"
+      "getType() => new T<int>().runtimeType;\n"
+      "main() {\n"
+      "  var oldType = getType();\n"
+      "  reloadTest();\n"
+      "  var newType = getType();\n"
+      "  return identical(oldType, newType).toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+
+  const char* kReloadScript =
+      "import 'test:isolate_reload_helper';\n"
+      "class T<G> extends Stopwatch { }\n"
+      "getType() => new T<int>().runtimeType;\n"
+      "main() {\n"
+      "  var oldType = getType();\n"
+      "  reloadTest();\n"
+      "  var newType = getType();\n"
+      "  return identical(oldType, newType).toString();\n"
+      "}\n";
+
+  TestCase::SetReloadTestScript(kReloadScript);
+
+  EXPECT_STREQ("true", SimpleInvokeStr(lib, "main"));
+}
+
+
+TEST_CASE(IsolateReload_TypeIdentityParameter) {
+  const char* kScript =
+      "import 'dart:mirrors';\n"
+      "import 'test:isolate_reload_helper';\n"
+      "class T<G> { }\n"
+      "getTypeVar() => reflectType(T).typeVariables[0];\n"
+      "main() {\n"
+      "  var oldType = getTypeVar();\n"
+      "  reloadTest();\n"
+      "  var newType = getTypeVar();\n"
+      "  return (oldType == newType).toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+
+  const char* kReloadScript =
+      "import 'dart:mirrors';\n"
+      "import 'test:isolate_reload_helper';\n"
+      "class T<G> extends Stopwatch { }\n"
+      "getTypeVar() => reflectType(T).typeVariables[0];\n"
+      "main() {\n"
+      "  var oldType = getTypeVar();\n"
+      "  reloadTest();\n"
+      "  var newType = getTypeVar();\n"
+      "  return (oldType == newType).toString();\n"
+      "}\n";
+
+  TestCase::SetReloadTestScript(kReloadScript);
+
+  EXPECT_STREQ("true", SimpleInvokeStr(lib, "main"));
+}
+
+
 TEST_CASE(IsolateReload_MixinChanged) {
   const char* kScript =
       "class Mixin1 {\n"
