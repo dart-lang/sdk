@@ -9,7 +9,7 @@ import 'package:kernel/checks.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/log.dart';
 
-ArgParser parser = new ArgParser()
+ArgParser parser = new ArgParser(allowTrailingOptions: true)
   ..addOption('format',
       abbr: 'f',
       allowed: ['text', 'bin'],
@@ -131,19 +131,6 @@ main(List<String> args) {
     return fail(getUsage());
   }
 
-  // The args package requires all options before the FILE, so reorder the
-  // arguments so the options are first.
-  var optionArgs = args.where((x) => x.startsWith('-')).toList();
-  var otherArgs = args.where((x) => !x.startsWith('-')).toList();
-  if (otherArgs.length != 1) {
-    if (optionArgs.any((x) => x.startsWith('--') && !x.contains('='))) {
-      return fail('Exactly one FILE should be given. '
-          'Note that options are passed on form --option=VALUE.');
-    }
-    return fail('Exactly one FILE should be given.');
-  }
-  args = <List<String>>[optionArgs, otherArgs].expand((x) => x).toList();
-
   try {
     options = parser.parse(args);
   } on FormatException catch (e) {
@@ -158,6 +145,10 @@ main(List<String> args) {
     log.onRecord.listen((LogRecord rec) {
       stderr.writeln(rec.message);
     });
+  }
+
+  if (options.rest.length != 1) {
+    return fail('Exactly one FILE should be given.');
   }
 
   var file = options.rest.single;
