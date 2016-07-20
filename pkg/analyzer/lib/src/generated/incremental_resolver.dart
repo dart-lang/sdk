@@ -95,6 +95,7 @@ class IncrementalBodyDelta extends Delta {
         isByTask(BuildSourceExportClosureTask.DESCRIPTOR) ||
         isByTask(ComputeConstantDependenciesTask.DESCRIPTOR) ||
         isByTask(ComputeConstantValueTask.DESCRIPTOR) ||
+        isByTask(ComputeInferableStaticVariableDependenciesTask.DESCRIPTOR) ||
         isByTask(ComputeLibraryCycleTask.DESCRIPTOR) ||
         isByTask(ComputePropagableVariableDependenciesTask.DESCRIPTOR) ||
         isByTask(DartErrorsTask.DESCRIPTOR) ||
@@ -106,6 +107,7 @@ class IncrementalBodyDelta extends Delta {
         isByTask(GenerateHintsTask.DESCRIPTOR) ||
         isByTask(InferInstanceMembersInUnitTask.DESCRIPTOR) ||
         isByTask(InferStaticVariableTypesInUnitTask.DESCRIPTOR) ||
+        isByTask(InferStaticVariableTypeTask.DESCRIPTOR) ||
         isByTask(LibraryErrorsReadyTask.DESCRIPTOR) ||
         isByTask(LibraryUnitErrorsTask.DESCRIPTOR) ||
         isByTask(ParseDartTask.DESCRIPTOR) ||
@@ -740,6 +742,7 @@ class PoorMansIncrementalResolver {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       Parser parser = new Parser(_unitSource, errorListener);
       AnalysisOptions options = _unitElement.context.analysisOptions;
+      parser.parseGenericMethodComments = options.strongMode;
       parser.parseGenericMethods = options.enableGenericMethods;
       CompilationUnit unit = parser.parseCompilationUnit(token);
       _newParseErrors = errorListener.errors;
@@ -819,6 +822,8 @@ class PoorMansIncrementalResolver {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     CharSequenceReader reader = new CharSequenceReader(code);
     Scanner scanner = new Scanner(_unitSource, reader, errorListener);
+    AnalysisOptions options = _unitElement.context.analysisOptions;
+    scanner.scanGenericMethodComments = options.strongMode;
     Token token = scanner.tokenize();
     _newLineInfo = new LineInfo(scanner.lineStarts);
     _newScanErrors = errorListener.errors;

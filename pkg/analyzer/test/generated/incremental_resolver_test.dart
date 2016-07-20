@@ -1313,6 +1313,25 @@ main() {
     }
   }
 
+  void test_strongMode_typeComments_insertWhitespace() {
+    _resolveUnit(r'''
+import 'dart:async';
+
+void fadeIn(int milliseconds) {
+  Future<String> f;
+  f.then/*<String>*/((e) {print("hello");});
+}
+''');
+    _updateAndValidate(r'''
+import 'dart:async';
+
+void fadeIn(int milliseconds) {
+  Future<String> f;
+  f.then/*<String>*/((e) {print("hello") ;});
+}
+''');
+  }
+
   void test_true_emptyLine_betweenClassMembers_insert() {
     _resolveUnit(r'''
 class A {
@@ -1883,6 +1902,7 @@ class B extends A {}
    */
   void _resetWithIncremental(bool enable) {
     AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.strongMode = true;
     analysisOptions.incremental = enable;
     analysisOptions.incrementalApi = enable;
     logging.logger = logger;
