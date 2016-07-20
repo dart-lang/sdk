@@ -116,6 +116,11 @@ class _Override {
   const _Override();
 }
 const Object override = const _Override();
+
+
+abstract class RegExp {
+  external factory RegExp(String source, {bool multiLine: false,
+                                          bool caseSensitive: true});
 ''');
 
   static const _MockSdkLibrary LIB_ASYNC = const _MockSdkLibrary(
