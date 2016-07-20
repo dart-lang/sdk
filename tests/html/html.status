@@ -357,9 +357,11 @@ event_customevent_test: SkipByDesign
 js_interop_1_test: SkipByDesign
 js_test: SkipByDesign
 js_array_test: SkipByDesign
+js_typed_interop_bind_this_test: SkipByDesign
 js_typed_interop_test: SkipByDesign
 js_typed_interop_default_arg_test: SkipByDesign
 js_typed_interop_type_test: SkipByDesign
+js_typed_interop_window_property_test: SkipByDesign
 js_function_getter_test: SkipByDesign
 js_function_getter_trust_types_test: SkipByDesign
 js_dart_to_string_test: SkipByDesign
