@@ -177,10 +177,9 @@ bool IsolateReloadContext::IsSameLibrary(
 }
 
 
-IsolateReloadContext::IsolateReloadContext(Isolate* isolate, bool test_mode)
+IsolateReloadContext::IsolateReloadContext(Isolate* isolate)
     : start_time_micros_(OS::GetCurrentMonotonicMicros()),
       isolate_(isolate),
-      test_mode_(test_mode),
       has_error_(false),
       saved_num_cids_(-1),
       saved_class_table_(NULL),

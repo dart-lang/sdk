@@ -269,7 +269,7 @@ Dart_Handle TestCase::TriggerReload() {
 
   {
     TransitionNativeToVM transition(Thread::Current());
-    isolate->ReloadSources(/* test_mode = */ true);
+    isolate->ReloadSources(/* dont_delete_reload_context = */ true);
   }
 
   return Dart_FinalizeLoading(false);
@@ -279,9 +279,8 @@ Dart_Handle TestCase::TriggerReload() {
 Dart_Handle TestCase::GetReloadErrorOrRootLibrary() {
   Isolate* isolate = Isolate::Current();
 
-  if (isolate->reload_context() != NULL) {
-    // We should only have a reload context hanging around if an error occurred.
-    ASSERT(isolate->reload_context()->has_error());
+  if (isolate->reload_context() != NULL &&
+      isolate->reload_context()->has_error()) {
     // Return a handle to the error.
     return Api::NewHandle(Thread::Current(),
                           isolate->reload_context()->error());
@@ -298,7 +297,14 @@ Dart_Handle TestCase::ReloadTestScript(const char* script) {
     return result;
   }
 
-  return GetReloadErrorOrRootLibrary();
+  result = GetReloadErrorOrRootLibrary();
+
+  Isolate* isolate = Isolate::Current();
+  if (isolate->reload_context() != NULL) {
+    isolate->DeleteReloadContext();
+  }
+
+  return result;
 }
 
 

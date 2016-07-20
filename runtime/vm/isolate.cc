@@ -1085,16 +1085,26 @@ bool Isolate::CanReload() const {
 void Isolate::ReportReloadError(const Error& error) {
   ASSERT(IsReloading());
   reload_context_->AbortReload(error);
-  delete reload_context_;
-  reload_context_ = NULL;
 }
 
 
-void Isolate::ReloadSources(bool test_mode) {
+void Isolate::ReloadSources(bool dont_delete_reload_context) {
   ASSERT(!IsReloading());
   has_attempted_reload_ = true;
-  reload_context_ = new IsolateReloadContext(this, test_mode);
+  reload_context_ = new IsolateReloadContext(this);
   reload_context_->StartReload();
+  if (dont_delete_reload_context) {
+    // Unit tests use the reload context later. Caller is responsible
+    // for deleting the context.
+    return;
+  }
+  DeleteReloadContext();
+}
+
+
+void Isolate::DeleteReloadContext() {
+  delete reload_context_;
+  reload_context_ = NULL;
 }
 #endif  // !PRODUCT
 
@@ -1103,20 +1113,12 @@ void Isolate::DoneFinalizing() {
   NOT_IN_PRODUCT(
     if (IsReloading()) {
       reload_context_->FinishReload();
-      if (reload_context_->has_error() && reload_context_->test_mode()) {
-        // If the reload has an error and we are in test mode keep the reload
-        // context on the isolate so that it can be used by unit tests.
-        return;
-      }
       if (reload_context_->has_error()) {
         // Remember the reload error.
         sticky_reload_error_ = reload_context_->error();
-      }
-      if (!reload_context_->has_error()) {
+      } else {
         reload_context_->ReportSuccess();
       }
-      delete reload_context_;
-      reload_context_ = NULL;
     }
   )
 }

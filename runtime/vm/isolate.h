@@ -255,7 +255,9 @@ class Isolate : public BaseIsolate {
   void DoneLoading();
   void DoneFinalizing();
 
-  void ReloadSources(bool test_mode = false);
+  // By default the reload context is deleted. This parameter allows
+  // the caller to delete is separately if it is still needed.
+  void ReloadSources(bool dont_delete_reload_context = false);
 
   bool MakeRunnable();
   void Run();
@@ -479,6 +481,8 @@ class Isolate : public BaseIsolate {
   IsolateReloadContext* reload_context() {
     return reload_context_;
   }
+
+  void DeleteReloadContext();
 
   bool HasAttemptedReload() const {
     return has_attempted_reload_;

@@ -46,7 +46,7 @@ class UpdateClassesVisitor;
 
 class IsolateReloadContext {
  public:
-  explicit IsolateReloadContext(Isolate* isolate, bool test_mode = false);
+  explicit IsolateReloadContext(Isolate* isolate);
   ~IsolateReloadContext();
 
   void StartReload();
@@ -63,7 +63,6 @@ class IsolateReloadContext {
 
   bool has_error() const { return has_error_; }
   RawError* error() const { return error_; }
-  bool test_mode() const { return test_mode_; }
 
   static bool IsSameField(const Field& a, const Field& b);
   static bool IsSameLibrary(const Library& a_lib, const Library& b_lib);
@@ -130,7 +129,6 @@ class IsolateReloadContext {
 
   int64_t start_time_micros_;
   Isolate* isolate_;
-  bool test_mode_;
   bool has_error_;
 
   intptr_t saved_num_cids_;
