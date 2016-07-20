@@ -22889,7 +22889,7 @@ class MediaStream extends EventTarget {
 
   @DomName('MediaStream.getAudioTracks')
   @DocsEditable()
-  @Creates('JSExtendableArray')
+  @Creates('JSExtendableArray|MediaStreamTrack')
   @Returns('JSExtendableArray')
   List<MediaStreamTrack> getAudioTracks() native;
 
@@ -22904,7 +22904,7 @@ class MediaStream extends EventTarget {
 
   @DomName('MediaStream.getVideoTracks')
   @DocsEditable()
-  @Creates('JSExtendableArray')
+  @Creates('JSExtendableArray|MediaStreamTrack')
   @Returns('JSExtendableArray')
   List<MediaStreamTrack> getVideoTracks() native;
 
