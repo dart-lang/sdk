@@ -240,8 +240,8 @@ void Precompiler::DoCompileAll(
       DropTypeArguments();
 
       // Clear these before dropping classes as they may hold onto otherwise
-      // dead instances of classes we will remove.
-      DropCompileTimeConstantCaches();
+      // dead instances of classes we will remove or otherwise unused symbols.
+      DropScriptData();
       I->object_store()->set_unique_dynamic_targets(Array::null_array());
       Class& null_class = Class::Handle(Z);
       I->object_store()->set_future_class(null_class);
@@ -1560,16 +1560,19 @@ void Precompiler::DropTypeArguments() {
 }
 
 
-void Precompiler::DropCompileTimeConstantCaches() {
+void Precompiler::DropScriptData() {
   Library& lib = Library::Handle(Z);
   Array& scripts = Array::Handle(Z);
   Script& script = Script::Handle(Z);
+  const TokenStream& null_tokens = TokenStream::Handle(Z);
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
     scripts = lib.LoadedScripts();
     for (intptr_t j = 0; j < scripts.Length(); j++) {
       script ^= scripts.At(j);
       script.set_compile_time_constants(Array::null_array());
+      script.set_source(String::null_string());
+      script.set_tokens(null_tokens);
     }
   }
 }

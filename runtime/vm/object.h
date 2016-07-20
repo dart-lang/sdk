@@ -3451,6 +3451,7 @@ class Script : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Script, Object);
   friend class Class;
+  friend class Precompiler;
 };
 
 
