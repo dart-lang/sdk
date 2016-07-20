@@ -24,6 +24,7 @@ class BinaryBuilder {
   final List<Library> importTable = <Library>[];
   final List<VariableDeclaration> variableStack = <VariableDeclaration>[];
   final List<LabeledStatement> labelStack = <LabeledStatement>[];
+  int labelStackBase = 0;
   final List<SwitchCase> switchCaseStack = <SwitchCase>[];
   final List<TypeParameter> typeParameterStack = <TypeParameter>[];
   final String filename;
@@ -408,7 +409,10 @@ class BinaryBuilder {
     var positional = readAndPushVariableDeclarationList();
     var named = readAndPushVariableDeclarationList();
     var returnType = readDartType();
+    int oldLabelStackBase = labelStackBase;
+    labelStackBase = labelStack.length;
     var body = readStatementOption();
+    labelStackBase = oldLabelStackBase;
     variableStack.length = variableStackHeight;
     typeParameterStack.length = typeParameterStackHeight;
     return new FunctionNode(body,
@@ -631,7 +635,7 @@ class BinaryBuilder {
         return label;
       case Tag.BreakStatement:
         int index = readUInt();
-        return new BreakStatement(labelStack[index]);
+        return new BreakStatement(labelStack[labelStackBase + index]);
       case Tag.WhileStatement:
         return new WhileStatement(readExpression(), readStatement());
       case Tag.DoStatement:
