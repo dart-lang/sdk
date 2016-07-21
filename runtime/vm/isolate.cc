@@ -1996,16 +1996,16 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     }
   }
 
-  if (debugger() != NULL) {
-    {
-      JSONArray breakpoints(&jsobj, "breakpoints");
+  {
+    JSONArray breakpoints(&jsobj, "breakpoints");
+    if (debugger() != NULL) {
       debugger()->PrintBreakpointsToJSONArray(&breakpoints);
     }
+  }
 
-    {
-      JSONObject jssettings(&jsobj, "_debuggerSettings");
-      debugger()->PrintSettingsToJSONObject(&jssettings);
-    }
+  if (debugger() != NULL) {
+    JSONObject jssettings(&jsobj, "_debuggerSettings");
+    debugger()->PrintSettingsToJSONObject(&jssettings);
   }
 
   {
