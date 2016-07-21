@@ -37,7 +37,7 @@ class NavMenuElementWrapper extends HtmlElement {
     binder.registerCallback(this);
     _anchor = getAttribute('anchor');
     _link = getAttribute('link');
-    _last = getAttribute('') != null;
+    _last = _getBoolAttribute('last');
     createShadowRoot();
     render();
   }
@@ -57,5 +57,10 @@ class NavMenuElementWrapper extends HtmlElement {
                                  queue: ObservatoryApplication.app.queue)
         ..children = [new ContentElement()]
     ];
+  }
+
+  bool _getBoolAttribute(String name) {
+    final String value = getAttribute(name);
+    return !(value == null || value == 'false');
   }
 }
