@@ -142,6 +142,7 @@ class ClassHeapStats {
   intptr_t old_pre_new_gc_count_;
   intptr_t old_pre_new_gc_size_;
   intptr_t state_;
+  intptr_t align_;  // Make SIMARM and ARM agree on the size of ClassHeapStats.
 };
 #endif  // !PRODUCT
 

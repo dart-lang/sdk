@@ -95,6 +95,7 @@ static void CheckOffsets() {
   CHECK_OFFSET(Isolate::heap_offset(), 8);
   CHECK_OFFSET(Thread::stack_limit_offset(), 4);
   CHECK_OFFSET(Thread::object_null_offset(), 36);
+  NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 120));
 #endif
 #if defined(TARGET_ARCH_MIPS)
   // These offsets are embedded in precompiled instructions. We need simmips
@@ -103,6 +104,7 @@ static void CheckOffsets() {
   CHECK_OFFSET(Isolate::heap_offset(), 8);
   CHECK_OFFSET(Thread::stack_limit_offset(), 4);
   CHECK_OFFSET(Thread::object_null_offset(), 36);
+  NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 120));
 #endif
 #if defined(TARGET_ARCH_ARM64)
   // These offsets are embedded in precompiled instructions. We need simarm64
@@ -111,6 +113,7 @@ static void CheckOffsets() {
   CHECK_OFFSET(Isolate::heap_offset(), 16);
   CHECK_OFFSET(Thread::stack_limit_offset(), 8);
   CHECK_OFFSET(Thread::object_null_offset(), 72);
+  NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 208));
 #endif
 #undef CHECK_OFFSET
 }

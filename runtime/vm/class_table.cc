@@ -274,6 +274,7 @@ void ClassHeapStats::Initialize() {
   promoted_count = 0;
   promoted_size = 0;
   state_ = 0;
+  USE(align_);
 }
 
 
