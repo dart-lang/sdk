@@ -1111,7 +1111,7 @@ static void ReadSnapshotFile(const char* snapshot_directory,
   }
   DartUtils::CloseFile(file);
   if (concat != NULL) {
-    delete concat;
+    delete[] concat;
   }
 }
 
@@ -1140,7 +1140,7 @@ static void ReadExecutableSnapshotFile(const char* snapshot_directory,
     Platform::Exit(kErrorExitCode);
   }
   if (concat != NULL) {
-    delete concat;
+    delete[] concat;
   }
 }
 

@@ -236,7 +236,7 @@ HeapIterationScope::~HeapIterationScope() {
 #endif
   ASSERT(old_space_->tasks() == 1);
   old_space_->set_tasks(0);
-  ml.Notify();
+  ml.NotifyAll();
 }
 
 

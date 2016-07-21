@@ -969,7 +969,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   {
     MonitorLocker ml(tasks_lock());
     set_tasks(tasks() - 1);
-    ml.Notify();
+    ml.NotifyAll();
   }
 }
 
