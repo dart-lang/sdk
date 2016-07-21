@@ -1,4 +1,7 @@
-## 0.27.4-alpha.17 
+## 0.27.4-alpha.18
+* Support for references to operators in doc comments (#26929).
+
+## 0.27.4-alpha.17
 * Support for trailing commas in parameter and argument lists (#26647).
 * Strong mode breaking change: can now infer generic type arguments from the constructor invocation arguments (#25220).
 
