@@ -12,6 +12,7 @@
     <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
     <nav-menu link="{{ makeLink('/heap-snapshot', isolate) }}" anchor="heap snapshot" last="{{ true }}"></nav-menu>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    <nav-notify notifications="{{ app.notifications }}"></nav-notify>
   </nav-bar>
   <style>
       /* general */

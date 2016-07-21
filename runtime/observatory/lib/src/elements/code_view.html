@@ -58,6 +58,7 @@
       <nav-menu link="{{ makeLink('/inspect', code) }}" anchor="{{ code.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
       <nav-refresh callback="{{ refreshTicks }}" label="Refresh Ticks"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
     <div class="content">
       <template if="{{ code.isDartCode && code.isOptimized }}">

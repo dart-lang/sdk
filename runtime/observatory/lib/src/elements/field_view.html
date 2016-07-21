@@ -19,6 +19,7 @@
       </template>
       <nav-menu link="{{ makeLink('/inspect', field) }}" anchor="{{ field.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
 
     <div class="content">

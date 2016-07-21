@@ -19,6 +19,7 @@
       <class-nav-menu cls="{{ context.clazz }}"></class-nav-menu>
       <nav-menu link="." anchor="instance" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
 
     <template if="{{ !context.isError }}">

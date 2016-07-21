@@ -13,7 +13,6 @@ import 'package:polymer/polymer.dart';
 
 @CustomTag('nav-bar')
 class NavBarElement extends ObservatoryElement {
-  @published bool notifyOnPause = true;
   @published bool pad = true;
 
   // Desired nav var height in pixels.

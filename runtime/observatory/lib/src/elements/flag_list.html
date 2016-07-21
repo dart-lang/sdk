@@ -10,6 +10,7 @@
       <vm-nav-menu vm="{{ app.vm }}"></vm-nav-menu>
       <nav-menu link="{{ makeLink('/flags') }}" anchor="flags" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
 
     <div class="content-centered">

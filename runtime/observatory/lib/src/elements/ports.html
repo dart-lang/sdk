@@ -22,6 +22,7 @@
       <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
       <nav-menu link="{{ makeLink('/ports', isolate) }}" anchor="ports" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
     <div class="content">
       <h1>Ports ({{ports.length}})</h1>

@@ -286,6 +286,7 @@
       <nav-menu link="{{ makeLink('/profiler-table', isolate) }}" anchor="cpu profile (table)" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
       <nav-refresh callback="{{ clearCpuProfile }}" label="Clear"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
     <style>
       /* general */
@@ -500,6 +501,7 @@
       <nav-menu link="{{ makeLink('/profiler', isolate) }}" anchor="cpu profile" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
       <nav-refresh callback="{{ clearCpuProfile }}" label="Clear"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
     <style>
       .tableWell {

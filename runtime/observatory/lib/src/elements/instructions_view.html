@@ -19,6 +19,7 @@
       <isolate-nav-menu isolate="{{ instructions.isolate }}"></isolate-nav-menu>
       <nav-menu link="." anchor="object" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
 
     <div class="content">
@@ -42,7 +43,7 @@
       </div>
 
     </div>
-  
+
     <hr>
     <view-footer></view-footer>
   </template>

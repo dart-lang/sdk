@@ -29,6 +29,7 @@
     <isolate-nav-menu isolate="{{ fragmentation.isolate }}"></isolate-nav-menu>
     <nav-menu link="{{ makeLink('/heap-map', fragmentation.isolate) }}" anchor="heap map" last="{{ true }}"></nav-menu>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    <nav-notify notifications="{{ app.notifications }}"></nav-notify>
   </nav-bar>
   <div class="hover">
     <p style="text-align:center">{{ status }}</p>

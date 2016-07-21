@@ -62,6 +62,7 @@
       <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
       <nav-menu link="{{ makeLink('/logging', isolate) }}" anchor="logging" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ clear }}" label="Clear"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
     <div id="page" class="content-centered-big">
       <span>Show messages with severity <select id="severityLevelSelector" value="{{ severityLevel }}"></select> and higher</span>
