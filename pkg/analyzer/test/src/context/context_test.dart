@@ -3630,6 +3630,55 @@ class A {
     _assertValid(b, LIBRARY_ERRORS_READY);
   }
 
+  void test_sequence_middleLimited_thenFirstFull() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+export 'a.dart';
+''');
+    Source c = addSource(
+        '/c.dart',
+        r'''
+import 'b.dart';
+A a;
+''');
+    _performPendingAnalysisTasks();
+    // Update b.dart: limited invalidation.
+    // Results in c.dart are valid, because the change in b.dart does not
+    // affect anything in c.dart.
+    context.setContents(
+        b,
+        r'''
+export 'a.dart';
+class B {}
+''');
+    _assertValid(a, LIBRARY_ERRORS_READY);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertValid(c, LIBRARY_ERRORS_READY);
+    _assertUnitValid(c, RESOLVED_UNIT4);
+    _assertUnitValid(c, RESOLVED_UNIT5);
+    // Update a.dart: unlimited invalidation.
+    // Results RESOLVED_UNIT4, RESOLVED_UNIT5, and RESOLVED_UNIT6 in c.dart
+    // are invalid, because after unlimited change to a.dart everything
+    // should be invalidated.
+    // This fixes the problem that c.dart was not re-resolving type names.
+    context.setContents(
+        a,
+        r'''
+import 'dart:async';
+class A {}
+''');
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalid(c, LIBRARY_ERRORS_READY);
+    _assertInvalidUnits(c, RESOLVED_UNIT4);
+  }
+
   void test_sequence_noChange_thenChange() {
     Source a = addSource(
         '/a.dart',

@@ -5718,6 +5718,8 @@ class ResolveTopLevelUnitTypeBoundsTask extends SourceBasedAnalysisTask {
     return <String, TaskInput>{
       'importsExportNamespace':
           IMPORTED_LIBRARIES.of(unit.library).toMapOf(LIBRARY_ELEMENT4),
+      'dependOnAllExportedSources':
+          IMPORTED_LIBRARIES.of(unit.library).toMapOf(EXPORT_SOURCE_CLOSURE),
       LIBRARY_INPUT: LIBRARY_ELEMENT4.of(unit.library),
       UNIT_INPUT: RESOLVED_UNIT3.of(unit),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
