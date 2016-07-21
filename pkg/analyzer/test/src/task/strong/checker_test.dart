@@ -264,7 +264,7 @@ foo() => new A();
 test() {
   int x = 0;
   x += 5;
-  /*error:STATIC_TYPE_ERROR*/x += 3.14;
+  /*error:STATIC_TYPE_ERROR*/x += /*error:INVALID_ASSIGNMENT*/3.14;
 
   double y = 0.0;
   y += 5;
@@ -1924,6 +1924,18 @@ main() {
 
   void test_implicitCasts_genericMethods() {
     addFile('var x = <String>[].map((x) => "");');
+    check(implicitCasts: false);
+  }
+
+  void test_implicitCasts_numericOps() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26912
+    addFile(r'''
+void f() {
+  int x = 0;
+  int y = 0;
+  x += y;
+}
+    ''');
     check(implicitCasts: false);
   }
 

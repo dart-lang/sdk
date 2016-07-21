@@ -633,6 +633,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
       if (!rules.isSubtypeOf(returnType, lhsType)) {
         final numType = typeProvider.numType;
+        // TODO(jmesserly): this seems to duplicate logic in StaticTypeAnalyzer.
         // Try to fix up the numerical case if possible.
         if (rules.isSubtypeOf(lhsType, numType) &&
             rules.isSubtypeOf(lhsType, rhsType)) {
@@ -640,6 +641,8 @@ class CodeChecker extends RecursiveAstVisitor {
           // compound operators in the int += num and num += dynamic cases.
           _recordImplicitCast(expr.rightHandSide, rhsType, lhsType);
         } else {
+          // TODO(jmesserly): this results in a duplicate error, because
+          // ErrorVerifier also reports it.
           _recordMessage(expr, StrongModeCode.STATIC_TYPE_ERROR,
               [expr, returnType, lhsType]);
         }

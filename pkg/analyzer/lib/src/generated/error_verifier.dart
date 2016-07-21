@@ -4065,18 +4065,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (lhs == null) {
       return;
     }
-    VariableElement leftVariableElement = getVariableElement(lhs);
-    DartType leftType = (leftVariableElement == null)
-        ? getStaticType(lhs)
-        : leftVariableElement.type;
-    MethodElement invokedMethod = assignment.staticElement;
-    if (invokedMethod == null) {
-      return;
-    }
-    DartType rightType = invokedMethod.type.returnType;
-    if (leftType == null || rightType == null) {
-      return;
-    }
+    DartType leftType = getStaticType(lhs);
+    DartType rightType = getStaticType(assignment);
     if (!_typeSystem.isAssignableTo(rightType, leftType)) {
       _errorReporter.reportTypeErrorForNode(
           StaticTypeWarningCode.INVALID_ASSIGNMENT, rhs, [rightType, leftType]);
