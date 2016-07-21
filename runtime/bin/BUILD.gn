@@ -360,6 +360,9 @@ source_set("embedded_dart_io") {
     "log_win.cc",
     "log.h",
   ]
+  if (is_linux) {
+    sources += [ "../../third_party/root_certificates/root_certificates.cc"]
+  }
 
   include_dirs = [
     "..",
