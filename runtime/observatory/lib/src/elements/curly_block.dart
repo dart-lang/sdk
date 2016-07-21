@@ -4,52 +4,104 @@
 
 library curly_block_element;
 
-import 'package:polymer/polymer.dart';
-import 'observatory_element.dart';
+import 'dart:async';
+import 'dart:html';
+import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
-@CustomTag('curly-block')
-class CurlyBlockElement extends ObservatoryElement {
-  CurlyBlockElement.created() : super.created();
+class CurlyBlockToggleEvent {
+  final CurlyBlockElement control;
 
-  @observable bool expanded = false;
-  @observable bool busy = false;
-  @published var callback = null;
-  @published bool expand = false;
-  @published String expandKey;
+  CurlyBlockToggleEvent(this.control);
+}
 
-  void expandChanged(oldValue) {
-    expanded = expand;
+class CurlyBlockElement extends HtmlElement implements Renderable {
+  static final StyleElement _style = () {
+      var style = new StyleElement();
+      style.text = '''span.curly-block {
+                        color: #0489c3;
+                        cursor: pointer;
+                      }
+                      span.curly-block.disabled {
+                        color: white;
+                        cursor: wait;
+                      }''';
+      return style;
+  }();
+
+  static const tag = const Tag<CurlyBlockElement>('curly-block-wrapped');
+
+  RenderingScheduler<CurlyBlockElement> _r;
+
+  final StreamController<CurlyBlockToggleEvent> _onToggle =
+      new StreamController<CurlyBlockToggleEvent>.broadcast();
+  Stream<CurlyBlockToggleEvent> get onToggle => _onToggle.stream;
+  Stream<RenderedEvent<CurlyBlockElement>> get onRendered => _r.onRendered;
+
+  bool _expanded;
+  bool _disabled;
+
+  bool get expanded => _expanded;
+  set expanded(bool value) {
+    if (_expanded != value) _onToggle.add(new CurlyBlockToggleEvent(this));
+    _expanded = _r.checkAndReact(_expanded, value);
+  }
+  bool get disabled => _disabled;
+  set disabled(bool value) => _disabled = _r.checkAndReact(_disabled, value);
+
+  factory CurlyBlockElement({bool expanded: false, bool disabled: false,
+      RenderingQueue queue}) {
+    assert(expanded != null);
+    assert(disabled != null);
+    CurlyBlockElement e = document.createElement(tag.name);
+    e._r = new RenderingScheduler(e, queue: queue);
+    e._expanded = expanded;
+    e._disabled = disabled;
+    return e;
   }
 
-  void expandKeyChanged(oldValue) {
-    if (expandKey != null) {
-      var value = app.expansions[expandKey];
-      if (value != null) {
-        if (expanded != value) {
-          toggleExpand(null, null, null);
-        }
-      }
-    }
+  CurlyBlockElement.created() : super.created() { createShadowRoot(); }
+
+  @override
+  void attached() { super.attached(); _r.enable(); }
+
+  @override
+  void detached() {
+    super.detached(); _r.disable(notify: true);
+    shadowRoot.children = [];
   }
 
-  void doneCallback() {
-    expanded = !expanded;
-    if (expandKey != null) {
-      app.expansions[expandKey] = expanded;
-    }
-    busy = false;
-  }
-
-  void toggleExpand(var event, var b, var c) {
-    assert(callback == null || expand == false);
-    if (busy) {
+  void toggle() {
+    if (disabled) {
+      _r.scheduleNotification();
       return;
     }
-    busy = true;
-    if (callback != null) {
-      callback(!expanded, doneCallback);
+    expanded = !expanded;
+  }
+
+  void render() {
+    List<Element> children = [
+      _style.clone(true),
+      new SpanElement()..text = '{'
+    ];
+    SpanElement label = new SpanElement()
+      ..classes = disabled ? ['curly-block', 'disabled'] : ['curly-block']
+      ..innerHtml = expanded ?
+        '&nbsp;&nbsp;&#8863;&nbsp;&nbsp;' : '&nbsp;&nbsp;&#8862;&nbsp;&nbsp;';
+    if (disabled) {
+      children.add(label);
     } else {
-      doneCallback();
+      children.add(new AnchorElement()
+        ..onClick.listen((_) { toggle(); })
+        ..children = [label]);
     }
+    if (expanded) {
+      children.addAll([
+        new BRElement(),
+        new ContentElement()
+      ]);
+    }
+    children.add(new SpanElement()..text = '}');
+    shadowRoot.children = children;
   }
 }

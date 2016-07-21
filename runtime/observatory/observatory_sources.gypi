@@ -47,7 +47,7 @@
     'lib/src/elements/cpu_profile.html',
     'lib/src/elements/css/shared.css',
     'lib/src/elements/curly_block.dart',
-    'lib/src/elements/curly_block.html',
+    'lib/src/elements/curly_block_wrapper.dart',
     'lib/src/elements/debugger.dart',
     'lib/src/elements/debugger.html',
     'lib/src/elements/error_ref.dart',

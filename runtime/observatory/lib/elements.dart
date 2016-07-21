@@ -10,7 +10,6 @@ export 'package:observatory/src/elements/code_view.dart';
 export 'package:observatory/src/elements/context_ref.dart';
 export 'package:observatory/src/elements/context_view.dart';
 export 'package:observatory/src/elements/cpu_profile.dart';
-export 'package:observatory/src/elements/curly_block.dart';
 export 'package:observatory/src/elements/debugger.dart';
 export 'package:observatory/src/elements/error_view.dart';
 export 'package:observatory/src/elements/eval_box.dart';
@@ -61,6 +60,8 @@ export 'package:observatory/src/elements/vm_view.dart';
 
 import 'dart:async';
 
+import 'package:observatory/src/elements/curly_block.dart';
+import 'package:observatory/src/elements/curly_block_wrapper.dart';
 import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/menu_wrapper.dart';
 import 'package:observatory/src/elements/nav/menu_item.dart';
@@ -71,6 +72,7 @@ import 'package:observatory/src/elements/view_footer.dart';
 
 export 'package:observatory/src/elements/helpers/rendering_queue.dart';
 
+export 'package:observatory/src/elements/curly_block.dart';
 export 'package:observatory/src/elements/nav/menu.dart';
 export 'package:observatory/src/elements/nav/menu_item.dart';
 export 'package:observatory/src/elements/nav/refresh.dart';
@@ -79,6 +81,8 @@ export 'package:observatory/src/elements/view_footer.dart';
 // Even though this function does not invoke any asynchronous operation
 // it is marked as async to allow future backward compatible changes.
 Future initElements() async {
+  CurlyBlockElement.tag.ensureRegistration();
+  CurlyBlockElementWrapper.tag.ensureRegistration();
   NavMenuElement.tag.ensureRegistration();
   NavMenuElementWrapper.tag.ensureRegistration();
   NavMenuItemElement.tag.ensureRegistration();
