@@ -4424,7 +4424,10 @@ class FunctionElementImpl extends ExecutableElementImpl
   String get identifier {
     String identifier = super.identifier;
     if (!isStatic) {
-      identifier += "@$nameOffset";
+      int enclosingOffset =
+          enclosingElement != null ? enclosingElement.nameOffset : 0;
+      int delta = nameOffset - enclosingOffset;
+      identifier += "@$delta";
     }
     return identifier;
   }

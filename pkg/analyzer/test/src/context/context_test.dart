@@ -3772,6 +3772,35 @@ class B {
     expect(context.getErrors(b).errors, hasLength(0));
   }
 
+  void test_sequence_reorder_localFunctions() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+f1() {
+  localFunction() {
+    const C = 1;
+  }
+}
+f2() {}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: reorder functions.
+    // This should not fail with FrozenHashCodeException, because identifiers
+    // of local elements should be relative to the enclosing top-level elements.
+    context.setContents(
+        a,
+        r'''
+f2() {}
+f1() {
+  localFunction() {
+    const C = 1;
+  }
+}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+  }
+
   void test_sequence_unitConstants() {
     Source a = addSource(
         '/a.dart',
@@ -3779,38 +3808,64 @@ class B {
 const A = 1;
 const B = 2;
 const C = 3;
+foo() {
+  const V1 = 10;
+}
+bar() {
+  const V2 = 20;
+}
 ''');
     _performPendingAnalysisTasks();
     LibrarySpecificUnit unitA = new LibrarySpecificUnit(a, a);
-    expect(context.getResult(unitA, COMPILATION_UNIT_CONSTANTS), hasLength(3));
-    // Update and
+    List<ConstantEvaluationTarget> oldConstants =
+        context.getResult(unitA, COMPILATION_UNIT_CONSTANTS);
+    expect(oldConstants, hasLength(5));
+    ConstVariableElement oldA = _findConstVariable(oldConstants, 'A');
+    ConstVariableElement oldB = _findConstVariable(oldConstants, 'B');
+    ConstVariableElement oldC = _findConstVariable(oldConstants, 'C');
+    ConstVariableElement oldV1 = _findConstVariable(oldConstants, 'V1');
+    ConstVariableElement oldV2 = _findConstVariable(oldConstants, 'V2');
+    expect(context.analysisCache.get(oldA), isNotNull);
+    expect(context.analysisCache.get(oldB), isNotNull);
+    expect(context.analysisCache.get(oldC), isNotNull);
+    expect(context.analysisCache.get(oldV1), isNotNull);
+    // Update and validate new constants.
     context.setContents(
         a,
         r'''
 const A = 1;
 const B = 2;
 const D = 4;
-main() {
-  const V = 42;
+foo() {
+  const V1 = 10;
+}
+baz() {
+  const V3 = 30;
 }
 ''');
-    List<ConstantEvaluationTarget> constants =
+    List<ConstantEvaluationTarget> newConstants =
         context.getResult(unitA, COMPILATION_UNIT_CONSTANTS);
-    expect(constants, hasLength(4));
+    expect(newConstants, hasLength(5));
+    expect(newConstants, contains(same(oldA)));
+    expect(newConstants, contains(same(oldB)));
+    expect(newConstants, contains(same(oldV1)));
+    ConstVariableElement newD = _findConstVariable(newConstants, 'D');
+    ConstVariableElement newV3 = _findConstVariable(newConstants, 'V3');
     // Perform analysis, compute constant values.
     _performPendingAnalysisTasks();
     // Validate const variable values.
-    Map<String, ConstVariableElement> constVariables =
-        <String, ConstVariableElement>{};
-    constants.forEach((c) {
-      if (c is ConstVariableElement) {
-        constVariables[c.name] = c;
-      }
-    });
-    expect(constVariables['A'].evaluationResult.value.toIntValue(), 1);
-    expect(constVariables['B'].evaluationResult.value.toIntValue(), 2);
-    expect(constVariables['D'].evaluationResult.value.toIntValue(), 4);
-    expect(constVariables['V'].evaluationResult.value.toIntValue(), 42);
+    expect(context.analysisCache.get(oldA), isNotNull);
+    expect(context.analysisCache.get(oldB), isNotNull);
+    expect(context.analysisCache.get(oldV1), isNotNull);
+    expect(context.analysisCache.get(oldC), isNull);
+    expect(context.analysisCache.get(oldV2), isNull);
+    expect(context.analysisCache.get(newD), isNotNull);
+    expect(context.analysisCache.get(newV3), isNotNull);
+    expect(oldA.evaluationResult.value.toIntValue(), 1);
+    expect(oldB.evaluationResult.value.toIntValue(), 2);
+    expect(newD.evaluationResult.value.toIntValue(), 4);
+    expect(oldV1.evaluationResult.value.toIntValue(), 10);
+    expect(newV3.evaluationResult.value.toIntValue(), 30);
   }
 
   void test_sequence_useAnyResolvedUnit() {
@@ -4287,6 +4342,13 @@ class A {
       }
       foundLast = foundLast || result == last;
     }
+  }
+
+  ConstVariableElement _findConstVariable(
+      List<ConstantEvaluationTarget> constants, String name) {
+    return constants.singleWhere((c) {
+      return c is ConstVariableElement && c.name == name;
+    });
   }
 
   void _performPendingAnalysisTasks([int maxTasks = 512]) {
