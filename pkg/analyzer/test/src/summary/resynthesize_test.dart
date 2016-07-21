@@ -692,16 +692,10 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     compareMetadata(resynthesized.metadata, original.metadata, desc);
 
     // Validate modifiers.
-    for (Modifier modifier in Modifier.persistedValues) {
+    for (Modifier modifier in Modifier.values) {
       bool got = _hasModifier(resynthesized, modifier);
       bool want = _hasModifier(original, modifier);
       expect(got, want,
-          reason: 'Mismatch in $desc.$modifier: got $got, want $want');
-    }
-    for (Modifier modifier in Modifier.transientValues) {
-      bool got = rImpl.hasModifier(modifier);
-      bool want = false;
-      expect(got, false,
           reason: 'Mismatch in $desc.$modifier: got $got, want $want');
     }
 

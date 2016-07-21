@@ -346,9 +346,7 @@ class CacheEntry {
   Map<ResultDescriptor, ResultData> _resultMap =
       new HashMap<ResultDescriptor, ResultData>();
 
-  CacheEntry(this.target) {
-    _markAsCacheKey(target);
-  }
+  CacheEntry(this.target);
 
   /**
    * The exception that caused one or more values to have a state of
@@ -397,10 +395,6 @@ class CacheEntry {
       }
     });
     _resultMap.clear();
-    AnalysisTarget oldTarget = target;
-    if (oldTarget is ElementImpl) {
-      oldTarget.setModifier(Modifier.CACHE_KEY, false);
-    }
   }
 
   /**
@@ -751,15 +745,6 @@ class CacheEntry {
           entry._invalidate(id, dependentResult.result, delta, level);
         }
       }
-    }
-  }
-
-  /**
-   * If the given `target` is an element, mark it as being a cache key.
-   */
-  void _markAsCacheKey(AnalysisTarget target) {
-    if (target is ElementImpl) {
-      target.setModifier(Modifier.CACHE_KEY, true);
     }
   }
 

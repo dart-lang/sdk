@@ -2784,7 +2784,6 @@ abstract class ElementImpl implements Element {
    */
   void set enclosingElement(Element element) {
     _enclosingElement = element as ElementImpl;
-    _updateCaches();
   }
 
   /**
@@ -2928,7 +2927,6 @@ abstract class ElementImpl implements Element {
    */
   void set name(String name) {
     this._name = name;
-    _updateCaches();
   }
 
   @override
@@ -2945,7 +2943,6 @@ abstract class ElementImpl implements Element {
    */
   void set nameOffset(int offset) {
     _nameOffset = offset;
-    _updateCaches();
   }
 
   @override
@@ -3157,33 +3154,14 @@ abstract class ElementImpl implements Element {
     }
   }
 
-  /**
-   *  Updates cached values after an input changed.
-   *
-   *  Throws [FrozenHashCodeException] if not allowed.
-   */
-  void _updateCaches() {
-    if (!hasModifier(Modifier.CACHE_KEY)) {
-      // Fast path.
-      _cachedLocation = null;
-      _cachedHashCode = null;
-      return;
+  static int _findElementIndexUsingIdentical(List items, Object item) {
+    int length = items.length;
+    for (int i = 0; i < length; i++) {
+      if (identical(items[i], item)) {
+        return i;
+      }
     }
-
-    // Save originals.
-    ElementLocation oldLocation = _cachedLocation;
-    int oldHashCode = _cachedHashCode;
-
-    _cachedLocation = null;
-    _cachedHashCode = null;
-
-    if (oldHashCode != hashCode) {
-      // Prevent cache corruption by restoring originals.
-      _cachedLocation = oldLocation;
-      _cachedHashCode = oldHashCode;
-      throw new FrozenHashCodeException(
-          "can't update hashCode for a cache key: $this ($runtimeType)");
-    }
+    throw new StateError('Unable to find $item in $items');
   }
 }
 
@@ -4350,18 +4328,6 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
 }
 
 /**
- * Indicates that an ElementImpl's hashCode cannot currently be changed.
- */
-class FrozenHashCodeException implements Exception {
-  final String _message;
-
-  FrozenHashCodeException(this._message);
-
-  @override
-  String toString() => "FrozenHashCodeException($_message)";
-}
-
-/**
  * A concrete implementation of a [FunctionElement].
  */
 class FunctionElementImpl extends ExecutableElementImpl
@@ -4423,11 +4389,11 @@ class FunctionElementImpl extends ExecutableElementImpl
   @override
   String get identifier {
     String identifier = super.identifier;
-    if (!isStatic) {
-      int enclosingOffset =
-          enclosingElement != null ? enclosingElement.nameOffset : 0;
-      int delta = nameOffset - enclosingOffset;
-      identifier += "@$delta";
+    Element enclosing = this.enclosingElement;
+    if (enclosing is ExecutableElement) {
+      int id = ElementImpl._findElementIndexUsingIdentical(
+          enclosing.functions, this);
+      identifier += "@$id";
     }
     return identifier;
   }
@@ -6169,10 +6135,14 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
 
   @override
   String get identifier {
-    int enclosingOffset =
-        enclosingElement != null ? enclosingElement.nameOffset : 0;
-    int delta = nameOffset - enclosingOffset;
-    return '${super.identifier}@$delta';
+    String identifier = super.identifier;
+    Element enclosing = this.enclosingElement;
+    if (enclosing is ExecutableElement) {
+      int id = ElementImpl._findElementIndexUsingIdentical(
+          enclosing.localVariables, this);
+      identifier += "@$id";
+    }
+    return identifier;
   }
 
   @override
@@ -6436,12 +6406,7 @@ class Modifier extends Enum<Modifier> {
    */
   static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 16);
 
-  /**
-   * Indicates that this element is being used as an analyzer cache key.
-   */
-  static const Modifier CACHE_KEY = const Modifier('CACHE_KEY', 17);
-
-  static const List<Modifier> persistedValues = const [
+  static const List<Modifier> values = const [
     ABSTRACT,
     ASYNCHRONOUS,
     CONST,
@@ -6460,11 +6425,6 @@ class Modifier extends Enum<Modifier> {
     STATIC,
     SYNTHETIC
   ];
-
-  static const List<Modifier> transientValues = const [CACHE_KEY];
-
-  static final values = new List.unmodifiable(
-      []..addAll(persistedValues)..addAll(transientValues));
 
   const Modifier(String name, int ordinal) : super(name, ordinal);
 }

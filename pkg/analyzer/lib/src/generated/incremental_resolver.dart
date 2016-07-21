@@ -1205,19 +1205,13 @@ class _ElementOffsetUpdater extends GeneralizingElementVisitor {
     // name offset
     int nameOffset = element.nameOffset;
     if (nameOffset > updateOffset) {
-      // TODO(scheglov) make sure that we don't put local variables
-      // and functions into the cache at all.
-      try {
-        (element as ElementImpl).nameOffset = nameOffset + updateDelta;
-      } on FrozenHashCodeException {
-        cache.remove(element);
-        (element as ElementImpl).nameOffset = nameOffset + updateDelta;
-      }
+      (element as ElementImpl).nameOffset = nameOffset + updateDelta;
       if (element is ConstVariableElement) {
         Expression initializer = element.constantInitializer;
         if (initializer != null) {
           _shiftTokens(initializer.beginToken);
         }
+        _shiftErrors(element.evaluationResult?.errors);
       }
     }
     // code range
@@ -1258,6 +1252,17 @@ class _ElementOffsetUpdater extends GeneralizingElementVisitor {
       }
     }
     super.visitElement(element);
+  }
+
+  void _shiftErrors(List<AnalysisError> errors) {
+    if (errors != null) {
+      for (AnalysisError error in errors) {
+        int errorOffset = error.offset;
+        if (errorOffset > updateOffset) {
+          error.offset += updateDelta;
+        }
+      }
+    }
   }
 
   void _shiftTokens(Token token) {

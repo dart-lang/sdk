@@ -3801,7 +3801,7 @@ f1() {
     _assertInvalid(a, LIBRARY_ERRORS_READY);
   }
 
-  void test_sequence_unitConstants() {
+  void test_sequence_unitConstants_addRemove() {
     Source a = addSource(
         '/a.dart',
         r'''
@@ -3866,6 +3866,40 @@ baz() {
     expect(newD.evaluationResult.value.toIntValue(), 4);
     expect(oldV1.evaluationResult.value.toIntValue(), 10);
     expect(newV3.evaluationResult.value.toIntValue(), 30);
+  }
+
+  void test_sequence_unitConstants_local_insertSpace() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+main() {
+  const C = 1;
+}
+''');
+    _performPendingAnalysisTasks();
+    LibrarySpecificUnit unitA = new LibrarySpecificUnit(a, a);
+    List<ConstantEvaluationTarget> oldConstants =
+        context.getResult(unitA, COMPILATION_UNIT_CONSTANTS);
+    expect(oldConstants, hasLength(1));
+    ConstVariableElement C = _findConstVariable(oldConstants, 'C');
+    expect(context.analysisCache.get(C), isNotNull);
+    // Insert a space before the name.
+    context.setContents(
+        a,
+        r'''
+main() {
+  const  C = 1;
+}
+''');
+    List<ConstantEvaluationTarget> newConstants =
+        context.getResult(unitA, COMPILATION_UNIT_CONSTANTS);
+    expect(newConstants, hasLength(1));
+    expect(newConstants, contains(same(C)));
+    // Perform analysis, compute constant values.
+    _performPendingAnalysisTasks();
+    // Validate const variable values.
+    expect(context.analysisCache.get(C), isNotNull);
+    expect(C.evaluationResult.value.toIntValue(), 1);
   }
 
   void test_sequence_useAnyResolvedUnit() {
