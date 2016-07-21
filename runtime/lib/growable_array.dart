@@ -104,12 +104,6 @@ class _GrowableList<T> extends ListBase<T> {
     return new _GrowableList<T>.withData(data);
   }
 
-  factory _GrowableList.from(Iterable<T> other) {
-    List<T> result = new _GrowableList<T>();
-    result.addAll(other);
-    return result;
-  }
-
   factory _GrowableList.withData(_List data)
     native "GrowableList_allocate";
 
