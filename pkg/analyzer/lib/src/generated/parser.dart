@@ -5049,16 +5049,52 @@ class Parser {
         newKeyword = firstToken;
         firstToken = firstToken.next;
       }
-      if (_tokenMatchesIdentifier(firstToken)) {
+      if (firstToken.isUserDefinableOperator) {
+        if (firstToken.next.type != TokenType.EOF) {
+          return null;
+        }
+        Identifier identifier = new SimpleIdentifier(firstToken);
+        return new CommentReference(null, identifier);
+      } else if (_tokenMatchesKeyword(firstToken, Keyword.OPERATOR)) {
+        Token secondToken = firstToken.next;
+        if (secondToken.isUserDefinableOperator) {
+          if (secondToken.next.type != TokenType.EOF) {
+            return null;
+          }
+          Identifier identifier = new SimpleIdentifier(secondToken);
+          return new CommentReference(null, identifier);
+        }
+        return null;
+      } else if (_tokenMatchesIdentifier(firstToken)) {
         Token secondToken = firstToken.next;
         Token thirdToken = secondToken.next;
         Token nextToken;
         Identifier identifier;
-        if (_tokenMatches(secondToken, TokenType.PERIOD) &&
-            _tokenMatchesIdentifier(thirdToken)) {
-          identifier = new PrefixedIdentifier(new SimpleIdentifier(firstToken),
-              secondToken, new SimpleIdentifier(thirdToken));
-          nextToken = thirdToken.next;
+        if (_tokenMatches(secondToken, TokenType.PERIOD)) {
+          if (thirdToken.isUserDefinableOperator) {
+            identifier = new PrefixedIdentifier(
+                new SimpleIdentifier(firstToken),
+                secondToken,
+                new SimpleIdentifier(thirdToken));
+            nextToken = thirdToken.next;
+          } else if (_tokenMatchesKeyword(thirdToken, Keyword.OPERATOR)) {
+            Token fourthToken = thirdToken.next;
+            if (fourthToken.isUserDefinableOperator) {
+              identifier = new PrefixedIdentifier(
+                  new SimpleIdentifier(firstToken),
+                  secondToken,
+                  new SimpleIdentifier(fourthToken));
+              nextToken = fourthToken.next;
+            } else {
+              return null;
+            }
+          } else if (_tokenMatchesIdentifier(thirdToken)) {
+            identifier = new PrefixedIdentifier(
+                new SimpleIdentifier(firstToken),
+                secondToken,
+                new SimpleIdentifier(thirdToken));
+            nextToken = thirdToken.next;
+          }
         } else {
           identifier = new SimpleIdentifier(firstToken);
           nextToken = firstToken.next;

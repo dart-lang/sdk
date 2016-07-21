@@ -6281,6 +6281,66 @@ void''');
     expect(identifier.offset, 9);
   }
 
+  void test_parseCommentReference_operator_withKeyword_notPrefixed() {
+    CommentReference reference =
+        parse("parseCommentReference", <Object>["operator ==", 5], "");
+    SimpleIdentifier identifier = EngineTestCase.assertInstanceOf(
+        (obj) => obj is SimpleIdentifier,
+        SimpleIdentifier,
+        reference.identifier);
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "==");
+    expect(identifier.offset, 14);
+  }
+
+  void test_parseCommentReference_operator_withKeyword_prefixed() {
+    CommentReference reference =
+        parse("parseCommentReference", <Object>["Object.operator==", 7], "");
+    PrefixedIdentifier prefixedIdentifier = EngineTestCase.assertInstanceOf(
+        (obj) => obj is PrefixedIdentifier,
+        PrefixedIdentifier,
+        reference.identifier);
+    SimpleIdentifier prefix = prefixedIdentifier.prefix;
+    expect(prefix.token, isNotNull);
+    expect(prefix.name, "Object");
+    expect(prefix.offset, 7);
+    expect(prefixedIdentifier.period, isNotNull);
+    SimpleIdentifier identifier = prefixedIdentifier.identifier;
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "==");
+    expect(identifier.offset, 22);
+  }
+
+  void test_parseCommentReference_operator_withoutKeyword_notPrefixed() {
+    CommentReference reference =
+        parse("parseCommentReference", <Object>["==", 5], "");
+    SimpleIdentifier identifier = EngineTestCase.assertInstanceOf(
+        (obj) => obj is SimpleIdentifier,
+        SimpleIdentifier,
+        reference.identifier);
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "==");
+    expect(identifier.offset, 5);
+  }
+
+  void test_parseCommentReference_operator_withoutKeyword_prefixed() {
+    CommentReference reference =
+        parse("parseCommentReference", <Object>["Object.==", 7], "");
+    PrefixedIdentifier prefixedIdentifier = EngineTestCase.assertInstanceOf(
+        (obj) => obj is PrefixedIdentifier,
+        PrefixedIdentifier,
+        reference.identifier);
+    SimpleIdentifier prefix = prefixedIdentifier.prefix;
+    expect(prefix.token, isNotNull);
+    expect(prefix.name, "Object");
+    expect(prefix.offset, 7);
+    expect(prefixedIdentifier.period, isNotNull);
+    SimpleIdentifier identifier = prefixedIdentifier.identifier;
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "==");
+    expect(identifier.offset, 14);
+  }
+
   void test_parseCommentReference_prefixed() {
     CommentReference reference =
         parse("parseCommentReference", <Object>["a.b", 7], "");
