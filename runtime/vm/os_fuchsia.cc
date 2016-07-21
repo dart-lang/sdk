@@ -167,19 +167,20 @@ void OS::DebugBreak() {
 
 
 char* OS::StrNDup(const char* s, intptr_t n) {
-  UNIMPLEMENTED();
-  return NULL;
+  return strndup(s, n);
 }
 
 
 intptr_t OS::StrNLen(const char* s, intptr_t n) {
-  UNIMPLEMENTED();
-  return 0;
+  return strnlen(s, n);
 }
 
 
 void OS::Print(const char* format, ...) {
-  UNIMPLEMENTED();
+  va_list args;
+  va_start(args, format);
+  VFPrint(stdout, format, args);
+  va_end(args);
 }
 
 

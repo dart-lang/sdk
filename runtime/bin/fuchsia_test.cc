@@ -19,6 +19,14 @@ const char* kHelloWorldScript = "main() { print(\"Hello, Fuchsia!\"); }";
 namespace dart {
 namespace bin {
 
+// vm_isolate_snapshot_buffer points to a snapshot for the vm isolate if we
+// link in a snapshot otherwise it is initialized to NULL.
+extern const uint8_t* vm_isolate_snapshot_buffer;
+
+// isolate_snapshot_buffer points to a snapshot for an isolate if we link in a
+// snapshot otherwise it is initialized to NULL.
+extern const uint8_t* isolate_snapshot_buffer;
+
 static void Builtin_PrintString(Dart_NativeArguments args) {
   intptr_t length = 0;
   uint8_t* chars = NULL;
@@ -139,7 +147,7 @@ int Main() {
   }
   Log::Print("Calling Dart_Initialize\n");
   char* error = Dart_Initialize(
-      NULL, NULL, NULL,
+      vm_isolate_snapshot_buffer, NULL, NULL,
       NULL, NULL, NULL, NULL,
       NULL,
       NULL,
@@ -156,7 +164,7 @@ int Main() {
   Dart_Isolate isolate = Dart_CreateIsolate(
       "script_uri",
       "main",
-      NULL,
+      isolate_snapshot_buffer,
       NULL,
       NULL,
       &error);
