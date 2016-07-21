@@ -221,7 +221,7 @@ io_impl_sources_gypi =
                 [ "io_impl_sources.gypi" ])
 }
 
-if (current_toolchain == host_toolchain) {
+if (!defined(is_fuchsia) || (current_toolchain == host_toolchain)) {
 
 executable("gen_snapshot") {
   configs += ["..:dart_config",
