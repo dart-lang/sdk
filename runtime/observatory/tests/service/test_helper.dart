@@ -102,10 +102,6 @@ class _ServiceTesteeLauncher {
     assert(trace_service != null);
     assert(trace_compiler != null);
 
-    // TODO(turnidge): I have temporarily turned on service tracing for
-    // all tests to help diagnose flaky tests.
-    trace_service = true;
-
     if (_shouldLaunchSkyShell()) {
       return _spawnSkyProcess(pause_on_start,
                               pause_on_exit,

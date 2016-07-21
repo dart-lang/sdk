@@ -71,11 +71,59 @@ Future deleteDirCallback(Uri path) async {
   await dir.delete(recursive: true);
 }
 
+class PendingWrite {
+  PendingWrite(this.uri, this.bytes);
+  final Completer completer = new Completer();
+  final Uri uri;
+  final List<int> bytes;
+
+  Future write() async {
+    var file = new File.fromUri(uri);
+    var parent_directory = file.parent;
+    await parent_directory.create(recursive: true);
+    var result = await file.writeAsBytes(bytes);
+    completer.complete(null);
+    WriteLimiter._writeCompleted();
+  }
+}
+
+class WriteLimiter {
+  static final List<PendingWrite> pendingWrites = new List<PendingWrite>();
+
+  // non-rooted Android devices have a very low limit for the number of
+  // open files. Artificially cap ourselves to 16.
+  static const kMaxOpenWrites = 16;
+  static int openWrites = 0;
+
+  static Future scheduleWrite(Uri path, List<int> bytes) async {
+    // Create a new pending write.
+    PendingWrite pw = new PendingWrite(path, bytes);
+    pendingWrites.add(pw);
+    _maybeWriteFiles();
+    return pw.completer.future;
+  }
+
+  static _maybeWriteFiles() {
+    while (openWrites < kMaxOpenWrites) {
+      if (pendingWrites.length > 0) {
+        PendingWrite pw = pendingWrites.removeLast();
+        pw.write();
+        openWrites++;
+      } else {
+        break;
+      }
+    }
+  }
+
+  static _writeCompleted() {
+    openWrites--;
+    assert(openWrites >= 0);
+    _maybeWriteFiles();
+  }
+}
+
 Future writeFileCallback(Uri path, List<int> bytes) async {
-  var file = new File.fromUri(path);
-  var parent_directory = file.parent;
-  await parent_directory.create(recursive: true);
-  await file.writeAsBytes(bytes);
+  return WriteLimiter.scheduleWrite(path, bytes);
 }
 
 Future<List<int>> readFileCallback(Uri path) async {
