@@ -1070,25 +1070,6 @@
       ]
     },
     {
-      'target_name': 'fuchsia_test',
-      'type': 'executable',
-      'dependencies': [
-        'libdart_nosnapshot',
-      ],
-      'include_dirs': [
-        '..',
-        '../include',
-      ],
-      'sources': [
-        'fuchsia_test.cc',
-        'log_android.cc',
-        'log_fuchsia.cc',  # TODO(zra): Move to libdart_builtin when ready.
-        'log_linux.cc',
-        'log_macos.cc',
-        'log_win.cc',
-      ],
-    },
-    {
       # dart binary with a snapshot of corelibs built in.
       'target_name': 'dart',
       'type': 'executable',
