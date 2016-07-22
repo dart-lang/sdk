@@ -77,11 +77,6 @@ config("dart_precompiled_runtime_config") {
       defines += ["DART_PRECOMPILED_RUNTIME"]
     }
   } else if (dart_runtime_mode == "profile") {
-    if (dart_debug) {
-      print("Debug and profile mode are mutually exclusive.")
-    }
-    assert(!dart_debug)
-
     if (!dart_experimental_interpreter) {
       defines += ["DART_PRECOMPILED_RUNTIME"]
     }
