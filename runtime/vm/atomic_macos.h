@@ -15,15 +15,6 @@
 
 namespace dart {
 
-template<typename T> T AtomicOperations::LoadAcquire(T* ptr) {
-  return __atomic_load_n(ptr, __ATOMIC_ACQUIRE);
-}
-
-
-template<typename T> void AtomicOperations::StoreRelease(T* ptr, T val) {
-  __atomic_store_n(ptr, val, __ATOMIC_RELEASE);
-}
-
 
 inline uintptr_t AtomicOperations::FetchAndIncrement(uintptr_t* p) {
   return __sync_fetch_and_add(p, 1);

@@ -7117,7 +7117,7 @@ void Function::RestoreICDataMap(
 
 
 void Function::set_ic_data_array(const Array& value) const {
-  AtomicStorePointer(&raw_ptr()->ic_data_array_, value.raw());
+  StorePointer(&raw_ptr()->ic_data_array_, value.raw());
 }
 
 
@@ -13458,8 +13458,8 @@ void ICData::ResetData() const {
   intptr_t len = TestEntryLength();
   // IC data array must be null terminated (sentinel entry).
   const Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));
-  WriteSentinel(ic_data, len);
   set_ic_data_array(ic_data);
+  WriteSentinel(ic_data, len);
 }
 
 

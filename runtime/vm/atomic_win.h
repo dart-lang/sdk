@@ -13,19 +13,7 @@
 #error This file should only be included on Windows builds.
 #endif
 
-#include <atomic>
-
 namespace dart {
-
-template<typename T> T AtomicOperations::LoadAcquire(T* ptr) {
-  return atomic_load_explicit(ptr, memory_order_acquire);
-}
-
-
-template<typename T> void AtomicOperations::StoreRelease(T* ptr, T val) {
-  return atomic_store_explicit(ptr, val, memory_order_release);
-}
-
 
 inline uintptr_t AtomicOperations::FetchAndIncrement(uintptr_t* p) {
 #if defined(HOST_ARCH_X64)

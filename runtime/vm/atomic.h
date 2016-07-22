@@ -60,10 +60,6 @@ class AtomicOperations : public AllStatic {
   static intptr_t LoadRelaxedIntPtr(intptr_t* ptr) {
     return *static_cast<volatile intptr_t*>(ptr);
   }
-
-  template<typename T> static T LoadAcquire(T* ptr);
-
-  template<typename T> static void StoreRelease(T* ptr, T val);
 };
 
 
