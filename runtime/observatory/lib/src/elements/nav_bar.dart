@@ -21,13 +21,6 @@ class NavBarElement extends ObservatoryElement {
   NavBarElement.created() : super.created();
 }
 
-@CustomTag('top-nav-menu')
-class TopNavMenuElement extends ObservatoryElement {
-  @published bool last = false;
-
-  TopNavMenuElement.created() : super.created();
-}
-
 @CustomTag('vm-nav-menu')
 class VMNavMenuElement extends ObservatoryElement {
   @published bool last = false;

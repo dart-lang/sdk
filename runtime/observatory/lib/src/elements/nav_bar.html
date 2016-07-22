@@ -44,15 +44,6 @@
   </template>
 </polymer-element>
 
-<polymer-element name="top-nav-menu">
-  <template>
-    <nav-menu link="/vm" anchor="Observatory" last="{{ last }}">
-      <nav-menu-item link="/vm-connect" anchor="Connect to a VM"></nav-menu-item>
-      <content></content>
-    </nav-menu>
-  </template>
-</polymer-element>
-
 <polymer-element name="vm-nav-menu">
   <template>
     <nav-menu link="/vm" anchor="{{ nameAndAddress(vm.name, vm.target) }}" last="{{ last }}">

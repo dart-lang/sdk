@@ -68,6 +68,8 @@ import 'package:observatory/src/elements/nav/menu_item.dart';
 import 'package:observatory/src/elements/nav/menu_item_wrapper.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/refresh_wrapper.dart';
+import 'package:observatory/src/elements/nav/top_menu.dart';
+import 'package:observatory/src/elements/nav/top_menu_wrapper.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 export 'package:observatory/src/elements/helpers/rendering_queue.dart';
@@ -76,6 +78,7 @@ export 'package:observatory/src/elements/curly_block.dart';
 export 'package:observatory/src/elements/nav/menu.dart';
 export 'package:observatory/src/elements/nav/menu_item.dart';
 export 'package:observatory/src/elements/nav/refresh.dart';
+export 'package:observatory/src/elements/nav/top_menu.dart';
 export 'package:observatory/src/elements/view_footer.dart';
 
 // Even though this function does not invoke any asynchronous operation
@@ -89,5 +92,7 @@ Future initElements() async {
   NavMenuItemElementWrapper.tag.ensureRegistration();
   NavRefreshElement.tag.ensureRegistration();
   NavRefreshElementWrapper.tag.ensureRegistration();
+  NavTopMenuElement.tag.ensureRegistration();
+  NavTopMenuElementWrapper.tag.ensureRegistration();
   ViewFooterElement.tag.ensureRegistration();
 }

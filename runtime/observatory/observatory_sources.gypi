@@ -124,6 +124,8 @@
     'lib/src/elements/nav/menu_item_wrapper.dart',
     'lib/src/elements/nav/refresh.dart',
     'lib/src/elements/nav/refresh_wrapper.dart',
+    'lib/src/elements/nav/top_menu.dart',
+    'lib/src/elements/nav/top_menu_wrapper.dart',
     'lib/src/elements/object_common.dart',
     'lib/src/elements/object_common.html',
     'lib/src/elements/object_view.dart',
