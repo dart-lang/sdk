@@ -646,6 +646,11 @@ class Object {
     raw()->StorePointer(addr, value);
   }
 
+  template<typename type>
+  void AtomicStorePointer(type const* addr, type value) const {
+    raw()->AtomicStorePointer(addr, value);
+  }
+
   // Store a range of pointers [from, from + count) into [to, to + count).
   // TODO(koda): Use this to fix Object::Clone's broken store buffer logic.
   void StorePointers(RawObject* const* to,

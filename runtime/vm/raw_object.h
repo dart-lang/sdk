@@ -581,6 +581,18 @@ CLASS_LIST_TYPED_DATA(DEFINE_IS_CID)
     }
   }
 
+  template<typename type>
+  void AtomicStorePointer(type const* addr, type value) {
+    AtomicOperations::StoreRelease(const_cast<type*>(addr), value);
+    // Filter stores based on source and target.
+    if (!value->IsHeapObject()) return;
+    if (value->IsNewObject() && this->IsOldObject() &&
+        !this->IsRemembered()) {
+      this->SetRememberedBit();
+      Thread::Current()->StoreBufferAddObject(this);
+    }
+  }
+
   // Use for storing into an explicitly Smi-typed field of an object
   // (i.e., both the previous and new value are Smis).
   void StoreSmi(RawSmi* const* addr, RawSmi* value) {

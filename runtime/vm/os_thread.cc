@@ -103,7 +103,7 @@ void OSThread::EnableThreadInterrupts() {
 
 
 bool OSThread::ThreadInterruptsEnabled() {
-  return AtomicOperations::LoadRelaxed(&thread_interrupt_disabled_) == 0;
+  return AtomicOperations::LoadAcquire(&thread_interrupt_disabled_) == 0;
 }
 
 
