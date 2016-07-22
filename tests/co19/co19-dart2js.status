@@ -885,6 +885,7 @@ LayoutTests/fast/css/content/content-quotes-05_t01: RuntimeError # Issue https:/
 LayoutTests/fast/css/counters/complex-before_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css-escaped-identifier_t01: RuntimeError # co19 issue 14
 LayoutTests/fast/css/css-properties-case-insensitive_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/cssText-shorthand_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css3-nth-tokens-style_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/csstext-of-content-string_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/deprecated-flexbox-auto-min-size_t01: RuntimeError # Please triage this failure
@@ -899,11 +900,13 @@ LayoutTests/fast/css/font-face-unicode-range-monospace_t01: Pass, RuntimeError #
 LayoutTests/fast/css/font-face-unicode-range-overlap-load_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-family-trailing-bracket-gunk_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/fontfaceset-download-error_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-events_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-loadingdone_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/getComputedStyle/computed-style-border-image_t01: RuntimeError # co19 issue 14
 LayoutTests/fast/css/getComputedStyle/computed-style-cross-fade_t01: RuntimeError # co19 issue 14
 LayoutTests/fast/css/getComputedStyle/font-family-fallback-reset_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/getPropertyValue-border_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/html-attr-case-sensitivity_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/id-or-class-before-stylesheet_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/implicit-attach-marking_t01: Skip # Times out. Please triage this failure
@@ -1037,6 +1040,7 @@ LayoutTests/fast/dom/blur-contenteditable_t01: Pass, RuntimeError # Please triag
 LayoutTests/fast/dom/characterdata-api-arguments_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/click-method-on-html-element_t01: RuntimeError # Issue 25155
 LayoutTests/fast/dom/client-width-height-quirks_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/css-shorthand-common-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/custom/document-register-basic_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/dom/custom/document-register-svg-extends_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/custom/element-names_t01: Pass, RuntimeError # Please triage this failure
@@ -1072,7 +1076,6 @@ LayoutTests/fast/dom/shadow/shadowdom-for-input-spellcheck_t01: RuntimeError # I
 LayoutTests/fast/dom/shadow/shadowdom-for-input-type-change_t01: RuntimeError # Issue 26729
 LayoutTests/fast/dom/shadow/shadowroot-clonenode_t01: RuntimeError # Issue 26729
 LayoutTests/fast/dom/shadow/shadowroot-host_t01: RuntimeError # Issue 26729
-LayoutTests/fast/dom/shadow/no-renderers-for-light-children_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/shadow/pseudoclass-update-checked-option_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/shadow/pseudoclass-update-disabled-optgroup_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/shadow/pseudoclass-update-disabled-option_t01: RuntimeError # Please triage this failure
@@ -1491,8 +1494,10 @@ WebPlatformTest/html/dom/elements/global-attributes/dataset-set_t01: RuntimeErro
 WebPlatformTest/html/semantics/document-metadata/styling/LinkStyle_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/embedded-content/media-elements/error-codes/error_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/HTMLElement/HTMLMediaElement/addTextTrack_t01: RuntimeError # Please triage this failure
+WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/HTMLElement/HTMLTrackElement/kind_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/HTMLElement/HTMLTrackElement/src_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/cues_t01: Skip # Times out. Please triage this failure
+WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/kind_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/mode_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formaction_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setRangeText_t01: RuntimeError # Please triage this failure
@@ -1533,7 +1538,6 @@ WebPlatformTest/html/semantics/selectors/pseudo-classes/disabled_t01: RuntimeErr
 WebPlatformTest/html/semantics/selectors/pseudo-classes/enabled_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/selectors/pseudo-classes/focus_t01: Pass, RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/selectors/pseudo-classes/indeterminate_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/semantics/selectors/pseudo-classes/inrange-outofrange_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/selectors/pseudo-classes/link_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/selectors/pseudo-classes/valid-invalid_t01: Pass, RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/tabular-data/the-table-element/table-rows_t01: RuntimeError # Please triage this failure
@@ -1800,6 +1804,9 @@ Language/Classes/Constructors/Generative_Constructors/execution_of_an_initialize
 
 [ $compiler == dart2js && $runtime == chrome && $system == linux]
 LayoutTests/fast/text/international/combining-marks-position_t01: RuntimeError # Please triage this failure
+
+[ $compiler == dart2js && $runtime == chrome && $system != linux]
+LayoutTests/fast/events/event-attributes-after-exception_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == ff ]
 Language/Expressions/Postfix_Expressions/property_decrement_t02: Skip # Times out. Please triage this failure
