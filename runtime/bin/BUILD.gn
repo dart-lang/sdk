@@ -138,6 +138,7 @@ static_library("libdart_builtin") {
   set_sources_assignment_filter(["*_test.cc", "*_test.h"])
   sources = [
     "log_android.cc",
+    "log_fuchsia.cc",
     "log_linux.cc",
     "log_macos.cc",
     "log_win.cc",
@@ -212,14 +213,11 @@ static_library("libdart_nosnapshot_with_precompiler") {
   ]
 }
 
-if ((current_toolchain == host_toolchain) ||
-    (!defined(is_fuchsia) || !is_fuchsia)) {
 io_impl_sources_gypi =
     exec_script("../../tools/gypi_to_gn.py",
                 [ rebase_path("io_impl_sources.gypi") ],
                 "scope",
                 [ "io_impl_sources.gypi" ])
-}
 
 if (!defined(is_fuchsia) || (current_toolchain == host_toolchain)) {
 
@@ -312,7 +310,6 @@ source_set("libdart_embedder_noio") {
   ]
 }
 
-if (!defined(is_fuchsia) || !is_fuchsia) {
 
 # A source set for the implementation of 'dart:io' library
 # (without secure sockets).
@@ -339,6 +336,10 @@ source_set("embedded_dart_io") {
   if (is_mac || is_ios) {
     libs = [
       "Security.framework",
+    ]
+  } else if (defined(is_fuchsia) && is_fuchsia) {
+    defines = [
+      "DART_IO_SECURE_SOCKET_DISABLED"
     ]
   } else {
     deps = [
@@ -369,7 +370,6 @@ source_set("embedded_dart_io") {
     "//third_party"
   ]
 }
-}  # !is_fuchsia
 
 
 action("generate_snapshot_bin") {
@@ -466,4 +466,42 @@ if (defined(is_fuchsia) && is_fuchsia) {
       ":libdart_embedder_noio",
     ]
   }
-}
+
+  copy("hello_fuchsia") {
+    sources = [ "../tests/vm/dart/hello_fuchsia_test.dart" ]
+    outputs = [ "$root_out_dir/hello_fuchsia.dart" ]
+  }
+
+  executable("dart_no_observatory") {
+    configs += ["..:dart_config",
+                "..:dart_product_config",
+                "..:dart_precompiled_runtime_config",]
+    deps = [
+      ":hello_fuchsia",
+      ":gen_resources_cc",
+      ":embedded_dart_io",
+      ":libdart_builtin",
+      "../vm:libdart_platform",
+      "..:libdart",
+      ":dart_snapshot_cc",
+      "//third_party/zlib",
+    ]
+
+    defines = [
+      "NO_OBSERVATORY",
+    ]
+
+    sources = [
+      "main.cc",
+      "observatory_assets_empty.cc",
+      "vmservice_impl.cc",
+      "vmservice_impl.h",
+      "$target_gen_dir/resources_gen.cc",
+    ]
+
+    include_dirs = [
+      "..",
+      "//third_party",
+    ]
+  }
+}  # defined(is_fuchsia) && is_fuchsia

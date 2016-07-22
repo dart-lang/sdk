@@ -22,6 +22,7 @@ bool _autoStart;
 // Should the HTTP server run in devmode?
 bool _originCheckDisabled;
 bool _isWindows = false;
+bool _isFuchsia = false;
 var _signalWatch;
 var _signalSubscription;
 
@@ -177,8 +178,8 @@ _registerSignalHandler() {
     // Cannot register for signals.
     return;
   }
-  if (_isWindows) {
-    // Cannot register for signals on Windows.
+  if (_isWindows || _isFuchsia) {
+    // Cannot register for signals on Windows or Fuchsia.
     return;
   }
   _signalSubscription = _signalWatch(ProcessSignal.SIGQUIT).listen(_onSignal);

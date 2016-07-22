@@ -68,8 +68,8 @@ inline uint64_t Utils::HostToLittleEndian64(uint64_t value) {
 
 
 inline char* Utils::StrError(int err, char* buffer, size_t bufsize) {
-  UNIMPLEMENTED();
-  return NULL;
+  snprintf(buffer, bufsize, "errno = %d", err);
+  return buffer;
 }
 
 }  // namespace dart

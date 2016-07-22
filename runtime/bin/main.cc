@@ -1499,7 +1499,7 @@ bool RunMainIsolate(const char* script_name,
 
 
 // Observatory assets are only needed in the regular dart binary.
-#if !defined(DART_PRECOMPILER)
+#if !defined(DART_PRECOMPILER) || !defined(NO_OBSERVATORY)
 extern unsigned int observatory_assets_archive_len;
 extern const uint8_t* observatory_assets_archive;
 

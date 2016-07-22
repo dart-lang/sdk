@@ -13,6 +13,8 @@
 // Declare the OS-specific types ahead of defining the generic class.
 #if defined(TARGET_OS_ANDROID)
 #include "bin/socket_android.h"
+#elif defined(TARGET_OS_FUCHSIA)
+#include "bin/socket_fuchsia.h"
 #elif defined(TARGET_OS_LINUX)
 #include "bin/socket_linux.h"
 #elif defined(TARGET_OS_MACOS)
