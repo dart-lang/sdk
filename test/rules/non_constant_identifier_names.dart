@@ -6,6 +6,8 @@ String YO = ''; //LINT
 const Z = 4; //OK
 
 abstract class A {
+  int _x; //OK
+  int __x; //OK
   int X; //OK
   static const Y = 3; // OK
 
