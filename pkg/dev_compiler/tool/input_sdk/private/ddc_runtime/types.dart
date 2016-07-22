@@ -170,9 +170,9 @@ final AbstractFunctionType = JS('', '''
 /// {name1 : type1, ..., namen : typen} corresponds to the path
 /// n, name1, type1, ...., namen, typen.  The element of the map
 /// reached via this path (if any) is the canonical representative
-/// for this packet.  
+/// for this packet.
 final _fnTypeNamedArgMap = JS('', 'new Map()');
-/// Memo table for positional argument groups. A positional argument 
+/// Memo table for positional argument groups. A positional argument
 /// packet [type1, ..., typen] (required or optional) corresponds to
 /// the path n, type1, ...., typen.  The element reached via
 /// this path (if any) is the canonical representative for this
@@ -228,7 +228,7 @@ final FunctionType = JS('', '''
     }
 
     // TODO(leafp): This only canonicalizes of the names are
-    // emitted in a consistent order.  
+    // emitted in a consistent order.
     static _canonicalizeNamed(definite, named, map) {
       let key = [];
       let names = $getOwnPropertyNames(named);

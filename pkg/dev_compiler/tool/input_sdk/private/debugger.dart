@@ -146,34 +146,52 @@ class IterableSpan {
       iterable.skip(start).take(length).toList().asMap();
 
   List<NameValuePair> children() {
-    var ret = <NameValuePair>[];
+    var children = <NameValuePair>[];
     if (length <= _maxSpanLength) {
       asMap().forEach((i, element) {
-        ret.add(
+        children.add(
             new NameValuePair(name: (i + start).toString(), value: element));
       });
     } else {
       for (var i = start; i < end; i += subsetSize) {
         var subSpan = new IterableSpan(i, min(end, subsetSize + i), iterable);
         if (subSpan.length == 1) {
-          ret.add(new NameValuePair(
+          children.add(new NameValuePair(
               name: i.toString(), value: iterable.elementAt(i)));
         } else {
-          ret.add(new NameValuePair(
+          children.add(new NameValuePair(
               name: '[${i}...${subSpan.end - 1}]',
               value: subSpan,
               hideName: true));
         }
       }
     }
-    return ret;
+    return children;
   }
 }
 
-class ClassMetadata {
-  ClassMetadata(this.object);
+class Library {
+  Library(this.name, this.object);
+
+  final String name;
+  final Object object;
+}
+
+class NamedConstructor {
+  NamedConstructor(this.object);
 
   final Object object;
+}
+
+class ClassMetadata {
+  ClassMetadata(this.object, {this.name});
+
+  final Object object;
+  final String name;
+
+  String get typeName =>
+      name ??
+      getTypeName(object is Type ? object : dart.getReifiedType(object));
 }
 
 class HeritageClause {
@@ -181,6 +199,14 @@ class HeritageClause {
 
   final String name;
   final List types;
+}
+
+Object safeGetProperty(Object protoChain, String name) {
+  try {
+    return JSNative.getProperty(protoChain, name);
+  } catch (e) {
+    return '<Exception thrown> $e';
+  }
 }
 
 /// Class to simplify building the JsonML objects expected by the
@@ -333,9 +359,10 @@ class DartFormatter {
   List<Formatter> _formatters;
 
   DartFormatter() {
-    // The order of formatters matters as formatters later in the list take
-    // precidence.
+    // The order of formatters matters as formatters earlier in the list take
+    // precedence.
     _formatters = [
+      new NamedConstructorFormatter(),
       new FunctionFormatter(),
       new MapFormatter(),
       new IterableFormatter(),
@@ -343,6 +370,8 @@ class DartFormatter {
       new IterableSpanFormatter(),
       new ClassMetadataFormatter(),
       new HeritageClauseFormatter(),
+      new LibraryModuleFormatter(),
+      new LibraryFormatter(),
       new ObjectFormatter(),
     ];
   }
@@ -414,15 +443,14 @@ class ObjectFormatter extends Formatter {
     // Set of property names used to avoid duplicates.
     addMetadataChildren(object, properties);
 
-    /// Helper to add members walking up the prototype chain being careful
-    /// to avoid properties that are Dart methods.
-    var protoChain = <Object>[];
     var current = object;
+
+    var protoChain = <Object>[];
     while (current != null &&
         !isNativeJavaScriptObject(current) &&
         JS("bool", "# !== Object.prototype", current)) {
       protoChain.add(current);
-      current = JSNative.getProperty(current, '__proto__');
+      current = safeGetProperty(current, '__proto__');
     }
 
     // We walk the prototype chain for symbol properties because they take
@@ -445,12 +473,7 @@ class ObjectFormatter extends Formatter {
           // start with an _
           continue;
         }
-        var value;
-        try {
-          value = JSNative.getProperty(object, symbol);
-        } catch (e) {
-          value = '<Exception thrown> $e';
-        }
+        var value = safeGetProperty(object, symbol);
         properties.add(new NameValuePair(name: dartName, value: value));
       }
     }
@@ -464,12 +487,7 @@ class ObjectFormatter extends Formatter {
         if (hasMethod(object, name)) {
           continue;
         }
-        var value;
-        try {
-          value = JSNative.getProperty(object, name);
-        } catch (e) {
-          value = '<Exception thrown> $e';
-        }
+        var value = safeGetProperty(object, name);
         properties.add(new NameValuePair(name: name, value: value));
       }
     }
@@ -478,8 +496,93 @@ class ObjectFormatter extends Formatter {
   }
 
   addMetadataChildren(object, Set<NameValuePair> ret) {
-    ret.add(
-        new NameValuePair(name: '[[class]]', value: new ClassMetadata(object)));
+    var child = new ClassMetadata(object);
+    ret.add(new NameValuePair(name: child.typeName, value: child));
+  }
+}
+
+/// Formatter for module Dart Library objects.
+class LibraryModuleFormatter extends ObjectFormatter {
+  String libraryName;
+
+  accept(object) {
+    libraryName = dart.getDartLibraryName(object);
+    return libraryName != null;
+  }
+
+  bool hasChildren(object) => true;
+
+  String preview(object) {
+    var libraryNames = libraryName.split('/');
+    // Library names are received with a repeat directory name, so strip the
+    // last directory entry here to make the path cleaner. For example, the
+    // library "third_party/dart/utf/utf" shoud display as
+    // "third_party/dart/utf/".
+    if (libraryNames.length > 1) {
+      libraryNames[libraryNames.length - 1] = '';
+    }
+    return 'Library Module: ${libraryNames.join('/')}';
+  }
+
+  List<NameValuePair> children(object) {
+    var children = new LinkedHashSet<NameValuePair>();
+    for (var name in getOwnPropertyNames(object)) {
+      var value = safeGetProperty(object, name);
+      // Replace __ with / to make file paths more readable. Then
+      // 'src__result__error' becomes 'src/result/error'.
+      name = '${name.replaceAll("__", "/")}.dart';
+      children.add(new NameValuePair(
+          name: name, value: new Library(name, value), hideName: true));
+    }
+    return children.toList();
+  }
+}
+
+/// Formatter for Dart Library objects.
+class LibraryFormatter extends ObjectFormatter {
+  String genericName;
+  String genericArguments;
+
+  accept(object) => object is Library;
+
+  bool hasChildren(object) => true;
+
+  String preview(object) => object.name;
+
+  List<NameValuePair> children(object) {
+    var children = new LinkedHashSet<NameValuePair>();
+    var entry = object.object;
+    for (var name in getOwnPropertyNames(entry)) {
+      var value = safeGetProperty(entry, name);
+      if (value != null) {
+        var genericTypeConstructor = dart.getGenericTypeCtor(value);
+        if (genericTypeConstructor != null) {
+          genericName = name;
+          // Using JS toString() eliminates the leading metadata that is generated
+          // with the toString function provided in operations.dart.
+          // Splitting by => and taking the first element gives the list of
+          // arguments in the constructor.
+          genericArguments =
+              JS('String', '#.toString()', genericTypeConstructor)
+                  .split(' =>')
+                  .first
+                  .replaceAll(new RegExp(r'[(|)]'), '');
+        } else if (value is Type) {
+          var typeName = getTypeName(value);
+          // Generic class names are generated with a $ at the end, so the
+          // corresponding non-generic class can be identified by adding $.
+          if ('$name\$' == genericName) {
+            typeName = '$typeName<$genericArguments>';
+          }
+          children.add(new NameValuePair(
+              name: typeName, value: new ClassMetadata(value, name: typeName)));
+        } else {
+          children.add(
+              new NameValuePair(name: name, value: new ClassMetadata(value)));
+        }
+      }
+    }
+    return children.toList();
   }
 }
 
@@ -556,12 +659,12 @@ class IterableFormatter extends ObjectFormatter {
     // are not the built in Set or List types.
     // TODO(jacobr): handle large Iterables better.
     // TODO(jacobr): consider only using numeric indices
-    var ret = new LinkedHashSet<NameValuePair>();
-    ret.addAll((new IterableSpan(0, object.length, object)).children());
+    var children = new LinkedHashSet<NameValuePair>();
+    children.addAll(new IterableSpan(0, object.length, object).children());
     // TODO(jacobr): provide a link to show regular class properties here.
     // required for subclasses of iterable, etc.
-    addMetadataChildren(object, ret);
-    return ret.toList();
+    addMetadataChildren(object, children);
+    return children.toList();
   }
 }
 
@@ -569,52 +672,97 @@ class IterableFormatter extends ObjectFormatter {
 class ClassMetadataFormatter implements Formatter {
   accept(object) => object is ClassMetadata;
 
-  _getType(object) {
+  Object _getType(object) {
     if (object is Type) return object;
     return dart.getReifiedType(object);
   }
 
   String preview(object) {
     ClassMetadata entry = object;
-    return getTypeName(_getType(entry.object));
+    var type =
+        entry.object is Type ? entry.object : dart.getReifiedType(entry.object);
+    var implements = dart.getImplements(type);
+    if (implements != null) {
+      var typeNames = implements().map(getTypeName);
+      return '${entry.typeName} implements ${typeNames.join(", ")}';
+    } else {
+      return entry.typeName;
+    }
   }
 
   bool hasChildren(object) => true;
 
   List<NameValuePair> children(object) {
     ClassMetadata entry = object;
+    var classObject = entry.object;
     // TODO(jacobr): add other entries describing the class such as
     // links to the superclass, mixins, implemented interfaces, and methods.
-    var type = _getType(entry.object);
-    var ret = <NameValuePair>[];
-    var implements = dart.getImplements(type);
-    if (implements != null) {
-      ret.add(new NameValuePair(
-          name: '[[Implements]]',
-          value: new HeritageClause('implements', implements())));
-    }
+    var type = _getType(classObject);
+    var children = <NameValuePair>[];
+
     var mixins = dart.getMixins(type);
     if (mixins != null && mixins.isNotEmpty) {
-      ret.add(new NameValuePair(
+      children.add(new NameValuePair(
           name: '[[Mixins]]', value: new HeritageClause('mixins', mixins)));
     }
-    ret.add(new NameValuePair(
-        name: '[[JavaScript View]]',
-        value: entry.object,
-        config: JsonMLConfig.skipDart));
 
+    var hiddenProperties = ['length', 'name', 'prototype'];
+    // Addition of NameValuePairs for static variables and named constructors.
+    for (var name in getOwnPropertyNames(classObject)) {
+      // TODO(bmilligan): Perform more principled checks to filter out spurious
+      // members.
+      if (hiddenProperties.contains(name)) continue;
+      var value = safeGetProperty(classObject, name);
+      if (value != null && dart.getIsNamedConstructor(value) != null) {
+        value = new NamedConstructor(value);
+        name = '${entry.typeName}.$name';
+      }
+      children.add(new NameValuePair(name: name, value: value));
+    }
+
+    // TODO(bmilligan): Replace the hard coding of $identityHash.
+    var hiddenPrototypeProperties = ['constructor', 'new', r'$identityHash'];
+    // Addition of class methods.
+    var prototype = JS('var', '#["prototype"]', classObject);
+    if (prototype != null) {
+      for (var name in getOwnPropertyNames(prototype)) {
+        if (hiddenPrototypeProperties.contains(name)) continue;
+        // Simulate dart.bind by using dart.tag and tear off the function
+        // so it will be recognized by the FunctionFormatter.
+        var function = safeGetProperty(prototype, name);
+        var constructor = safeGetProperty(prototype, 'constructor');
+        var sigObj = dart.getMethodSig(constructor);
+        if (sigObj != null) {
+          var value = safeGetProperty(sigObj, name);
+          if (getTypeName(dart.getReifiedType(value)) != 'Null') {
+            dart.tag(function, value);
+            children.add(new NameValuePair(name: name, value: function));
+          }
+        }
+      }
+    }
     // TODO(jacobr): provide a link to the base class or perhaps the entire
     // base class hierarchy as a flat list.
-
-    if (entry.object is! Type) {
-      ret.add(new NameValuePair(
-          name: '[[JavaScript Constructor]]',
-          value: JSNative.getProperty(entry.object, 'constructor'),
-          config: JsonMLConfig.skipDart));
-      // TODO(jacobr): add constructors, methods, extended class, and static
-    }
-    return ret;
+    // TODO(jacobr): add constructors, methods, extended class, and static
+    return children;
   }
+}
+
+class NamedConstructorFormatter implements Formatter {
+  accept(object) => object is NamedConstructor;
+
+  // TODO(bmilligan): Display the signature of the named constructor as the
+  // preview.
+  String preview(object) => 'Named Constructor';
+
+  bool hasChildren(object) => true;
+
+  List<NameValuePair> children(object) => <NameValuePair>[
+        new NameValuePair(
+            name: 'JavaScript Function',
+            value: object,
+            config: JsonMLConfig.skipDart)
+      ];
 }
 
 /// Formatter for synthetic MapEntry objects used to display contents of a Map
@@ -642,7 +790,7 @@ class HeritageClauseFormatter implements Formatter {
 
   String preview(object) {
     HeritageClause clause = object;
-    var typeNames = clause.types.map((type) => getTypeName(type));
+    var typeNames = clause.types.map(getTypeName);
     return '${clause.name} ${typeNames.join(", ")}';
   }
 
@@ -650,11 +798,11 @@ class HeritageClauseFormatter implements Formatter {
 
   List<NameValuePair> children(object) {
     HeritageClause clause = object;
-    var ret = <NameValuePair>[];
+    var children = <NameValuePair>[];
     for (var type in clause.types) {
-      ret.add(new NameValuePair(value: new ClassMetadata(type)));
+      children.add(new NameValuePair(value: new ClassMetadata(type)));
     }
-    return ret;
+    return children;
   }
 }
 

@@ -545,8 +545,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var from = getStaticType(fromExpr);
     var to = node.type.type;
 
-    JS.Expression jsFrom = _visit(fromExpr);
-    if (_inWhitelistCode(node)) return jsFrom;
+    var jsFrom = _visit(fromExpr);
 
     // Skip the cast if it's not needed.
     if (rules.isSubtypeOf(from, to)) return jsFrom;
@@ -566,6 +565,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var type = _emitType(to,
         nameType: options.nameTypeTests || options.hoistTypeTests,
         hoistType: options.hoistTypeTests);
+    if (_inWhitelistCode(node)) return jsFrom;
     if (isReifiedCoercion(node)) {
       return js.call('#._check(#)', [type, jsFrom]);
     } else {
@@ -1311,8 +1311,6 @@ class CodeGenerator extends GeneralizingAstVisitor
       }
     }
 
-    jsMethods.addAll(_implementMockInterfaces(type));
-
     // If the type doesn't have an `iterator`, but claims to implement Iterable,
     // we inject the adaptor method here, as it's less code size to put the
     // helper on a parent class. This pattern is common in the core libraries
@@ -1330,151 +1328,6 @@ class CodeGenerator extends GeneralizingAstVisitor
     _superHelpers.clear();
 
     return jsMethods.where((m) => m != null).toList(growable: false);
-  }
-
-  Iterable<ExecutableElement> _collectMockMethods(InterfaceType type) {
-    var element = type.element;
-    if (!_hasNoSuchMethod(element)) {
-      return [];
-    }
-
-    // Collect all unimplemented members.
-    //
-    // Initially, we track abstract and concrete members separately, then
-    // remove concrete from the abstract set. This is done because abstract
-    // members are allowed to "override" concrete ones in Dart.
-    // (In that case, it will still be treated as a concrete member and can be
-    // called at run time.)
-    var abstractMembers = new Map<String, ExecutableElement>();
-    var concreteMembers = new HashSet<String>();
-
-    void visit(InterfaceType type, bool isAbstract) {
-      if (type == null) return;
-      visit(type.superclass, isAbstract);
-      for (var m in type.mixins) visit(m, isAbstract);
-      for (var i in type.interfaces) visit(i, true);
-
-      var members = <ExecutableElement>[]
-        ..addAll(type.methods)
-        ..addAll(type.accessors);
-      for (var m in members) {
-        if (isAbstract || m.isAbstract) {
-          // Inconsistent signatures are disallowed, even with nSM, so we don't
-          // need to worry too much about which abstract member we save.
-          abstractMembers[m.name] = m;
-        } else {
-          concreteMembers.add(m.name);
-        }
-      }
-    }
-
-    visit(type, false);
-
-    concreteMembers.forEach(abstractMembers.remove);
-    return abstractMembers.values;
-  }
-
-  Iterable<JS.Method> _implementMockInterfaces(InterfaceType type) {
-    // TODO(jmesserly): every type with nSM will generate new stubs for all
-    // abstract members. For example:
-    //
-    //     class C { m(); noSuchMethod(...) { ... } }
-    //     class D extends C { m(); noSuchMethod(...) { ... } }
-    //
-    // We'll generate D.m even though it is not necessary.
-    //
-    // Doing better is a bit tricky, as our current codegen strategy for the
-    // mock methods encodes information about the number of arguments (and type
-    // arguments) that D expects.
-    return _collectMockMethods(type).map(_implementMockMethod);
-  }
-
-  /// Given a class C that implements method M from interface I, but does not
-  /// declare M, this will generate an implementation that forwards to
-  /// noSuchMethod.
-  ///
-  /// For example:
-  ///
-  ///     class Cat {
-  ///       bool eatFood(String food) => true;
-  ///     }
-  ///     class MockCat implements Cat {
-  ///        noSuchMethod(Invocation invocation) => 3;
-  ///     }
-  ///
-  /// It will generate an `eatFood` that looks like:
-  ///
-  ///     eatFood(food) {
-  ///       return core.bool.as(this.noSuchMethod(
-  ///           new dart.InvocationImpl('eatFood', [food])));
-  ///     }
-  JS.Method _implementMockMethod(ExecutableElement method) {
-    var positionalArgs = <JS.Identifier>[]
-      ..addAll(
-          method.type.normalParameterNames.map((a) => new JS.Identifier(a)))
-      ..addAll(
-          method.type.optionalParameterNames.map((a) => new JS.Identifier(a)));
-
-    var fnArgs = positionalArgs.toList();
-
-    var invocationProps = <JS.Property>[];
-    addProperty(String name, JS.Expression value) {
-      invocationProps.add(new JS.Property(js.string(name), value));
-    }
-
-    if (method.type.namedParameterTypes.isNotEmpty) {
-      fnArgs.add(namedArgumentTemp);
-      addProperty('namedArguments', namedArgumentTemp);
-    }
-
-    if (method is MethodElement) {
-      addProperty('isMethod', js.boolean(true));
-    } else {
-      var property = method as PropertyAccessorElement;
-      if (property.isGetter) {
-        addProperty('isGetter', js.boolean(true));
-      } else if (property.isSetter) {
-        addProperty('isSetter', js.boolean(true));
-      }
-    }
-
-    var fnBody =
-        js.call('this.noSuchMethod(new dart.InvocationImpl(#, #, #))', [
-      _elementMemberName(method),
-      new JS.ArrayInitializer(positionalArgs),
-      new JS.ObjectInitializer(invocationProps)
-    ]);
-
-    if (!method.returnType.isDynamic) {
-      fnBody = js.call('#._check(#)', [_emitType(method.returnType), fnBody]);
-    }
-
-    var fn = new JS.Fun(fnArgs, js.statement('{ return #; }', [fnBody]),
-        typeParams: _emitTypeFormals(method.type.typeFormals));
-
-    // TODO(jmesserly): generic type arguments will get dropped.
-    // We have a similar issue with `dgsend` helpers.
-    return new JS.Method(
-        _elementMemberName(method,
-            useExtension:
-                _extensionTypes.isNativeClass(method.enclosingElement)),
-        _makeGenericFunction(fn),
-        isGetter: method is PropertyAccessorElement && method.isGetter,
-        isSetter: method is PropertyAccessorElement && method.isSetter,
-        isStatic: false);
-  }
-
-  /// Return `true` if the given [classElement] has a noSuchMethod() method
-  /// distinct from the one declared in class Object, as per the Dart Language
-  /// Specification (section 10.4).
-  // TODO(jmesserly): this was taken from error_verifier.dart
-  bool _hasNoSuchMethod(ClassElement classElement) {
-    // TODO(jmesserly): this is slow in Analyzer. It's a linear scan through all
-    // methods, up through the class hierarchy.
-    MethodElement method = classElement.lookUpMethod(
-        FunctionElement.NO_SUCH_METHOD_METHOD_NAME, classElement.library);
-    var definingClass = method?.enclosingElement;
-    return definingClass != null && !definingClass.type.isObject;
   }
 
   /// This is called whenever a derived class needs to introduce a new field,

@@ -16,11 +16,15 @@ var dart_library =
     throw Error(message);
   }
 
+  const dartLibraryName = Symbol('dartLibraryName');
+  dart_library.dartLibraryName = dartLibraryName;
+
   // Module support.  This is a simplified module system for Dart.
   // Longer term, we can easily migrate to an existing JS module system:
   // ES6, AMD, RequireJS, ....
 
   class LibraryLoader {
+
     constructor(name, defaultValue, imports, loader) {
       this._name = name;
       this._library = defaultValue ? defaultValue : {};
@@ -60,7 +64,7 @@ var dart_library =
       args.unshift(this._library);
       this._loader.apply(null, args);
       this._state = LibraryLoader.READY;
-      this._library._name = this._name;
+      this._library[dartLibraryName] = this._name;
       return this._library;
     }
 
@@ -75,6 +79,13 @@ var dart_library =
   // Map from name to LibraryLoader
   let libraries = new Map();
   dart_library.libraries = function() { return libraries.keys(); };
+  dart_library.debuggerLibraries = function() {
+    var debuggerLibraries = [];
+    libraries.forEach(function (value, key, map) {
+      debuggerLibraries.push(value.load());
+    });
+    return debuggerLibraries;
+  };
 
   function library(name, defaultValue, imports, loader) {
     let result = new LibraryLoader(name, defaultValue, imports, loader);

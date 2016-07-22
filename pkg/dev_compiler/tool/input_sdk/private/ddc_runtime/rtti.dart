@@ -74,6 +74,7 @@ lazyFn(closure, computeType) {
 
 // TODO(vsm): How should we encode the runtime type?
 final _runtimeType = JS('', 'Symbol("_runtimeType")');
+final isNamedConstructor = JS('', 'Symbol("isNamedConstructor")');
 
 _checkPrimitiveType(obj) {
   // TODO(jmesserly): JS is used to prevent type literal wrapping.  Is there a
@@ -114,7 +115,7 @@ getFunctionType(obj) {
   return definiteFunctionType(bottom, args, JS('', 'void 0'));
 }
 
-/// Returns an the runtime representation of the type of obj.
+/// Returns the runtime representation of the type of obj.
 ///
 /// The resulting object is used internally for runtime type checking. This is
 /// different from the user-visible Type object returned by calling
@@ -164,6 +165,10 @@ wrapType(type) {
 unwrapType(obj) => obj._wrappedType;
 
 _getRuntimeType(value) => JS('', '#[#]', value, _runtimeType);
+getIsNamedConstructor(value) => JS('', '#[#]', value, isNamedConstructor);
+// TODO(bmilligan): Define the symbol in rtti.dart instead of dart_library.js
+// and get rid of the call to dart_library in the JS here.
+getDartLibraryName(value) => JS('', '#[dart_library.dartLibraryName]', value);
 
 /// Tag the runtime type of [value] to be type [t].
 void tag(value, t) {
