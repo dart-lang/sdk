@@ -2,18 +2,6 @@
 <link rel="import" href="action_link.html">
 <link rel="import" href="observatory_element.html">
 
-<polymer-element name="vm-nav-menu">
-  <template>
-    <nav-menu link="/vm" anchor="{{ nameAndAddress(vm.name, vm.target) }}" last="{{ last }}">
-      <template repeat="{{ isolate in vm.isolates }}">
-        <nav-menu-item link="{{ makeLink('/inspect', isolate) }}"
-	               anchor="{{ isolate.name }}"></nav-menu-item>
-      </template>
-      <content></content>
-    </nav-menu>
-  </template>
-</polymer-element>
-
 <polymer-element name="library-nav-menu" extends="observatory-element">
   <template>
     <nav-menu link="{{ makeLink('/inspect', library) }}"

@@ -8,10 +8,9 @@ import 'package:observatory/models.dart' as M;
 abstract class Uris {
   static String _isolatePage(String path, M.IsolateRef isolate,
       {M.ObjectRef object}) {
-    return '#' + new Uri(path: path, queryParameters: {
-        'isolateId': isolate.id,
-        'objectId': object?.id
-      }).toString();
+    final parameters = { 'isolateId': isolate.id };
+    if (object != null) parameters['objectId'] = object.id;
+    return '#' + new Uri(path: path, queryParameters: parameters).toString();
   }
 
   static String inspect(M.IsolateRef isolate, {M.ObjectRef object})
