@@ -2,9 +2,12 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+import 'batch_util.dart';
 import 'dart:async';
 import 'dart:io';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:args/args.dart';
+import 'package:kernel/analyzer/loader.dart';
 import 'package:kernel/checks.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/log.dart';
@@ -40,8 +43,10 @@ ArgParser parser = new ArgParser(allowTrailingOptions: true)
       negatable: false, help: 'Print performance metrics.')
   ..addOption('write-dependencies',
       help: 'Write all the .dart that were loaded to the given file.')
-  ..addFlag('sanity-check',
-      help: 'Perform slow internal correctness checks.');
+  ..addFlag('sanity-check', help: 'Perform slow internal correctness checks.')
+  ..addFlag('tolerant',
+      help: 'Generate kernel even if there are compile-time errors.',
+      defaultsTo: false);
 
 String getUsage() => """
 Usage: dartk [options] FILE
@@ -126,7 +131,61 @@ void dumpString(String value, [String filename]) {
   }
 }
 
-main(List<String> args) {
+/// Maintains state that should be shared between batched executions when
+/// running in batch mode (for testing purposes).
+class BatchModeState {
+  AnalysisContext context;
+  String sdk;
+  String packageRoot;
+  bool strongMode = false;
+
+  AnalysisContext getContext(
+      String sdk_, String packageRoot_, bool strongMode_) {
+    if (context != null &&
+        this.sdk == sdk_ &&
+        this.packageRoot == packageRoot_ &&
+        this.strongMode == strongMode_) {
+      return context;
+    }
+    this.sdk = sdk_;
+    this.packageRoot = packageRoot_;
+    this.strongMode = strongMode_;
+    context = createContext(sdk_, packageRoot_, strongMode_);
+    return context;
+  }
+}
+
+main(List<String> args) async {
+  if (args.isNotEmpty && args[0] == '--batch') {
+    if (args.length != 1) {
+      return fail('--batch cannot be used with other arguments');
+    }
+    var batchModeState = new BatchModeState();
+    await runBatch((args) => batchMain(args, batchModeState));
+  } else {
+    CompilerOutcome outcome = await batchMain(args, new BatchModeState());
+    exit(outcome == CompilerOutcome.Ok ? 0 : 1);
+  }
+}
+
+bool isSupportedArgument(String arg) {
+  if (arg.startsWith('--')) {
+    int equals = arg.indexOf('=');
+    var name = equals != -1 ? arg.substring(2, equals) : arg.substring(2);
+    return parser.options.containsKey(name);
+  }
+  if (arg.startsWith('-')) {
+    return parser.findByAbbreviation(arg.substring(1)) != null;
+  }
+  return true;
+}
+
+Future<CompilerOutcome> batchMain(
+    List<String> args, BatchModeState batchModeState) async {
+  if (args.contains('--ignore-unrecognized-flags')) {
+    args = args.where(isSupportedArgument).toList();
+  }
+
   if (args.isEmpty) {
     return fail(getUsage());
   }
@@ -157,11 +216,10 @@ main(List<String> args) {
 
   String format = options['format'] ?? defaultFormat();
   String outputFile = options['out'] ?? defaultOutput();
+  bool strongMode = options['strong'];
 
-  var repository = new AnalyzerRepository(
-      sdk: options['sdk'],
-      packageRoot: options['package-root'],
-      strongMode: options['strong']);
+  var repository =
+      new Repository(sdk: options['sdk'], packageRoot: options['package-root']);
 
   Library library;
   Program program;
@@ -169,24 +227,28 @@ main(List<String> args) {
   var watch = new Stopwatch()..start();
   List<String> loadedFiles;
   Function getLoadedFiles;
+  List errors = const [];
 
   if (file.endsWith('.dill')) {
     var node = loadProgramOrLibraryFromBinary(file, repository);
     library = node is Library ? node : null;
     program = node is Program ? node : null;
-    if (options['link'] && program == null) {
-      loadEverythingFromBinary(repository);
-      program = new Program(repository.libraries);
-    }
     getLoadedFiles = () => [file];
   } else {
+    AnalysisContext context = batchModeState.getContext(
+        repository.sdk, repository.packageRoot, strongMode);
+    AnalyzerLoader loader = new AnalyzerLoader(repository, context: context);
     if (options['link']) {
-      program = loadProgramFromDart(file, repository);
+      program = loader.loadProgram(file);
     } else {
-      library = loadLibraryFromDart(file, repository);
-      loadEverythingFromDart(repository);
+      library = loader.loadLibrary(file);
+      loader.loadEverything();
     }
-    getLoadedFiles = () => loadedFiles ??= repository.getAnalyzerLoader().getLoadedFileNames();
+    errors = loader.errors;
+    if (errors.isNotEmpty) {
+      stderr.writeln(errors.take(10).join('\n'));
+    }
+    getLoadedFiles = () => loadedFiles ??= loader.getLoadedFileNames();
   }
 
   int loadTime = watch.elapsedMilliseconds;
@@ -209,35 +271,42 @@ main(List<String> args) {
       program.libraries.contains(library));
 
   if (options['no-output']) {
-    return null;
+    return CompilerOutcome.Ok;
   }
 
   watch.reset();
 
   Future ioFuture;
-  switch (format) {
-    case 'text':
-      if (program != null) {
-        writeProgramToText(program, outputFile);
-      } else {
-        writeLibraryToText(library, outputFile);
-      }
-      break;
-    case 'bin':
-      if (program != null) {
-        ioFuture = writeProgramToBinary(program, outputFile);
-      } else {
-        ioFuture = writeLibraryToBinary(library, outputFile);
-      }
-      break;
+  if (errors.isEmpty || options['tolerant']) {
+    switch (format) {
+      case 'text':
+        if (program != null) {
+          writeProgramToText(program, outputFile);
+        } else {
+          writeLibraryToText(library, outputFile);
+        }
+        break;
+      case 'bin':
+        if (program != null) {
+          ioFuture = writeProgramToBinary(program, outputFile);
+        } else {
+          ioFuture = writeLibraryToBinary(library, outputFile);
+        }
+        break;
+    }
   }
 
+  int time = watch.elapsedMilliseconds;
   if (shouldReportMetrics) {
-    int time = watch.elapsedMilliseconds;
     print('writer.time = $time ms');
-    ioFuture?.then((_) {
-      time = watch.elapsedMilliseconds - time;
-      print('writer.flush_time = $time ms');
-    });
   }
+
+  await ioFuture;
+
+  if (shouldReportMetrics) {
+    int flushTime = watch.elapsedMilliseconds - time;
+    print('writer.flush_time = $flushTime ms');
+  }
+
+  return errors.length > 0 ? CompilerOutcome.Fail : CompilerOutcome.Ok;
 }

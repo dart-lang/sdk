@@ -5,9 +5,9 @@
 library kernel.analyzer.repository;
 
 import '../repository.dart';
-
 import 'loader.dart';
 
+@deprecated
 class AnalyzerRepository extends Repository {
   AnalyzerLoader _analyzerLoader;
 

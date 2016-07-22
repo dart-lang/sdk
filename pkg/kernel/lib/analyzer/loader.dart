@@ -3,15 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.analyzer.loader;
 
-import 'analyzer.dart';
-import '../repository.dart';
 import '../ast.dart' as ast;
+import '../repository.dart';
+import 'analyzer.dart';
 import 'ast_from_analyzer.dart';
-import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/generated/java_io.dart';
-import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
+import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_io.dart';
+import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/sdk_io.dart';
+import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/generated/source_io.dart';
 
 abstract class ReferenceLevelLoader {
   ast.Library getLibraryReference(LibraryElement element);
@@ -34,13 +36,15 @@ class AnalyzerLoader implements ReferenceLevelLoader {
       <TypeParameterElement, ast.TypeParameter>{};
   final AnalysisContext context;
   LibraryElement _dartCoreLibrary;
+  final List errors = [];
 
   bool get strongMode => context.analysisOptions.strongMode;
 
   AnalyzerLoader(Repository repository,
       {AnalysisContext context, bool strongMode: false})
       : this.repository = repository,
-        this.context = context ?? createContext(repository, strongMode);
+        this.context = context ??
+            createContext(repository.sdk, repository.packageRoot, strongMode);
 
   LibraryElement getLibraryElement(ast.Library node) {
     return context
@@ -247,9 +251,8 @@ class AnalyzerLoader implements ReferenceLevelLoader {
   ast.Name _nameOfMember(Element element) {
     // Use 'displayName' to avoid a trailing '=' for setters and 'name' to
     // ensure unary minus is called 'unary-'.
-    String name = element is PropertyAccessorElement
-        ? element.displayName
-        : element.name;
+    String name =
+        element is PropertyAccessorElement ? element.displayName : element.name;
     return new ast.Name(name, getLibraryReference(element.library));
   }
 
@@ -260,6 +263,14 @@ class AnalyzerLoader implements ReferenceLevelLoader {
     var element = context.computeLibraryElement(source);
     context.resolveCompilationUnit(source, element);
     _buildLibraryBody(element, node);
+    for (var unit in element.units) {
+      for (var error in context.computeErrors(unit.source)) {
+        if (error.errorCode is CompileTimeErrorCode ||
+            error.errorCode is ParserErrorCode) {
+          errors.add(error);
+        }
+      }
+    }
   }
 
   void loadEverything() {
@@ -297,6 +308,23 @@ class AnalyzerLoader implements ReferenceLevelLoader {
     }
     return list;
   }
+
+  ast.Program loadProgram(String mainLibrary) {
+    ast.Library library = repository.getLibrary(mainLibrary);
+    ensureLibraryIsLoaded(library);
+    loadEverything();
+    var program = new ast.Program(repository.libraries);
+    program.mainMethod = library.procedures.firstWhere(
+        (member) => member.name?.name == 'main',
+        orElse: () => null);
+    return program;
+  }
+
+  ast.Library loadLibrary(String mainLibrary) {
+    ast.Library library = repository.getLibrary(mainLibrary);
+    ensureLibraryIsLoaded(library);
+    return library;
+  }
 }
 
 enum LoadingLevel {
@@ -331,9 +359,9 @@ class LoadMap<K, V> {
   }
 }
 
-AnalysisContext createContext(Repository repository, bool strongMode) {
-  if (repository.sdk != null) {
-    JavaSystemIO.setProperty("com.google.dart.sdk", repository.sdk);
+AnalysisContext createContext(String sdk, String packageRoot, bool strongMode) {
+  if (sdk != null) {
+    JavaSystemIO.setProperty("com.google.dart.sdk", sdk);
   }
   DartSdk dartSdk = DirectoryBasedDartSdk.defaultSdk;
 
@@ -342,8 +370,8 @@ AnalysisContext createContext(Repository repository, bool strongMode) {
     new FileUriResolver()
   ];
 
-  if (repository.packageRoot != null) {
-    var packageDirectory = new JavaFile(repository.packageRoot);
+  if (packageRoot != null) {
+    var packageDirectory = new JavaFile(packageRoot);
     resolvers.add(new PackageUriResolver([packageDirectory]));
   }
 

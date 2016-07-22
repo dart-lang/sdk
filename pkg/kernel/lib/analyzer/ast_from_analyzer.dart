@@ -1904,7 +1904,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
         element.name == 'values') {
       return; // Built when enclosing enum class is built.
     }
-    throw 'Unimplemented synthetic member: $element (${element.kind})';
+    log.warning('Unrecognized synthetic member: $element (${element.kind})');
   }
 
   void buildDefaultConstructor(ConstructorElement element) {

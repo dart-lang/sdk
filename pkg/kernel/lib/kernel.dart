@@ -13,14 +13,14 @@
 ///
 library kernel;
 
+import 'analyzer/loader.dart';
 import 'ast.dart';
-import 'repository.dart';
 import 'binary/ast_to_binary.dart';
 import 'binary/loader.dart';
-import 'text/ast_to_text.dart';
 import 'dart:async';
 import 'dart:io';
-import 'analyzer/analyzer_repository.dart';
+import 'repository.dart';
+import 'text/ast_to_text.dart';
 
 export 'ast.dart';
 export 'repository.dart';
@@ -50,38 +50,11 @@ TreeNode loadProgramOrLibraryFromBinary(String path, [Repository repository]) {
   return new BinaryLoader(repository).loadProgramOrLibrary(path);
 }
 
-/// Ensures that everything in [repository] is loaded into memory by loading
-/// the necessary .dart files.
-///
-/// Throw an exception if any of the files are missing.
-///
-/// Loading from both .dart and .dill files will not not be supported until we
-/// get a dedicated frontend.
-void loadEverythingFromDart(AnalyzerRepository repository) {
-  repository.getAnalyzerLoader().loadEverything();
-}
-
-/// Ensures that everything in [repository] is loaded into memory by loading
-/// the necessary .dill files.
-///
-/// Throw an exception if any of the files are missing.
-///
-/// Loading from both .dart and .dill files will not not be supported until we
-/// get a dedicated frontend.
-void loadEverythingFromBinary(Repository repository) {
-  var loader = new BinaryLoader(repository);
-  for (int i = 0; i < repository.libraries.length; ++i) {
-    loader.ensureLibraryIsLoaded(repository.libraries[i]);
-  }
-}
-
 /// Loads a .dart library from [path], unless [repository] already has
 /// a loaded version of that library.
-Library loadLibraryFromDart(String path, [AnalyzerRepository repository]) {
-  repository ??= new AnalyzerRepository();
-  var library = repository.getLibrary(path);
-  repository.getAnalyzerLoader().ensureLibraryIsLoaded(library);
-  return library;
+Library loadLibraryFromDart(String path, [Repository repository]) {
+  repository ??= new Repository();
+  return new AnalyzerLoader(repository).loadLibrary(path);
 }
 
 /// Loads a .dart file from [path] and all of its transitive dependencies.
@@ -89,15 +62,9 @@ Library loadLibraryFromDart(String path, [AnalyzerRepository repository]) {
 /// The resulting [Program] will have a main method if the library at [path]
 /// contains a top-level method named "main", otherwise its main reference will
 /// be `null`.
-Program loadProgramFromDart(String path, [AnalyzerRepository repository]) {
-  repository ??= new AnalyzerRepository();
-  var library = repository.getLibrary(path);
-  repository.getAnalyzerLoader().ensureLibraryIsLoaded(library);
-  loadEverythingFromDart(repository);
-  var program = new Program(repository.libraries);
-  program.mainMethod = library.procedures
-      .firstWhere((member) => member.name?.name == 'main', orElse: () => null);
-  return program;
+Program loadProgramFromDart(String path, [Repository repository]) {
+  repository ??= new Repository();
+  return new AnalyzerLoader(repository).loadProgram(path);
 }
 
 Future writeLibraryToBinary(Library library, String path) {
