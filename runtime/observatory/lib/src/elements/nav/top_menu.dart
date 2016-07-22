@@ -4,8 +4,9 @@
 
 import 'dart:html';
 import 'dart:async';
-import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/menu_item.dart';
 
@@ -47,10 +48,10 @@ class NavTopMenuElement extends HtmlElement implements Renderable {
 
   void render() {
     shadowRoot.children = [
-      new NavMenuElement('Observatory', link: '/vm', last: last,
+      new NavMenuElement('Observatory', link: Uris.vm(), last: last,
                          queue: _r.queue)
         ..children = [
-          new NavMenuItemElement('Connect to a VM', link: '/vm-connect',
+          new NavMenuItemElement('Connect to a VM', link: Uris.vmConnect(),
                                  queue: _r.queue),
           new ContentElement()
         ]

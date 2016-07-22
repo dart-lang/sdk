@@ -26,14 +26,6 @@ class VMNavMenuElement extends ObservatoryElement {
   VMNavMenuElement.created() : super.created();
 }
 
-@CustomTag('isolate-nav-menu')
-class IsolateNavMenuElement extends ObservatoryElement {
-  @published bool last = false;
-  @published Isolate isolate;
-
-  IsolateNavMenuElement.created() : super.created();
-}
-
 @CustomTag('library-nav-menu')
 class LibraryNavMenuElement extends ObservatoryElement {
   @published Library library;

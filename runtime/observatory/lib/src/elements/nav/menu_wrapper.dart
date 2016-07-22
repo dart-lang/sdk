@@ -53,7 +53,7 @@ class NavMenuElementWrapper extends HtmlElement {
     if (_anchor == null || _last == null) return;
 
     shadowRoot.children = [
-      new NavMenuElement(_anchor, link: _link, last: last,
+      new NavMenuElement(_anchor, link: '#$_link', last: last,
                                  queue: ObservatoryApplication.app.queue)
         ..children = [new ContentElement()]
     ];

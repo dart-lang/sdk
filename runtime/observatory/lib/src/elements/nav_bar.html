@@ -2,31 +2,13 @@
 <link rel="import" href="action_link.html">
 <link rel="import" href="observatory_element.html">
 
-<polymer-element name="isolate-nav-menu" extends="observatory-element">
+<polymer-element name="vm-nav-menu">
   <template>
-    <nav-menu link="{{ makeLink('/inspect', isolate) }}" anchor="{{ isolate.name }}" last="{{ last }}">
-      <nav-menu-item link="{{ makeLink('/debugger', isolate) }}"
-                     anchor="debugger"></nav-menu-item>
-      <nav-menu-item link="{{ makeLink('/class-tree', isolate) }}"
-                     anchor="class hierarchy"></nav-menu-item>
-      <nav-menu-item link="{{ makeLink('/profiler', isolate) }}"
-                     anchor="cpu profile"></nav-menu-item>
-      <nav-menu-item link="{{ makeLink('/profiler-table', isolate) }}"
-                     anchor="cpu profile (table)"></nav-menu-item>
-      <nav-menu-item link="{{ makeLink('/allocation-profiler', isolate) }}"
-                     anchor="allocation profile"></nav-menu-item>
-      <nav-menu-item link="{{ makeLink('/heap-map', isolate) }}"
-                     anchor="heap map"></nav-menu-item>
-      <nav-menu-item link="{{ makeLink('/metrics', isolate) }}"
-                     anchor="metrics"></nav-menu-item>
-      <nav-menu-item link="{{ makeLink('/heap-snapshot', isolate) }}"
-                     anchor="heap snapshot"></nav-menu-item>
-      <nav-menu-item link="{{ makeLink('/persistent-handles', isolate) }}"
-                     anchor="persistent handles"></nav-menu-item>
-      <nav-menu-item link="{{ makeLink('/ports', isolate) }}"
-                     anchor="ports"></nav-menu-item>
-      <nav-menu-item link="{{ makeLink('/logging', isolate) }}"
-                     anchor="logging"></nav-menu-item>
+    <nav-menu link="/vm" anchor="{{ nameAndAddress(vm.name, vm.target) }}" last="{{ last }}">
+      <template repeat="{{ isolate in vm.isolates }}">
+        <nav-menu-item link="{{ makeLink('/inspect', isolate) }}"
+	               anchor="{{ isolate.name }}"></nav-menu-item>
+      </template>
       <content></content>
     </nav-menu>
   </template>

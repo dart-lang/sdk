@@ -1117,7 +1117,7 @@ class HeapSnapshot {
 }
 
 /// State for a running isolate.
-class Isolate extends ServiceObjectOwner {
+class Isolate extends ServiceObjectOwner implements M.IsolateRef {
   static const kLoggingStream = '_Logging';
   static const kExtensionStream = 'Extension';
 

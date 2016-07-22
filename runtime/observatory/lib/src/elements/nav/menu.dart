@@ -89,7 +89,7 @@ class NavMenuElement extends HtmlElement implements Renderable {
       new LIElement()
         ..classes = ['nav-menu_label']
         ..children = [
-          new AnchorElement(href: '#$link')
+          new AnchorElement(href: link)
             ..text = label,
           new UListElement()
             ..children = [

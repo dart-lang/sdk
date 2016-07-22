@@ -46,7 +46,7 @@ class NavMenuItemElementWrapper extends HtmlElement {
     if (_anchor == null) return;
 
     shadowRoot.children = [
-      new NavMenuItemElement(_anchor, link: _link,
+      new NavMenuItemElement(_anchor, link: '#$link',
                                  queue: ObservatoryApplication.app.queue)
         ..children = [new ContentElement()]
     ];
