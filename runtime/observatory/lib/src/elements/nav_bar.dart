@@ -10,17 +10,6 @@ import 'package:observatory/service.dart';
 import 'package:observatory/app.dart' show Notification;
 import 'package:polymer/polymer.dart';
 
-
-@CustomTag('nav-bar')
-class NavBarElement extends ObservatoryElement {
-  @published bool pad = true;
-
-  // Desired nav var height in pixels.
-  static const height = 40;
-
-  NavBarElement.created() : super.created();
-}
-
 @CustomTag('vm-nav-menu')
 class VMNavMenuElement extends ObservatoryElement {
   @published bool last = false;

@@ -2,60 +2,6 @@
 <link rel="import" href="action_link.html">
 <link rel="import" href="observatory_element.html">
 
-<polymer-element name="nav-bar" extends="observatory-element">
-  <template>
-    <link rel="stylesheet" href="css/shared.css">
-    <style>
-      nav {
-        position: fixed;
-        width: 100%;
-        z-index: 1000;
-      }
-      nav ul {
-        display: inline-table;
-        position: relative;
-        list-style: none;
-        padding-left: 0;
-        margin-left: 0;
-        width: 100%;
-        z-index: 1000;
-        font: 400 16px 'Montserrat', sans-serif;
-        color: white;
-        background-color: #0489c3;
-      }
-      nav ul:after {
-        content: ""; clear: both; display: block;
-      }
-      .vertical-spacer {
-        height: 40px;
-        background-color: #0489c3;
-      }
-    </style>
-    <nav>
-      <ul>
-        <content></content>
-      </ul>
-    </nav>
-    <div class="vertical-spacer">
-    </div>
-    <template if="{{ pad }}">
-      <br>
-    </template>
-  </template>
-</polymer-element>
-
-<polymer-element name="vm-nav-menu">
-  <template>
-    <nav-menu link="/vm" anchor="{{ nameAndAddress(vm.name, vm.target) }}" last="{{ last }}">
-      <template repeat="{{ isolate in vm.isolates }}">
-        <nav-menu-item link="{{ makeLink('/inspect', isolate) }}"
-	               anchor="{{ isolate.name }}"></nav-menu-item>
-      </template>
-      <content></content>
-    </nav-menu>
-  </template>
-</polymer-element>
-
 <polymer-element name="isolate-nav-menu" extends="observatory-element">
   <template>
     <nav-menu link="{{ makeLink('/inspect', isolate) }}" anchor="{{ isolate.name }}" last="{{ last }}">

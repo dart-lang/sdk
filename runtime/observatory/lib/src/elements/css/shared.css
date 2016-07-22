@@ -7,6 +7,10 @@
   box-sizing: border-box;
 }
 
+body {
+  padding-top: 56px;
+}
+
 .content {
   padding-left: 10%;
   font: 400 14px 'Montserrat', sans-serif;

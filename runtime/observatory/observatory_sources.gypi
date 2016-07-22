@@ -118,6 +118,7 @@
     'lib/src/elements/metrics.html',
     'lib/src/elements/nav_bar.dart',
     'lib/src/elements/nav_bar.html',
+    'lib/src/elements/nav/bar.dart',
     'lib/src/elements/nav/menu.dart',
     'lib/src/elements/nav/menu_wrapper.dart',
     'lib/src/elements/nav/menu_item.dart',

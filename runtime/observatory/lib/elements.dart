@@ -62,6 +62,7 @@ import 'dart:async';
 
 import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/curly_block_wrapper.dart';
+import 'package:observatory/src/elements/nav/bar.dart';
 import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/menu_wrapper.dart';
 import 'package:observatory/src/elements/nav/menu_item.dart';
@@ -75,6 +76,7 @@ import 'package:observatory/src/elements/view_footer.dart';
 export 'package:observatory/src/elements/helpers/rendering_queue.dart';
 
 export 'package:observatory/src/elements/curly_block.dart';
+export 'package:observatory/src/elements/nav/bar.dart';
 export 'package:observatory/src/elements/nav/menu.dart';
 export 'package:observatory/src/elements/nav/menu_item.dart';
 export 'package:observatory/src/elements/nav/refresh.dart';
@@ -86,6 +88,7 @@ export 'package:observatory/src/elements/view_footer.dart';
 Future initElements() async {
   CurlyBlockElement.tag.ensureRegistration();
   CurlyBlockElementWrapper.tag.ensureRegistration();
+  NavBarElement.tag.ensureRegistration();
   NavMenuElement.tag.ensureRegistration();
   NavMenuElementWrapper.tag.ensureRegistration();
   NavMenuItemElement.tag.ensureRegistration();
