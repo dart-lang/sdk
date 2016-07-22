@@ -7,3 +7,5 @@ library models;
 part 'src/models/objects/event.dart';
 part 'src/models/objects/isolate.dart';
 part 'src/models/objects/object.dart';
+part 'src/models/objects/target.dart';
+part 'src/models/objects/vm.dart';

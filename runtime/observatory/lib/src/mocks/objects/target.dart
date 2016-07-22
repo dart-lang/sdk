@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file
 
-part of models;
+part of mocks;
 
-abstract class VMUpdateEvent {
-  VMRef get vm;
-}
-
-abstract class IsolateUpdateEvent {
-  IsolateRef get isolate;
+class TargetMock implements M.Target {
+  final String name;
+  const TargetMock({this.name});
 }

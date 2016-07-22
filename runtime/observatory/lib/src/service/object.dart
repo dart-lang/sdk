@@ -603,7 +603,7 @@ class _EventStreamState {
 }
 
 /// State for a VM being inspected.
-abstract class VM extends ServiceObjectOwner {
+abstract class VM extends ServiceObjectOwner implements M.VM {
   @reflectable VM get vm => this;
   @reflectable Isolate get isolate => null;
 
@@ -622,6 +622,7 @@ abstract class VM extends ServiceObjectOwner {
   final ObservableList<Isolate> isolates = new ObservableList<Isolate>();
 
   @observable String version = 'unknown';
+  @observable String hostCPU;
   @observable String targetCPU;
   @observable int architectureBits;
   @observable bool assertsEnabled = false;
@@ -896,6 +897,7 @@ abstract class VM extends ServiceObjectOwner {
 
     _loaded = true;
     version = map['version'];
+    hostCPU = map['hostCPU'];
     targetCPU = map['targetCPU'];
     architectureBits = map['architectureBits'];
     int startTimeMillis = map['startTime'];

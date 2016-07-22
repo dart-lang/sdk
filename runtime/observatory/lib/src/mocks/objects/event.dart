@@ -4,6 +4,11 @@
 
 part of mocks;
 
+class VMUpdateEventMock implements M.VMUpdateEvent {
+  final M.VMRef vm;
+  const VMUpdateEventMock({this.vm});
+}
+
 class IsolateUpdateEventMock implements M.IsolateUpdateEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;

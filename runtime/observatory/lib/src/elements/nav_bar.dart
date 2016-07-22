@@ -10,22 +10,6 @@ import 'package:observatory/service.dart';
 import 'package:observatory/app.dart' show Notification;
 import 'package:polymer/polymer.dart';
 
-@CustomTag('vm-nav-menu')
-class VMNavMenuElement extends ObservatoryElement {
-  @published bool last = false;
-  @published VM vm;
-
-  String nameAndAddress(name, target) {
-    if (name != null && target != null) {
-      return '${name}@${target.networkAddress}';
-    } else {
-      return '<initializing>';
-    }
-  }
-
-  VMNavMenuElement.created() : super.created();
-}
-
 @CustomTag('library-nav-menu')
 class LibraryNavMenuElement extends ObservatoryElement {
   @published Library library;

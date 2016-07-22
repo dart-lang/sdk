@@ -4,10 +4,6 @@
 
 part of models;
 
-abstract class VMUpdateEvent {
-  VMRef get vm;
-}
-
-abstract class IsolateUpdateEvent {
-  IsolateRef get isolate;
+abstract class Target {
+  String get name;
 }

@@ -8,3 +8,5 @@ import 'package:observatory/models.dart' as M;
 
 part 'src/mocks/objects/event.dart';
 part 'src/mocks/objects/isolate.dart';
+part 'src/mocks/objects/target.dart';
+part 'src/mocks/objects/vm.dart';
