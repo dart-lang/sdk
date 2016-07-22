@@ -3186,14 +3186,17 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   }
 #else
-  ICData* ic_data = &ICData::ZoneHandle(call_ic_data->Original());
+  ICData* original_ic_data = &ICData::ZoneHandle(call_ic_data->Original());
 
   // Emit smi fast path instruction. If fast-path succeeds it skips the next
-  // instruction otherwise it falls through.
-  TryFastPathSmiOp(compiler, ic_data, function_name());
+  // instruction otherwise it falls through. Only attempt in unoptimized code
+  // because TryFastPathSmiOp will update original_ic_data.
+  if (!compiler->is_optimizing()) {
+    TryFastPathSmiOp(compiler, original_ic_data, function_name());
+  }
 
-  const intptr_t call_ic_data_kidx = __ AddConstant(*call_ic_data);
-  switch (ic_data->NumArgsTested()) {
+  const intptr_t call_ic_data_kidx = __ AddConstant(*original_ic_data);
+  switch (original_ic_data->NumArgsTested()) {
     case 1:
       if (compiler->is_optimizing()) {
         __ InstanceCall1Opt(ArgumentCount(), call_ic_data_kidx);
