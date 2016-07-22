@@ -17,9 +17,8 @@ typedef void MessageHandler(Object message);
 
 /// The command for invoking the modular compiler.
 class CompileCommand extends Command {
-  get name => 'compile';
-  get description => 'Compile a set of Dart files into a JavaScript module.';
   final MessageHandler messageHandler;
+  CompilerOptions _compilerOptions;
 
   CompileCommand({MessageHandler messageHandler})
       : this.messageHandler = messageHandler ?? print {
@@ -34,11 +33,14 @@ class CompileCommand extends Command {
     AnalyzerOptions.addArguments(argParser);
   }
 
+  get name => 'compile';
+  get description => 'Compile a set of Dart files into a JavaScript module.';
+
   @override
   void run() {
     var compiler =
         new ModuleCompiler(new AnalyzerOptions.fromArguments(argResults));
-    var compilerOptions = new CompilerOptions.fromArguments(argResults);
+    _compilerOptions = new CompilerOptions.fromArguments(argResults);
     var outPath = argResults['out'];
 
     if (outPath == null) {
@@ -74,7 +76,7 @@ class CompileCommand extends Command {
     var unit = new BuildUnit(modulePath, buildRoot, argResults.rest,
         (source) => _moduleForLibrary(moduleRoot, source));
 
-    JSModuleFile module = compiler.compile(unit, compilerOptions);
+    JSModuleFile module = compiler.compile(unit, _compilerOptions);
     module.errors.forEach(messageHandler);
 
     if (!module.isValid) throw new CompileErrorException();
@@ -87,7 +89,8 @@ class CompileCommand extends Command {
           .writeAsStringSync(JSON.encode(module.placeSourceMap(mapPath)));
     }
     if (module.summaryBytes != null) {
-      var summaryPath = path.withoutExtension(outPath) + '.sum';
+      var summaryPath = path.withoutExtension(outPath) +
+          '.${_compilerOptions.summaryExtension}';
       new File(summaryPath).writeAsBytesSync(module.summaryBytes);
     }
   }
@@ -95,9 +98,11 @@ class CompileCommand extends Command {
   String _moduleForLibrary(String moduleRoot, Source source) {
     if (source is InSummarySource) {
       var summaryPath = source.summaryPath;
-      if (path.isWithin(moduleRoot, summaryPath)) {
-        return path
-            .withoutExtension(path.relative(summaryPath, from: moduleRoot));
+      var ext = '.${_compilerOptions.summaryExtension}';
+      if (path.isWithin(moduleRoot, summaryPath) && summaryPath.endsWith(ext)) {
+        var buildUnitPath =
+            summaryPath.substring(0, summaryPath.length - ext.length);
+        return path.relative(buildUnitPath, from: moduleRoot);
       }
 
       throw usageException(

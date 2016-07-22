@@ -101,7 +101,7 @@ main() {
     final helloDart = new File('test/worker/hello.dart').absolute;
 
     final greetingJS = new File('test/worker/greeting.js').absolute;
-    final greetingSummary = new File('test/worker/greeting.sum').absolute;
+    final greetingSummary = new File('test/worker/greeting.api.ds').absolute;
     final helloJS = new File('test/worker/hello_world.js').absolute;
 
     setUp(() {
@@ -122,6 +122,7 @@ main() {
       var result = Process.runSync('dart', [
         'bin/dartdevc.dart',
         'compile',
+        '--summary-extension=api.ds',
         '--no-source-map',
         '-o',
         greetingJS.path,
@@ -138,6 +139,7 @@ main() {
         'compile',
         '--no-source-map',
         '--no-summarize',
+        '--summary-extension=api.ds',
         '-s',
         greetingSummary.path,
         '-o',

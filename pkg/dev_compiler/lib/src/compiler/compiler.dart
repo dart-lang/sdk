@@ -158,6 +158,9 @@ class CompilerOptions {
   /// This is required for a modular build process.
   final bool summarizeApi;
 
+  /// The file extension for summaries.
+  final String summaryExtension;
+
   /// Whether to preserve metdata only accessible via mirrors
   final bool emitMetadata;
 
@@ -205,6 +208,7 @@ class CompilerOptions {
       {this.sourceMap: true,
       this.sourceMapComment: true,
       this.summarizeApi: true,
+      this.summaryExtension: 'sum',
       this.unsafeForceCompile: false,
       this.emitMetadata: false,
       this.closure: false,
@@ -220,6 +224,7 @@ class CompilerOptions {
       : sourceMap = args['source-map'],
         sourceMapComment = args['source-map-comment'],
         summarizeApi = args['summarize'],
+        summaryExtension = args['summary-extension'],
         unsafeForceCompile = args['unsafe-force-compile'],
         emitMetadata = args['emit-metadata'],
         closure = args['closure-experimental'],
@@ -233,6 +238,8 @@ class CompilerOptions {
 
   static ArgParser addArguments(ArgParser parser) => parser
     ..addFlag('summarize', help: 'emit an API summary file', defaultsTo: true)
+    ..addOption('summary-extension',
+        help: 'file extension for Dart summary files', defaultsTo: 'sum')
     ..addFlag('source-map', help: 'emit source mapping', defaultsTo: true)
     ..addFlag('source-map-comment',
         help: 'adds a sourceMappingURL comment to the end of the JS,\n'
