@@ -2234,7 +2234,7 @@ class Allocations {
   bool get empty => accumulated.empty && current.empty;
 }
 
-class Class extends HeapObject {
+class Class extends HeapObject implements M.ClassRef {
   @observable Library library;
 
   @observable bool isAbstract;

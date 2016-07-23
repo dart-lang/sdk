@@ -18,14 +18,6 @@ class LibraryNavMenuElement extends ObservatoryElement {
   LibraryNavMenuElement.created() : super.created();
 }
 
-@CustomTag('class-nav-menu')
-class ClassNavMenuElement extends ObservatoryElement {
-  @published Class cls;
-  @published bool last = false;
-
-  ClassNavMenuElement.created() : super.created();
-}
-
 @CustomTag('nav-notify')
 class NavNotifyElement extends ObservatoryElement {
   @published ObservableList<Notification> notifications;
