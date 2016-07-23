@@ -8,50 +8,9 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'observatory_element.dart';
-import 'package:observatory/app.dart';
 import 'package:observatory/elements.dart';
 import 'package:observatory/service_html.dart';
 import 'package:polymer/polymer.dart';
-
-void _connectToVM(ObservatoryApplication app, WebSocketVMTarget target) {
-  app.vm = new WebSocketVM(target);
-}
-
-@CustomTag('vm-connect-target')
-class VMConnectTargetElement extends ObservatoryElement {
-  @published WebSocketVMTarget target;
-
-  VMConnectTargetElement.created() : super.created();
-
-  bool get isCurrentTarget {
-    if (app.vm == null) {
-      return false;
-    }
-    return (app.vm as WebSocketVM).target == target;
-  }
-
-  void connectToVm(MouseEvent event, var detail, Element node) {
-    if (event.button > 0 || event.metaKey || event.ctrlKey ||
-        event.shiftKey || event.altKey) {
-      // Not a left-click or a left-click with a modifier key:
-      // Let browser handle.
-      return;
-    }
-    event.preventDefault();
-    WebSocketVM currentVM = app.vm;
-    if ((currentVM == null) ||
-        currentVM.isDisconnected ||
-        (currentVM.target != target)) {
-      _connectToVM(app, target);
-    }
-    var href = node.attributes['href'];
-    app.locationManager.go(href);
-  }
-
-  void deleteVm(MouseEvent event, var detail, Element node) {
-    app.targets.remove(target);
-  }
-}
 
 @CustomTag('vm-connect')
 class VMConnectElement extends ObservatoryElement {
@@ -61,7 +20,7 @@ class VMConnectElement extends ObservatoryElement {
   }
 
   void _connect(WebSocketVMTarget target) {
-    _connectToVM(app, target);
+    app.vm = new WebSocketVM(target);
     app.locationManager.goForwardingParameters('/vm');
   }
 

@@ -83,6 +83,7 @@
     'lib/src/elements/helpers/rendering_queue.dart',
     'lib/src/elements/helpers/rendering_scheduler.dart',
     'lib/src/elements/helpers/tag.dart',
+    'lib/src/elements/helpers/uris.dart',
     'lib/src/elements/icdata_view.dart',
     'lib/src/elements/icdata_view.html',
     'lib/src/elements/img/chromium_icon.png',

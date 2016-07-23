@@ -76,6 +76,8 @@ import 'package:observatory/src/elements/nav/top_menu_wrapper.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu_wrapper.dart';
 import 'package:observatory/src/elements/view_footer.dart';
+import 'package:observatory/src/elements/vm_connect_target.dart';
+import 'package:observatory/src/elements/vm_connect_target_wrapper.dart';
 
 export 'package:observatory/src/elements/helpers/rendering_queue.dart';
 
@@ -88,6 +90,7 @@ export 'package:observatory/src/elements/nav/refresh.dart';
 export 'package:observatory/src/elements/nav/top_menu.dart';
 export 'package:observatory/src/elements/nav/vm_menu.dart';
 export 'package:observatory/src/elements/view_footer.dart';
+export 'package:observatory/src/elements/vm_connect_target.dart';
 
 // Even though this function does not invoke any asynchronous operation
 // it is marked as async to allow future backward compatible changes.
@@ -108,4 +111,6 @@ Future initElements() async {
   NavVMMenuElement.tag.ensureRegistration();
   NavVMMenuElementWrapper.tag.ensureRegistration();
   ViewFooterElement.tag.ensureRegistration();
+  VMConnectTargetElement.tag.ensureRegistration();
+  VMConnectTargetElementWrapper.tag.ensureRegistration();
 }

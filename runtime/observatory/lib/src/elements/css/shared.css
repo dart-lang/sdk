@@ -396,3 +396,18 @@ view-footer > a {
   clear: both;
   display: block;
 }
+
+/* vm-connect-target */
+/* TODO(cbernaschina) fix vm-connect-target-wrapped to vm-connect-target
++when wrapper removed */
+
+vm-connect-target-wrapped > button.delete-button {
+  margin-left: 0.28em;
+  padding: 4px;
+  background: transparent;
+  border: none !important;
+}
+
+vm-connect-target-wrapped > button.delete-button:hover {
+  background: #ff0000;
+}
