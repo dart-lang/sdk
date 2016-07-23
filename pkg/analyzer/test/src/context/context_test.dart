@@ -3220,6 +3220,29 @@ class A {
     _assertValid(b, LIBRARY_ERRORS_READY);
   }
 
+  void test_enum_add() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+main() {
+  print(MyEnum.A);
+}
+''');
+    _performPendingAnalysisTasks();
+    // Insert a new enum declaration.
+    // No errors expected.
+    context.setContents(
+        a,
+        r'''
+main() {
+  print(MyEnum.A);
+}
+enum MyEnum { A, B, C }
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(a).errors, isEmpty);
+  }
+
   void test_private_class() {
     Source a = addSource(
         '/a.dart',

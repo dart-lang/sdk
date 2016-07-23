@@ -133,6 +133,7 @@ class IncrementalCompilationUnitElementBuilder {
     _materializeLazyElements();
     new CompilationUnitBuilder()
         .buildCompilationUnit(unitSource, newUnit, librarySource);
+    newUnit.accept(new EnumMemberBuilder(unitElement.context.typeProvider));
     _processDirectives();
     _processUnitMembers();
     _replaceUnitContents(oldUnit, newUnit);

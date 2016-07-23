@@ -1451,6 +1451,14 @@ enum B {B1, B2}
     expect(elementB, isNotNull);
     expect(elementA.name, 'A');
     expect(elementB.name, 'B');
+    expect(elementA.fields.map((f) => f.name),
+        unorderedEquals(['index', 'values', 'A1', 'A2']));
+    expect(elementA.accessors.map((a) => a.name),
+        unorderedEquals(['index', 'values', 'A1', 'A2']));
+    expect(elementB.fields.map((f) => f.name),
+        unorderedEquals(['index', 'values', 'B1', 'B2']));
+    expect(elementB.accessors.map((a) => a.name),
+        unorderedEquals(['index', 'values', 'B1', 'B2']));
     // unit.types
     expect(unitElement.enums, unorderedEquals([elementA, elementB]));
     // verify delta
