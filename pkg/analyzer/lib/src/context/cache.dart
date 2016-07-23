@@ -779,10 +779,8 @@ class CacheEntry {
         AnalysisCache cache = caches[j];
         CacheEntry entry = cache.get(dependedOnResult.target);
         if (entry != null) {
-          ResultData data = entry.getResultDataOrNull(dependedOnResult.result);
-          if (data != null) {
-            data.dependentResults.add(thisResult);
-          }
+          ResultData data = entry.getResultData(dependedOnResult.result);
+          data.dependentResults.add(thisResult);
         }
       }
     }

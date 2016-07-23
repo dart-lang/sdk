@@ -781,6 +781,28 @@ class CacheEntryTest extends AbstractCacheTest {
     expect(entry.getValue(result2), 222);
   }
 
+  test_setValue_userBeforeProvider_invalidateProvider_alsoUser() {
+    AnalysisTarget target1 = new TestSource('/a.dart');
+    AnalysisTarget target2 = new TestSource('/b.dart');
+    CacheEntry entry1 = new CacheEntry(target1);
+    CacheEntry entry2 = new CacheEntry(target2);
+    cache.put(entry1);
+    cache.put(entry2);
+    ResultDescriptor result1 = new ResultDescriptor('result1', -1);
+    ResultDescriptor result2 = new ResultDescriptor('result2', -2);
+    // set results, all of them are VALID
+    entry2.setValue(result2, 222, [new TargetedResult(target1, result1)]);
+    entry1.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    expect(entry1.getState(result1), CacheState.VALID);
+    expect(entry2.getState(result2), CacheState.VALID);
+    expect(entry1.getValue(result1), 111);
+    expect(entry2.getValue(result2), 222);
+    // invalidate result1, should invalidate also result2
+    entry1.setState(result1, CacheState.INVALID);
+    expect(entry1.getState(result1), CacheState.INVALID);
+    expect(entry2.getState(result2), CacheState.INVALID);
+  }
+
   test_setValueIncremental() {
     AnalysisTarget target = new TestSource();
     CacheEntry entry = new CacheEntry(target);
