@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:html';
 import 'package:unittest/unittest.dart';
-import 'package:observatory/src/elements/helpers/rendering_queue.dart';
 import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 
@@ -12,8 +11,6 @@ main() {
 
   final String tag = NavMenuElement.tag.name;
 
-  final TimedRenderingBarrier barrier = new TimedRenderingBarrier();
-  final RenderingQueue queue = new RenderingQueue.fromBarrier(barrier);
   group('instantiation', () {
     test('default', () {
       final NavTopMenuElement e = new NavTopMenuElement();
@@ -32,7 +29,7 @@ main() {
   });
   group('elements', () {
     test('created', () async {
-      final NavTopMenuElement e = new NavTopMenuElement(queue: queue);
+      final NavTopMenuElement e = new NavTopMenuElement();
       document.body.append(e);
       await e.onRendered.first;
       expect(e.shadowRoot.children.length, isNonZero, reason: 'has elements');
@@ -43,8 +40,7 @@ main() {
       expect(e.shadowRoot.children.length, isZero, reason: 'is empty');
     });
     test('react to last change', () async {
-      final NavTopMenuElement e = new NavTopMenuElement(last: false,
-          queue: queue);
+      final NavTopMenuElement e = new NavTopMenuElement(last: false);
       document.body.append(e);
       await e.onRendered.first;
       expect((e.shadowRoot.querySelector(tag) as NavMenuElement).last, isFalse);

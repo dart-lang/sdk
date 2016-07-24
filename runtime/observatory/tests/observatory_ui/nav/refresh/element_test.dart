@@ -4,14 +4,10 @@
 import 'dart:html';
 import 'dart:async';
 import 'package:unittest/unittest.dart';
-import 'package:observatory/src/elements/helpers/rendering_queue.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 
 main() {
   NavRefreshElement.tag.ensureRegistration();
-
-  final TimedRenderingBarrier barrier = new TimedRenderingBarrier();
-  final RenderingQueue queue = new RenderingQueue.fromBarrier(barrier);
   group('instantiation', () {
     test('no parameters', () {
       final NavRefreshElement e = new NavRefreshElement();
@@ -39,7 +35,7 @@ main() {
   });
   group('elements', () {
     test('created after attachment', () async {
-      final NavRefreshElement e = new NavRefreshElement(queue: queue);
+      final NavRefreshElement e = new NavRefreshElement();
       document.body.append(e);
       await e.onRendered.first;
       expect(e.children.length, isNonZero, reason: 'has elements');
@@ -49,8 +45,7 @@ main() {
     });
     test('contain custom label', () async {
       final label = 'custom-label';
-      final NavRefreshElement e = new NavRefreshElement(label: label,
-          queue: queue);
+      final NavRefreshElement e = new NavRefreshElement(label: label);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.innerHtml.contains(label), isTrue);
@@ -60,8 +55,7 @@ main() {
     test('react to label change', () async {
       final label1 = 'custom-label-1';
       final label2 = 'custom-label-2';
-      final NavRefreshElement e = new NavRefreshElement(label: label1,
-          queue: queue);
+      final NavRefreshElement e = new NavRefreshElement(label: label1);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.innerHtml.contains(label1), isTrue);
@@ -74,8 +68,7 @@ main() {
       await e.onRendered.first;
     });
     test('react to disabled change', () async {
-      final NavRefreshElement e = new NavRefreshElement(disabled: false,
-          queue: queue);
+      final NavRefreshElement e = new NavRefreshElement(disabled: false);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.disabled, isFalse);
@@ -90,7 +83,7 @@ main() {
     NavRefreshElement e;
     StreamSubscription sub;
     setUp(() async {
-      e = new NavRefreshElement(queue: queue);
+      e = new NavRefreshElement();
       document.body.append(e);
       await e.onRendered.first;
     });

@@ -3,20 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:html';
 import 'package:unittest/unittest.dart';
-import 'package:observatory/src/elements/helpers/rendering_queue.dart';
 import 'package:observatory/src/elements/nav/bar.dart';
 
 main() {
   NavBarElement.tag.ensureRegistration();
 
-  final TimedRenderingBarrier barrier = new TimedRenderingBarrier();
-  final RenderingQueue queue = new RenderingQueue.fromBarrier(barrier);
   test('instantiation', () {
     final NavBarElement e = new NavBarElement();
     expect(e, isNotNull, reason: 'element correctly created');
   });
   test('elements created', () async {
-    final NavBarElement e = new NavBarElement(queue: queue);
+    final NavBarElement e = new NavBarElement();
     document.body.append(e);
     await e.onRendered.first;
     expect(e.shadowRoot.children.length, isNonZero, reason: 'has elements');

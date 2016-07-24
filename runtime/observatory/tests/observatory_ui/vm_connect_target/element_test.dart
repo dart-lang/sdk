@@ -5,14 +5,10 @@ import 'dart:html';
 import 'dart:async';
 import 'package:unittest/unittest.dart';
 import 'package:observatory/service_html.dart';
-import 'package:observatory/src/elements/helpers/rendering_queue.dart';
 import 'package:observatory/src/elements/vm_connect_target.dart';
 
 main() {
   VMConnectTargetElement.tag.ensureRegistration();
-
-  final TimedRenderingBarrier barrier = new TimedRenderingBarrier();
-  final RenderingQueue queue = new RenderingQueue.fromBarrier(barrier);
 
   WebSocketVMTarget t;
   setUp(() {
@@ -41,8 +37,7 @@ main() {
     });
   });
   test('elements created after attachment', () async {
-    final VMConnectTargetElement e = new VMConnectTargetElement(t,
-        queue: queue);
+    final VMConnectTargetElement e = new VMConnectTargetElement(t);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');
@@ -54,14 +49,13 @@ main() {
     VMConnectTargetElement e;
     StreamSubscription sub;
     setUp(() async {
-      e = new VMConnectTargetElement(t, queue: queue);
+      e = new VMConnectTargetElement(t);
       document.body.append(e);
       await e.onRendered.first;
     });
-    tearDown(() async {
+    tearDown(() {
       sub.cancel();
       e.remove();
-      await e.onRendered.first;
     });
     test('navigation after connect', () async {
       sub = window.onPopState.listen(expectAsync((_) {}, count: 1,

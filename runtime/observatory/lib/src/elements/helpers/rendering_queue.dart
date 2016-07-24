@@ -37,22 +37,6 @@ class RenderingBarrierMock implements RenderingBarrier {
   }
 }
 
-/// MOCK synchronization system for timed barrier triggering.
-class TimedRenderingBarrier implements RenderingBarrier {
-  final StreamController<num> _stream = new StreamController<num>.broadcast();
-  num _ms = 0;
-
-  Future<num> get next => _stream.stream.first;
-
-  TimedRenderingBarrier({num milliseconds: 1}) {
-    assert(milliseconds != null);
-    assert(milliseconds > 0);
-    new Timer.periodic(new Duration(milliseconds: milliseconds), (Timer t) {
-      _stream.add(_ms += milliseconds);
-    });
-  }
-}
-
 /// RenderingTask queuing and synchronization system.
 class RenderingQueue {
   final RenderingBarrier _barrier;

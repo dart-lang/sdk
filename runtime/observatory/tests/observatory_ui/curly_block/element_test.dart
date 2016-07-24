@@ -4,13 +4,10 @@
 import 'dart:html';
 import 'package:unittest/unittest.dart';
 import 'package:observatory/src/elements/curly_block.dart';
-import 'package:observatory/src/elements/helpers/rendering_queue.dart';
 
 main() {
   CurlyBlockElement.tag.ensureRegistration();
 
-  final TimedRenderingBarrier barrier = new TimedRenderingBarrier();
-  final RenderingQueue queue = new RenderingQueue.fromBarrier(barrier);
   group('instantiation', () {
     test('default', () {
       final CurlyBlockElement e = new CurlyBlockElement();
@@ -72,7 +69,7 @@ main() {
     });
   });
   test('elements created', () async {
-    final CurlyBlockElement e = new CurlyBlockElement(queue: queue);
+    final CurlyBlockElement e = new CurlyBlockElement();
     expect(e.shadowRoot, isNotNull, reason: 'shadowRoot is created');
     document.body.append(e);
     await e.onRendered.first;
@@ -85,13 +82,12 @@ main() {
   group('content', () {
     CurlyBlockElement e;
     setUp(() async {
-      e = new CurlyBlockElement(queue: queue);
+      e = new CurlyBlockElement();
       document.body.append(e);
       await e.onRendered.first;
     });
-    tearDown(() async {
+    tearDown(() {
       e.remove();
-      await e.onRendered.first;
     });
     test('toggles visibility', () async {
       expect(e.shadowRoot.querySelector('content'), isNull);
@@ -101,6 +97,7 @@ main() {
       e.toggle();
       await e.onRendered.first;
       expect(e.shadowRoot.querySelector('content'), isNull);
+      e.remove();
     });
     test('toggles visibility (manually)', () async {
       expect(e.shadowRoot.querySelector('content'), isNull);
@@ -110,6 +107,7 @@ main() {
       e.expanded = false;
       await e.onRendered.first;
       expect(e.shadowRoot.querySelector('content'), isNull);
+      e.remove();
     });
     test('does not toggle if disabled', () async {
       e.disabled = true;
@@ -130,6 +128,7 @@ main() {
       await e.onRendered.first;
       expect(e.expanded, isTrue);
       expect(e.shadowRoot.querySelector('content'), isNotNull);
+      e.remove();
     });
     test('toggles visibility (manually) if disabled', () async {
       e.disabled = true;
@@ -141,12 +140,13 @@ main() {
       e.expanded = false;
       await e.onRendered.first;
       expect(e.shadowRoot.querySelector('content'), isNull);
+      e.remove();
     });
   });
   group('event', () {
     CurlyBlockElement e;
     setUp(() async {
-      e = new CurlyBlockElement(queue: queue);
+      e = new CurlyBlockElement();
       document.body.append(e);
       await e.onRendered.first;
     });

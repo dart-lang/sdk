@@ -3,20 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:html';
 import 'package:unittest/unittest.dart';
-import 'package:observatory/src/elements/helpers/rendering_queue.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 main() {
   ViewFooterElement.tag.ensureRegistration();
 
-  final TimedRenderingBarrier barrier = new TimedRenderingBarrier();
-  final RenderingQueue queue = new RenderingQueue.fromBarrier(barrier);
   test('instantiation', () {
     final ViewFooterElement e = new ViewFooterElement();
     expect(e, isNotNull, reason: 'element correctly created');
   });
   test('elements created', () async {
-    final ViewFooterElement e = new ViewFooterElement(queue: queue);
+    final ViewFooterElement e = new ViewFooterElement();
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');

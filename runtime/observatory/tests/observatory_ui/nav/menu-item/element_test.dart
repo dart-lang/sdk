@@ -3,14 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:html';
 import 'package:unittest/unittest.dart';
-import 'package:observatory/src/elements/helpers/rendering_queue.dart';
 import 'package:observatory/src/elements/nav/menu_item.dart';
 
 main() {
   NavMenuItemElement.tag.ensureRegistration();
-
-  final TimedRenderingBarrier barrier = new TimedRenderingBarrier();
-  final RenderingQueue queue = new RenderingQueue.fromBarrier(barrier);
 
   group('instantiation', () {
     final label = 'custom-label';
@@ -29,7 +25,7 @@ main() {
   group('elements', () {
     test('created', () async {
       final label = 'custom-label';
-      final NavMenuItemElement e = new NavMenuItemElement(label, queue: queue);
+      final NavMenuItemElement e = new NavMenuItemElement(label);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.shadowRoot.children.length, isNonZero, reason: 'has elements');
@@ -42,7 +38,7 @@ main() {
     test('react to label change', () async {
       final label1 = 'custom-label-1';
       final label2 = 'custom-label-2';
-      final NavMenuItemElement e = new NavMenuItemElement(label1, queue: queue);
+      final NavMenuItemElement e = new NavMenuItemElement(label1);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.shadowRoot.innerHtml.contains(label1), isTrue);
@@ -58,8 +54,7 @@ main() {
       final label = 'custom-label';
       final link1 = 'custom-label-1';
       final link2 = 'custom-label-2';
-      final NavMenuItemElement e = new NavMenuItemElement(label, link: link1,
-          queue: queue);
+      final NavMenuItemElement e = new NavMenuItemElement(label, link: link1);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.shadowRoot.innerHtml.contains(link1), isTrue);

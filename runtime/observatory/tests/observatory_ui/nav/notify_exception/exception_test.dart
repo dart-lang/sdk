@@ -4,14 +4,10 @@
 import 'dart:html';
 import 'dart:async';
 import 'package:unittest/unittest.dart';
-import 'package:observatory/src/elements/helpers/rendering_queue.dart';
 import 'package:observatory/src/elements/nav/notify_exception.dart';
 
 main() {
   NavNotifyExceptionElement.tag.ensureRegistration();
-
-  final TimedRenderingBarrier barrier = new TimedRenderingBarrier();
-  final RenderingQueue queue = new RenderingQueue.fromBarrier(barrier);
 
   final StackTrace stacktrace = new StackTrace.fromString('stacktrace string');
   group('normal exception', () {
@@ -35,7 +31,7 @@ main() {
     group('elements', () {
       test('created after attachment (no stacktrace)', () async {
         final NavNotifyExceptionElement e =
-            new NavNotifyExceptionElement(exception, queue: queue);
+                                      new NavNotifyExceptionElement(exception);
         document.body.append(e);
         await e.onRendered.first;
         expect(e.children.length, isNonZero, reason: 'has elements');
@@ -47,8 +43,7 @@ main() {
       });
       test('created after attachment (with stacktrace)', () async {
         final NavNotifyExceptionElement e =
-            new NavNotifyExceptionElement(exception, stacktrace: stacktrace,
-            queue: queue);
+              new NavNotifyExceptionElement(exception, stacktrace: stacktrace);
         document.body.append(e);
         await e.onRendered.first;
         expect(e.children.length, isNonZero, reason: 'has elements');
@@ -63,15 +58,13 @@ main() {
       NavNotifyExceptionElement e;
       StreamSubscription sub;
       setUp(() async {
-        e = new NavNotifyExceptionElement(exception, stacktrace: stacktrace,
-            queue: queue);
+        e = new NavNotifyExceptionElement(exception, stacktrace: stacktrace);
         document.body.append(e);
         await e.onRendered.first;
       });
-      tearDown(() async {
+      tearDown(() {
         sub.cancel();
         e.remove();
-        await e.onRendered.first;
       });
       test('navigation after connect', () async {
         sub = window.onPopState.listen(expectAsync((_) {}, count: 1,

@@ -4,14 +4,10 @@
 import 'dart:html';
 import 'package:unittest/unittest.dart';
 import 'package:observatory/mocks.dart';
-import 'package:observatory/src/elements/helpers/rendering_queue.dart';
 import 'package:observatory/src/elements/nav/class_menu.dart';
 
 main(){
   NavClassMenuElement.tag.ensureRegistration();
-
-  final TimedRenderingBarrier barrier = new TimedRenderingBarrier();
-  final RenderingQueue queue = new RenderingQueue.fromBarrier(barrier);
 
   final IsolateRefMock i_ref = const IsolateRefMock(id: 'i-id', name: 'i-name');
   final ClassRefMock c_ref = const ClassRefMock(id: 'c-id', name: 'c-name');
@@ -22,8 +18,7 @@ main(){
     expect(e.cls, equals(c_ref));
   });
   test('elements created after attachment', () async {
-    final NavClassMenuElement e = new NavClassMenuElement(i_ref, c_ref,
-        queue: queue);
+    final NavClassMenuElement e = new NavClassMenuElement(i_ref, c_ref);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.shadowRoot.children.length, isNonZero, reason: 'has elements');
