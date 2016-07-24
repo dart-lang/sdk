@@ -359,6 +359,81 @@ body.busy, body.busy * {
   -webkit-animation: shake 0.5s;
 }
 
+/* nav-notify */
+/* TODO(cbernaschina) fix nav-notify-ref-wrapped to nav-notify-ref when wrapper
+removed */
+nav-notify-wrapped > div {
+  float: right;
+}
+nav-notify-wrapped > div > div {
+  display: block;
+  position: absolute;
+  top: 98%;
+  right: 0;
+  margin: 0;
+  padding: 0;
+  width: auto;
+  z-index: 1000;
+  background: none;
+}
+
+/* nav-exception & nav-event */
+
+nav-exception > div, nav-event > div {
+  position: relative;
+  padding: 16px;
+  margin-top: 10px;
+  margin-right: 10px;
+  padding-right: 25px;
+  width: 500px;
+  color: #ddd;
+  background: rgba(0,0,0,.6);
+  border: solid 2px white;
+  box-shadow: 0 0 5px black;
+  border-radius: 5px;
+  animation: fadein 1s;
+}
+
+nav-exception *, nav-event * {
+  color: #ddd;
+  font-size: 12px;
+}
+
+nav-exception > div > a, nav-event > div > a {
+  color: white;
+  text-decoration: none;
+}
+
+nav-exception > div > a:hover, nav-event > div > a:hover {
+  text-decoration: underline;
+}
+
+nav-exception > div > div {
+  margin-left:20px;
+  white-space: pre
+}
+
+nav-exception > div > button, nav-event > div > button {
+  background: transparent;
+  border: none;
+  position: absolute;
+  display: block;
+  top: 4px;
+  right: 4px;
+  height: 18px;
+  width: 18px;
+  line-height: 16px;
+  border-radius: 9px;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  text-align: center;
+}
+
+nav-exception > div > button:hover, nav-event > div > button:hover {
+  background: rgba(255,255,255,0.5);
+}
+
 /* nav-refresh */
 /* TODO(cbernaschina) fix nav-refresh-wrapped to nav-refresh when wrapper
 removed */

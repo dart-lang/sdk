@@ -2,10 +2,10 @@
 <link rel="import" href="action_link.html">
 <link rel="import" href="function_ref.html">
 <link rel="import" href="isolate_ref.html">
-<link rel="import" href="observatory_element.html">
+
 <link rel="import" href="script_inset.html">
 <link rel="import" href="script_ref.html">
-<polymer-element name="isolate-summary" extends="observatory-element">
+<polymer-element name="isolate-summary">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <div class="flex-row">
@@ -24,7 +24,7 @@
   </template>
 </polymer-element>
 
-<polymer-element name="isolate-run-state" extends="observatory-element">
+<polymer-element name="isolate-run-state">
   <template>
     <template if="{{ isolate.paused }}">
       <strong title="{{ isolate.pauseEvent.timestamp.toString() }}">paused</strong>
@@ -44,7 +44,7 @@
   </template>
 </polymer-element>
 
-<polymer-element name="isolate-location" extends="observatory-element">
+<polymer-element name="isolate-location">
   <template>
     <template if="{{ isolate.pauseEvent != null }}">
       <template if="{{ isolate.pauseEvent.kind == 'PauseStart' }}">
@@ -88,7 +88,7 @@
   </template>
 </polymer-element>
 
-<polymer-element name="isolate-shared-summary" extends="observatory-element">
+<polymer-element name="isolate-shared-summary">
   <template>
     <style>
       .errorBox {
@@ -201,7 +201,7 @@
   </template>
 </polymer-element>
 
-<polymer-element name="isolate-counter-chart" extends="observatory-element">
+<polymer-element name="isolate-counter-chart">
   <template>
     <link rel="stylesheet" href="../../../../packages/charted/charts/themes/quantum_theme.css">
     <style>

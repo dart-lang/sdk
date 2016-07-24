@@ -11,15 +11,15 @@
 <link rel="import" href="instance_view.html">
 <link rel="import" href="library_view.html">
 <link rel="import" href="heap_snapshot.html">
-<link rel="import" href="observatory_element.html">
+
 <link rel="import" href="script_view.html">
 <link rel="import" href="vm_view.html">
-<polymer-element name="service-view" extends="observatory-element">
+<polymer-element name="service-view">
   <!-- This element explicitly manages the child elements to avoid setting
        an observable property on the old element to an invalid type. -->
 </polymer-element>
 
-<polymer-element name="trace-view" extends="observatory-element">
+<polymer-element name="trace-view">
    <template>
     <link rel="stylesheet" href="css/shared.css">
 
@@ -47,7 +47,7 @@
   </template>
 </polymer-element>
 
-<polymer-element name="map-viewer" extends="observatory-element">
+<polymer-element name="map-viewer">
   <template>
     <link rel="stylesheet" href="css/shared.css">
 
@@ -79,7 +79,7 @@
   </template>
 </polymer-element>
 
-<polymer-element name="list-viewer" extends="observatory-element">
+<polymer-element name="list-viewer">
   <template>
     <link rel="stylesheet" href="css/shared.css">
 

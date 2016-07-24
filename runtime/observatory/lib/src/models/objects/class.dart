@@ -12,7 +12,7 @@ abstract class ClassRef extends ObjectRef {
 abstract class Class extends ObjectRef implements ClassRef {
   /// The error which occurred during class finalization, if it exists.
   /// [optional]
-  //ErrorRef get error;
+  ErrorRef get error;
 
   /// Is this an abstract class?
   bool get isAbstract;
@@ -21,10 +21,10 @@ abstract class Class extends ObjectRef implements ClassRef {
   bool get isConst;
 
   /// The library which contains this class.
-  //LibraryRef get library;
+  LibraryRef get library;
 
   /// The location of this class in the source code.[optional]
-  //SourceLocation get location;
+  SourceLocation get location;
 
   /// The superclass of this class, if any. [optional]
   ClassRef get superclass;
@@ -32,17 +32,17 @@ abstract class Class extends ObjectRef implements ClassRef {
   /// The supertype for this class, if any.
   ///
   /// The value will be of the kind: Type. [optional]
-  //InstanceRef get superType;
+  InstanceRef get superType;
 
   /// A list of interface types for this class.
   ///
   /// The values will be of the kind: Type.
-  //Iterable<InstanceRef> get interfaces;
+  Iterable<InstanceRef> get interfaces;
 
   /// The mixin type for this class, if any.
   ///
   /// The value will be of the kind: Type. [optional]
-  //Iterable<InstanceRef> get mixin;
+  Iterable<InstanceRef> get mixin;
 
   /// A list of fields in this class. Does not include fields from
   /// superclasses.

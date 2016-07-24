@@ -22,14 +22,14 @@ Future cancelFutureSubscription(
 
 /// An RpcException represents an exceptional event that happened
 /// while invoking an rpc.
-abstract class RpcException implements Exception {
+abstract class RpcException implements Exception, M.BasicException {
   RpcException(this.message);
 
   String message;
 }
 
 /// A ServerRpcException represents an error returned by the VM.
-class ServerRpcException extends RpcException {
+class ServerRpcException extends RpcException implements M.RequestException {
   /// A list of well-known server error codes.
   static const kParseError     = -32700;
   static const kInvalidRequest = -32600;
@@ -70,7 +70,8 @@ class ServerRpcException extends RpcException {
 
 /// A NetworkRpcException is used to indicate that an rpc has
 /// been canceled due to network error.
-class NetworkRpcException extends RpcException {
+class NetworkRpcException extends RpcException
+                          implements M.ConnectionException {
   NetworkRpcException(String message) : super(message);
 
   String toString() => 'NetworkRpcException(${message})';
@@ -424,7 +425,8 @@ abstract class Location  {
 }
 
 /// A [SourceLocation] represents a location or range in the source code.
-class SourceLocation extends ServiceObject implements Location {
+class SourceLocation extends ServiceObject implements Location,
+                                                          M.SourceLocation {
   Script script;
   int tokenPos;
   int endTokenPos;
@@ -1119,7 +1121,7 @@ class HeapSnapshot {
 }
 
 /// State for a running isolate.
-class Isolate extends ServiceObjectOwner implements M.IsolateRef {
+class Isolate extends ServiceObjectOwner implements M.Isolate {
   static const kLoggingStream = '_Logging';
   static const kExtensionStream = 'Extension';
 
@@ -2036,7 +2038,7 @@ class ServiceEvent extends ServiceObject {
   }
 }
 
-class Breakpoint extends ServiceObject {
+class Breakpoint extends ServiceObject implements M.Breakpoint {
   Breakpoint._empty(ServiceObjectOwner owner) : super._empty(owner);
 
   // TODO(turnidge): Add state to track if a breakpoint has been
@@ -2132,7 +2134,7 @@ class LibraryDependency {
 }
 
 
-class Library extends HeapObject {
+class Library extends HeapObject implements M.LibraryRef {
   @observable String uri;
   @reflectable final dependencies = new ObservableList<LibraryDependency>();
   @reflectable final scripts = new ObservableList<Script>();
@@ -2929,7 +2931,7 @@ class LocalVarLocation {
   LocalVarLocation(this.line, this.column, this.endColumn);
 }
 
-class Script extends HeapObject {
+class Script extends HeapObject implements M.Script {
   final lines = new ObservableList<ScriptLine>();
   @observable String uri;
   @observable String kind;
@@ -2939,6 +2941,8 @@ class Script extends HeapObject {
   @observable int lineOffset;
   @observable int columnOffset;
   @observable Library library;
+
+  String source;
 
   bool get immutable => true;
 
@@ -3041,6 +3045,7 @@ class Script extends HeapObject {
     lineOffset = map['lineOffset'];
     columnOffset = map['columnOffset'];
     _parseTokenPosTable(map['tokenPosTable']);
+    source = map['source'];
     _processSource(map['source']);
     library = map['library'];
   }
@@ -3998,7 +4003,7 @@ class MetricPoller {
   }
 }
 
-class Frame extends ServiceObject {
+class Frame extends ServiceObject implements M.Frame {
   @observable int index;
   @observable ServiceFunction function;
   @observable SourceLocation location;

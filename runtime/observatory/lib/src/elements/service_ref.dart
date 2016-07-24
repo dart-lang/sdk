@@ -14,7 +14,6 @@ import 'class_ref.dart';
 import 'library_ref.dart';
 import 'observatory_element.dart';
 
-@CustomTag('service-ref')
 class ServiceRefElement extends ObservatoryElement {
   @published ServiceObject ref;
   @published bool internal = false;

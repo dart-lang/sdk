@@ -4,20 +4,12 @@
 
 part of app;
 
-class Notification {
-  Notification.fromEvent(this.event);
-  Notification.fromException(this.exception, this.stacktrace);
-
-  ServiceEvent event;
-  var exception;
-  var stacktrace;
-}
-
 /// The observatory application. Instances of this are created and owned
 /// by the observatory_application custom element.
 class ObservatoryApplication extends Observable {
   static ObservatoryApplication app;
   final RenderingQueue queue = new RenderingQueue();
+  final NotificationRepository notifications = new NotificationRepository();
   final _pageRegistry = new List<Page>();
   LocationManager _locationManager;
   LocationManager get locationManager => _locationManager;
@@ -32,7 +24,7 @@ class ObservatoryApplication extends Observable {
     }
     if (_vm != null) {
       // Disconnect from current VM.
-      notifications.clear();
+      notifications.deleteAll();
       _vm.disconnect();
     }
     if (vm != null) {
@@ -42,7 +34,7 @@ class ObservatoryApplication extends Observable {
         if (vm is WebSocketVM) {
           targets.add(vm.target);
         }
-        _removeDisconnectEvents();
+        notifications.deleteDisconnectEvents();
       });
 
       vm.onDisconnect.then((String reason) {
@@ -51,8 +43,8 @@ class ObservatoryApplication extends Observable {
           return;
         }
         notifications.add(
-            new Notification.fromEvent(
-                new ServiceEvent.connectionClosed(reason)));
+            new EventNotification.fromServiceEvent(
+              new ServiceEvent.connectionClosed(reason)));
       });
 
       vm.listenEventStream(VM.kIsolateStream, _onEvent);
@@ -66,8 +58,6 @@ class ObservatoryApplication extends Observable {
   TraceViewElement _traceView = null;
 
   @reflectable ServiceObject lastErrorOrException;
-  @observable ObservableList<Notification> notifications =
-      new ObservableList<Notification>();
 
   void _initOnce() {
     assert(app == null);
@@ -76,15 +66,6 @@ class ObservatoryApplication extends Observable {
     Analytics.initialize();
     // Visit the current page.
     locationManager._visit();
-  }
-
-  void removePauseEvents(Isolate isolate) {
-    notifications.removeWhere((notification) {
-        var event = notification.event;
-        return (event != null &&
-                event.isolate == isolate &&
-                event.isPauseEvent);
-      });
   }
 
   void _onEvent(ServiceEvent event) {
@@ -103,12 +84,12 @@ class ObservatoryApplication extends Observable {
         break;
 
       case ServiceEvent.kIsolateReload:
-        notifications.add(new Notification.fromEvent(event));
+        notifications.add(new EventNotification.fromServiceEvent(event));
         break;
 
       case ServiceEvent.kIsolateExit:
       case ServiceEvent.kResume:
-        removePauseEvents(event.isolate);
+        notifications.deletePauseEvents(isolate: event.isolate);
         break;
 
       case ServiceEvent.kPauseStart:
@@ -116,12 +97,12 @@ class ObservatoryApplication extends Observable {
       case ServiceEvent.kPauseBreakpoint:
       case ServiceEvent.kPauseInterrupted:
       case ServiceEvent.kPauseException:
-        removePauseEvents(event.isolate);
-        notifications.add(new Notification.fromEvent(event));
+        notifications.deletePauseEvents(isolate: event.isolate);
+        notifications.add(new EventNotification.fromServiceEvent(event));
         break;
 
       case ServiceEvent.kInspect:
-        notifications.add(new Notification.fromEvent(event));
+        notifications.add(new EventNotification.fromServiceEvent(event));
         break;
 
       default:
@@ -220,14 +201,6 @@ class ObservatoryApplication extends Observable {
     _initOnce();
   }
 
-  void _removeDisconnectEvents() {
-    notifications.removeWhere((notification) {
-        var event = notification.event;
-        return (event != null &&
-                event.kind == ServiceEvent.kConnectionClosed);
-      });
-  }
-
   loadCrashDump(Map crashDump) {
     this.vm = new FakeVM(crashDump['result']);
     app.locationManager.go('#/vm');
@@ -243,7 +216,7 @@ class ObservatoryApplication extends Observable {
 
     // TODO(turnidge): Report this failure via analytics.
     Logger.root.warning('Caught exception: ${e}\n${st}');
-    notifications.add(new Notification.fromException(e, st));
+    notifications.add(new ExceptionNotification(e, stacktrace: st));
   }
 
   // This map keeps track of which curly-blocks have been expanded by the user.
