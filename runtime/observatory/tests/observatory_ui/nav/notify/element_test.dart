@@ -5,6 +5,7 @@ import 'dart:html' hide Notification, NotificationEvent;
 import 'package:unittest/unittest.dart';
 import 'package:observatory/mocks.dart';
 import 'package:observatory/models.dart' as M;
+import 'package:observatory/src/elements/helpers/rendering_queue.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/notify_event.dart';
 import 'package:observatory/src/elements/nav/notify_exception.dart';
@@ -14,6 +15,9 @@ main() {
 
   final evTag = NavNotifyEventElement.tag.name;
   final exTag = NavNotifyExceptionElement.tag.name;
+
+  final TimedRenderingBarrier barrier = new TimedRenderingBarrier();
+  final RenderingQueue queue = new RenderingQueue.fromBarrier(barrier);
 
   const vm = const VMRefMock();
   const isolate = const IsolateRefMock(id: 'i-id', name: 'i-name');
@@ -41,7 +45,7 @@ main() {
   test('is correctly listening', () async {
     final NotificationRepositoryMock repository =
         new NotificationRepositoryMock();
-    final NavNotifyElement e = new NavNotifyElement(repository);
+    final NavNotifyElement e = new NavNotifyElement(repository, queue: queue);
     document.body.append(e);
     await e.onRendered.first;
     expect(repository.hasListeners, isTrue, reason: 'is listening');
@@ -57,7 +61,7 @@ main() {
             const EventNotificationMock(event: const VMUpdateEventMock(vm: vm)),
             const EventNotificationMock(event: const VMUpdateEventMock(vm: vm))
           ]);
-      final NavNotifyElement e = new NavNotifyElement(repository);
+      final NavNotifyElement e = new NavNotifyElement(repository, queue: queue);
       document.body.append(e);
       await e.onRendered.first;
       expect(repository.listInvoked, isTrue, reason: 'should invoke list()');
@@ -77,7 +81,7 @@ main() {
                 event: const PauseStartEventMock(isolate: isolate))
           ]);
       final NavNotifyElement e = new NavNotifyElement(repository,
-          notifyOnPause: true);
+          notifyOnPause: true, queue: queue);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.querySelectorAll(evTag).length, equals(2));
@@ -102,7 +106,7 @@ main() {
       final NotificationRepositoryMock repository =
           new NotificationRepositoryMock(list: list);
       final NavNotifyElement e = new NavNotifyElement(repository,
-          notifyOnPause: true);
+          notifyOnPause: true, queue: queue);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.querySelectorAll(evTag).length, equals(1));

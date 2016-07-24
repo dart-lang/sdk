@@ -3,10 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:html';
 import 'package:unittest/unittest.dart';
+import 'package:observatory/src/elements/helpers/rendering_queue.dart';
 import 'package:observatory/src/elements/nav/menu.dart';
 
 main() {
   NavMenuElement.tag.ensureRegistration();
+
+  final TimedRenderingBarrier barrier = new TimedRenderingBarrier();
+  final RenderingQueue queue = new RenderingQueue.fromBarrier(barrier);
 
   group('instantiation', () {
     final label = 'custom-label';
@@ -29,7 +33,7 @@ main() {
   group('elements', () {
     test('created', () async {
       final label = 'custom-label';
-      final NavMenuElement e = new NavMenuElement(label);
+      final NavMenuElement e = new NavMenuElement(label, queue: queue);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.shadowRoot.children.length, isNonZero, reason: 'has elements');
@@ -42,7 +46,7 @@ main() {
     test('react to label change', () async {
       final label1 = 'custom-label-1';
       final label2 = 'custom-label-2';
-      final NavMenuElement e = new NavMenuElement(label1);
+      final NavMenuElement e = new NavMenuElement(label1, queue: queue);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.shadowRoot.innerHtml.contains(label1), isTrue);
@@ -56,7 +60,8 @@ main() {
     });
     test('react to last change', () async {
       final label = 'custom-label';
-      final NavMenuElement e = new NavMenuElement(label, last: false);
+      final NavMenuElement e = new NavMenuElement(label, last: false,
+          queue: queue);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.shadowRoot.innerHtml.contains('&gt;'), isTrue);

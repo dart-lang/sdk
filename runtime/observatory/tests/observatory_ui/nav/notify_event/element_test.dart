@@ -5,10 +5,14 @@ import 'dart:html';
 import 'dart:async';
 import 'package:unittest/unittest.dart';
 import 'package:observatory/mocks.dart';
+import 'package:observatory/src/elements/helpers/rendering_queue.dart';
 import 'package:observatory/src/elements/nav/notify_event.dart';
 
 main() {
   NavNotifyEventElement.tag.ensureRegistration();
+
+  final TimedRenderingBarrier barrier = new TimedRenderingBarrier();
+  final RenderingQueue queue = new RenderingQueue.fromBarrier(barrier);
 
   final PauseStartEventMock event = new PauseStartEventMock(
               isolate: new IsolateMock(id: 'isolate-id', name: 'isolate-name'));
@@ -19,7 +23,8 @@ main() {
   });
   group('elements', () {
     test('created after attachment', () async {
-      final NavNotifyEventElement e = new NavNotifyEventElement(event);
+      final NavNotifyEventElement e = new NavNotifyEventElement(event,
+          queue: queue);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.children.length, isNonZero, reason: 'has elements');
@@ -32,13 +37,14 @@ main() {
     NavNotifyEventElement e;
     StreamSubscription sub;
     setUp(() async {
-      e = new NavNotifyEventElement(event);
+      e = new NavNotifyEventElement(event, queue: queue);
       document.body.append(e);
       await e.onRendered.first;
     });
-    tearDown(() {
+    tearDown(() async {
       sub.cancel();
       e.remove();
+      await e.onRendered.first;
     });
     test('navigation after connect', () async {
       sub = window.onPopState.listen(expectAsync((_) {}, count: 1,

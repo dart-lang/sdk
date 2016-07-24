@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:unittest/unittest.dart';
 import 'package:observatory/mocks.dart';
 import 'package:observatory/models.dart' as M;
+import 'package:observatory/src/elements/helpers/rendering_queue.dart';
 import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/menu_item.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
@@ -15,6 +16,9 @@ main(){
 
   final mTag = NavMenuElement.tag.name;
   final miTag = NavMenuItemElement.tag.name;
+
+  final TimedRenderingBarrier barrier = new TimedRenderingBarrier();
+  final RenderingQueue queue = new RenderingQueue.fromBarrier(barrier);
 
   StreamController<M.VMUpdateEvent> updatesController;
   final TargetMock target = new TargetMock(name: 'target-name');
@@ -44,7 +48,7 @@ main(){
   });
   test('elements created after attachment', () async {
     final NavVMMenuElement e = new NavVMMenuElement(vm1,
-        updatesController.stream);
+        updatesController.stream, queue: queue);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.shadowRoot.children.length, isNonZero, reason: 'has elements');
@@ -55,7 +59,7 @@ main(){
   group('updates', () {
     test('are correctly listen', () async {
       final NavVMMenuElement e = new NavVMMenuElement(vm1,
-          updatesController.stream);
+          updatesController.stream, queue: queue);
       expect(updatesController.hasListener, isFalse);
       document.body.append(e);
       await e.onRendered.first;
@@ -66,7 +70,7 @@ main(){
     });
     test('have effects', () async {
       final NavVMMenuElement e = new NavVMMenuElement(vm1,
-          updatesController.stream);
+          updatesController.stream, queue: queue);
       document.body.append(e);
       await e.onRendered.first;
       expect((e.shadowRoot.querySelector(mTag) as NavMenuElement).label,
@@ -80,6 +84,7 @@ main(){
       expect(e.shadowRoot.querySelectorAll(miTag).length,
           equals(vm2.isolates.length));
       e.remove();
+      await e.onRendered.first;
     });
   });
 }

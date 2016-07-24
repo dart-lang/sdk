@@ -4,23 +4,27 @@
 import 'dart:html';
 import 'dart:async';
 import 'package:unittest/unittest.dart';
-import 'package:observatory/models.dart';
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/mocks.dart';
+import 'package:observatory/src/elements/helpers/rendering_queue.dart';
 import 'package:observatory/src/elements/nav/notify_exception.dart';
 
 main() {
   NavNotifyExceptionElement.tag.ensureRegistration();
 
-  final ConnectionException exception =
+  final TimedRenderingBarrier barrier = new TimedRenderingBarrier();
+  final RenderingQueue queue = new RenderingQueue.fromBarrier(barrier);
+
+  final M.ConnectionException exception =
       new ConnectionExceptionMock(message: 'message');
   test('instantiation', () {
     final NavNotifyExceptionElement e =
-                                new NavNotifyExceptionElement(exception);
+        new NavNotifyExceptionElement(exception);
     expect(e, isNotNull, reason: 'element correctly created');
   });
   test('elements created after attachment', () async {
-    final NavNotifyExceptionElement e =
-                                new NavNotifyExceptionElement(exception);
+    final NavNotifyExceptionElement e = new NavNotifyExceptionElement(exception,
+        queue: queue);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');
@@ -32,13 +36,14 @@ main() {
     NavNotifyExceptionElement e;
     StreamSubscription sub;
     setUp(() async {
-      e = new NavNotifyExceptionElement(exception);
+      e = new NavNotifyExceptionElement(exception, queue: queue);
       document.body.append(e);
       await e.onRendered.first;
     });
-    tearDown(() {
+    tearDown(() async {
       sub.cancel();
       e.remove();
+      await e.onRendered.first;
     });
     test('navigation after connect', () async {
       sub = window.onPopState.listen(expectAsync((_) {}, count: 1,

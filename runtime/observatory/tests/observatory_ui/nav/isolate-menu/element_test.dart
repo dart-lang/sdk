@@ -6,11 +6,15 @@ import 'dart:async';
 import 'package:unittest/unittest.dart';
 import 'package:observatory/models.dart';
 import 'package:observatory/mocks.dart';
+import 'package:observatory/src/elements/helpers/rendering_queue.dart';
 import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 
 main(){
   NavIsolateMenuElement.tag.ensureRegistration();
+
+  final TimedRenderingBarrier barrier = new TimedRenderingBarrier();
+  final RenderingQueue queue = new RenderingQueue.fromBarrier(barrier);
 
   final String tag = NavMenuElement.tag.name;
 
@@ -36,7 +40,7 @@ main(){
   });
   test('elements created after attachment', () async {
     final NavIsolateMenuElement e = new NavIsolateMenuElement(ref,
-                                    updatesController.stream);
+        updatesController.stream, queue: queue);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.shadowRoot.children.length, isNonZero, reason: 'has elements');
@@ -47,7 +51,7 @@ main(){
   group('updates', () {
     test('are correctly listen', () async {
       final NavIsolateMenuElement e = new NavIsolateMenuElement(ref,
-                                      updatesController.stream);
+          updatesController.stream, queue: queue);
       expect(updatesController.hasListener, isFalse);
       document.body.append(e);
       await e.onRendered.first;
@@ -58,7 +62,7 @@ main(){
     });
     test('have effects', () async {
       final NavIsolateMenuElement e = new NavIsolateMenuElement(ref,
-                                      updatesController.stream);
+          updatesController.stream, queue: queue);
       document.body.append(e);
       await e.onRendered.first;
       expect((e.shadowRoot.querySelector(tag) as NavMenuElement)
@@ -70,6 +74,7 @@ main(){
       expect((e.shadowRoot.querySelector(tag) as NavMenuElement)
             .label.contains(obj.name), isTrue);
       e.remove();
+      await e.onRendered.first;
     });
   });
 }
