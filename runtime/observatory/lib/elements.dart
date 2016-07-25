@@ -29,7 +29,6 @@ export 'package:observatory/src/elements/instance_view.dart';
 export 'package:observatory/src/elements/instructions_view.dart';
 export 'package:observatory/src/elements/io_view.dart';
 export 'package:observatory/src/elements/isolate_reconnect.dart';
-export 'package:observatory/src/elements/isolate_ref.dart';
 export 'package:observatory/src/elements/isolate_summary.dart';
 export 'package:observatory/src/elements/isolate_view.dart';
 export 'package:observatory/src/elements/json_view.dart';
@@ -61,6 +60,8 @@ import 'dart:async';
 
 import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/curly_block_wrapper.dart';
+import 'package:observatory/src/elements/isolate_ref.dart';
+import 'package:observatory/src/elements/isolate_ref_wrapper.dart';
 import 'package:observatory/src/elements/nav/bar.dart';
 import 'package:observatory/src/elements/nav/class_menu.dart';
 import 'package:observatory/src/elements/nav/class_menu_wrapper.dart';
@@ -89,6 +90,7 @@ import 'package:observatory/src/elements/vm_connect_target_wrapper.dart';
 export 'package:observatory/src/elements/helpers/rendering_queue.dart';
 
 export 'package:observatory/src/elements/curly_block.dart';
+export 'package:observatory/src/elements/isolate_ref.dart';
 export 'package:observatory/src/elements/nav/bar.dart';
 export 'package:observatory/src/elements/nav/class_menu.dart';
 export 'package:observatory/src/elements/nav/isolate_menu.dart';
@@ -109,6 +111,8 @@ export 'package:observatory/src/elements/vm_connect_target.dart';
 Future initElements() async {
   CurlyBlockElement.tag.ensureRegistration();
   CurlyBlockElementWrapper.tag.ensureRegistration();
+  IsolateRefElement.tag.ensureRegistration();
+  IsolateRefElementWrapper.tag.ensureRegistration();
   NavBarElement.tag.ensureRegistration();
   NavClassMenuElement.tag.ensureRegistration();
   NavClassMenuElementWrapper.tag.ensureRegistration();

@@ -104,7 +104,7 @@
     'lib/src/elements/isolate_reconnect.dart',
     'lib/src/elements/isolate_reconnect.html',
     'lib/src/elements/isolate_ref.dart',
-    'lib/src/elements/isolate_ref.html',
+    'lib/src/elements/isolate_ref_wrapper.dart',
     'lib/src/elements/isolate_summary.dart',
     'lib/src/elements/isolate_summary.html',
     'lib/src/elements/isolate_view.dart',
