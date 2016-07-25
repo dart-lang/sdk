@@ -98,6 +98,7 @@ class NameSystem {
   final Namer<Class> classes = new Namer<Class>('#class');
   final Namer<Library> libraries = new Namer<Library>('#lib');
   final Namer<TypeParameter> typeParameters = new Namer<TypeParameter>('#T');
+  final Namer<TreeNode> labels = new Namer<TreeNode>('#L');
   final Disambiguator<Library> prefixes = new Disambiguator<Library>();
 
   nameVariable(VariableDeclaration node) => variables.getName(node);
@@ -105,6 +106,8 @@ class NameSystem {
   nameClass(Class node) => classes.getName(node);
   nameLibrary(Library node) => libraries.getName(node);
   nameTypeParameter(TypeParameter node) => typeParameters.getName(node);
+  nameSwitchCase(SwitchCase node) => labels.getName(node);
+  nameLabeledStatement(LabeledStatement node) => labels.getName(node);
 
   nameLibraryPrefix(Library node, {String proposedName}) {
     return prefixes.disambiguate(node, () {
@@ -961,12 +964,16 @@ class Printer extends Visitor<Null> {
   }
 
   visitLabeledStatement(LabeledStatement node) {
-    writeNode(node.body); // TODO
+    writeIndentation();
+    writeWord(syntheticNames.nameLabeledStatement(node));
+    endLine(':');
+    writeNode(node.body);
   }
 
   visitBreakStatement(BreakStatement node) {
     writeIndentation();
-    writeWord('break'); // TODO
+    writeWord('break');
+    writeWord(syntheticNames.nameLabeledStatement(node.target));
     endLine(';');
   }
 
@@ -1030,6 +1037,10 @@ class Printer extends Visitor<Null> {
   }
 
   visitSwitchCase(SwitchCase node) {
+    String label = syntheticNames.nameSwitchCase(node);
+    writeIndentation();
+    writeWord(label);
+    endLine(':');
     for (var expression in node.expressions) {
       writeIndentation();
       writeWord('case');
@@ -1048,7 +1059,8 @@ class Printer extends Visitor<Null> {
 
   visitContinueSwitchStatement(ContinueSwitchStatement node) {
     writeIndentation();
-    writeWord('continue to switch case'); // TODO
+    writeWord('continue');
+    writeWord(syntheticNames.nameSwitchCase(node.target));
     endLine(';');
   }
 
