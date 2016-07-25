@@ -5161,6 +5161,21 @@ class OverrideVerifier extends RecursiveAstVisitor<Object> {
   OverrideVerifier(this._errorReporter, this._manager);
 
   @override
+  Object visitFieldDeclaration(FieldDeclaration node) {
+    for (VariableDeclaration field in node.fields.variables) {
+      VariableElement fieldElement = field.element;
+      if (fieldElement is FieldElement && _isOverride(fieldElement)) {
+        PropertyAccessorElement getterElement = fieldElement.getter;
+        if (_getOverriddenMember(getterElement) == null) {
+          _errorReporter.reportErrorForNode(
+              HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, field.name);
+        }
+      }
+    }
+    return super.visitFieldDeclaration(node);
+  }
+
+  @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement element = node.element;
     if (_isOverride(element)) {

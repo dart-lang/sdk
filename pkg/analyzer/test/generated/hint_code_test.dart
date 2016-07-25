@@ -1359,21 +1359,6 @@ main() {
     verify([source, source2]);
   }
 
-  void test_invalidUseOfProtectedMember_function_OK2() {
-    Source source = addSource(r'''
-import 'package:meta/meta.dart';
-class A {
-  @protected
-  void a(){ }
-}
-main() {
-  new A().a();
-}''');
-    computeLibrarySourceErrors(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   void test_invalidUseOfProtectedMember_function_OK() {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
@@ -1384,6 +1369,21 @@ class A {
 
 abstract class B implements A {
   int b() => a();
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_function_OK2() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+main() {
+  new A().a();
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
@@ -2044,6 +2044,21 @@ m(x) {
 ''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_overrideOnNonOverridingGetter_field_invalid() {
+    Source source = addSource(r'''
+library dart.core;
+const override = null;
+class A {
+}
+class B extends A {
+  @override
+  final int m = 1;
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER]);
     verify([source]);
   }
 

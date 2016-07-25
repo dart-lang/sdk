@@ -155,6 +155,26 @@ f() {
     verify([source]);
   }
 
+  void test_deadCode_deadFinalBreakInCase() {
+    Source source = addSource(r'''
+f() {
+  switch (true) {
+  case true:
+    try {
+      int a = 1;
+    } finally {
+      return;
+    }
+    break;
+  default:
+    break;
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_deadCode_deadOperandLHS_and_debugConst() {
     Source source = addSource(r'''
 const bool DEBUG = false;
@@ -184,26 +204,6 @@ f() {
     return;
   }
   int a = 1;
-}''');
-    computeLibrarySourceErrors(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  void test_deadCode_deadFinalBreakInCase() {
-    Source source = addSource(r'''
-f() {
-  switch (true) {
-  case true:
-    try {
-      int a = 1;
-    } finally {
-      return;
-    }
-    break;
-  default:
-    break;
-  }
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
@@ -480,6 +480,38 @@ m(x) {
 class A {
   bool operator ==(x) { return x; }
   get hashCode => 0;
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_overrideOnNonOverridingGetter_field_inInterface() {
+    Source source = addSource(r'''
+library dart.core;
+const override = null;
+class A {
+  int get m => 0;
+}
+class B implements A {
+  @override
+  final int m = 1;
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_overrideOnNonOverridingGetter_field_inSuperclass() {
+    Source source = addSource(r'''
+library dart.core;
+const override = null;
+class A {
+  int get m => 0;
+}
+class B extends A {
+  @override
+  final int m = 1;
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
