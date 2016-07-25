@@ -592,6 +592,72 @@ var v = new C().m(1, b: 'bbb', c: 2.0);
     expect(unit.topLevelVariables[0].type.toString(), 'int');
   }
 
+  @override
+  @failingTest
+  void test_unsafeBlockClosureInference_closureCall() {
+    super.test_unsafeBlockClosureInference_closureCall();
+  }
+
+  @override
+  @failingTest
+  void test_unsafeBlockClosureInference_constructorCall_implicitTypeParam() {
+    super.test_unsafeBlockClosureInference_constructorCall_implicitTypeParam();
+  }
+
+  @override
+  @failingTest
+  void
+      test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2() {
+    super
+        .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2();
+  }
+
+  @override
+  @failingTest
+  void
+      test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2() {
+    super
+        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2();
+  }
+
+  @override
+  @failingTest
+  void test_unsafeBlockClosureInference_functionCall_implicitTypeParam() {
+    super.test_unsafeBlockClosureInference_functionCall_implicitTypeParam();
+  }
+
+  @override
+  @failingTest
+  void
+      test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr() {
+    super
+        .test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr();
+  }
+
+  @override
+  @failingTest
+  void test_unsafeBlockClosureInference_functionCall_noTypeParam_viaExpr() {
+    super.test_unsafeBlockClosureInference_functionCall_noTypeParam_viaExpr();
+  }
+
+  @override
+  @failingTest
+  void test_unsafeBlockClosureInference_inList_untyped() {
+    super.test_unsafeBlockClosureInference_inList_untyped();
+  }
+
+  @override
+  @failingTest
+  void test_unsafeBlockClosureInference_inMap_untyped() {
+    super.test_unsafeBlockClosureInference_inMap_untyped();
+  }
+
+  @override
+  @failingTest
+  void test_unsafeBlockClosureInference_methodCall_implicitTypeParam() {
+    super.test_unsafeBlockClosureInference_methodCall_implicitTypeParam();
+  }
+
   LibraryElementImpl _checkSource(
       SummaryResynthesizer resynthesizer, Source source) {
     LibraryElementImpl resynthesized =

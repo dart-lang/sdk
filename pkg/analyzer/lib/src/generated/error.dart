@@ -2881,6 +2881,7 @@ abstract class ErrorCode {
     StrongModeCode.INVALID_SUPER_INVOCATION,
     StrongModeCode.NON_GROUND_TYPE_CHECK_INFO,
     StrongModeCode.STATIC_TYPE_ERROR,
+    StrongModeCode.UNSAFE_BLOCK_CLOSURE_INFERENCE,
 
     TodoCode.TODO,
 
@@ -5897,6 +5898,11 @@ class StrongModeCode extends ErrorCode {
   static const String _implicitCastMessage =
       'Unsound implicit cast from {0} to {1}';
 
+  static const String _unsafeBlockClosureInferenceMessage =
+      'Unsafe use of block closure in a type-inferred variable outside a '
+      'function body.  Workaround: add a type annotation for `{0}`.  See '
+      'dartbug.com/26947';
+
   static const String _typeCheckMessage =
       'Type check failed: {0} is not of type {1}';
 
@@ -6043,6 +6049,12 @@ class StrongModeCode extends ErrorCode {
       'IMPLICIT_DYNAMIC_INVOKE',
       "Missing type arguments for calling generic function type '{0}'"
       "$_implicitDynamicTip");
+
+  static const StrongModeCode UNSAFE_BLOCK_CLOSURE_INFERENCE =
+      const StrongModeCode(
+          ErrorType.STATIC_WARNING,
+          'UNSAFE_BLOCK_CLOSURE_INFERENCE',
+          _unsafeBlockClosureInferenceMessage);
 
   @override
   final ErrorType type;
