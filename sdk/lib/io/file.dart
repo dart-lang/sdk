@@ -582,9 +582,9 @@ abstract class RandomAccessFile {
   List<int> readSync(int bytes);
 
   /**
-   * Reads into an existing List<int> from the file. If [start] is present, the
-   * bytes will be filled into [buffer] from at index [start], otherwise index
-   * 0. If [end] is present, the [end] - [start] bytes will be read into
+   * Reads into an existing [List<int>] from the file. If [start] is present,
+   * the bytes will be filled into [buffer] from at index [start], otherwise
+   * index 0. If [end] is present, the [end] - [start] bytes will be read into
    * [buffer], otherwise up to [buffer.length]. If [end] == [start] nothing
    * happends.
    *
@@ -593,8 +593,8 @@ abstract class RandomAccessFile {
   Future<int> readInto(List<int> buffer, [int start = 0, int end]);
 
   /**
-   * Synchronously reads into an existing List<int> from the file. If [start] is
-   * present, the bytes will be filled into [buffer] from at index [start],
+   * Synchronously reads into an existing [List<int>] from the file. If [start]
+   * is present, the bytes will be filled into [buffer] from at index [start],
    * otherwise index 0.  If [end] is present, the [end] - [start] bytes will be
    * read into [buffer], otherwise up to [buffer.length]. If [end] == [start]
    * nothing happends.
