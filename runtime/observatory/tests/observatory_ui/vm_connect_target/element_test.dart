@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:html';
-import 'dart:async';
 import 'package:unittest/unittest.dart';
 import 'package:observatory/service_html.dart';
 import 'package:observatory/src/elements/vm_connect_target.dart';
@@ -47,44 +46,38 @@ main() {
   });
   group('events are fired', () {
     VMConnectTargetElement e;
-    StreamSubscription sub;
     setUp(() async {
       e = new VMConnectTargetElement(t);
       document.body.append(e);
       await e.onRendered.first;
     });
-    tearDown(() {
-      sub.cancel();
+    tearDown(() async {
       e.remove();
-    });
-    test('navigation after connect', () async {
-      sub = window.onPopState.listen(expectAsync((_) {}, count: 1,
-        reason: 'event is fired'));
-      e.querySelector('a').click();
+      await e.onRendered.first;
     });
     test('onConnect events (DOM)', () async {
-      sub = e.onConnect.listen(expectAsync((TargetEvent event) {
+      e.onConnect.listen(expectAsync((TargetEvent event) {
         expect(event, isNotNull, reason: 'event is passed');
         expect(event.target, t, reason: 'target is the same');
       }, count: 1, reason: 'event is fired'));
       e.querySelector('a').click();
     });
     test('onConnect events (code)', () async {
-      sub = e.onConnect.listen(expectAsync((TargetEvent event) {
+      e.onConnect.listen(expectAsync((TargetEvent event) {
         expect(event, isNotNull, reason: 'event is passed');
         expect(event.target, t, reason: 'target is the same');
       }, count: 1, reason: 'event is fired'));
       e.connect();
     });
     test('onRemove events (DOM)', () async {
-      sub = e.onDelete.listen(expectAsync((TargetEvent event) {
+      e.onDelete.listen(expectAsync((TargetEvent event) {
         expect(event, isNotNull, reason: 'event is passed');
         expect(event.target, t, reason: 'target is the same');
       }, count: 1, reason: 'event is fired'));
       e.querySelector('button').click();
     });
     test('onRemove events (code)', () async {
-      sub = e.onDelete.listen(expectAsync((TargetEvent event) {
+      e.onDelete.listen(expectAsync((TargetEvent event) {
         expect(event, isNotNull, reason: 'event is passed');
         expect(event.target, t, reason: 'target is the same');
       }, count: 1, reason: 'event is fired'));
