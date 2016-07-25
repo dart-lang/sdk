@@ -41,6 +41,13 @@ void main([List<String> args]) {
   }
 
   // Generate rule stub.
+  generateRule(libName, outDir: outDir);
+}
+
+String capitalize(String s) => s.substring(0, 1).toUpperCase() + s.substring(1);
+
+void generateRule(String libName, {String outDir}) {
+  // Generate rule stub.
   generateStub(libName, outDir: outDir);
 
   // Generate test stub.
@@ -49,8 +56,6 @@ void main([List<String> args]) {
   // Update rule registry.
   updateRuleRegistry(libName);
 }
-
-String capitalize(String s) => s.substring(0, 1).toUpperCase() + s.substring(1);
 
 void generateStub(String libName, {String outDir}) {
   var generated = _generateStub(libName, toClassName(libName));
