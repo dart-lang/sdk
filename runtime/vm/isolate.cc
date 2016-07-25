@@ -1930,36 +1930,35 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   jsobj.AddProperty("pauseOnExit", message_handler()->should_pause_on_exit());
   jsobj.AddProperty("_isReloading", IsReloading());
 
-  if (debugger() != NULL) {
-    if (!is_runnable()) {
-      // Isolate is not yet runnable.
-      ASSERT(debugger()->PauseEvent() == NULL);
-      ServiceEvent pause_event(this, ServiceEvent::kNone);
-      jsobj.AddProperty("pauseEvent", &pause_event);
-    } else if (message_handler()->is_paused_on_start() ||
-               message_handler()->should_pause_on_start()) {
-      ASSERT(debugger()->PauseEvent() == NULL);
-      ServiceEvent pause_event(this, ServiceEvent::kPauseStart);
-      jsobj.AddProperty("pauseEvent", &pause_event);
-    } else if (message_handler()->is_paused_on_exit()) {
-      ASSERT(debugger()->PauseEvent() == NULL);
-      ServiceEvent pause_event(this, ServiceEvent::kPauseExit);
-      jsobj.AddProperty("pauseEvent", &pause_event);
-    } else if (debugger()->PauseEvent() != NULL && !resume_request_) {
-      jsobj.AddProperty("pauseEvent", debugger()->PauseEvent());
-    } else {
-      ServiceEvent pause_event(this, ServiceEvent::kResume);
+  if (!is_runnable()) {
+    // Isolate is not yet runnable.
+    ASSERT((debugger() == NULL) || (debugger()->PauseEvent() == NULL));
+    ServiceEvent pause_event(this, ServiceEvent::kNone);
+    jsobj.AddProperty("pauseEvent", &pause_event);
+  } else if (message_handler()->is_paused_on_start() ||
+             message_handler()->should_pause_on_start()) {
+    ASSERT((debugger() == NULL) || (debugger()->PauseEvent() == NULL));
+    ServiceEvent pause_event(this, ServiceEvent::kPauseStart);
+    jsobj.AddProperty("pauseEvent", &pause_event);
+  } else if (message_handler()->is_paused_on_exit()) {
+    ASSERT((debugger() == NULL) || (debugger()->PauseEvent() == NULL));
+    ServiceEvent pause_event(this, ServiceEvent::kPauseExit);
+    jsobj.AddProperty("pauseEvent", &pause_event);
+  } else if ((debugger() != NULL) &&
+             (debugger()->PauseEvent() != NULL) &&
+             !resume_request_) {
+    jsobj.AddProperty("pauseEvent", debugger()->PauseEvent());
+  } else {
+    ServiceEvent pause_event(this, ServiceEvent::kResume);
 
+    if (debugger() != NULL) {
       // TODO(turnidge): Don't compute a full stack trace.
       DebuggerStackTrace* stack = debugger()->StackTrace();
       if (stack->Length() > 0) {
         pause_event.set_top_frame(stack->FrameAt(0));
       }
-      jsobj.AddProperty("pauseEvent", &pause_event);
     }
-
-    jsobj.AddProperty("exceptionPauseMode",
-        ExceptionPauseInfoToServiceEnum(debugger()->GetExceptionPauseInfo()));
+    jsobj.AddProperty("pauseEvent", &pause_event);
   }
 
   const Library& lib =
@@ -2003,9 +2002,15 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     }
   }
 
+  Dart_ExceptionPauseInfo pause_info = (debugger() != NULL)
+      ? debugger()->GetExceptionPauseInfo()
+      : kNoPauseOnExceptions;
+  jsobj.AddProperty("exceptionPauseMode",
+                    ExceptionPauseInfoToServiceEnum(pause_info));
+
   if (debugger() != NULL) {
-    JSONObject jssettings(&jsobj, "_debuggerSettings");
-    debugger()->PrintSettingsToJSONObject(&jssettings);
+    JSONObject settings(&jsobj, "_debuggerSettings");
+    debugger()->PrintSettingsToJSONObject(&settings);
   }
 
   {

@@ -1455,7 +1455,11 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
 
     updateHeapsFromMap(map['_heaps']);
     _updateBreakpoints(map['breakpoints']);
-    exceptionsPauseInfo = map['_debuggerSettings']['_exceptions'];
+    if (map['_debuggerSettings'] != null) {
+      exceptionsPauseInfo = map['_debuggerSettings']['_exceptions'];
+    } else {
+      exceptionsPauseInfo = "none";
+    }
 
     var newPauseEvent = map['pauseEvent'];
     assert((pauseEvent == null) ||
