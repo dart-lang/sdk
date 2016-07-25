@@ -76,8 +76,8 @@ Future<Set<ClassElement>> getDirectSubClasses(
 Future<Set<ClassMemberElement>> getHierarchyMembers(
     SearchEngine searchEngine, ClassMemberElement member) {
   Set<ClassMemberElement> result = new HashSet<ClassMemberElement>();
-  // constructor
-  if (member is ConstructorElement) {
+  // static elements
+  if (member.isStatic || member is ConstructorElement) {
     result.add(member);
     return new Future.value(result);
   }
