@@ -14,6 +14,7 @@ part 'src/mocks/objects/error.dart';
 part 'src/mocks/objects/event.dart';
 part 'src/mocks/objects/class.dart';
 part 'src/mocks/objects/isolate.dart';
+part 'src/mocks/objects/library.dart';
 part 'src/mocks/objects/notification.dart';
 part 'src/mocks/objects/script.dart';
 part 'src/mocks/objects/source_location.dart';
