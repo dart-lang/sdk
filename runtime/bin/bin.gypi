@@ -11,6 +11,7 @@
     'html_cc_file': '<(gen_source_dir)/html_gen.cc',
     'html_common_cc_file': '<(gen_source_dir)/html_common_gen.cc',
     'js_cc_file': '<(gen_source_dir)/js_gen.cc',
+    'js_util_cc_file': '<(gen_source_dir)/js_util_gen.cc',
     'blink_cc_file': '<(gen_source_dir)/blink_gen.cc',
     'indexeddb_cc_file': '<(gen_source_dir)/indexeddb_gen.cc',
     'cached_patches_cc_file': '<(gen_source_dir)/cached_patches_gen.cc',
@@ -230,6 +231,38 @@
         '<@(_sources)',
         ],
         'message': 'Generating ''<(js_cc_file)'' file.'
+      },
+      ]
+    },
+    {
+      'target_name': 'generate_js_util_cc_file',
+      'type': 'none',
+      'toolsets':['host'],
+      'sources': [
+      '../../sdk/lib/js_util/dartium/js_util_dartium.dart',
+      ],
+      'actions': [
+      {
+        'action_name': 'generate_js_util_cc',
+        'inputs': [
+        '../tools/gen_library_src_paths.py',
+        '<(builtin_in_cc_file)',
+        '<@(_sources)',
+        ],
+        'outputs': [
+        '<(js_util_cc_file)',
+        ],
+        'action': [
+        'python',
+        'tools/gen_library_src_paths.py',
+        '--output', '<(js_util_cc_file)',
+        '--input_cc', '<(builtin_in_cc_file)',
+        '--include', 'bin/builtin.h',
+        '--var_name', 'dart::bin::Builtin::js_util_source_paths_',
+        '--library_name', 'dart:js_util',
+        '<@(_sources)',
+        ],
+        'message': 'Generating ''<(js_util_cc_file)'' file.'
       },
       ]
     },
@@ -500,6 +533,7 @@
         'generate_html_cc_file#host',
         'generate_html_common_cc_file#host',
         'generate_js_cc_file#host',
+        'generate_js_util_cc_file#host',
         'generate_blink_cc_file#host',
         'generate_indexeddb_cc_file#host',
         'generate_cached_patches_cc_file#host',
@@ -1262,6 +1296,7 @@
         '<(html_cc_file)',
         '<(html_common_cc_file)',
         '<(js_cc_file)',
+        '<(js_util_cc_file)',
         '<(blink_cc_file)',
         '<(indexeddb_cc_file)',
         '<(cached_patches_cc_file)',

@@ -5619,14 +5619,15 @@ class SsaBuilder extends ast.Visitor
       var filteredArguments = <HInstruction>[];
       var parameterNameMap = new Map<String, js.Expression>();
       params.orderedForEachParameter((ParameterElement parameter) {
-        // TODO(jacobr): throw if parameter names do not match names of property
-        // names in the class.
+        // TODO(jacobr): consider throwing if parameter names do not match
+        // names of properties in the class.
         assert(parameter.isNamed);
         HInstruction argument = arguments[i];
         if (argument != null) {
           filteredArguments.add(argument);
-          parameterNameMap[parameter.name] =
-              new js.InterpolatedExpression(positions++);
+          var jsName =
+              backend.nativeData.getUnescapedJSInteropName(parameter.name);
+          parameterNameMap[jsName] = new js.InterpolatedExpression(positions++);
         }
         i++;
       });

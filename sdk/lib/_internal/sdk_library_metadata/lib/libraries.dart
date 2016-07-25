@@ -116,6 +116,12 @@ const Map<String, LibraryInfo> libraries = const {
       maturity: Maturity.STABLE,
       dart2jsPath: "js/dart2js/js_dart2js.dart"),
 
+  "js_util": const LibraryInfo(
+      "js_util/dartium/js_util_dartium.dart",
+      categories: "Client",
+      maturity: Maturity.STABLE,
+      dart2jsPath: "js_util/dart2js/js_util_dart2js.dart"),
+
   "math": const LibraryInfo(
       "math/math.dart",
       categories: "Client,Server,Embedded",

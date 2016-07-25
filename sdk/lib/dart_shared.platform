@@ -24,6 +24,7 @@ indexed_db: indexed_db/dart2js/indexed_db_dart2js.dart
 io: io/io.dart
 isolate: isolate/isolate.dart
 js: js/dart2js/js_dart2js.dart
+js_util: js_util/dart2js/js_util_dart2js.dart
 math: math/math.dart
 mirrors: mirrors/mirrors.dart
 nativewrappers: html/dart2js/nativewrappers.dart
