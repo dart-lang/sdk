@@ -1668,7 +1668,7 @@ void Isolate::StopBackgroundCompiler() {
 void Isolate::MaybeIncreaseReloadEveryNStackOverflowChecks() {
   if (FLAG_reload_every_back_off) {
     if (reload_every_n_stack_overflow_checks_ < 5000) {
-      reload_every_n_stack_overflow_checks_ += 100;
+      reload_every_n_stack_overflow_checks_ += 99;
     } else {
       reload_every_n_stack_overflow_checks_ *= 2;
     }
