@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.serialization.analysis2_test;
+library dart2js.serialization.model4_test;
 
-import 'analysis_test_helper.dart' as test;
+import 'model_test_helper.dart' as test;
 import 'test_helper.dart';
 
 main() {
-  test.main(testSegment(2, test.SPLIT_COUNT, test.SKIP_COUNT));
+  test.main(testSegment(4, test.SPLIT_COUNT, test.SKIP_COUNT));
 }

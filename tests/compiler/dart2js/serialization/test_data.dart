@@ -5,8 +5,8 @@
 library dart2js.serialization_test_data;
 
 const List<Test> TESTS = const <Test>[
-  // This test is very long-running and put here first to compile it on its own
-  // in compilation0_test.dart
+  // These tests are very long-running and put here first to compile them on
+  // their own tests.
   const Test('Disable tree shaking through reflection', const {
     'main.dart': '''
 import 'dart:mirrors';
@@ -17,6 +17,19 @@ main() {
 ''',
   }, expectedWarningCount: 1),
 
+  const Test('Use of dart:indexed_db', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+import 'dart:indexed_db';
+''',
+  }),
+
+  // These tests
   const Test('Empty program', const {
     'main.dart': 'main() {}'
   }),
@@ -629,18 +642,6 @@ import "dart:core" deferred as core;
 test() {
   core.loadLibrary().then((_) => null);
 }
-''',
-  }),
-
-  const Test('Use of dart:indexed_db', const {
-    'main.dart': '''
-import 'a.dart';
-
-main() {}
-''',
-  }, preserializedSourceFiles: const {
-    'a.dart': '''
-import 'dart:indexed_db';
 ''',
   }),
 ];

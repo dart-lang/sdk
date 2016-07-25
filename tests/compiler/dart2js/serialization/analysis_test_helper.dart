@@ -14,6 +14,12 @@ import '../memory_compiler.dart';
 import 'helper.dart';
 import 'test_data.dart';
 
+/// Number of tests that are not part of the automatic test grouping.
+int SKIP_COUNT = 0;
+
+/// Number of groups that the [TESTS] are split into.
+int SPLIT_COUNT = 2;
+
 main(List<String> args) {
   asyncTest(() async {
     Arguments arguments = new Arguments.from(args);

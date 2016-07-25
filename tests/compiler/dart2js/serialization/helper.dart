@@ -77,9 +77,9 @@ class Arguments {
       TestFunction testFunction) async {
     Uri entryPoint = Uri.parse('memory:main.dart');
     int first = start ?? 0;
-    int last = end ?? tests.length - 1;
+    int last = end ?? tests.length;
 
-    for (int index = first; index <= last; index++) {
+    for (int index = first; index < last; index++) {
       Test test = TESTS[index];
       List<SerializedData> dataList =
           await preserializeData(serializedData, test);
