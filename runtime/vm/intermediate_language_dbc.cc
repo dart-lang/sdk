@@ -40,7 +40,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(DoubleToFloat)                                                             \
   M(FloatToDouble)                                                             \
   M(BoxInt64)                                                                  \
-  M(InvokeMathCFunction)                                                       \
   M(MergedMath)                                                                \
   M(GuardFieldClass)                                                           \
   M(GuardFieldLength)                                                          \
@@ -107,13 +106,16 @@ static LocationSummary* CreateLocationSummary(
     Zone* zone,
     intptr_t num_inputs,
     Location output = Location::NoLocation(),
-    LocationSummary::ContainsCall contains_call = LocationSummary::kNoCall) {
-  const intptr_t kNumTemps = 0;
+    LocationSummary::ContainsCall contains_call = LocationSummary::kNoCall,
+    intptr_t num_temps = 0) {
   LocationSummary* locs = new(zone) LocationSummary(
-      zone, num_inputs, kNumTemps, contains_call);
+      zone, num_inputs, num_temps, contains_call);
   for (intptr_t i = 0; i < num_inputs; i++) {
     locs->set_in(i, (contains_call == LocationSummary::kNoCall) ?
         Location::RequiresRegister() : Location::RegisterLocation(i));
+  }
+  for (intptr_t i = 0; i < num_temps; i++) {
+    locs->set_temp(i, Location::RequiresRegister());
   }
   if (!output.IsInvalid()) {
     // For instructions that call we default to returning result in R0.
@@ -673,15 +675,38 @@ EMIT_NATIVE_CODE(CreateArray,
 }
 
 
-EMIT_NATIVE_CODE(StoreIndexed, 3) {
+EMIT_NATIVE_CODE(StoreIndexed, 3, Location::NoLocation(),
+                 LocationSummary::kNoCall, 1) {
   if (compiler->is_optimizing()) {
-    if (class_id() != kArrayCid) {
+    if (IsExternal()) {
       Unsupported(compiler);
       UNREACHABLE();
     }
-    __ StoreIndexed(locs()->in(kArrayPos).reg(),
-                    locs()->in(kIndexPos).reg(),
-                    locs()->in(kValuePos).reg());
+    const Register array = locs()->in(kArrayPos).reg();
+    const Register index = locs()->in(kIndexPos).reg();
+    const Register value = locs()->in(kValuePos).reg();
+    const Register temp = locs()->temp(0).reg();
+    switch (class_id()) {
+      case kArrayCid:
+        __ StoreIndexed(array, index, value);
+        break;
+      case kTypedDataFloat64ArrayCid:
+        if ((index_scale() != 8) && (index_scale() != 1)) {
+          Unsupported(compiler);
+          UNREACHABLE();
+        }
+        if (index_scale() == 1) {
+          __ ShrImm(temp, index, 3);
+        } else {
+          __ Move(temp, index);
+        }
+        __ StoreFloat64Indexed(array, temp, value);
+        break;
+      default:
+        Unsupported(compiler);
+        UNREACHABLE();
+        break;
+    }
   } else {
     ASSERT(class_id() == kArrayCid);
     __ StoreIndexedTOS();
@@ -691,15 +716,44 @@ EMIT_NATIVE_CODE(StoreIndexed, 3) {
 
 EMIT_NATIVE_CODE(LoadIndexed, 2, Location::RequiresRegister()) {
   ASSERT(compiler->is_optimizing());
-  if (class_id() != kArrayCid) {
+  if (IsExternal()) {
     Unsupported(compiler);
     UNREACHABLE();
   }
   const Register array = locs()->in(0).reg();
   const Register index = locs()->in(1).reg();
   const Register result = locs()->out(0).reg();
-
-  __ LoadIndexed(result, array, index);
+  switch (class_id()) {
+    case kArrayCid:
+      __ LoadIndexed(result, array, index);
+      break;
+    case kTypedDataFloat64ArrayCid:
+      if ((index_scale() != 8) && (index_scale() != 1)) {
+        Unsupported(compiler);
+        UNREACHABLE();
+      }
+      if (index_scale() == 1) {
+        __ ShrImm(index, index, 3);
+      }
+      __ LoadFloat64Indexed(result, array, index);
+      break;
+    case kOneByteStringCid:
+      ASSERT(index_scale() == 1);
+      __ LoadOneByteStringIndexed(result, array, index);
+      break;
+    case kTwoByteStringCid:
+      if (index_scale() != 2) {
+        // TODO(zra): Fix-up index.
+        Unsupported(compiler);
+        UNREACHABLE();
+      }
+      __ LoadTwoByteStringIndexed(result, array, index);
+      break;
+    default:
+      Unsupported(compiler);
+      UNREACHABLE();
+      break;
+  }
 }
 
 
@@ -1319,14 +1373,33 @@ EMIT_NATIVE_CODE(UnaryDoubleOp, 1, Location::RequiresRegister()) {
 
 
 EMIT_NATIVE_CODE(MathUnary, 1, Location::RequiresRegister()) {
+  const Register value = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
   if (kind() == MathUnaryInstr::kSqrt) {
-    const Register value = locs()->in(0).reg();
-    const Register result = locs()->out(0).reg();
     __ DSqrt(result, value);
   } else if (kind() == MathUnaryInstr::kDoubleSquare) {
-    const Register value = locs()->in(0).reg();
-    const Register result = locs()->out(0).reg();
     __ DMul(result, value, value);
+  } else if (kind() == MathUnaryInstr::kSin) {
+    __ DSin(result, value);
+  } else if (kind() == MathUnaryInstr::kCos) {
+    __ DCos(result, value);
+  } else {
+    Unsupported(compiler);
+    UNREACHABLE();
+  }
+}
+
+
+EMIT_NATIVE_CODE(InvokeMathCFunction,
+                 InputCount(), Location::RequiresRegister()) {
+  const Register left = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
+    const Register right = locs()->in(1).reg();
+    __ DPow(result, left, right);
+  } else if (recognized_kind() == MethodRecognizer::kDoubleMod) {
+    const Register right = locs()->in(1).reg();
+    __ DMod(result, left, right);
   } else {
     Unsupported(compiler);
     UNREACHABLE();

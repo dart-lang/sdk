@@ -188,32 +188,28 @@ namespace dart {
 //    the immediately following instruction is skipped. These instructions
 //    expect their operands to be Smis, but don't check that they are.
 //
+//  - ShrImm rA, rB, rC
+//
+//    FP[rA] <- FP[rB] >> rC. Shifts the Smi in FP[rB] right by rC. rC is
+//    assumed to be a legal positive number by which righ-shifting is possible.
+//
 //  - Min, Max rA, rB, rC
 //
 //    FP[rA] <- {min, max}(FP[rB], FP[rC]). Assumes that FP[rB], and FP[rC] are
 //    Smis.
-//
-//  - DAdd, DSub, DMul, DDiv rA, rB, rC
-//
-//    Arithmetic operaions on unboxed doubles. FP[rA] <- FP[rB] op FP[rC].
 //
 //  - Neg rA , rD
 //
 //    FP[rA] <- -FP[rD]. Assumes FP[rD] is a Smi. If there is no overflow the
 //    immediately following instruction is skipped.
 //
-//  - DNeg rA, rD
+//  - DMin, DMax, DAdd, DSub, DMul, DDiv, DPow, DMod rA, rB, rC
 //
-//    FP[rA] <- -FP[rD]. Assumes FP[rD] is an unboxed double.
+//    Arithmetic operaions on unboxed doubles. FP[rA] <- FP[rB] op FP[rC].
 //
-//  - DSqrt rA, rD
+//  - DNeg, DCos, DSin, DSqrt rA, rD
 //
-//    FP[rA] <- sqrt(FP[rD]). Assumes FP[rD] is an unboxed double.
-//
-//  - DMin, DMax rA, rB, rC
-//
-//    FP[rA] <- {min, max}(FP[rB], FP[rC]). Assumes FP[rB] and FP[rC] are
-//    unboxed doubles.
+//    FP[rA] <- op(FP[rD]). Assumes FP[rD] is an unboxed double.
 //
 //  - BitOr, BitAnd, BitXor rA, rB, rC
 //
@@ -305,13 +301,23 @@ namespace dart {
 //
 //  - StoreIndexed rA, rB, rC
 //
-//    Store rC into array rA at index rB. No typechecking is done.
-//    rA is assumed to be a RawArray, rB to be a smi.
+//    Store FP[rC] into array FP[rA] at index FP[rB]. No typechecking is done.
+//    FP[rA] is assumed to be a RawArray, FP[rB] to be a smi.
+//
+//  - StoreFloat64Indexed rA, rB, rC
+//
+//    Store the unboxed double in FP[rC] into the typed data array at FP[rA]
+//    at index FP[rB].
 //
 //  - LoadIndexed rA, rB, rC
 //
 //    Loads from array FP[rB] at index FP[rC] into FP[rA]. No typechecking is
 //    done. FP[rB] is assumed to be a RawArray, and to contain a Smi at FP[rC].
+//
+//  - Load{Float64, OneByteString, TwoByteString}Indexed rA, rB, rC
+//
+//    Loads from typed data array FP[rB] at index FP[rC] into an unboxed double,
+//    or tagged Smi in FP[rA] as indicated by the type in the name.
 //
 //  - StoreField rA, B, rC
 //
@@ -578,6 +584,7 @@ namespace dart {
   V(Mod,                         A_B_C, reg, reg, reg) \
   V(Shl,                         A_B_C, reg, reg, reg) \
   V(Shr,                         A_B_C, reg, reg, reg) \
+  V(ShrImm,                      A_B_C, reg, reg, num) \
   V(Neg,                           A_D, reg, reg, ___) \
   V(BitOr,                       A_B_C, reg, reg, reg) \
   V(BitAnd,                      A_B_C, reg, reg, reg) \
@@ -598,6 +605,10 @@ namespace dart {
   V(DSqrt,                         A_D, reg, reg, ___) \
   V(DMin,                        A_B_C, reg, reg, reg) \
   V(DMax,                        A_B_C, reg, reg, reg) \
+  V(DCos,                          A_D, reg, reg, ___) \
+  V(DSin,                          A_D, reg, reg, ___) \
+  V(DPow,                        A_B_C, reg, reg, reg) \
+  V(DMod,                        A_B_C, reg, reg, reg) \
   V(StoreStaticTOS,                  D, lit, ___, ___) \
   V(PushStatic,                      D, lit, ___, ___) \
   V(InitStaticTOS,                   0, ___, ___, ___) \
@@ -630,7 +641,11 @@ namespace dart {
   V(AllocateT,                       0, ___, ___, ___) \
   V(StoreIndexedTOS,                 0, ___, ___, ___) \
   V(StoreIndexed,                A_B_C, reg, reg, reg) \
+  V(StoreFloat64Indexed,         A_B_C, reg, reg, reg) \
   V(LoadIndexed,                 A_B_C, reg, reg, reg) \
+  V(LoadFloat64Indexed,          A_B_C, reg, reg, reg) \
+  V(LoadOneByteStringIndexed,    A_B_C, reg, reg, reg) \
+  V(LoadTwoByteStringIndexed,    A_B_C, reg, reg, reg) \
   V(StoreField,                  A_B_C, reg, num, reg) \
   V(StoreFieldTOS,                   D, num, ___, ___) \
   V(LoadField,                   A_B_C, reg, reg, num) \
