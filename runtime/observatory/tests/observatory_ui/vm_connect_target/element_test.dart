@@ -3,15 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:html';
 import 'package:unittest/unittest.dart';
-import 'package:observatory/service_html.dart';
+import 'package:observatory/mocks.dart';
 import 'package:observatory/src/elements/vm_connect_target.dart';
 
 main() {
   VMConnectTargetElement.tag.ensureRegistration();
 
-  WebSocketVMTarget t;
+  TargetMock t;
   setUp(() {
-    t = new WebSocketVMTarget("a network address");
+    t = new TargetMock(name: "a network address");
   });
   group('instantiation', () {
     test('no other parameters', () {
