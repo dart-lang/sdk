@@ -1,8 +1,7 @@
 ## 0.6.1
 * Add js_util library of utility methods to efficiently manipulate typed
   JavaScript interop objects in cases where the member name is not known
-  statically. These methods would be extension methods on JSObject if
-  Dart supported extension methods.
+  statically.
 
 ## 0.6.0
 

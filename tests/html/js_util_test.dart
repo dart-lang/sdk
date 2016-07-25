@@ -68,16 +68,16 @@ external bool checkMap(m, String, value);
 external String stringify(o);
 
 @JS('Node')
-external Function get JSNodeType;
+external get JSNodeType;
 
 @JS('Element')
-external Function get JSElementType;
+external get JSElementType;
 
 @JS('Text')
-external Function get JSTextType;
+external get JSTextType;
 
 @JS('HTMLCanvasElement')
-external Function get JSHtmlCanvasElementType;
+external get JSHtmlCanvasElementType;
 
 @JS()
 class Foo {
@@ -88,7 +88,7 @@ class Foo {
 }
 
 @JS('Foo')
-external Function get JSFooType;
+external get JSFooType;
 
 @JS()
 @anonymous
@@ -106,7 +106,7 @@ class ExampleTypedLiteral {
 }
 
 @JS("Object.prototype.hasOwnProperty")
-external Function get _hasOwnProperty;
+external get _hasOwnProperty;
 
 bool hasOwnProperty(o, String name) {
   return js_util.callMethod(_hasOwnProperty, 'call', [o, name]);
