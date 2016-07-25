@@ -5245,6 +5245,11 @@ class Instance : public Object {
   virtual bool CheckAndCanonicalizeFields(Thread* thread,
                                           const char** error_str) const;
 
+#if defined(DEBUG)
+  // Check if instance is canonical.
+  virtual bool CheckIsCanonical(Thread* thread) const;
+#endif  // DEBUG
+
   RawObject* GetField(const Field& field) const {
     return *FieldAddr(field);
   }
@@ -5479,6 +5484,14 @@ class AbstractType : public Instance {
   // Return the canonical version of this type.
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
 
+#if defined(DEBUG)
+  // Check if abstract type is canonical.
+  virtual bool CheckIsCanonical(Thread* thread) const {
+    UNREACHABLE();
+    return false;
+  }
+#endif  // DEBUG
+
   // Return the object associated with the receiver in the trail or
   // AbstractType::null() if the receiver is not contained in the trail.
   RawAbstractType* OnlyBuddyInTrail(TrailPtr trail) const;
@@ -5670,6 +5683,10 @@ class Type : public AbstractType {
       const Class& new_owner,
       TrailPtr trail = NULL) const;
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
+#if defined(DEBUG)
+  // Check if type is canonical.
+  virtual bool CheckIsCanonical(Thread* thread) const;
+#endif  // DEBUG
   virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
@@ -5798,6 +5815,10 @@ class TypeRef : public AbstractType {
       const Class& new_owner,
       TrailPtr trail = NULL) const;
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
+#if defined(DEBUG)
+  // Check if typeref is canonical.
+  virtual bool CheckIsCanonical(Thread* thread) const;
+#endif  // DEBUG
   virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
@@ -5873,6 +5894,12 @@ class TypeParameter : public AbstractType {
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const {
     return raw();
   }
+#if defined(DEBUG)
+  // Check if type parameter is canonical.
+  virtual bool CheckIsCanonical(Thread* thread) const {
+    return true;
+  }
+#endif  // DEBUG
   virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
@@ -5963,6 +5990,12 @@ class BoundedType : public AbstractType {
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const {
     return raw();
   }
+#if defined(DEBUG)
+  // Check if bounded type is canonical.
+  virtual bool CheckIsCanonical(Thread* thread) const {
+    return true;
+  }
+#endif  // DEBUG
   virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
@@ -6050,6 +6083,11 @@ class Number : public Instance {
   // Numbers are canonicalized differently from other instances/strings.
   virtual RawInstance* CheckAndCanonicalize(Thread* thread,
                                             const char** error_str) const;
+
+#if defined(DEBUG)
+  // Check if number is canonical.
+  virtual bool CheckIsCanonical(Thread* thread) const;
+#endif  // DEBUG
 
  private:
   OBJECT_IMPLEMENTATION(Number, Instance);
@@ -6526,6 +6564,11 @@ class String : public Instance {
   // Strings are canonicalized using the symbol table.
   virtual RawInstance* CheckAndCanonicalize(Thread* thread,
                                             const char** error_str) const;
+
+#if defined(DEBUG)
+  // Check if string is canonical.
+  virtual bool CheckIsCanonical(Thread* thread) const;
+#endif  // DEBUG
 
   bool IsSymbol() const { return raw()->IsCanonical(); }
 

@@ -45,6 +45,7 @@
 #include "vm/timeline.h"
 #include "vm/timeline_analysis.h"
 #include "vm/timer.h"
+#include "vm/verifier.h"
 #include "vm/visitor.h"
 
 
@@ -1089,10 +1090,12 @@ void Isolate::ReportReloadError(const Error& error) {
 
 
 void Isolate::ReloadSources(bool dont_delete_reload_context) {
+  // TODO(asiva): Add verification of canonical objects.
   ASSERT(!IsReloading());
   has_attempted_reload_ = true;
   reload_context_ = new IsolateReloadContext(this);
   reload_context_->StartReload();
+  // TODO(asiva): Add verification of canonical objects.
   if (dont_delete_reload_context) {
     // Unit tests use the reload context later. Caller is responsible
     // for deleting the context.
@@ -1494,6 +1497,13 @@ static void ShutdownIsolate(uword parameter) {
     ASSERT(thread->isolate() == isolate);
     StackZone zone(thread);
     HandleScope handle_scope(thread);
+#if defined(DEBUG)
+    if (!isolate->HasAttemptedReload()) {
+      isolate->heap()->CollectAllGarbage();
+      VerifyCanonicalVisitor check_canonical(thread);
+      isolate->heap()->IterateObjects(&check_canonical);
+    }
+#endif  // DEBUG
     const Error& error = Error::Handle(thread->sticky_error());
     if (!error.IsNull() && !error.IsUnwindError()) {
       OS::PrintErr("in ShutdownIsolate: %s\n", error.ToErrorCString());

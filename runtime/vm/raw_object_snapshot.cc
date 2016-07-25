@@ -215,7 +215,8 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   Type& type = Type::ZoneHandle(reader->zone(), Type::New());
   bool is_canonical = RawObject::IsCanonical(tags);
   bool defer_canonicalization = is_canonical &&
-      (!Snapshot::IsFull(kind) && typeclass_is_in_fullsnapshot);
+      ((kind == Snapshot::kMessage) ||
+       (!Snapshot::IsFull(kind) && typeclass_is_in_fullsnapshot));
   reader->AddBackRef(object_id, &type, kIsDeserialized, defer_canonicalization);
 
   // Set all non object fields.

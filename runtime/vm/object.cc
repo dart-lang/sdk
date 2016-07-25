@@ -15302,6 +15302,19 @@ RawInstance* Instance::CheckAndCanonicalize(Thread* thread,
 }
 
 
+#if defined(DEBUG)
+bool Instance::CheckIsCanonical(Thread* thread) const {
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  Instance& result = Instance::Handle(zone);
+  const Class& cls = Class::Handle(zone, this->clazz());
+  SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
+  result ^= cls.LookupCanonicalInstance(zone, *this);
+  return (result.raw() == this->raw());
+}
+#endif  // DEBUG
+
+
 RawAbstractType* Instance::GetType() const {
   if (IsNull()) {
     return Type::NullType();
@@ -17110,6 +17123,38 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
 }
 
 
+#if defined(DEBUG)
+bool Type::CheckIsCanonical(Thread* thread) const {
+  if (IsMalformed()) {
+    return true;
+  }
+  if (type_class() == Object::dynamic_class()) {
+    return (raw() == Object::dynamic_type().raw());
+  }
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  AbstractType& type = Type::Handle(zone);
+  const Class& cls = Class::Handle(zone, type_class());
+
+  // Fast canonical lookup/registry for simple types.
+  if (!cls.IsGeneric() && !cls.IsClosureClass() && !cls.IsTypedefClass()) {
+    ASSERT(!IsFunctionType());
+    type = cls.CanonicalType();
+    return (raw() == type.raw());
+  }
+
+  ObjectStore* object_store = isolate->object_store();
+  {
+    SafepointMutexLocker ml(isolate->type_canonicalization_mutex());
+    CanonicalTypeSet table(zone, object_store->canonical_types());
+    type ^= table.GetOrNull(CanonicalTypeKey(*this));
+    object_store->set_canonical_types(table.Release());
+  }
+  return (raw() == type.raw());
+}
+#endif  // DEBUG
+
+
 RawString* Type::EnumerateURIs() const {
   if (IsDynamicType() || IsVoidType()) {
     return Symbols::Empty().raw();
@@ -17370,6 +17415,14 @@ RawAbstractType* TypeRef::Canonicalize(TrailPtr trail) const {
   set_type(ref_type);
   return raw();
 }
+
+
+#if defined(DEBUG)
+bool TypeRef::CheckIsCanonical(Thread* thread) const {
+  AbstractType& ref_type = AbstractType::Handle(type());
+  return ref_type.CheckIsCanonical(thread);
+}
+#endif  // DEBUG
 
 
 RawString* TypeRef::EnumerateURIs() const {
@@ -18035,11 +18088,11 @@ RawInstance* Number::CheckAndCanonicalize(Thread* thread,
     case kDoubleCid:
       return Double::NewCanonical(Double::Cast(*this).value());
     case kBigintCid: {
+      if (this->IsCanonical()) {
+        return this->raw();
+      }
       Zone* zone = thread->zone();
       Isolate* isolate = thread->isolate();
-      if (!CheckAndCanonicalizeFields(thread, error_str)) {
-        return Instance::null();
-      }
       Bigint& result = Bigint::Handle(zone);
       const Class& cls = Class::Handle(zone, this->clazz());
       intptr_t index = 0;
@@ -18077,6 +18130,38 @@ RawInstance* Number::CheckAndCanonicalize(Thread* thread,
   }
   return Instance::null();
 }
+
+
+#if defined(DEBUG)
+bool Number::CheckIsCanonical(Thread* thread) const {
+  intptr_t cid = GetClassId();
+  intptr_t idx = 0;
+  Zone* zone = thread->zone();
+  const Class& cls = Class::Handle(zone, this->clazz());
+  switch (cid) {
+    case kSmiCid:
+      return true;
+    case kMintCid: {
+      Mint& result = Mint::Handle(zone);
+      result ^= cls.LookupCanonicalMint(zone, Mint::Cast(*this).value(), &idx);
+      return (result.raw() == this->raw());
+    }
+    case kDoubleCid: {
+      Double& dbl = Double::Handle(zone);
+      dbl ^= cls.LookupCanonicalDouble(zone, Double::Cast(*this).value(), &idx);
+      return (dbl.raw() == this->raw());
+    }
+    case kBigintCid: {
+      Bigint& result = Bigint::Handle(zone);
+      result ^= cls.LookupCanonicalBigint(zone, Bigint::Cast(*this), &idx);
+      return (result.raw() == this->raw());
+    }
+    default:
+      UNREACHABLE();
+  }
+  return false;
+}
+#endif  // DEBUG
 
 
 const char* Number::ToCString() const {
@@ -19779,6 +19864,15 @@ RawInstance* String::CheckAndCanonicalize(Thread* thread,
 }
 
 
+#if defined(DEBUG)
+bool String::CheckIsCanonical(Thread* thread) const {
+  Zone* zone = thread->zone();
+  const String& str = String::Handle(zone, Symbols::Lookup(thread, *this));
+  return (str.raw() == this->raw());
+}
+#endif  // DEBUG
+
+
 RawString* String::New(const char* cstr, Heap::Space space) {
   ASSERT(cstr != NULL);
   intptr_t array_len = strlen(cstr);
@@ -21299,6 +21393,7 @@ RawArray* Array::Slice(intptr_t start,
 
 void Array::MakeImmutable() const {
   if (IsImmutable()) return;
+  ASSERT(!IsCanonical());
   NoSafepointScope no_safepoint;
   uword tags = raw_ptr()->tags_;
   uword old_tags;
