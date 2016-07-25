@@ -1370,22 +1370,32 @@ class ExpressionBuilder
   }
 
   visitPropertyAccess(PropertyAccess node) {
+    Expression target = node.target;
     if (node.isCascaded) {
       return PropertyAccessor.make(
           makeCascadeReceiver(), scope.buildName(node.propertyName));
-    } else if (node.target is SuperExpression) {
+    } else if (target is SuperExpression) {
       Element element = node.propertyName.staticElement;
       Element auxiliary = node.propertyName.auxiliaryElements?.staticElement;
       // TODO: If the getter and/or setter is unresolved, preserve enough
       // information to throw the right exception.
       return new SuperPropertyAccessor(scope.resolveGet(element, auxiliary),
           scope.resolveSet(element, auxiliary));
+    } else if (target is Identifier && target.staticElement is ClassElement) {
+      // Note that this case also covers null-aware static access on a class,
+      // which is equivalent to a regular static access.
+      Element element = node.propertyName.staticElement;
+      Element auxiliary = node.propertyName.auxiliaryElements?.staticElement;
+      // TODO: If the getter and/or setter is unresolved, preserve enough
+      // information to throw the right exception.
+      return new StaticAccessor(scope.resolveGet(element, auxiliary),
+          scope.resolveSet(element, auxiliary));
     } else if (node.operator.value() == '?.') {
       return new NullAwarePropertyAccessor(
-          build(node.target), scope.buildName(node.propertyName));
+          build(target), scope.buildName(node.propertyName));
     } else {
       return PropertyAccessor.make(
-          build(node.target), scope.buildName(node.propertyName));
+          build(target), scope.buildName(node.propertyName));
     }
   }
 
