@@ -2698,6 +2698,7 @@ abstract class ErrorCode {
     HintCode.MISSING_RETURN,
     HintCode.NULL_AWARE_IN_CONDITION,
     HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER,
+    HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD,
     HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD,
     HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER,
     HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE,
@@ -3729,6 +3730,13 @@ class HintCode extends ErrorCode {
   static const HintCode OVERRIDE_ON_NON_OVERRIDING_GETTER = const HintCode(
       'OVERRIDE_ON_NON_OVERRIDING_GETTER',
       "Getter does not override an inherited getter");
+
+  /**
+   * A field with the override annotation does not override a getter or setter.
+   */
+  static const HintCode OVERRIDE_ON_NON_OVERRIDING_FIELD = const HintCode(
+      'OVERRIDE_ON_NON_OVERRIDING_FIELD',
+      "Field does not override an inherited getter or setter");
 
   /**
    * A method with the override annotation does not override an existing method.

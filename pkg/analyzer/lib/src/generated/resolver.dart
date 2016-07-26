@@ -5141,7 +5141,7 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
  * Instances of the class `OverrideVerifier` visit all of the declarations in a compilation
  * unit to verify that if they have an override annotation it is being used correctly.
  */
-class OverrideVerifier extends RecursiveAstVisitor<Object> {
+class OverrideVerifier extends RecursiveAstVisitor {
   /**
    * The error reporter used to report errors.
    */
@@ -5161,22 +5161,23 @@ class OverrideVerifier extends RecursiveAstVisitor<Object> {
   OverrideVerifier(this._errorReporter, this._manager);
 
   @override
-  Object visitFieldDeclaration(FieldDeclaration node) {
+  visitFieldDeclaration(FieldDeclaration node) {
     for (VariableDeclaration field in node.fields.variables) {
       VariableElement fieldElement = field.element;
       if (fieldElement is FieldElement && _isOverride(fieldElement)) {
-        PropertyAccessorElement getterElement = fieldElement.getter;
-        if (_getOverriddenMember(getterElement) == null) {
+        PropertyAccessorElement getter = fieldElement.getter;
+        PropertyAccessorElement setter = fieldElement.setter;
+        if (!(getter != null && _getOverriddenMember(getter) != null ||
+            setter != null && _getOverriddenMember(setter) != null)) {
           _errorReporter.reportErrorForNode(
-              HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, field.name);
+              HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, field.name);
         }
       }
     }
-    return super.visitFieldDeclaration(node);
   }
 
   @override
-  Object visitMethodDeclaration(MethodDeclaration node) {
+  visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement element = node.element;
     if (_isOverride(element)) {
       if (_getOverriddenMember(element) == null) {
@@ -5194,7 +5195,6 @@ class OverrideVerifier extends RecursiveAstVisitor<Object> {
         }
       }
     }
-    return super.visitMethodDeclaration(node);
   }
 
   /**

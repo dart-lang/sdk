@@ -2047,7 +2047,7 @@ m(x) {
     verify([source]);
   }
 
-  void test_overrideOnNonOverridingGetter_field_invalid() {
+  void test_overrideOnNonOverridingField_invalid() {
     Source source = addSource(r'''
 library dart.core;
 const override = null;
@@ -2058,7 +2058,7 @@ class B extends A {
   final int m = 1;
 }''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER]);
+    assertErrors(source, [HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD]);
     verify([source]);
   }
 

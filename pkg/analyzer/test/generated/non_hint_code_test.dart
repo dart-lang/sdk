@@ -486,32 +486,44 @@ class A {
     verify([source]);
   }
 
-  void test_overrideOnNonOverridingGetter_field_inInterface() {
+  void test_overrideOnNonOverridingField_inInterface() {
     Source source = addSource(r'''
 library dart.core;
 const override = null;
 class A {
-  int get m => 0;
+  int get a => 0;
+  void set b(_) {}
+  int c;
 }
 class B implements A {
   @override
-  final int m = 1;
+  final int a = 1;
+  @override
+  int b;
+  @override
+  int c;
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
 
-  void test_overrideOnNonOverridingGetter_field_inSuperclass() {
+  void test_overrideOnNonOverridingField_inSuperclass() {
     Source source = addSource(r'''
 library dart.core;
 const override = null;
 class A {
-  int get m => 0;
+  int get a => 0;
+  void set b(_) {}
+  int c;
 }
 class B extends A {
   @override
-  final int m = 1;
+  final int a = 1;
+  @override
+  int b;
+  @override
+  int c;
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
