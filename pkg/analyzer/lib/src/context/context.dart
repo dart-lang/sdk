@@ -34,11 +34,19 @@ import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/incremental_element_builder.dart';
 import 'package:analyzer/src/task/manager.dart';
+import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/html.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart' show Document;
+
+/**
+ * The descriptor used to associate exclude patterns with an analysis context in
+ * configuration data.
+ */
+final ListResultDescriptor<String> CONTEXT_EXCLUDES =
+    new ListResultDescriptorImpl('CONTEXT_EXCLUDES', const <String>[]);
 
 /**
  * Type of callback functions used by PendingFuture. Functions of this type

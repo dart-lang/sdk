@@ -10,11 +10,13 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/general.dart';
+import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:source_span/source_span.dart';
@@ -460,6 +462,19 @@ class _OptionsProcessor {
       // Process language options.
       var language = analyzer[AnalyzerOptions.language];
       setLanguageOptions(context, language);
+
+      // Process excludes.
+      var excludes = analyzer[AnalyzerOptions.exclude];
+      setExcludes(context, excludes);
+    }
+  }
+
+  void setExcludes(AnalysisContext context, Object excludes) {
+    if (excludes is YamlList) {
+      List<String> excludeList = toStringList(excludes);
+      if (excludeList != null) {
+        context.setConfigurationData(CONTEXT_EXCLUDES, excludeList);
+      }
     }
   }
 
@@ -573,6 +588,19 @@ class _OptionsProcessor {
     }
   }
 
+  void _applyStrongModeOption(
+      AnalysisOptionsImpl options, Object feature, Object value) {
+    bool boolValue = toBool(value);
+    if (boolValue != null) {
+      if (feature == AnalyzerOptions.implicitCasts) {
+        options.implicitCasts = boolValue;
+      }
+      if (feature == AnalyzerOptions.implicitDynamic) {
+        options.implicitDynamic = boolValue;
+      }
+    }
+  }
+
   void _applyStrongOptions(AnalysisOptionsImpl options, Object config) {
     if (config is YamlMap) {
       options.strongMode = true;
@@ -586,19 +614,6 @@ class _OptionsProcessor {
       config.forEach((k, v) => _applyStrongModeOption(options, k, v));
     } else {
       options.strongMode = config is bool ? config : false;
-    }
-  }
-
-  void _applyStrongModeOption(
-      AnalysisOptionsImpl options, Object feature, Object value) {
-    bool boolValue = toBool(value);
-    if (boolValue != null) {
-      if (feature == AnalyzerOptions.implicitCasts) {
-        options.implicitCasts = boolValue;
-      }
-      if (feature == AnalyzerOptions.implicitDynamic) {
-        options.implicitDynamic = boolValue;
-      }
     }
   }
 }
