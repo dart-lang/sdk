@@ -1879,17 +1879,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               unitEntry.setValueIncremental(
                   COMPILATION_UNIT_CONSTANTS, builder.unitConstants, false);
               DartDelta dartDelta = new DartDelta(source);
-              dartDelta.hasDirectiveChange = unitDelta.hasDirectiveChange;
               unitDelta.addedDeclarations.forEach(dartDelta.elementChanged);
               unitDelta.removedDeclarations.forEach(dartDelta.elementChanged);
               unitDelta.classDeltas.values.forEach(dartDelta.classChanged);
-              // Add other names in the library that are changed transitively.
-              {
-                ReferencedNames referencedNames = new ReferencedNames(source);
-                new ReferencedNamesBuilder(referencedNames).build(oldUnit);
-                dartDelta.addChangedElements(referencedNames, librarySource);
-              }
-              // Invalidate using the prepared DartDelta.
               entry.setState(CONTENT, CacheState.INVALID, delta: dartDelta);
               return;
             }

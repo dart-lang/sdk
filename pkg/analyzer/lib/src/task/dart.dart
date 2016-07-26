@@ -2501,8 +2501,6 @@ class ContainingLibrariesTask extends SourceBasedAnalysisTask {
  * The description for a change in a Dart source.
  */
 class DartDelta extends Delta {
-  bool hasDirectiveChange = false;
-
   final Set<String> changedNames = new Set<String>();
   final Map<Source, Set<String>> changedPrivateNames = <Source, Set<String>>{};
 
@@ -2719,9 +2717,6 @@ class DartDelta extends Delta {
   @override
   DeltaResult validate(InternalAnalysisContext context, AnalysisTarget target,
       ResultDescriptor descriptor, Object value) {
-    if (hasDirectiveChange) {
-      return DeltaResult.INVALIDATE;
-    }
     // Prepare target source.
     Source targetUnit = target.source;
     Source targetLibrary = target.librarySource;
