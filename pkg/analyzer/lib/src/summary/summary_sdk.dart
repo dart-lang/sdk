@@ -20,6 +20,7 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/model.dart' show ResultDescriptor, TargetedResult;
+import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 
 class SdkSummaryResultProvider extends ResynthesizerResultProvider {
   final SummaryTypeProvider typeProvider = new SummaryTypeProvider();
@@ -106,6 +107,7 @@ class SummaryBasedDartSdk implements DartSdk {
   SummaryDataStore _dataStore;
   InSummaryPackageUriResolver _uriResolver;
   PackageBundle _bundle;
+  ResourceProvider resourceProvider;
 
   /**
    * The [AnalysisContext] which is used for all of the sources in this sdk.
@@ -116,6 +118,14 @@ class SummaryBasedDartSdk implements DartSdk {
     _dataStore = new SummaryDataStore(<String>[summaryPath]);
     _uriResolver = new InSummaryPackageUriResolver(_dataStore);
     _bundle = _dataStore.bundles.single;
+  }
+
+  SummaryBasedDartSdk.fromBundle(
+      this.strongMode, PackageBundle bundle, this.resourceProvider) {
+    _dataStore = new SummaryDataStore([]);
+    _dataStore.addBundle('dart_sdk.sum', bundle);
+    _uriResolver = new InSummaryPackageUriResolver(_dataStore);
+    _bundle = bundle;
   }
 
   /**
@@ -129,7 +139,8 @@ class SummaryBasedDartSdk implements DartSdk {
       AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl()
         ..strongMode = strongMode;
       _analysisContext = new SdkAnalysisContext(analysisOptions);
-      SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
+      SourceFactory factory = new SourceFactory(
+          [new DartUriResolver(this)], null, resourceProvider);
       _analysisContext.sourceFactory = factory;
       _analysisContext.resultProvider =
           new SdkSummaryResultProvider(_analysisContext, _bundle, strongMode);

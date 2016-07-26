@@ -1,3 +1,6 @@
+## 0.27.4-alpha.19
+* Added support for running the dev compiler in the browser.
+
 ## 0.27.4-alpha.18
 * Support for references to operators in doc comments (#26929).
 
