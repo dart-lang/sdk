@@ -209,6 +209,12 @@ Object safeGetProperty(Object protoChain, String name) {
   }
 }
 
+safeProperties(object) => new Map.fromIterable(
+    getOwnPropertyNames(object)
+        .where((each) => safeGetProperty(object, each) != null),
+    key: (name) => name,
+    value: (name) => safeGetProperty(object, name));
+
 /// Class to simplify building the JsonML objects expected by the
 /// Devtools Formatter API.
 class JsonMLElement {
@@ -540,8 +546,7 @@ class LibraryModuleFormatter extends ObjectFormatter {
 
 /// Formatter for Dart Library objects.
 class LibraryFormatter extends ObjectFormatter {
-  String genericName;
-  String genericArguments;
+  var genericParameters = new HashMap<String, String>();
 
   accept(object) => object is Library;
 
@@ -551,38 +556,48 @@ class LibraryFormatter extends ObjectFormatter {
 
   List<NameValuePair> children(object) {
     var children = new LinkedHashSet<NameValuePair>();
-    var entry = object.object;
-    for (var name in getOwnPropertyNames(entry)) {
-      var value = safeGetProperty(entry, name);
-      if (value != null) {
-        var genericTypeConstructor = dart.getGenericTypeCtor(value);
-        if (genericTypeConstructor != null) {
-          genericName = name;
-          // Using JS toString() eliminates the leading metadata that is generated
-          // with the toString function provided in operations.dart.
-          // Splitting by => and taking the first element gives the list of
-          // arguments in the constructor.
-          genericArguments =
-              JS('String', '#.toString()', genericTypeConstructor)
-                  .split(' =>')
-                  .first
-                  .replaceAll(new RegExp(r'[(|)]'), '');
-        } else if (value is Type) {
-          var typeName = getTypeName(value);
-          // Generic class names are generated with a $ at the end, so the
-          // corresponding non-generic class can be identified by adding $.
-          if ('$name\$' == genericName) {
-            typeName = '$typeName<$genericArguments>';
-          }
-          children.add(new NameValuePair(
-              name: typeName, value: new ClassMetadata(value, name: typeName)));
-        } else {
-          children.add(
-              new NameValuePair(name: name, value: new ClassMetadata(value)));
-        }
+    var nonGenericProperties = new LinkedHashMap<String, Object>();
+    var objectProperties = safeProperties(object.object);
+    objectProperties.forEach((name, value) {
+      var genericTypeConstructor = dart.getGenericTypeCtor(value);
+      if (genericTypeConstructor != null) {
+        recordGenericParameters(name, genericTypeConstructor);
+      } else {
+        nonGenericProperties[name] = value;
       }
-    }
+    });
+    nonGenericProperties.forEach((name, value) {
+      if (value is Type) {
+        children.add(classChild(name, value));
+      } else {
+        children.add(new NameValuePair(name: name, value: value));
+      }
+    });
     return children.toList();
+  }
+
+  recordGenericParameters(String name, Object genericTypeConstructor) {
+    // Using JS toString() eliminates the leading metadata that is generated
+    // with the toString function provided in operations.dart.
+    // Splitting by => and taking the first element gives the list of
+    // arguments in the constructor.
+    genericParameters[name] =
+        JS('String', '#.toString()', genericTypeConstructor)
+            .split(' =>')
+            .first
+            .replaceAll(new RegExp(r'[(|)]'), '');
+  }
+
+  classChild(String name, Object child) {
+    var typeName = getTypeName(child);
+    // Generic class names are generated with a $ at the end, so the
+    // corresponding non-generic class can be identified by adding $.
+    var parameterName = '$name\$';
+    if (genericParameters.keys.contains(parameterName)) {
+      typeName = '$typeName<${genericParameters[parameterName]}>';
+    }
+    return new NameValuePair(
+        name: typeName, value: new ClassMetadata(child, name: typeName));
   }
 }
 

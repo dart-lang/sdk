@@ -40,6 +40,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let JSArrayOfFormatter = () => (JSArrayOfFormatter = dart.constFn(_interceptors.JSArray$(_debugger.Formatter)))();
   let LinkedHashSetOfNameValuePair = () => (LinkedHashSetOfNameValuePair = dart.constFn(collection.LinkedHashSet$(_debugger.NameValuePair)))();
   let SetOfString = () => (SetOfString = dart.constFn(core.Set$(core.String)))();
+  let HashMapOfString$String = () => (HashMapOfString$String = dart.constFn(collection.HashMap$(core.String, core.String)))();
+  let LinkedHashMapOfString$Object = () => (LinkedHashMapOfString$Object = dart.constFn(collection.LinkedHashMap$(core.String, core.Object)))();
   let JSArrayOfString = () => (JSArrayOfString = dart.constFn(_interceptors.JSArray$(core.String)))();
   let ListOfNameValuePair = () => (ListOfNameValuePair = dart.constFn(core.List$(_debugger.NameValuePair)))();
   let JSArrayOfJsonMLFormatter = () => (JSArrayOfJsonMLFormatter = dart.constFn(_interceptors.JSArray$(_debugger.JsonMLFormatter)))();
@@ -483,7 +485,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let dynamicAndStringTobool = () => (dynamicAndStringTobool = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic, core.String])))();
   let intAnddynamicTovoid = () => (intAnddynamicTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.int, dart.dynamic])))();
   let ObjectAndStringToObject = () => (ObjectAndStringToObject = dart.constFn(dart.definiteFunctionType(core.Object, [core.Object, core.String])))();
+  let StringTobool = () => (StringTobool = dart.constFn(dart.definiteFunctionType(core.bool, [core.String])))();
+  let dynamicToObject = () => (dynamicToObject = dart.constFn(dart.definiteFunctionType(core.Object, [dart.dynamic])))();
   let dynamicTobool$ = () => (dynamicTobool$ = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic])))();
+  let dynamicAnddynamicTodynamic$ = () => (dynamicAnddynamicTodynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic])))();
+  let StringAndObjectTovoid = () => (StringAndObjectTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.String, core.Object])))();
   let dynamicAnddynamicTovoid = () => (dynamicAnddynamicTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [dart.dynamic, dart.dynamic])))();
   let VoidTodynamic$ = () => (VoidTodynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   let StringAndString__Todynamic = () => (StringAndString__Todynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.String, core.String], [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic])))();
@@ -494,11 +500,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let VoidToString$ = () => (VoidToString$ = dart.constFn(dart.definiteFunctionType(core.String, [])))();
   let StringToString$ = () => (StringToString$ = dart.constFn(dart.definiteFunctionType(core.String, [core.String])))();
   let StringAndStringTodynamic = () => (StringAndStringTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.String, core.String])))();
-  let StringTobool = () => (StringTobool = dart.constFn(dart.definiteFunctionType(core.bool, [core.String])))();
   let FunctionTovoid = () => (FunctionTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.Function])))();
   let StringAndStringToString = () => (StringAndStringToString = dart.constFn(dart.definiteFunctionType(core.String, [core.String, core.String])))();
   let TypeAndStringTodynamic = () => (TypeAndStringTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.Type, core.String])))();
-  let dynamicAnddynamicTodynamic$ = () => (dynamicAnddynamicTodynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic])))();
   let ListOfEToListOfE = () => (ListOfEToListOfE = dart.constFn(dart.definiteFunctionType(E => [core.List$(E), [core.List$(E)]])))();
   let StringTovoid = () => (StringTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.String])))();
   let _IsolateContextAndFunctionTodynamic = () => (_IsolateContextAndFunctionTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [_isolate_helper._IsolateContext, core.Function])))();
@@ -615,7 +619,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let String__Tovoid = () => (String__Tovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.String], [dart.dynamic])))();
   let ListToIsolate = () => (ListToIsolate = dart.constFn(dart.definiteFunctionType(isolate.Isolate, [core.List])))();
   let dynamicTo_DartObject = () => (dynamicTo_DartObject = dart.constFn(dart.definiteFunctionType(js._DartObject, [dart.dynamic])))();
-  let dynamicToObject = () => (dynamicToObject = dart.constFn(dart.definiteFunctionType(core.Object, [dart.dynamic])))();
   let dynamicToJsObject = () => (dynamicToJsObject = dart.constFn(dart.definiteFunctionType(js.JsObject, [dart.dynamic])))();
   let dynamicAnddynamicAndFnToObject = () => (dynamicAnddynamicAndFnToObject = dart.constFn(dart.definiteFunctionType(core.Object, [dart.dynamic, dart.dynamic, dynamicTodynamic()])))();
   let FToF = () => (FToF = dart.constFn(dart.definiteFunctionType(F => [F, [F]])))();
@@ -2549,6 +2552,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
 
   };
   dart.lazyFn(_debugger.safeGetProperty, () => ObjectAndStringToObject());
+  _debugger.safeProperties = function(object) {
+    return core.Map.fromIterable(_debugger.getOwnPropertyNames(object)[dartx.where](dart.fn(each => _debugger.safeGetProperty(object, each) != null, StringTobool())), {key: dart.fn(name => name, dynamicTodynamic$()), value: dart.fn(name => _debugger.safeGetProperty(object, core.String._check(name)), dynamicToObject())});
+  };
+  dart.fn(_debugger.safeProperties, dynamicTodynamic$());
   const _attributes = Symbol('_attributes');
   const _jsonML = Symbol('_jsonML');
   _debugger.JsonMLElement = class JsonMLElement extends core.Object {
@@ -2836,8 +2843,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   _debugger.LibraryFormatter = class LibraryFormatter extends _debugger.ObjectFormatter {
     new() {
-      this.genericName = null;
-      this.genericArguments = null;
+      this.genericParameters = HashMapOfString$String().new();
     }
     accept(object) {
       return _debugger.Library.is(object);
@@ -2850,28 +2856,43 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     children(object) {
       let children = LinkedHashSetOfNameValuePair().new();
-      let entry = dart.dload(object, 'object');
-      for (let name of _debugger.getOwnPropertyNames(entry)) {
-        let value = _debugger.safeGetProperty(entry, name);
-        if (value != null) {
-          let genericTypeConstructor = dart.getGenericTypeCtor(value);
-          if (genericTypeConstructor != null) {
-            this.genericName = name;
-            this.genericArguments = genericTypeConstructor.toString()[dartx.split](' =>')[dartx.first][dartx.replaceAll](core.RegExp.new('[(|)]'), '');
-          } else if (core.Type.is(value)) {
-            let typeName = _debugger.getTypeName(value);
-            if (dart.str`${name}\$` == this.genericName) {
-              typeName = dart.str`${typeName}<${this.genericArguments}>`;
-            }
-            children.add(new _debugger.NameValuePair({name: typeName, value: new _debugger.ClassMetadata(value, {name: typeName})}));
-          } else {
-            children.add(new _debugger.NameValuePair({name: name, value: new _debugger.ClassMetadata(value)}));
-          }
+      let nonGenericProperties = LinkedHashMapOfString$Object().new();
+      let objectProperties = _debugger.safeProperties(dart.dload(object, 'object'));
+      dart.dsend(objectProperties, 'forEach', dart.fn((name, value) => {
+        let genericTypeConstructor = dart.getGenericTypeCtor(value);
+        if (genericTypeConstructor != null) {
+          this.recordGenericParameters(core.String._check(name), genericTypeConstructor);
+        } else {
+          nonGenericProperties.set(core.String._check(name), value);
         }
-      }
+      }, dynamicAnddynamicTodynamic$()));
+      nonGenericProperties.forEach(dart.fn((name, value) => {
+        if (core.Type.is(value)) {
+          children.add(_debugger.NameValuePair._check(this.classChild(name, value)));
+        } else {
+          children.add(new _debugger.NameValuePair({name: name, value: value}));
+        }
+      }, StringAndObjectTovoid()));
       return children.toList();
     }
+    recordGenericParameters(name, genericTypeConstructor) {
+      this.genericParameters.set(name, genericTypeConstructor.toString()[dartx.split](' =>')[dartx.first][dartx.replaceAll](core.RegExp.new('[(|)]'), ''));
+    }
+    classChild(name, child) {
+      let typeName = _debugger.getTypeName(core.Type._check(child));
+      let parameterName = dart.str`${name}\$`;
+      if (dart.test(this.genericParameters.keys[dartx.contains](parameterName))) {
+        typeName = dart.str`${typeName}<${this.genericParameters.get(parameterName)}>`;
+      }
+      return new _debugger.NameValuePair({name: typeName, value: new _debugger.ClassMetadata(child, {name: typeName})});
+    }
   };
+  dart.setSignature(_debugger.LibraryFormatter, {
+    methods: () => ({
+      recordGenericParameters: dart.definiteFunctionType(dart.dynamic, [core.String, core.Object]),
+      classChild: dart.definiteFunctionType(dart.dynamic, [core.String, core.Object])
+    })
+  });
   _debugger.FunctionFormatter = class FunctionFormatter extends _debugger.Formatter {
     accept(object) {
       if (_debugger._typeof(object) != 'function') return false;
