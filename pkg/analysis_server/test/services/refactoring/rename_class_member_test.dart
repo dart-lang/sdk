@@ -90,6 +90,22 @@ class A {
         expectedContextSearch: 'newName() {} // existing');
   }
 
+  test_checkFinalConditions_OK_dropSuffix() async {
+    indexTestUnit(r'''
+abstract class A {
+  void testOld();
+}
+class B implements A {
+  void testOld() {}
+}
+''');
+    createRenameRefactoringAtString('testOld() {}');
+    // check status
+    refactoring.newName = 'test';
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
+  }
+
   test_checkFinalConditions_OK_noShadow() async {
     indexTestUnit('''
 class A {

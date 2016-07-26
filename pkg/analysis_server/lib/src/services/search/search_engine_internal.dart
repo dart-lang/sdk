@@ -35,7 +35,8 @@ class SearchEngineImpl implements SearchEngine {
   }
 
   @override
-  Future<List<SearchMatch>> searchMemberDeclarations(String pattern) {
+  Future<List<SearchMatch>> searchMemberDeclarations(String name) {
+    String pattern = '^$name\$';
     return _searchDefinedNames(pattern, IndexNameKind.classMember);
   }
 
