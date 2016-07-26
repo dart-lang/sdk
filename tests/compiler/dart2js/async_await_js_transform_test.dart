@@ -73,8 +73,6 @@ r"""function() async {
           v1 = 0;
           if (v1 < 0 || v1 >= v0.length)
             H.ioore(v0, v1);
-          else
-            ;
           v2 = 4;
           v3 = 2;
           P.print(v0[v1].call$2(v2, v3));
