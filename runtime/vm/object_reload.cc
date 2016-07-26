@@ -462,6 +462,7 @@ class UnimplementedDeferredLibrary : public ReasonForCancelling {
 
   RawString* ToString() {
     const String& lib_url = String::Handle(to_.url());
+    from_.ToCString();
     return String::NewFormatted(
         "Reloading support for deferred loading has not yet been implemented:"
         " library '%s' has deferred import '%s'",
