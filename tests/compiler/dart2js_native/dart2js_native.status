@@ -5,6 +5,7 @@
 [ $browser ]
 *: Skip
 
+[ $compiler == dart2js ]
 native_no_such_method_exception4_frog_test: CompileTimeError # Issue 9631
 native_no_such_method_exception5_frog_test: CompileTimeError # Issue 9631
 
