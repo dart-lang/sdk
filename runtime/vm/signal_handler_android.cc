@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
+#include "vm/instructions.h"
 #include "vm/simulator.h"
 #include "vm/signal_handler.h"
 #if defined(TARGET_OS_ANDROID)
@@ -65,20 +66,11 @@ uintptr_t SignalHandler::GetCStackPointer(const mcontext_t& mcontext) {
 
 
 uintptr_t SignalHandler::GetDartStackPointer(const mcontext_t& mcontext) {
-  uintptr_t sp = 0;
-
-#if defined(HOST_ARCH_IA32)
-  sp = static_cast<uintptr_t>(mcontext.gregs[REG_ESP]);
-#elif defined(HOST_ARCH_X64)
-  sp = static_cast<uintptr_t>(mcontext.gregs[REG_RSP]);
-#elif defined(HOST_ARCH_ARM)
-  sp = static_cast<uintptr_t>(mcontext.arm_sp);
-#elif defined(HOST_ARCH_ARM64)
-  sp = static_cast<uintptr_t>(mcontext.regs[19]);
+#if defined(TARGET_ARCH_ARM64) && !defined(USING_SIMULATOR)
+  return static_cast<uintptr_t>(mcontext.regs[SPREG]);
 #else
-#error Unsupported architecture.
-#endif  // HOST_ARCH_...
-  return sp;
+  return GetCStackPointer(mcontext);
+#endif
 }
 
 
