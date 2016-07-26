@@ -271,4 +271,5 @@ class MockTouchEvent implements TouchEvent {
   Point get page { throw new UnimplementedError(); }
   List get path { throw new UnimplementedError(); }
   Point get screen { throw new UnimplementedError(); }
+  /*InputDevice*/ get sourceDevice { throw new UnimplementedError(); }
 }
