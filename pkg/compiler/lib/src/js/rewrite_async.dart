@@ -283,7 +283,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   /// Each buffer ends up as its own case part in the big state-switch.
   void beginLabel(int label) {
     assert(!labelledParts.containsKey(label));
-    currentStatementBuffer = <js.Statement>[];
+    currentStatementBuffer = new List<js.Statement>();
     labelledParts[label] = currentStatementBuffer;
     addStatement(new js.Comment(labelComments[label]));
   }
@@ -967,7 +967,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
       bool oldInsideUntranslatedBreakable = insideUntranslatedBreakable;
       insideUntranslatedBreakable = true;
       addStatement(js.js.statement('do {#} while (#)',
-          [translateToStatement(node.body), visitExpression(node.condition)]));
+          [translateInBlock(node.body), visitExpression(node.condition)]));
       insideUntranslatedBreakable = oldInsideUntranslatedBreakable;
       return;
     }
@@ -1013,7 +1013,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
       withExpressions([node.init, node.condition, node.update],
           (List<js.Expression> transformed) {
         addStatement(new js.For(transformed[0], transformed[1], transformed[2],
-            translateToStatement(node.body)));
+            translateInBlock(node.body)));
       });
       insideUntranslatedBreakable = oldInsideUntranslated;
       return;
@@ -1063,34 +1063,23 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     unsupported(node);
   }
 
-  List<js.Statement> translateToStatementSequence(js.Statement node) {
+  // Only used for code where `!shouldTransform(node)`.
+  js.Block translateInBlock(js.Statement node) {
     assert(!shouldTransform(node));
     List<js.Statement> oldBuffer = currentStatementBuffer;
-    currentStatementBuffer = <js.Statement>[];
+    currentStatementBuffer = new List();
     List<js.Statement> resultBuffer = currentStatementBuffer;
     visitStatement(node);
     currentStatementBuffer = oldBuffer;
-    return resultBuffer;
-  }
-
-  js.Statement translateToStatement(js.Statement node) {
-    List<js.Statement> statements = translateToStatementSequence(node);
-    if (statements.length == 1)
-      return statements.single;
-    return new js.Block(statements);
-  }
-
-  js.Block translateToBlock(js.Statement node) {
-    return new js.Block(translateToStatementSequence(node));
+    return new js.Block(resultBuffer);
   }
 
   @override
   void visitIf(js.If node) {
     if (!shouldTransform(node.then) && !shouldTransform(node.otherwise)) {
       withExpression(node.condition, (js.Expression condition) {
-        js.Statement translatedThen = translateToStatement(node.then);
-        js.Statement translatedElse = translateToStatement(node.otherwise);
-        addStatement(new js.If(condition, translatedThen, translatedElse));
+        addStatement(new js.If(condition, translateInBlock(node.then),
+            translateInBlock(node.otherwise)));
       }, store: false);
       return;
     }
@@ -1148,7 +1137,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   void visitLabeledStatement(js.LabeledStatement node) {
     if (!shouldTransform(node)) {
       addStatement(
-          new js.LabeledStatement(node.label, translateToStatement(node.body)));
+          new js.LabeledStatement(node.label, translateInBlock(node.body)));
       return;
     }
     // `continue label` is really continuing the nested loop.
@@ -1313,9 +1302,9 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
         List<js.SwitchClause> cases = node.cases.map((js.SwitchClause clause) {
           if (clause is js.Case) {
             return new js.Case(
-                clause.expression, translateToBlock(clause.body));
+                clause.expression, translateInBlock(clause.body));
           } else if (clause is js.Default) {
-            return new js.Default(translateToBlock(clause.body));
+            return new js.Default(translateInBlock(clause.body));
           }
         }).toList();
         addStatement(new js.Switch(key, cases));
@@ -1437,14 +1426,14 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   /// See the comments of [rewriteFunction] for more explanation.
   void visitTry(js.Try node) {
     if (!shouldTransform(node)) {
-      js.Block body = translateToBlock(node.body);
+      js.Block body = translateInBlock(node.body);
       js.Catch catchPart = (node.catchPart == null)
           ? null
           : new js.Catch(node.catchPart.declaration,
-                translateToBlock(node.catchPart.body));
+              translateInBlock(node.catchPart.body));
       js.Block finallyPart = (node.finallyPart == null)
           ? null
-          : translateToBlock(node.finallyPart);
+          : translateInBlock(node.finallyPart);
       addStatement(new js.Try(body, catchPart, finallyPart));
       return;
     }
@@ -1587,7 +1576,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
       bool oldInsideUntranslated = insideUntranslatedBreakable;
       insideUntranslatedBreakable = true;
       withExpression(node.condition, (js.Expression condition) {
-        addStatement(new js.While(condition, translateToStatement(node.body)));
+        addStatement(new js.While(condition, translateInBlock(node.body)));
       }, store: false);
       insideUntranslatedBreakable = oldInsideUntranslated;
       return;
