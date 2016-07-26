@@ -9,8 +9,6 @@
     'lib/cli.dart',
     'lib/cpu_profile.dart',
     'lib/debugger.dart',
-    'lib/mocks.dart',
-    'lib/models.dart',
     'lib/elements.dart',
     'lib/elements.html',
     'lib/mocks.dart',
