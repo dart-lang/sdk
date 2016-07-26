@@ -173,8 +173,7 @@ class Server {
           request.uri.path == '/' ? ROOT_REDIRECT_PATH : request.uri.path;
 
     if (path == WEBSOCKET_PATH) {
-      WebSocketTransformer.upgrade(request,
-                                   compression: CompressionOptions.OFF).then(
+      WebSocketTransformer.upgrade(request).then(
                                    (WebSocket webSocket) {
         new WebSocketClient(webSocket, _service);
       });
