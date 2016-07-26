@@ -5770,6 +5770,17 @@ main() {
     verify([source]);
   }
 
+  void test_unusedShownName_unresolved() {
+    Source source = addSource(r'''
+import 'dart:math' show max, FooBar;
+main() {
+  print(max(1, 2));
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.UNDEFINED_SHOWN_NAME]);
+  }
+
   void test_uriDoesNotExist_dll() {
     addNamedSource("/lib.dll", "");
     Source source = addSource("import 'dart-ext:lib';");

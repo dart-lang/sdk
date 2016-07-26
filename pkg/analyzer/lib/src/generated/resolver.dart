@@ -4655,7 +4655,9 @@ class ImportsVerifier {
     for (Combinator combinator in importDirective.combinators) {
       if (combinator is ShowCombinator) {
         for (SimpleIdentifier name in combinator.shownNames) {
-          identifiers.add(name);
+          if (name.staticElement != null) {
+            identifiers.add(name);
+          }
         }
       }
     }
