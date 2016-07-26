@@ -24,23 +24,7 @@ void main([List<String> args]) {
   }
 
   var outDir = options['out'];
-
-  if (outDir != null) {
-    Directory d = new Directory(outDir);
-    if (!d.existsSync()) {
-      print("Directory '${d.path}' does not exist");
-      return;
-    }
-  }
-
-  // Generate index
-  new Indexer(ruleRegistry).generate(outDir);
-
-  // Generate rule files
-  rules.forEach((l) => new Generator(l).generate(outDir));
-
-  // Generate options samples.
-  new OptionsSample(rules).generate(outDir);
+  generateDocs(outDir);
 }
 
 const ruleFootMatter = '''
@@ -86,6 +70,25 @@ String get enumerateStyleRules => rules
     .join('\n\n');
 
 List<String> get sortedRules => rules.map((r) => r.name).toList()..sort();
+
+void generateDocs(String outDir) {
+  if (outDir != null) {
+    Directory d = new Directory(outDir);
+    if (!d.existsSync()) {
+      print("Directory '${d.path}' does not exist");
+      return;
+    }
+  }
+
+  // Generate index
+  new Indexer(ruleRegistry).generate(outDir);
+
+  // Generate rule files
+  rules.forEach((l) => new Generator(l).generate(outDir));
+
+  // Generate options samples.
+  new OptionsSample(rules).generate(outDir);
+}
 
 void printUsage(ArgParser parser, [String error]) {
   var message = 'Generates lint docs.';

@@ -7,19 +7,31 @@ import 'dart:io';
 import 'package:grinder/grinder.dart';
 import 'package:unscripted/unscripted.dart';
 
+import 'doc.dart';
 import 'rule.dart';
 
 main([List<String> args]) {
-  addTask(new GrinderTask('rule', taskFunction: () {
-    String ruleName = context.invocation.positionals.first;
-    _generate(ruleName);
-  },
+  _addTask('rule',
+      parser: (String name) =>
+          generateRule(name, outDir: Directory.current.path),
       description: 'Generate a lint rule stub.',
-      positionals: [new Positional(valueHelp: 'Name of rule to generate')]));
+      valueHelp: 'Name of rule to generate.');
+
+  _addTask('docs',
+      parser: (String outDir) => generateDocs(outDir),
+      description: 'Generate lint rule docs.',
+      valueHelp: 'Documentation `lints/` directory.');
 
   grind(args);
 }
 
-void _generate(String ruleName) {
-  generateRule(ruleName, outDir: Directory.current.path);
+_addTask(String name, {String description, Parser parser, String valueHelp}) {
+  addTask(new GrinderTask(name, taskFunction: () {
+    String value = context.invocation.positionals.first;
+    parser(value);
+  },
+      description: description,
+      positionals: [new Positional(valueHelp: valueHelp)]));
 }
+
+typedef String Parser(String);
