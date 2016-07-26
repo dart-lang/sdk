@@ -194,6 +194,7 @@ Language/Expressions/Object_Identity/double_t02: RuntimeError # Issue #26374
 LibTest/typed_data/Float32x4/operator_division_A01_t02: RuntimeError # Issue #26675
 
 [ $hot_reload ]
+Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/getter_closurization_t08: Pass, Fail # Closure identity
 Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/method_identical_t03: Pass, Fail # Closure identity
 Language/Expressions/Property_Extraction/conditional_t05: Pass, Fail # Closure identity
 Language/Expressions/Assignment/prefix_object_t02: Crash # Requires deferred libraries
@@ -230,3 +231,4 @@ LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
 LibTest/core/Uri/Uri_A06_t03: Pass, Timeout
 LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
 LibTest/isolate/Isolate/spawn_A01_t04: Pass, Timeout
+
