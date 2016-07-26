@@ -56,7 +56,7 @@ _convertDataTree(data) {
   return _convert(data);
 }
 
-JSObject newObject() => JS('=Object', '{}');
+newObject() => JS('=Object', '{}');
 
 hasProperty(o, name) => JS('bool', '# in #', name, o);
 getProperty(o, name) => JS('Object', '#[#]', o, name);
