@@ -535,7 +535,7 @@ namespace dart {
 //     tgt jump target relative to the PC of the current instruction
 //
 // TODO(vegorov) jump targets should be encoded relative to PC of the next
-//               instruction because PC is incremeted immediately after fetch
+//               instruction because PC is incremented immediately after fetch
 //               and before decoding.
 //
 #define BYTECODES_LIST(V)                              \

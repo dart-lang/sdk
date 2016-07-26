@@ -163,9 +163,6 @@ cc/RegExp_ExternalTwoByteString: Skip
 cc/RegExp_OneByteString: Skip
 cc/RegExp_TwoByteString: Skip
 
-# TODO(vegorov) Optimizing compiler is disabled for the SIMDBC
-cc/CompileFunctionOnHelperThread: Skip
-
 # TODO(vegorov) Field guards are disabled for SIMDBC
 cc/GuardFieldConstructor2Test: Skip
 cc/GuardFieldConstructorTest: Skip
@@ -185,10 +182,6 @@ cc/Parser_AllocateVariables_MiddleChain: Skip
 
 # This test is meaningless for DBC as allocation stubs are not used.
 cc/RegenerateAllocStubs: Skip
-
-# TODO(vegorov) Enable when DBC supports optimizing compiler.
-cc/Debug_InspectStack_Optimized: Skip
-cc/Debug_InspectStackWithClosure_Optimized: Skip
 
 [ $hot_reload ]
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.

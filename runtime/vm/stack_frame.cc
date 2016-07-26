@@ -489,6 +489,7 @@ EntryFrame* StackFrameIterator::NextEntryFrame() {
 InlinedFunctionsIterator::InlinedFunctionsIterator(const Code& code, uword pc)
   : index_(0),
     num_materializations_(0),
+    dest_frame_size_(0),
     code_(Code::Handle(code.raw())),
     deopt_info_(TypedData::Handle()),
     function_(Function::Handle()),
@@ -512,6 +513,7 @@ InlinedFunctionsIterator::InlinedFunctionsIterator(const Code& code, uword pc)
     ASSERT(!deopt_table.IsNull());
     DeoptInfo::Unpack(deopt_table, deopt_info_, &deopt_instructions_);
     num_materializations_ = DeoptInfo::NumMaterializations(deopt_instructions_);
+    dest_frame_size_ = DeoptInfo::FrameSize(deopt_info_);
     object_table_ = code_.GetObjectPool();
     Advance();
   }
@@ -550,7 +552,14 @@ intptr_t InlinedFunctionsIterator::GetDeoptFpOffset() const {
        index++) {
     DeoptInstr* deopt_instr = deopt_instructions_[index];
     if (deopt_instr->kind() == DeoptInstr::kCallerFp) {
+#if defined(TARGET_ARCH_DBC)
+      // Stack on DBC is growing upwards but we record deopt commands
+      // in the same order we record them on other architectures as if
+      // the stack was growing downwards.
+      return dest_frame_size_ - index;
+#else
       return (index - num_materializations_);
+#endif
     }
   }
   UNREACHABLE();

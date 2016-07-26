@@ -827,7 +827,7 @@ RawObject* ActivationFrame::GetStackVar(intptr_t slot_index) {
   if (deopt_frame_.IsNull()) {
     return GetVariableValue(LocalVarAddress(fp(), slot_index));
   } else {
-    return deopt_frame_.At(deopt_frame_offset_ + slot_index);
+    return deopt_frame_.At(LocalVarIndex(deopt_frame_offset_, slot_index));
   }
 }
 
