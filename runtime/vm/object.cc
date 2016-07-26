@@ -2076,7 +2076,7 @@ RawArray* Class::OffsetToFieldMap() const {
       fields = cls.fields();
       for (intptr_t i = 0; i < fields.Length(); ++i) {
         f ^= fields.At(i);
-        if (!f.is_static()) {
+        if (f.is_instance()) {
           array.SetAt(f.Offset() >> kWordSizeLog2, f);
         }
       }

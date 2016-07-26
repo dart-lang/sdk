@@ -1157,13 +1157,14 @@ class Class : public Object {
 
   bool IsPrivate() const;
 
+  // Returns an array of instance and static fields defined by this class.
   RawArray* fields() const { return raw_ptr()->fields_; }
   void SetFields(const Array& value) const;
   void AddField(const Field& field) const;
   void AddFields(const GrowableArray<const Field*>& fields) const;
 
-  // Returns an array of all fields of this class and its superclasses indexed
-  // by offset in words.
+  // Returns an array of all instance fields of this class and its superclasses
+  // indexed by offset in words.
   RawArray* OffsetToFieldMap() const;
 
   // Returns true if non-static fields are defined.
@@ -1402,9 +1403,18 @@ class Class : public Object {
   void PatchFieldsAndFunctions() const;
   void CopyCanonicalConstants(const Class& old_cls) const;
   void CopyCanonicalType(const Class& old_cls) const;
-  bool CanReload(const Class& replacement) const;
+  void CheckReload(const Class& replacement,
+                   IsolateReloadContext* context) const;
 
  private:
+  bool CanReloadFinalized(const Class& replacement,
+                          IsolateReloadContext* context) const;
+  bool CanReloadPreFinalized(const Class& replacement,
+                             IsolateReloadContext* context) const;
+
+  // Tells whether instances need morphing for reload.
+  bool RequiresInstanceMorphing(const Class& replacement) const;
+
   template <class FakeObject> static RawClass* NewCommon(intptr_t index);
 
   enum MemberKind {
@@ -2970,6 +2980,7 @@ class Field : public Object {
   virtual RawString* DictionaryName() const { return name(); }
 
   bool is_static() const { return StaticBit::decode(raw_ptr()->kind_bits_); }
+  bool is_instance() const { return !is_static(); }
   bool is_final() const { return FinalBit::decode(raw_ptr()->kind_bits_); }
   bool is_const() const { return ConstBit::decode(raw_ptr()->kind_bits_); }
   bool is_reflectable() const {
@@ -3735,7 +3746,8 @@ class Library : public Object {
   // the library-specific key.
   static const char kPrivateKeySeparator = '@';
 
-  bool CanReload(const Library& replacement) const;
+  void CheckReload(const Library& replacement,
+                   IsolateReloadContext* context) const;
 
  private:
   static const int kInitialImportsCapacity = 4;
@@ -5330,7 +5342,6 @@ class Instance : public Object {
   RawObject** NativeFieldsAddr() const {
     return FieldAddrAtOffset(sizeof(RawObject));
   }
-
   void SetFieldAtOffset(intptr_t offset, const Object& value) const {
     StorePointer(FieldAddrAtOffset(offset), value.raw());
   }
@@ -5338,6 +5349,18 @@ class Instance : public Object {
 
   static intptr_t NextFieldOffset() {
     return sizeof(RawInstance);
+  }
+
+  // The follwoing raw methods are used for morphing.
+  // They are needed due to the extraction of the class in IsValidFieldOffset.
+  RawObject** RawFieldAddrAtOffset(intptr_t offset) const {
+    return reinterpret_cast<RawObject**>(raw_value() - kHeapObjectTag + offset);
+  }
+  RawObject* RawGetFieldAtOffset(intptr_t offset) const {
+    return *RawFieldAddrAtOffset(offset);
+  }
+  void RawSetFieldAtOffset(intptr_t offset, const Object& value) const {
+    StorePointer(RawFieldAddrAtOffset(offset), value.raw());
   }
 
   // TODO(iposva): Determine if this gets in the way of Smi.
@@ -5353,6 +5376,7 @@ class Instance : public Object {
   friend class InstanceSerializationCluster;
   friend class InstanceDeserializationCluster;
   friend class ClassDeserializationCluster;  // vtable
+  friend class InstanceMorpher;
 };
 
 
@@ -8528,14 +8552,14 @@ DART_FORCE_INLINE void Object::SetRaw(RawObject* value) {
 
 
 intptr_t Field::Offset() const {
-  ASSERT(!is_static());  // Valid only for dart instance fields.
+  ASSERT(is_instance());  // Valid only for dart instance fields.
   intptr_t value = Smi::Value(raw_ptr()->value_.offset_);
   return (value * kWordSize);
 }
 
 
 void Field::SetOffset(intptr_t offset_in_bytes) const {
-  ASSERT(!is_static());  // Valid only for dart instance fields.
+  ASSERT(is_instance());  // Valid only for dart instance fields.
   ASSERT(kWordSize != 0);
   StorePointer(&raw_ptr()->value_.offset_,
                Smi::New(offset_in_bytes / kWordSize));

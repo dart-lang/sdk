@@ -5,6 +5,7 @@
 #ifndef VM_ISOLATE_RELOAD_H_
 #define VM_ISOLATE_RELOAD_H_
 
+#include "vm/hash_map.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/log.h"
@@ -44,6 +45,77 @@ class ObjectPointerVisitor;
 class ObjectStore;
 class UpdateClassesVisitor;
 
+
+class InstanceMorpher : public ZoneAllocated {
+ public:
+  InstanceMorpher(const Class& from, const Class& to);
+  virtual ~InstanceMorpher() {}
+
+  // Called on each instance that needs to be morphed.
+  RawInstance* Morph(const Instance& instance) const;
+
+  // Adds an object to be morphed.
+  void AddObject(RawObject* object) const;
+
+  // Create the morphed objects based on the before() list.
+  void CreateMorphedCopies() const;
+
+  // Dump the state of the morpher.
+  void Dump() const;
+
+  // Returns the list of objects that need to be morphed.
+  ZoneGrowableArray<const Instance*>* before() const { return before_; }
+  // Returns the list of morphed objects (matches order in before()).
+  ZoneGrowableArray<const Instance*>* after() const { return after_; }
+
+  // Returns the cid associated with the from_ and to_ class.
+  intptr_t cid() const { return cid_; }
+
+ private:
+  const Class& from_;
+  const Class& to_;
+  ZoneGrowableArray<intptr_t> mapping_;
+  ZoneGrowableArray<const Instance*>* before_;
+  ZoneGrowableArray<const Instance*>* after_;
+  intptr_t cid_;
+
+  void ComputeMapping();
+  void DumpFormatFor(const Class& cls) const;
+};
+
+
+class ReasonForCancelling : public ZoneAllocated {
+ public:
+  ReasonForCancelling() {}
+  virtual ~ReasonForCancelling() {}
+
+  // Reports a reason for cancelling reload.
+  void Report(IsolateReloadContext* context);
+
+  // Conversion to a VM error object.
+  // Default implementation calls ToString.
+  virtual RawError* ToError();
+
+  // Conversion to a string object.
+  // Default implementation calls ToError.
+  virtual RawString* ToString();
+
+  // Concrete subclasses must override either ToError or ToString.
+};
+
+
+// Abstract class for also capturing the from_ and to_ class.
+class ClassReasonForCancelling : public ReasonForCancelling {
+ public:
+  ClassReasonForCancelling(const Class& from, const Class& to)
+      : from_(from), to_(to) { }
+
+ protected:
+  const Class& from_;
+  const Class& to_;
+};
+
+
 class IsolateReloadContext {
  public:
   explicit IsolateReloadContext(Isolate* isolate);
@@ -57,12 +129,12 @@ class IsolateReloadContext {
 
   RawGrowableObjectArray* saved_libraries() const;
 
+  // Report back through the observatory channels.
   void ReportError(const Error& error);
-  void ReportError(const String& error_msg);
   void ReportSuccess();
 
-  bool has_error() const { return has_error_; }
-  RawError* error() const { return error_; }
+  bool has_error() const { return HasReasonsForCancelling(); }
+  RawError* error() const;
 
   static bool IsSameField(const Field& a, const Field& b);
   static bool IsSameLibrary(const Library& a_lib, const Library& b_lib);
@@ -82,6 +154,25 @@ class IsolateReloadContext {
   RawString* FindLibraryPrivateKey(const Library& replacement_or_new);
 
   int64_t start_time_micros() const { return start_time_micros_; }
+
+  // Tells whether there are reasons for cancelling the reload.
+  bool HasReasonsForCancelling() const {
+    return !reasons_to_cancel_reload_.is_empty();
+  }
+
+  // Record problem for this reload.
+  void AddReasonForCancelling(ReasonForCancelling* reason);
+
+  // Report all reasons for cancelling reload.
+  void ReportReasonsForCancelling();
+
+  // Store morphing operation.
+  void AddInstanceMorpher(InstanceMorpher* morpher);
+
+  // Tells whether instance in the heap must be morphed.
+  bool HasInstanceMorphers() const {
+    return !instance_morphers_.is_empty();
+  }
 
  private:
   void set_saved_root_library(const Library& value);
@@ -103,6 +194,9 @@ class IsolateReloadContext {
   // Is |lib| a library whose sources have not changed?
   bool IsCleanLibrary(const Library& lib);
   void CheckpointLibraries();
+
+  // Transforms the heap based on instance_morphers_.
+  void MorphInstances();
 
   bool ValidateReload();
 
@@ -129,12 +223,32 @@ class IsolateReloadContext {
 
   int64_t start_time_micros_;
   Isolate* isolate_;
-  bool has_error_;
 
   intptr_t saved_num_cids_;
   RawClass** saved_class_table_;
-
   intptr_t num_saved_libs_;
+
+  // Collect the necessary instance transformation for schema changes.
+  ZoneGrowableArray<InstanceMorpher*> instance_morphers_;
+
+  // Collects the reasons for cancelling the reload.
+  ZoneGrowableArray<ReasonForCancelling*> reasons_to_cancel_reload_;
+
+  // Required trait for the cid_mapper_;
+  struct MorpherTrait {
+    typedef InstanceMorpher* Value;
+    typedef intptr_t Key;
+    typedef InstanceMorpher* Pair;
+
+    static Key KeyOf(Pair kv) { return kv->cid(); }
+    static Value ValueOf(Pair kv) { return kv; }
+    static intptr_t Hashcode(Key key) { return key; }
+    static bool IsKeyEqual(Pair kv, Key key) { return kv->cid() == key; }
+  };
+
+  // Hash map from cid to InstanceMorpher.
+  DirectChainedHashMap<MorpherTrait> cid_mapper_;
+
   struct LibraryInfo {
     bool dirty;
   };
@@ -176,6 +290,7 @@ class IsolateReloadContext {
 
   friend class Isolate;
   friend class Class;  // AddStaticFieldMapping, AddEnumBecomeMapping.
+  friend class ObjectLocator;
 };
 
 }  // namespace dart

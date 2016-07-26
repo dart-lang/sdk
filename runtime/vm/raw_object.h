@@ -640,6 +640,8 @@ CLASS_LIST_TYPED_DATA(DEFINE_IS_CID)
   friend class NativeEntry;  // GetClassId
   friend class Simulator;
   friend class SimulatorHelpers;
+  friend class ObjectLocator;
+  friend class InstanceMorpher;  // GetClassId
   friend class VerifyCanonicalVisitor;
 
   DISALLOW_ALLOCATION();

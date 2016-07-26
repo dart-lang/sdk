@@ -44,6 +44,152 @@ DEFINE_FLAG(bool, check_reloaded, false,
                                    #name)
 
 
+InstanceMorpher::InstanceMorpher(const Class& from, const Class& to)
+  : from_(from), to_(to), mapping_() {
+  ComputeMapping();
+  before_ = new ZoneGrowableArray<const Instance*>();
+  after_ = new ZoneGrowableArray<const Instance*>();
+  ASSERT(from_.id() == to_.id());
+  cid_ = from_.id();
+}
+
+
+void InstanceMorpher::AddObject(RawObject* object) const {
+  ASSERT(object->GetClassId() == cid());
+  const Instance& instance = Instance::Cast(Object::Handle(object));
+  before_->Add(&instance);
+}
+
+
+void InstanceMorpher::ComputeMapping() {
+  if (from_.NumTypeArguments()) {
+    // Add copying of the optional type argument field.
+    intptr_t from_offset = from_.type_arguments_field_offset();
+    ASSERT(from_offset != Class::kNoTypeArguments);
+    intptr_t to_offset = to_.type_arguments_field_offset();
+    ASSERT(to_offset != Class::kNoTypeArguments);
+    mapping_.Add(from_offset);
+    mapping_.Add(to_offset);
+  }
+
+  // Add copying of the instance fields if matching by name.
+  // Note: currently the type of the fields are ignored.
+  const Array& from_fields = Array::Handle(from_.OffsetToFieldMap());
+  const Array& to_fields = Array::Handle(to_.OffsetToFieldMap());
+  Field& from_field = Field::Handle();
+  Field& to_field = Field::Handle();
+  String& from_name = String::Handle();
+  String& to_name = String::Handle();
+  for (intptr_t i = 0; i < from_fields.Length(); i++) {
+    if (from_fields.At(i) == Field::null()) continue;  // Ignore non-fields.
+    from_field = Field::RawCast(from_fields.At(i));
+    ASSERT(from_field.is_instance());
+    from_name = from_field.name();
+    // We now have to find where this field is in the to class.
+    for (intptr_t j = 0; j < to_fields.Length(); j++) {
+      if (to_fields.At(j) == Field::null()) continue;  // Ignore non-fields.
+      to_field = Field::RawCast(to_fields.At(j));
+      ASSERT(to_field.is_instance());
+      to_name = to_field.name();
+      if (from_name.Equals(to_name)) {
+        // Success
+        mapping_.Add(from_field.Offset());
+        mapping_.Add(to_field.Offset());
+      }
+    }
+  }
+}
+
+
+RawInstance* InstanceMorpher::Morph(const Instance& instance) const {
+  const Instance& result = Instance::Handle(Instance::New(to_));
+  // Morph the context from instance to result using mapping_.
+  for (intptr_t i = 0; i < mapping_.length(); i +=2) {
+    intptr_t from_offset = mapping_.At(i);
+    intptr_t to_offset = mapping_.At(i+1);
+    const Object& value =
+        Object::Handle(instance.RawGetFieldAtOffset(from_offset));
+    result.RawSetFieldAtOffset(to_offset, value);
+  }
+  // Convert the instance into a filler object.
+  Become::MakeDummyObject(instance);
+  return result.raw();
+}
+
+
+void InstanceMorpher::CreateMorphedCopies() const {
+  for (intptr_t i = 0; i < before()->length(); i++) {
+    const Instance& copy = Instance::Handle(Morph(*before()->At(i)));
+    after()->Add(&copy);
+  }
+}
+
+
+void InstanceMorpher::DumpFormatFor(const Class& cls) const {
+  THR_Print("%s\n", cls.ToCString());
+  if (cls.NumTypeArguments()) {
+    intptr_t field_offset = cls.type_arguments_field_offset();
+    ASSERT(field_offset != Class::kNoTypeArguments);
+    THR_Print("  - @%" Pd " <type arguments>\n", field_offset);
+  }
+  const Array& fields = Array::Handle(cls.OffsetToFieldMap());
+  Field& field = Field::Handle();
+  String& name = String::Handle();
+  for (intptr_t i = 0; i < fields.Length(); i++) {
+    if (fields.At(i) != Field::null()) {
+      field = Field::RawCast(fields.At(i));
+      ASSERT(field.is_instance());
+      name = field.name();
+      THR_Print("  - @%" Pd " %s\n", field.Offset(), name.ToCString());
+    }
+  }
+
+  THR_Print("Mapping: ");
+  for (int i = 0; i < mapping_.length(); i +=2) {
+    THR_Print(" %" Pd "->%" Pd,  mapping_.At(i),  mapping_.At(i+1));
+  }
+  THR_Print("\n");
+}
+
+
+void InstanceMorpher::Dump() const {
+  LogBlock blocker;
+  THR_Print("Morphing from ");
+  DumpFormatFor(from_);
+  THR_Print("To ");
+  DumpFormatFor(to_);
+  THR_Print("\n");
+}
+
+
+void ReasonForCancelling::Report(IsolateReloadContext* context) {
+  const Error& error = Error::Handle(ToError());
+  context->ReportError(error);
+}
+
+
+RawError* ReasonForCancelling::ToError() {
+  // By default create the error returned from ToString.
+  const String& message = String::Handle(ToString());
+  return LanguageError::New(message);
+}
+
+
+RawString* ReasonForCancelling::ToString() {
+  UNREACHABLE();
+  return NULL;
+}
+
+
+RawError* IsolateReloadContext::error() const {
+  ASSERT(has_error());
+  // Report the first error to the surroundings.
+  const Error& error =
+      Error::Handle(reasons_to_cancel_reload_.At(0)->ToError());
+  OS::Print("[[%s]]\n", error.ToCString());
+  return error.raw();
+}
+
 class ScriptUrlSetTraits {
  public:
   static bool ReportStats() { return false; }
@@ -180,10 +326,12 @@ bool IsolateReloadContext::IsSameLibrary(
 IsolateReloadContext::IsolateReloadContext(Isolate* isolate)
     : start_time_micros_(OS::GetCurrentMonotonicMicros()),
       isolate_(isolate),
-      has_error_(false),
       saved_num_cids_(-1),
       saved_class_table_(NULL),
       num_saved_libs_(-1),
+      instance_morphers_(),
+      reasons_to_cancel_reload_(),
+      cid_mapper_(),
       script_uri_(String::null()),
       error_(Error::null()),
       old_classes_set_storage_(Array::null()),
@@ -205,8 +353,6 @@ IsolateReloadContext::~IsolateReloadContext() {
 
 
 void IsolateReloadContext::ReportError(const Error& error) {
-  has_error_ = true;
-  error_ = error.raw();
   if (FLAG_trace_reload) {
     THR_Print("ISO-RELOAD: Error: %s\n", error.ToErrorCString());
   }
@@ -216,15 +362,25 @@ void IsolateReloadContext::ReportError(const Error& error) {
 }
 
 
-void IsolateReloadContext::ReportError(const String& error_msg) {
-  ReportError(LanguageError::Handle(LanguageError::New(error_msg)));
-}
-
-
 void IsolateReloadContext::ReportSuccess() {
   ServiceEvent service_event(I, ServiceEvent::kIsolateReload);
   Service::HandleEvent(&service_event);
 }
+
+
+class Aborted : public ReasonForCancelling {
+ public:
+  explicit Aborted(const Error& error)
+      : ReasonForCancelling(), error_(error) { }
+
+ private:
+  const Error& error_;
+
+  RawError* ToError() { return error_.raw(); }
+  RawString* ToString() {
+    return String::NewFormatted("%s", error_.ToErrorCString());
+  }
+};
 
 
 void IsolateReloadContext::StartReload() {
@@ -281,7 +437,8 @@ void IsolateReloadContext::StartReload() {
     result = Api::UnwrapHandle(retval);
   }
   if (result.IsError()) {
-    ReportError(Error::Cast(result));
+    const Error& error = Error::Cast(result);
+    AddReasonForCancelling(new Aborted(error));
   }
 }
 
@@ -319,6 +476,7 @@ void IsolateReloadContext::FinishReload() {
     Commit();
     PostCommit();
   } else {
+    ReportReasonsForCancelling();
     Rollback();
   }
   // ValidateReload mutates the direct subclass information and does
@@ -336,7 +494,8 @@ void IsolateReloadContext::FinishReload() {
 
 
 void IsolateReloadContext::AbortReload(const Error& error) {
-  ReportError(error);
+  AddReasonForCancelling(new Aborted(error));
+  ReportReasonsForCancelling();
   Rollback();
 }
 
@@ -585,6 +744,15 @@ void IsolateReloadContext::Commit() {
   TIMELINE_SCOPE(Commit);
   TIR_Print("---- COMMITTING REVERSE MAP\n");
 
+  // Note that the object heap contains before and after instances
+  // used for morphing. It is therefore important that morphing takes
+  // place prior to any heap walking.
+  // So please keep this code at the top of Commit().
+  if (HasInstanceMorphers()) {
+    // Perform shape shifting of instances if necessary.
+    MorphInstances();
+  }
+
 #ifdef DEBUG
   VerifyMaps();
 #endif
@@ -740,11 +908,108 @@ void IsolateReloadContext::PostCommit() {
 }
 
 
+void IsolateReloadContext::AddReasonForCancelling(ReasonForCancelling* reason) {
+  reasons_to_cancel_reload_.Add(reason);
+}
+
+
+void IsolateReloadContext::AddInstanceMorpher(InstanceMorpher* morpher) {
+  instance_morphers_.Add(morpher);
+  cid_mapper_.Insert(morpher);
+}
+
+
+void IsolateReloadContext::ReportReasonsForCancelling() {
+  ASSERT(HasReasonsForCancelling());
+  for (int i = 0; i < reasons_to_cancel_reload_.length(); i++) {
+    reasons_to_cancel_reload_.At(i)->Report(this);
+  }
+}
+
+
+// The ObjectLocator is used for collecting instances that
+// needs to be morphed.
+class ObjectLocator : public ObjectVisitor {
+ public:
+  explicit ObjectLocator(IsolateReloadContext* context)
+      : context_(context), count_(0) {
+  }
+
+  void VisitObject(RawObject* obj) {
+    InstanceMorpher* morpher =
+        context_->cid_mapper_.LookupValue(obj->GetClassId());
+    if (morpher != NULL) {
+      morpher->AddObject(obj);
+      count_++;
+    }
+  }
+
+  // Return the number of located objects for morphing.
+  intptr_t count() { return count_; }
+
+ private:
+  IsolateReloadContext* context_;
+  intptr_t count_;
+};
+
+
+void IsolateReloadContext::MorphInstances() {
+  TIMELINE_SCOPE(MorphInstances);
+  ASSERT(HasInstanceMorphers());
+  if (FLAG_trace_reload) {
+    LogBlock blocker;
+    TIR_Print("MorphInstance: \n");
+    for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
+      instance_morphers_.At(i)->Dump();
+    }
+  }
+
+  // Find all objects that need to be morphed.
+  ObjectLocator locator(this);
+  isolate()->heap()->VisitObjects(&locator);
+
+  // Return if no objects are located.
+  intptr_t count = locator.count();
+  if (count == 0) return;
+
+  TIR_Print("Found %" Pd " object%s subject to morphing.\n",
+            count, (count > 1) ? "s" : "");
+
+  Array& before = Array::Handle();
+  Array& after = Array::Handle();
+  { // Prevent GC to take place due object format confusion.
+    // Hint: More than one class share the same cid.
+    NoHeapGrowthControlScope scope;
+    for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
+      instance_morphers_.At(i)->CreateMorphedCopies();
+    }
+    // Create the inputs for Become.
+    intptr_t index = 0;
+    before = Array::New(count);
+    after = Array::New(count);
+    for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
+      InstanceMorpher* morpher = instance_morphers_.At(i);
+      for (intptr_t j = 0; j < morpher->before()->length(); j++) {
+        before.SetAt(index, *morpher->before()->At(j));
+        after.SetAt(index, *morpher->after()->At(j));
+        index++;
+      }
+    }
+    ASSERT(index == count);
+  }
+
+  // This is important: The saved class table (describing before objects)
+  // must be zapped to prevent the forwarding in GetClassForHeapWalkAt.
+  // Instance will from now be described by the isolate's class table.
+  free(saved_class_table_);
+  saved_class_table_ = NULL;
+  Become::ElementsForwardIdentity(before, after);
+}
+
+
 bool IsolateReloadContext::ValidateReload() {
   TIMELINE_SCOPE(ValidateReload);
-  if (has_error_) {
-    return false;
-  }
+  if (has_error()) return false;
 
   // Validate libraries.
   {
@@ -758,10 +1023,7 @@ bool IsolateReloadContext::ValidateReload() {
       new_lib = Library::RawCast(map.GetKey(entry));
       lib = Library::RawCast(map.GetPayload(entry, 0));
       if (new_lib.raw() != lib.raw()) {
-        if (!lib.CanReload(new_lib)) {
-          map.Release();
-          return false;
-        }
+        lib.CheckReload(new_lib, this);
       }
     }
     map.Release();
@@ -779,15 +1041,13 @@ bool IsolateReloadContext::ValidateReload() {
       new_cls = Class::RawCast(map.GetKey(entry));
       cls = Class::RawCast(map.GetPayload(entry, 0));
       if (new_cls.raw() != cls.raw()) {
-        if (!cls.CanReload(new_cls)) {
-          map.Release();
-          return false;
-        }
+        cls.CheckReload(new_cls, this);
       }
     }
     map.Release();
   }
-  return true;
+
+  return !HasReasonsForCancelling();
 }
 
 

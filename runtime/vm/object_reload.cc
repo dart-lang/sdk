@@ -18,7 +18,6 @@ DECLARE_FLAG(bool, trace_reload);
 DECLARE_FLAG(bool, trace_reload_verbose);
 DECLARE_FLAG(bool, two_args_smi_icd);
 
-#define IRC (Isolate::Current()->reload_context())
 
 class ObjectReloadUtils : public AllStatic {
   static void DumpLibraryDictionary(const Library& lib) {
@@ -364,127 +363,237 @@ void Class::PatchFieldsAndFunctions() const {
 }
 
 
-bool Class::CanReload(const Class& replacement) const {
+class EnumClassConflict : public ClassReasonForCancelling {
+ public:
+  EnumClassConflict(const Class& from, const Class& to)
+      : ClassReasonForCancelling(from, to) { }
+
+  RawString* ToString() {
+    return String::NewFormatted(
+        from_.is_enum_class()
+        ? "Enum class cannot be redefined to be a non-enum class: %s"
+        : "Class cannot be redefined to be a enum class: %s",
+        from_.ToCString());
+  }
+};
+
+
+class EnsureFinalizedError : public ClassReasonForCancelling {
+ public:
+  EnsureFinalizedError(const Class& from, const Class& to, const Error& error)
+      : ClassReasonForCancelling(from, to), error_(error) { }
+
+ private:
+  const Error& error_;
+
+  RawError* ToError() { return error_.raw(); }
+};
+
+
+class NativeFieldsConflict : public ClassReasonForCancelling {
+ public:
+  NativeFieldsConflict(const Class& from, const Class& to)
+      : ClassReasonForCancelling(from, to) { }
+
+ private:
+  RawString* ToString() {
+    return String::NewFormatted(
+        "Number of native fields changed in %s", from_.ToCString());
+  }
+};
+
+
+class TypeParametersChanged : public ClassReasonForCancelling {
+ public:
+  TypeParametersChanged(const Class& from, const Class& to)
+      : ClassReasonForCancelling(from, to) {}
+
+  RawString* ToString() {
+    return String::NewFormatted(
+        "Limitation: type parameters have changed for %s", from_.ToCString());
+  }
+};
+
+
+class PreFinalizedConflict :  public ClassReasonForCancelling {
+ public:
+  PreFinalizedConflict(const Class& from, const Class& to)
+      : ClassReasonForCancelling(from, to) {}
+
+ private:
+  RawString* ToString() {
+    return String::NewFormatted(
+        "Original class ('%s') is prefinalized and replacement class "
+        "('%s') is not ",
+        from_.ToCString(), to_.ToCString());
+  }
+};
+
+
+class InstanceSizeConflict :  public ClassReasonForCancelling {
+ public:
+  InstanceSizeConflict(const Class& from, const Class& to)
+      : ClassReasonForCancelling(from, to) {}
+
+ private:
+  RawString* ToString() {
+    return String::NewFormatted(
+        "Instance size mismatch between '%s' (%" Pd ") and replacement "
+        "'%s' ( %" Pd ")",
+        from_.ToCString(),
+        from_.instance_size(),
+        to_.ToCString(),
+        to_.instance_size());
+  }
+};
+
+
+class UnimplementedDeferredLibrary : public ReasonForCancelling {
+ public:
+  UnimplementedDeferredLibrary(const Library& from,
+                               const Library& to,
+                               const String& name)
+      : ReasonForCancelling(), from_(from), to_(to), name_(name) {}
+
+ private:
+  const Library& from_;
+  const Library& to_;
+  const String& name_;
+
+  RawString* ToString() {
+    const String& lib_url = String::Handle(to_.url());
+    return String::NewFormatted(
+        "Reloading support for deferred loading has not yet been implemented:"
+        " library '%s' has deferred import '%s'",
+        lib_url.ToCString(), name_.ToCString());
+  }
+};
+
+
+// This is executed before interating over the instances.
+void Class::CheckReload(const Class& replacement,
+                        IsolateReloadContext* context) const {
   ASSERT(IsolateReloadContext::IsSameClass(*this, replacement));
 
-  if (is_enum_class() && !replacement.is_enum_class()) {
-    IRC->ReportError(String::Handle(String::NewFormatted(
-        "Enum class cannot be redefined to be a non-enum class: %s",
-        ToCString())));
-    return false;
-  }
-
-  if (!is_enum_class() && replacement.is_enum_class()) {
-    IRC->ReportError(String::Handle(String::NewFormatted(
-        "Class cannot be redefined to be a enum class: %s",
-        ToCString())));
-    return false;
+  // Class cannot change enum property.
+  if (is_enum_class() != replacement.is_enum_class()) {
+    context->AddReasonForCancelling(
+        new EnumClassConflict(*this, replacement));
+    return;
   }
 
   if (is_finalized()) {
+    // Ensure the replacement class is also finalized.
     const Error& error =
         Error::Handle(replacement.EnsureIsFinalized(Thread::Current()));
     if (!error.IsNull()) {
-      IRC->ReportError(error);
-      return false;
+      context->AddReasonForCancelling(
+          new EnsureFinalizedError(*this, replacement, error));
+      return;  // No reason to check other properties.
     }
     TIR_Print("Finalized replacement class for %s\n", ToCString());
   }
 
-  // At this point the original and replacement must be in the same state.
-  ASSERT(is_finalized() == replacement.is_finalized());
+  // Native field count cannot change.
+  if (num_native_fields() != replacement.num_native_fields()) {
+      context->AddReasonForCancelling(
+          new NativeFieldsConflict(*this, replacement));
+      return;
+  }
+
+  // Just checking.
+  ASSERT(is_enum_class() == replacement.is_enum_class());
+  ASSERT(num_native_fields() == replacement.num_native_fields());
 
   if (is_finalized()) {
-    // Get the field maps for both classes. These field maps walk the class
-    // hierarchy.
-    const Array& fields =
-        Array::Handle(OffsetToFieldMap());
-    const Array& replacement_fields =
-        Array::Handle(replacement.OffsetToFieldMap());
-
-    // Check that the size of the instance is the same.
-    if (fields.Length() != replacement_fields.Length()) {
-      IRC->ReportError(String::Handle(String::NewFormatted(
-          "Number of instance fields changed in %s", ToCString())));
-      return false;
-    }
-
-    // Check that we have the same next field offset. This check is not
-    // redundant with the one above because the instance OffsetToFieldMap
-    // array length is based on the instance size (which may be aligned up).
-    if (next_field_offset() != replacement.next_field_offset()) {
-      IRC->ReportError(String::Handle(String::NewFormatted(
-          "Number of instance fields changed in %s", ToCString())));
-      return false;
-    }
-
-    if (NumTypeArguments() != replacement.NumTypeArguments()) {
-      IRC->ReportError(String::Handle(String::NewFormatted(
-          "Number of type arguments changed in %s", ToCString())));
-      return false;
-    }
-
-    // Verify that field names / offsets match across the entire hierarchy.
-    Field& field = Field::Handle();
-    String& field_name = String::Handle();
-    Field& replacement_field = Field::Handle();
-    String& replacement_field_name = String::Handle();
-    for (intptr_t i = 0; i < fields.Length(); i++) {
-      if (fields.At(i) == Field::null()) {
-        ASSERT(replacement_fields.At(i) == Field::null());
-        continue;
-      }
-      field = Field::RawCast(fields.At(i));
-      replacement_field = Field::RawCast(replacement_fields.At(i));
-      field_name = field.name();
-      replacement_field_name = replacement_field.name();
-      if (!field_name.Equals(replacement_field_name)) {
-        IRC->ReportError(String::Handle(String::NewFormatted(
-            "Name of instance field changed ('%s' vs '%s') in '%s'",
-            field_name.ToCString(),
-            replacement_field_name.ToCString(),
-            ToCString())));
-        return false;
-      }
-    }
-  } else if (is_prefinalized()) {
-    if (!replacement.is_prefinalized()) {
-      IRC->ReportError(String::Handle(String::NewFormatted(
-          "Original class ('%s') is prefinalized and replacement class "
-          "('%s') is not ",
-          ToCString(), replacement.ToCString())));
-      return false;
-    }
-    if (instance_size() != replacement.instance_size()) {
-     IRC->ReportError(String::Handle(String::NewFormatted(
-         "Instance size mismatch between '%s' (%" Pd ") and replacement "
-         "'%s' ( %" Pd ")",
-         ToCString(),
-         instance_size(),
-         replacement.ToCString(),
-         replacement.instance_size())));
-     return false;
-    }
+    if (!CanReloadFinalized(replacement, context)) return;
   }
+  if (is_prefinalized()) {
+    if (!CanReloadPreFinalized(replacement, context)) return;
+  }
+  ASSERT(is_finalized() == replacement.is_finalized());
+  TIR_Print("Class `%s` can be reloaded (%" Pd " and %" Pd ")\n",
+            ToCString(), id(), replacement.id());
+}
 
-  // native field count check.
-  if (num_native_fields() != replacement.num_native_fields()) {
-    IRC->ReportError(String::Handle(String::NewFormatted(
-        "Number of native fields changed in %s", ToCString())));
+
+
+bool Class::RequiresInstanceMorphing(const Class& replacement) const {
+  // Get the field maps for both classes. These field maps walk the class
+  // hierarchy.
+  const Array& fields = Array::Handle(OffsetToFieldMap());
+  const Array& replacement_fields
+      = Array::Handle(replacement.OffsetToFieldMap());
+
+  // Check that the size of the instance is the same.
+  if (fields.Length() != replacement_fields.Length()) return true;
+
+  // Check that we have the same next field offset. This check is not
+  // redundant with the one above because the instance OffsetToFieldMap
+  // array length is based on the instance size (which may be aligned up).
+  if (next_field_offset() != replacement.next_field_offset()) return true;
+
+  // Verify that field names / offsets match across the entire hierarchy.
+  Field& field = Field::Handle();
+  String& field_name = String::Handle();
+  Field& replacement_field = Field::Handle();
+  String& replacement_field_name = String::Handle();
+
+  for (intptr_t i = 0; i < fields.Length(); i++) {
+    if (fields.At(i) == Field::null()) {
+      ASSERT(replacement_fields.At(i) == Field::null());
+      continue;
+    }
+    field = Field::RawCast(fields.At(i));
+    replacement_field = Field::RawCast(replacement_fields.At(i));
+    field_name = field.name();
+    replacement_field_name = replacement_field.name();
+    if (!field_name.Equals(replacement_field_name)) return true;
+  }
+  return false;
+}
+
+
+bool Class::CanReloadFinalized(const Class& replacement,
+                               IsolateReloadContext* context) const {
+  // Make sure the declaration types matches for the two classes.
+  // ex. class A<int,B> {} cannot be replace with class A<B> {}.
+
+  const AbstractType& dt = AbstractType::Handle(DeclarationType());
+  const AbstractType& replacement_dt =
+      AbstractType::Handle(replacement.DeclarationType());
+  if (!dt.Equals(replacement_dt)) {
+    context->AddReasonForCancelling(
+        new TypeParametersChanged(*this, replacement));
     return false;
   }
-
-  // TODO(johnmccutchan) type parameter count check.
-
-  TIR_Print("Class `%s` can be reloaded (%" Pd " and %" Pd ")\n",
-            ToCString(),
-            id(),
-            replacement.id());
+  if (RequiresInstanceMorphing(replacement)) {
+    context->AddInstanceMorpher(new InstanceMorpher(*this, replacement));
+  }
   return true;
 }
 
 
-bool Library::CanReload(const Library& replacement) const {
+bool Class::CanReloadPreFinalized(const Class& replacement,
+                                  IsolateReloadContext* context) const {
+  // The replacement class must also prefinalized.
+  if (!replacement.is_prefinalized()) {
+      context->AddReasonForCancelling(
+          new PreFinalizedConflict(*this, replacement));
+      return false;
+  }
+  // Check the instance sizes are equal.
+  if (instance_size() != replacement.instance_size()) {
+      context->AddReasonForCancelling(
+          new InstanceSizeConflict(*this, replacement));
+      return false;
+  }
+  return true;
+}
+
+
+void Library::CheckReload(const Library& replacement,
+                          IsolateReloadContext* context) const {
   // TODO(26878): If the replacement library uses deferred loading,
   // reject it.  We do not yet support reloading deferred libraries.
   LibraryPrefix& prefix = LibraryPrefix::Handle();
@@ -492,20 +601,17 @@ bool Library::CanReload(const Library& replacement) const {
   while (it.HasNext()) {
     prefix = it.GetNext();
     if (prefix.is_deferred_load()) {
-      const String& lib_url = String::Handle(replacement.url());
       const String& prefix_name = String::Handle(prefix.name());
-      IRC->ReportError(String::Handle(String::NewFormatted(
-          "Reloading support for deferred loading has not yet been implemented:"
-          " library '%s' has deferred import '%s'",
-          lib_url.ToCString(), prefix_name.ToCString())));
-      return false;
+      context->AddReasonForCancelling(
+          new UnimplementedDeferredLibrary(*this, replacement, prefix_name));
+      return;
     }
   }
-  return true;
 }
 
 
 static const Function* static_call_target = NULL;
+
 
 void ICData::Reset() const {
   if (is_static_call()) {
