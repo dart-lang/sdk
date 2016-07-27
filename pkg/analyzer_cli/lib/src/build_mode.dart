@@ -184,8 +184,10 @@ class BuildMode {
 
     // Write summary.
     assembler = new PackageBundleAssembler(
-        excludeHashes: options.buildSummaryExcludeInformative);
-    if (options.buildSummaryOutput != null) {
+        excludeHashes: options.buildSummaryExcludeInformative &&
+            options.buildSummaryOutputSemantic == null);
+    if (options.buildSummaryOutput != null ||
+        options.buildSummaryOutputSemantic != null) {
       if (options.buildSummaryOnlyAst && !options.buildSummaryFallback) {
         _serializeAstBasedSummary(explicitSources);
       } else {
@@ -209,8 +211,17 @@ class BuildMode {
       if (options.buildSummaryExcludeInformative) {
         sdkBundle.flushInformative();
       }
-      io.File file = new io.File(options.buildSummaryOutput);
-      file.writeAsBytesSync(sdkBundle.toBuffer(), mode: io.FileMode.WRITE_ONLY);
+      if (options.buildSummaryOutput != null) {
+        io.File file = new io.File(options.buildSummaryOutput);
+        file.writeAsBytesSync(sdkBundle.toBuffer(),
+            mode: io.FileMode.WRITE_ONLY);
+      }
+      if (options.buildSummaryOutputSemantic != null) {
+        sdkBundle.flushInformative();
+        io.File file = new io.File(options.buildSummaryOutputSemantic);
+        file.writeAsBytesSync(sdkBundle.toBuffer(),
+            mode: io.FileMode.WRITE_ONLY);
+      }
     }
 
     if (options.buildSummaryOnly) {
@@ -257,7 +268,7 @@ class BuildMode {
           Driver.createAnalysisOptionsForCommandLineOptions(options);
       directorySdk.useSummary = !options.buildSummaryOnlyAst;
       sdk = directorySdk;
-      sdkBundle = directorySdk.getSummarySdkBundle();
+      sdkBundle = directorySdk.getSummarySdkBundle(options.strongMode);
     }
 
     // In AST mode include SDK bundle to avoid parsing SDK sources.

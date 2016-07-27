@@ -413,6 +413,10 @@ class MethodParameter {
     return true;
   }
 
+  virtual bool ValidateObject(const Object& value) const {
+    return true;
+  }
+
   const char* name() const {
     return name_;
   }
@@ -427,9 +431,39 @@ class MethodParameter {
     PrintInvalidParamError(js, name);
   }
 
+  virtual void PrintErrorObject(const char* name,
+                                const Object& value,
+                                JSONStream* js) const {
+    PrintInvalidParamError(js, name);
+  }
+
  private:
   const char* name_;
   bool required_;
+};
+
+
+class DartStringParameter : public MethodParameter {
+ public:
+  DartStringParameter(const char* name, bool required)
+      : MethodParameter(name, required) {
+  }
+
+  virtual bool ValidateObject(const Object& value) const {
+    return value.IsString();
+  }
+};
+
+
+class DartListParameter : public MethodParameter {
+ public:
+  DartListParameter(const char* name, bool required)
+      : MethodParameter(name, required) {
+  }
+
+  virtual bool ValidateObject(const Object& value) const {
+    return value.IsArray() || value.IsGrowableObjectArray();
+  }
 };
 
 
@@ -441,6 +475,10 @@ class NoSuchParameter : public MethodParameter {
 
   virtual bool Validate(const char* value) const {
     return (value == NULL);
+  }
+
+  virtual bool ValidateObject(const Object& value) const {
+    return value.IsNull();
   }
 };
 
@@ -737,19 +775,38 @@ static bool ValidateParameters(const MethodParameter* const* parameters,
   if (parameters == NULL) {
     return true;
   }
-  for (intptr_t i = 0; parameters[i] != NULL; i++) {
-    const MethodParameter* parameter = parameters[i];
-    const char* name = parameter->name();
-    const bool required = parameter->required();
-    const char* value = js->LookupParam(name);
-    const bool has_parameter = (value != NULL);
-    if (required && !has_parameter) {
-      PrintMissingParamError(js, name);
-      return false;
+  if (js->NumObjectParameters() > 0) {
+    Object& value = Object::Handle();
+    for (intptr_t i = 0; parameters[i] != NULL; i++) {
+      const MethodParameter* parameter = parameters[i];
+      const char* name = parameter->name();
+      const bool required = parameter->required();
+      value = js->LookupObjectParam(name);
+      const bool has_parameter = !value.IsNull();
+      if (required && !has_parameter) {
+        PrintMissingParamError(js, name);
+        return false;
+      }
+      if (has_parameter && !parameter->ValidateObject(value)) {
+        parameter->PrintErrorObject(name, value, js);
+        return false;
+      }
     }
-    if (has_parameter && !parameter->Validate(value)) {
-      parameter->PrintError(name, value, js);
-      return false;
+  } else {
+    for (intptr_t i = 0; parameters[i] != NULL; i++) {
+      const MethodParameter* parameter = parameters[i];
+      const char* name = parameter->name();
+      const bool required = parameter->required();
+      const char* value = js->LookupParam(name);
+      const bool has_parameter = (value != NULL);
+      if (required && !has_parameter) {
+        PrintMissingParamError(js, name);
+        return false;
+      }
+      if (has_parameter && !parameter->Validate(value)) {
+        parameter->PrintError(name, value, js);
+        return false;
+      }
     }
   }
   return true;
@@ -775,7 +832,9 @@ void Service::PostError(const String& method_name,
 }
 
 
-void Service::InvokeMethod(Isolate* I, const Array& msg) {
+void Service::InvokeMethod(Isolate* I,
+                           const Array& msg,
+                           bool parameters_are_dart_objects) {
   Thread* T = Thread::Current();
   ASSERT(I == T->isolate());
   ASSERT(I != NULL);
@@ -809,7 +868,11 @@ void Service::InvokeMethod(Isolate* I, const Array& msg) {
 
     JSONStream js;
     js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(),
-             seq, method_name, param_keys, param_values);
+             seq,
+             method_name,
+             param_keys,
+             param_values,
+             parameters_are_dart_objects);
 
     // RPC came in with a custom service id zone.
     const char* id_zone_param = js.LookupParam("_idZone");
@@ -859,7 +922,6 @@ void Service::InvokeMethod(Isolate* I, const Array& msg) {
 
     if (handler != NULL) {
       EmbedderHandleMessage(handler, &js);
-      js.PostReply();
       return;
     }
 
@@ -887,6 +949,12 @@ void Service::InvokeMethod(Isolate* I, const Array& msg) {
 void Service::HandleRootMessage(const Array& msg_instance) {
   Isolate* isolate = Isolate::Current();
   InvokeMethod(isolate, msg_instance);
+}
+
+
+void Service::HandleObjectRootMessage(const Array& msg_instance) {
+  Isolate* isolate = Isolate::Current();
+  InvokeMethod(isolate, msg_instance, true);
 }
 
 
@@ -1126,16 +1194,16 @@ void Service::EmbedderHandleMessage(EmbedderServiceHandler* handler,
   ASSERT(handler != NULL);
   Dart_ServiceRequestCallback callback = handler->callback();
   ASSERT(callback != NULL);
-  const char* r = NULL;
-  const char* method = js->method();
-  const char** keys = js->param_keys();
-  const char** values = js->param_values();
-  r = callback(method, keys, values, js->num_params(), handler->user_data());
-  ASSERT(r != NULL);
-  // TODO(johnmccutchan): Allow for NULL returns?
-  TextBuffer* buffer = js->buffer();
-  buffer->AddString(r);
-  free(const_cast<char*>(r));
+  const char* response = NULL;
+  bool success = callback(js->method(), js->param_keys(), js->param_values(),
+                          js->num_params(), handler->user_data(), &response);
+  ASSERT(response != NULL);
+  if (!success) {
+    js->SetupError();
+  }
+  js->buffer()->AddString(response);
+  js->PostReply();
+  free(const_cast<char*>(response));
 }
 
 
@@ -2217,7 +2285,7 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
 
   virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
     RawObject* raw_obj = it->Get();
-    if (raw_obj->IsFreeListElement()) {
+    if (raw_obj->IsPseudoObject()) {
       return kProceed;
     }
     Thread* thread = Thread::Current();
@@ -2415,19 +2483,24 @@ static bool ReloadSources(Thread* thread, JSONStream* js) {
                    "This isolate is being reloaded.");
     return true;
   }
-  DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
-  ASSERT(isolate->CanReload());
-
-  if (stack->Length() > 0) {
-    // TODO(turnidge): We need to support this case.
+  if (!isolate->CanReload()) {
     js->PrintError(kFeatureDisabled,
-                   "Source can only be reloaded when stack is empty.");
+                   "This isolate cannot reload sources right now.");
     return true;
-  } else {
-    isolate->ReloadSources();
   }
 
-  PrintSuccess(js);
+  isolate->ReloadSources();
+
+  const Error& error = Error::Handle(isolate->sticky_reload_error());
+
+  if (error.IsNull()) {
+    PrintSuccess(js);
+  } else {
+    // Clear the sticky error.
+    isolate->clear_sticky_reload_error();
+    js->PrintError(kIsolateReloadFailed,
+                   "Isolate reload failed: %s", error.ToErrorCString());
+  }
   return true;
 }
 
@@ -3341,8 +3414,7 @@ class ContainsAddressVisitor : public FindObjectVisitor {
   virtual uword filter_addr() const { return addr_; }
 
   virtual bool FindObject(RawObject* obj) const {
-    // Free list elements are not real objects, so skip them.
-    if (obj->IsFreeListElement()) {
+    if (obj->IsPseudoObject()) {
       return false;
     }
     uword obj_begin = RawObject::ToAddr(obj);
@@ -3593,6 +3665,19 @@ static bool GetObject(Thread* thread, JSONStream* js) {
   }
 
   PrintInvalidParamError(js, "objectId");
+  return true;
+}
+
+
+static const MethodParameter* get_object_store_params[] = {
+  RUNNABLE_ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool GetObjectStore(Thread* thread, JSONStream* js) {
+  JSONObject jsobj(js);
+  thread->isolate()->object_store()->PrintToJSONObject(&jsobj);
   return true;
 }
 
@@ -3872,6 +3957,7 @@ static bool SetName(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* set_vm_name_params[] = {
+  NO_ISOLATE_PARAMETER,
   new MethodParameter("name", true),
   NULL,
 };
@@ -3973,6 +4059,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_isolate_metric_list_params },
   { "getObject", GetObject,
     get_object_params },
+  { "_getObjectStore", GetObjectStore,
+    get_object_store_params },
   { "_getObjectByAddress", GetObjectByAddress,
     get_object_by_address_params },
   { "_getPersistentHandles", GetPersistentHandles,

@@ -58,6 +58,44 @@ import 'format.dart' as generated;
 const informative = null;
 
 /**
+ * Information about an analysis error in a source.
+ */
+abstract class CacheAnalysisError extends base.SummaryClass {
+  /**
+   * The correction to be displayed for this error, or `null` if there is no
+   * correction information for this error. The correction should indicate how
+   * the user can fix the error.
+   */
+  @Id(4)
+  String get correction;
+
+  /**
+   * The unique name of the error code.
+   */
+  @Id(0)
+  String get errorCodeUniqueName;
+
+  /**
+   * Length of the error range.
+   */
+  @Id(2)
+  int get length;
+
+  /**
+   * The message to be displayed for this error. The message should indicate
+   * what is wrong and why it is wrong.
+   */
+  @Id(3)
+  String get message;
+
+  /**
+   * Offset of the error range relative to the beginning of the file.
+   */
+  @Id(1)
+  int get offset;
+}
+
+/**
  * Information about a source that depends only on its content.
  */
 @TopLevel('CaSS')
@@ -91,6 +129,21 @@ abstract class CacheSourceContent extends base.SummaryClass {
    */
   @Id(3)
   List<String> get partUris;
+}
+
+/**
+ * Errors of a source in a library, which depends on the import/export closure
+ * of the containing library and the source.
+ */
+@TopLevel('CSEL')
+abstract class CacheSourceErrorsInLibrary extends base.SummaryClass {
+  factory CacheSourceErrorsInLibrary.fromBuffer(List<int> buffer) =>
+      generated.readCacheSourceErrorsInLibrary(buffer);
+  /**
+   * The list of errors in the source in the library.
+   */
+  @Id(0)
+  List<CacheAnalysisError> get errors;
 }
 
 /**
@@ -1401,8 +1454,11 @@ enum UnlinkedConstOperation {
    * stack (where `m` is obtained from [UnlinkedConst.ints]) into a list (filled
    * from the end) and use them as positional arguments.  Use the lists of
    * positional and names arguments to invoke a method (or a function) with
-   * the reference from [UnlinkedConst.references].  Push the result of
-   * invocation value into the stack.
+   * the reference from [UnlinkedConst.references].  If `k` is nonzero (where
+   * `k` is obtained from [UnlinkedConst.ints]), obtain `k` type arguments from
+   * [UnlinkedConst.references] and use them as generic type arguments for the
+   * aforementioned method or function.  Push the result of the invocation onto
+   * the stack.
    *
    * In general `a.b` cannot not be distinguished between: `a` is a prefix and
    * `b` is a top-level function; or `a` is an object and `b` is the name of a
@@ -1419,11 +1475,14 @@ enum UnlinkedConstOperation {
    * stack (where `m` is obtained from [UnlinkedConst.ints]) into a list (filled
    * from the end) and use them as positional arguments.  Use the lists of
    * positional and names arguments to invoke the method with the name from
-   * [UnlinkedConst.strings] of the target popped from the stack, and push the
-   * resulting value into the stack.
+   * [UnlinkedConst.strings] of the target popped from the stack.  If `k` is
+   * nonzero (where `k` is obtained from [UnlinkedConst.ints]), obtain `k` type
+   * arguments from [UnlinkedConst.references] and use them as generic type
+   * arguments for the aforementioned method.  Push the result of the
+   * invocation onto the stack.
    *
    * This operation should be used for invocation of a method invocation
-   * where `target` is know to be an object instance.
+   * where `target` is known to be an object instance.
    */
   invokeMethod,
 

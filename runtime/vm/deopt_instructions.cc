@@ -67,13 +67,17 @@ DeoptContext::DeoptContext(const StackFrame* frame,
   // return-address. This section is copied as well, so that its contained
   // values can be updated before returning to the deoptimized function.
   // Note: on DBC stack grows upwards unlike on all other architectures.
+#if defined(TARGET_ARCH_DBC)
+  ASSERT(frame->sp() >= frame->fp());
+  const intptr_t frame_size = (frame->sp() - frame->fp()) / kWordSize;
+#else
+  ASSERT(frame->fp() >= frame->sp());
+  const intptr_t frame_size = (frame->fp() - frame->sp()) / kWordSize;
+#endif
+
   source_frame_size_ =
       + kDartFrameFixedSize  // For saved values below sp.
-#if !defined(TARGET_ARCH_DBC)
-      + ((frame->fp() - frame->sp()) / kWordSize)  // For frame size incl. sp.
-#else
-      + ((frame->sp() - frame->fp()) / kWordSize)  // For frame size incl. sp.
-#endif  // !defined(TARGET_ARCH_DBC)
+      + frame_size  // For frame size incl. sp.
       + 1  // For fp.
       + kParamEndSlotFromFp  // For saved values above fp.
       + num_args_;  // For arguments.
@@ -688,7 +692,6 @@ class DeoptPcMarkerInstr : public DeoptInstr {
       return;
     }
 
-#if !defined(TARGET_ARCH_DBC)
     // We don't always have the Code object for the frame's corresponding
     // unoptimized code as it may have been collected. Use a stub as the pc
     // marker until we can recreate that Code object during deferred
@@ -696,7 +699,6 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     // a pc marker.
     *reinterpret_cast<RawObject**>(dest_addr) =
         StubCode::FrameAwaitingMaterialization_entry()->code();
-#endif
     deopt_context->DeferPcMarkerMaterialization(object_table_index_, dest_addr);
   }
 

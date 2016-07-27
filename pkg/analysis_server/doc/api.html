@@ -61,7 +61,7 @@ dt.typeDefinition {
 </style></head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version 1.15.0</h1>
+    <h1 style="color:#999999">Version 1.16.0</h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -305,6 +305,7 @@ dt.typeDefinition {
   "event": "server.connected"
   "params": {
     "<b>version</b>": String
+    "<b>pid</b>": int
   }
 }</pre></div>
         <p>
@@ -321,7 +322,10 @@ dt.typeDefinition {
       <h4>Parameters</h4><dl><dt class="field"><b><i>version ( String )</i></b></dt><dd>
             
             <p>The version number of the analysis server.</p>
-          </dd></dl></dd><dt class="notification"><a name="notification_server.error">server.error</a> (<a href="#notification_server.error">#</a>)</dt><dd><div class="box"><pre>notification: {
+          </dd><dt class="field"><b><i>pid ( int )</i></b></dt><dd>
+           
+           <p>The process id of the analysis server process.</p>
+         </dd></dl></dd><dt class="notification"><a name="notification_server.error">server.error</a> (<a href="#notification_server.error">#</a>)</dt><dd><div class="box"><pre>notification: {
   "event": "server.error"
   "params": {
     "<b>isFatal</b>": bool

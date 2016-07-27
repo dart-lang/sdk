@@ -19,6 +19,7 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
@@ -70,7 +71,7 @@ import "../foo/foo.dart";
 ''');
     Source barSource = bar.createSource();
     server.setAnalysisRoots('0', ['/foo', '/bar'], [], {});
-    return pumpEventQueue(40).then((_) {
+    return server.onAnalysisComplete.then((_) {
       expect(server.statusAnalyzing, isFalse);
       // Make sure getAnalysisContext returns the proper context for each.
       AnalysisContext fooContext =
@@ -110,7 +111,7 @@ import "../foo/foo.dart";
     AnalysisContext barContext = server.getAnalysisContextForSource(barSource);
     expect(barContext, isNotNull);
     expect(fooContext, isNot(same(barContext)));
-    return pumpEventQueue(40).then((_) {
+    return server.onAnalysisComplete.then((_) {
       expect(server.statusAnalyzing, isFalse);
       // Make sure getAnalysisContext returned the proper context for each.
       expect(fooContext.getKindOf(fooSource), SourceKind.LIBRARY);
@@ -144,7 +145,7 @@ import "../foo/foo.dart";
         null,
         plugin,
         new AnalysisServerOptions(),
-        (_) => new MockSdk(),
+        new DartSdkManager('', false, (_) => new MockSdk()),
         InstrumentationService.NULL_SERVICE,
         rethrowExceptions: true);
     processRequiredPlugins();
@@ -236,7 +237,7 @@ import "../foo/foo.dart";
     File bar = resourceProvider.newFile('/bar/bar.dart', 'library lib;');
     Source barSource = bar.createSource();
     server.setAnalysisRoots('0', ['/foo', '/bar'], [], {});
-    return pumpEventQueue(500).then((_) {
+    return server.onAnalysisComplete.then((_) {
       expect(server.statusAnalyzing, isFalse);
       // Make sure getAnalysisContext returns the proper context for each.
       AnalysisContext fooContext =
@@ -338,12 +339,12 @@ import "../foo/foo.dart";
       subscriptions[service] = <String>[bar.path].toSet();
     }
     server.setAnalysisSubscriptions(subscriptions);
-    await pumpEventQueue(1000);
+    await server.onAnalysisComplete;
     expect(server.statusAnalyzing, isFalse);
     channel.notificationsReceived.clear();
     server.updateContent(
         '0', {bar.path: new AddContentOverlay('library bar; void f() {}')});
-    await pumpEventQueue(1000);
+    await server.onAnalysisComplete;
     expect(server.statusAnalyzing, isFalse);
     expect(channel.notificationsReceived, isNotEmpty);
     Set<String> notificationTypesReceived = new Set<String>();

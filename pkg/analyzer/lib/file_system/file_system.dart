@@ -106,6 +106,14 @@ abstract class Folder implements Resource {
   Resource getChild(String relPath);
 
   /**
+   * Return a [File] representing a child [Resource] with the given
+   * [relPath].  This call does not check whether a file with the given name
+   * exists on the filesystem - client must call the [File]'s `exists` getter
+   * to determine whether the folder actually exists.
+   */
+  File getChildAssumingFile(String relPath);
+
+  /**
    * Return a [Folder] representing a child [Resource] with the given
    * [relPath].  This call does not check whether a folder with the given name
    * exists on the filesystem--client must call the [Folder]'s `exists` getter
@@ -145,6 +153,13 @@ abstract class Resource {
    * denote this resource.
    */
   String get shortName;
+
+  /**
+   * Synchronously deletes this resource and its children.
+   *
+   * Throws an exception if the resource cannot be deleted.
+   */
+  void delete();
 
   /**
    * Return `true` if absolute [path] references this resource or a resource in
@@ -204,7 +219,7 @@ class ResourceUriResolver extends UriResolver {
   /**
    * The name of the `file` scheme.
    */
-  static String _FILE_SCHEME = "file";
+  static final String FILE_SCHEME = "file";
 
   final ResourceProvider _provider;
 
@@ -212,7 +227,7 @@ class ResourceUriResolver extends UriResolver {
 
   @override
   Source resolveAbsolute(Uri uri, [Uri actualUri]) {
-    if (!_isFileUri(uri)) {
+    if (!isFileUri(uri)) {
       return null;
     }
     Resource resource =
@@ -227,8 +242,10 @@ class ResourceUriResolver extends UriResolver {
   Uri restoreAbsolute(Source source) =>
       _provider.pathContext.toUri(source.fullName);
 
+  ResourceProvider get provider => _provider;
+
   /**
    * Return `true` if the given [uri] is a `file` URI.
    */
-  static bool _isFileUri(Uri uri) => uri.scheme == _FILE_SCHEME;
+  static bool isFileUri(Uri uri) => uri.scheme == FILE_SCHEME;
 }

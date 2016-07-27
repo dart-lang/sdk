@@ -4,6 +4,7 @@
 
 library dart2js.serialization_test_helper;
 
+import 'dart:collection';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/dart_types.dart';
@@ -11,6 +12,41 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/tree/nodes.dart';
+import 'package:expect/expect.dart';
+
+Check currentCheck;
+
+class Check {
+  final Check parent;
+  final Object object1;
+  final Object object2;
+  final String property;
+  final Object value1;
+  final Object value2;
+
+  Check(this.parent, this.object1, this.object2, this.property, this.value1, this.value2);
+
+  String printOn(StringBuffer sb, String indent) {
+    if (parent != null) {
+      indent = parent.printOn(sb, indent);
+      sb.write('\n$indent|\n');
+    }
+    sb.write("${indent}property='$property'\n ");
+    sb.write("${indent}object1=$object1 (${object1.runtimeType})\n ");
+    sb.write("${indent}value=${value1 == null ? "null" : "'$value1'"} ");
+    sb.write("(${value1.runtimeType}) vs\n ");
+    sb.write("${indent}object2=$object2 (${object2.runtimeType})\n ");
+    sb.write("${indent}value=${value2 == null ? "null" : "'$value2'"} ");
+    sb.write("(${value2.runtimeType})");
+    return ' $indent';
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    printOn(sb, '');
+    return sb.toString();
+  }
+}
 
 /// Strategy for checking equivalence.
 ///
@@ -99,15 +135,12 @@ class CheckStrategy implements TestStrategy {
 /// [value2] respectively, are equal and throw otherwise.
 bool check(var object1, var object2, String property, var value1, var value2,
            [bool equivalence(a, b) = equality]) {
+  currentCheck = new Check(
+      currentCheck, object1, object2, property, value1, value2);
   if (!equivalence(value1, value2)) {
-    throw "property='$property'\n "
-          "object1=$object1 (${object1.runtimeType})\n "
-          "value=${value1 == null ? "null" : "'$value1'"} "
-          "(${value1.runtimeType}) <>\n "
-          "object2=$object2 (${object2.runtimeType})\n "
-          "value=${value2 == null ? "null" : "'$value2'"} "
-          "(${value2.runtimeType})";
+    throw currentCheck;
   }
+  currentCheck = currentCheck.parent;
   return true;
 }
 
@@ -119,6 +152,8 @@ bool checkListEquivalence(
     Object object1, Object object2, String property,
     Iterable list1, Iterable list2,
     void checkEquivalence(o1, o2, property, a, b)) {
+  currentCheck =
+      new Check(currentCheck, object1, object2, property, list1, list2);
   for (int i = 0; i < list1.length && i < list2.length; i++) {
     checkEquivalence(
         object1, object2, property,
@@ -138,6 +173,7 @@ bool checkListEquivalence(
         '`${property}` on $object1:\n ${list1.join('\n ')}\n'
         '`${property}` on $object2:\n ${list2.join('\n ')}';
   }
+  currentCheck = currentCheck.parent;
   return true;
 }
 
@@ -150,7 +186,7 @@ bool checkListEquivalence(
 Set computeSetDifference(
     Iterable set1,
     Iterable set2,
-    List common,
+    List<List> common,
     List unfound,
     {bool sameElement(a, b): equality,
      void checkElements(a, b)}) {
@@ -162,19 +198,19 @@ Set computeSetDifference(
   // set.difference would work)
   Set remaining = set2.toSet();
   for (var element1 in set1) {
-    bool found = false;
+    var correspondingElement;
     for (var element2 in remaining) {
       if (sameElement(element1, element2)) {
         if (checkElements != null) {
           checkElements(element1, element2);
         }
-        found = true;
+        correspondingElement = element2;
         remaining.remove(element2);
         break;
       }
     }
-    if (found) {
-      common.add(element1);
+    if (correspondingElement != null) {
+      common.add([element1, correspondingElement]);
     } else {
       unfound.add(element1);
     }
@@ -194,7 +230,7 @@ bool checkSetEquivalence(
     Iterable set2,
     bool sameElement(a, b),
     {void onSameElement(a, b)}) {
-  List common = [];
+  List<List> common = <List>[];
   List unfound = [];
   Set remaining =
       computeSetDifference(set1, set2, common, unfound,
@@ -244,7 +280,8 @@ bool checkTypes(
   if (type1 == null || type2 == null) {
     return check(object1, object2, property, type1, type2);
   } else {
-    return const TypeEquivalence(const CheckStrategy()).visit(type1, type2);
+    return check(object1, object2, property, type1, type2,
+        (a, b) => const TypeEquivalence(const CheckStrategy()).visit(a, b));
   }
 }
 
@@ -268,7 +305,8 @@ bool checkConstants(
   if (exp1 == null || exp2 == null) {
     return check(object1, object2, property, exp1, exp2);
   } else {
-    return const ConstantEquivalence(const CheckStrategy()).visit(exp1, exp2);
+    return check(object1, object2, property, exp1, exp2,
+        (a, b) => const ConstantEquivalence(const CheckStrategy()).visit(a, b));
   }
 }
 
@@ -301,6 +339,15 @@ void checkLoadedLibraryMembers(
       ClassElement class1 = member1;
       ClassElement class2 = member2;
       if (!class1.isResolved) return;
+
+      if (hasProperty(member1)) {
+        if (areElementsEquivalent(member1, member2)) {
+          checkMemberProperties(
+              compiler1, member1,
+              compiler2, member2,
+              verbose: verbose);
+        }
+      }
 
       class1.forEachLocalMember((m1) {
         checkMembers(m1, class2.localLookup(m1.name));
@@ -381,4 +428,164 @@ void checkImpacts(Compiler compiler1, Element member1,
   }
 
   testResolutionImpactEquivalence(impact1, impact2, const CheckStrategy());
+}
+
+void checkSets(
+    Iterable set1,
+    Iterable set2,
+    String messagePrefix,
+    bool sameElement(a, b),
+    {bool failOnUnfound: true,
+    bool failOnExtra: true,
+    bool verbose: false,
+    void onSameElement(a, b)}) {
+  List<List> common = <List>[];
+  List unfound = [];
+  Set remaining = computeSetDifference(
+      set1, set2, common, unfound,
+      sameElement: sameElement,
+      checkElements: onSameElement);
+  StringBuffer sb = new StringBuffer();
+  sb.write("$messagePrefix:");
+  if (verbose) {
+    sb.write("\n Common:\n  ${common.join('\n  ')}");
+  }
+  if (unfound.isNotEmpty || verbose) {
+    sb.write("\n Unfound:\n  ${unfound.join('\n  ')}");
+  }
+  if (remaining.isNotEmpty || verbose) {
+    sb.write("\n Extra: \n  ${remaining.join('\n  ')}");
+  }
+  String message = sb.toString();
+  if (unfound.isNotEmpty || remaining.isNotEmpty) {
+
+    if ((failOnUnfound && unfound.isNotEmpty) ||
+        (failOnExtra && remaining.isNotEmpty)) {
+      Expect.fail(message);
+    } else {
+      print(message);
+    }
+  } else if (verbose) {
+    print(message);
+  }
+}
+
+String defaultToString(obj) => '$obj';
+
+void checkMaps(
+    Map map1,
+    Map map2,
+    String messagePrefix,
+    bool sameKey(a, b),
+    bool sameValue(a, b),
+    {bool failOnUnfound: true,
+    bool failOnMismatch: true,
+    bool verbose: false,
+    String keyToString(key): defaultToString,
+    String valueToString(key): defaultToString}) {
+  List<List> common = <List>[];
+  List unfound = [];
+  List<List> mismatch = <List>[];
+  Set remaining = computeSetDifference(
+      map1.keys, map2.keys, common, unfound,
+      sameElement: sameKey,
+      checkElements: (k1, k2) {
+        var v1 = map1[k1];
+        var v2 = map2[k2];
+        if (!sameValue(v1, v2)) {
+          mismatch.add([k1, k2]);
+        }
+      });
+  StringBuffer sb = new StringBuffer();
+  sb.write("$messagePrefix:");
+  if (verbose) {
+    sb.write("\n Common: \n");
+    for (List pair in common) {
+      var k1 = pair[0];
+      var k2 = pair[1];
+      var v1 = map1[k1];
+      var v2 = map2[k2];
+      sb.write(" key1   =${keyToString(k1)}\n");
+      sb.write(" key2   =${keyToString(k2)}\n");
+      sb.write("  value1=${valueToString(v1)}\n");
+      sb.write("  value2=${valueToString(v2)}\n");
+    }
+  }
+  if (unfound.isNotEmpty || verbose) {
+    sb.write("\n Unfound: \n");
+    for (var k1 in unfound) {
+      var v1 = map1[k1];
+      sb.write(" key1   =${keyToString(k1)}\n");
+      sb.write("  value1=${valueToString(v1)}\n");
+    }
+  }
+  if (remaining.isNotEmpty || verbose) {
+    sb.write("\n Extra: \n");
+    for (var k2 in remaining) {
+      var v2 = map2[k2];
+      sb.write(" key2   =${keyToString(k2)}\n");
+      sb.write("  value2=${valueToString(v2)}\n");
+    }
+  }
+  if (mismatch.isNotEmpty || verbose) {
+    sb.write("\n Mismatch: \n");
+    for (List pair in mismatch) {
+      var k1 = pair[0];
+      var k2 = pair[1];
+      var v1 = map1[k1];
+      var v2 = map2[k2];
+      sb.write(" key1   =${keyToString(k1)}\n");
+      sb.write(" key2   =${keyToString(k2)}\n");
+      sb.write("  value1=${valueToString(v1)}\n");
+      sb.write("  value2=${valueToString(v2)}\n");
+    }
+  }
+  String message = sb.toString();
+  if (unfound.isNotEmpty || mismatch.isNotEmpty || remaining.isNotEmpty) {
+    if ((unfound.isNotEmpty && failOnUnfound) ||
+        (mismatch.isNotEmpty && failOnMismatch) ||
+        remaining.isNotEmpty) {
+      Expect.fail(message);
+    } else {
+      print(message);
+    }
+  } else if (verbose) {
+    print(message);
+  }
+}
+
+void checkAllResolvedAsts(
+    Compiler compiler1,
+    Compiler compiler2,
+    {bool verbose: false}) {
+  checkLoadedLibraryMembers(
+      compiler1,
+      compiler2,
+      (Element member1) {
+        return member1 is ExecutableElement &&
+            compiler1.resolution.hasResolvedAst(member1);
+      },
+      checkResolvedAsts,
+      verbose: verbose);
+}
+
+
+/// Check equivalence of [impact1] and [impact2].
+void checkResolvedAsts(Compiler compiler1, Element member1,
+    Compiler compiler2, Element member2,
+    {bool verbose: false}) {
+  if (!compiler2.serialization.isDeserialized(member2)) {
+    return;
+  }
+  ResolvedAst resolvedAst1 = compiler1.resolution.getResolvedAst(member1);
+  ResolvedAst resolvedAst2 = compiler2.serialization.getResolvedAst(member2);
+
+  if (resolvedAst1 == null || resolvedAst2 == null) return;
+
+  if (verbose) {
+    print('Checking resolved asts for $member1 vs $member2');
+  }
+
+  testResolvedAstEquivalence(
+      resolvedAst1, resolvedAst2, const CheckStrategy());
 }

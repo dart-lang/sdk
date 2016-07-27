@@ -371,7 +371,8 @@ static void PushArgumentsArray(Assembler* assembler) {
   Label loop;
   __ Bind(&loop);
   __ ldr(IP, Address(R1, kWordSize, Address::PreIndex));
-  __ InitializeFieldNoBarrier(R0, Address(R3, R2, LSL, 1), IP);
+  // Generational barrier is needed, array is not necessarily in new space.
+  __ StoreIntoObject(R0, Address(R3, R2, LSL, 1), IP);
   __ Bind(&enter);
   __ subs(R2, R2, Operand(Smi::RawValue(1)));  // R2 is Smi.
   __ b(&loop, PL);
@@ -625,7 +626,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ b(&slow_case, GT);
 
   const intptr_t cid = kArrayCid;
-  __ MaybeTraceAllocation(cid, R4, &slow_case);
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, R4, &slow_case));
 
   const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ LoadImmediate(R9, fixed_size);
@@ -634,7 +635,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ bic(R9, R9, Operand(kObjectAlignment - 1));
 
   // R9: Allocation size.
-  Heap::Space space = Heap::SpaceForAllocation(cid);
+  Heap::Space space = Heap::kNew;
   __ LoadIsolate(R8);
   __ ldr(R8, Address(R8, Isolate::heap_offset()));
   // Potential new object start.
@@ -652,7 +653,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ LoadAllocationStatsAddress(R3, cid);
+  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R3, cid));
   __ str(NOTFP, Address(R8, Heap::TopOffset(space)));
   __ add(R0, R0, Operand(kHeapObjectTag));
 
@@ -678,12 +679,12 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // R0: new object start as a tagged pointer.
   // NOTFP: new object end address.
   // Store the type argument field.
-  __ InitializeFieldNoBarrier(R0,
+  __ StoreIntoObjectNoBarrier(R0,
                               FieldAddress(R0, Array::type_arguments_offset()),
                               R1);
 
   // Set the length field.
-  __ InitializeFieldNoBarrier(R0,
+  __ StoreIntoObjectNoBarrier(R0,
                               FieldAddress(R0, Array::length_offset()),
                               R2);
 
@@ -695,7 +696,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // data area to be initialized.
   // NOTFP: new object end address.
   // R9: allocation size.
-  __ IncrementAllocationStatsWithSize(R3, R9, space);
+  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R3, R9, space));
 
   __ LoadObject(R8, Object::null_object());
   __ mov(R9, Operand(R8));
@@ -858,12 +859,12 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     ASSERT(kSmiTagShift == 1);
     __ bic(R2, R2, Operand(kObjectAlignment - 1));
 
-    __ MaybeTraceAllocation(kContextCid, R8, &slow_case);
+    NOT_IN_PRODUCT(__ MaybeTraceAllocation(kContextCid, R8, &slow_case));
     // Now allocate the object.
     // R1: number of context variables.
     // R2: object size.
     const intptr_t cid = kContextCid;
-    Heap::Space space = Heap::SpaceForAllocation(cid);
+    Heap::Space space = Heap::kNew;
     __ LoadIsolate(R9);
     __ ldr(R9, Address(R9, Isolate::heap_offset()));
     __ ldr(R0, Address(R9, Heap::TopOffset(space)));
@@ -889,7 +890,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R2: object size.
     // R3: next object start.
     // R9: heap.
-    __ LoadAllocationStatsAddress(R4, cid);
+    NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R4, cid));
     __ str(R3, Address(R9, Heap::TopOffset(space)));
     __ add(R0, R0, Operand(kHeapObjectTag));
 
@@ -926,7 +927,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R3: next object start.
     // R4: allocation stats address.
     __ LoadObject(R8, Object::null_object());
-    __ InitializeFieldNoBarrier(R0, FieldAddress(R0, Context::parent_offset()),
+    __ StoreIntoObjectNoBarrier(R0, FieldAddress(R0, Context::parent_offset()),
                                 R8);
 
     // Initialize the context variables.
@@ -939,7 +940,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     Label loop;
     __ AddImmediate(NOTFP, R0, Context::variable_offset(0) - kHeapObjectTag);
     __ InitializeFieldsNoBarrier(R0, NOTFP, R3, R8, R9);
-    __ IncrementAllocationStatsWithSize(R4, R2, space);
+    NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2, space));
 
     // Done allocating and initializing the context.
     // R0: new object.
@@ -1062,7 +1063,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     Label slow_case;
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
-    Heap::Space space = Heap::SpaceForAllocation(cls.id());
+    Heap::Space space = Heap::kNew;
     __ ldr(R9, Address(THR, Thread::heap_offset()));
     __ ldr(R0, Address(R9, Heap::TopOffset(space)));
     __ AddImmediate(R1, R0, instance_size);
@@ -1081,7 +1082,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 
     // Load the address of the allocation stats table. We split up the load
     // and the increment so that the dependent load is not too nearby.
-    __ LoadAllocationStatsAddress(R9, cls.id());
+    NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R9, cls.id()));
 
     // R0: new object start.
     // R1: next object start.
@@ -1130,7 +1131,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       // Set the type arguments in the new object.
       __ ldr(R4, Address(SP, 0));
       FieldAddress type_args(R0, cls.type_arguments_field_offset());
-      __ InitializeFieldNoBarrier(R0, type_args, R4);
+      __ StoreIntoObjectNoBarrier(R0, type_args, R4);
     }
 
     // Done allocating and initializing the instance.
@@ -1138,7 +1139,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // R9: allocation stats table.
 
     // Update allocation stats.
-    __ IncrementAllocationStats(R9, cls.id(), space);
+    NOT_IN_PRODUCT(__ IncrementAllocationStats(R9, cls.id(), space));
 
     // R0: new object (tagged).
     __ Ret();

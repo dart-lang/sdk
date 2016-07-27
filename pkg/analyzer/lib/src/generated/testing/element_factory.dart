@@ -47,16 +47,8 @@ class ElementFactory {
     ClassElementImpl element = new ClassElementImpl(typeName, 0);
     element.constructors = const <ConstructorElement>[];
     element.supertype = superclassType;
-    InterfaceTypeImpl type = new InterfaceTypeImpl(element);
-    element.type = type;
     if (parameterNames != null) {
-      int count = parameterNames.length;
-      if (count > 0) {
-        element.typeParameters = typeParameters(parameterNames);
-        type.typeArguments = new List<DartType>.from(
-            element.typeParameters.map((p) => p.type),
-            growable: false);
-      }
+      element.typeParameters = typeParameters(parameterNames);
     }
     return element;
   }
@@ -96,7 +88,6 @@ class ElementFactory {
   static ConstructorElementImpl constructorElement(
       ClassElement definingClass, String name, bool isConst,
       [List<DartType> argumentTypes]) {
-    DartType type = definingClass.type;
     ConstructorElementImpl constructor = name == null
         ? new ConstructorElementImpl("", -1)
         : new ConstructorElementImpl(name, 0);
@@ -123,9 +114,7 @@ class ElementFactory {
     } else {
       constructor.parameters = <ParameterElement>[];
     }
-    constructor.returnType = type;
     constructor.enclosingElement = definingClass;
-    constructor.type = new FunctionTypeImpl(constructor);
     if (!constructor.isSynthetic) {
       constructor.constantInitializers = <ConstructorInitializer>[];
     }
@@ -137,17 +126,13 @@ class ElementFactory {
           [List<DartType> argumentTypes]) =>
       constructorElement(definingClass, name, false, argumentTypes);
 
-  static ClassElementImpl enumElement(
-      TypeProvider typeProvider, String enumName,
+  static EnumElementImpl enumElement(TypeProvider typeProvider, String enumName,
       [List<String> constantNames]) {
     //
     // Build the enum.
     //
-    ClassElementImpl enumElement = new ClassElementImpl(enumName, -1);
-    InterfaceTypeImpl enumType = new InterfaceTypeImpl(enumElement);
-    enumElement.type = enumType;
-    enumElement.supertype = objectType;
-    enumElement.enum2 = true;
+    EnumElementImpl enumElement = new EnumElementImpl(enumName, -1);
+    InterfaceTypeImpl enumType = enumElement.type;
     //
     // Populate the fields.
     //
@@ -222,27 +207,9 @@ class ElementFactory {
     if (isConst) {
       (field as ConstFieldElementImpl).constantInitializer = initializer;
     }
-    PropertyAccessorElementImpl getter =
-        new PropertyAccessorElementImpl.forVariable(field);
-    getter.getter = true;
-    getter.synthetic = true;
-    getter.variable = field;
-    getter.returnType = type;
-    field.getter = getter;
-    FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
-    getter.type = getterType;
+    new PropertyAccessorElementImpl_ImplicitGetter(field);
     if (!isConst && !isFinal) {
-      PropertyAccessorElementImpl setter =
-          new PropertyAccessorElementImpl.forVariable(field);
-      setter.setter = true;
-      setter.synthetic = true;
-      setter.variable = field;
-      setter.parameters = <ParameterElement>[
-        requiredParameter2("_$name", type)
-      ];
-      setter.returnType = VoidTypeImpl.instance;
-      setter.type = new FunctionTypeImpl(setter);
-      field.setter = setter;
+      new PropertyAccessorElementImpl_ImplicitSetter(field);
     }
     return field;
   }
@@ -564,7 +531,7 @@ class ElementFactory {
     field.synthetic = true;
     field.type = type;
     PropertyAccessorElementImpl getter =
-        new PropertyAccessorElementImpl.forVariable(field);
+        new PropertyAccessorElementImpl(name, -1);
     getter.getter = true;
     getter.variable = field;
     getter.returnType = type;
@@ -573,7 +540,7 @@ class ElementFactory {
     getter.type = getterType;
     ParameterElementImpl parameter = requiredParameter2("a", type);
     PropertyAccessorElementImpl setter =
-        new PropertyAccessorElementImpl.forVariable(field);
+        new PropertyAccessorElementImpl(name, -1);
     setter.setter = true;
     setter.synthetic = true;
     setter.variable = field;
@@ -614,28 +581,9 @@ class ElementFactory {
     variable.final2 = isFinal;
     variable.synthetic = false;
     variable.type = type;
-    PropertyAccessorElementImpl getter =
-        new PropertyAccessorElementImpl.forVariable(variable);
-    getter.getter = true;
-    getter.synthetic = true;
-    getter.variable = variable;
-    getter.returnType = type;
-    variable.getter = getter;
-    FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
-    getter.type = getterType;
+    new PropertyAccessorElementImpl_ImplicitGetter(variable);
     if (!isConst && !isFinal) {
-      PropertyAccessorElementImpl setter =
-          new PropertyAccessorElementImpl.forVariable(variable);
-      setter.setter = true;
-      setter.static = true;
-      setter.synthetic = true;
-      setter.variable = variable;
-      setter.parameters = <ParameterElement>[
-        requiredParameter2("_$name", type)
-      ];
-      setter.returnType = VoidTypeImpl.instance;
-      setter.type = new FunctionTypeImpl(setter);
-      variable.setter = setter;
+      new PropertyAccessorElementImpl_ImplicitSetter(variable);
     }
     return variable;
   }

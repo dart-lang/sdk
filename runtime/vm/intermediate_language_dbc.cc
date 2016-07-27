@@ -29,15 +29,12 @@ DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(int, optimization_counter_threshold);
 
 // List of instructions that are still unimplemented by DBC backend.
-#define FOR_EACH_UNIMPLEMENTED_INSTRUCTION(M) \
-  M(Stop)                                                                      \
+#define FOR_EACH_UNIMPLEMENTED_INSTRUCTION(M)                                  \
   M(IndirectGoto)                                                              \
   M(LoadCodeUnits)                                                             \
-  M(InstanceOf)                                                                \
   M(LoadUntagged)                                                              \
   M(AllocateUninitializedContext)                                              \
   M(BinaryInt32Op)                                                             \
-  M(UnarySmiOp)                                                                \
   M(UnaryDoubleOp)                                                             \
   M(SmiToDouble)                                                               \
   M(Int32ToDouble)                                                             \
@@ -48,7 +45,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(DoubleToFloat)                                                             \
   M(FloatToDouble)                                                             \
   M(UnboxedConstant)                                                           \
-  M(CheckEitherNonSmi)                                                         \
   M(BinaryDoubleOp)                                                            \
   M(MathUnary)                                                                 \
   M(MathMinMax)                                                                \
@@ -59,8 +55,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(BinaryMintOp)                                                              \
   M(ShiftMintOp)                                                               \
   M(UnaryMintOp)                                                               \
-  M(StringToCharCode)                                                          \
-  M(OneByteStringFromCharCode)                                                 \
   M(InvokeMathCFunction)                                                       \
   M(MergedMath)                                                                \
   M(GuardFieldClass)                                                           \
@@ -108,11 +102,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(UnboxInteger32)                                                            \
   M(CheckedSmiOp)                                                              \
   M(CheckArrayBound)                                                           \
-  M(CheckSmi)                                                                  \
-  M(CheckClassId)                                                              \
-  M(CheckClass)                                                                \
-  M(BinarySmiOp)                                                               \
-  M(TestSmi)                                                                   \
   M(RelationalOp)                                                              \
   M(EqualityCompare)                                                           \
   M(LoadIndexed)
@@ -168,7 +157,7 @@ static LocationSummary* CreateLocationSummary(
   Condition Name##Instr::EmitComparisonCode(FlowGraphCompiler*,                \
                                             BranchLabels) {                    \
     UNIMPLEMENTED();                                                           \
-    return EQ;                                                                 \
+    return NEXT_IS_TRUE;                                                       \
   }
 
 #define DEFINE_UNIMPLEMENTED(Name)                                             \
@@ -180,12 +169,39 @@ FOR_EACH_UNIMPLEMENTED_INSTRUCTION(DEFINE_UNIMPLEMENTED)
 #undef DEFINE_UNIMPLEMENTED
 
 DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(TestCids)
-DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(TestSmi)
 DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(RelationalOp)
 DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(EqualityCompare)
 
 
-DEFINE_MAKE_LOCATION_SUMMARY(AssertAssignable, 2, Location::SameAsFirstInput());
+EMIT_NATIVE_CODE(InstanceOf, 2, Location::SameAsFirstInput(),
+                 LocationSummary::kCall) {
+  SubtypeTestCache& test_cache = SubtypeTestCache::Handle();
+  if (!type().IsVoidType() && type().IsInstantiated()) {
+    test_cache = SubtypeTestCache::New();
+  }
+
+  if (compiler->is_optimizing()) {
+    __ Push(locs()->in(0).reg());  // Value.
+    __ Push(locs()->in(1).reg());  // Instantiator type arguments.
+  }
+
+  __ PushConstant(type());
+  __ PushConstant(test_cache);
+  __ InstanceOf(negate_result() ? 1 : 0);
+  compiler->RecordSafepoint(locs());
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
+                                 deopt_id(),
+                                 token_pos());
+
+  if (compiler->is_optimizing()) {
+    __ PopLocal(locs()->out(0).reg());
+  }
+}
+
+
+DEFINE_MAKE_LOCATION_SUMMARY(AssertAssignable, 2,
+                             Location::SameAsFirstInput(),
+                             LocationSummary::kCall);
 
 
 EMIT_NATIVE_CODE(AssertBoolean,
@@ -212,7 +228,13 @@ LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
 
 
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->Bailout(ToCString());
+  Unsupported(compiler);
+  UNREACHABLE();
+}
+
+
+EMIT_NATIVE_CODE(Stop, 0) {
+  __ Stop(message());
 }
 
 
@@ -355,14 +377,14 @@ EMIT_NATIVE_CODE(ClosureCall,
 static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
                                   Condition true_condition,
                                   BranchLabels labels) {
-  if (labels.fall_through == labels.false_label) {
-    // If the next block is the false successor, fall through to it.
+  if (true_condition == NEXT_IS_TRUE) {
     __ Jump(labels.true_label);
+    if (labels.fall_through != labels.false_label) {
+      __ Jump(labels.false_label);
+    }
   } else {
-    // If the next block is not the false successor, branch to it.
+    ASSERT(true_condition == NEXT_IS_FALSE);
     __ Jump(labels.false_label);
-
-    // Fall through or jump to the true successor.
     if (labels.fall_through != labels.true_label) {
       __ Jump(labels.true_label);
     }
@@ -375,34 +397,33 @@ Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   ASSERT((kind() == Token::kNE_STRICT) ||
          (kind() == Token::kEQ_STRICT));
 
+  Token::Kind comparison;
+  Condition condition;
+  if (labels.fall_through == labels.false_label) {
+    condition = NEXT_IS_TRUE;
+    comparison = kind();
+  } else {
+    // Flip comparision to save a jump.
+    condition = NEXT_IS_FALSE;
+    comparison = (kind() == Token::kEQ_STRICT) ? Token::kNE_STRICT
+                                               : Token::kEQ_STRICT;
+  }
+
   if (!compiler->is_optimizing()) {
     const Bytecode::Opcode eq_op = needs_number_check() ?
         Bytecode::kIfEqStrictNumTOS : Bytecode::kIfEqStrictTOS;
     const Bytecode::Opcode ne_op = needs_number_check() ?
         Bytecode::kIfNeStrictNumTOS : Bytecode::kIfNeStrictTOS;
-
-    if (kind() == Token::kEQ_STRICT) {
-      __ Emit((labels.fall_through == labels.false_label) ? eq_op : ne_op);
-    } else {
-      __ Emit((labels.fall_through == labels.false_label) ? ne_op : eq_op);
-    }
+    __ Emit(comparison == Token::kEQ_STRICT ? eq_op : ne_op);
   } else {
     const Bytecode::Opcode eq_op = needs_number_check() ?
         Bytecode::kIfEqStrictNum : Bytecode::kIfEqStrict;
     const Bytecode::Opcode ne_op = needs_number_check() ?
         Bytecode::kIfNeStrictNum : Bytecode::kIfNeStrict;
-
-    if (kind() == Token::kEQ_STRICT) {
-      __ Emit(Bytecode::Encode(
-          (labels.fall_through == labels.false_label) ? eq_op : ne_op,
-          locs()->in(0).reg(),
-          locs()->in(1).reg()));
-    } else {
-      __ Emit(Bytecode::Encode(
-          (labels.fall_through == labels.false_label) ? ne_op : eq_op,
-          locs()->in(0).reg(),
-          locs()->in(1).reg()));
-    }
+    __ Emit(Bytecode::Encode(
+        (comparison == Token::kEQ_STRICT) ? eq_op : ne_op,
+        locs()->in(0).reg(),
+        locs()->in(1).reg()));
   }
 
   if (needs_number_check() && token_pos().IsReal()) {
@@ -411,7 +432,8 @@ Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                    Thread::kNoDeoptId,
                                    token_pos());
   }
-  return EQ;
+
+  return condition;
 }
 
 
@@ -476,6 +498,13 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 EMIT_NATIVE_CODE(Goto, 0) {
+  if (!compiler->is_optimizing()) {
+    // Add a deoptimization descriptor for deoptimizing instructions that
+    // may be inserted before this instruction.
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
+                                   GetDeoptId(),
+                                   TokenPosition::kNoSource);
+  }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
@@ -484,6 +513,34 @@ EMIT_NATIVE_CODE(Goto, 0) {
   if (!compiler->CanFallThroughTo(successor())) {
     __ Jump(compiler->GetJumpLabel(successor()));
   }
+}
+
+
+Condition TestSmiInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
+                                           BranchLabels labels) {
+  ASSERT((kind() == Token::kEQ) ||
+         (kind() == Token::kNE));
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  __ TestSmi(left, right);
+  return (kind() == Token::kEQ) ? NEXT_IS_TRUE : NEXT_IS_FALSE;
+}
+
+
+void TestSmiInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                  BranchInstr* branch) {
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  EmitBranchOnCondition(compiler, true_condition, labels);
+}
+
+
+EMIT_NATIVE_CODE(TestSmi,
+                 2,
+                 Location::RequiresRegister(),
+                 LocationSummary::kNoCall) {
+  // Never emitted outside of the BranchInstr.
+  UNREACHABLE();
 }
 
 
@@ -505,9 +562,9 @@ EMIT_NATIVE_CODE(CreateArray,
 EMIT_NATIVE_CODE(StoreIndexed, 3) {
   if (compiler->is_optimizing()) {
     if (class_id() != kArrayCid) {
-      compiler->Bailout(ToCString());
+      Unsupported(compiler);
+      UNREACHABLE();
     }
-
     __ StoreIndexed(locs()->in(kArrayPos).reg(),
                     locs()->in(kIndexPos).reg(),
                     locs()->in(kValuePos).reg());
@@ -563,6 +620,27 @@ EMIT_NATIVE_CODE(NativeCall,
                                  Thread::kNoDeoptId,
                                  token_pos());
 }
+
+
+EMIT_NATIVE_CODE(OneByteStringFromCharCode,
+                 1, Location::RequiresRegister(),
+                 LocationSummary::kNoCall) {
+  ASSERT(compiler->is_optimizing());
+  const Register char_code = locs()->in(0).reg();  // Char code is a smi.
+  const Register result = locs()->out(0).reg();
+  __ OneByteStringFromCharCode(result, char_code);
+}
+
+
+EMIT_NATIVE_CODE(StringToCharCode,
+                 1, Location::RequiresRegister(),
+                 LocationSummary::kNoCall) {
+  ASSERT(cid_ == kOneByteStringCid);
+  const Register str = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();  // Result char code is a smi.
+  __ StringToCharCode(result, str);
+}
+
 
 
 EMIT_NATIVE_CODE(AllocateObject,
@@ -842,8 +920,12 @@ Representation LoadIndexedInstr::representation() const {
 Representation StoreIndexedInstr::RequiredInputRepresentation(
     intptr_t idx) const {
   // Array can be a Dart object or a pointer to external data.
-  if (idx == 0)  return kNoRepresentation;  // Flexible input representation.
-  if (idx == 1) return kTagged;  // Index is a smi.
+  if (idx == 0) {
+    return kNoRepresentation;  // Flexible input representation.
+  }
+  if (idx == 1) {
+    return kTagged;  // Index is a smi.
+  }
   ASSERT(idx == 2);
   switch (class_id_) {
     case kArrayCid:
@@ -894,6 +976,159 @@ void Environment::DropArguments(intptr_t argc) {
     values_.TruncateTo(values_.length() - argc);
 }
 
+
+EMIT_NATIVE_CODE(CheckSmi, 1) {
+  __ CheckSmi(locs()->in(0).reg());
+  compiler->EmitDeopt(deopt_id(),
+                      ICData::kDeoptCheckSmi,
+                      licm_hoisted_ ? ICData::kHoisted : 0);
+}
+
+
+EMIT_NATIVE_CODE(CheckEitherNonSmi, 2) {
+  intptr_t left_cid = left()->Type()->ToCid();
+  intptr_t right_cid = right()->Type()->ToCid();
+  const Register left = locs()->in(0).reg();
+  const Register right = locs()->in(1).reg();
+  if (this->left()->definition() == this->right()->definition()) {
+    __ CheckSmi(left);
+  } else if (left_cid == kSmiCid) {
+    __ CheckSmi(right);
+  } else if (right_cid == kSmiCid) {
+    __ CheckSmi(left);
+  } else {
+    __ CheckSmi(left);
+    compiler->EmitDeopt(deopt_id(), ICData::kDeoptBinaryDoubleOp,
+                        licm_hoisted_ ? ICData::kHoisted : 0);
+    __ CheckSmi(right);
+  }
+  compiler->EmitDeopt(deopt_id(), ICData::kDeoptBinaryDoubleOp,
+                      licm_hoisted_ ? ICData::kHoisted : 0);
+}
+
+
+EMIT_NATIVE_CODE(CheckClassId, 1) {
+  __ CheckClassId(locs()->in(0).reg(),
+                  compiler->ToEmbeddableCid(cid_, this));
+  compiler->EmitDeopt(deopt_id(), ICData::kDeoptCheckClass);
+}
+
+
+EMIT_NATIVE_CODE(CheckClass, 1) {
+  const Register value = locs()->in(0).reg();
+  if (IsNullCheck()) {
+    ASSERT(DeoptIfNull() || DeoptIfNotNull());
+    if (DeoptIfNull()) {
+      __ IfEqNull(value);
+    } else {
+      __ IfNeNull(value);
+    }
+  } else {
+    ASSERT((unary_checks().GetReceiverClassIdAt(0) != kSmiCid) ||
+           (unary_checks().NumberOfChecks() > 1));
+    const intptr_t may_be_smi =
+        (unary_checks().GetReceiverClassIdAt(0) == kSmiCid) ? 1 : 0;
+    if (IsDenseSwitch()) {
+      ASSERT(cids_[0] < cids_[cids_.length() - 1]);
+      const intptr_t low_cid = cids_[0];
+      const intptr_t cid_mask = ComputeCidMask();
+      __ CheckDenseSwitch(value, may_be_smi);
+      __ Nop(compiler->ToEmbeddableCid(low_cid, this));
+      __ Nop(__ AddConstant(Smi::Handle(Smi::New(cid_mask))));
+    } else {
+      GrowableArray<CidTarget> sorted_ic_data;
+      FlowGraphCompiler::SortICDataByCount(unary_checks(),
+                                           &sorted_ic_data,
+                                           /* drop_smi = */ true);
+      const intptr_t sorted_length = sorted_ic_data.length();
+      if (!Utils::IsUint(8, sorted_length)) {
+        Unsupported(compiler);
+        UNREACHABLE();
+      }
+      __ CheckCids(value, may_be_smi, sorted_length);
+      for (intptr_t i = 0; i < sorted_length; i++) {
+        __ Nop(compiler->ToEmbeddableCid(sorted_ic_data[i].cid, this));
+      }
+    }
+  }
+  compiler->EmitDeopt(deopt_id(),
+                      ICData::kDeoptCheckClass,
+                      licm_hoisted_ ? ICData::kHoisted : 0);
+}
+
+
+EMIT_NATIVE_CODE(BinarySmiOp, 2, Location::RequiresRegister()) {
+  const Register left = locs()->in(0).reg();
+  const Register right = locs()->in(1).reg();
+  const Register out = locs()->out(0).reg();
+  const bool can_deopt = CanDeoptimize();
+  bool needs_nop = false;
+  switch (op_kind()) {
+    case Token::kADD:
+      __ Add(out, left, right);
+      needs_nop = true;
+      break;
+    case Token::kSUB:
+      __ Sub(out, left, right);
+      needs_nop = true;
+      break;
+    case Token::kMUL:
+      __ Mul(out, left, right);
+      needs_nop = true;
+      break;
+    case Token::kTRUNCDIV:
+      ASSERT(can_deopt);
+      __ Div(out, left, right);
+      break;
+    case Token::kBIT_AND:
+      ASSERT(!can_deopt);
+      __ BitAnd(out, left, right);
+      break;
+    case Token::kBIT_OR:
+      ASSERT(!can_deopt);
+      __ BitOr(out, left, right);
+      break;
+    case Token::kBIT_XOR:
+      ASSERT(!can_deopt);
+      __ BitXor(out, left, right);
+      break;
+    case Token::kMOD:
+      __ Mod(out, left, right);
+      needs_nop = true;
+      break;
+    case Token::kSHR:
+      __ Shr(out, left, right);
+      needs_nop = true;
+      break;
+    case Token::kSHL:
+      __ Shl(out, left, right);
+      needs_nop = true;
+      break;
+    default:
+      UNREACHABLE();
+  }
+  if (can_deopt) {
+    compiler->EmitDeopt(deopt_id(), ICData::kDeoptBinarySmiOp);
+  } else if (needs_nop) {
+    __ Nop(0);
+  }
+}
+
+
+EMIT_NATIVE_CODE(UnarySmiOp, 1, Location::RequiresRegister()) {
+  switch (op_kind()) {
+    case Token::kNEGATE: {
+      __ Neg(locs()->out(0).reg(), locs()->in(0).reg());
+      compiler->EmitDeopt(deopt_id(), ICData::kDeoptUnaryOp);
+      break;
+    }
+    case Token::kBIT_NOT:
+      __ BitNot(locs()->out(0).reg(), locs()->in(0).reg());
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
 
 }  // namespace dart
 

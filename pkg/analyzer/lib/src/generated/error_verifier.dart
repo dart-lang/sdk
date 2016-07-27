@@ -30,7 +30,8 @@ import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/src/task/strong/info.dart' show StaticInfo;
+import 'package:analyzer/src/task/strong/checker.dart' as checker
+    show isKnownFunction;
 
 /**
  * A visitor used to traverse an AST structure looking for additional errors and
@@ -78,7 +79,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   /**
    * The options for verification.
    */
-  AnalysisOptions _options;
+  AnalysisOptionsImpl _options;
 
   /**
    * The object providing access to the types defined by the language.
@@ -209,6 +210,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * in the scope of a class.
    */
   ClassElementImpl _enclosingClass;
+
+  /**
+   * The enum containing the AST nodes being visited, or `null` if we are not
+   * in the scope of an enum.
+   */
+  ClassElement _enclosingEnum;
 
   /**
    * The method or function that we are currently visiting, or `null` if we are
@@ -435,7 +442,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     ClassElementImpl outerClass = _enclosingClass;
     try {
       _isInNativeClass = node.nativeClause != null;
-      _enclosingClass = ClassElementImpl.getImpl(node.element);
+      _enclosingClass = AbstractClassElementImpl.getImpl(node.element);
       ExtendsClause extendsClause = node.extendsClause;
       ImplementsClause implementsClause = node.implementsClause;
       WithClause withClause = node.withClause;
@@ -484,7 +491,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   void visitClassDeclarationIncrementally(ClassDeclaration node) {
     _isInNativeClass = node.nativeClause != null;
-    _enclosingClass = ClassElementImpl.getImpl(node.element);
+    _enclosingClass = AbstractClassElementImpl.getImpl(node.element);
     // initialize initialFieldElementsMap
     if (_enclosingClass != null) {
       List<FieldElement> fieldElements = _enclosingClass.fields;
@@ -504,7 +511,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     ClassElementImpl outerClassElement = _enclosingClass;
     try {
-      _enclosingClass = ClassElementImpl.getImpl(node.element);
+      _enclosingClass = AbstractClassElementImpl.getImpl(node.element);
       ImplementsClause implementsClause = node.implementsClause;
       // Only check for all of the inheritance logic around clauses if there
       // isn't an error code such as "Cannot extend double" already on the
@@ -622,13 +629,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitEnumDeclaration(EnumDeclaration node) {
-    ClassElementImpl outerClass = _enclosingClass;
+    ClassElement outerEnum = _enclosingEnum;
     try {
-      _isInNativeClass = false;
-      _enclosingClass = ClassElementImpl.getImpl(node.element);
+      _enclosingEnum = node.element;
       return super.visitEnumDeclaration(node);
     } finally {
-      _enclosingClass = outerClass;
+      _enclosingEnum = outerEnum;
     }
   }
 
@@ -667,6 +673,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _inAsync = wasInAsync;
       _inGenerator = wasInGenerator;
     }
+  }
+
+  @override
+  Object visitExtendsClause(ExtendsClause node) {
+    _checkForImplicitDynamicType(node.superclass);
+    return super.visitExtendsClause(node);
   }
 
   @override
@@ -741,6 +753,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
       _checkForTypeAnnotationDeferredClass(returnType);
       _checkForIllegalReturnType(returnType);
+      _checkForImplicitDynamicReturn(node, node.element);
       return super.visitFunctionDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
@@ -775,6 +788,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     } else if (expressionType is FunctionType) {
       _checkTypeArguments(expressionType.element, node.typeArguments);
     }
+    _checkForImplicitDynamicInvoke(node);
     return super.visitFunctionExpressionInvocation(node);
   }
 
@@ -793,6 +807,18 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _isInFunctionTypedFormalParameter = true;
     try {
       _checkForTypeAnnotationDeferredClass(node.returnType);
+
+      // TODO(jmesserly): ideally we'd use _checkForImplicitDynamicReturn, and
+      // we can get the function element via `node?.element?.type?.element` but
+      // it doesn't have hasImplicitReturnType set correctly.
+      if (!_options.implicitDynamic && node.returnType == null) {
+        DartType parameterType = node.element.type;
+        if (parameterType is FunctionType &&
+            parameterType.returnType.isDynamic) {
+          _errorReporter.reportErrorForNode(
+              StrongModeCode.IMPLICIT_DYNAMIC_RETURN, node, [node.identifier]);
+        }
+      }
       return super.visitFunctionTypedFormalParameter(node);
     } finally {
       _isInFunctionTypedFormalParameter = old;
@@ -803,6 +829,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   Object visitIfStatement(IfStatement node) {
     _checkForNonBoolCondition(node.condition);
     return super.visitIfStatement(node);
+  }
+
+  @override
+  Object visitImplementsClause(ImplementsClause node) {
+    node.interfaces.forEach(_checkForImplicitDynamicType);
+    return super.visitImplementsClause(node);
   }
 
   @override
@@ -842,6 +874,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           _checkForNewWithUndefinedConstructor(node, constructorName, typeName);
         }
       }
+      _checkForImplicitDynamicType(typeName);
       return super.visitInstanceCreationExpression(node);
     } finally {
       _isInConstInstanceCreation = wasInConstInstanceCreation;
@@ -867,7 +900,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
       _checkForExpectedOneListTypeArgument(node, typeArguments);
     }
-
+    _checkForImplicitDynamicTypedLiteral(node);
     _checkForListElementTypeNotAssignable(node);
     return super.visitListLiteral(node);
   }
@@ -885,7 +918,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
       _checkExpectedTwoMapTypeArguments(typeArguments);
     }
-
+    _checkForImplicitDynamicTypedLiteral(node);
     _checkForMapTypeNotAssignable(node);
     _checkForNonConstMapAsExpressionStatement(node);
     return super.visitMapLiteral(node);
@@ -924,6 +957,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _checkForAllInvalidOverrideErrorCodesForMethod(node);
       _checkForTypeAnnotationDeferredClass(returnTypeName);
       _checkForIllegalReturnType(returnTypeName);
+      _checkForImplicitDynamicReturn(node, node.element);
       _checkForMustCallSuper(node);
       return super.visitMethodDeclaration(node);
     } finally {
@@ -945,6 +979,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     _checkTypeArguments(
         node.methodName.staticElement, node.typeArguments, target?.staticType);
+    _checkForImplicitDynamicInvoke(node);
     return super.visitMethodInvocation(node);
   }
 
@@ -1040,6 +1075,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _checkForConstFormalParameter(node);
     _checkForPrivateOptionalParameter(node);
     _checkForTypeAnnotationDeferredClass(node.type);
+
+    // Checks for an implicit dynamic parameter type.
+    //
+    // We can skip other parameter kinds besides simple formal, because:
+    // - DefaultFormalParameter contains a simple one, so it gets here,
+    // - FieldFormalParameter error should be reported on the field,
+    // - FunctionTypedFormalParameter is a function type, not dynamic.
+    _checkForImplicitDynamicIdentifier(node, node.identifier);
+
     return super.visitSimpleFormalParameter(node);
   }
 
@@ -1110,6 +1154,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME);
     _checkForTypeParameterSupertypeOfItsBound(node);
     _checkForTypeAnnotationDeferredClass(node.bound);
+    _checkForImplicitDynamicType(node.bound);
     return super.visitTypeParameter(node);
   }
 
@@ -1119,6 +1164,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     Expression initializerNode = node.initializer;
     // do checks
     _checkForInvalidAssignment(nameNode, initializerNode);
+    _checkForImplicitDynamicIdentifier(node, nameNode);
     // visit name
     nameNode.accept(this);
     // visit initializer
@@ -1154,6 +1200,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   Object visitWhileStatement(WhileStatement node) {
     _checkForNonBoolCondition(node.condition);
     return super.visitWhileStatement(node);
+  }
+
+  @override
+  Object visitWithClause(WithClause node) {
+    node.mixinTypes.forEach(_checkForImplicitDynamicType);
+    return super.visitWithClause(node);
   }
 
   @override
@@ -3532,6 +3584,113 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return foundError;
   }
 
+  void _checkForImplicitDynamicIdentifier(AstNode node, Identifier id) {
+    if (_options.implicitDynamic) {
+      return;
+    }
+    VariableElement variable = getVariableElement(id);
+    if (variable != null &&
+        variable.hasImplicitType &&
+        variable.type.isDynamic) {
+      ErrorCode errorCode;
+      if (variable is FieldElement) {
+        errorCode = StrongModeCode.IMPLICIT_DYNAMIC_FIELD;
+      } else if (variable is ParameterElement) {
+        errorCode = StrongModeCode.IMPLICIT_DYNAMIC_PARAMETER;
+      } else {
+        errorCode = StrongModeCode.IMPLICIT_DYNAMIC_VARIABLE;
+      }
+      _errorReporter.reportErrorForNode(errorCode, node, [id]);
+    }
+  }
+
+  void _checkForImplicitDynamicInvoke(InvocationExpression node) {
+    if (_options.implicitDynamic ||
+        node == null ||
+        node.typeArguments != null) {
+      return;
+    }
+    DartType invokeType = node.staticInvokeType;
+    DartType declaredType = node.function.staticType;
+    if (invokeType is FunctionType && declaredType is FunctionType) {
+      Iterable<DartType> typeArgs =
+          FunctionTypeImpl.recoverTypeArguments(declaredType, invokeType);
+      if (typeArgs.any((t) => t.isDynamic)) {
+        // Issue an error depending on what we're trying to call.
+        Expression function = node.function;
+        if (function is Identifier) {
+          Element element = function.staticElement;
+          if (element is MethodElement) {
+            _errorReporter.reportErrorForNode(
+                StrongModeCode.IMPLICIT_DYNAMIC_METHOD,
+                node.function,
+                [element.displayName, element.typeParameters.join(', ')]);
+            return;
+          }
+
+          if (element is FunctionElement) {
+            _errorReporter.reportErrorForNode(
+                StrongModeCode.IMPLICIT_DYNAMIC_FUNCTION,
+                node.function,
+                [element.displayName, element.typeParameters.join(', ')]);
+            return;
+          }
+        }
+
+        // The catch all case if neither of those matched.
+        // For example, invoking a function expression.
+        _errorReporter.reportErrorForNode(
+            StrongModeCode.IMPLICIT_DYNAMIC_INVOKE,
+            node.function,
+            [declaredType]);
+      }
+    }
+  }
+
+  void _checkForImplicitDynamicReturn(AstNode node, ExecutableElement element) {
+    if (_options.implicitDynamic) {
+      return;
+    }
+    if (element is PropertyAccessorElement && element.isSetter) {
+      return;
+    }
+    if (element != null &&
+        element.hasImplicitReturnType &&
+        element.returnType.isDynamic) {
+      _errorReporter.reportErrorForNode(
+          StrongModeCode.IMPLICIT_DYNAMIC_RETURN, node, [element.displayName]);
+    }
+  }
+
+  void _checkForImplicitDynamicType(TypeName node) {
+    if (_options.implicitDynamic ||
+        node == null ||
+        node.typeArguments != null) {
+      return;
+    }
+    DartType type = node.type;
+    if (type is ParameterizedType &&
+        type.typeArguments.isNotEmpty &&
+        type.typeArguments.any((t) => t.isDynamic)) {
+      _errorReporter.reportErrorForNode(
+          StrongModeCode.IMPLICIT_DYNAMIC_TYPE, node, [type]);
+    }
+  }
+
+  void _checkForImplicitDynamicTypedLiteral(TypedLiteral node) {
+    if (_options.implicitDynamic || node.typeArguments != null) {
+      return;
+    }
+    DartType type = node.staticType;
+    // It's an error if either the key or value was inferred as dynamic.
+    if (type is InterfaceType && type.typeArguments.any((t) => t.isDynamic)) {
+      ErrorCode errorCode = node is ListLiteral
+          ? StrongModeCode.IMPLICIT_DYNAMIC_LIST_LITERAL
+          : StrongModeCode.IMPLICIT_DYNAMIC_MAP_LITERAL;
+      _errorReporter.reportErrorForNode(errorCode, node);
+    }
+  }
+
   /**
    * Verify that if the given [identifier] is part of a constructor initializer,
    * then it does not implicitly reference 'this' expression.
@@ -5199,7 +5358,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return;
     }
     Element element = type.element;
-    if (element is TypeParameterizedElement) {
+    if (element is ClassElement) {
       // prepare type parameters
       List<TypeParameterElement> parameterElements = element.typeParameters;
       List<DartType> parameterTypes = element.type.typeArguments;
@@ -5362,6 +5521,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     Element enclosingElement = element.enclosingElement;
     if (identical(enclosingElement, _enclosingClass)) {
+      return;
+    }
+    if (identical(enclosingElement, _enclosingEnum)) {
       return;
     }
     if (enclosingElement is! ClassElement) {
@@ -5735,8 +5897,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   bool _expressionIsAssignableAtType(Expression expression,
       DartType actualStaticType, DartType expectedStaticType) {
-    bool concrete =
-        _options.strongMode && StaticInfo.isKnownFunction(expression);
+    bool concrete = _options.strongMode && checker.isKnownFunction(expression);
     if (concrete) {
       actualStaticType =
           _typeSystem.typeToConcreteType(_typeProvider, actualStaticType);
@@ -6214,6 +6375,13 @@ class RequiredConstantsComputer extends RecursiveAstVisitor {
   RequiredConstantsComputer(this.source);
 
   @override
+  Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    _checkForMissingRequiredParam(
+        node.staticInvokeType, node.argumentList, node);
+    return super.visitFunctionExpressionInvocation(node);
+  }
+
+  @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
     DartType type = node.constructorName.type.type;
     if (type is InterfaceType) {
@@ -6228,6 +6396,25 @@ class RequiredConstantsComputer extends RecursiveAstVisitor {
     _checkForMissingRequiredParam(
         node.staticInvokeType, node.argumentList, node.methodName);
     return super.visitMethodInvocation(node);
+  }
+
+  @override
+  Object visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
+    DartType type = node.staticElement?.type;
+    if (type != null) {
+      _checkForMissingRequiredParam(type, node.argumentList, node);
+    }
+    return super.visitRedirectingConstructorInvocation(node);
+  }
+
+  @override
+  Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    DartType type = node.staticElement?.type;
+    if (type != null) {
+      _checkForMissingRequiredParam(type, node.argumentList, node);
+    }
+    return super.visitSuperConstructorInvocation(node);
   }
 
   void _checkForMissingRequiredParam(

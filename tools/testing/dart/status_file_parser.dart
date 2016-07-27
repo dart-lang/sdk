@@ -35,6 +35,11 @@ class Expectation {
   static Expectation SKIP_SLOW = byName('SkipSlow');
   static Expectation SKIP_BY_DESIGN = byName('SkipByDesign');
 
+  // Can be returned by the test runner to say the result should be ignored,
+  // and assumed to meet the expectations, due to an infrastructure failure.
+  // Do not place in status files.
+  static Expectation IGNORE = byName('Ignore');
+
   static Expectation byName(String name) {
     _initialize();
     name = name.toLowerCase();
@@ -77,6 +82,7 @@ class Expectation {
       build("SkipSlow", group: skip, isMetaExpectation: true);
       build("Ok", isMetaExpectation: true);
       build("Slow", isMetaExpectation: true);
+      build("Ignore");
     }
   }
 
@@ -94,6 +100,7 @@ class Expectation {
 
   bool canBeOutcomeOf(Expectation expectation) {
     Expectation outcome = this;
+    if (outcome == IGNORE) return true;
     while (outcome != null) {
       if (outcome == expectation) {
         return true;

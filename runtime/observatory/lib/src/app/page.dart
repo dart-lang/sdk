@@ -199,6 +199,24 @@ class DebuggerPage extends SimplePage {
   }
 }
 
+
+class ObjectStorePage extends SimplePage {
+  ObjectStorePage(app) : super('object-store', 'objectstore-view', app);
+
+  void _visit(Uri uri) {
+    super._visit(uri);
+    getIsolate(uri).then((isolate) {
+      isolate.getObjectStore().then((objectStore) {
+        if (element != null) {
+          /// Update the page.
+          ObjectStoreViewElement page = element;
+          page.objectStore = objectStore;
+        }
+      });
+    });
+  }
+}
+
 class CpuProfilerPage extends SimplePage {
   CpuProfilerPage(app) : super('profiler', 'cpu-profile', app);
 

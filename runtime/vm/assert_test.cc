@@ -46,3 +46,18 @@ UNIT_TEST_CASE(Expect) {
   EXPECT_FLOAT_EQ(15.43, 15.44, 0.01);
   EXPECT_FLOAT_EQ(1.43, 1.43, 0.00);
 }
+
+
+UNIT_TEST_CASE(Fail0) {
+  FAIL("This test fails");
+}
+
+
+UNIT_TEST_CASE(Fail1) {
+  FAIL1("This test fails with one argument: %d", 4);
+}
+
+
+UNIT_TEST_CASE(Fail2) {
+  FAIL2("This test fails with two arguments: %d, %d", -100, 42);
+}

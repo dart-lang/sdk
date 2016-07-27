@@ -437,6 +437,7 @@ abstract class TestSuite {
      *  dart/
      *      pkg/PACKAGE_NAME
      *      third_party/pkg/PACKAGE_NAME
+     *      third_party/pkg_tested/PACKAGE_NAME
      *      runtime/observatory/PACKAGE_NAME
      *      sdk/lib/_internal/PACKAGE_NAME
      */
@@ -450,6 +451,7 @@ abstract class TestSuite {
     var futures = [
       listDir(dartDir.append('pkg'), isValid),
       listDir(dartDir.append('third_party').append('pkg'), isValid),
+      listDir(dartDir.append('third_party').append('pkg_tested'), isValid),
       listDir(dartDir.append('runtime').append('observatory'), isValid),
       listDir(dartDir.append('sdk').append('lib').append('_internal'), isValid),
     ];
@@ -1336,6 +1338,14 @@ class StandardTestSuite extends TestSuite {
         contentShellOptions.add('--no-timeout');
         contentShellOptions.add('--dump-render-tree');
 
+        // Disable the GPU under Linux and Dartium. If the GPU is enabled,
+        // Chrome may send a termination signal to a test.  The test will be
+        // terminated if a machine (bot) doesn't have a GPU or if a test is
+        // still running after a certain period of time.
+        if (configuration['system'] == 'linux' &&
+            configuration['runtime'] == 'drt') {
+          contentShellOptions.add('--disable-gpu');
+        }
         if (compiler == 'none') {
           dartFlags.add('--ignore-unrecognized-flags');
           if (configuration["checked"]) {
@@ -2235,12 +2245,10 @@ class TestUtils {
   static String outputDir(Map configuration) {
     var result = '';
     var system = configuration['system'];
-    if (system == 'linux' || system == 'android') {
+    if (system == 'linux' || system == 'android' || system == 'windows') {
       result = 'out/';
     } else if (system == 'macos') {
       result = 'xcodebuild/';
-    } else if (system == 'windows') {
-      result = 'build/';
     } else {
       throw new Exception('Unknown operating system: "$system"');
     }
@@ -2386,6 +2394,8 @@ class TestUtils {
   static List<String> getExtraVmOptions(Map configuration) =>
       getExtraOptions(configuration, 'vm_options');
 
+  static int shortNameCounter = 0;  // Make unique short file names on Windows.
+
   static String getShortName(String path) {
     final PATH_REPLACEMENTS = const {
       "pkg_polymer_e2e_test_bad_import_test": "polymer_bi",
@@ -2449,6 +2459,7 @@ class TestUtils {
     }
     path = path.replaceAll('/', '_');
     final int WINDOWS_SHORTEN_PATH_LIMIT = 58;
+    final int WINDOWS_PATH_END_LENGTH = 30;
     if (Platform.operatingSystem == 'windows' &&
         path.length > WINDOWS_SHORTEN_PATH_LIMIT) {
       for (var key in PATH_REPLACEMENTS.keys) {
@@ -2456,6 +2467,11 @@ class TestUtils {
           path = path.replaceFirst(key, PATH_REPLACEMENTS[key]);
           break;
         }
+      }
+      if (path.length > WINDOWS_SHORTEN_PATH_LIMIT) {
+        ++shortNameCounter;
+        var pathEnd = path.substring(path.length - WINDOWS_PATH_END_LENGTH);
+        path = "short${shortNameCounter}_$pathEnd";
       }
     }
     return path;

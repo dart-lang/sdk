@@ -16,14 +16,12 @@ namespace dart {
 
 // Generate a simple dart code sequence.
 // This is used to test Code and Instruction object creation.
+// For other architectures, this sequence does do an increment, hence the name.
+// On DBC, we don't do an increment because generating an instance call here
+// would be too complex.
 void GenerateIncrement(Assembler* assembler) {
   __ Frame(1);
-  __ LoadConstant(0, Smi::Handle(Smi::New(0)));
-  __ PushConstant(Smi::Handle(Smi::New(1)));
-  __ Push(0);
-  __ AddTOS();
-  __ Trap();
-  __ PopLocal(0);
+  __ LoadConstant(0, Smi::Handle(Smi::New(1)));
   __ Return(0);
 }
 

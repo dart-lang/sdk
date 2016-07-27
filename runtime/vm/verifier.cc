@@ -20,7 +20,7 @@ namespace dart {
 void VerifyObjectVisitor::VisitObject(RawObject* raw_obj) {
   if (raw_obj->IsHeapObject()) {
     uword raw_addr = RawObject::ToAddr(raw_obj);
-    if (raw_obj->IsFreeListElement()) {
+    if (raw_obj->IsFreeListElement() || raw_obj->IsForwardingCorpse()) {
       if (raw_obj->IsMarked()) {
         FATAL1("Marked free list element encountered %#" Px "\n", raw_addr);
       }
@@ -48,7 +48,6 @@ void VerifyObjectVisitor::VisitObject(RawObject* raw_obj) {
 
 void VerifyPointersVisitor::VisitPointers(RawObject** first, RawObject** last) {
   for (RawObject** current = first; current <= last; current++) {
-    VerifiedMemory::Verify(reinterpret_cast<uword>(current), kWordSize);
     RawObject* raw_obj = *current;
     if (raw_obj->IsHeapObject()) {
       if (!allocated_set_->Contains(raw_obj)) {

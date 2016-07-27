@@ -290,10 +290,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   }
 
   bool isNativeElement(Element element) {
-    if (compiler.backend.isNative(element)) return true;
-    return element.isClassMember &&
-        compiler.backend.isNative(element.enclosingClass) &&
-        element.isField;
+    return compiler.backend.isNative(element);
   }
 
   void analyze(ResolvedAst resolvedAst, ArgumentsTypes arguments);

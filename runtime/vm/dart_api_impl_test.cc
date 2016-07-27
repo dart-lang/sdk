@@ -1206,6 +1206,28 @@ TEST_CASE(MalformedStringToUTF8) {
 }
 
 
+// Helper class to ensure new gen GC is triggered without any side effects.
+// The normal call to CollectGarbage(Heap::kNew) could potentially trigger
+// an old gen collection if there is a promotion failure and this could
+// perturb the test.
+class GCTestHelper : public AllStatic {
+ public:
+  static void CollectNewSpace(Heap::ApiCallbacks api_callbacks) {
+    bool invoke_api_callbacks = (api_callbacks == Heap::kInvokeApiCallbacks);
+    Isolate::Current()->heap()->new_space()->Scavenge(invoke_api_callbacks);
+  }
+
+  static void WaitForFinalizationTasks() {
+    Thread* thread = Thread::Current();
+    Heap* heap = thread->isolate()->heap();
+    MonitorLocker ml(heap->finalization_tasks_lock());
+    while (heap->finalization_tasks() > 0) {
+      ml.WaitWithSafepointCheck(thread);
+    }
+  }
+};
+
+
 static void ExternalStringCallbackFinalizer(void* peer) {
   *static_cast<int*>(peer) *= 2;
 }
@@ -1242,9 +1264,11 @@ TEST_CASE(ExternalStringCallback) {
     EXPECT_EQ(40, peer8);
     EXPECT_EQ(41, peer16);
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    GCTestHelper::WaitForFinalizationTasks();
     EXPECT_EQ(40, peer8);
     EXPECT_EQ(41, peer16);
     Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+    GCTestHelper::WaitForFinalizationTasks();
     EXPECT_EQ(80, peer8);
     EXPECT_EQ(82, peer16);
   }
@@ -2381,10 +2405,62 @@ TEST_CASE(ExternalTypedDataCallback) {
     TransitionNativeToVM transition(thread);
     EXPECT(peer == 0);
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    GCTestHelper::WaitForFinalizationTasks();
     EXPECT(peer == 0);
     Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+    GCTestHelper::WaitForFinalizationTasks();
     EXPECT(peer == 42);
   }
+}
+
+
+static Monitor* slow_finalizers_monitor = NULL;
+static intptr_t slow_finalizers_waiting = 0;
+
+
+static void SlowFinalizer(void* isolate_callback_data,
+                          Dart_WeakPersistentHandle handle,
+                          void* peer) {
+  {
+    MonitorLocker ml(slow_finalizers_monitor);
+    slow_finalizers_waiting++;
+    while (slow_finalizers_waiting < 10) {
+      ml.Wait();
+    }
+    ml.NotifyAll();
+  }
+
+  intptr_t* count = reinterpret_cast<intptr_t*>(peer);
+  AtomicOperations::IncrementBy(count, 1);
+}
+
+
+TEST_CASE(SlowFinalizer) {
+  slow_finalizers_monitor = new Monitor();
+
+  intptr_t count = 0;
+  for (intptr_t i = 0; i < 10; i++) {
+    Dart_EnterScope();
+    Dart_Handle str1 = Dart_NewStringFromCString("Live fast");
+    Dart_NewWeakPersistentHandle(str1, &count, 0, SlowFinalizer);
+    Dart_Handle str2 = Dart_NewStringFromCString("Die young");
+    Dart_NewWeakPersistentHandle(str2, &count, 0, SlowFinalizer);
+    Dart_ExitScope();
+
+    {
+      TransitionNativeToVM transition(thread);
+      Isolate::Current()->heap()->CollectAllGarbage();
+    }
+  }
+
+  {
+    TransitionNativeToVM transition(thread);
+    GCTestHelper::WaitForFinalizationTasks();
+  }
+
+  EXPECT_EQ(20, count);
+
+  delete slow_finalizers_monitor;
 }
 
 
@@ -2439,6 +2515,7 @@ TEST_CASE(Float32x4List) {
   {
     TransitionNativeToVM transition(thread);
     Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+    GCTestHelper::WaitForFinalizationTasks();
     EXPECT(peer == 42);
   }
 }
@@ -2601,19 +2678,6 @@ UNIT_TEST_CASE(AssignToPersistentHandle) {
 }
 
 
-// Helper class to ensure new gen GC is triggered without any side effects.
-// The normal call to CollectGarbage(Heap::kNew) could potentially trigger
-// an old gen collection if there is a promotion failure and this could
-// perturb the test.
-class GCTestHelper : public AllStatic {
- public:
-  static void CollectNewSpace(Heap::ApiCallbacks api_callbacks) {
-    bool invoke_api_callbacks = (api_callbacks == Heap::kInvokeApiCallbacks);
-    Isolate::Current()->heap()->new_space()->Scavenge(invoke_api_callbacks);
-  }
-};
-
-
 static Dart_Handle AsHandle(Dart_PersistentHandle weak) {
   return Dart_HandleFromPersistent(weak);
 }
@@ -2728,6 +2792,7 @@ TEST_CASE(WeakPersistentHandle) {
     TransitionNativeToVM transition(thread);
     // Garbage collect new space again.
     GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    GCTestHelper::WaitForFinalizationTasks();
   }
 
   {
@@ -2743,6 +2808,7 @@ TEST_CASE(WeakPersistentHandle) {
     TransitionNativeToVM transition(thread);
     // Garbage collect old space again.
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    GCTestHelper::WaitForFinalizationTasks();
   }
 
   {
@@ -2787,6 +2853,7 @@ TEST_CASE(WeakPersistentHandleCallback) {
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
     EXPECT(peer == 0);
     GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    GCTestHelper::WaitForFinalizationTasks();
     EXPECT(peer == 42);
   }
 }
@@ -2813,6 +2880,7 @@ TEST_CASE(WeakPersistentHandleNoCallback) {
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
     EXPECT(peer == 0);
     GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    GCTestHelper::WaitForFinalizationTasks();
     EXPECT(peer == 0);
   }
 }
@@ -2873,6 +2941,7 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSize) {
     // Collect weakly referenced string, and promote strongly referenced string.
     GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
     GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    GCTestHelper::WaitForFinalizationTasks();
     EXPECT(heap->ExternalInWords(Heap::kNew) == 0);
     EXPECT(heap->ExternalInWords(Heap::kOld) == kWeak2ExternalSize / kWordSize);
   }
@@ -2883,6 +2952,7 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSize) {
   {
     TransitionNativeToVM transition(thread);
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    GCTestHelper::WaitForFinalizationTasks();
     EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
   }
 }
@@ -2928,6 +2998,7 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeNewspaceGC) {
   {
     TransitionNativeToVM transition(thread);
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    GCTestHelper::WaitForFinalizationTasks();
     EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
   }
 }
@@ -2964,8 +3035,6 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeOldspaceGC) {
   // Expect small garbage to be collected.
   EXPECT_EQ(kHugeExternalSize,
             isolate->heap()->ExternalInWords(Heap::kOld) * kWordSize);
-  Dart_DeleteWeakPersistentHandle(reinterpret_cast<Dart_Isolate>(isolate),
-                                  weak);
   Dart_ExitScope();
 }
 
@@ -5914,6 +5983,11 @@ TEST_CASE(RootLibrary) {
   lib_uri = Dart_LibraryUrl(root_lib);
   EXPECT_VALID(Dart_StringToCString(lib_uri, &uri_cstr));
   EXPECT_STREQ("dart:core", uri_cstr);  // Root library did change.
+
+  result = Dart_SetRootLibrary(Dart_Null());
+  EXPECT_VALID(result);
+  root_lib = Dart_RootLibrary();
+  EXPECT(Dart_IsNull(root_lib));  // Root library did change.
 }
 
 
@@ -8706,6 +8780,7 @@ TEST_CASE(MakeExternalString) {
   {
     TransitionNativeToVM transition(thread);
     Isolate::Current()->heap()->CollectAllGarbage();
+    GCTestHelper::WaitForFinalizationTasks();
   }
   EXPECT_EQ(80, peer8);
   EXPECT_EQ(82, peer16);

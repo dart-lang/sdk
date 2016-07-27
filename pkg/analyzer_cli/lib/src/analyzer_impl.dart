@@ -18,6 +18,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
+import 'package:analyzer_cli/src/incremental_analyzer.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as pathos;
 
@@ -37,6 +38,8 @@ class AnalyzerImpl {
   final int startTime;
 
   final AnalysisContext context;
+
+  final IncrementalAnalysisSession incrementalSession;
 
   /// Accumulated analysis statistics.
   final AnalysisStats stats;
@@ -60,8 +63,8 @@ class AnalyzerImpl {
   /// specified the "--package-warnings" option.
   String _selfPackageName;
 
-  AnalyzerImpl(this.context, this.librarySource, this.options, this.stats,
-      this.startTime);
+  AnalyzerImpl(this.context, this.incrementalSession, this.librarySource,
+      this.options, this.stats, this.startTime);
 
   /// Returns the maximal [ErrorSeverity] of the recorded errors.
   ErrorSeverity get maxErrorSeverity {
@@ -135,6 +138,7 @@ class AnalyzerImpl {
     var units = new Set<CompilationUnitElement>();
     var libraries = new Set<LibraryElement>();
     addLibrarySources(library, libraries, units);
+    incrementalSession?.setAnalyzedSources(sources);
   }
 
   /// Setup local fields such as the analysis context for analysis.
@@ -255,14 +259,12 @@ class AnalyzerImpl {
   static ErrorSeverity computeSeverity(
       AnalysisError error, CommandLineOptions options,
       [AnalysisContext context]) {
-    bool isStrongMode = false;
     if (context != null) {
       ErrorProcessor processor = ErrorProcessor.getProcessor(context, error);
       // If there is a processor for this error, defer to it.
       if (processor != null) {
         return processor.severity;
       }
-      isStrongMode = context.analysisOptions.strongMode;
     }
 
     if (!options.enableTypeChecks &&
@@ -271,10 +273,6 @@ class AnalyzerImpl {
     } else if (options.hintsAreFatal && error.errorCode is HintCode) {
       return ErrorSeverity.ERROR;
     } else if (options.lintsAreFatal && error.errorCode is LintCode) {
-      return ErrorSeverity.ERROR;
-    } else if (isStrongMode &&
-        error is StaticWarningCode &&
-        (error as StaticWarningCode).isStrongModeError) {
       return ErrorSeverity.ERROR;
     }
     return error.errorCode.errorSeverity;

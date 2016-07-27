@@ -55,6 +55,7 @@ DECLARE_FLAG(bool, timing);
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, trace_reload);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
+DECLARE_FLAG(bool, check_reloaded);
 
 NOT_IN_PRODUCT(
 static void CheckedModeHandler(bool value) {
@@ -797,6 +798,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       symbols_mutex_(new Mutex()),
       type_canonicalization_mutex_(new Mutex()),
       constant_canonicalization_mutex_(new Mutex()),
+      megamorphic_lookup_mutex_(new Mutex()),
       message_handler_(NULL),
       spawn_state_(NULL),
       is_runnable_(false),
@@ -813,6 +815,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       tag_table_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
+      sticky_reload_error_(Error::null()),
       background_compiler_(NULL),
       background_compiler_disabled_depth_(0),
       pending_service_extension_calls_(GrowableObjectArray::null()),
@@ -862,6 +865,8 @@ Isolate::~Isolate() {
   type_canonicalization_mutex_ = NULL;
   delete constant_canonicalization_mutex_;
   constant_canonicalization_mutex_ = NULL;
+  delete megamorphic_lookup_mutex_;
+  megamorphic_lookup_mutex_ = NULL;
   delete message_handler_;
   message_handler_ = NULL;  // Fail fast if we send messages to a dead isolate.
   ASSERT(deopt_context_ == NULL);  // No deopt in progress when isolate deleted.
@@ -1066,11 +1071,6 @@ void Isolate::ReportReloadError(const Error& error) {
 }
 
 
-void Isolate::OnStackReload() {
-  UNREACHABLE();
-}
-
-
 void Isolate::ReloadSources(bool test_mode) {
   ASSERT(!IsReloading());
   has_attempted_reload_ = true;
@@ -1089,6 +1089,10 @@ void Isolate::DoneFinalizing() {
         // If the reload has an error and we are in test mode keep the reload
         // context on the isolate so that it can be used by unit tests.
         return;
+      }
+      if (reload_context_->has_error()) {
+        // Remember the reload error.
+        sticky_reload_error_ = reload_context_->error();
       }
       if (!reload_context_->has_error()) {
         reload_context_->ReportSuccess();
@@ -1552,7 +1556,8 @@ class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
   void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
-    handle->UpdateUnreachable(thread()->isolate());
+    FinalizationQueue* queue = NULL;  // Finalize in the foreground.
+    handle->UpdateUnreachable(thread()->isolate(), queue);
   }
 
  private:
@@ -1675,10 +1680,29 @@ void Isolate::Shutdown() {
   if (heap_ != NULL) {
     // Wait for any concurrent GC tasks to finish before shutting down.
     // TODO(koda): Support faster sweeper shutdown (e.g., after current page).
-    PageSpace* old_space = heap_->old_space();
-    MonitorLocker ml(old_space->tasks_lock());
-    while (old_space->tasks() > 0) {
-      ml.Wait();
+    {
+      PageSpace* old_space = heap_->old_space();
+      MonitorLocker ml(old_space->tasks_lock());
+      while (old_space->tasks() > 0) {
+        ml.Wait();
+      }
+    }
+
+    // Wait for background finalization to finish before shutting down.
+    {
+      MonitorLocker ml(heap_->finalization_tasks_lock());
+      while (heap_->finalization_tasks() > 0) {
+        ml.Wait();
+      }
+    }
+  }
+
+  if (FLAG_check_reloaded &&
+      (this != Dart::vm_isolate()) &&
+      !ServiceIsolate::IsServiceIsolateDescendant(this)) {
+    if (!HasAttemptedReload()) {
+      FATAL("Isolate did not reload before exiting and "
+            "--check-reloaded is enabled.\n");
     }
   }
 
@@ -1752,6 +1776,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(
         reinterpret_cast<RawObject**>(&sticky_error_));
 
+  visitor->VisitPointer(
+        reinterpret_cast<RawObject**>(&sticky_reload_error_));
+
   // Visit the pending service extension calls.
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&pending_service_extension_calls_));
@@ -1775,6 +1802,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
     // Visit objects that are being used for isolate reload.
     if (reload_context() != NULL) {
       reload_context()->VisitObjectPointers(visitor);
+    }
+    if (ServiceIsolate::IsServiceIsolate(this)) {
+      ServiceIsolate::VisitObjectPointers(visitor);
     }
   )
 
@@ -1817,6 +1847,7 @@ RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {
 }
 
 
+#ifndef PRODUCT
 static const char* ExceptionPauseInfoToServiceEnum(Dart_ExceptionPauseInfo pi) {
   switch (pi) {
     case kPauseOnAllExceptions:
@@ -1953,6 +1984,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     }
   }
 }
+#endif
 
 
 void Isolate::set_tag_table(const GrowableObjectArray& value) {
@@ -1999,6 +2031,11 @@ void Isolate::TrackDeoptimizedCode(const Code& code) {
 
 void Isolate::clear_sticky_error() {
   sticky_error_ = Error::null();
+}
+
+
+void Isolate::clear_sticky_reload_error() {
+  sticky_reload_error_ = Error::null();
 }
 
 
@@ -2626,7 +2663,9 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
   const String& lib_url = String::Handle(lib.url());
   library_url_ = NewConstChar(lib_url.ToCString());
 
-  const String& func_name = String::Handle(func.name());
+  String& func_name = String::Handle();
+  func_name ^= func.name();
+  func_name ^= String::ScrubName(func_name);
   function_name_ = NewConstChar(func_name.ToCString());
   if (!cls.IsTopLevel()) {
     const String& class_name = String::Handle(cls.Name());

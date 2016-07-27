@@ -17,6 +17,12 @@ import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/model.dart';
 
 /**
+ * Return `true` if the [result] of the [target] should be flushed.
+ */
+typedef bool FlushResultFilter<V>(
+    AnalysisTarget target, ResultDescriptor<V> result);
+
+/**
  * Return `true` if the given [target] is a priority one.
  */
 typedef bool IsPriorityAnalysisTarget(AnalysisTarget target);
@@ -99,6 +105,15 @@ class AnalysisCache {
     }
     for (CachePartition partition in _partitions) {
       partition.containingCaches.remove(this);
+    }
+  }
+
+  /**
+   * Flush results that satisfy the given [filter].
+   */
+  void flush(FlushResultFilter filter) {
+    for (CachePartition partition in _partitions) {
+      partition.flush(filter);
     }
   }
 
@@ -392,6 +407,17 @@ class CacheEntry {
   }
 
   /**
+   * Flush results that satisfy the given [filter].
+   */
+  void flush(FlushResultFilter filter) {
+    _resultMap.forEach((ResultDescriptor result, ResultData data) {
+      if (filter(target, result)) {
+        data.flush();
+      }
+    });
+  }
+
+  /**
    * Return the result data associated with the [descriptor], creating one if it
    * isn't there.
    */
@@ -599,6 +625,11 @@ class CacheEntry {
         return;
       }
     }
+//    if (deltaResult != null && deltaResult != DeltaResult.KEEP_CONTINUE) {
+//      String indent = '  ' * level;
+//      String deltaResultName = deltaResult.toString().split('.').last;
+//      print('[$id]$indent$deltaResultName $descriptor for $target');
+//    }
     if (deltaResult == DeltaResult.INVALIDATE_NO_DELTA) {
       delta = null;
     }
@@ -995,6 +1026,15 @@ abstract class CachePartition {
     entryMap.clear();
     sources.clear();
     pathToSource.clear();
+  }
+
+  /**
+   * Flush results that satisfy the given [filter].
+   */
+  void flush(FlushResultFilter filter) {
+    for (CacheEntry entry in entryMap.values) {
+      entry.flush(filter);
+    }
   }
 
   /**

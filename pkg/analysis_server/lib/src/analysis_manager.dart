@@ -117,6 +117,7 @@ class AnalysisManager {
     } catch (error) {
       onError(error);
     }
+    return null;
   }
 
   /**

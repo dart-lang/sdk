@@ -30,6 +30,22 @@ SourceReport::SourceReport(intptr_t report_set, CompileMode compile_mode)
 }
 
 
+SourceReport::~SourceReport() {
+  ClearScriptTable();
+}
+
+
+void SourceReport::ClearScriptTable() {
+  for (intptr_t i = 0; i < script_table_entries_.length(); i++) {
+    delete script_table_entries_[i];
+    script_table_entries_[i] = NULL;
+  }
+  script_table_entries_.Clear();
+  script_table_.Clear();
+  next_script_index_ = 0;
+}
+
+
 void SourceReport::Init(Thread* thread,
                         const Script* script,
                         TokenPosition start_pos,
@@ -38,9 +54,7 @@ void SourceReport::Init(Thread* thread,
   script_ = script;
   start_pos_ = start_pos;
   end_pos_ = end_pos;
-  script_table_entries_.Clear();
-  script_table_.Clear();
-  next_script_index_ = 0;
+  ClearScriptTable();
   if (IsReportRequested(kProfile)) {
     // Build the profile.
     SampleFilter samplesForIsolate(thread_->isolate(),
@@ -99,19 +113,38 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
 
 intptr_t SourceReport::GetScriptIndex(const Script& script) {
   const String& url = String::Handle(zone(), script.url());
-  ScriptTableEntry* pair = script_table_.Lookup(&url);
+  ScriptTableEntry* pair = script_table_.LookupValue(&url);
   if (pair != NULL) {
     return pair->index;
   }
-
-  ScriptTableEntry tmp;
-  tmp.key = &url;
-  tmp.index = next_script_index_++;
-  tmp.script = &script;
+  ScriptTableEntry* tmp = new ScriptTableEntry();
+  tmp->key = &url;
+  tmp->index = next_script_index_++;
+  tmp->script = &Script::Handle(zone(), script.raw());
   script_table_entries_.Add(tmp);
-  script_table_.Insert(&(script_table_entries_.Last()));
-  return tmp.index;
+  script_table_.Insert(tmp);
+  ASSERT(script_table_entries_.length() == next_script_index_);
+#if defined(DEBUG)
+  VerifyScriptTable();
+#endif
+  return tmp->index;
 }
+
+
+#if defined(DEBUG)
+void SourceReport::VerifyScriptTable() {
+  for (intptr_t i = 0; i < script_table_entries_.length(); i++) {
+    const String* url = script_table_entries_[i]->key;
+    const Script* script = script_table_entries_[i]->script;
+    intptr_t index = script_table_entries_[i]->index;
+    ASSERT(i == index);
+    const String& url2 = String::Handle(zone(), script->url());
+    ASSERT(url2.Equals(*url));
+    ScriptTableEntry* pair = script_table_.LookupValue(&url2);
+    ASSERT(i == pair->index);
+  }
+}
+#endif
 
 
 bool SourceReport::ScriptIsLoadedByLibrary(const Script& script,
@@ -337,8 +370,8 @@ void SourceReport::PrintProfileData(JSONObject* jsobj,
 
 
 void SourceReport::PrintScriptTable(JSONArray* scripts) {
-  for (int i = 0; i < script_table_entries_.length(); i++) {
-    const Script* script = script_table_entries_[i].script;
+  for (intptr_t i = 0; i < script_table_entries_.length(); i++) {
+    const Script* script = script_table_entries_[i]->script;
     scripts->AddValue(*script);
   }
 }

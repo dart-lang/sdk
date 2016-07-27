@@ -156,8 +156,9 @@ void SSALivenessAnalysis::ComputeInitialSets() {
       // TODO(vegorov) remove this once we have ported all necessary
       // instructions to DBC.
       if (!current->HasLocs()) {
-        graph_entry_->parsed_function().Bailout("SSALivenessAnalysis",
-                                                current->ToCString());
+        const char* msg = "SSALivenessAnalysis::ComputeInitialSets";
+        NOT_IN_PRODUCT(msg = current->ToCString());
+        graph_entry_->parsed_function().Bailout("SSALivenessAnalysis", msg);
       }
 #endif
 
@@ -440,6 +441,10 @@ void FlowGraphAllocator::BlockLocation(Location loc,
                                        intptr_t to) {
   if (loc.IsRegister()) {
     BlockRegisterLocation(loc, from, to, blocked_cpu_registers_, cpu_regs_);
+#if defined(TARGET_ARCH_DBC)
+    last_used_register_ = Utils::Maximum(last_used_register_,
+                                         loc.register_code());
+#endif
   } else if (loc.IsFpuRegister()) {
     BlockRegisterLocation(loc, from, to, blocked_fpu_registers_, fpu_regs_);
   } else {
@@ -2741,10 +2746,6 @@ void FlowGraphAllocator::PrepareForAllocation(
       registers_[reg]->Add(range);
     }
   }
-
-#if defined(TARGET_ARCH_DBC)
-  last_used_register_ = -1;
-#endif
 }
 
 
@@ -3009,6 +3010,10 @@ void FlowGraphAllocator::AllocateRegisters() {
 
   DiscoverLoops();
 
+#if defined(TARGET_ARCH_DBC)
+  last_used_register_ = -1;
+#endif
+
   BuildLiveRanges();
 
   if (FLAG_print_ssa_liveranges) {
@@ -3037,6 +3042,7 @@ void FlowGraphAllocator::AllocateRegisters() {
   AllocateUnallocatedRanges();
 #if defined(TARGET_ARCH_DBC)
   const intptr_t last_used_cpu_register = last_used_register_;
+  last_used_register_ = -1;
 #endif
 
   cpu_spill_slot_count_ = spill_slots_.length();

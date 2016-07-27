@@ -63,6 +63,7 @@ DEFINE_FLAG(charp, deoptimize_filter, NULL,
 
 DECLARE_FLAG(int, reload_every);
 DECLARE_FLAG(bool, reload_every_optimized);
+DECLARE_FLAG(bool, reload_every_back_off);
 
 #ifdef DEBUG
 DEFINE_FLAG(charp, gc_at_instance_allocation, NULL,
@@ -109,8 +110,7 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   if (length.IsSmi()) {
     const intptr_t len = Smi::Cast(length).Value();
     if ((len >= 0) && (len <= Array::kMaxElements)) {
-      Heap::Space space = isolate->heap()->SpaceForAllocation(kArrayCid);
-      const Array& array = Array::Handle(Array::New(len, space));
+      const Array& array = Array::Handle(Array::New(len, Heap::kNew));
       arguments.SetReturn(array);
       TypeArguments& element_type =
           TypeArguments::CheckedHandle(arguments.ArgAt(1));
@@ -159,7 +159,7 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
     }
   }
 #endif
-  Heap::Space space = isolate->heap()->SpaceForAllocation(cls.id());
+  Heap::Space space = Heap::kNew;
   const Instance& instance = Instance::Handle(Instance::New(cls, space));
 
   arguments.SetReturn(instance);
@@ -1297,7 +1297,10 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     DeoptimizeFunctionsOnStack();
   }
   if (do_reload) {
-    NOT_IN_PRODUCT(isolate->OnStackReload();)
+    if (FLAG_reload_every_back_off) {
+      FLAG_reload_every *= 2;
+    }
+    NOT_IN_PRODUCT(isolate->ReloadSources();)
   }
   if (FLAG_support_debugger && do_stacktrace) {
     String& var_name = String::Handle();

@@ -23,7 +23,7 @@ DECLARE_FLAG(bool, interpret_irregexp);
 
 intptr_t Intrinsifier::ParameterSlotFromSp() { return -1; }
 
-#define DEFINE_FUNCTION(test_class_name, test_function_name, enum_name, fp)    \
+#define DEFINE_FUNCTION(class_name, test_function_name, enum_name, type, fp)   \
   void Intrinsifier::enum_name(Assembler* assembler) {                         \
     if (Simulator::IsSupportedIntrinsic(Simulator::k##enum_name##Intrinsic)) { \
       assembler->Intrinsic(Simulator::k##enum_name##Intrinsic);                \

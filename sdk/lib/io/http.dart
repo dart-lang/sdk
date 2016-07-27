@@ -969,7 +969,7 @@ abstract class HttpRequest implements Stream<List<int>> {
   /**
    * The requested URI for the request.
    *
-   * The returend URI is reconstructed by using http-header fields, to access
+   * The returned URI is reconstructed by using http-header fields, to access
    * otherwise lost information, e.g. host and scheme.
    *
    * To reconstruct the scheme, first 'X-Forwarded-Proto' is checked, and then

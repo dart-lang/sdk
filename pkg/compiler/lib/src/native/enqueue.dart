@@ -34,19 +34,17 @@ class NativeEnqueuer {
   /// types to the world.
   void registerNativeBehavior(NativeBehavior nativeBehavior, cause) {}
 
-  /// Notification of a main Enqueuer worklist element.  For methods, adds
-  /// information from metadata attributes, and computes types instantiated due
-  /// to calling the method.
-  void registerElement(Element element) {}
-
-  /// Notification of native field.  Adds information from metadata attributes.
+  // TODO(johnniwinther): Move [handleFieldAnnotations] and
+  // [handleMethodAnnotations] to [JavaScriptBackend] or [NativeData].
+  // TODO(johnniwinther): Change the return type to 'bool' and rename them to
+  // something like `computeNativeField`.
+  /// Process the potentially native [field]. Adds information from metadata
+  /// attributes.
   void handleFieldAnnotations(Element field) {}
 
-  /// Computes types instantiated due to getting a native field.
-  void registerFieldLoad(Element field) {}
-
-  /// Computes types instantiated due to setting a native field.
-  void registerFieldStore(Element field) {}
+  /// Process the potentially native [method]. Adds information from metadata
+  /// attributes.
+  void handleMethodAnnotations(Element method) {}
 
   /// Returns whether native classes are being used.
   bool hasInstantiatedNativeClasses() => false;
@@ -320,7 +318,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       // TODO(sra): Better validation of the constant.
       if (fields.length != 1 || fields.single is! StringConstantValue) {
         reporter.internalError(
-            annotation, 'Annotations needs one string: ${annotation.node}');
+            annotation, 'Annotations needs one string: ${annotation}');
       }
       StringConstantValue specStringConstant = fields.single;
       String specString = specStringConstant.toDartString().slowToString();
@@ -328,7 +326,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
         name = specString;
       } else {
         reporter.internalError(
-            annotation, 'Too many JSName annotations: ${annotation.node}');
+            annotation, 'Too many JSName annotations: ${annotation}');
       }
     }
     return name;
@@ -369,26 +367,6 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     if (firstTime) {
       queue.add(onFirstNativeClass);
     }
-  }
-
-  registerElement(Element element) {
-    reporter.withCurrentElement(element, () {
-      if (element.isFunction ||
-          element.isFactoryConstructor ||
-          element.isGetter ||
-          element.isSetter) {
-        handleMethodAnnotations(element);
-        if (backend.isNative(element)) {
-          registerMethodUsed(element);
-        }
-      } else if (element.isField) {
-        handleFieldAnnotations(element);
-        if (backend.isNative(element)) {
-          registerFieldLoad(element);
-          registerFieldStore(element);
-        }
-      }
-    });
   }
 
   void handleFieldAnnotations(Element element) {
@@ -475,18 +453,6 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     flushQueue();
   }
 
-  void registerMethodUsed(Element method) {
-    registerNativeBehavior(NativeBehavior.ofMethod(method, compiler), method);
-  }
-
-  void registerFieldLoad(Element field) {
-    registerNativeBehavior(NativeBehavior.ofFieldLoad(field, compiler), field);
-  }
-
-  void registerFieldStore(Element field) {
-    registerNativeBehavior(NativeBehavior.ofFieldStore(field, compiler), field);
-  }
-
   processNativeBehavior(NativeBehavior behavior, cause) {
     // TODO(ahe): Is this really a global dependency?
     Registry registry = compiler.globalDependencies;
@@ -520,12 +486,23 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
             .isSubtype(type, backend.listImplementation.rawType)) {
           backend.registerInstantiatedType(type, world, registry);
         }
+        // TODO(johnniwinther): Improve spec string precision to handle type
+        // arguments and implements relations that preserve generics. Currently
+        // we cannot distinguish between `List`, `List<dynamic>`, and
+        // `List<int>` and take all to mean `List<E>`; in effect not including
+        // any native subclasses of generic classes.
+        // TODO(johnniwinther,sra): Find and replace uses of `List` with the
+        // actual implementation classes such as `JSArray` et al.
+        enqueueUnusedClassesMatching((ClassElement nativeClass) {
+          InterfaceType nativeType = nativeClass.thisType;
+          InterfaceType specType = type.element.thisType;
+          return compiler.types.isSubtype(nativeType, specType);
+        }, cause, 'subtypeof($type)');
+      } else if (type.isDynamic) {
+        enqueueUnusedClassesMatching((_) => true, cause, 'subtypeof($type)');
+      } else {
+        assert(type is VoidType);
       }
-      assert(type is DartType);
-      enqueueUnusedClassesMatching(
-          (nativeClass) => compiler.types.isSubtype(nativeClass.thisType, type),
-          cause,
-          'subtypeof($type)');
     }
 
     // Give an info so that library developers can compile with -v to find why

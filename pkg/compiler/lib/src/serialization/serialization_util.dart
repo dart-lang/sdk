@@ -506,10 +506,19 @@ Element deserializeElementReference(
     if (elementName == null) {
       return null;
     }
-    assert(invariant(NO_LOCATION_SPANNABLE, context.isConstructor,
-        message: "Unexpected reference of forwarding constructor "
-            "'${elementName}' from $context."));
-    ClassElement superclass = context.enclosingClass.superclass;
+    ClassElement cls;
+    if (context is ClassElement) {
+      assert(invariant(NO_LOCATION_SPANNABLE, context.isNamedMixinApplication,
+          message: "Unexpected reference of forwarding constructor "
+              "'${elementName}' from $context."));
+      cls = context;
+    } else {
+      assert(invariant(NO_LOCATION_SPANNABLE, context.isConstructor,
+          message: "Unexpected reference of forwarding constructor "
+              "'${elementName}' from $context."));
+      cls = context.enclosingClass;
+    }
+    ClassElement superclass = cls.superclass;
     element = superclass.lookupConstructor(elementName);
     assert(invariant(NO_LOCATION_SPANNABLE, element != null,
         message: "Unresolved reference of forwarding constructor "

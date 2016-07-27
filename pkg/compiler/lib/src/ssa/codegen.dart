@@ -1496,8 +1496,25 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Statement elsePart =
         unwrapStatement(generateStatementsInNewBlock(elseGraph));
 
-    pushStatement(new js.If(test, thenPart, elsePart)
-        .withSourceInformation(node.sourceInformation));
+    js.Statement code;
+    // Peephole rewrites:
+    //
+    //     if (e); else S;   -->   if(!e) S;
+    //
+    //     if (e);   -->   e;
+    //
+    // TODO(sra): This peephole optimization would be better done as an SSA
+    // optimization.
+    if (thenPart is js.EmptyStatement) {
+      if (elsePart is js.EmptyStatement) {
+        code = new js.ExpressionStatement(test);
+      } else {
+        code = new js.If.noElse(new js.Prefix('!', test), elsePart);
+      }
+    } else {
+      code = new js.If(test, thenPart, elsePart);
+    }
+    pushStatement(code.withSourceInformation(node.sourceInformation));
   }
 
   visitIf(HIf node) {

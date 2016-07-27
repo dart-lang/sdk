@@ -1,16 +1,8 @@
 import 'dart:io';
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_io.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/flat_buffers.dart' as fb;
-import 'package:analyzer/src/summary/index_unit.dart';
-import 'package:analyzer/src/summary/summarize_elements.dart';
-import 'package:path/path.dart';
+import 'package:analyzer/src/summary/summary_file_builder.dart';
 
 main(List<String> args) {
   if (args.length < 1) {
@@ -37,7 +29,7 @@ main(List<String> args) {
     // Prepare results.
     //
     String sdkPath = args.length > 2 ? args[2] : null;
-    _Output output = _buildMultipleOutputs(sdkPath, includeSpec);
+    SummaryOutput output = _buildMultipleOutputs(sdkPath, includeSpec);
     if (output == null) {
       exitCode = 1;
       return;
@@ -57,43 +49,32 @@ main(List<String> args) {
     //
     // Prepare results.
     //
-    _Output output = _buildMultipleOutputs(sdkPath, true);
+    SummaryOutput output = _buildMultipleOutputs(sdkPath, true);
     if (output == null) {
       exitCode = 1;
       return;
     }
+
     //
     // Write results.
     //
-    fb.Builder builder = new fb.Builder();
-    fb.Offset specSumOffset = builder.writeListUint8(output.spec.sum);
-    fb.Offset specIndexOffset = builder.writeListUint8(output.spec.index);
-    fb.Offset strongSumOffset = builder.writeListUint8(output.strong.sum);
-    fb.Offset strongIndexOffset = builder.writeListUint8(output.strong.index);
-    builder.startTable();
-    builder.addOffset(_FIELD_SPEC_SUM, specSumOffset);
-    builder.addOffset(_FIELD_SPEC_INDEX, specIndexOffset);
-    builder.addOffset(_FIELD_STRONG_SUM, strongSumOffset);
-    builder.addOffset(_FIELD_STRONG_INDEX, strongIndexOffset);
-    fb.Offset offset = builder.endTable();
-    new File(outputPath)
-        .writeAsBytesSync(builder.finish(offset), mode: FileMode.WRITE_ONLY);
+    output.write(outputPath);
   } else if (command == 'extract-spec-sum' && args.length == 3) {
     String inputPath = args[1];
     String outputPath = args[2];
-    _extractSingleOutput(inputPath, _FIELD_SPEC_SUM, outputPath);
+    _extractSingleOutput(inputPath, FIELD_SPEC_SUM, outputPath);
   } else if (command == 'extract-spec-index' && args.length == 3) {
     String inputPath = args[1];
     String outputPath = args[2];
-    _extractSingleOutput(inputPath, _FIELD_SPEC_INDEX, outputPath);
+    _extractSingleOutput(inputPath, FIELD_SPEC_INDEX, outputPath);
   } else if (command == 'extract-strong-sum' && args.length == 3) {
     String inputPath = args[1];
     String outputPath = args[2];
-    _extractSingleOutput(inputPath, _FIELD_STRONG_SUM, outputPath);
+    _extractSingleOutput(inputPath, FIELD_STRONG_SUM, outputPath);
   } else if (command == 'extract-strong-index' && args.length == 3) {
     String inputPath = args[1];
     String outputPath = args[2];
-    _extractSingleOutput(inputPath, _FIELD_STRONG_INDEX, outputPath);
+    _extractSingleOutput(inputPath, FIELD_STRONG_INDEX, outputPath);
   } else {
     _printUsage();
     exitCode = 1;
@@ -106,12 +87,7 @@ main(List<String> args) {
  */
 const BINARY_NAME = "build_sdk_summaries";
 
-const int _FIELD_SPEC_INDEX = 1;
-const int _FIELD_SPEC_SUM = 0;
-const int _FIELD_STRONG_INDEX = 3;
-const int _FIELD_STRONG_SUM = 2;
-
-_Output _buildMultipleOutputs(String sdkPath, bool includeSpec) {
+SummaryOutput _buildMultipleOutputs(String sdkPath, bool includeSpec) {
   //
   // Validate the SDK path.
   //
@@ -124,13 +100,23 @@ _Output _buildMultipleOutputs(String sdkPath, bool includeSpec) {
   } else {
     sdkPath = DirectoryBasedDartSdk.defaultSdkDirectory.getAbsolutePath();
   }
+
   //
   // Build spec and strong outputs.
   //
-  _BuilderOutput spec =
-      includeSpec ? new _Builder(sdkPath, false).build() : null;
-  _BuilderOutput strong = new _Builder(sdkPath, true).build();
-  return new _Output(spec, strong);
+  BuilderOutput spec = includeSpec ? _buildOutput(sdkPath, false) : null;
+  BuilderOutput strong = _buildOutput(sdkPath, true);
+  return new SummaryOutput(spec, strong);
+}
+
+BuilderOutput _buildOutput(String sdkPath, bool strongMode) {
+  String modeName = strongMode ? 'strong' : 'spec';
+  print('Generating $modeName mode summary and index.');
+  Stopwatch sw = new Stopwatch()..start();
+  SummaryBuildConfig config = new SummaryBuildConfig(strongMode: strongMode);
+  BuilderOutput output = new SummaryBuilder.forSdk(sdkPath, config).build();
+  print('\tDone in ${sw.elapsedMilliseconds} ms.');
+  return output;
 }
 
 /**
@@ -167,107 +153,4 @@ void _printUsage() {
   print('    Extract the spec-mode index file.');
   print('  extract-strong-index input_file output_file');
   print('    Extract the strong-mode index file.');
-}
-
-class _Builder {
-  final String sdkPath;
-  final bool strongMode;
-
-  AnalysisContext context;
-  final Set<Source> processedSources = new Set<Source>();
-
-  final PackageBundleAssembler bundleAssembler = new PackageBundleAssembler();
-  final PackageIndexAssembler indexAssembler = new PackageIndexAssembler();
-
-  _Builder(this.sdkPath, this.strongMode);
-
-  /**
-   * Build a strong or spec mode summary for the Dart SDK at [sdkPath].
-   */
-  _BuilderOutput build() {
-    String modeName = strongMode ? 'strong' : 'spec';
-    print('Generating $modeName mode summary and index.');
-    Stopwatch sw = new Stopwatch()..start();
-    //
-    // Prepare SDK.
-    //
-    DirectoryBasedDartSdk sdk =
-        new DirectoryBasedDartSdk(new JavaFile(sdkPath), strongMode);
-    sdk.useSummary = false;
-    sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = strongMode;
-    context = sdk.context;
-    //
-    // Prepare 'dart:' URIs to serialize.
-    //
-    Set<String> uriSet =
-        sdk.sdkLibraries.map((SdkLibrary library) => library.shortName).toSet();
-    if (!strongMode) {
-      uriSet.add('dart:html/nativewrappers.dart');
-    }
-    uriSet.add('dart:html_common/html_common_dart2js.dart');
-    //
-    // Serialize each SDK library.
-    //
-    for (String uri in uriSet) {
-      Source libSource = sdk.mapDartUri(uri);
-      _serializeLibrary(libSource);
-    }
-    //
-    // Assemble the output.
-    //
-    List<int> sumBytes = bundleAssembler.assemble().toBuffer();
-    List<int> indexBytes = indexAssembler.assemble().toBuffer();
-    print('\tDone in ${sw.elapsedMilliseconds} ms.');
-    return new _BuilderOutput(sumBytes, indexBytes);
-  }
-
-  /**
-   * Serialize the library with the given [source] and all its direct or
-   * indirect imports and exports.
-   */
-  void _serializeLibrary(Source source) {
-    if (!processedSources.add(source)) {
-      return;
-    }
-    LibraryElement element = context.computeLibraryElement(source);
-    bundleAssembler.serializeLibraryElement(element);
-    element.importedLibraries.forEach((e) => _serializeLibrary(e.source));
-    element.exportedLibraries.forEach((e) => _serializeLibrary(e.source));
-    // Index every unit of the library.
-    for (CompilationUnitElement unitElement in element.units) {
-      Source unitSource = unitElement.source;
-      CompilationUnit unit =
-          context.resolveCompilationUnit2(unitSource, source);
-      indexAssembler.indexUnit(unit);
-    }
-  }
-}
-
-class _BuilderOutput {
-  final List<int> sum;
-  final List<int> index;
-
-  _BuilderOutput(this.sum, this.index);
-
-  void writeMultiple(String outputDirectoryPath, String modeName) {
-    // Write summary.
-    {
-      String outputPath = join(outputDirectoryPath, '$modeName.sum');
-      File file = new File(outputPath);
-      file.writeAsBytesSync(sum, mode: FileMode.WRITE_ONLY);
-    }
-    // Write index.
-    {
-      String outputPath = join(outputDirectoryPath, '$modeName.index');
-      File file = new File(outputPath);
-      file.writeAsBytesSync(index, mode: FileMode.WRITE_ONLY);
-    }
-  }
-}
-
-class _Output {
-  final _BuilderOutput spec;
-  final _BuilderOutput strong;
-
-  _Output(this.spec, this.strong);
 }

@@ -4,6 +4,7 @@
 
 #include "vm/raw_object.h"
 
+#include "vm/become.h"
 #include "vm/class_table.h"
 #include "vm/dart.h"
 #include "vm/freelist.h"
@@ -13,11 +14,6 @@
 
 
 namespace dart {
-
-#if defined(DEBUG)
-DEFINE_FLAG(bool, validate_overwrite, true, "Verify overwritten fields.");
-#endif  // DEBUG
-
 
 void RawObject::Validate(Isolate* isolate) const {
   if (Object::void_class_ == reinterpret_cast<RawClass*>(kHeapObjectTag)) {
@@ -177,6 +173,12 @@ intptr_t RawObject::SizeFromClass() const {
       instance_size = element->Size();
       break;
     }
+    case kForwardingCorpse: {
+      uword addr = RawObject::ToAddr(this);
+      ForwardingCorpse* element = reinterpret_cast<ForwardingCorpse*>(addr);
+      instance_size = element->Size();
+      break;
+    }
     default: {
       // Get the (constant) instance size out of the class object.
       // TODO(koda): Add Size(ClassTable*) interface to allow caching in loops.
@@ -217,22 +219,6 @@ intptr_t RawObject::SizeFromClass() const {
 #endif  // DEBUG
   return instance_size;
 }
-
-
-#if defined(DEBUG)
-void RawObject::ValidateOverwrittenPointer(RawObject* raw) {
-  if (FLAG_validate_overwrite) {
-    raw->Validate(Isolate::Current());
-  }
-}
-
-
-void RawObject::ValidateOverwrittenSmi(RawSmi* raw) {
-  if (FLAG_validate_overwrite && raw->IsHeapObject() && raw != Object::null()) {
-    FATAL1("Expected smi/null, found: %" Px "\n", reinterpret_cast<uword>(raw));
-  }
-}
-#endif  // DEBUG
 
 
 intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
@@ -286,6 +272,12 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
         uword addr = RawObject::ToAddr(this);
         FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
         size = element->Size();
+        break;
+      }
+      case kForwardingCorpse: {
+        uword addr = RawObject::ToAddr(this);
+        ForwardingCorpse* forwarder = reinterpret_cast<ForwardingCorpse*>(addr);
+        size = forwarder->Size();
         break;
       }
       case kNullCid:

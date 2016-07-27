@@ -994,6 +994,37 @@ class AstComparator implements AstVisitor<bool> {
   AstNode _other;
 
   /**
+   * Notify that [first] and second have different length.
+   * This implementation returns `false`. Subclasses can override and throw.
+   */
+  bool failDifferentLength(List first, List second) {
+    return false;
+  }
+
+  /**
+   * Check whether [second] is null. Subclasses can override to throw.
+   */
+  bool failIfNotNull(Object first, Object second) {
+    return second == null;
+  }
+
+  /**
+   * Notify that [first] is not `null` while [second] one is `null`.
+   * This implementation returns `false`. Subclasses can override and throw.
+   */
+  bool failIsNull(Object first, Object second) {
+    return false;
+  }
+
+  /**
+   * Notify that [first] and [second] have different types.
+   * This implementation returns `false`. Subclasses can override and throw.
+   */
+  bool failRuntimeType(Object first, Object second) {
+    return false;
+  }
+
+  /**
    * Return `true` if the [first] node and the [second] node have the same
    * structure.
    *
@@ -1002,11 +1033,11 @@ class AstComparator implements AstVisitor<bool> {
    */
   bool isEqualNodes(AstNode first, AstNode second) {
     if (first == null) {
-      return second == null;
+      return failIfNotNull(first, second);
     } else if (second == null) {
-      return false;
+      return failIsNull(first, second);
     } else if (first.runtimeType != second.runtimeType) {
-      return false;
+      return failRuntimeType(first, second);
     }
     _other = second;
     return first.accept(this);
@@ -1021,16 +1052,23 @@ class AstComparator implements AstVisitor<bool> {
    */
   bool isEqualTokens(Token first, Token second) {
     if (first == null) {
-      return second == null;
+      return failIfNotNull(first, second);
     } else if (second == null) {
-      return false;
+      return failIsNull(first, second);
     } else if (identical(first, second)) {
       return true;
     }
-    return first.offset == second.offset &&
-        first.length == second.length &&
-        first.lexeme == second.lexeme;
+    return isEqualTokensNotNull(first, second);
   }
+
+  /**
+   * Return `true` if the [first] token and the [second] token have the same
+   * structure.  Both [first] and [second] are not `null`.
+   */
+  bool isEqualTokensNotNull(Token first, Token second) =>
+      first.offset == second.offset &&
+      first.length == second.length &&
+      first.lexeme == second.lexeme;
 
   @override
   bool visitAdjacentStrings(AdjacentStrings node) {
@@ -2016,13 +2054,13 @@ class AstComparator implements AstVisitor<bool> {
    */
   bool _isEqualNodeLists(NodeList first, NodeList second) {
     if (first == null) {
-      return second == null;
+      return failIfNotNull(first, second);
     } else if (second == null) {
-      return false;
+      return failIsNull(first, second);
     }
     int size = first.length;
     if (second.length != size) {
-      return false;
+      return failDifferentLength(first, second);
     }
     for (int i = 0; i < size; i++) {
       if (!isEqualNodes(first[i], second[i])) {
@@ -2039,7 +2077,7 @@ class AstComparator implements AstVisitor<bool> {
   bool _isEqualTokenLists(List<Token> first, List<Token> second) {
     int length = first.length;
     if (second.length != length) {
-      return false;
+      return failDifferentLength(first, second);
     }
     for (int i = 0; i < length; i++) {
       if (!isEqualTokens(first[i], second[i])) {
@@ -2501,6 +2539,9 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
       node.element;
 
   @override
+  Element visitExportDirective(ExportDirective node) => node.element;
+
+  @override
   Element visitFunctionDeclaration(FunctionDeclaration node) => node.element;
 
   @override
@@ -2532,6 +2573,8 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
         if (element is LibraryElement) {
           return element.definingCompilationUnit;
         }
+      } else if (grandParent is LibraryDirective) {
+        return grandParent.element;
       }
     }
     return node.bestElement;

@@ -105,9 +105,13 @@ class AnalysisStats {
 /// The two format options are a user consumable format and a machine consumable
 /// format.
 class ErrorFormatter {
+  static final int _pipeCodeUnit = '|'.codeUnitAt(0);
+  static final int _slashCodeUnit = '\\'.codeUnitAt(0);
+
   final StringSink out;
   final CommandLineOptions options;
   final AnalysisStats stats;
+
   final _SeverityProcessor processSeverity;
 
   ErrorFormatter(this.out, this.options, this.stats,
@@ -167,7 +171,6 @@ class ErrorFormatter {
     }
     out.writeln();
   }
-
   void formatErrors(List<AnalysisErrorInfo> errorInfos) {
     stats.unfilteredCount += errorInfos.length;
 
@@ -223,9 +226,9 @@ class ErrorFormatter {
   }
 
   static String escapePipe(String input) {
-    var result = new StringBuffer();
-    for (var c in input.codeUnits) {
-      if (c == '\\' || c == '|') {
+    StringBuffer result = new StringBuffer();
+    for (int c in input.codeUnits) {
+      if (c == _slashCodeUnit || c == _pipeCodeUnit) {
         result.write('\\');
       }
       result.writeCharCode(c);

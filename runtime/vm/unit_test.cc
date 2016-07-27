@@ -75,7 +75,7 @@ static bool IsPackageSchemeURL(const char* url_name) {
 
 
 static bool IsImportableTestLib(const char* url_name) {
-  const char* kImportTestLibUri = "importable_test_lib";
+  const char* kImportTestLibUri = "test:importable_lib";
   static const intptr_t kImportTestLibUriLen = strlen(kImportTestLibUri);
   return (strncmp(url_name, kImportTestLibUri, kImportTestLibUriLen) == 0);
 }
@@ -92,8 +92,9 @@ static Dart_Handle ImportableTestLibSource() {
 }
 
 
+#ifndef PRODUCT
 static bool IsIsolateReloadTestLib(const char* url_name) {
-  const char* kIsolateReloadTestLibUri = "isolate_reload_test_helper";
+  const char* kIsolateReloadTestLibUri = "test:isolate_reload_helper";
   static const intptr_t kIsolateReloadTestLibUriLen =
       strlen(kIsolateReloadTestLibUri);
   return (strncmp(url_name,
@@ -102,7 +103,6 @@ static bool IsIsolateReloadTestLib(const char* url_name) {
 }
 
 
-#ifndef PRODUCT
 static Dart_Handle IsolateReloadTestLibSource() {
   // Special library with one function.
   return DartUtils::NewString("void reloadTest() native 'Reload_Test';\n");
@@ -139,6 +139,13 @@ static ThreadLocalKey script_reload_key = kUnsetThreadLocalKey;
 static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                      Dart_Handle library,
                                      Dart_Handle url) {
+  if (tag == Dart_kCanonicalizeUrl) {
+    Dart_Handle library_url = Dart_LibraryUrl(library);
+    if (Dart_IsError(library_url)) {
+      return library_url;
+    }
+    return Dart_DefaultCanonicalizeUrl(library_url, url);
+  }
   if (tag == Dart_kScriptTag) {
     // Reload request.
     ASSERT(script_reload_key != kUnsetThreadLocalKey);
@@ -146,7 +153,7 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
        reinterpret_cast<const char*>(
            OSThread::GetThreadLocal(script_reload_key));
     ASSERT(script_source != NULL);
-    OSThread::SetThreadLocal(script_reload_key, NULL);
+    OSThread::SetThreadLocal(script_reload_key, 0);
     return Dart_LoadScript(url,
                            NewString(script_source),
                            0,
@@ -172,23 +179,6 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
 
   bool is_dart_scheme_url = DartUtils::IsDartSchemeURL(url_chars);
   bool is_io_library = DartUtils::IsDartIOLibURL(library_url_string);
-  if (tag == Dart_kCanonicalizeUrl) {
-    // Already canonicalized.
-    if (IsImportableTestLib(url_chars) || IsIsolateReloadTestLib(url_chars)) {
-      return url;
-    }
-    // If this is a Dart Scheme URL then it is not modified as it will be
-    // handled by the VM internally.
-    if (is_dart_scheme_url || is_io_library) {
-      return url;
-    }
-
-    Dart_Handle library_url = Dart_LibraryUrl(library);
-    if (Dart_IsError(library_url)) {
-      return library_url;
-    }
-    return DartUtils::ResolveUri(library_url, url);
-  }
   if (is_dart_scheme_url) {
     ASSERT(tag == Dart_kImportTag);
     // Handle imports of other built-in libraries present in the SDK.

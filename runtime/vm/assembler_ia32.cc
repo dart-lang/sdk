@@ -14,7 +14,6 @@
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
-#include "vm/verified_memory.h"
 
 namespace dart {
 
@@ -1998,9 +1997,6 @@ void Assembler::hlt() {
 
 void Assembler::j(Condition condition, Label* label, bool near) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  if (VerifiedMemory::enabled()) {
-    near = Assembler::kFarJump;
-  }
   if (label->IsBound()) {
     static const int kShortSize = 2;
     static const int kLongSize = 6;
@@ -2043,9 +2039,6 @@ void Assembler::jmp(Register reg) {
 
 void Assembler::jmp(Label* label, bool near) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  if (VerifiedMemory::enabled()) {
-    near = Assembler::kFarJump;
-  }
   if (label->IsBound()) {
     static const int kShortSize = 2;
     static const int kLongSize = 5;
@@ -2266,105 +2259,13 @@ void Assembler::StoreIntoObjectFilter(Register object,
 }
 
 
-void Assembler::VerifyHeapWord(const Address& address,
-                               FieldContent old_content) {
-#if defined(DEBUG)
-  switch (old_content) {
-    case kEmptyOrSmiOrNull:
-      VerifyUninitialized(address);
-      break;
-    case kHeapObjectOrSmi:
-      VerifyObjectOrSmi(address);
-      break;
-    case kOnlySmi:
-      VerifySmi(address);
-      break;
-  }
-#endif  // DEBUG
-  if (VerifiedMemory::enabled()) {
-    Register addr_reg = EDX;
-    Register value = EBX;
-    // Preserve registers.
-    pushl(addr_reg);
-    pushl(value);
-    leal(addr_reg, address);
-    // ASSERT(*address == *(address + offset))
-    movl(value, Address(addr_reg, 0));
-    cmpl(value, Address(addr_reg, VerifiedMemory::offset()));
-    Label ok;
-    j(EQUAL, &ok, Assembler::kNearJump);
-    Stop("Write barrier verification failed");
-    Bind(&ok);
-    popl(value);
-    popl(addr_reg);
-  }
-}
-
-
-void Assembler::VerifiedWrite(const Address& dest,
-                              Register value,
-                              FieldContent old_content) {
-  VerifyHeapWord(dest, old_content);
-  movl(dest, value);
-  if (VerifiedMemory::enabled()) {
-    Register temp = (value == EDX) ? ECX : EDX;
-    pushl(temp);
-    leal(temp, dest);
-    movl(Address(temp, VerifiedMemory::offset()), value);
-    popl(temp);
-  }
-}
-
-
-#if defined(DEBUG)
-void Assembler::VerifyObjectOrSmi(const Address& dest) {
-  Label ok;
-  testb(dest, Immediate(kHeapObjectTag));
-  j(ZERO, &ok, Assembler::kNearJump);
-  // Non-smi case: Verify object pointer is word-aligned when untagged.
-  COMPILE_ASSERT(kHeapObjectTag == 1);
-  testb(dest, Immediate((kWordSize - 1) - kHeapObjectTag));
-  j(ZERO, &ok, Assembler::kNearJump);
-  Stop("Expected heap object or Smi");
-  Bind(&ok);
-}
-
-
-void Assembler::VerifyUninitialized(const Address& dest) {
-  Label ok;
-  testb(dest, Immediate(kHeapObjectTag));
-  j(ZERO, &ok, Assembler::kNearJump);
-  // Non-smi case: Check for the special zap word or null.
-#if defined(DEBUG)
-  cmpl(dest, Immediate(Heap::kZap32Bits));
-  j(EQUAL, &ok, Assembler::kNearJump);
-#else
-#error Only supported in DEBUG mode
-#endif
-  cmpl(dest, Immediate(reinterpret_cast<uint32_t>(Object::null())));
-  j(EQUAL, &ok, Assembler::kNearJump);
-  Stop("Expected zapped, Smi or null");
-  Bind(&ok);
-}
-
-
-void Assembler::VerifySmi(const Address& dest, const char* stop_msg) {
-  Label done;
-  testb(dest, Immediate(kHeapObjectTag));
-  j(ZERO, &done, Assembler::kNearJump);
-  Stop(stop_msg);
-  Bind(&done);
-}
-#endif  // defined(DEBUG)
-
-
 // Destroys the value register.
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
                                 bool can_value_be_smi) {
   ASSERT(object != value);
-  VerifiedWrite(dest, value, kHeapObjectOrSmi);
+  movl(dest, value);
   Label done;
   if (can_value_be_smi) {
     StoreIntoObjectFilter(object, value, &done);
@@ -2388,9 +2289,8 @@ void Assembler::StoreIntoObject(Register object,
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         Register value,
-                                         FieldContent old_content) {
-  VerifiedWrite(dest, value, old_content);
+                                         Register value) {
+  movl(dest, value);
 #if defined(DEBUG)
   Label done;
   pushl(value);
@@ -2418,30 +2318,14 @@ void Assembler::UnverifiedStoreOldObject(const Address& dest,
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         const Object& value,
-                                         FieldContent old_content) {
+                                         const Object& value) {
   ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
   ASSERT(!value.IsField() || Field::Cast(value).IsOriginal());
-  VerifyHeapWord(dest, old_content);
   if (value.IsSmi() || value.InVMHeap()) {
     Immediate imm_value(reinterpret_cast<int32_t>(value.raw()));
     movl(dest, imm_value);
-    if (VerifiedMemory::enabled()) {
-      Register temp = ECX;
-      pushl(temp);
-      leal(temp, dest);
-      movl(Address(temp, VerifiedMemory::offset()), imm_value);
-      popl(temp);
-    }
   } else {
     UnverifiedStoreOldObject(dest, value);
-    if (VerifiedMemory::enabled()) {
-      Register temp = EDX;
-      pushl(temp);
-      leal(temp, dest);
-      UnverifiedStoreOldObject(Address(temp, VerifiedMemory::offset()), value);
-      popl(temp);
-    }
   }
   // No store buffer update.
 }
@@ -2455,37 +2339,21 @@ void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
   Stop("New value must be Smi.");
   Bind(&done);
 #endif  // defined(DEBUG)
-  VerifiedWrite(dest, value, kOnlySmi);
+  movl(dest, value);
 }
 
 
 void Assembler::ZeroInitSmiField(const Address& dest) {
-  VerifyHeapWord(dest, kEmptyOrSmiOrNull);
   Immediate zero(Smi::RawValue(0));
   movl(dest, zero);
-  if (VerifiedMemory::enabled()) {
-    Register temp = ECX;
-    pushl(temp);
-    leal(temp, dest);
-    movl(Address(temp, VerifiedMemory::offset()), zero);
-    popl(temp);
-  }
 }
 
 
 void Assembler::IncrementSmiField(const Address& dest, int32_t increment) {
   // Note: FlowGraphCompiler::EdgeCounterIncrementSizeInBytes depends on
   // the length of this instruction sequence.
-  VerifyHeapWord(dest, kOnlySmi);
   Immediate inc_imm(Smi::RawValue(increment));
   addl(dest, inc_imm);
-  if (VerifiedMemory::enabled()) {
-    Register temp = ECX;
-    pushl(temp);
-    leal(temp, dest);
-    addl(Address(temp, VerifiedMemory::offset()), inc_imm);
-    popl(temp);
-  }
 }
 
 
@@ -2771,9 +2639,10 @@ void Assembler::TryAllocate(const Class& cls,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cls.id(), temp_reg, failure, near_jump);
+    NOT_IN_PRODUCT(
+      MaybeTraceAllocation(cls.id(), temp_reg, failure, near_jump));
     const intptr_t instance_size = cls.instance_size();
-    Heap::Space space = Heap::SpaceForAllocation(cls.id());
+    Heap::Space space = Heap::kNew;
     movl(temp_reg, Address(THR, Thread::heap_offset()));
     movl(instance_reg, Address(temp_reg, Heap::TopOffset(space)));
     addl(instance_reg, Immediate(instance_size));
@@ -2783,7 +2652,7 @@ void Assembler::TryAllocate(const Class& cls,
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
     movl(Address(temp_reg, Heap::TopOffset(space)), instance_reg);
-    UpdateAllocationStats(cls.id(), temp_reg, space);
+    NOT_IN_PRODUCT(UpdateAllocationStats(cls.id(), temp_reg, space));
     ASSERT(instance_size >= kHeapObjectTag);
     subl(instance_reg, Immediate(instance_size - kHeapObjectTag));
     uword tags = 0;
@@ -2810,8 +2679,8 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cid, temp_reg, failure, near_jump);
-    Heap::Space space = Heap::SpaceForAllocation(cid);
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp_reg, failure, near_jump));
+    Heap::Space space = Heap::kNew;
     movl(temp_reg, Address(THR, Thread::heap_offset()));
     movl(instance, Address(temp_reg, Heap::TopOffset(space)));
     movl(end_address, instance);
@@ -2829,7 +2698,8 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // next object start and initialize the object.
     movl(Address(temp_reg, Heap::TopOffset(space)), end_address);
     addl(instance, Immediate(kHeapObjectTag));
-    UpdateAllocationStatsWithSize(cid, instance_size, temp_reg, space);
+    NOT_IN_PRODUCT(
+        UpdateAllocationStatsWithSize(cid, instance_size, temp_reg, space));
 
     // Initialize the tags.
     uword tags = 0;

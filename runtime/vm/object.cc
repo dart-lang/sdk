@@ -7,6 +7,7 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "vm/assembler.h"
+#include "vm/become.h"
 #include "vm/cpu.h"
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
@@ -44,7 +45,6 @@
 #include "vm/timer.h"
 #include "vm/type_table.h"
 #include "vm/unicode.h"
-#include "vm/verified_memory.h"
 #include "vm/weak_code.h"
 
 namespace dart {
@@ -562,6 +562,13 @@ void Object::InitOnce(Isolate* isolate) {
   cls.set_is_finalized();
   cls.set_is_type_finalized();
 
+  // Allocate and initialize the forwarding corpse class.
+  cls = Class::New<ForwardingCorpse::FakeInstance>(kForwardingCorpse);
+  cls.set_num_type_arguments(0);
+  cls.set_num_own_type_arguments(0);
+  cls.set_is_finalized();
+  cls.set_is_type_finalized();
+
   // Allocate and initialize the sentinel values of Null class.
   {
     *sentinel_ ^=
@@ -929,6 +936,8 @@ class PremarkingVisitor : public ObjectVisitor {
   void VisitObject(RawObject* obj) {
     // Free list elements should never be marked.
     ASSERT(!obj->IsMarked());
+    // No forwarding corpses in the VM isolate.
+    ASSERT(!obj->IsForwardingCorpse());
     if (!obj->IsFreeListElement()) {
       ASSERT(obj->IsVMHeapObject());
       obj->SetMarkBitUnsynchronized();
@@ -1000,6 +1009,13 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   cls = isolate->object_store()->one_byte_string_class();
   cls.set_name(Symbols::OneByteString());
 
+  // Set up names for the pseudo-classes for free list elements and forwarding
+  // corpses. Mainly this makes VM debugging easier.
+  cls = isolate->class_table()->At(kFreeListElement);
+  cls.set_name(Symbols::FreeListElement());
+  cls = isolate->class_table()->At(kForwardingCorpse);
+  cls.set_name(Symbols::ForwardingCorpse());
+
   {
     ASSERT(isolate == Dart::vm_isolate());
     WritableVMIsolateScope scope(Thread::Current());
@@ -1011,9 +1027,9 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
 }
 
 
-void Object::InitVmIsolateSnapshotObjectTable(intptr_t len) {
+void Object::set_vm_isolate_snapshot_object_table(const Array& table) {
   ASSERT(Isolate::Current() == Dart::vm_isolate());
-  *vm_isolate_snapshot_object_table_ = Array::New(len, Heap::kOld);
+  *vm_isolate_snapshot_object_table_ = table.raw();
 }
 
 
@@ -1048,7 +1064,7 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
 
       intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
       ASSERT(TypedData::InstanceSize(leftover_len) == leftover_size);
-      raw->InitializeSmi(&(raw->ptr()->length_), Smi::New(leftover_len));
+      raw->StoreSmi(&(raw->ptr()->length_), Smi::New(leftover_len));
     } else {
       // Update the leftover space as a basic object.
       ASSERT(leftover_size == Object::InstanceSize());
@@ -1080,6 +1096,7 @@ void Object::VerifyBuiltinVtables() {
     }
   }
   ASSERT(builtin_vtables_[kFreeListElement] == 0);
+  ASSERT(builtin_vtables_[kForwardingCorpse] == 0);
 #endif
 }
 
@@ -1673,8 +1690,8 @@ NOT_IN_PRODUCT(
 #define REGISTER_TYPED_DATA_VIEW_CLASS(clazz)                                  \
   cls = Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid);
   CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
-  cls = Class::NewTypedDataViewClass(kByteDataViewCid);
 #undef REGISTER_TYPED_DATA_VIEW_CLASS
+  cls = Class::NewTypedDataViewClass(kByteDataViewCid);
 #define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);
   CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
@@ -1781,7 +1798,6 @@ void Object::InitializeObject(uword address,
   tags = RawObject::VMHeapObjectTag::update(is_vm_object, tags);
   reinterpret_cast<RawObject*>(address)->tags_ = tags;
   ASSERT(is_vm_object == RawObject::IsVMHeapObject(tags));
-  VerifiedMemory::Accept(address, size);
 }
 
 
@@ -1900,7 +1916,6 @@ RawObject* Object::Clone(const Object& orig, Heap::Space space) {
   memmove(reinterpret_cast<uint8_t*>(clone_addr + kHeaderSizeInBytes),
           reinterpret_cast<uint8_t*>(orig_addr + kHeaderSizeInBytes),
           size - kHeaderSizeInBytes);
-  VerifiedMemory::Accept(clone_addr, size);
   // Add clone to store buffer, if needed.
   if (!raw_clone->IsOldObject()) {
     // No need to remember an object in new space.
@@ -1916,8 +1931,6 @@ RawObject* Object::Clone(const Object& orig, Heap::Space space) {
 
 
 RawString* Class::Name() const {
-  // TODO(turnidge): This assert fails for the fake kFreeListElement class.
-  // Fix this.
   ASSERT(raw_ptr()->name_ != String::null());
   return raw_ptr()->name_;
 }
@@ -4432,6 +4445,7 @@ void Class::RehashConstants(Zone* zone) const {
   while (it.MoveNext()) {
     constant ^= set.GetKey(it.Current());
     ASSERT(!constant.IsNull());
+    ASSERT(constant.IsCanonical());
     InsertCanonicalConstant(zone, constant);
   }
   set.Release();
@@ -7123,11 +7137,10 @@ bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
       // This output can be copied into a file, then used with sed
       // to replace the old values.
       // sed -i .bak -f /tmp/newkeys runtime/vm/method_recognizer.h
-      THR_Print("s/V(%s, %d)/V(%s, %d)/\n",
-                prefix, fp, prefix, SourceFingerprint());
+      THR_Print("s/0x%08x/0x%08x/\n", fp, SourceFingerprint());
     } else {
       THR_Print("FP mismatch while recognizing method %s:"
-                " expecting %d found %d\n",
+                " expecting 0x%08x found 0x%08x\n",
                 ToFullyQualifiedCString(),
                 fp,
                 SourceFingerprint());
@@ -10349,6 +10362,8 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(thread->IsMutatorThread());
+  // Force the url to have a hash code.
+  url.Hash();
   const Library& result = Library::Handle(zone, Library::New());
   result.StorePointer(&result.raw_ptr()->name_, Symbols::Empty().raw());
   result.StorePointer(&result.raw_ptr()->url_, url.raw());
@@ -10535,6 +10550,18 @@ void Library::AllocatePrivateKey() const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
+
+  if (FLAG_support_reload && isolate->IsReloading()) {
+    // When reloading, we need to make sure we use the original private key
+    // if this library previously existed.
+    IsolateReloadContext* reload_context = isolate->reload_context();
+    const String& original_key =
+        String::Handle(reload_context->FindLibraryPrivateKey(*this));
+    if (!original_key.IsNull()) {
+      StorePointer(&raw_ptr()->private_key_, original_key.raw());
+      return;
+    }
+  }
 
   // Format of the private key is: "@<sequence number><6 digits of hash>
   const intptr_t hash_mask = 0x7FFFF;
@@ -10921,12 +10948,17 @@ bool LibraryPrefix::LoadLibrary() const {
     pending_deferred_loads.Add(deferred_lib);
     const String& lib_url = String::Handle(zone, deferred_lib.url());
     Dart_LibraryTagHandler handler = isolate->library_tag_handler();
+    Object& obj = Object::Handle(zone);
     {
       TransitionVMToNative transition(thread);
       Api::Scope api_scope(thread);
-      handler(Dart_kImportTag,
-              Api::NewHandle(thread, importer()),
-              Api::NewHandle(thread, lib_url.raw()));
+      obj = Api::UnwrapHandle(
+              handler(Dart_kImportTag,
+                      Api::NewHandle(thread, importer()),
+                      Api::NewHandle(thread, lib_url.raw())));
+    }
+    if (obj.IsError()) {
+      Exceptions::PropagateError(Error::Cast(obj));
     }
   } else {
     // Another load request is in flight.
@@ -11315,33 +11347,39 @@ void Library::CheckFunctionFingerprints() {
     OS::Print("Function not found %s.%s\n", #class_name, #function_name);      \
   } else {                                                                     \
     CHECK_FINGERPRINT3(func, class_name, function_name, dest, fp);             \
-  }                                                                            \
+  }
+
+#define CHECK_FINGERPRINTS2(class_name, function_name, dest, type, fp) \
+  CHECK_FINGERPRINTS(class_name, function_name, dest, fp)
 
   all_libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
-  CORE_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
-  CORE_INTEGER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+  CORE_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
+  CORE_INTEGER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
 
   all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::CollectionLibrary()));
-  OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS);
+  OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS2);
   INLINE_WHITE_LIST(CHECK_FINGERPRINTS);
   INLINE_BLACK_LIST(CHECK_FINGERPRINTS);
   POLYMORPHIC_TARGET_LIST(CHECK_FINGERPRINTS);
 
   all_libs.Clear();
   all_libs.Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
-  DEVELOPER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+  DEVELOPER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
 
   all_libs.Clear();
   all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
-  MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+  MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
 
   all_libs.Clear();
   all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
-  TYPED_DATA_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+  TYPED_DATA_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
 
 #undef CHECK_FINGERPRINTS
+#undef CHECK_FINGERPRINTS2
+
+
 
 Class& cls = Class::Handle();
 
@@ -12532,6 +12570,17 @@ void ICData::AddDeoptReason(DeoptReasonId reason) const {
 }
 
 
+void ICData::SetIsStaticCall(bool static_call) const {
+  StoreNonPointer(&raw_ptr()->state_bits_,
+                  StaticCallBit::update(static_call, raw_ptr()->state_bits_));
+}
+
+
+bool ICData::is_static_call() const {
+  return StaticCallBit::decode(raw_ptr()->state_bits_);
+}
+
+
 void ICData::set_state_bits(uint32_t bits) const {
   StoreNonPointer(&raw_ptr()->state_bits_, bits);
 }
@@ -13344,7 +13393,8 @@ RawICData* ICData::NewDescriptor(Zone* zone,
                                  const String& target_name,
                                  const Array& arguments_descriptor,
                                  intptr_t deopt_id,
-                                 intptr_t num_args_tested) {
+                                 intptr_t num_args_tested,
+                                 bool is_static_call) {
   ASSERT(!owner.IsNull());
   ASSERT(!target_name.IsNull());
   ASSERT(!arguments_descriptor.IsNull());
@@ -13367,6 +13417,7 @@ RawICData* ICData::NewDescriptor(Zone* zone,
 #if defined(TAG_IC_DATA)
   result.set_tag(-1);
 #endif
+  result.SetIsStaticCall(is_static_call);
   result.SetNumArgsTested(num_args_tested);
   return result.raw();
 }
@@ -13411,7 +13462,8 @@ RawICData* ICData::New(const Function& owner,
                        const String& target_name,
                        const Array& arguments_descriptor,
                        intptr_t deopt_id,
-                       intptr_t num_args_tested) {
+                       intptr_t num_args_tested,
+                       bool is_static_call) {
   Zone* zone = Thread::Current()->zone();
   const ICData& result = ICData::Handle(zone,
                                         NewDescriptor(zone,
@@ -13419,7 +13471,8 @@ RawICData* ICData::New(const Function& owner,
                                                       target_name,
                                                       arguments_descriptor,
                                                       deopt_id,
-                                                      num_args_tested));
+                                                      num_args_tested,
+                                                      is_static_call));
   result.set_ic_data_array(
       Array::Handle(zone, NewEmptyICDataArray(num_args_tested)));
   return result.raw();
@@ -13432,7 +13485,8 @@ RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
       String::Handle(from.target_name()),
       Array::Handle(from.arguments_descriptor()),
       from.deopt_id(),
-      num_args_tested));
+      num_args_tested,
+      from.is_static_call()));
   // Copy deoptimization reasons.
   result.SetDeoptReasons(from.DeoptReasons());
   return result.raw();
@@ -13447,7 +13501,8 @@ RawICData* ICData::Clone(const ICData& from) {
       String::Handle(zone, from.target_name()),
       Array::Handle(zone, from.arguments_descriptor()),
       from.deopt_id(),
-      from.NumArgsTested()));
+      from.NumArgsTested(),
+      from.is_static_call()));
   // Clone entry array.
   const Array& from_array = Array::Handle(zone, from.ic_data());
   const intptr_t len = from_array.Length();
@@ -13980,7 +14035,6 @@ RawCode* Code::FinalizeCode(const char* name,
   MemoryRegion region(reinterpret_cast<void*>(instrs.EntryPoint()),
                       instrs.size());
   assembler->FinalizeInstructions(region);
-  VerifiedMemory::Accept(region.start(), region.size());
   CPU::FlushICache(instrs.EntryPoint(), instrs.size());
 
   code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
@@ -18018,7 +18072,7 @@ RawMixinAppType* MixinAppType::New() {
   // on new heap.
   RawObject* raw = Object::Allocate(MixinAppType::kClassId,
                                     MixinAppType::InstanceSize(),
-                                    Heap::kNew);
+                                    Heap::kOld);
   return reinterpret_cast<RawMixinAppType*>(raw);
 }
 
@@ -21283,8 +21337,6 @@ RawArray* Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
                          space));
     NoSafepointScope no_safepoint;
     raw->StoreSmi(&(raw->ptr()->length_), Smi::New(len));
-    VerifiedMemory::Accept(reinterpret_cast<uword>(raw->ptr()),
-                           Array::InstanceSize(len));
     return raw;
   }
 }
@@ -21550,7 +21602,6 @@ class DefaultHashTraits {
     }
   }
 };
-typedef EnumIndexHashMap<DefaultHashTraits> EnumIndexDefaultMap;
 
 
 RawLinkedHashMap* LinkedHashMap::NewDefault(Heap::Space space) {
@@ -21962,6 +22013,12 @@ RawTypedData* TypedData::EmptyUint32Array(Thread* thread) {
 
 
 const char* TypedData::ToCString() const {
+  switch (GetClassId()) {
+#define CASE_TYPED_DATA_CLASS(clazz)                                           \
+  case kTypedData##clazz##Cid: return #clazz;
+  CLASS_LIST_TYPED_DATA(CASE_TYPED_DATA_CLASS);
+#undef CASE_TYPED_DATA_CLASS
+  }
   return "TypedData";
 }
 

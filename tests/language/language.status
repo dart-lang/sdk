@@ -5,6 +5,12 @@
 # This directory contains tests that are intended to show the
 # current state of the language.
 
+# Trailing commas are so far supported by:
+# - The VM (vm, dartium, drt, precompiler+dart_precompiled)
+# Remaining targets still fail on arg_param_trailing_comma_test/none.
+[($compiler != none && $compiler != precompiler) || ($runtime != vm && $runtime != dartium && $runtime != drt && $runtime != dart_precompiled)]
+arg_param_trailing_comma_test/none: Fail # Issue 26644
+
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) ]
 tearoff_constructor_basic_test: Skip # Crashes in checked mode -- hausner investigating
 
@@ -53,6 +59,12 @@ generic_methods_new_test: CompiletimeError # Issue 25869
 generic_methods_function_type_test: CompiletimeError # Issue 25869
 generic_methods_type_expression_test: CompiletimeError # Issue 25869
 
+# Experimental feature: Use initializing formals in initializers and constructor body.
+initializing_formal_access_test: CompiletimeError # Issue 26656
+initializing_formal_capture_test: CompiletimeError # Issue 26656
+initializing_formal_final_test: CompiletimeError # Issue 26656
+initializing_formal_type_test: CompiletimeError # Issue 26656
+
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
 
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
@@ -92,6 +104,7 @@ main_test/21: Fail # Issue 20028
 main_test/42: Fail # Issue 20028
 mirror_in_static_init_test: Fail # Issue 22071
 vm/debug_break_enabled_vm_test/*: Skip # Issue 14651.
+
 # Experimental feature: Syntactic support for generic methods.
 generic_methods_test: RuntimeError # Issue 25869
 generic_functions_test: RuntimeError # Issue 25869
@@ -100,6 +113,13 @@ generic_sends_test: RuntimeError # Issue 25869
 generic_methods_new_test: RuntimeError # Issue 25869
 generic_methods_function_type_test: RuntimeError # Issue 25869
 generic_methods_type_expression_test: RuntimeError # Issue 25869
+
+# Experimental feature: Use initializing formals in initializers and constructor body.
+initializing_formal_access_test: RuntimeError # Issue 26656
+initializing_formal_capture_test: RuntimeError # Issue 26656
+initializing_formal_final_test: RuntimeError # Issue 26656
+initializing_formal_type_test: RuntimeError # Issue 26656
+
 config_import_test: Skip  # Issue 26250
 
 [ $compiler == none && $runtime == dartium && $system == linux && $arch != x64 ]
@@ -230,3 +250,8 @@ large_class_declaration_test: Skip
 [ $compiler == precompiler && $runtime == dart_precompiled && $system == android ]
 vm/optimized_guarded_field_isolates_test: Skip # Issue #26373
 issue23244_test: Skip # Issue #26373
+
+[ $hot_reload ]
+deferred_load_inval_code_test: RuntimeError
+regress_26453_test: Pass, Fail, Crash
+vm/regress_16873_test: Pass, Crash

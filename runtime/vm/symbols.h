@@ -71,6 +71,7 @@ class ObjectPointerVisitor;
   V(CyclicInitializationError, "CyclicInitializationError")                    \
   V(ThrowNew, "_throwNew")                                                     \
   V(ThrowNewIfNotLoaded, "_throwNewIfNotLoaded")                               \
+  V(CheckAssertion, "_checkAssertion")                                         \
   V(Symbol, "Symbol")                                                          \
   V(SymbolCtor, "Symbol.")                                                     \
   V(List, "List")                                                              \
@@ -274,6 +275,8 @@ class ObjectPointerVisitor;
   V(ByteBufferDot_New, "ByteBuffer._New")                                      \
   V(_WeakProperty, "_WeakProperty")                                            \
   V(_MirrorReference, "_MirrorReference")                                      \
+  V(FreeListElement, "FreeListElement")                                        \
+  V(ForwardingCorpse, "ForwardingCorpse")                                      \
   V(InvocationMirror, "_InvocationMirror")                                     \
   V(AllocateInvocationMirror, "_allocateInvocationMirror")                     \
   V(toString, "toString")                                                      \
@@ -673,6 +676,8 @@ class Symbols : public AllStatic {
   friend class String;
   friend class SnapshotReader;
   friend class SnapshotWriter;
+  friend class Serializer;
+  friend class Deserializer;
   friend class ApiMessageReader;
 
   DISALLOW_COPY_AND_ASSIGN(Symbols);

@@ -258,7 +258,7 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
     final Type owner;
     final String name;
     final int bound;
-    TypeVariable(this.owner, this.name, this.bound);
+    const TypeVariable(this.owner, this.name, this.bound);
   }''',
   'unwrapException': 'unwrapException(e) {}',
   'voidTypeCheck': 'voidTypeCheck(value) {}',

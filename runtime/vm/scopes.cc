@@ -98,6 +98,14 @@ bool LocalScope::AddLabel(SourceLabel* label) {
 }
 
 
+void LocalScope::MoveLabel(SourceLabel* label) {
+  ASSERT(LocalLookupLabel(label->name()) == NULL);
+  ASSERT(label->kind() == SourceLabel::kForward);
+  labels_.Add(label);
+  label->set_owner(this);
+}
+
+
 NameReference* LocalScope::FindReference(const String& name) const {
   ASSERT(name.IsSymbol());
   intptr_t num_references = referenced_.length();
@@ -489,7 +497,7 @@ SourceLabel* LocalScope::CheckUnresolvedLabels() {
       if (outer_switch == NULL) {
         return label;
       } else {
-        outer_switch->AddLabel(label);
+        outer_switch->MoveLabel(label);
       }
     }
   }

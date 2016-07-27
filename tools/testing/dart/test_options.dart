@@ -25,7 +25,8 @@ const List<String> defaultTestSelectors = const [
   'lib',
   'pkg',
   'analyze_library',
-  'service'
+  'service',
+  'observatory_ui'
 ];
 
 /**
@@ -186,8 +187,12 @@ class TestOptionsParser {
           'noopt', 'Run an in-place precompilation', ['--noopt'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
-          'use_blobs', 'Use mmap instead of shared libraries for precompilation', ['--use-blobs'], [], false,
-          type: 'bool'),
+          'hot_reload', 'Run hot reload stress tests', ['--hot-reload'], [],
+          false, type: 'bool'),
+      new _TestOptionSpecification(
+          'use_blobs',
+          'Use mmap instead of shared libraries for precompilation',
+          ['--use-blobs'], [], false, type: 'bool'),
       new _TestOptionSpecification(
           'timeout', 'Timeout in seconds', ['-t', '--timeout'], [], -1,
           type: 'int'),
@@ -338,9 +343,11 @@ Note: currently only implemented for dart2js.''',
           false,
           type: 'bool'),
       new _TestOptionSpecification(
-          'clear_browser_cache',
-          'Browser specific clearing of caches(i.e., delete it).',
-          ['--clear_browser_cache'],
+          'reset_browser_configuration',
+          'Browser specific reset of configuration. '
+          'WARNING: Using this option may remove your bookmarks and '
+          'other settings.',
+          ['--reset-browser-configuration'],
           [],
           false,
           type: 'bool'),

@@ -665,6 +665,7 @@ main() => new B();
       MessageKind.DUPLICATE_DEFINITION: const MessageTemplate(
           MessageKind.DUPLICATE_DEFINITION,
           "Duplicate definition of '#{name}'.",
+          options: const ["--initializing-formal-access"],
           howToFix: "Try to rename or remove this definition.",
           examples: const [
             """
@@ -676,7 +677,36 @@ class C {
 main() {
   new C();
 }
+""",
+            """
+class C {
+  int x;
+  C(this.x, int x);
+}
 
+main() {
+  new C(4, 2);
+}
+""",
+            """
+class C {
+  int x;
+  C(int x, this.x);
+}
+
+main() {
+  new C(4, 2);
+}
+""",
+            """
+class C {
+  int x;
+  C(this.x, this.x);
+}
+
+main() {
+  new C(4, 2);
+}
 """
           ]),
 

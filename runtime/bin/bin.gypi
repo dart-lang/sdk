@@ -1058,6 +1058,20 @@
       ]
     },
     {
+      'target_name': 'fuchsia_test',
+      'type': 'executable',
+      'dependencies': [
+        'libdart_nosnapshot',
+      ],
+      'include_dirs': [
+        '..',
+        '../include',
+      ],
+      'sources': [
+        'fuchsia_test.cc',
+      ],
+    },
+    {
       # dart binary with a snapshot of corelibs built in.
       'target_name': 'dart',
       'type': 'executable',

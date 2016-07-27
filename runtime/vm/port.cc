@@ -326,4 +326,20 @@ void PortMap::PrintPortsForMessageHandler(MessageHandler* handler,
   }
 }
 
+
+void PortMap::DebugDumpForMessageHandler(MessageHandler* handler) {
+  SafepointMutexLocker ml(mutex_);
+  Object& msg_handler = Object::Handle();
+  for (intptr_t i = 0; i < capacity_; i++) {
+    if (map_[i].handler == handler) {
+      if (map_[i].state == kLivePort) {
+        OS::Print("Live Port = %" Pd64 "\n", map_[i].port);
+        msg_handler = DartLibraryCalls::LookupHandler(map_[i].port);
+        OS::Print("Handler = %s\n", msg_handler.ToCString());
+      }
+    }
+  }
+}
+
+
 }  // namespace dart

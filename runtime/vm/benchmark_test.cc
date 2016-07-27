@@ -11,6 +11,7 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 
+#include "vm/clustered_snapshot.h"
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_impl.h"
 #include "vm/stack_frame.h"

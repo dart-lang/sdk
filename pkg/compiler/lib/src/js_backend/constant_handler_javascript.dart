@@ -116,6 +116,8 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
       new Map<Node, ConstantExpression>();
 
   // Constants computed for metadata.
+  // TODO(johnniwinther): Remove this when no longer used by
+  // poi/forget_element_test.
   final Map<MetadataAnnotation, ConstantExpression> metadataConstantMap =
       new Map<MetadataAnnotation, ConstantExpression>();
 
@@ -132,28 +134,18 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
         element, definitions,
         isConst: isConst, checkType: checkType);
     if (!isConst && value == null) {
-      lazyStatics.add(element);
+      registerLazyStatic(element);
     }
     return value;
   }
 
-  void addCompileTimeConstantForEmission(ConstantValue constant) {
-    compiledConstants.add(constant);
+  @override
+  void registerLazyStatic(FieldElement element) {
+    lazyStatics.add(element);
   }
 
-  /**
-   * Returns an [Iterable] of static non final fields that need to be
-   * initialized. The fields list must be evaluated in order since they might
-   * depend on each other.
-   */
-  Iterable<VariableElement> getStaticNonFinalFieldsForEmission() {
-    return initialVariableValues.keys.where((element) {
-      return element.kind == ElementKind.FIELD &&
-          !element.isInstanceMember &&
-          !element.modifiers.isFinal &&
-          // The const fields are all either emitted elsewhere or inlined.
-          !element.modifiers.isConst;
-    });
+  void addCompileTimeConstantForEmission(ConstantValue constant) {
+    compiledConstants.add(constant);
   }
 
   List<VariableElement> getLazilyInitializedFieldsForEmission() {
@@ -189,15 +181,6 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     return result;
   }
 
-  ConstantValue getInitialValueFor(VariableElement element) {
-    ConstantExpression initialValue =
-        initialVariableValues[element.declaration];
-    if (initialValue == null) {
-      reporter.internalError(element, "No initial value for given element.");
-    }
-    return getConstantValue(initialValue);
-  }
-
   ConstantExpression compileNode(Node node, TreeElements elements,
       {bool enforceConst: true}) {
     return compileNodeWithDefinitions(node, elements, isConst: enforceConst);
@@ -231,9 +214,10 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
   }
 
   ConstantValue getConstantValueForMetadata(MetadataAnnotation metadata) {
-    return getConstantValue(metadataConstantMap[metadata]);
+    return getConstantValue(metadata.constant);
   }
 
+  @override
   ConstantExpression compileMetadata(
       MetadataAnnotation metadata, Node node, TreeElements elements) {
     ConstantExpression constant =
@@ -248,29 +232,6 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     if (element is AstElement && element.hasNode) {
       element.node.accept(new ForgetConstantNodeVisitor(this));
     }
-  }
-
-  @override
-  ConstantValue getConstantValue(ConstantExpression expression) {
-    assert(invariant(CURRENT_ELEMENT_SPANNABLE, expression != null,
-        message: "ConstantExpression is null in getConstantValue."));
-    // TODO(johhniwinther): ensure expressions have been evaluated at this
-    // point. This can't be enabled today due to dartbug.com/26406.
-    if (compiler.serialization.supportsDeserialization) {
-      evaluate(expression);
-    }
-    ConstantValue value = super.getConstantValue(expression);
-    if (value == null &&
-        expression != null &&
-        expression.kind == ConstantExpressionKind.ERRONEOUS) {
-      // TODO(johnniwinther): When the Dart constant system sees a constant
-      // expression as erroneous but the JavaScript constant system finds it ok
-      // we have store a constant value for the erroneous constant expression.
-      // Ensure the computed constant expressions are always the same; that only
-      // the constant values may be different.
-      value = new NullConstantValue();
-    }
-    return value;
   }
 }
 

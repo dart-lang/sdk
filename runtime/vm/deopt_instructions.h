@@ -115,7 +115,7 @@ class DeoptContext {
 #else
     // First argument is the lowest slot because stack is growing upwards.
     return reinterpret_cast<intptr_t*>(
-      frame->fp() - (kDartFrameFixedSize + num_args_) * kWordSize);
+        frame->fp() - (kDartFrameFixedSize + num_args_) * kWordSize);
 #endif  // !defined(TARGET_ARCH_DBC)
   }
 

@@ -6,7 +6,8 @@ library js_backend.native_data;
 
 import '../common.dart';
 import '../elements/elements.dart'
-    show ClassElement, Element, FunctionElement, MemberElement;
+    show ClassElement, Element, FieldElement, FunctionElement, MemberElement;
+import '../native/behavior.dart' show NativeBehavior;
 
 /// Additional element information for native classes and methods and js-interop
 /// methods.
@@ -21,6 +22,18 @@ class NativeData {
   /// Tag info for native JavaScript classes names. See
   /// [setNativeClassTagInfo].
   Map<ClassElement, String> nativeClassTagInfo = <ClassElement, String>{};
+
+  /// Cache for [NativeBehavior]s for calling native methods.
+  Map<FunctionElement, NativeBehavior> nativeMethodBehavior =
+      <FunctionElement, NativeBehavior>{};
+
+  /// Cache for [NativeBehavior]s for reading from native fields.
+  Map<MemberElement, NativeBehavior> nativeFieldLoadBehavior =
+      <FieldElement, NativeBehavior>{};
+
+  /// Cache for [NativeBehavior]s for writing to native fields.
+  Map<MemberElement, NativeBehavior> nativeFieldStoreBehavior =
+      <FieldElement, NativeBehavior>{};
 
   /// Returns `true` if [element] is explicitly marked as part of JsInterop.
   bool _isJsInterop(Element element) {
@@ -162,5 +175,45 @@ class NativeData {
   /// Returns `true` if [cls] has a `!nonleaf` tag word.
   bool hasNativeTagsForcedNonLeaf(ClassElement cls) {
     return getNativeTagsOfClassRaw(cls).contains('!nonleaf');
+  }
+
+  /// Returns the [NativeBehavior] for calling the native [method].
+  NativeBehavior getNativeMethodBehavior(FunctionElement method) {
+    assert(invariant(method, nativeMethodBehavior.containsKey(method),
+        message: "No native method behavior has been computed for $method."));
+    return nativeMethodBehavior[method];
+  }
+
+  /// Returns the [NativeBehavior] for reading from the native [field].
+  NativeBehavior getNativeFieldLoadBehavior(FieldElement field) {
+    assert(invariant(field, nativeFieldLoadBehavior.containsKey(field),
+        message: "No native field load behavior has been "
+            "computed for $field."));
+    return nativeFieldLoadBehavior[field];
+  }
+
+  /// Returns the [NativeBehavior] for writing to the native [field].
+  NativeBehavior getNativeFieldStoreBehavior(FieldElement field) {
+    assert(invariant(field, nativeFieldStoreBehavior.containsKey(field),
+        message: "No native field store behavior has been "
+            "computed for $field."));
+    return nativeFieldStoreBehavior[field];
+  }
+
+  /// Registers the [behavior] for calling the native [method].
+  void setNativeMethodBehavior(
+      FunctionElement method, NativeBehavior behavior) {
+    nativeMethodBehavior[method] = behavior;
+  }
+
+  /// Registers the [behavior] for reading from the native [field].
+  void setNativeFieldLoadBehavior(FieldElement field, NativeBehavior behavior) {
+    nativeFieldLoadBehavior[field] = behavior;
+  }
+
+  /// Registers the [behavior] for writing to the native [field].
+  void setNativeFieldStoreBehavior(
+      FieldElement field, NativeBehavior behavior) {
+    nativeFieldStoreBehavior[field] = behavior;
   }
 }

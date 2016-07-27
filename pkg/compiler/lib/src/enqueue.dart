@@ -199,25 +199,12 @@ abstract class Enqueuer {
       // classes, which may not be the case when a native class is subclassed.
       if (compiler.backend.isNative(cls)) {
         compiler.world.registerUsedElement(member);
-        nativeEnqueuer.handleFieldAnnotations(member);
         if (universe.hasInvokedGetter(member, compiler.world) ||
             universe.hasInvocation(member, compiler.world)) {
-          nativeEnqueuer.registerFieldLoad(member);
-          // In handleUnseenSelector we can't tell if the field is loaded or
-          // stored.  We need the basic algorithm to be Church-Rosser, since the
-          // resolution 'reduction' order is different to the codegen order. So
-          // register that the field is also stored.  In other words: if we
-          // don't register the store here during resolution, the store could be
-          // registered during codegen on the handleUnseenSelector path, and
-          // cause the set of codegen elements to include unresolved elements.
-          nativeEnqueuer.registerFieldStore(member);
           addToWorkList(member);
           return;
         }
         if (universe.hasInvokedSetter(member, compiler.world)) {
-          nativeEnqueuer.registerFieldStore(member);
-          // See comment after registerFieldLoad above.
-          nativeEnqueuer.registerFieldLoad(member);
           addToWorkList(member);
           return;
         }
@@ -462,6 +449,7 @@ abstract class Enqueuer {
     bool includeLibrary =
         shouldIncludeElementDueToMirrors(lib, includedEnclosing: false);
     lib.forEachLocalMember((Element member) {
+      if (member.isInjected) return;
       if (member.isClass) {
         enqueueReflectiveElementsInClass(member, recents, includeLibrary);
       } else {
@@ -548,25 +536,6 @@ abstract class Enqueuer {
       if (dynamicUse.appliesUnnamed(member, compiler.world)) {
         if (member.isFunction && selector.isGetter) {
           registerClosurizedMember(member);
-        }
-        if (member.isField &&
-            compiler.backend.isNative(member.enclosingClass)) {
-          if (selector.isGetter || selector.isCall) {
-            nativeEnqueuer.registerFieldLoad(member);
-            // We have to also handle storing to the field because we only get
-            // one look at each member and there might be a store we have not
-            // seen yet.
-            // TODO(sra): Process fields for storing separately.
-            nativeEnqueuer.registerFieldStore(member);
-          } else {
-            assert(selector.isSetter);
-            nativeEnqueuer.registerFieldStore(member);
-            // We have to also handle loading from the field because we only get
-            // one look at each member and there might be a load we have not
-            // seen yet.
-            // TODO(sra): Process fields for storing separately.
-            nativeEnqueuer.registerFieldLoad(member);
-          }
         }
         addToWorkList(member);
         return true;
@@ -747,6 +716,7 @@ class ResolutionEnqueuer extends Enqueuer {
   /// Registers [element] as processed by the resolution enqueuer.
   void registerProcessedElement(AstElement element) {
     processedElements.add(element);
+    compiler.backend.onElementResolved(element);
   }
 
   /**
@@ -810,7 +780,6 @@ class ResolutionEnqueuer extends Enqueuer {
       compiler.enabledFunctionApply = true;
     }
 
-    nativeEnqueuer.registerElement(element);
     return true;
   }
 

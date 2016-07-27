@@ -142,6 +142,16 @@ class OpTypeTest {
     assertOpType(typeNames: true);
   }
 
+  test_AsIdentifier() {
+    addTestSource('class A {var asdf; foo() {as^}');
+    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_AsIdentifier2() {
+    addTestSource('class A {var asdf; foo() {A as^}');
+    assertOpType();
+  }
+
   test_Assert() {
     addTestSource('main() {assert(^)}');
     assertOpType(returnValue: true, typeNames: true);
@@ -1359,6 +1369,11 @@ class C2 {
     assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
+  test_SwitchStatement_body_end2() {
+    addTestSource('main() {switch(k) {case 1:as^}}');
+    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
   test_SwitchStatement_expression1() {
     // SimpleIdentifier  SwitchStatement  Block
     addTestSource('main() {switch(^k) {case 1:{}}}');
@@ -1556,6 +1571,9 @@ class _TestSource implements Source {
 
   @override
   Source get source => this;
+
+  @override
+  Uri get uri => new Uri.file(fullName);
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -149,6 +149,10 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
   /// methods where type arguments are passed.
   final bool enableGenericMethodSyntax;
 
+  /// Support access to initializing formal constructor arguments, e.g., the
+  /// use of `x` to initialize `y` in `C(this.x) : y = x`.
+  final bool enableInitializingFormalAccess;
+
   /// Whether the user specified a flag to allow the use of dart:mirrors. This
   /// silences a warning produced by the compiler.
   final bool enableExperimentalMirrors;
@@ -292,6 +296,8 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
         enableAssertMessage: _hasOption(options, Flags.enableAssertMessage),
         enableGenericMethodSyntax:
             _hasOption(options, Flags.genericMethodSyntax),
+        enableInitializingFormalAccess:
+            _hasOption(options, Flags.initializingFormalAccess),
         enableExperimentalMirrors:
             _hasOption(options, Flags.enableExperimentalMirrors),
         enableMinification: _hasOption(options, Flags.minify),
@@ -361,6 +367,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       bool emitJavaScript: true,
       bool enableAssertMessage: false,
       bool enableGenericMethodSyntax: false,
+      bool enableInitializingFormalAccess: false,
       bool enableExperimentalMirrors: false,
       bool enableMinification: false,
       bool enableNativeLiveTypeAnalysis: true,
@@ -434,6 +441,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
         emitJavaScript: emitJavaScript,
         enableAssertMessage: enableAssertMessage,
         enableGenericMethodSyntax: enableGenericMethodSyntax,
+        enableInitializingFormalAccess: enableInitializingFormalAccess,
         enableExperimentalMirrors: enableExperimentalMirrors,
         enableMinification: enableMinification,
         enableNativeLiveTypeAnalysis: enableNativeLiveTypeAnalysis,
@@ -487,6 +495,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       this.emitJavaScript: true,
       this.enableAssertMessage: false,
       this.enableGenericMethodSyntax: false,
+      this.enableInitializingFormalAccess: false,
       this.enableExperimentalMirrors: false,
       this.enableMinification: false,
       this.enableNativeLiveTypeAnalysis: false,
@@ -515,6 +524,131 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       this.useStartupEmitter: false,
       this.verbose: false})
       : _shownPackageWarnings = shownPackageWarnings;
+
+  /// Creates a copy of the [CompilerOptions] where the provided non-null
+  /// option values replace existing.
+  CompilerOptions copy(
+      {entryPoint,
+      libraryRoot,
+      packageRoot,
+      packageConfig,
+      packagesDiscoveryProvider,
+      environment,
+      allowMockCompilation,
+      allowNativeExtensions,
+      analyzeAll,
+      analyzeMain,
+      analyzeOnly,
+      analyzeSignaturesOnly,
+      buildId,
+      dart2dartMultiFile,
+      deferredMapUri,
+      fatalWarnings,
+      terseDiagnostics,
+      suppressWarnings,
+      suppressHints,
+      List<String> shownPackageWarnings,
+      disableInlining,
+      disableTypeInference,
+      dumpInfo,
+      emitJavaScript,
+      enableAssertMessage,
+      enableGenericMethodSyntax,
+      enableInitializingFormalAccess,
+      enableExperimentalMirrors,
+      enableMinification,
+      enableNativeLiveTypeAnalysis,
+      enableTypeAssertions,
+      enableUserAssertions,
+      generateCodeWithCompileTimeErrors,
+      generateSourceMap,
+      hasIncrementalSupport,
+      outputUri,
+      platformConfigUri,
+      preserveComments,
+      preserveUris,
+      resolutionInputs,
+      resolutionOutput,
+      resolveOnly,
+      sourceMapUri,
+      strips,
+      testMode,
+      trustJSInteropTypeAnnotations,
+      trustPrimitives,
+      trustTypeAnnotations,
+      useContentSecurityPolicy,
+      useCpsIr,
+      useFrequencyNamer,
+      useNewSourceInfo,
+      useStartupEmitter,
+      verbose}) {
+    return new CompilerOptions._(
+        entryPoint ?? this.entryPoint,
+        libraryRoot ?? this.libraryRoot,
+        packageRoot ?? this.packageRoot,
+        packageConfig ?? this.packageConfig,
+        packagesDiscoveryProvider ?? this.packagesDiscoveryProvider,
+        environment ?? this.environment,
+        allowMockCompilation: allowMockCompilation ?? this.allowMockCompilation,
+        allowNativeExtensions:
+            allowNativeExtensions ?? this.allowNativeExtensions,
+        analyzeAll: analyzeAll ?? this.analyzeAll,
+        analyzeMain: analyzeMain ?? this.analyzeMain,
+        analyzeOnly: analyzeOnly ?? this.analyzeOnly,
+        analyzeSignaturesOnly:
+            analyzeSignaturesOnly ?? this.analyzeSignaturesOnly,
+        buildId: buildId ?? this.buildId,
+        dart2dartMultiFile: dart2dartMultiFile ?? this.dart2dartMultiFile,
+        deferredMapUri: deferredMapUri ?? this.deferredMapUri,
+        fatalWarnings: fatalWarnings ?? this.fatalWarnings,
+        terseDiagnostics: terseDiagnostics ?? this.terseDiagnostics,
+        suppressWarnings: suppressWarnings ?? this.suppressWarnings,
+        suppressHints: suppressHints ?? this.suppressHints,
+        shownPackageWarnings:
+            shownPackageWarnings ?? this._shownPackageWarnings,
+        disableInlining: disableInlining ?? this.disableInlining,
+        disableTypeInference: disableTypeInference ?? this.disableTypeInference,
+        dumpInfo: dumpInfo ?? this.dumpInfo,
+        emitJavaScript: emitJavaScript ?? this.emitJavaScript,
+        enableAssertMessage: enableAssertMessage ?? this.enableAssertMessage,
+        enableGenericMethodSyntax:
+            enableGenericMethodSyntax ?? this.enableGenericMethodSyntax,
+        enableInitializingFormalAccess: enableInitializingFormalAccess ??
+            this.enableInitializingFormalAccess,
+        enableExperimentalMirrors:
+            enableExperimentalMirrors ?? this.enableExperimentalMirrors,
+        enableMinification: enableMinification ?? this.enableMinification,
+        enableNativeLiveTypeAnalysis:
+            enableNativeLiveTypeAnalysis ?? this.enableNativeLiveTypeAnalysis,
+        enableTypeAssertions: enableTypeAssertions ?? this.enableTypeAssertions,
+        enableUserAssertions: enableUserAssertions ?? this.enableUserAssertions,
+        generateCodeWithCompileTimeErrors: generateCodeWithCompileTimeErrors ??
+            this.generateCodeWithCompileTimeErrors,
+        generateSourceMap: generateSourceMap ?? this.generateSourceMap,
+        hasIncrementalSupport:
+            hasIncrementalSupport ?? this.hasIncrementalSupport,
+        outputUri: outputUri ?? this.outputUri,
+        platformConfigUri: platformConfigUri ?? this.platformConfigUri,
+        preserveComments: preserveComments ?? this.preserveComments,
+        preserveUris: preserveUris ?? this.preserveUris,
+        resolutionInputs: resolutionInputs ?? this.resolutionInputs,
+        resolutionOutput: resolutionOutput ?? this.resolutionOutput,
+        resolveOnly: resolveOnly ?? this.resolveOnly,
+        sourceMapUri: sourceMapUri ?? this.sourceMapUri,
+        strips: strips ?? this.strips,
+        testMode: testMode ?? this.testMode,
+        trustJSInteropTypeAnnotations:
+            trustJSInteropTypeAnnotations ?? this.trustJSInteropTypeAnnotations,
+        trustPrimitives: trustPrimitives ?? this.trustPrimitives,
+        trustTypeAnnotations: trustTypeAnnotations ?? this.trustTypeAnnotations,
+        useContentSecurityPolicy:
+            useContentSecurityPolicy ?? this.useContentSecurityPolicy,
+        useCpsIr: useCpsIr ?? this.useCpsIr,
+        useFrequencyNamer: useFrequencyNamer ?? this.useFrequencyNamer,
+        useNewSourceInfo: useNewSourceInfo ?? this.useNewSourceInfo,
+        useStartupEmitter: useStartupEmitter ?? this.useStartupEmitter,
+        verbose: verbose ?? this.verbose);
+  }
 
   /// Returns `true` if warnings and hints are shown for all packages.
   bool get showAllPackageWarnings {

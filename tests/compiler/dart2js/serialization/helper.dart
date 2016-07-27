@@ -88,6 +88,9 @@ class Arguments {
       if (test.preserializedSourceFiles != null) {
         sourceFiles.addAll(test.preserializedSourceFiles);
       }
+      if (test.unserializedSourceFiles != null) {
+        sourceFiles.addAll(test.unserializedSourceFiles);
+      }
       List<Uri> resolutionInputs = <Uri>[];
       for (SerializedData data in dataList) {
         data.expandMemorySourceFiles(sourceFiles);
@@ -124,23 +127,43 @@ Future<SerializedData> serializeDartCore(
       print('Loading data from $file');
       serializedData = new SerializedData(uri, file.readAsStringSync());
     }
+  } else {
+    SerializationResult result = await serialize(Uris.dart_core, dataUri: uri);
+    serializedData = result.serializedData;
   }
-  if (serializedData == null) {
-    Compiler compiler = compilerFor(
-        options: [Flags.analyzeAll]);
-    compiler.serialization.supportSerialization = true;
-    await compiler.run(Uris.dart_core);
-    BufferedEventSink sink = new BufferedEventSink();
-    compiler.serialization.serializeToSink(
-        sink, compiler.libraryLoader.libraries);
-    serializedData = new SerializedData(uri, sink.text);
-    if (arguments.saveSerializedData) {
-      File file = new File(arguments.serializedDataFileName);
-      print('Saving data to $file');
-      file.writeAsStringSync(serializedData.data);
-    }
+  if (arguments.saveSerializedData) {
+    File file = new File(arguments.serializedDataFileName);
+    print('Saving data to $file');
+    file.writeAsStringSync(serializedData.data);
   }
   return serializedData;
+}
+
+class SerializationResult {
+  final Compiler compiler;
+  final SerializedData serializedData;
+
+  SerializationResult(this.compiler, this.serializedData);
+}
+
+Future<SerializationResult> serialize(Uri entryPoint,
+    {Map<String, String> memorySourceFiles: const <String, String>{},
+     List<Uri> resolutionInputs: const <Uri>[],
+     Uri dataUri}) async {
+  if (dataUri == null) {
+    dataUri = Uri.parse('memory:${DEFAULT_DATA_FILE_NAME}');
+  }
+  Compiler compiler = compilerFor(
+      options: [Flags.analyzeAll],
+      memorySourceFiles: memorySourceFiles,
+      resolutionInputs: resolutionInputs);
+  compiler.serialization.supportSerialization = true;
+  await compiler.run(entryPoint);
+  BufferedEventSink sink = new BufferedEventSink();
+  compiler.serialization.serializeToSink(
+      sink, compiler.libraryLoader.libraries);
+  SerializedData serializedData = new SerializedData(dataUri, sink.text);
+  return new SerializationResult(compiler, serializedData);
 }
 
 class SerializedData {
@@ -196,9 +219,13 @@ Future<List<SerializedData>> preserializeData(
   for (String key in test.preserializedSourceFiles.keys) {
     uriList.add(Uri.parse('memory:$key'));
   }
+  Map<String, String> sourceFiles = serializedData.toMemorySourceFiles();
+  sourceFiles.addAll(test.preserializedSourceFiles);
+  if (test.unserializedSourceFiles != null) {
+    sourceFiles.addAll(test.unserializedSourceFiles);
+  }
   Compiler compiler = compilerFor(
-      memorySourceFiles:
-          serializedData.toMemorySourceFiles(test.preserializedSourceFiles),
+      memorySourceFiles: sourceFiles,
       resolutionInputs: serializedData.toUris(),
       options: [Flags.analyzeOnly, Flags.analyzeMain]);
   compiler.librariesToAnalyzeWhenRun = uriList;

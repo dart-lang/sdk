@@ -313,8 +313,43 @@ class TransitionToGenerated : public TransitionSafepointState {
   }
 
  private:
-  int16_t execution_state_;
+  uint32_t execution_state_;
   DISALLOW_COPY_AND_ASSIGN(TransitionToGenerated);
+};
+
+
+// TransitionToVM is used to transition the safepoint state of a
+// thread from "running native code" to "running vm code"
+// and ensures that the state is reverted back to "running native code"
+// when exiting the scope/frame.
+// This transition helper is mainly used in the error path of the
+// Dart API implementations where we sometimes do not have an explicit
+// transition set up.
+class TransitionToVM : public TransitionSafepointState {
+ public:
+  explicit TransitionToVM(Thread* T) : TransitionSafepointState(T),
+                                       execution_state_(T->execution_state()) {
+    ASSERT(T == Thread::Current());
+    ASSERT((execution_state_ == Thread::kThreadInVM) ||
+           (execution_state_ == Thread::kThreadInNative));
+    if (execution_state_ == Thread::kThreadInNative) {
+      T->ExitSafepoint();
+      T->set_execution_state(Thread::kThreadInVM);
+    }
+    ASSERT(T->execution_state() == Thread::kThreadInVM);
+  }
+
+  ~TransitionToVM() {
+    ASSERT(thread()->execution_state() == Thread::kThreadInVM);
+    if (execution_state_ == Thread::kThreadInNative) {
+      thread()->set_execution_state(Thread::kThreadInNative);
+      thread()->EnterSafepoint();
+    }
+  }
+
+ private:
+  uint32_t execution_state_;
+  DISALLOW_COPY_AND_ASSIGN(TransitionToVM);
 };
 
 }  // namespace dart

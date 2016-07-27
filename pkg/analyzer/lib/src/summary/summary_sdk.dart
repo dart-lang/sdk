@@ -8,33 +8,27 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/context/cache.dart' show CacheEntry;
 import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart'
-    show DartUriResolver, Source, SourceFactory, SourceKind;
+    show DartUriResolver, Source, SourceFactory;
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/task/dart.dart';
-import 'package:analyzer/task/model.dart'
-    show AnalysisTarget, ResultDescriptor, TargetedResult;
+import 'package:analyzer/task/model.dart' show ResultDescriptor, TargetedResult;
 
-class SdkSummaryResultProvider implements SummaryResultProvider {
-  final InternalAnalysisContext context;
-  final PackageBundle bundle;
+class SdkSummaryResultProvider extends ResynthesizerResultProvider {
   final SummaryTypeProvider typeProvider = new SummaryTypeProvider();
 
-  @override
-  SummaryResynthesizer resynthesizer;
-
-  SdkSummaryResultProvider(this.context, this.bundle, bool strongMode) {
-    resynthesizer = new SdkSummaryResynthesizer(
-        context, typeProvider, context.sourceFactory, bundle, strongMode);
+  SdkSummaryResultProvider(
+      InternalAnalysisContext context, PackageBundle bundle, bool strongMode)
+      : super(context, new SummaryDataStore(const <String>[])) {
+    addBundle(null, bundle);
+    createResynthesizer(null, typeProvider);
     _buildCoreLibrary();
     _buildAsyncLibrary();
     resynthesizer.finalizeCoreAsyncLibraries();
@@ -47,87 +41,12 @@ class SdkSummaryResultProvider implements SummaryResultProvider {
       entry.setValue(result, typeProvider, TargetedResult.EMPTY_LIST);
       return true;
     }
-    AnalysisTarget target = entry.target;
-    // Only SDK sources after this point.
-    if (target.source == null || !target.source.isInSystemLibrary) {
-      return false;
-    }
-    // Constant expressions are always resolved in summaries.
-    if (result == CONSTANT_EXPRESSION_RESOLVED &&
-        target is ConstantEvaluationTarget) {
-      entry.setValue(result, true, TargetedResult.EMPTY_LIST);
-      return true;
-    }
-    if (target is Source) {
-      if (result == LIBRARY_ELEMENT1 ||
-          result == LIBRARY_ELEMENT2 ||
-          result == LIBRARY_ELEMENT3 ||
-          result == LIBRARY_ELEMENT4 ||
-          result == LIBRARY_ELEMENT5 ||
-          result == LIBRARY_ELEMENT6 ||
-          result == LIBRARY_ELEMENT7 ||
-          result == LIBRARY_ELEMENT8 ||
-          result == LIBRARY_ELEMENT9 ||
-          result == LIBRARY_ELEMENT) {
-        // TODO(scheglov) try to find a way to avoid listing every result
-        // e.g. "result.whenComplete == LIBRARY_ELEMENT"
-        String uri = target.uri.toString();
-        LibraryElement libraryElement = resynthesizer.getLibraryElement(uri);
-        entry.setValue(result, libraryElement, TargetedResult.EMPTY_LIST);
-        return true;
-      } else if (result == READY_LIBRARY_ELEMENT2 ||
-          result == READY_LIBRARY_ELEMENT6 ||
-          result == READY_LIBRARY_ELEMENT7) {
-        entry.setValue(result, true, TargetedResult.EMPTY_LIST);
-        return true;
-      } else if (result == SOURCE_KIND) {
-        String uri = target.uri.toString();
-        SourceKind kind = _getSourceKind(uri);
-        if (kind != null) {
-          entry.setValue(result, kind, TargetedResult.EMPTY_LIST);
-          return true;
-        }
-        return false;
-      } else {
-//        throw new UnimplementedError('$result of $target');
-      }
-    }
-    if (target is LibrarySpecificUnit) {
-      if (target.library == null || !target.library.isInSystemLibrary) {
-        return false;
-      }
-      if (result == CREATED_RESOLVED_UNIT1 ||
-          result == CREATED_RESOLVED_UNIT2 ||
-          result == CREATED_RESOLVED_UNIT3 ||
-          result == CREATED_RESOLVED_UNIT4 ||
-          result == CREATED_RESOLVED_UNIT5 ||
-          result == CREATED_RESOLVED_UNIT6 ||
-          result == CREATED_RESOLVED_UNIT7 ||
-          result == CREATED_RESOLVED_UNIT8 ||
-          result == CREATED_RESOLVED_UNIT9 ||
-          result == CREATED_RESOLVED_UNIT10 ||
-          result == CREATED_RESOLVED_UNIT11 ||
-          result == CREATED_RESOLVED_UNIT12) {
-        entry.setValue(result, true, TargetedResult.EMPTY_LIST);
-        return true;
-      }
-      if (result == COMPILATION_UNIT_ELEMENT) {
-        String libraryUri = target.library.uri.toString();
-        String unitUri = target.unit.uri.toString();
-        CompilationUnitElement unit = resynthesizer.getElement(
-            new ElementLocationImpl.con3(<String>[libraryUri, unitUri]));
-        if (unit != null) {
-          entry.setValue(result, unit, TargetedResult.EMPTY_LIST);
-          return true;
-        }
-      }
-    } else if (target is VariableElement) {
-      if (result == PROPAGATED_VARIABLE || result == INFERRED_STATIC_VARIABLE) {
-        entry.setValue(result, target, TargetedResult.EMPTY_LIST);
-        return true;
-      }
-    }
-    return false;
+    return super.compute(entry, result);
+  }
+
+  @override
+  bool hasResultsForSource(Source source) {
+    return source.source != null && source.isInSystemLibrary;
   }
 
   void _buildAsyncLibrary() {
@@ -138,19 +57,6 @@ class SdkSummaryResultProvider implements SummaryResultProvider {
   void _buildCoreLibrary() {
     LibraryElement library = resynthesizer.getLibraryElement('dart:core');
     typeProvider.initializeCore(library);
-  }
-
-  /**
-   * Return the [SourceKind] of the given [uri] or `null` if it is unknown.
-   */
-  SourceKind _getSourceKind(String uri) {
-    if (bundle.linkedLibraryUris.contains(uri)) {
-      return SourceKind.LIBRARY;
-    }
-    if (bundle.unlinkedUnitUris.contains(uri)) {
-      return SourceKind.PART;
-    }
-    return null;
   }
 }
 
@@ -266,22 +172,12 @@ class SummaryBasedDartSdk implements DartSdk {
 }
 
 /**
- * Provider for analysis results.
- */
-abstract class SummaryResultProvider extends ResultProvider {
-  /**
-   * The [SummaryResynthesizer] of this context, maybe `null`.
-   */
-  SummaryResynthesizer get resynthesizer;
-}
-
-/**
  * Implementation of [TypeProvider] which can be initialized separately with
  * `dart:core` and `dart:async` libraries.
  */
 class SummaryTypeProvider implements TypeProvider {
-  bool _isCoreInitialized = false;
-  bool _isAsyncInitialized = false;
+  LibraryElement _coreLibrary;
+  LibraryElement _asyncLibrary;
 
   InterfaceType _boolType;
   InterfaceType _deprecatedType;
@@ -308,7 +204,8 @@ class SummaryTypeProvider implements TypeProvider {
 
   @override
   InterfaceType get boolType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _boolType ??= _getType(_coreLibrary, "bool");
     return _boolType;
   }
 
@@ -317,13 +214,15 @@ class SummaryTypeProvider implements TypeProvider {
 
   @override
   InterfaceType get deprecatedType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _deprecatedType ??= _getType(_coreLibrary, "Deprecated");
     return _deprecatedType;
   }
 
   @override
   InterfaceType get doubleType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _doubleType ??= _getType(_coreLibrary, "double");
     return _doubleType;
   }
 
@@ -332,55 +231,64 @@ class SummaryTypeProvider implements TypeProvider {
 
   @override
   InterfaceType get functionType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _functionType ??= _getType(_coreLibrary, "Function");
     return _functionType;
   }
 
   @override
   InterfaceType get futureDynamicType {
-    assert(_isAsyncInitialized);
+    assert(_asyncLibrary != null);
+    _futureDynamicType ??= futureType.instantiate(<DartType>[dynamicType]);
     return _futureDynamicType;
   }
 
   @override
   InterfaceType get futureNullType {
-    assert(_isAsyncInitialized);
+    assert(_asyncLibrary != null);
+    _futureNullType ??= futureType.instantiate(<DartType>[nullType]);
     return _futureNullType;
   }
 
   @override
   InterfaceType get futureType {
-    assert(_isAsyncInitialized);
+    assert(_asyncLibrary != null);
+    _futureType ??= _getType(_asyncLibrary, "Future");
     return _futureType;
   }
 
   @override
   InterfaceType get intType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _intType ??= _getType(_coreLibrary, "int");
     return _intType;
   }
 
   @override
   InterfaceType get iterableDynamicType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _iterableDynamicType ??= iterableType.instantiate(<DartType>[dynamicType]);
     return _iterableDynamicType;
   }
 
   @override
   InterfaceType get iterableType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _iterableType ??= _getType(_coreLibrary, "Iterable");
     return _iterableType;
   }
 
   @override
   InterfaceType get listType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _listType ??= _getType(_coreLibrary, "List");
     return _listType;
   }
 
   @override
   InterfaceType get mapType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _mapType ??= _getType(_coreLibrary, "Map");
     return _mapType;
   }
 
@@ -404,55 +312,64 @@ class SummaryTypeProvider implements TypeProvider {
 
   @override
   InterfaceType get nullType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _nullType ??= _getType(_coreLibrary, "Null");
     return _nullType;
   }
 
   @override
   InterfaceType get numType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _numType ??= _getType(_coreLibrary, "num");
     return _numType;
   }
 
   @override
   InterfaceType get objectType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _objectType ??= _getType(_coreLibrary, "Object");
     return _objectType;
   }
 
   @override
   InterfaceType get stackTraceType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _stackTraceType ??= _getType(_coreLibrary, "StackTrace");
     return _stackTraceType;
   }
 
   @override
   InterfaceType get streamDynamicType {
-    assert(_isAsyncInitialized);
+    assert(_asyncLibrary != null);
+    _streamDynamicType ??= streamType.instantiate(<DartType>[dynamicType]);
     return _streamDynamicType;
   }
 
   @override
   InterfaceType get streamType {
-    assert(_isAsyncInitialized);
+    assert(_asyncLibrary != null);
+    _streamType ??= _getType(_asyncLibrary, "Stream");
     return _streamType;
   }
 
   @override
   InterfaceType get stringType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _stringType ??= _getType(_coreLibrary, "String");
     return _stringType;
   }
 
   @override
   InterfaceType get symbolType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _symbolType ??= _getType(_coreLibrary, "Symbol");
     return _symbolType;
   }
 
   @override
   InterfaceType get typeType {
-    assert(_isCoreInitialized);
+    assert(_coreLibrary != null);
+    _typeType ??= _getType(_coreLibrary, "Type");
     return _typeType;
   }
 
@@ -463,39 +380,18 @@ class SummaryTypeProvider implements TypeProvider {
    * Initialize the `dart:async` types provided by this type provider.
    */
   void initializeAsync(LibraryElement library) {
-    assert(_isCoreInitialized);
-    assert(!_isAsyncInitialized);
-    _isAsyncInitialized = true;
-    _futureType = _getType(library, "Future");
-    _streamType = _getType(library, "Stream");
-    _futureDynamicType = _futureType.instantiate(<DartType>[dynamicType]);
-    _futureNullType = _futureType.instantiate(<DartType>[_nullType]);
-    _streamDynamicType = _streamType.instantiate(<DartType>[dynamicType]);
+    assert(_coreLibrary != null);
+    assert(_asyncLibrary == null);
+    _asyncLibrary = library;
   }
 
   /**
    * Initialize the `dart:core` types provided by this type provider.
    */
   void initializeCore(LibraryElement library) {
-    assert(!_isCoreInitialized);
-    assert(!_isAsyncInitialized);
-    _isCoreInitialized = true;
-    _boolType = _getType(library, "bool");
-    _deprecatedType = _getType(library, "Deprecated");
-    _doubleType = _getType(library, "double");
-    _functionType = _getType(library, "Function");
-    _intType = _getType(library, "int");
-    _iterableType = _getType(library, "Iterable");
-    _listType = _getType(library, "List");
-    _mapType = _getType(library, "Map");
-    _nullType = _getType(library, "Null");
-    _numType = _getType(library, "num");
-    _objectType = _getType(library, "Object");
-    _stackTraceType = _getType(library, "StackTrace");
-    _stringType = _getType(library, "String");
-    _symbolType = _getType(library, "Symbol");
-    _typeType = _getType(library, "Type");
-    _iterableDynamicType = _iterableType.instantiate(<DartType>[dynamicType]);
+    assert(_coreLibrary == null);
+    assert(_asyncLibrary == null);
+    _coreLibrary = library;
   }
 
   /**

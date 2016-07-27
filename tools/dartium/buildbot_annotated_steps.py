@@ -30,9 +30,12 @@ DRT_FILTER = 'html'
 
 def RunDartTests(mode, component, suite, arch, checked, test_filter=None,
                  is_win_ninja=False):
-  """Runs the Dart WebKit Layout tests.
+  """Runs tests using the Dart test.py or the layout test runner.
   """
-  cmd = [sys.executable]
+  cmd = []
+  if sys.platform.startswith('linux'):
+    cmd = ['xvfb-run', '--server-args=-screen 0 1024x768x24','-a']
+  cmd.append(sys.executable)
   script = os.path.join(DART_PATH, 'tools', 'dartium', 'test.py')
   cmd.append(script)
   cmd.append('--buildbot')

@@ -45,6 +45,10 @@ class Zone {
   // Make a copy of the string in the zone allocated area.
   char* MakeCopyOfString(const char* str);
 
+  // Make a copy of the first n characters of a string in the zone
+  // allocated area.
+  char* MakeCopyOfStringN(const char* str, intptr_t len);
+
   // Concatenate strings |a| and |b|. |a| may be NULL. If |a| is not NULL,
   // |join| will be inserted between |a| and |b|.
   char* ConcatStrings(const char* a, const char* b, char join = ',');
@@ -172,6 +176,8 @@ class Zone {
   friend class ApiZone;
   template<typename T, typename B, typename Allocator>
   friend class BaseGrowableArray;
+  template<typename T, typename B, typename Allocator>
+  friend class BaseDirectChainedHashMap;
   DISALLOW_COPY_AND_ASSIGN(Zone);
 };
 

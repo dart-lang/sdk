@@ -26,6 +26,11 @@ testUri(String uriText, bool isAbsolute) {
     Expect.equals(uri,
                   Uri.parse(uriText + "#fragment").removeFragment());
   }
+
+  // Test uri.replace on uri with fragment
+  uri = Uri.parse('http://hello.com/fake#fragment');
+  uri = uri.replace(path: "D/E/E");
+  Expect.stringEquals('http://hello.com/D/E/E#fragment', uri.toString());
 }
 
 testEncodeDecode(String orig, String encoded) {
@@ -130,9 +135,13 @@ testUriPerRFCs() {
   // Test non-URI base (no scheme, no authority, relative path).
   base = Uri.parse("a/b/c?_#_");
   testResolve("a/b/g?q#f", "g?q#f");
+  testResolve("./", "../..");
   testResolve("../", "../../..");
   testResolve("a/b/", ".");
   testResolve("c", "../../c");
+  base = Uri.parse("../../a/b/c?_#_");  // Initial ".." in base url.
+  testResolve("../../a/d", "../d");
+  testResolve("../../../d", "../../../d");
 
   base = Uri.parse("s:a/b");
   testResolve("s:/c", "../c");

@@ -266,12 +266,15 @@ class ServerSetSubscriptionsResult {
  *
  * {
  *   "version": String
+ *   "pid": int
  * }
  *
  * Clients may not extend, implement or mix-in this class.
  */
 class ServerConnectedParams implements HasToJson {
   String _version;
+
+  int _pid;
 
   /**
    * The version number of the analysis server.
@@ -286,8 +289,22 @@ class ServerConnectedParams implements HasToJson {
     this._version = value;
   }
 
-  ServerConnectedParams(String version) {
+  /**
+   * The process id of the analysis server process.
+   */
+  int get pid => _pid;
+
+  /**
+   * The process id of the analysis server process.
+   */
+  void set pid(int value) {
+    assert(value != null);
+    this._pid = value;
+  }
+
+  ServerConnectedParams(String version, int pid) {
     this.version = version;
+    this.pid = pid;
   }
 
   factory ServerConnectedParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
@@ -301,7 +318,13 @@ class ServerConnectedParams implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "version");
       }
-      return new ServerConnectedParams(version);
+      int pid;
+      if (json.containsKey("pid")) {
+        pid = jsonDecoder.decodeInt(jsonPath + ".pid", json["pid"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "pid");
+      }
+      return new ServerConnectedParams(version, pid);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "server.connected params", json);
     }
@@ -315,6 +338,7 @@ class ServerConnectedParams implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["version"] = version;
+    result["pid"] = pid;
     return result;
   }
 
@@ -328,7 +352,8 @@ class ServerConnectedParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is ServerConnectedParams) {
-      return version == other.version;
+      return version == other.version &&
+          pid == other.pid;
     }
     return false;
   }
@@ -337,6 +362,7 @@ class ServerConnectedParams implements HasToJson {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, version.hashCode);
+    hash = JenkinsSmiHash.combine(hash, pid.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

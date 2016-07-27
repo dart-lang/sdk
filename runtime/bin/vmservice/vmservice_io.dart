@@ -39,6 +39,7 @@ _lazyServerBoot() {
 }
 
 Future cleanupCallback() async {
+  shutdownLoaders();
   // Cancel the sigquit subscription.
   if (_signalSubscription != null) {
     await _signalSubscription.cancel();
@@ -51,8 +52,52 @@ Future cleanupCallback() async {
       print("Error in vm-service shutdown: $e\n$st\n");
     }
   }
+  if (_registerSignalHandlerTimer != null) {
+    _registerSignalHandlerTimer.cancel();
+    _registerSignalHandlerTimer = null;
+  }
   // Call out to embedder's shutdown callback.
   _shutdown();
+}
+
+Future<Uri> createTempDirCallback(String base) async {
+  Directory temp = await Directory.systemTemp.createTemp(base);
+  return temp.uri;
+}
+
+Future deleteDirCallback(Uri path) async {
+  Directory dir = new Directory.fromUri(path);
+  await dir.delete(recursive: true);
+}
+
+Future writeFileCallback(Uri path, List<int> bytes) async {
+  var file = await new File.fromUri(path);
+  await file.writeAsBytes(bytes);
+}
+
+Future<List<int>> readFileCallback(Uri path) async {
+  var file = await new File.fromUri(path);
+  return await file.readAsBytes();
+}
+
+Future<List<Map<String,String>>> listFilesCallback(Uri dirPath) async {
+  var dir = new Directory.fromUri(dirPath);
+  var dirPathStr = dirPath.path;
+  var stream = dir.list(recursive: true);
+  var result = [];
+  await for (var fileEntity in stream) {
+    var filePath = new Uri.file(fileEntity.path).path;
+    var stat = await fileEntity.stat();
+    if (stat.type == FileSystemEntityType.FILE &&
+        filePath.startsWith(dirPathStr)) {
+      var map = {};
+      map['name'] = '/' + filePath.substring(dirPathStr.length);
+      map['size'] = stat.size;
+      map['modified'] = stat.modified.millisecondsSinceEpoch;
+      result.add(map);
+    }
+  }
+  return result;
 }
 
 _clearFuture(_) {
@@ -73,7 +118,10 @@ _onSignal(ProcessSignal signal) {
   }
 }
 
+Timer _registerSignalHandlerTimer;
+
 _registerSignalHandler() {
+  _registerSignalHandlerTimer = null;
   if (_signalWatch == null) {
     // Cannot register for signals.
     return;
@@ -88,6 +136,14 @@ _registerSignalHandler() {
 main() {
   // Set embedder hooks.
   VMServiceEmbedderHooks.cleanup = cleanupCallback;
+  VMServiceEmbedderHooks.createTempDir = createTempDirCallback;
+  VMServiceEmbedderHooks.deleteDir = deleteDirCallback;
+  VMServiceEmbedderHooks.writeFile = writeFileCallback;
+  VMServiceEmbedderHooks.readFile = readFileCallback;
+  VMServiceEmbedderHooks.listFiles = listFilesCallback;
+  // Always instantiate the vmservice object so that the exit message
+  // can be delivered and waiting loaders can be cancelled.
+  var service = new VMService();
   if (_autoStart) {
     _lazyServerBoot();
     server.startup();
@@ -95,12 +151,10 @@ main() {
     // scheduled microtasks.
     Timer.run(() {});
   }
-  // TODO(johnmccutchan): Fixup service isolate shutdown in the general case.
-  // See ServiceIsolate::KillServiceIsolate and ServiceIsolate::Shutdown.
   scriptLoadPort.handler = _processLoadRequest;
   // Register signal handler after a small delay to avoid stalling main
   // isolate startup.
-  new Timer(shortDelay, _registerSignalHandler);
+  _registerSignalHandlerTimer = new Timer(shortDelay, _registerSignalHandler);
   return scriptLoadPort;
 }
 

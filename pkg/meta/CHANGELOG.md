@@ -1,3 +1,12 @@
+## 1.0.1
+* Updated `@factory` to allow statics and methods returning `null`.
+
+## 1.0.0
+* First stable API release.
+
+## 0.12.2
+* Updated `@protected` to include implemented interfaces (linter#252).
+
 ## 0.12.1
 * Fixed markdown in dartdocs.
 

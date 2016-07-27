@@ -4,15 +4,18 @@
 library browser;
 
 import "dart:async";
-import "dart:convert" show LineSplitter, UTF8, JSON;
+import "dart:convert" show UTF8, JSON;
 import "dart:core";
 import "dart:io";
-import "dart:math" show max, min;
+import "dart:math" show min;
 
 import 'android.dart';
 import 'http_server.dart';
 import 'path.dart';
 import 'utils.dart';
+
+import 'reset_safari.dart' show
+    killAndResetSafari;
 
 class BrowserOutput {
   final StringBuffer stdout = new StringBuffer();
@@ -53,10 +56,10 @@ abstract class Browser {
   String id;
 
   /**
-   * Delete the browser specific caches on startup.
+   * Reset the browser to a known configuration on start-up.
    * Browser specific implementations are free to ignore this.
    */
-  static bool deleteCache = false;
+  static bool resetBrowserConfiguration = false;
 
   /** Print everything (stdout, stderr, usageLog) whenever we add to it */
   bool debugPrint = false;
@@ -104,6 +107,15 @@ abstract class Browser {
     'ie11',
     'ie10'
   ];
+
+  /// If [browserName] doesn't support Window.open, we use iframes instead.
+  static bool requiresIframe(String browserName) {
+    return !BROWSERS_WITH_WINDOW_SUPPORT.contains(browserName);
+  }
+
+  static bool requiresFocus(String browserName) {
+    return browserName == "safari";
+  }
 
   // TODO(kustermann): add standard support for chrome on android
   static bool supportedBrowser(String name) {
@@ -269,6 +281,13 @@ abstract class Browser {
 
   /** Starts the browser loading the given url */
   Future<bool> start(String url);
+
+  /// Called when the driver page is requested, that is, when the browser first
+  /// contacts the test server. At this time, it's safe to assume that the
+  /// browser process has started and opened its first window.
+  ///
+  /// This is used by [Safari] to ensure the browser window has focus.
+  Future<Null> onDriverPageRequested() => new Future<Null>.value();
 }
 
 class Safari extends Browser {
@@ -278,62 +297,48 @@ class Safari extends Browser {
   static const String versionFile =
       "/Applications/Safari.app/Contents/version.plist";
 
-  /**
-   * Directories where safari stores state. We delete these if the deleteCache
-   * is set
-   */
-  static const List<String> CACHE_DIRECTORIES = const [
-    "Library/Caches/com.apple.Safari",
-    "Library/Safari",
-    "Library/Saved Application State/com.apple.Safari.savedState",
-    "Library/Caches/Metadata/Safari"
-  ];
+  static const String safariBundleLocation = "/Applications/Safari.app/";
 
-  Future<bool> allowPopUps() {
-    var command = "defaults";
-    var args = [
-      "write",
-      "com.apple.safari",
-      "com.apple.Safari.ContentPageGroupIdentifier."
-          "WebKit2JavaScriptCanOpenWindowsAutomatically",
-      "1"
-    ];
-    return Process.run(command, args).then((result) {
-      if (result.exitCode != 0) {
-        _logEvent("Could not disable pop-up blocking for safari");
-        return false;
-      }
-      return true;
-    });
-  }
-
-  Future<bool> deleteIfExists(Iterator<String> paths) {
-    if (!paths.moveNext()) return new Future.value(true);
-    Directory directory = new Directory(paths.current);
-    return directory.exists().then((exists) {
-      if (exists) {
-        _logEvent("Deleting ${paths.current}");
-        return directory
-            .delete(recursive: true)
-            .then((_) => deleteIfExists(paths))
-            .catchError((error) {
-          _logEvent("Failure trying to delete ${paths.current}: $error");
-          return false;
-        });
-      } else {
-        _logEvent("${paths.current} is not present");
-        return deleteIfExists(paths);
-      }
-    });
-  }
-
-  // Clears the cache if the static deleteCache flag is set.
+  // Clears the cache if the static resetBrowserConfiguration flag is set.
   // Returns false if the command to actually clear the cache did not complete.
-  Future<bool> clearCache() {
-    if (!Browser.deleteCache) return new Future.value(true);
-    var home = Platform.environment['HOME'];
-    Iterator iterator = CACHE_DIRECTORIES.map((s) => "$home/$s").iterator;
-    return deleteIfExists(iterator);
+  Future<bool> resetConfiguration() async {
+    if (!Browser.resetBrowserConfiguration) return true;
+
+    Completer completer = new Completer();
+    handleUncaughtError(error, StackTrace stackTrace) {
+      if (!completer.isCompleted) {
+        completer.completeError(error, stackTrace);
+      } else {
+        throw new AsyncError(error, stackTrace);
+      }
+    }
+    Zone parent = Zone.current;
+    ZoneSpecification specification = new ZoneSpecification(
+        print: (Zone self, ZoneDelegate delegate, Zone zone, String line) {
+          delegate.run(parent, () {
+            _logEvent(line);
+          });
+        });
+    Future zoneWrapper() {
+      Uri safariUri = Uri.base.resolve(safariBundleLocation);
+      return new Future(() => killAndResetSafari(bundle: safariUri))
+          .then(completer.complete);
+    }
+
+    // We run killAndResetSafari in a Zone as opposed to running an external
+    // process. The Zone allows us to collect its output, and protect the rest
+    // of the test infrastructure against errors in it.
+    runZoned(
+        zoneWrapper, zoneSpecification: specification,
+        onError: handleUncaughtError);
+
+    try {
+      await completer.future;
+      return true;
+    } catch (error, st) {
+      _logEvent("Unable to reset Safari: $error$st");
+      return false;
+    }
   }
 
   Future<String> getVersion() {
@@ -369,42 +374,58 @@ class Safari extends Browser {
     });
   }
 
-  void _createLaunchHTML(var path, var url) {
+  Future<Null> _createLaunchHTML(var path, var url) async {
     var file = new File("${path}/launch.html");
-    var randomFile = file.openSync(mode: FileMode.WRITE);
+    var randomFile = await file.open(mode: FileMode.WRITE);
     var content = '<script language="JavaScript">location = "$url"</script>';
-    randomFile.writeStringSync(content);
-    randomFile.close();
+    await randomFile.writeString(content);
+    await randomFile.close();
   }
 
-  Future<bool> start(String url) {
+  Future<bool> start(String url) async {
     _logEvent("Starting Safari browser on: $url");
-    return allowPopUps().then((success) {
-      if (!success) {
-        return false;
-      }
-      return clearCache().then((cleared) {
-        if (!cleared) {
-          _logEvent("Could not clear cache");
-          return false;
-        }
-        // Get the version and log that.
-        return getVersion().then((version) {
-          _logEvent("Got version: $version");
-          return Directory.systemTemp.createTemp().then((userDir) {
-            _cleanup = () {
-              userDir.deleteSync(recursive: true);
-            };
-            _createLaunchHTML(userDir.path, url);
-            var args = ["${userDir.path}/launch.html"];
-            return startBrowserProcess(_binary, args);
-          });
-        }).catchError((error) {
-          _logEvent("Running $_binary --version failed with $error");
-          return false;
-        });
-      });
-    });
+    if (!await resetConfiguration()) {
+      _logEvent("Could not clear cache");
+      return false;
+    }
+    String version;
+    try {
+      version = await getVersion();
+    } catch (error) {
+      _logEvent("Running $_binary --version failed with $error");
+      return false;
+    }
+    _logEvent("Got version: $version");
+    Directory userDir;
+    try {
+      userDir = await Directory.systemTemp.createTemp();
+    } catch (error) {
+      _logEvent("Error creating temporary directory: $error");
+      return false;
+    }
+    _cleanup = () {
+      userDir.deleteSync(recursive: true);
+    };
+    try {
+      await _createLaunchHTML(userDir.path, url);
+    } catch (error) {
+      _logEvent("Error creating launch HTML: $error");
+      return false;
+    }
+    var args = [
+        "-d", "-i", "-m", "-s", "-u", _binary,
+        "${userDir.path}/launch.html"];
+    try {
+      return startBrowserProcess("/usr/bin/caffeinate", args);
+    } catch (error) {
+      _logEvent("Error starting browser process: $error");
+      return false;
+    }
+  }
+
+  Future<Null> onDriverPageRequested() async {
+    await Process.run("/usr/bin/osascript",
+        ['-e', 'tell application "Safari" to activate']);
   }
 
   String toString() => "Safari";
@@ -477,24 +498,43 @@ class Chrome extends Browser {
 class SafariMobileSimulator extends Safari {
   /**
    * Directories where safari simulator stores state. We delete these if the
-   * deleteCache is set
+   * resetBrowserConfiguration is set
    */
   static const List<String> CACHE_DIRECTORIES = const [
     "Library/Application Support/iPhone Simulator/7.1/Applications"
   ];
 
-  // Clears the cache if the static deleteCache flag is set.
+  // Helper function to delete many directories recursively.
+  Future<bool> deleteIfExists(Iterable<String> paths) async {
+    for (var path in paths) {
+      Directory directory = new Directory(path);
+      if (await directory.exists()) {
+        _logEvent("Deleting $path");
+        try {
+          await directory.delete(recursive: true);
+        } catch (error) {
+          _logEvent("Failure trying to delete $path: $error");
+          return false;
+        }
+      } else {
+        _logEvent("$path is not present");
+      }
+    }
+    return true;
+  }
+
+  // Clears the cache if the static resetBrowserConfiguration flag is set.
   // Returns false if the command to actually clear the cache did not complete.
-  Future<bool> clearCache() {
-    if (!Browser.deleteCache) return new Future.value(true);
+  Future<bool> resetConfiguration() {
+    if (!Browser.resetBrowserConfiguration) return new Future.value(true);
     var home = Platform.environment['HOME'];
-    Iterator iterator = CACHE_DIRECTORIES.map((s) => "$home/$s").iterator;
-    return deleteIfExists(iterator);
+    var paths = CACHE_DIRECTORIES.map((s) => "$home/$s");
+    return deleteIfExists(paths);
   }
 
   Future<bool> start(String url) {
     _logEvent("Starting safari mobile simulator browser on: $url");
-    return clearCache().then((success) {
+    return resetConfiguration().then((success) {
       if (!success) {
         _logEvent("Could not clear cache, exiting");
         return false;
@@ -561,9 +601,10 @@ class IE extends Browser {
     });
   }
 
-  // Clears the recovery cache if the static deleteCache flag is set.
-  Future<bool> clearCache() {
-    if (!Browser.deleteCache) return new Future.value(true);
+  // Clears the recovery cache if the static resetBrowserConfiguration flag is
+  // set.
+  Future<bool> resetConfiguration() {
+    if (!Browser.resetBrowserConfiguration) return new Future.value(true);
     var localAppData = Platform.environment['LOCALAPPDATA'];
 
     Directory dir = new Directory("$localAppData\\Microsoft\\"
@@ -578,7 +619,7 @@ class IE extends Browser {
 
   Future<bool> start(String url) {
     _logEvent("Starting ie browser on: $url");
-    return clearCache().then((_) => getVersion()).then((version) {
+    return resetConfiguration().then((_) => getVersion()).then((version) {
       _logEvent("Got version: $version");
       return startBrowserProcess(_binary, [url]);
     });
@@ -876,12 +917,12 @@ class BrowserTestRunner {
   static const Duration MIN_NONEMPTY_QUEUE_TIME = const Duration(seconds: 1);
 
   final Map configuration;
-  BrowserTestingServer testingServer;
+  final BrowserTestingServer testingServer;
 
   final String localIp;
-  String browserName;
+  final String browserName;
   int maxNumBrowsers;
-  bool checkedMode;
+  final bool checkedMode;
   int numBrowsers = 0;
   // Used to send back logs from the browser (start, stop etc)
   Function logger;
@@ -928,27 +969,23 @@ class BrowserTestRunner {
     if (_currentStartingBrowserId == id) _currentStartingBrowserId = null;
   }
 
-  // If [browserName] doesn't support opening new windows, we use new iframes
-  // instead.
-  bool get useIframe =>
-      !Browser.BROWSERS_WITH_WINDOW_SUPPORT.contains(browserName);
-
-  /// The optional testingServer parameter allows callers to pass in
-  /// a testing server with different behavior than the  default
-  /// BrowserTestServer. The url handlers of the testingServer are
-  /// overwritten, so an existing handler can't be shared between instances.
   BrowserTestRunner(
-      this.configuration, this.localIp, this.browserName, this.maxNumBrowsers,
-      {BrowserTestingServer this.testingServer}) {
-    checkedMode = configuration['checked'];
-    if (browserName == 'ff') browserName = 'firefox';
+      Map configuration,
+      String localIp,
+      String browserName,
+      this.maxNumBrowsers)
+      : configuration = configuration,
+        localIp = localIp,
+        browserName = (browserName == 'ff') ? 'firefox' : browserName,
+        checkedMode = configuration['checked'],
+        testingServer = new BrowserTestingServer(
+            configuration, localIp,
+            Browser.requiresIframe(browserName),
+            Browser.requiresFocus(browserName)) {
+    testingServer.testRunner = this;
   }
 
   Future start() async {
-    if (testingServer == null) {
-      testingServer =
-          new BrowserTestingServer(configuration, localIp, useIframe);
-    }
     await testingServer.start();
     testingServer
       ..testDoneCallBack = handleResults
@@ -1285,6 +1322,9 @@ class BrowserTestingServer {
   ///                                   test
 
   final String localIp;
+  final bool useIframe;
+  final bool requiresFocus;
+  BrowserTestRunner testRunner;
 
   static const String driverPath = "/driver";
   static const String nextTestPath = "/next_test";
@@ -1297,14 +1337,14 @@ class BrowserTestingServer {
   var testCount = 0;
   var errorReportingServer;
   bool underTermination = false;
-  bool useIframe = false;
 
   Function testDoneCallBack;
   Function testStatusUpdateCallBack;
   Function testStartedCallBack;
   Function nextTestCallBack;
 
-  BrowserTestingServer(this.configuration, this.localIp, this.useIframe);
+  BrowserTestingServer(
+      this.configuration, this.localIp, this.useIframe, this.requiresFocus);
 
   Future start() {
     var test_driver_error_port = configuration['test_driver_error_port'];
@@ -1366,29 +1406,41 @@ class BrowserTestingServer {
       handleStarted(request, browserId(request, startedPath), testId(request));
     });
 
-    makeSendPageHandler(String prefix) => (HttpRequest request) {
-          noCache(request);
-          var textResponse = "";
-          if (prefix == driverPath) {
-            textResponse = getDriverPage(browserId(request, prefix));
-            request.response.headers.set('Content-Type', 'text/html');
-          }
-          if (prefix == nextTestPath) {
-            textResponse = getNextTest(browserId(request, prefix));
-            request.response.headers.set('Content-Type', 'text/plain');
-          }
-          request.response.write(textResponse);
-          request.listen((_) {}, onDone: request.response.close);
-          request.response.done.catchError((error) {
-            if (!underTermination) {
-              print("URI ${request.uri}");
-              print("Textresponse $textResponse");
-              throw "Error returning content to browser: $error";
-            }
+    void sendPageHandler(HttpRequest request) {
+      // Do NOT make this method async. We need to call catchError below
+      // synchronously to avoid unhandled asynchronous errors.
+      noCache(request);
+      Future<String> textResponse;
+      if (request.uri.path.startsWith(driverPath)) {
+        textResponse = getDriverPage(browserId(request, driverPath));
+        request.response.headers.set('Content-Type', 'text/html');
+      } else if (request.uri.path.startsWith(nextTestPath)) {
+        textResponse = new Future<String>.value(
+            getNextTest(browserId(request, nextTestPath)));
+        request.response.headers.set('Content-Type', 'text/plain');
+      } else {
+        textResponse = new Future<String>.value("");
+      }
+      request.response.done.catchError((error) {
+        if (!underTermination) {
+          return textResponse.then((String text) {
+            print("URI ${request.uri}");
+            print("textResponse $textResponse");
+            throw "Error returning content to browser: $error";
           });
-        };
-    server.addHandler(driverPath, makeSendPageHandler(driverPath));
-    server.addHandler(nextTestPath, makeSendPageHandler(nextTestPath));
+        }
+      });
+      textResponse.then((String text) async {
+        request.response.write(text);
+        await request.listen(null).asFuture();
+        // Ignoring the returned closure as it returns the 'done' future
+        // which alread has catchError installed above.
+        request.response.close();
+      });
+    }
+
+    server.addHandler(driverPath, sendPageHandler);
+    server.addHandler(nextTestPath, sendPageHandler);
   }
 
   void handleReport(HttpRequest request, String browserId, var testId,
@@ -1447,33 +1499,34 @@ class BrowserTestingServer {
     return "http://$localIp:$port/driver/$browserId";
   }
 
-  String getDriverPage(String browserId) {
+  Future<String> getDriverPage(String browserId) async {
+    await testRunner.browserStatus[browserId].browser.onDriverPageRequested();
     var errorReportingUrl =
         "http://$localIp:${errorReportingServer.port}/$browserId";
     String driverContent = """
 <!DOCTYPE html><html>
 <head>
-  <style>
-    body {
-      margin: 0;
-    }
-    .box {
-      overflow: hidden;
-      overflow-y: auto;
-      position: absolute;
-      left: 0;
-      right: 0;
-    }
-    .controller.box {
-      height: 75px;
-      top: 0;
-    }
-    .test.box {
-      top: 75px;
-      bottom: 0;
-    }
-  </style>
   <title>Driving page</title>
+  <style>
+.big-notice {
+  background-color: red;
+  color: white;
+  font-weight: bold;
+  font-size: xx-large;
+  text-align: center;
+}
+.controller.box {
+  white-space: nowrap;
+  overflow: scroll;
+  height: 6em;
+}
+body {
+  font-family: sans-serif;
+}
+body div {
+  padding-top: 10px;
+}
+  </style>
   <script type='text/javascript'>
     var STATUS_UPDATE_INTERVAL = 10000;
 
@@ -1603,7 +1656,8 @@ class BrowserTestingServer {
           embedded_iframe_div.removeChild(embedded_iframe);
           embedded_iframe = document.createElement('iframe');
           embedded_iframe.id = "embedded_iframe";
-          embedded_iframe.style="width:100%;height:100%";
+          embedded_iframe.width='800px';
+          embedded_iframe.height='600px';
           embedded_iframe_div.appendChild(embedded_iframe);
           embedded_iframe.src = url;
         } else {
@@ -1775,13 +1829,26 @@ class BrowserTestingServer {
   </script>
 </head>
   <body onload="startTesting()">
+
+    <div class='big-notice'>
+      Please keep this window in focus at all times.
+    </div>
+
+    <div>
+      Some browsers, Safari, in particular, may pause JavaScript when not
+      visible to conserve power consumption and CPU resources. In addition,
+      some tests of focus events will not work correctly if this window doesn't
+      have focus. It's also advisable to close any other programs that may open
+      modal dialogs, for example, Chrome with Calendar open.
+    </div>
+
     <div class="controller box">
     Dart test driver, number of tests: <span id="number"></span><br>
     Currently executing: <span id="currently_executing"></span><br>
     Unhandled error: <span id="unhandled_error"></span>
     </div>
     <div id="embedded_iframe_div" class="test box">
-      <iframe style="width:100%;height:100%;" id="embedded_iframe"></iframe>
+      <iframe id="embedded_iframe"></iframe>
     </div>
   </body>
 </html>

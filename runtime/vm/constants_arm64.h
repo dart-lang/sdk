@@ -996,7 +996,15 @@ class Instr {
         return R31IsSP;
       }
     }
-    // TODO(zra): Handle for logical immediate operations.
+    if (IsLogicalImmOp()) {
+      const int op = Bits(29, 2);
+      const bool set_flags = op == 3;
+      if (set_flags) {
+        return R31IsZR;
+      } else {
+        return R31IsSP;
+      }
+    }
     return R31IsZR;
   }
 

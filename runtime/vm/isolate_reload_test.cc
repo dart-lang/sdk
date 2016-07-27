@@ -228,6 +228,38 @@ TEST_CASE(IsolateReload_ClassFieldAdded) {
 }
 
 
+TEST_CASE(IsolateReload_ClassFieldAdded2) {
+  const char* kScript =
+      "class Foo {\n"
+      "  var x;\n"
+      "  var y;\n"
+      "}\n"
+      "main() {\n"
+      "  new Foo();\n"
+      "  return 44;\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+
+  EXPECT_EQ(44, SimpleInvoke(lib, "main"));
+
+  const char* kReloadScript =
+      "class Foo {\n"
+      "  var x;\n"
+      "  var y;\n"
+      "  var z;\n"
+      "}\n"
+      "main() {\n"
+      "  new Foo();\n"
+      "  return 44;\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_ERROR(lib, "Number of instance fields changed");
+}
+
+
 TEST_CASE(IsolateReload_ClassFieldRemoved) {
   const char* kScript =
       "class Foo {\n"
@@ -648,7 +680,7 @@ TEST_CASE(IsolateReload_ComplexInheritanceChange) {
 
 TEST_CASE(IsolateReload_LiveStack) {
   const char* kScript =
-      "import 'isolate_reload_test_helper';\n"
+      "import 'test:isolate_reload_helper';\n"
       "helper() => 7;\n"
       "alpha() { var x = helper(); reloadTest(); return x + helper(); }\n"
       "foo() => alpha();\n"
@@ -661,7 +693,7 @@ TEST_CASE(IsolateReload_LiveStack) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'isolate_reload_test_helper';\n"
+      "import 'test:isolate_reload_helper';\n"
       "helper() => 100;\n"
       "alpha() => 5 + helper();\n"
       "foo() => alpha();\n"
@@ -694,41 +726,41 @@ TEST_CASE(IsolateReload_LibraryLookup) {
 
   EXPECT_ERROR(SimpleInvokeError(lib, "main"), "importedFunc");
 
-  // Fail to find 'importable_test_lib' in the isolate.
-  result = Dart_LookupLibrary(NewString("importable_test_lib"));
+  // Fail to find 'test:importable_lib' in the isolate.
+  result = Dart_LookupLibrary(NewString("test:importable_lib"));
   EXPECT(Dart_IsError(result));
 
   const char* kReloadScript =
-      "import 'importable_test_lib';\n"
+      "import 'test:importable_lib';\n"
       "main() {\n"
       "  return importedFunc();\n"
       "}\n";
 
-  // Reload and add 'importable_test_lib' to isolate.
+  // Reload and add 'test:importable_lib' to isolate.
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
 
   EXPECT_STREQ("a", SimpleInvokeStr(lib, "main"));
 
-  // Find 'importable_test_lib' in the isolate.
-  result = Dart_LookupLibrary(NewString("importable_test_lib"));
+  // Find 'test:importable_lib' in the isolate.
+  result = Dart_LookupLibrary(NewString("test:importable_lib"));
   EXPECT(Dart_IsLibrary(result));
 
   // Reload and remove 'dart:math' from isolate.
   lib = TestCase::ReloadTestScript(kScript);
   EXPECT_VALID(lib);
 
-  // Fail to find 'importable_test_lib' in the isolate.
-  result = Dart_LookupLibrary(NewString("importable_test_lib"));
+  // Fail to find 'test:importable_lib' in the isolate.
+  result = Dart_LookupLibrary(NewString("test:importable_lib"));
   EXPECT(Dart_IsError(result));
 }
 
 
 TEST_CASE(IsolateReload_LibraryHide) {
-  // Import 'importable_test_lib' with importedFunc hidden. Will result in an
+  // Import 'test:importable_lib' with importedFunc hidden. Will result in an
   // error.
   const char* kScript =
-      "import 'importable_test_lib' hide importedFunc;\n"
+      "import 'test:importable_lib' hide importedFunc;\n"
       "main() {\n"
       "  return importedFunc();\n"
       "}\n";
@@ -740,9 +772,9 @@ TEST_CASE(IsolateReload_LibraryHide) {
 
   EXPECT_ERROR(SimpleInvokeError(lib, "main"), "importedFunc");
 
-  // Import 'importable_test_lib'.
+  // Import 'test:importable_lib'.
   const char* kReloadScript =
-      "import 'importable_test_lib';\n"
+      "import 'test:importable_lib';\n"
       "main() {\n"
       "  return importedFunc();\n"
       "}\n";
@@ -755,10 +787,10 @@ TEST_CASE(IsolateReload_LibraryHide) {
 
 
 TEST_CASE(IsolateReload_LibraryShow) {
-  // Import 'importable_test_lib' with importedIntFunc visible. Will result in
+  // Import 'test:importable_lib' with importedIntFunc visible. Will result in
   // an error when 'main' is invoked.
   const char* kScript =
-      "import 'importable_test_lib' show importedIntFunc;\n"
+      "import 'test:importable_lib' show importedIntFunc;\n"
       "main() {\n"
       "  return importedFunc();\n"
       "}\n"
@@ -775,10 +807,10 @@ TEST_CASE(IsolateReload_LibraryShow) {
   // Results in an error.
   EXPECT_ERROR(SimpleInvokeError(lib, "main"), "importedFunc");
 
-  // Import 'importable_test_lib' with importedFunc visible. Will result in
+  // Import 'test:importable_lib' with importedFunc visible. Will result in
   // an error when 'mainInt' is invoked.
   const char* kReloadScript =
-      "import 'importable_test_lib' show importedFunc;\n"
+      "import 'test:importable_lib' show importedFunc;\n"
       "main() {\n"
       "  return importedFunc();\n"
       "}\n"
@@ -800,8 +832,8 @@ TEST_CASE(IsolateReload_LibraryShow) {
 // that is compatible with the fast path smi stubs.
 TEST_CASE(IsolateReload_SmiFastPathStubs) {
   const char* kScript =
-      "import 'isolate_reload_test_helper';\n"
-      "import 'importable_test_lib' show importedIntFunc;\n"
+      "import 'test:isolate_reload_helper';\n"
+      "import 'test:importable_lib' show importedIntFunc;\n"
       "main() {\n"
       "  var x = importedIntFunc();\n"
       "  var y = importedIntFunc();\n"
@@ -824,7 +856,7 @@ TEST_CASE(IsolateReload_SmiFastPathStubs) {
 // mixins when we reload.
 TEST_CASE(IsolateReload_ImportedMixinFunction) {
   const char* kScript =
-      "import 'importable_test_lib' show ImportedMixin;\n"
+      "import 'test:importable_lib' show ImportedMixin;\n"
       "class A extends Object with ImportedMixin {\n"
       "}"
       "var func = new A().mixinFunc;\n"
@@ -838,7 +870,7 @@ TEST_CASE(IsolateReload_ImportedMixinFunction) {
   EXPECT_STREQ("mixin", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
-      "import 'importable_test_lib' show ImportedMixin;\n"
+      "import 'test:importable_lib' show ImportedMixin;\n"
       "class A extends Object with ImportedMixin {\n"
       "}"
       "var func;\n"
@@ -877,7 +909,7 @@ TEST_CASE(IsolateReload_TopLevelParseError) {
 
 TEST_CASE(IsolateReload_PendingUnqualifiedCall_StaticToInstance) {
   const char* kScript =
-      "import 'isolate_reload_test_helper';\n"
+      "import 'test:isolate_reload_helper';\n"
       "class C {\n"
       "  static foo() => 'static';\n"
       "  test() {\n"
@@ -893,7 +925,7 @@ TEST_CASE(IsolateReload_PendingUnqualifiedCall_StaticToInstance) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'isolate_reload_test_helper';\n"
+      "import 'test:isolate_reload_helper';\n"
       "class C {\n"
       "  foo() => 'instance';\n"
       "  test() {\n"
@@ -918,7 +950,7 @@ TEST_CASE(IsolateReload_PendingUnqualifiedCall_StaticToInstance) {
 
 TEST_CASE(IsolateReload_PendingUnqualifiedCall_InstanceToStatic) {
   const char* kScript =
-      "import 'isolate_reload_test_helper';\n"
+      "import 'test:isolate_reload_helper';\n"
       "class C {\n"
       "  foo() => 'instance';\n"
       "  test() {\n"
@@ -934,7 +966,7 @@ TEST_CASE(IsolateReload_PendingUnqualifiedCall_InstanceToStatic) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'isolate_reload_test_helper';\n"
+      "import 'test:isolate_reload_helper';\n"
       "class C {\n"
       "  static foo() => 'static';\n"
       "  test() {\n"
@@ -959,7 +991,7 @@ TEST_CASE(IsolateReload_PendingUnqualifiedCall_InstanceToStatic) {
 
 TEST_CASE(IsolateReload_PendingConstructorCall_AbstractToConcrete) {
   const char* kScript =
-      "import 'isolate_reload_test_helper';\n"
+      "import 'test:isolate_reload_helper';\n"
       "abstract class Foo {}\n"
       "class C {\n"
       "  test() {\n"
@@ -980,7 +1012,7 @@ TEST_CASE(IsolateReload_PendingConstructorCall_AbstractToConcrete) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'isolate_reload_test_helper';\n"
+      "import 'test:isolate_reload_helper';\n"
       "class Foo {}\n"
       "class C {\n"
       "  test() {\n"
@@ -1010,7 +1042,7 @@ TEST_CASE(IsolateReload_PendingConstructorCall_AbstractToConcrete) {
 
 TEST_CASE(IsolateReload_PendingConstructorCall_ConcreteToAbstract) {
   const char* kScript =
-      "import 'isolate_reload_test_helper';\n"
+      "import 'test:isolate_reload_helper';\n"
       "class Foo {}\n"
       "class C {\n"
       "  test() {\n"
@@ -1031,7 +1063,7 @@ TEST_CASE(IsolateReload_PendingConstructorCall_ConcreteToAbstract) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'isolate_reload_test_helper';\n"
+      "import 'test:isolate_reload_helper';\n"
       "abstract class Foo {}\n"
       "class C {\n"
       "  test() {\n"
@@ -1061,7 +1093,7 @@ TEST_CASE(IsolateReload_PendingConstructorCall_ConcreteToAbstract) {
 
 TEST_CASE(IsolateReload_PendingStaticCall_DefinedToNSM) {
   const char* kScript =
-      "import 'isolate_reload_test_helper';\n"
+      "import 'test:isolate_reload_helper';\n"
       "class C {\n"
       "  static foo() => 'static'\n"
       "  test() {\n"
@@ -1081,7 +1113,7 @@ TEST_CASE(IsolateReload_PendingStaticCall_DefinedToNSM) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'isolate_reload_test_helper';\n"
+      "import 'test:isolate_reload_helper';\n"
       "class C {\n"
       "  test() {\n"
       "    reloadTest();\n"
@@ -1109,7 +1141,7 @@ TEST_CASE(IsolateReload_PendingStaticCall_DefinedToNSM) {
 
 TEST_CASE(IsolateReload_PendingStaticCall_NSMToDefined) {
   const char* kScript =
-      "import 'isolate_reload_test_helper';\n"
+      "import 'test:isolate_reload_helper';\n"
       "class C {\n"
       "  test() {\n"
       "    reloadTest();\n"
@@ -1128,7 +1160,7 @@ TEST_CASE(IsolateReload_PendingStaticCall_NSMToDefined) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'isolate_reload_test_helper';\n"
+      "import 'test:isolate_reload_helper';\n"
       "class C {\n"
       "  static foo() => 'static'\n"
       "  test() {\n"

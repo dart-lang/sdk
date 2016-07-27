@@ -15,7 +15,6 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/general.dart';
-import 'package:analyzer/src/task/strong/info.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:source_span/source_span.dart';
@@ -48,6 +47,7 @@ class AnalyzerOptions {
   static const String enableGenericMethods = 'enableGenericMethods';
   static const String enableStrictCallChecks = 'enableStrictCallChecks';
   static const String enableSuperMixins = 'enableSuperMixins';
+  static const String enableTrailingCommas = 'enableTrailingCommas';
 
   /// This option is deprecated.
   static const String enableConditionalDirectives =
@@ -161,8 +161,6 @@ class ErrorFilterOptionValidator extends OptionsValidator {
       _errorCodes = new HashSet<String>();
       // Engine codes.
       _errorCodes.addAll(ErrorCode.values.map((ErrorCode code) => code.name));
-      // Strong-mode codes.
-      _errorCodes.addAll(StaticInfo.names);
     }
     return _errorCodes;
   }
@@ -488,6 +486,14 @@ class _OptionsProcessor {
         AnalysisOptionsImpl options =
             new AnalysisOptionsImpl.from(context.analysisOptions);
         options.enableSuperMixins = true;
+        context.analysisOptions = options;
+      }
+    }
+    if (feature == AnalyzerOptions.enableTrailingCommas) {
+      if (isTrue(value)) {
+        AnalysisOptionsImpl options =
+            new AnalysisOptionsImpl.from(context.analysisOptions);
+        options.enableTrailingCommas = true;
         context.analysisOptions = options;
       }
     }

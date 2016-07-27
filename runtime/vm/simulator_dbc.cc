@@ -28,6 +28,7 @@
 #include "vm/object_store.h"
 #include "vm/os_thread.h"
 #include "vm/stack_frame.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -442,7 +443,7 @@ DART_FORCE_INLINE static bool SignedMulWithOverflow(intptr_t lhs,
       : "r"(rhs), "r"(out)
       : "cc", "r12");
 #elif defined(HOST_ARCH_ARM64)
-  int64_t prod_lo;
+  int64_t prod_lo = 0;
   asm volatile(
       "mul %1, %2, %3\n"
       "smulh %2, %2, %3\n"
@@ -451,7 +452,7 @@ DART_FORCE_INLINE static bool SignedMulWithOverflow(intptr_t lhs,
       "mov %0, #0;\n"
       "str %1, [%4, #0]\n"
       "1:"
-      : "+r"(res), "=r"(prod_lo), "+r"(lhs)
+      : "=r"(res), "+r"(prod_lo), "+r"(lhs)
       : "r"(rhs), "r"(out)
       : "cc");
 #else
@@ -477,6 +478,7 @@ DART_FORCE_INLINE static bool AreBothSmis(intptr_t a, intptr_t b) {
 #define SMI_GT(lhs, rhs, pres) SMI_COND(>, lhs, rhs, pres)
 #define SMI_BITOR(lhs, rhs, pres) ((*(pres) = (lhs | rhs)), false)
 #define SMI_BITAND(lhs, rhs, pres) ((*(pres) = ((lhs) & (rhs))), false)
+#define SMI_BITXOR(lhs, rhs, pres) ((*(pres) = ((lhs) ^ (rhs))), false)
 
 
 void Simulator::CallRuntime(Thread* thread,
@@ -754,6 +756,20 @@ static DART_NOINLINE bool InvokeNativeWrapper(
 #define DECLARE_A_X int32_t rD; USE(rD)
 #define DECODE_A_X rD = (static_cast<int32_t>(op) >> Bytecode::kDShift);
 
+
+#define SMI_FASTPATH_ICDATA_INC                                                \
+  do {                                                                         \
+    ASSERT(Bytecode::IsCallOpcode(*pc));                                       \
+    const uint16_t kidx = Bytecode::DecodeD(*pc);                              \
+    const RawICData* icdata = RAW_CAST(ICData, LOAD_CONSTANT(kidx));           \
+    RawObject** data = icdata->ptr()->ic_data_->ptr()->data();                 \
+    const intptr_t count_offset = ICData::CountIndexFor(2);                    \
+    const intptr_t raw_smi_old =                                               \
+        reinterpret_cast<intptr_t>(data[count_offset]);                        \
+    const intptr_t raw_smi_new = raw_smi_old + Smi::RawValue(1);               \
+    *reinterpret_cast<intptr_t*>(&data[count_offset]) = raw_smi_new;           \
+  } while (0);                                                                 \
+
 // Declare bytecode handler for a smi operation (e.g. AddTOS) with the
 // given result type and the given behavior specified as a function
 // that takes left and right operands and result slot and returns
@@ -764,12 +780,35 @@ static DART_NOINLINE bool InvokeNativeWrapper(
     const intptr_t rhs = reinterpret_cast<intptr_t>(SP[-0]);                   \
     ResultT* slot = reinterpret_cast<ResultT*>(SP - 1);                        \
     if (LIKELY(AreBothSmis(lhs, rhs) && !Func(lhs, rhs, slot))) {              \
+      SMI_FASTPATH_ICDATA_INC;                                                 \
       /* Fast path succeeded. Skip the generic call that follows. */           \
       pc++;                                                                    \
       /* We dropped 2 arguments and push result                   */           \
       SP--;                                                                    \
     }                                                                          \
   }
+
+// Skip the next instruction if there is no overflow.
+#define SMI_OP_CHECK(ResultT, Func)                                            \
+  {                                                                            \
+    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);                   \
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]);                   \
+    ResultT* slot = reinterpret_cast<ResultT*>(&FP[rA]);                       \
+    if (LIKELY(!Func(lhs, rhs, slot))) {                                       \
+      /* Success. Skip the instruction that follows. */                        \
+      pc++;                                                                    \
+    }                                                                          \
+  }
+
+// Do not check for overflow.
+#define SMI_OP_NOCHECK(ResultT, Func)                                          \
+  {                                                                            \
+    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);                   \
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]);                   \
+    ResultT* slot = reinterpret_cast<ResultT*>(&FP[rA]);                       \
+    Func(lhs, rhs, slot);                                                      \
+  }                                                                            \
+
 
 // Exception handling helper. Gets handler FP and PC from the Simulator where
 // they were stored by Simulator::Longjmp and proceeds to execute the handler.
@@ -1487,6 +1526,28 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(OneByteStringFromCharCode, A_X);
+    const intptr_t char_code = Smi::Value(RAW_CAST(Smi, FP[rD]));
+    ASSERT(char_code >= 0);
+    ASSERT(char_code <= 255);
+    RawString** strings = Symbols::PredefinedAddress();
+    const intptr_t index = char_code + Symbols::kNullCharCodeSymbolOffset;
+    FP[rA] = strings[index];
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StringToCharCode, A_X);
+    RawOneByteString* str = RAW_CAST(OneByteString, FP[rD]);
+    if (str->ptr()->length_ == Smi::New(1)) {
+      FP[rA] = Smi::New(str->ptr()->data()[0]);
+    } else {
+      FP[rA] = Smi::New(-1);
+    }
+    DISPATCH();
+  }
+
+  {
     BYTECODE(AddTOS, A_B_C);
     SMI_FASTPATH_TOS(intptr_t, SignedAddWithOverflow);
     DISPATCH();
@@ -1524,6 +1585,112 @@ RawObject* Simulator::Call(const Code& code,
   {
     BYTECODE(GreaterThanTOS, A_B_C);
     SMI_FASTPATH_TOS(RawObject*, SMI_GT);
+    DISPATCH();
+  }
+  {
+    BYTECODE(Add, A_B_C);
+    SMI_OP_CHECK(intptr_t, SignedAddWithOverflow);
+    DISPATCH();
+  }
+  {
+    BYTECODE(Sub, A_B_C);
+    SMI_OP_CHECK(intptr_t, SignedSubWithOverflow);
+    DISPATCH();
+  }
+  {
+    BYTECODE(Mul, A_B_C);
+    SMI_OP_CHECK(intptr_t, SMI_MUL);
+    DISPATCH();
+  }
+  {
+    BYTECODE(Neg, A_D);
+    const intptr_t value = reinterpret_cast<intptr_t>(FP[rD]);
+    intptr_t* out = reinterpret_cast<intptr_t*>(&FP[rA]);
+    if (LIKELY(!SignedSubWithOverflow(0, value, out))) {
+      pc++;
+    }
+    DISPATCH();
+  }
+  {
+    BYTECODE(BitOr, A_B_C);
+    SMI_OP_NOCHECK(intptr_t, SMI_BITOR);
+    DISPATCH();
+  }
+  {
+    BYTECODE(BitAnd, A_B_C);
+    SMI_OP_NOCHECK(intptr_t, SMI_BITAND);
+    DISPATCH();
+  }
+  {
+    BYTECODE(BitXor, A_B_C);
+    SMI_OP_NOCHECK(intptr_t, SMI_BITXOR);
+    DISPATCH();
+  }
+  {
+    BYTECODE(BitNot, A_D);
+    const intptr_t value = reinterpret_cast<intptr_t>(FP[rD]);
+    *reinterpret_cast<intptr_t*>(&FP[rA]) = ~value & (~kSmiTagMask);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(Div, A_B_C);
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]);
+    if (rhs != 0) {
+      const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
+      const intptr_t res = (lhs >> kSmiTagSize) / (rhs >> kSmiTagSize);
+#if defined(ARCH_IS_64_BIT)
+      const intptr_t untaggable = 0x4000000000000000LL;
+#else
+      const intptr_t untaggable = 0x40000000L;
+#endif  // defined(ARCH_IS_64_BIT)
+      if (res != untaggable) {
+        *reinterpret_cast<intptr_t*>(&FP[rA]) = res << kSmiTagSize;
+        pc++;
+      }
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(Mod, A_B_C);
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]);
+    if (rhs != 0) {
+      const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
+      const intptr_t res =
+          ((lhs >> kSmiTagSize) % (rhs >> kSmiTagSize)) << kSmiTagSize;
+      *reinterpret_cast<intptr_t*>(&FP[rA]) =
+          (res < 0) ? ((rhs < 0) ? (res - rhs) : (res + rhs)) : res;
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(Shl, A_B_C);
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]) >> kSmiTagSize;
+    if (rhs >= 0) {
+      const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
+      const intptr_t res = lhs << rhs;
+      if (lhs == (res >> rhs)) {
+        *reinterpret_cast<intptr_t*>(&FP[rA]) = res;
+        pc++;
+      }
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(Shr, A_B_C);
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]) >> kSmiTagSize;
+    if (rhs >= 0) {
+      const intptr_t shift_amount =
+          (rhs >= kBitsPerWord) ? (kBitsPerWord - 1) : rhs;
+      const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]) >> kSmiTagSize;
+      *reinterpret_cast<intptr_t*>(&FP[rA]) =
+          (lhs >> shift_amount) << kSmiTagSize;
+      pc++;
+    }
     DISPATCH();
   }
 
@@ -1710,6 +1877,73 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(InstanceOf, A);  // Stack: instance, type args, type, cache
+    RawInstance* instance = static_cast<RawInstance*>(SP[-3]);
+    RawTypeArguments* instantiator_type_arguments =
+        static_cast<RawTypeArguments*>(SP[-2]);
+    RawAbstractType* type = static_cast<RawAbstractType*>(SP[-1]);
+    RawSubtypeTestCache* cache = static_cast<RawSubtypeTestCache*>(SP[0]);
+
+    if (cache != null_value) {
+      const intptr_t cid = SimulatorHelpers::GetClassId(instance);
+
+      RawTypeArguments* instance_type_arguments =
+          static_cast<RawTypeArguments*>(null_value);
+      RawObject* instance_cid_or_function;
+      if (cid == kClosureCid) {
+        RawClosure* closure = static_cast<RawClosure*>(instance);
+        instance_type_arguments = closure->ptr()->type_arguments_;
+        instance_cid_or_function = closure->ptr()->function_;
+      } else {
+        instance_cid_or_function = Smi::New(cid);
+
+        RawClass* instance_class =
+            thread->isolate()->class_table()->At(cid);
+        if (instance_class->ptr()->num_type_arguments_ < 0) {
+          goto InstanceOfCallRuntime;
+        } else if (instance_class->ptr()->num_type_arguments_ > 0) {
+          instance_type_arguments = reinterpret_cast<RawTypeArguments**>(
+              instance
+                  ->ptr())[instance_class->ptr()
+                               ->type_arguments_field_offset_in_words_];
+        }
+      }
+
+      for (RawObject** entries = cache->ptr()->cache_->ptr()->data();
+           entries[0] != null_value;
+           entries += SubtypeTestCache::kTestEntryLength) {
+        if ((entries[SubtypeTestCache::kInstanceClassIdOrFunction] ==
+                instance_cid_or_function) &&
+            (entries[SubtypeTestCache::kInstanceTypeArguments] ==
+                instance_type_arguments) &&
+            (entries[SubtypeTestCache::kInstantiatorTypeArguments] ==
+                instantiator_type_arguments)) {
+          SP[-3] = entries[SubtypeTestCache::kTestResult];
+          goto InstanceOfOk;
+        }
+      }
+    }
+
+  InstanceOfCallRuntime:
+    {
+      SP[1] = instance;
+      SP[2] = type;
+      SP[3] = instantiator_type_arguments;
+      SP[4] = cache;
+      Exit(thread, FP, SP + 5, pc);
+      NativeArguments native_args(thread, 4, SP + 1, SP - 3);
+      INVOKE_RUNTIME(DRT_Instanceof, native_args);
+    }
+
+  InstanceOfOk:
+    SP -= 3;
+    if (rA) {  // Negate result.
+      SP[0] = (SP[0] == true_value) ? false_value : true_value;
+    }
+    DISPATCH();
+  }
+
+  {
     BYTECODE(AssertAssignable, A_D);  // Stack: instance, type args, type, name
     RawObject** args = SP - 3;
     if (args[0] != null_value) {
@@ -1720,8 +1954,8 @@ RawObject* Simulator::Call(const Code& code,
         SP[2] = args[3];  // name.
         SP[3] = args[2];  // type.
         Exit(thread, FP, SP + 4, pc);
-        NativeArguments args(thread, 3, SP + 1, SP - 3);
-        INVOKE_RUNTIME(DRT_BadTypeError, args);
+        NativeArguments native_args(thread, 3, SP + 1, SP - 3);
+        INVOKE_RUNTIME(DRT_BadTypeError, native_args);
         UNREACHABLE();
       }
 
@@ -1781,8 +2015,8 @@ RawObject* Simulator::Call(const Code& code,
       SP[4] = args[3];  // name
       SP[5] = cache;
       Exit(thread, FP, SP + 6, pc);
-      NativeArguments args(thread, 5, SP + 1, SP - 3);
-      INVOKE_RUNTIME(DRT_TypeCheck, args);
+      NativeArguments native_args(thread, 5, SP + 1, SP - 3);
+      INVOKE_RUNTIME(DRT_TypeCheck, native_args);
     }
 
   AssertAssignableOk:
@@ -1810,6 +2044,84 @@ RawObject* Simulator::Call(const Code& code,
     }
 
   AssertBooleanOk:
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(TestSmi, A_D);
+    intptr_t left = reinterpret_cast<intptr_t>(RAW_CAST(Smi, FP[rA]));
+    intptr_t right = reinterpret_cast<intptr_t>(RAW_CAST(Smi, FP[rD]));
+    if ((left & right) != 0) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CheckSmi, 0);
+    intptr_t obj = reinterpret_cast<intptr_t>(FP[rA]);
+    if ((obj & kSmiTagMask) == kSmiTag) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CheckClassId, A_D);
+    const intptr_t actual_cid = SimulatorHelpers::GetClassId(FP[rA]);
+    const intptr_t desired_cid = rD;
+    pc += (actual_cid == desired_cid) ? 1 : 0;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CheckDenseSwitch, A_D);
+    const intptr_t raw_value = reinterpret_cast<intptr_t>(FP[rA]);
+    const bool is_smi = ((raw_value & kSmiTagMask) == kSmiTag);
+    const intptr_t cid_min = Bytecode::DecodeD(*pc);
+    const intptr_t cid_mask =
+        Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(Bytecode::DecodeD(*(pc + 1)))));
+    if (LIKELY(!is_smi)) {
+      const intptr_t cid_max = Utils::HighestBit(cid_mask) + cid_min;
+      const intptr_t cid = SimulatorHelpers::GetClassId(FP[rA]);
+      // The cid is in-bounds, and the bit is set in the mask.
+      if ((cid >= cid_min) && (cid <= cid_max) &&
+          ((cid_mask & (1 << (cid - cid_min))) != 0)) {
+        pc += 3;
+      } else {
+        pc += 2;
+      }
+    } else {
+      const bool may_be_smi = (rD == 1);
+      pc += (may_be_smi ? 3 : 2);
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CheckCids, A_B_C);
+    const intptr_t raw_value = reinterpret_cast<intptr_t>(FP[rA]);
+    const bool is_smi = ((raw_value & kSmiTagMask) == kSmiTag);
+    const bool may_be_smi = (rB == 1);
+    const intptr_t cids_length = rC;
+    if (LIKELY(!is_smi)) {
+      const intptr_t cid = SimulatorHelpers::GetClassId(FP[rA]);
+      for (intptr_t i = 0; i < cids_length; i++) {
+        const intptr_t desired_cid = Bytecode::DecodeD(*(pc + i));
+        if (cid == desired_cid) {
+          pc++;
+          break;
+        }
+        // The cids are sorted.
+        if (cid < desired_cid) {
+          break;
+        }
+      }
+      pc += cids_length;
+    } else {
+      pc += cids_length;
+      pc += (may_be_smi ? 1 : 0);
+    }
     DISPATCH();
   }
 
@@ -1902,6 +2214,22 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(IfEqNull, A);
+    if (FP[rA] != null_value) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfNeNull, A_D);
+    if (FP[rA] == null_value) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
     BYTECODE(Jump, 0);
     const int32_t target = static_cast<int32_t>(op) >> 8;
     pc += (target - 1);
@@ -1950,56 +2278,75 @@ RawObject* Simulator::Call(const Code& code,
 
   {
     BYTECODE(Deopt, A_D);
-    const uint16_t deopt_id = rD;
-    if (deopt_id == 0) {  // Lazy deoptimization.
-      // Preserve result of the previous call.
-      // TODO(vegorov) we could have actually included result into the
-      // deoptimization environment because it is passed through the stack.
-      // If we do then we could remove special result handling from this code.
-      RawObject* result = SP[0];
+    const bool is_lazy = rD == 0;
 
-      // Leaf runtime function DeoptimizeCopyFrame expects a Dart frame.
-      // The code in this frame may not cause GC.
-      // DeoptimizeCopyFrame and DeoptimizeFillFrame are leaf runtime calls.
-      EnterSyntheticFrame(&FP, &SP, pc - 1);
-      const intptr_t frame_size_in_bytes =
-          DLRT_DeoptimizeCopyFrame(reinterpret_cast<uword>(FP),
-                                   /*is_lazy_deopt=*/1);
-      LeaveSyntheticFrame(&FP, &SP);
+    // Preserve result of the previous call.
+    // TODO(vegorov) we could have actually included result into the
+    // deoptimization environment because it is passed through the stack.
+    // If we do then we could remove special result handling from this code.
+    RawObject* result = SP[0];
 
-      SP = FP + (frame_size_in_bytes / kWordSize);
-      EnterSyntheticFrame(&FP, &SP, pc - 1);
-      DLRT_DeoptimizeFillFrame(reinterpret_cast<uword>(FP));
-
-      // We are now inside a valid frame.
-      {
-        *++SP = result;  // Preserve result (call below can cause GC).
-        *++SP = 0;  // Space for the result: number of materialization args.
-        Exit(thread, FP, SP + 1, /*pc=*/0);
-        NativeArguments native_args(thread, 0, SP, SP);
-        INVOKE_RUNTIME(DRT_DeoptimizeMaterialize, native_args);
-      }
-      const intptr_t materialization_arg_count =
-          Smi::Value(RAW_CAST(Smi, *SP--));
-      result = *SP--;  // Reload the result. It might have been relocated by GC.
-
-      // Restore caller PC.
-      pc = SavedCallerPC(FP);
-
-      // Check if it is a fake PC marking the entry frame.
-      ASSERT((reinterpret_cast<uword>(pc) & 2) == 0);
-
-      // Restore SP, FP and PP. Push result and dispatch.
-      // Note: unlike in a normal return sequence we don't need to drop
-      // arguments - those are not part of the innermost deoptimization
-      // environment they were dropped by FlowGraphCompiler::RecordAfterCall.
-      SP = FrameArguments(FP, materialization_arg_count);
-      FP = SavedCallerFP(FP);
-      pp = SimulatorHelpers::FrameCode(FP)->ptr()->object_pool_->ptr();
-      *SP = result;
-    } else {
-      UNIMPLEMENTED();
+    // When not preserving the result, we still need to preserve SP[0] as it
+    // contains some temporary expression.
+    if (!is_lazy) {
+      SP++;
     }
+
+    // Leaf runtime function DeoptimizeCopyFrame expects a Dart frame.
+    // The code in this frame may not cause GC.
+    // DeoptimizeCopyFrame and DeoptimizeFillFrame are leaf runtime calls.
+    EnterSyntheticFrame(&FP, &SP, pc - (is_lazy ? 1 : 0));
+    const intptr_t frame_size_in_bytes =
+        DLRT_DeoptimizeCopyFrame(reinterpret_cast<uword>(FP), is_lazy ? 1 : 0);
+    LeaveSyntheticFrame(&FP, &SP);
+
+    SP = FP + (frame_size_in_bytes / kWordSize);
+    EnterSyntheticFrame(&FP, &SP, pc - (is_lazy ? 1 : 0));
+    DLRT_DeoptimizeFillFrame(reinterpret_cast<uword>(FP));
+
+    // We are now inside a valid frame.
+    {
+      if (is_lazy) {
+        *++SP = result;  // Preserve result (call below can cause GC).
+      }
+      *++SP = 0;  // Space for the result: number of materialization args.
+      Exit(thread, FP, SP + 1, /*pc=*/0);
+      NativeArguments native_args(thread, 0, SP, SP);
+      INVOKE_RUNTIME(DRT_DeoptimizeMaterialize, native_args);
+    }
+    const intptr_t materialization_arg_count =
+        Smi::Value(RAW_CAST(Smi, *SP--)) / kWordSize;
+    if (is_lazy) {
+      // Reload the result. It might have been relocated by GC.
+      result = *SP--;
+    }
+
+    // Restore caller PC.
+    pc = SavedCallerPC(FP);
+
+    // Check if it is a fake PC marking the entry frame.
+    ASSERT((reinterpret_cast<uword>(pc) & 2) == 0);
+
+    // Restore SP, FP and PP. Push result and dispatch.
+    // Note: unlike in a normal return sequence we don't need to drop
+    // arguments - those are not part of the innermost deoptimization
+    // environment they were dropped by FlowGraphCompiler::RecordAfterCall.
+
+    // If the result is not preserved, the unoptimized frame ends at the
+    // next slot.
+    SP = FrameArguments(FP, materialization_arg_count);
+    FP = SavedCallerFP(FP);
+    pp = SimulatorHelpers::FrameCode(FP)->ptr()->object_pool_->ptr();
+    if (is_lazy) {
+      SP[0] = result;  // Put the result on the stack.
+    } else {
+      SP--;  // No result to push.
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(Nop, 0);
     DISPATCH();
   }
 

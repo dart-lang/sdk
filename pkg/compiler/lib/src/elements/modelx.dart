@@ -5,6 +5,7 @@
 library elements.modelx;
 
 import '../common.dart';
+import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart' show Resolution, ParsingContext;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_constructors.dart';
@@ -206,7 +207,9 @@ abstract class ElementX extends Element with ElementCommon {
   }
 }
 
-class ErroneousElementX extends ElementX implements ErroneousElement {
+class ErroneousElementX extends ElementX
+    with ConstructorElementCommon
+    implements ErroneousElement {
   final MessageKind messageKind;
   final Map messageArguments;
 
@@ -282,9 +285,6 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   get isEffectiveTargetMalformed {
     throw new UnsupportedError("isEffectiveTargetMalformed");
   }
-
-  @override
-  bool get isFromEnvironmentConstructor => false;
 
   @override
   List<DartType> get typeVariables => unsupported();
@@ -1260,6 +1260,11 @@ class PrefixElementX extends ElementX implements PrefixElement {
     return visitor.visitPrefixElement(this, arg);
   }
 
+  @override
+  GetterElement get loadLibrary {
+    return isDeferred ? lookupLocalMember(Identifiers.loadLibrary) : null;
+  }
+
   String toString() => '$kind($name)';
 }
 
@@ -1420,11 +1425,22 @@ abstract class ConstantVariableMixin implements VariableElement {
       // constant for a variable already known to be erroneous.
       return;
     }
-    assert(invariant(this, constantCache == null || constantCache == value,
-        message: "Constant has already been computed for $this. "
-            "Existing constant: "
-            "${constantCache != null ? constantCache.toStructuredText() : ''}, "
-            "New constant: ${value != null ? value.toStructuredText() : ''}."));
+    if (constantCache != null && constantCache != value) {
+      // Allow setting the constant as erroneous. Constants computed during
+      // resolution are locally valid but might be effectively erroneous. For
+      // instance `a ? true : false` where a is `const a = m()`. Since `a` is
+      // declared to be constant, the conditional is assumed valid, but when
+      // computing the value we see that it isn't.
+      // TODO(johnniwinther): Remove this exception when all constant
+      // expressions are computed during resolution.
+      assert(invariant(
+          this, value == null || value.kind == ConstantExpressionKind.ERRONEOUS,
+          message: "Constant has already been computed for $this. "
+              "Existing constant: "
+              "${constantCache != null ? constantCache.toStructuredText() : ''}"
+              ", New constant: "
+              "${value != null ? value.toStructuredText() : ''}."));
+    }
     constantCache = value;
   }
 }
@@ -1820,7 +1836,11 @@ class InitializingFormalElementX extends ParameterElementX
 
   MemberElement get memberContext => enclosingElement;
 
-  bool get isLocal => false;
+  @override
+  bool get isFinal => true;
+
+  @override
+  bool get isLocal => true;
 }
 
 class ErroneousInitializingFormalElementX extends ParameterElementX
@@ -1845,7 +1865,9 @@ class ErroneousInitializingFormalElementX extends ParameterElementX
   DynamicType get type => const DynamicType();
 }
 
-class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
+class AbstractFieldElementX extends ElementX
+    with AbstractFieldElementCommon
+    implements AbstractFieldElement {
   GetterElementX getter;
   SetterElementX setter;
 
@@ -1888,17 +1910,8 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
     }
   }
 
-  bool get isInstanceMember {
-    return isClassMember && !isStatic;
-  }
-
   accept(ElementVisitor visitor, arg) {
     return visitor.visitAbstractFieldElement(this, arg);
-  }
-
-  bool get isAbstract {
-    return getter != null && getter.isAbstract ||
-        setter != null && setter.isAbstract;
   }
 }
 
@@ -2170,21 +2183,13 @@ abstract class ConstantConstructorMixin implements ConstructorElement {
     }
   }
 
-  bool get isFromEnvironmentConstructor {
-    return name == 'fromEnvironment' &&
-        library.isDartCore &&
-        (enclosingClass.name == 'bool' ||
-            enclosingClass.name == 'int' ||
-            enclosingClass.name == 'String');
-  }
-
   /// Returns the empty list of type variables by default.
   @override
   List<DartType> get typeVariables => functionSignature.typeVariables;
 }
 
 abstract class ConstructorElementX extends FunctionElementX
-    with ConstantConstructorMixin
+    with ConstantConstructorMixin, ConstructorElementCommon
     implements ConstructorElement {
   bool isRedirectingGenerative = false;
 
@@ -2266,7 +2271,7 @@ class DeferredLoaderGetterElementX extends GetterElementX
 
   DeferredLoaderGetterElementX(PrefixElement prefix)
       : this.prefix = prefix,
-        super("loadLibrary", Modifiers.EMPTY, prefix, false) {
+        super(Identifiers.loadLibrary, Modifiers.EMPTY, prefix, false) {
     functionSignature = new FunctionSignatureX(type: new FunctionType(this));
   }
 
@@ -2277,6 +2282,7 @@ class DeferredLoaderGetterElementX extends GetterElementX
   bool get isDeferredLoaderGetter => true;
 
   bool get isTopLevel => true;
+
   // By having position null, the enclosing elements location is printed in
   // error messages.
   Token get position => null;
@@ -2286,6 +2292,13 @@ class DeferredLoaderGetterElementX extends GetterElementX
   bool get hasNode => false;
 
   FunctionExpression get node => null;
+
+  bool get hasResolvedAst => true;
+
+  ResolvedAst get resolvedAst {
+    return new SynthesizedResolvedAst(
+        this, ResolvedAstKind.DEFERRED_LOAD_LIBRARY);
+  }
 
   @override
   SetterElement get setter => null;
@@ -2995,7 +3008,6 @@ abstract class MixinApplicationElementX extends BaseClassElementX
   ClassElement get mixin => mixinType != null ? mixinType.element : null;
 
   bool get isMixinApplication => true;
-  bool get isUnnamedMixinApplication => node is! NamedMixinApplication;
   bool get hasConstructor => !constructors.isEmpty;
   bool get hasLocalScopeMembers => !constructors.isEmpty;
 
@@ -3053,14 +3065,20 @@ class NamedMixinApplicationElementX extends MixinApplicationElementX
   Modifiers get modifiers => node.modifiers;
 
   DeclarationSite get declarationSite => this;
+
+  ClassElement get subclass => null;
 }
 
 class UnnamedMixinApplicationElementX extends MixinApplicationElementX {
   final Node node;
+  final ClassElement subclass;
 
   UnnamedMixinApplicationElementX(
-      String name, CompilationUnitElement enclosing, int id, this.node)
-      : super(name, enclosing, id);
+      String name, ClassElement subclass, int id, this.node)
+      : this.subclass = subclass,
+        super(name, subclass.compilationUnit, id);
+
+  bool get isUnnamedMixinApplication => true;
 
   bool get isAbstract => true;
 }
@@ -3200,6 +3218,8 @@ abstract class MetadataAnnotationX implements MetadataAnnotation {
    */
   Token get beginToken;
 
+  Token get endToken;
+
   MetadataAnnotationX([this.resolutionState = STATE_NOT_STARTED]);
 
   MetadataAnnotation ensureResolved(Resolution resolution) {
@@ -3214,6 +3234,11 @@ abstract class MetadataAnnotationX implements MetadataAnnotation {
   }
 
   Node parseNode(ParsingContext parsing);
+
+  SourceSpan get sourcePosition {
+    Uri uri = annotatedElement.compilationUnit.script.resourceUri;
+    return new SourceSpan.fromTokens(uri, beginToken, endToken);
+  }
 
   String toString() => 'MetadataAnnotation($constant, $resolutionState)';
 }

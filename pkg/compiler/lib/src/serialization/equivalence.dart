@@ -14,7 +14,7 @@ import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/visitor.dart';
 import '../js_backend/backend_serialization.dart'
-    show JavaScriptBackendSerializer;
+    show NativeBehaviorSerialization;
 import '../native/native.dart' show NativeBehavior;
 import '../resolution/access_semantics.dart';
 import '../resolution/send_structure.dart';
@@ -383,9 +383,31 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
 
   @override
   bool visitClassElement(ClassElement element1, ClassElement element2) {
-    return strategy.test(
-            element1, element2, 'name', element1.name, element2.name) &&
-        visit(element1.library, element2.library);
+    if (!strategy.test(
+        element1,
+        element2,
+        'isUnnamedMixinApplication',
+        element1.isUnnamedMixinApplication,
+        element2.isUnnamedMixinApplication)) {
+      return false;
+    }
+    if (element1.isUnnamedMixinApplication) {
+      MixinApplicationElement mixin1 = element1;
+      MixinApplicationElement mixin2 = element2;
+      return strategy.testElements(
+              mixin1, mixin2, 'subclass', mixin1.subclass, mixin2.subclass) &&
+          // Using the [mixinType] is more precise but requires the test to
+          // handle self references: The identity of a type variable is based on
+          // its type declaration and if [mixin1] is generic the [mixinType]
+          // will contain the type variables declared by [mixin1], i.e.
+          // `abstract class Mixin<T> implements MixinType<T> {}`
+          strategy.testElements(
+              mixin1, mixin2, 'mixin', mixin1.mixin, mixin2.mixin);
+    } else {
+      return strategy.test(
+              element1, element2, 'name', element1.name, element2.name) &&
+          visit(element1.library, element2.library);
+    }
   }
 
   bool checkMembers(Element element1, Element element2) {
@@ -838,6 +860,43 @@ bool testTreeElementsEquivalence(
   return false;
 }
 
+bool testNativeBehavior(NativeBehavior a, NativeBehavior b,
+    [TestStrategy strategy = const TestStrategy()]) {
+  if (identical(a, b)) return true;
+  if (a == null || b == null) return false;
+  return strategy.test(
+          a, b, 'codeTemplateText', a.codeTemplateText, b.codeTemplateText) &&
+      strategy.test(a, b, 'isAllocation', a.isAllocation, b.isAllocation) &&
+      strategy.test(a, b, 'sideEffects', a.sideEffects, b.sideEffects) &&
+      strategy.test(a, b, 'throwBehavior', a.throwBehavior, b.throwBehavior) &&
+      strategy.testTypeLists(
+          a,
+          b,
+          'dartTypesReturned',
+          NativeBehaviorSerialization.filterDartTypes(a.typesReturned),
+          NativeBehaviorSerialization.filterDartTypes(b.typesReturned)) &&
+      strategy.testLists(
+          a,
+          b,
+          'specialTypesReturned',
+          NativeBehaviorSerialization.filterSpecialTypes(a.typesReturned),
+          NativeBehaviorSerialization.filterSpecialTypes(b.typesReturned)) &&
+      strategy.testTypeLists(
+          a,
+          b,
+          'dartTypesInstantiated',
+          NativeBehaviorSerialization.filterDartTypes(a.typesInstantiated),
+          NativeBehaviorSerialization.filterDartTypes(b.typesInstantiated)) &&
+      strategy.testLists(
+          a,
+          b,
+          'specialTypesInstantiated',
+          NativeBehaviorSerialization.filterSpecialTypes(a.typesInstantiated),
+          NativeBehaviorSerialization
+              .filterSpecialTypes(b.typesInstantiated)) &&
+      strategy.test(a, b, 'useGvn', a.useGvn, b.useGvn);
+}
+
 /// Visitor that checks the equivalence of [TreeElements] data.
 class TreeElementsEquivalenceVisitor extends Visitor {
   final TestStrategy strategy;
@@ -889,41 +948,7 @@ class TreeElementsEquivalenceVisitor extends Visitor {
     if (identical(a, b)) return true;
     if (a == null || b == null) return false;
     if (a is NativeBehavior && b is NativeBehavior) {
-      return strategy.test(a, b, 'codeTemplateText', a.codeTemplateText,
-              b.codeTemplateText) &&
-          strategy.test(a, b, 'isAllocation', a.isAllocation, b.isAllocation) &&
-          strategy.test(a, b, 'sideEffects', a.sideEffects, b.sideEffects) &&
-          strategy.test(
-              a, b, 'throwBehavior', a.throwBehavior, b.throwBehavior) &&
-          strategy.testTypeLists(
-              a,
-              b,
-              'dartTypesReturned',
-              JavaScriptBackendSerializer.filterDartTypes(a.typesReturned),
-              JavaScriptBackendSerializer.filterDartTypes(b.typesReturned)) &&
-          strategy.testLists(
-              a,
-              b,
-              'specialTypesReturned',
-              JavaScriptBackendSerializer.filterSpecialTypes(a.typesReturned),
-              JavaScriptBackendSerializer
-                  .filterSpecialTypes(b.typesReturned)) &&
-          strategy.testTypeLists(
-              a,
-              b,
-              'dartTypesInstantiated',
-              JavaScriptBackendSerializer.filterDartTypes(a.typesInstantiated),
-              JavaScriptBackendSerializer
-                  .filterDartTypes(b.typesInstantiated)) &&
-          strategy.testLists(
-              a,
-              b,
-              'specialTypesInstantiated',
-              JavaScriptBackendSerializer
-                  .filterSpecialTypes(a.typesInstantiated),
-              JavaScriptBackendSerializer
-                  .filterSpecialTypes(b.typesInstantiated)) &&
-          strategy.test(a, b, 'useGvn', a.useGvn, b.useGvn);
+      return testNativeBehavior(a, b, strategy);
     }
     return true;
   }
@@ -1806,4 +1831,13 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   bool visitStringNode(StringNode node1, StringNode node2) {
     throw new UnsupportedError('Unexpected nodes: $node1 <> $node2');
   }
+}
+
+bool areMetadataAnnotationsEquivalent(
+    MetadataAnnotation metadata1, MetadataAnnotation metadata2) {
+  if (metadata1 == metadata2) return true;
+  if (metadata1 == null || metadata2 == null) return false;
+  return areElementsEquivalent(
+          metadata1.annotatedElement, metadata2.annotatedElement) &&
+      areConstantsEquivalent(metadata1.constant, metadata2.constant);
 }

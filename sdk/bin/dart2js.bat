@@ -42,7 +42,7 @@ set DART2JS=%DART_ROOT%\pkg\compiler\lib\src\dart2js.dart
 rem DART_CONFIGURATION defaults to ReleaseX64
 if "%DART_CONFIGURATION%"=="" set DART_CONFIGURATION=ReleaseX64
 
-set BUILD_DIR=%DART_ROOT%\build\%DART_CONFIGURATION%
+set BUILD_DIR=%DART_ROOT%\out\%DART_CONFIGURATION%
 
 set PACKAGE_ROOT=%BUILD_DIR%\packages
 

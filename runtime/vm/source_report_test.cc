@@ -425,6 +425,49 @@ TEST_CASE(SourceReport_Coverage_AllFunctions) {
 }
 
 
+TEST_CASE(SourceReport_Coverage_AllFunctions_ForceCompile) {
+  const char* kScript =
+      "helper0() {}\n"
+      "helper1() {}\n"
+      "main() {\n"
+      "  if (true) {\n"
+      "    helper0();\n"
+      "  } else {\n"
+      "    helper1();\n"
+      "  }\n"
+      "}";
+
+  Library& lib = Library::Handle();
+  lib ^= ExecuteScript(kScript);
+  ASSERT(!lib.IsNull());
+
+  SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
+  JSONStream js;
+
+  // We generate a report with all functions in the VM.
+  Script& null_script = Script::Handle();
+  {
+    TransitionNativeToVM transition(Thread::Current());
+    report.PrintJSON(&js, null_script);
+  }
+  const char* result = js.ToCString();
+
+  // Sanity check the header.
+  EXPECT_SUBSTRING("{\"type\":\"SourceReport\",\"ranges\":[", result);
+
+  // Make sure that the main function was found.
+  EXPECT_SUBSTRING(
+      "\"startPos\":12,\"endPos\":39,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[23],\"misses\":[32]}",
+      result);
+
+  // More than one script is referenced in the report.
+  EXPECT_SUBSTRING("\"scriptIndex\":0", result);
+  EXPECT_SUBSTRING("\"scriptIndex\":1", result);
+  EXPECT_SUBSTRING("\"scriptIndex\":2", result);
+}
+
+
 TEST_CASE(SourceReport_CallSites_SimpleCall) {
   char buffer[1024];
   const char* kScript =

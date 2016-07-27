@@ -25,7 +25,19 @@ bool MethodRecognizer::PolymorphicTarget(const Function& function) {
 }
 
 
-#define KIND_TO_STRING(class_name, function_name, enum_name, fp)               \
+intptr_t MethodRecognizer::ResultCid(const Function& function) {
+  switch (function.recognized_kind()) {
+#define DEFINE_CASE(cname, fname, ename, result_type, fingerprint) \
+    case k##ename: return k##result_type##Cid;
+    RECOGNIZED_LIST(DEFINE_CASE)
+#undef DEFINE_CASE
+    default:
+      return kDynamicCid;
+  }
+}
+
+
+#define KIND_TO_STRING(class_name, function_name, enum_name, type, fp) \
   #enum_name,
 static const char* recognized_list_method_name[] = {
   "Unknown",
@@ -51,7 +63,7 @@ void MethodRecognizer::InitializeState() {
   libs.Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
   Function& func = Function::Handle();
 
-#define SET_RECOGNIZED_KIND(class_name, function_name, enum_name, fp)          \
+#define SET_RECOGNIZED_KIND(class_name, function_name, enum_name, type, fp)    \
   func = Library::GetFunction(libs, #class_name, #function_name);              \
   if (func.IsNull()) {                                                         \
     OS::PrintErr("Missing %s::%s\n", #class_name, #function_name);             \
@@ -74,7 +86,7 @@ void MethodRecognizer::InitializeState() {
 #define SET_IS_ALWAYS_INLINE(class_name, function_name, dest, fp)              \
   SET_FUNCTION_BIT(class_name, function_name, dest, fp, set_always_inline, true)
 
-#define SET_IS_NEVER_INLINE(class_name, function_name, dest, fp)              \
+#define SET_IS_NEVER_INLINE(class_name, function_name, dest, fp)               \
   SET_FUNCTION_BIT(class_name, function_name, dest, fp, set_is_inlinable, false)
 
 #define SET_IS_POLYMORPHIC_TARGET(class_name, function_name, dest, fp)         \

@@ -2656,10 +2656,10 @@ DART_EXPORT Dart_Handle Dart_SetNativeResolver(
 /* TODO(turnidge): Finish documenting this section. */
 
 typedef enum {
-  Dart_kImportTag = 0,
-  Dart_kSourceTag,
-  Dart_kCanonicalizeUrl,
+  Dart_kCanonicalizeUrl = 0,
   Dart_kScriptTag,
+  Dart_kSourceTag,
+  Dart_kImportTag,
 } Dart_LibraryTag;
 
 /* TODO(turnidge): Document. */
@@ -2684,15 +2684,35 @@ DART_EXPORT Dart_Handle Dart_SetLibraryTagHandler(
     Dart_LibraryTagHandler handler);
 
 /**
+ * Canonicalizes a url with respect to some library.
+ *
+ * The url is resolved with respect to the library's url and some url
+ * normalizations are performed.
+ *
+ * This canonicalization function should be sufficient for most
+ * embedders to implement the Dart_kCanonicalizeUrl tag.
+ *
+ * \param base_url The base url relative to which the url is
+ *                being resolved.
+ * \param url The url being resolved and canonicalized.  This
+ *            parameter is a string handle.
+ *
+ * \return If no error occurs, a String object is returned.  Otherwise
+ *   an error handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_DefaultCanonicalizeUrl(Dart_Handle base_url,
+                                                    Dart_Handle url);
+
+/**
  * Loads the root script for the current isolate. The script can be
  * embedded in another file, for example in an html file.
  *
  * TODO(turnidge): Document.
  *
- * \line_offset is the number of text lines before the
+ * \param line_offset is the number of text lines before the
  *   first line of the Dart script in the containing file.
  *
- * \col_offset is the number of characters before the first character
+ * \param col_offset is the number of characters before the first character
  *   in the first line of the Dart script.
  */
 DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,

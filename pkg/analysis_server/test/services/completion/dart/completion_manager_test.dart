@@ -13,7 +13,6 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/task/dart.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -53,8 +52,7 @@ part '$testFile';
     addTestSource('part of libB; main() {^}');
 
     // Associate part with library
-    context.computeResult(
-        new LibrarySpecificUnit(libSource, testSource), LIBRARY_CYCLE_UNITS);
+    context.computeResult(libSource, LIBRARY_CYCLE_UNITS);
 
     // Build the request
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(

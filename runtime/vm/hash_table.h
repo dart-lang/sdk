@@ -5,11 +5,6 @@
 #ifndef VM_HASH_TABLE_H_
 #define VM_HASH_TABLE_H_
 
-// Temporarily used when sorting the indices in EnumIndexHashTable.
-// TODO(koda): Remove these dependencies before using in production.
-#include <map>
-#include <vector>
-
 #include "platform/assert.h"
 #include "vm/object.h"
 
@@ -22,20 +17,16 @@ namespace dart {
 //  - HashTable
 // The next layer provides ordering and iteration functionality:
 //  - UnorderedHashTable
-//  - EnumIndexHashTable
 //  - LinkedListHashTable (TODO(koda): Implement.)
-// The utility class HashTables handles growth and conversion (e.g., converting
-// a compact EnumIndexHashTable to an iteration-efficient LinkedListHashTable).
+// The utility class HashTables handles growth and conversion.
 // The next layer fixes the payload size and provides a natural interface:
 //  - HashMap
 //  - HashSet
 // Combining either of these with an iteration strategy, we get the templates
 // intended for use outside this file:
 //  - UnorderedHashMap
-//  - EnumIndexHashMap
 //  - LinkedListHashMap
 //  - UnorderedHashSet
-//  - EnumIndexHashSet
 //  - LinkedListHashSet
 // Each of these can be finally specialized with KeyTraits to support any set of
 // lookup key types (e.g., look up a char* in a set of String objects), and
@@ -435,74 +426,6 @@ class UnorderedHashTable : public HashTable<KeyTraits, kUserPayloadSize, 0> {
 };
 
 
-// Table with insertion order, using one payload component for the enumeration
-// index, and one metadata element for the next enumeration index.
-template<typename KeyTraits, intptr_t kUserPayloadSize>
-class EnumIndexHashTable
-    : public HashTable<KeyTraits, kUserPayloadSize + 1, 1> {
- public:
-  typedef HashTable<KeyTraits, kUserPayloadSize + 1, 1> BaseTable;
-  static const intptr_t kPayloadSize = kUserPayloadSize;
-  static const intptr_t kNextEnumIndex = BaseTable::kMetaDataIndex;
-  EnumIndexHashTable(Object* key, Smi* value, Array* data)
-      : BaseTable(key, value, data) {}
-  EnumIndexHashTable(Zone* zone, RawArray* data)
-      : BaseTable(zone, data) {}
-  explicit EnumIndexHashTable(RawArray* data)
-      : BaseTable(Thread::Current()->zone(), data) {}
-  // Note: Does not check for concurrent modification.
-  class Iterator {
-   public:
-    explicit Iterator(const EnumIndexHashTable* table) : index_(-1) {
-      // TODO(koda): Use GrowableArray after adding stateful comparator support.
-      std::map<intptr_t, intptr_t> enum_to_entry;
-      for (intptr_t i = 0; i < table->NumEntries(); ++i) {
-        if (table->IsOccupied(i)) {
-          intptr_t enum_index =
-              table->GetSmiValueAt(table->PayloadIndex(i, kPayloadSize));
-          enum_to_entry[enum_index] = i;
-        }
-      }
-      for (std::map<intptr_t, intptr_t>::iterator it = enum_to_entry.begin();
-           it != enum_to_entry.end();
-           ++it) {
-        entries_.push_back(it->second);
-      }
-    }
-    bool MoveNext() {
-      if (index_ < (static_cast<intptr_t>(entries_.size() - 1))) {
-        index_++;
-        return true;
-      }
-      return false;
-    }
-    intptr_t Current() {
-      return entries_[index_];
-    }
-
-   private:
-    intptr_t index_;
-    std::vector<intptr_t> entries_;
-  };
-
-  void Initialize() const {
-    BaseTable::Initialize();
-    BaseTable::SetSmiValueAt(kNextEnumIndex, 0);
-  }
-
-  void InsertKey(intptr_t entry, const Object& key) const {
-    BaseTable::InsertKey(entry, key);
-    BaseTable::SmiHandle() =
-        Smi::New(BaseTable::GetSmiValueAt(kNextEnumIndex));
-    BaseTable::UpdatePayload(entry, kPayloadSize, BaseTable::SmiHandle());
-    // TODO(koda): Handle possible Smi overflow from repeated insert/delete.
-    BaseTable::AdjustSmiValueAt(kNextEnumIndex, 1);
-  }
-
-  // No extra book-keeping needed for DeleteEntry.
-};
-
-
 class HashTables : public AllStatic {
  public:
   // Allocates and initializes a table.
@@ -687,18 +610,6 @@ class UnorderedHashMap : public HashMap<UnorderedHashTable<KeyTraits, 1> > {
 };
 
 
-template<typename KeyTraits>
-class EnumIndexHashMap : public HashMap<EnumIndexHashTable<KeyTraits, 1> > {
- public:
-  typedef HashMap<EnumIndexHashTable<KeyTraits, 1> > BaseMap;
-  explicit EnumIndexHashMap(RawArray* data)
-      : BaseMap(Thread::Current()->zone(), data) {}
-  EnumIndexHashMap(Zone* zone, RawArray* data) : BaseMap(zone, data) {}
-  EnumIndexHashMap(Object* key, Smi* value, Array* data)
-      : BaseMap(key, value, data) {}
-};
-
-
 template<typename BaseIterTable>
 class HashSet : public BaseIterTable {
  public:
@@ -788,18 +699,6 @@ class UnorderedHashSet : public HashSet<UnorderedHashTable<KeyTraits, 0> > {
   }
   UnorderedHashSet(Zone* zone, RawArray* data) : BaseSet(zone, data) {}
   UnorderedHashSet(Object* key, Smi* value, Array* data)
-      : BaseSet(key, value, data) {}
-};
-
-
-template<typename KeyTraits>
-class EnumIndexHashSet : public HashSet<EnumIndexHashTable<KeyTraits, 0> > {
- public:
-  typedef HashSet<EnumIndexHashTable<KeyTraits, 0> > BaseSet;
-  explicit EnumIndexHashSet(RawArray* data)
-      : BaseSet(Thread::Current()->zone(), data) {}
-  EnumIndexHashSet(Zone* zone, RawArray* data) : BaseSet(zone, data) {}
-  EnumIndexHashSet(Object* key, Smi* value, Array* data)
       : BaseSet(key, value, data) {}
 };
 

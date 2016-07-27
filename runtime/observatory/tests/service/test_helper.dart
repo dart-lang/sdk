@@ -36,7 +36,7 @@ String _skyShellPath() {
   return Platform.environment[_SKY_SHELL_ENV_KEY];
 }
 
-class _SerivceTesteeRunner {
+class _ServiceTesteeRunner {
   Future run({testeeBefore(): null,
               testeeConcurrent(): null,
               bool pause_on_start: false,
@@ -310,7 +310,14 @@ class _ServiceTesterRunner {
         await process.requestExit();
       }, onError: (e, st) {
         process.requestExit();
-        if (!_isWebSocketDisconnect(e)) {
+        // TODO: remove this workaround.
+        // This is necessary due to non awaited operations.
+        // E.G. object.dart (398~402)
+        // When an exception is thrown inside a test (directly or via await) the
+        // stacktrace is non-null and shows where the exception has been thrown.
+        // If vice versa the exception is due to an error in a non-awaited
+        // Future the stacktrace is null.
+        if (st != null || !_isWebSocketDisconnect(e)) {
           print('Unexpected exception in service tests: $e $st');
           throw e;
         }
@@ -335,7 +342,7 @@ Future runIsolateTests(List<String> mainArgs,
                         bool pause_on_unhandled_exceptions: false}) async {
   assert(!pause_on_start || testeeBefore == null);
   if (_isTestee()) {
-    new _SerivceTesteeRunner().run(testeeBefore: testeeBefore,
+    new _ServiceTesteeRunner().run(testeeBefore: testeeBefore,
                                    testeeConcurrent: testeeConcurrent,
                                    pause_on_start: pause_on_start,
                                    pause_on_exit: pause_on_exit);
@@ -373,7 +380,7 @@ void runIsolateTestsSynchronous(List<String> mainArgs,
                                  bool pause_on_unhandled_exceptions: false}) {
   assert(!pause_on_start || testeeBefore == null);
   if (_isTestee()) {
-    new _SerivceTesteeRunner().runSync(testeeBeforeSync: testeeBefore,
+    new _ServiceTesteeRunner().runSync(testeeBeforeSync: testeeBefore,
                                        testeeConcurrentSync: testeeConcurrent,
                                        pause_on_start: pause_on_start,
                                        pause_on_exit: pause_on_exit);
@@ -406,7 +413,7 @@ Future runVMTests(List<String> mainArgs,
                    bool verbose_vm: false,
                    bool pause_on_unhandled_exceptions: false}) async {
   if (_isTestee()) {
-    new _SerivceTesteeRunner().run(testeeBefore: testeeBefore,
+    new _ServiceTesteeRunner().run(testeeBefore: testeeBefore,
                                    testeeConcurrent: testeeConcurrent,
                                    pause_on_start: pause_on_start,
                                    pause_on_exit: pause_on_exit);

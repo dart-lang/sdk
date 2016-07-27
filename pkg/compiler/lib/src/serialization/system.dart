@@ -28,16 +28,15 @@ import 'task.dart';
 
 class DeserializerSystemImpl extends DeserializerSystem {
   final Compiler _compiler;
+  final Resolution resolution;
   final DeserializationContext deserializationContext;
   final List<LibraryElement> deserializedLibraries = <LibraryElement>[];
   final ResolutionImpactDeserializer _resolutionImpactDeserializer;
   final ResolvedAstDeserializerPlugin _resolvedAstDeserializer;
-  final ImpactTransformer _impactTransformer;
 
-  factory DeserializerSystemImpl(
-      Compiler compiler, ImpactTransformer impactTransformer) {
-    DeserializationContext context =
-        new DeserializationContext(compiler.reporter);
+  factory DeserializerSystemImpl(Compiler compiler) {
+    DeserializationContext context = new DeserializationContext(
+        compiler.reporter, compiler.resolution, compiler.libraryLoader);
     DeserializerPlugin backendDeserializer =
         compiler.backend.serialization.deserializer;
     context.plugins.add(backendDeserializer);
@@ -48,14 +47,14 @@ class DeserializerSystemImpl extends DeserializerSystem {
         new ResolvedAstDeserializerPlugin(
             compiler.parsingContext, backendDeserializer);
     context.plugins.add(resolvedAstDeserializer);
-    return new DeserializerSystemImpl._(compiler, context, impactTransformer,
+    return new DeserializerSystemImpl._(compiler, compiler.resolution, context,
         resolutionImpactDeserializer, resolvedAstDeserializer);
   }
 
   DeserializerSystemImpl._(
       this._compiler,
+      this.resolution,
       this.deserializationContext,
-      this._impactTransformer,
       this._resolutionImpactDeserializer,
       this._resolvedAstDeserializer);
 
@@ -96,7 +95,7 @@ class DeserializerSystemImpl extends DeserializerSystem {
         element.enclosingClass.isUnnamedMixinApplication) {
       return true;
     }
-    return _resolutionImpactDeserializer.impactMap.containsKey(element);
+    return _resolutionImpactDeserializer.hasResolutionImpact(element);
   }
 
   @override
@@ -111,14 +110,15 @@ class DeserializerSystemImpl extends DeserializerSystem {
               "${element} not found in ${superclass}."));
       // TODO(johnniwinther): Compute callStructure. Currently not used.
       CallStructure callStructure;
-      return _resolutionImpactDeserializer.impactMap.putIfAbsent(element, () {
+      return _resolutionImpactDeserializer.registerResolutionImpact(element,
+          () {
         return new DeserializedResolutionImpact(staticUses: <StaticUse>[
           new StaticUse.superConstructorInvoke(
               superclassConstructor, callStructure)
         ]);
       });
     }
-    return _resolutionImpactDeserializer.impactMap[element];
+    return _resolutionImpactDeserializer.getResolutionImpact(element);
   }
 
   @override
@@ -129,7 +129,18 @@ class DeserializerSystemImpl extends DeserializerSystem {
     if (element is ExecutableElement) {
       getResolvedAst(element);
     }
-    return _impactTransformer.transformResolutionImpact(resolutionImpact);
+    if (element.isField && !element.isConst) {
+      FieldElement field = element;
+      if (field.isTopLevel || field.isStatic) {
+        if (field.constant == null) {
+          // TODO(johnniwinther): Find a cleaner way to do this. Maybe
+          // `Feature.LAZY_FIELD` of the resolution impact should be used
+          // instead.
+          _compiler.backend.constants.registerLazyStatic(element);
+        }
+      }
+    }
+    return resolution.transformResolutionImpact(element, resolutionImpact);
   }
 
   @override
@@ -158,7 +169,8 @@ class ResolutionImpactSerializer extends SerializerPlugin {
 }
 
 class ResolutionImpactDeserializer extends DeserializerPlugin {
-  Map<Element, ResolutionImpact> impactMap = <Element, ResolutionImpact>{};
+  Map<Element, ObjectDecoder> _decoderMap = <Element, ObjectDecoder>{};
+  Map<Element, ResolutionImpact> _impactMap = <Element, ResolutionImpact>{};
   final DeserializerPlugin nativeDataDeserializer;
 
   ResolutionImpactDeserializer(this.nativeDataDeserializer);
@@ -167,9 +179,29 @@ class ResolutionImpactDeserializer extends DeserializerPlugin {
   void onElement(Element element, ObjectDecoder getDecoder(String tag)) {
     ObjectDecoder decoder = getDecoder(WORLD_IMPACT_TAG);
     if (decoder != null) {
-      impactMap[element] = ImpactDeserializer.deserializeImpact(
-          element, decoder, nativeDataDeserializer);
+      _decoderMap[element] = decoder;
     }
+  }
+
+  bool hasResolutionImpact(Element element) {
+    return _impactMap.containsKey(element) || _decoderMap.containsKey(element);
+  }
+
+  ResolutionImpact registerResolutionImpact(
+      Element element, ResolutionImpact ifAbsent()) {
+    return _impactMap.putIfAbsent(element, ifAbsent);
+  }
+
+  ResolutionImpact getResolutionImpact(Element element) {
+    return registerResolutionImpact(element, () {
+      ObjectDecoder decoder = _decoderMap[element];
+      if (decoder != null) {
+        _decoderMap.remove(element);
+        return ImpactDeserializer.deserializeImpact(
+            element, decoder, nativeDataDeserializer);
+      }
+      return null;
+    });
   }
 }
 
@@ -185,6 +217,7 @@ class ResolvedAstSerializerPlugin extends SerializerPlugin {
   void onElement(Element element, ObjectEncoder createEncoder(String tag)) {
     assert(invariant(element, element.isDeclaration,
         message: "Element $element must be the declaration"));
+    if (element.isError) return;
     if (element is MemberElement) {
       assert(invariant(element, resolution.hasResolvedAst(element),
           message: "Element $element must have a resolved ast"));

@@ -136,6 +136,7 @@ class ObservatoryApplication extends Observable {
     _pageRegistry.add(new InspectPage(this));
     _pageRegistry.add(new ClassTreePage(this));
     _pageRegistry.add(new DebuggerPage(this));
+    _pageRegistry.add(new ObjectStorePage(this));
     _pageRegistry.add(new CpuProfilerPage(this));
     _pageRegistry.add(new TableCpuProfilerPage(this));
     _pageRegistry.add(new AllocationProfilerPage(this));
@@ -184,7 +185,7 @@ class ObservatoryApplication extends Observable {
   void _installPage(Page page) {
     assert(page != null);
     if (currentPage == page) {
-      // Already isntalled.
+      // Already installed.
       return;
     }
     if (currentPage != null) {

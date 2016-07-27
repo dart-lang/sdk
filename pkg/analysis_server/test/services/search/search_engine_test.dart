@@ -287,7 +287,7 @@ class A {
   }
 }
 ''');
-    FieldElement element = findElement('field');
+    FieldElement element = findElement('field', ElementKind.FIELD);
     Element main = findElement('main');
     Element fieldParameter = findElement('field', ElementKind.PARAMETER);
     var expected = [

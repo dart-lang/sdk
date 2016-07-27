@@ -540,4 +540,9 @@ class DartConstantTask extends ConstantCompilerTask
     constantCompiler.constantValueMap
         .addAll(task.constantCompiler.constantValueMap);
   }
+
+  @override
+  void registerLazyStatic(FieldElement element) {
+    // Do nothing.
+  }
 }

@@ -10,7 +10,6 @@ import 'dart:io';
 
 import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/plugin/embedded_resolver_provider.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
@@ -37,6 +36,7 @@ import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/build_mode.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
+import 'package:analyzer_cli/src/incremental_analyzer.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart';
@@ -86,8 +86,7 @@ class Driver implements CommandLineStarter {
   /// creation.
   CommandLineOptions _previousOptions;
 
-  @override
-  EmbeddedResolverProvider embeddedUriResolverProvider;
+  IncrementalAnalysisSession incrementalSession;
 
   @override
   ResolverProvider packageResolverProvider;
@@ -217,6 +216,8 @@ class Driver implements CommandLineStarter {
       libUris.add(source.uri);
     }
 
+    incrementalSession?.finish();
+
     // Check that each part has a corresponding source in the input list.
     for (Source part in parts) {
       bool found = false;
@@ -297,6 +298,9 @@ class Driver implements CommandLineStarter {
     if (options.enableSuperMixins != _previousOptions.enableSuperMixins) {
       return false;
     }
+    if (options.incrementalCachePath != _previousOptions.incrementalCachePath) {
+      return false;
+    }
     return true;
   }
 
@@ -338,25 +342,13 @@ class Driver implements CommandLineStarter {
           PhysicalResourceProvider.INSTANCE.getResource('.');
       UriResolver resolver = packageResolverProvider(folder);
       if (resolver != null) {
-        UriResolver sdkResolver;
-
-        // Check for a resolver provider.
-        if (embeddedUriResolverProvider != null) {
-          EmbedderUriResolver embedderUriResolver =
-              embeddedUriResolverProvider(folder);
-          if (embedderUriResolver != null && embedderUriResolver.length != 0) {
-            sdkResolver = embedderUriResolver;
-          }
-        }
-
-        // Default to a Dart URI resolver if no embedder is found.
-        sdkResolver ??= new DartUriResolver(sdk);
+        UriResolver sdkResolver = new DartUriResolver(sdk);
 
         // TODO(brianwilkerson) This doesn't handle sdk extensions.
         List<UriResolver> resolvers = <UriResolver>[
           sdkResolver,
           resolver,
-          new FileUriResolver()
+          new file_system.ResourceUriResolver(PhysicalResourceProvider.INSTANCE)
         ];
         return new SourceFactory(resolvers);
       }
@@ -396,16 +388,15 @@ class Driver implements CommandLineStarter {
     // 'dart:' URIs come first.
 
     // Setup embedding.
-    EmbedderUriResolver embedderUriResolver =
-        new EmbedderUriResolver(embedderMap);
-    if (embedderUriResolver.length == 0) {
+    EmbedderSdk embedderSdk = new EmbedderSdk(embedderMap);
+    if (embedderSdk.libraryMap.size() == 0) {
       // The embedder uri resolver has no mappings. Use the default Dart SDK
       // uri resolver.
       resolvers.add(new DartUriResolver(sdk));
     } else {
       // The embedder uri resolver has mappings, use it instead of the default
       // Dart SDK uri resolver.
-      resolvers.add(embedderUriResolver);
+      resolvers.add(new DartUriResolver(embedderSdk));
     }
 
     // Next SdkExts.
@@ -419,7 +410,8 @@ class Driver implements CommandLineStarter {
     }
 
     // Finally files.
-    resolvers.add(new FileUriResolver());
+    resolvers.add(
+        new file_system.ResourceUriResolver(PhysicalResourceProvider.INSTANCE));
 
     return new SourceFactory(resolvers, packageInfo.packages);
   }
@@ -493,7 +485,7 @@ class Driver implements CommandLineStarter {
 
     // Process embedders.
     Map<file_system.Folder, YamlMap> embedderMap =
-        _findEmbedders(packageInfo.packageMap);
+        new EmbedderYamlLocator(packageInfo.packageMap).embedderYamls;
 
     // Scan for SDK extenders.
     bool hasSdkExt = _hasSdkExt(packageInfo.packageMap?.values);
@@ -510,6 +502,8 @@ class Driver implements CommandLineStarter {
         _chooseUriResolutionPolicy(options, embedderMap, packageInfo);
 
     _context.sourceFactory = sourceFactory;
+
+    incrementalSession = configureIncrementalAnalysis(options, context);
   }
 
   /// Return discovered packagespec, or `null` if none is found.
@@ -524,14 +518,6 @@ class Driver implements CommandLineStarter {
     }
 
     return null;
-  }
-
-  Map<file_system.Folder, YamlMap> _findEmbedders(
-      Map<String, List<file_system.Folder>> packageMap) {
-    EmbedderYamlLocator locator =
-        (_context as InternalAnalysisContext).embedderYamlLocator;
-    locator.refresh(packageMap);
-    return locator.embedderYamls;
   }
 
   _PackageInfo _findPackages(CommandLineOptions options) {
@@ -617,8 +603,8 @@ class Driver implements CommandLineStarter {
   /// Analyze a single source.
   ErrorSeverity _runAnalyzer(Source source, CommandLineOptions options) {
     int startTime = currentTimeMillis();
-    AnalyzerImpl analyzer =
-        new AnalyzerImpl(_context, source, options, stats, startTime);
+    AnalyzerImpl analyzer = new AnalyzerImpl(
+        _context, incrementalSession, source, options, stats, startTime);
     var errorSeverity = analyzer.analyzeSync();
     if (errorSeverity == ErrorSeverity.ERROR) {
       exitCode = errorSeverity.ordinal;
@@ -654,6 +640,7 @@ class Driver implements CommandLineStarter {
   static AnalysisOptionsImpl createAnalysisOptionsForCommandLineOptions(
       CommandLineOptions options) {
     AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
+    contextOptions.trackCacheDependencies = false;
     contextOptions.hint = !options.disableHints;
     contextOptions.enableStrictCallChecks = options.enableStrictCallChecks;
     contextOptions.enableSuperMixins = options.enableSuperMixins;

@@ -349,14 +349,15 @@ class JavaScriptConstantSystem extends ConstantSystem {
   @override
   ConstantValue createSymbol(Compiler compiler, String text) {
     // TODO(johnniwinther): Create a backend agnostic value.
-    InterfaceType type = compiler.coreTypes.symbolType;
+    JavaScriptBackend backend = compiler.backend;
+    ClassElement symbolClass = backend.helpers.symbolImplementationClass;
+    InterfaceType type = symbolClass.rawType;
     ConstantValue argument = createString(new DartString.literal(text));
     Map<FieldElement, ConstantValue> fields = <FieldElement, ConstantValue>{};
-    JavaScriptBackend backend = compiler.backend;
-    backend.helpers.symbolImplementationClass.forEachInstanceField(
+    symbolClass.forEachInstanceField(
         (ClassElement enclosingClass, FieldElement field) {
       fields[field] = argument;
-    });
+    }, includeSuperAndInjectedMembers: true);
     assert(fields.length == 1);
     return new ConstructedConstantValue(type, fields);
   }

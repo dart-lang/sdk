@@ -37,10 +37,12 @@
 #define FLAG_LIST(P, R, D, C)                                                  \
 P(always_megamorphic_calls, bool, false,                                       \
   "Instance call always as megamorphic.")                                      \
-P(background_compilation, bool, false,                                         \
+P(background_compilation, bool, USING_MULTICORE,                               \
   "Run optimizing compilation in background")                                  \
 R(background_compilation_stop_alot, false, bool, false,                        \
   "Stress test system: stop background compiler often.")                       \
+P(background_finalization, bool, USING_MULTICORE,                              \
+  "Run weak handle finalizers in background")                                  \
 R(break_at_isolate_spawn, false, bool, false,                                  \
   "Insert a one-time breakpoint at the entrypoint for all spawned isolates")   \
 C(collect_code, false, true, bool, true,                                       \
@@ -130,12 +132,6 @@ P(precompiled_mode, bool, false,                                               \
   "Precompilation compiler mode")                                              \
 C(precompiled_runtime, true, false, bool, false,                               \
   "Precompiled runtime mode")                                                  \
-R(pretenure_all, false, bool, false,                                           \
-  "Global pretenuring (for testing).")                                         \
-P(pretenure_interval, int, 10,                                                 \
-  "Back off pretenuring after this many cycles.")                              \
-P(pretenure_threshold, int, 98,                                                \
-  "Trigger pretenuring when this many percent are promoted.")                  \
 R(print_ssa_liveness, false, bool, false,                                      \
   "Print liveness for ssa variables.")                                         \
 R(print_ssa_liveranges, false, bool, false,                                    \
@@ -156,6 +152,8 @@ R(support_disassembler, false, bool, true,                                     \
   "Support the disassembler.")                                                 \
 R(support_il_printer, false, bool, true,                                       \
   "Support the IL printer.")                                                   \
+R(support_reload, false, bool, true,                                           \
+  "Support isolate reload.")                                                   \
 R(support_service, false, bool, true,                                          \
   "Support the service protocol.")                                             \
 R(support_timeline, false, bool, true,                                         \

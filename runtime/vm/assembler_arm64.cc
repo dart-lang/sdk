@@ -1126,7 +1126,33 @@ void Assembler::CheckCodePointer() {
 }
 
 
+void Assembler::SetupDartSP() {
+  mov(SP, CSP);
+}
+
+
+void Assembler::RestoreCSP() {
+  mov(CSP, SP);
+}
+
+
 void Assembler::EnterFrame(intptr_t frame_size) {
+  // The ARM64 ABI requires at all times
+  //   - stack limit < CSP <= stack base
+  //   - CSP mod 16 = 0
+  //   - we do not access stack memory below CSP
+  // Pratically, this means we need to keep the C stack pointer ahead of the
+  // Dart stack pointer and 16-byte aligned for signal handlers. If we knew the
+  // real stack limit, we could just set CSP to a value near it during
+  // SetupDartSP, but we do not know the real stack limit for the initial
+  // thread or threads created by the embedder.
+  // TODO(26472): It would be safer to use CSP as the Dart stack pointer, but
+  // this requires adjustments to stack handling to maintain the 16-byte
+  // alignment.
+  const intptr_t kMaxDartFrameSize = 4096;
+  sub(TMP, SP, Operand(kMaxDartFrameSize));
+  andi(CSP, TMP, Immediate(~15));
+
   PushPair(LR, FP);
   mov(FP, SP);
 
@@ -1328,9 +1354,9 @@ void Assembler::TryAllocate(const Class& cls,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cls.id(), temp_reg, failure);
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cls.id(), temp_reg, failure));
     const intptr_t instance_size = cls.instance_size();
-    Heap::Space space = Heap::SpaceForAllocation(cls.id());
+    Heap::Space space = Heap::kNew;
     ldr(temp_reg, Address(THR, Thread::heap_offset()));
     ldr(instance_reg, Address(temp_reg, Heap::TopOffset(space)));
     // TODO(koda): Protect against unsigned overflow here.
@@ -1349,7 +1375,7 @@ void Assembler::TryAllocate(const Class& cls,
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(
         instance_reg, instance_reg, -instance_size + kHeapObjectTag);
-    UpdateAllocationStats(cls.id(), space);
+    NOT_IN_PRODUCT(UpdateAllocationStats(cls.id(), space));
 
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
@@ -1374,8 +1400,8 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cid, temp1, failure);
-    Heap::Space space = Heap::SpaceForAllocation(cid);
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp1, failure));
+    Heap::Space space = Heap::kNew;
     ldr(temp1, Address(THR, Thread::heap_offset()));
     // Potential new object start.
     ldr(instance, Address(temp1, Heap::TopOffset(space)));
@@ -1394,7 +1420,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     str(end_address, Address(temp1, Heap::TopOffset(space)));
     add(instance, instance, Operand(kHeapObjectTag));
     LoadImmediate(temp2, instance_size);
-    UpdateAllocationStatsWithSize(cid, temp2, space);
+    NOT_IN_PRODUCT(UpdateAllocationStatsWithSize(cid, temp2, space));
 
     // Initialize the tags.
     // instance: new object start as a tagged pointer.

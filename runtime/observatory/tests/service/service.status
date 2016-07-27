@@ -54,3 +54,19 @@ evaluate_activation_in_method_class_test: CompileTimeError # Issue 24478
 # TODO(vegorov) re-enable when debugger, coverage and profiling is completely
 # fixed for SIMDBC.
 *: Skip
+
+[ $hot_reload ]
+add_breakpoint_rpc_test: Pass, Timeout, Fail, Crash
+code_test: Fail, Crash
+debugger_location_test: Timeout, Fail, Crash
+debugging_inlined_finally_test: Pass, Timeout, Fail, Crash
+dominator_tree_test: Timeout, Crash
+eval_test: Timeout, Fail, Crash
+evaluate_in_frame_rpc_test: Timeout, Fail, Crash
+get_cpu_profile_timeline_rpc_test: Pass, Timeout, Crash
+get_heap_map_rpc_test: Pass, Timeout, Fail, Crash
+get_vm_timeline_rpc_test: Timeout, Fail, Crash
+graph_test: Pass, Timeout, Fail, Crash
+smart_next_test: Pass, Timeout, Fail, Crash
+step_over_await_test: Pass, Timeout, Fail, Crash
+vm_timeline_events_test: Timeout, Fail, Crash

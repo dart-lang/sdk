@@ -990,9 +990,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     String constructorName = "m";
     ConstructorElementImpl constructor =
         ElementFactory.constructorElement2(classElement, constructorName);
-    constructor.returnType = classElement.type;
-    FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
-    constructor.type = constructorType;
     classElement.constructors = <ConstructorElement>[constructor];
     InstanceCreationExpression node = AstFactory.instanceCreationExpression2(
         null,
@@ -1010,9 +1007,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     ConstructorElementImpl constructor =
         ElementFactory.constructorElement2(elementC, null);
     elementC.constructors = <ConstructorElement>[constructor];
-    constructor.returnType = elementC.type;
-    FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
-    constructor.type = constructorType;
     TypeName typeName =
         AstFactory.typeName(elementC, [AstFactory.typeName(elementI)]);
     typeName.type = elementC.type.instantiate(<DartType>[elementI.type]);
@@ -1031,9 +1025,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     ClassElementImpl classElement = ElementFactory.classElement2("C");
     ConstructorElementImpl constructor =
         ElementFactory.constructorElement2(classElement, null);
-    constructor.returnType = classElement.type;
-    FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
-    constructor.type = constructorType;
     classElement.constructors = <ConstructorElement>[constructor];
     InstanceCreationExpression node = AstFactory.instanceCreationExpression2(
         null, AstFactory.typeName(classElement));
@@ -1083,6 +1074,29 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _assertType2(
         _typeProvider.listType
             .instantiate(<DartType>[_typeProvider.dynamicType]),
+        resultType);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitListLiteral_unresolved() {
+    _analyzer = _createAnalyzer(strongMode: true);
+    // [a] // where 'a' is not resolved
+    Identifier identifier = AstFactory.identifier3('a');
+    Expression node = AstFactory.listLiteral([identifier]);
+    DartType resultType = _analyze(node);
+    expect(resultType, isNull);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitListLiteral_unresolved_multiple() {
+    _analyzer = _createAnalyzer(strongMode: true);
+    // [0, a, 1] // where 'a' is not resolved
+    Identifier identifier = AstFactory.identifier3('a');
+    Expression node = AstFactory
+        .listLiteral([_resolvedInteger(0), identifier, _resolvedInteger(1)]);
+    DartType resultType = _analyze(node);
+    _assertType2(
+        _typeProvider.listType.instantiate(<DartType>[_typeProvider.intType]),
         resultType);
     _listener.assertNoErrors();
   }
@@ -1497,11 +1511,16 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   /**
    * Create the analyzer used by the tests.
-   *
-   * @return the analyzer to be used by the tests
    */
-  StaticTypeAnalyzer _createAnalyzer() {
-    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
+  StaticTypeAnalyzer _createAnalyzer({bool strongMode: false}) {
+    InternalAnalysisContext context;
+    if (strongMode) {
+      AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+      options.strongMode = true;
+      context = AnalysisContextFactory.contextWithCoreAndOptions(options);
+    } else {
+      context = AnalysisContextFactory.contextWithCore();
+    }
     FileBasedSource source =
         new FileBasedSource(FileUtilities2.createFile("/lib.dart"));
     CompilationUnitElementImpl definingCompilationUnit =

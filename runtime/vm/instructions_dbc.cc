@@ -15,13 +15,54 @@
 
 namespace dart {
 
+static bool HasLoadFromPool(Instr instr) {
+  switch (Bytecode::DecodeOpcode(instr)) {
+    case Bytecode::kLoadConstant:
+    case Bytecode::kPushConstant:
+    case Bytecode::kStaticCall:
+    case Bytecode::kInstanceCall1:
+    case Bytecode::kInstanceCall2:
+    case Bytecode::kInstanceCall1Opt:
+    case Bytecode::kInstanceCall2Opt:
+    case Bytecode::kStoreStaticTOS:
+    case Bytecode::kPushStatic:
+    case Bytecode::kAllocate:
+    case Bytecode::kInstantiateType:
+    case Bytecode::kInstantiateTypeArgumentsTOS:
+    case Bytecode::kAssertAssignable:
+      return true;
+    default:
+      return false;
+  }
+}
+
+
+static bool GetLoadedObjectAt(
+    uword pc, const ObjectPool& object_pool, Object* obj) {
+  Instr instr = Bytecode::At(pc);
+  if (HasLoadFromPool(instr)) {
+    uint16_t index = Bytecode::DecodeD(instr);
+    if (object_pool.InfoAt(index) == ObjectPool::kTaggedObject) {
+      *obj = object_pool.ObjectAt(index);
+      return true;
+    }
+  }
+  return false;
+}
+
+
 CallPattern::CallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       end_(pc),
       ic_data_load_end_(0),
       target_code_pool_index_(-1),
       ic_data_(ICData::Handle()) {
-  UNIMPLEMENTED();
+  ASSERT(code.ContainsInstructionAt(end_));
+  const uword call_pc = end_ - sizeof(Instr);
+  Instr call_instr = Bytecode::At(call_pc);
+  ASSERT(Bytecode::IsCallOpcode(call_instr));
+  ic_data_load_end_ = call_pc;
+  target_code_pool_index_ = Bytecode::DecodeD(call_instr);
 }
 
 
@@ -29,6 +70,7 @@ int CallPattern::DeoptCallPatternLengthInInstructions() {
   UNIMPLEMENTED();
   return 0;
 }
+
 
 int CallPattern::DeoptCallPatternLengthInBytes() {
   UNIMPLEMENTED();
@@ -109,48 +151,21 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
 }
 
 
-static bool HasLoadFromPool(Instr instr) {
-  switch (Bytecode::DecodeOpcode(instr)) {
-    case Bytecode::kLoadConstant:
-    case Bytecode::kPushConstant:
-    case Bytecode::kStaticCall:
-    case Bytecode::kInstanceCall1:
-    case Bytecode::kInstanceCall2:
-    case Bytecode::kInstanceCall1Opt:
-    case Bytecode::kInstanceCall2Opt:
-    case Bytecode::kStoreStaticTOS:
-    case Bytecode::kPushStatic:
-    case Bytecode::kAllocate:
-    case Bytecode::kInstantiateType:
-    case Bytecode::kInstantiateTypeArgumentsTOS:
-    case Bytecode::kAssertAssignable:
-      return true;
-    default:
-      return false;
-  }
-}
-
-
 bool DecodeLoadObjectFromPoolOrThread(uword pc,
                                       const Code& code,
                                       Object* obj) {
   ASSERT(code.ContainsInstructionAt(pc));
-  Instr instr = Bytecode::At(pc);
-  if (HasLoadFromPool(instr)) {
-    uint16_t index = Bytecode::DecodeD(instr);
-    const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
-    if (pool.InfoAt(index) == ObjectPool::kTaggedObject) {
-      *obj = pool.ObjectAt(index);
-      return true;
-    }
-  }
-  return false;
+  const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
+  return GetLoadedObjectAt(pc, pool, obj);
 }
 
 
 RawICData* CallPattern::IcData() {
-  UNIMPLEMENTED();
-  return ICData::null();
+  if (ic_data_.IsNull()) {
+    bool found = GetLoadedObjectAt(ic_data_load_end_, object_pool_, &ic_data_);
+    ASSERT(found);
+  }
+  return ic_data_.raw();
 }
 
 

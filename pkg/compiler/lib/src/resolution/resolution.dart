@@ -53,6 +53,8 @@ import 'class_members.dart' show MembersCreator;
 import 'constructors.dart';
 import 'members.dart';
 import 'registry.dart';
+import 'resolution_result.dart';
+import 'scope.dart' show MutableScope;
 import 'signatures.dart';
 import 'tree_elements.dart';
 import 'typedefs.dart';
@@ -236,7 +238,7 @@ class ResolverTask extends CompilerTask {
       ResolverVisitor visitor = visitorFor(element);
       ResolutionRegistry registry = visitor.registry;
       registry.defineFunction(tree, element);
-      visitor.setupFunction(tree, element);
+      visitor.setupFunction(tree, element); // Modifies the scope.
       processAsyncMarker(compiler, element, registry);
 
       if (element.isGenerativeConstructor) {
@@ -244,7 +246,9 @@ class ResolverTask extends CompilerTask {
         // resolution in case there is an implicit super constructor call.
         InitializerResolver resolver =
             new InitializerResolver(visitor, element, tree);
-        FunctionElement redirection = resolver.resolveInitializers();
+        FunctionElement redirection = resolver.resolveInitializers(
+            enableInitializingFormalAccess:
+                compiler.options.enableInitializingFormalAccess);
         if (redirection != null) {
           resolveRedirectingConstructor(resolver, tree, element, redirection);
         }
@@ -284,6 +288,8 @@ class ResolverTask extends CompilerTask {
           _isNativeClassOrExtendsNativeClass(enclosingClass)) {
         reporter.reportErrorMessage(tree, MessageKind.NO_SUCH_METHOD_IN_NATIVE);
       }
+
+      resolution.target.resolveNativeElement(element, registry.worldImpact);
 
       return registry.worldImpact;
     });
@@ -359,8 +365,21 @@ class ResolverTask extends CompilerTask {
     // TODO(johnniwinther): Share the resolved type between all variables
     // declared in the same declaration.
     if (tree.type != null) {
-      element.variables.type = visitor.resolveTypeAnnotation(tree.type);
-    } else {
+      DartType type = visitor.resolveTypeAnnotation(tree.type);
+      assert(invariant(
+          element,
+          element.variables.type == null ||
+              // Crude check but we have no equivalence relation that
+              // equates malformed types, like matching creations of type
+              // `Foo<Unresolved>`.
+              element.variables.type.toString() == type.toString(),
+          message: "Unexpected type computed for $element. "
+              "Was ${element.variables.type}, computed $type."));
+      element.variables.type = type;
+    } else if (element.variables.type == null) {
+      // Only assign the dynamic type if the element has no known type. This
+      // happens for enum fields where the type is known but is not in the
+      // synthesized AST.
       element.variables.type = const DynamicType();
     }
 
@@ -369,7 +388,10 @@ class ResolverTask extends CompilerTask {
     if (initializer != null) {
       // TODO(johnniwinther): Avoid analyzing initializers if
       // [Compiler.analyzeSignaturesOnly] is set.
-      visitor.visit(initializer);
+      ResolutionResult result = visitor.visit(initializer);
+      if (result.isConstant) {
+        element.constant = result.constant;
+      }
     } else if (modifiers.isConst) {
       reporter.reportErrorMessage(
           element, MessageKind.CONST_WITHOUT_INITIALIZER);
@@ -400,6 +422,8 @@ class ResolverTask extends CompilerTask {
 
     // Perform various checks as side effect of "computing" the type.
     element.computeType(resolution);
+
+    resolution.target.resolveNativeElement(element, registry.worldImpact);
 
     return registry.worldImpact;
   }
@@ -1071,7 +1095,6 @@ class ResolverTask extends CompilerTask {
               // and the annotated element instead. This will allow the backend to
               // retrieve the backend constant and only register metadata on the
               // elements for which it is needed. (Issue 17732).
-              registry.registerMetadataConstant(annotation);
               annotation.resolutionState = STATE_DONE;
             }));
   }

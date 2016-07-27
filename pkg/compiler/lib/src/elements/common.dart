@@ -6,7 +6,7 @@
 
 library elements.common;
 
-import '../common/names.dart' show Names, Uris;
+import '../common/names.dart' show Identifiers, Names, Uris;
 import '../core_types.dart' show CoreClasses;
 import '../dart_types.dart' show DartType, InterfaceType, FunctionType;
 import '../util/util.dart' show Link;
@@ -592,5 +592,64 @@ abstract class MixinApplicationElementCommon
       mixin.forEachLocalMember((Element mixedInElement) {
       if (mixedInElement.isInstanceMember) f(mixedInElement);
     });
+  }
+}
+
+abstract class AbstractFieldElementCommon implements AbstractFieldElement {
+  @override
+  bool get isInstanceMember {
+    return isClassMember && !isStatic;
+  }
+
+  @override
+  bool get isAbstract {
+    return getter != null && getter.isAbstract ||
+        setter != null && setter.isAbstract;
+  }
+}
+
+enum _FromEnvironmentState { NOT, BOOL, INT, STRING, }
+
+abstract class ConstructorElementCommon implements ConstructorElement {
+  _FromEnvironmentState _fromEnvironmentState;
+
+  _FromEnvironmentState get fromEnvironmentState {
+    if (_fromEnvironmentState == null) {
+      _fromEnvironmentState = _FromEnvironmentState.NOT;
+      if (name == Identifiers.fromEnvironment && library.isDartCore) {
+        switch (enclosingClass.name) {
+          case 'bool':
+            _fromEnvironmentState = _FromEnvironmentState.BOOL;
+            break;
+          case 'int':
+            _fromEnvironmentState = _FromEnvironmentState.INT;
+            break;
+          case 'String':
+            _fromEnvironmentState = _FromEnvironmentState.STRING;
+            break;
+        }
+      }
+    }
+    return _fromEnvironmentState;
+  }
+
+  @override
+  bool get isFromEnvironmentConstructor {
+    return fromEnvironmentState != _FromEnvironmentState.NOT;
+  }
+
+  @override
+  bool get isIntFromEnvironmentConstructor {
+    return fromEnvironmentState == _FromEnvironmentState.INT;
+  }
+
+  @override
+  bool get isBoolFromEnvironmentConstructor {
+    return fromEnvironmentState == _FromEnvironmentState.BOOL;
+  }
+
+  @override
+  bool get isStringFromEnvironmentConstructor {
+    return fromEnvironmentState == _FromEnvironmentState.STRING;
   }
 }

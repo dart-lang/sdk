@@ -349,6 +349,13 @@ class DeferredLoadTask extends CompilerTask {
         // See dartbug.com/26406 for context.
         treeElements
             .forEachConstantNode((Node node, ConstantExpression expression) {
+          if (compiler.serialization.isDeserialized(analyzableElement)) {
+            if (!expression.isImplicit && !expression.isPotential) {
+              // Enforce evaluation of [expression].
+              backend.constants.getConstantValue(expression);
+            }
+          }
+
           // Explicitly depend on the backend constants.
           if (backend.constants.hasConstantValue(expression)) {
             ConstantValue value =

@@ -1,15 +1,10 @@
-# These ignores are auto-generated from the canonical svn ignore metadata
-# using:
-#
-#  $ git svn create-ignore
-#
-# Whenever possible, prefer creating ignores in svn and then generating them
-# to keep git in sync.
+# Build artifacts and dependencies.
 /.children
 /.project
 /Makefile
+/base
 /benchmarks
-/build
+/buildtools
 /ipch
 /out
 /xcodebuild
@@ -26,9 +21,6 @@
 *.vcxproj
 *.vcxproj.filters
 /*.vcxproj.user
-
-# End generated ignores. The following are hand-added because the svn:ignore
-# stuff doesn't handle them well.
 
 # Gyp generated files
 *.xcodeproj

@@ -457,6 +457,11 @@ void MessageHandler::PausedOnStart(bool paused) {
 }
 
 
+void MessageHandler::DebugDump() {
+  PortMap::DebugDumpForMessageHandler(this);
+}
+
+
 void MessageHandler::PausedOnStartLocked(MonitorLocker* ml, bool paused) {
   if (paused) {
     ASSERT(!is_paused_on_start_);

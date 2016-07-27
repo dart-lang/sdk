@@ -571,23 +571,27 @@ TEST_CASE(Service_Address) {
 }
 
 
-static const char* alpha_callback(
+static bool alpha_callback(
     const char* name,
     const char** option_keys,
     const char** option_values,
     intptr_t num_options,
-    void* user_data) {
-  return strdup("alpha");
+    void* user_data,
+    const char** result) {
+  *result = strdup("alpha");
+  return true;
 }
 
 
-static const char* beta_callback(
+static bool beta_callback(
     const char* name,
     const char** option_keys,
     const char** option_values,
     intptr_t num_options,
-    void* user_data) {
-  return strdup("beta");
+    void* user_data,
+    const char** result) {
+  *result = strdup("beta");
+  return false;
 }
 
 
@@ -626,7 +630,7 @@ TEST_CASE(Service_EmbedderRootHandler) {
   service_msg = Eval(lib, "[0, port, 1, 'beta', [], []]");
   Service::HandleRootMessage(service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
-  EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"result\":beta,\"id\":1}",
+  EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"error\":beta,\"id\":1}",
                handler.msg());
 }
 
@@ -666,7 +670,7 @@ TEST_CASE(Service_EmbedderIsolateHandler) {
   service_msg = Eval(lib, "[0, port, '0', 'beta', [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
-  EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"result\":beta,\"id\":\"0\"}",
+  EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"error\":beta,\"id\":\"0\"}",
                handler.msg());
 }
 

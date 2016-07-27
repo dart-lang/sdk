@@ -70,7 +70,8 @@ class LoggerCanceler extends DiagnosticReporter {
     infos.forEach(log);
   }
 
-  void reportInfo(Spannable node, MessageKind errorCode, [Map arguments]) {
+  void reportInfo(Spannable node, MessageKind errorCode,
+      [Map arguments = const {}]) {
     log(new Message(MessageTemplate.TEMPLATES[errorCode], arguments, false));
   }
 

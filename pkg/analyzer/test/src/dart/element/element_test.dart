@@ -44,6 +44,7 @@ main() {
   runReflectiveTests(MethodElementImplTest);
   runReflectiveTests(MultiplyDefinedElementImplTest);
   runReflectiveTests(ParameterElementImplTest);
+  runReflectiveTests(PropertyAccessorElementImplTest);
   runReflectiveTests(TopLevelVariableElementImplTest);
 }
 
@@ -308,7 +309,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
   void test_isEnum() {
     String firstConst = "A";
     String secondConst = "B";
-    ClassElementImpl enumE = ElementFactory
+    EnumElementImpl enumE = ElementFactory
         .enumElement(new TestTypeProvider(), "E", [firstConst, secondConst]);
 
     // E is an enum
@@ -4181,6 +4182,39 @@ main(int p) {
       expect(node.identifier.name, 'p');
       expect(node.element, same(element));
     }
+  }
+}
+
+@reflectiveTest
+class PropertyAccessorElementImplTest extends EngineTestCase {
+  void test_matchesHandle_getter() {
+    CompilationUnitElementImpl compilationUnitElement =
+        ElementFactory.compilationUnit('foo.dart');
+    ElementFactory.library(null, '')
+      ..definingCompilationUnit = compilationUnitElement;
+    PropertyAccessorElementImpl element =
+        ElementFactory.getterElement('x', true, DynamicTypeImpl.instance);
+    compilationUnitElement.accessors = <PropertyAccessorElement>[element];
+    PropertyAccessorElementHandle handle =
+        new PropertyAccessorElementHandle(null, element.location);
+    expect(element.hashCode, handle.hashCode);
+    expect(element == handle, isTrue);
+    expect(handle == element, isTrue);
+  }
+
+  void test_matchesHandle_setter() {
+    CompilationUnitElementImpl compilationUnitElement =
+        ElementFactory.compilationUnit('foo.dart');
+    ElementFactory.library(null, '')
+      ..definingCompilationUnit = compilationUnitElement;
+    PropertyAccessorElementImpl element =
+        ElementFactory.setterElement('x', true, DynamicTypeImpl.instance);
+    compilationUnitElement.accessors = <PropertyAccessorElement>[element];
+    PropertyAccessorElementHandle handle =
+        new PropertyAccessorElementHandle(null, element.location);
+    expect(element.hashCode, handle.hashCode);
+    expect(element == handle, isTrue);
+    expect(handle == element, isTrue);
   }
 }
 

@@ -5125,6 +5125,19 @@ F<B> fb;
     verify([source]);
   }
 
+  void test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias_hasBound2() {
+    Source source = addSource(r'''
+class MyClass<T> {}
+typedef MyFunction<T, P extends MyClass<T>>();
+class A<T, P extends MyClass<T>> {
+  MyFunction<T, P> f;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias_noBound() {
     Source source = addSource(r'''
 typedef F<T>();

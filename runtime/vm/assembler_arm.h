@@ -744,14 +744,6 @@ class Assembler : public ValueObject {
   void PushObject(const Object& object);
   void CompareObject(Register rn, const Object& object);
 
-  // When storing into a heap object field, knowledge of the previous content
-  // is expressed through these constants.
-  enum FieldContent {
-    kEmptyOrSmiOrNull,  // Empty = garbage/zapped in release/debug mode.
-    kHeapObjectOrSmi,
-    kOnlySmi,
-  };
-
   void StoreIntoObject(Register object,  // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
                        Register value,  // Value we are storing.
@@ -763,27 +755,16 @@ class Assembler : public ValueObject {
 
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
-                                Register value,
-                                FieldContent old_content = kHeapObjectOrSmi);
-  void InitializeFieldNoBarrier(Register object,
-                                const Address& dest,
-                                Register value) {
-    StoreIntoObjectNoBarrier(object, dest, value, kEmptyOrSmiOrNull);
-  }
-  void StoreIntoObjectNoBarrierOffset(
-      Register object,
-      int32_t offset,
-      Register value,
-      FieldContent old_content = kHeapObjectOrSmi);
+                                Register value);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
-                                const Object& value,
-                                FieldContent old_content = kHeapObjectOrSmi);
-  void StoreIntoObjectNoBarrierOffset(
-      Register object,
-      int32_t offset,
-      const Object& value,
-      FieldContent old_content = kHeapObjectOrSmi);
+                                const Object& value);
+  void StoreIntoObjectNoBarrierOffset(Register object,
+                                      int32_t offset,
+                                      Register value);
+  void StoreIntoObjectNoBarrierOffset(Register object,
+                                      int32_t offset,
+                                      const Object& value);
 
   // Store value_even, value_odd, value_even, ... into the words in the address
   // range [begin, end), assumed to be uninitialized fields in object (tagged).
@@ -1192,27 +1173,6 @@ class Assembler : public ValueObject {
   void StoreIntoObjectFilterNoSmi(Register object,
                                   Register value,
                                   Label* no_update);
-
-  // Helpers for write-barrier verification.
-
-  // Returns VerifiedMemory::offset() as an Operand.
-  Operand GetVerifiedMemoryShadow();
-  // Writes value to [base + offset] and also its shadow location, if enabled.
-  void WriteShadowedField(Register base,
-                          intptr_t offset,
-                          Register value,
-                          Condition cond = AL);
-  void WriteShadowedFieldPair(Register base,
-                              intptr_t offset,
-                              Register value_even,
-                              Register value_odd,
-                              Condition cond = AL);
-  // Writes new_value to address and its shadow location, if enabled, after
-  // verifying that its old value matches its shadow.
-  void VerifiedWrite(Register object,
-                     const Address& address,
-                     Register new_value,
-                     FieldContent old_content);
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);

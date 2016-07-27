@@ -255,12 +255,12 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
     ],
 
     'MediaStream.getAudioTracks': [
-      "@Creates('JSExtendableArray')",
+      "@Creates('JSExtendableArray|MediaStreamTrack')",
       "@Returns('JSExtendableArray')",
     ],
 
     'MediaStream.getVideoTracks': [
-      "@Creates('JSExtendableArray')",
+      "@Creates('JSExtendableArray|MediaStreamTrack')",
       "@Returns('JSExtendableArray')",
     ],
 

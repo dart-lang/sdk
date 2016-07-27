@@ -56,38 +56,48 @@ void Function::ZeroEdgeCounters() const {
 }
 
 
-static void ClearICs(const Function& function, const Code& code) {
-  if (function.ic_data_array() == Array::null()) {
-    return;  // Already reset in an earlier round.
-  }
-
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-
-  ZoneGrowableArray<const ICData*>* ic_data_array =
-      new(zone) ZoneGrowableArray<const ICData*>();
-  function.RestoreICDataMap(ic_data_array, false /* clone ic-data */);
-  if (ic_data_array->length() == 0) {
+void Code::ResetICDatas() const {
+  // Iterate over the Code's object pool and reset all ICDatas.
+#ifdef TARGET_ARCH_IA32
+  // IA32 does not have an object pool, but, we can iterate over all
+  // embedded objects by using the variable length data section.
+  if (!is_alive()) {
     return;
   }
-  const PcDescriptors& descriptors =
-      PcDescriptors::Handle(code.pc_descriptors());
-  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kIcCall |
-                                            RawPcDescriptors::kUnoptStaticCall);
-  while (iter.MoveNext()) {
-    const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
-    if (ic_data == NULL) {
+  const Instructions& instrs = Instructions::Handle(instructions());
+  ASSERT(!instrs.IsNull());
+  uword base_address = instrs.EntryPoint();
+  Object& object = Object::Handle();
+  intptr_t offsets_length = pointer_offsets_length();
+  const int32_t* offsets = raw_ptr()->data();
+  for (intptr_t i = 0; i < offsets_length; i++) {
+    int32_t offset = offsets[i];
+    RawObject** object_ptr =
+        reinterpret_cast<RawObject**>(base_address + offset);
+    RawObject* raw_object = *object_ptr;
+    if (!raw_object->IsHeapObject()) {
       continue;
     }
-    bool is_static_call = iter.Kind() == RawPcDescriptors::kUnoptStaticCall;
-    ic_data->Reset(is_static_call);
+    object = raw_object;
+    if (object.IsICData()) {
+      ICData::Cast(object).Reset();
+    }
   }
-}
-
-
-void Function::FillICDataWithSentinels(const Code& code) const {
-  ASSERT(code.raw() == CurrentCode());
-  ClearICs(*this, code);
+#else
+  const ObjectPool& pool = ObjectPool::Handle(object_pool());
+  Object& object = Object::Handle();
+  ASSERT(!pool.IsNull());
+  for (intptr_t i = 0; i < pool.Length(); i++) {
+    ObjectPool::EntryType entry_type = pool.InfoAt(i);
+    if (entry_type != ObjectPool::kTaggedObject) {
+      continue;
+    }
+    object = pool.ObjectAt(i);
+    if (object.IsICData()) {
+      ICData::Cast(object).Reset();
+    }
+  }
+#endif
 }
 
 
@@ -423,6 +433,9 @@ bool Class::CanReload(const Class& replacement) const {
     TIR_Print("Finalized replacement class for %s\n", ToCString());
   }
 
+  // At this point the original and replacement must be in the same state.
+  ASSERT(is_finalized() == replacement.is_finalized());
+
   if (is_finalized()) {
     // Get the field maps for both classes. These field maps walk the class
     // hierarchy.
@@ -431,8 +444,17 @@ bool Class::CanReload(const Class& replacement) const {
     const Array& replacement_fields =
         Array::Handle(replacement.OffsetToFieldMap());
 
-    // Check that we have the same number of fields.
+    // Check that the size of the instance is the same.
     if (fields.Length() != replacement_fields.Length()) {
+      IRC->ReportError(String::Handle(String::NewFormatted(
+          "Number of instance fields changed in %s", ToCString())));
+      return false;
+    }
+
+    // Check that we have the same next field offset. This check is not
+    // redundant with the one above because the instance OffsetToFieldMap
+    // array length is based on the instance size (which may be aligned up).
+    if (next_field_offset() != replacement.next_field_offset()) {
       IRC->ReportError(String::Handle(String::NewFormatted(
           "Number of instance fields changed in %s", ToCString())));
       return false;
@@ -470,7 +492,8 @@ bool Class::CanReload(const Class& replacement) const {
   } else if (is_prefinalized()) {
     if (!replacement.is_prefinalized()) {
       IRC->ReportError(String::Handle(String::NewFormatted(
-          "Original class ('%s') is prefinalized and replacement class ('%s')",
+          "Original class ('%s') is prefinalized and replacement class "
+          "('%s') is not ",
           ToCString(), replacement.ToCString())));
       return false;
     }
@@ -510,10 +533,8 @@ bool Library::CanReload(const Library& replacement) const {
 
 static const Function* static_call_target = NULL;
 
-void ICData::Reset(bool is_static_call) const {
-  // TODO(johnmccutchan): ICData should know whether or not it's for a
-  // static call.
-  if (is_static_call) {
+void ICData::Reset() const {
+  if (is_static_call()) {
     const Function& old_target = Function::Handle(GetTargetAt(0));
     if (old_target.IsNull()) {
       FATAL("old_target is NULL.\n");

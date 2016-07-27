@@ -9,8 +9,11 @@ import '../elements/elements.dart';
 
 abstract class Scope {
   /**
-   * Adds [element] to this scope. This operation is only allowed on mutable
-   * scopes such as [MethodScope] and [BlockScope].
+   * If an [Element] named `element.name` has already been added to this
+   * [Scope], return that element and make no changes. If no such element has
+   * been added, add the given [element] to this [Scope], and return [element].
+   * Note that this operation is only allowed on mutable scopes such as
+   * [MethodScope] and [BlockScope].
    */
   Element add(Element element);
 
@@ -121,6 +124,46 @@ abstract class MutableScope extends NestedScope {
   }
 
   Element localLookup(String name) => elements[name];
+}
+
+/**
+ * [ExtensionScope] enables the creation of an extended version of an
+ * existing [NestedScope], received during construction and stored in
+ * [extendee]. An [ExtensionScope] will treat an added `element` as conflicting
+ * if an element `e` where `e.name == element.name` exists among the elements
+ * added to this [ExtensionScope], or among the ones added to [extendee]
+ * (according to `extendee.localLookup`). In this sense, it represents the
+ * union of the bindings stored locally in [elements] and the bindings in
+ * [extendee], not a new scope which is nested inside [extendee].
+ *
+ * Note that it is required that no bindings are added to [extendee] during the
+ * lifetime of this [ExtensionScope]: That would enable duplicates to be
+ * introduced into the extended scope consisting of [this] plus [extendee]
+ * without detection.
+ */
+class ExtensionScope extends Scope {
+  final NestedScope extendee;
+  final Map<String, Element> elements;
+
+  ExtensionScope(this.extendee) : this.elements = new Map<String, Element>() {
+    assert(extendee != null);
+  }
+
+  Element lookup(String name) {
+    Element result = elements[name];
+    if (result != null) return result;
+    return extendee.lookup(name);
+  }
+
+  Element add(Element newElement) {
+    if (elements.containsKey(newElement.name)) {
+      return elements[newElement.name];
+    }
+    Element existing = extendee.localLookup(newElement.name);
+    if (existing != null) return existing;
+    elements[newElement.name] = newElement;
+    return newElement;
+  }
 }
 
 class MethodScope extends MutableScope {

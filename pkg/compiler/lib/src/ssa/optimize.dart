@@ -505,7 +505,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // Strengthen instruction type from annotations to help optimize
     // dependent instructions.
     native.NativeBehavior nativeBehavior =
-        native.NativeBehavior.ofMethod(method, compiler);
+        backend.getNativeMethodBehavior(method);
     TypeMask returnType =
         TypeMaskFactory.fromNativeBehavior(nativeBehavior, compiler);
     HInvokeDynamicMethod result =
@@ -869,7 +869,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     TypeMask type;
     if (backend.isNative(field.enclosingClass)) {
       type = TypeMaskFactory.fromNativeBehavior(
-          native.NativeBehavior.ofFieldLoad(field, compiler), compiler);
+          backend.getNativeFieldLoadBehavior(field), compiler);
     } else {
       type = TypeMaskFactory.inferredTypeForElement(field, compiler);
     }

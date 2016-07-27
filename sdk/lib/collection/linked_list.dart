@@ -258,13 +258,13 @@ abstract class LinkedListEntry<E extends LinkedListEntry<E>> {
   }
 
   /**
-   * Return the succeessor of this element in its linked list.
+   * Return the successor of this element in its linked list.
    *
    * Returns `null` if there is no successor in the linked list, or if this
    * entry is not currently in any list.
    */
   E get next {
-    if (identical(this, _next)) return null;
+    if (_list == null || identical(_list.first, _next)) return null;
     return _next;
   }
 
@@ -275,7 +275,7 @@ abstract class LinkedListEntry<E extends LinkedListEntry<E>> {
    * entry is not currently in any list.
    */
   E get previous {
-    if (identical(this, _previous)) return null;
+    if (_list == null || identical(this, _list.first)) return null;
     return _previous;
   }
 

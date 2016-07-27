@@ -4,6 +4,7 @@
 
 library analyzer.src.task.general;
 
+import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/general.dart';
@@ -33,13 +34,36 @@ class GetContentTask extends SourceBasedAnalysisTask {
   @override
   internalPerform() {
     Source source = getRequiredSource();
+    String content;
+    int modificationTime;
     try {
       TimestampedData<String> data = context.getContents(source);
-      outputs[CONTENT] = data.data;
-      outputs[MODIFICATION_TIME] = data.modificationTime;
+      content = data.data;
+      modificationTime = data.modificationTime;
     } catch (exception) {
-      outputs[CONTENT] = '';
-      outputs[MODIFICATION_TIME] = -1;
+      content = '';
+      modificationTime = -1;
+    }
+    _validateModificationTime(source, modificationTime);
+    outputs[CONTENT] = content;
+    outputs[MODIFICATION_TIME] = modificationTime;
+  }
+
+  /**
+   * Validate that the [target] cache entry has the same modification time
+   * as the given.  Otherwise throw a new [ModificationTimeMismatchError] and
+   * instruct to invalidate targets content.
+   */
+  void _validateModificationTime(Source source, int modificationTime) {
+    AnalysisContext context = this.context;
+    if (context is InternalAnalysisContext) {
+      CacheEntry entry = context.getCacheEntry(target);
+      if (entry != null && entry.modificationTime != modificationTime) {
+        entry.modificationTime = modificationTime;
+        entry.setState(CONTENT, CacheState.INVALID);
+        entry.setState(MODIFICATION_TIME, CacheState.INVALID);
+        throw new ModificationTimeMismatchError(source);
+      }
     }
   }
 

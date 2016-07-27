@@ -1275,7 +1275,14 @@ const char* Environment::ToCString() const {
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
+
 #else  // PRODUCT
+
+
+const char* Instruction::ToCString() const {
+  return DebugName();
+}
+
 
 void FlowGraphPrinter::PrintOneInstruction(Instruction* instr,
                                            bool print_locations) {

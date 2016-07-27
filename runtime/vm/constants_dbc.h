@@ -83,6 +83,11 @@ namespace dart {
 //
 //    Unreachable instruction.
 //
+//  - Nop D
+//
+//    This instuction does nothing. It may refer to an object in the constant
+//    pool that may be decoded by other instructions.
+//
 //  - Compile
 //
 //    Compile current function and start executing newly produced code
@@ -152,6 +157,16 @@ namespace dart {
 //
 //    Invoke native function SP[-1] with argc_tag SP[0].
 //
+//  - OneByteStringFromCharCode rA, rX
+//
+//    Load the one-character symbol with the char code given by the Smi
+//    in FP[rX] into FP[rA].
+//
+//  - StringToCharCode rA, rX
+//
+//    Load and smi-encode the single char code of the string in FP[rX] into
+//    FP[rA]. If the string's length is not 1, load smi -1 instead.
+//
 //  - AddTOS; SubTOS; MulTOS; BitOrTOS; BitAndTOS; EqualTOS; LessThanTOS;
 //    GreaterThanTOS;
 //
@@ -160,7 +175,29 @@ namespace dart {
 //    then pops operands and pushes result on the stack and skips the next
 //    instruction (which implements a slow path fallback).
 //
-//  - StoreStaticTOS D
+//  - Add, Sub, Mul, Div, Mod, Shl, Shr rA, rB, rC
+//
+//    Arithmetic operations on Smis. FP[rA] <- FP[rB] op FP[rC].
+//    If these instructions can trigger a deoptimization, the following
+//    instruction should be Deopt. If no deoptimization should be triggered,
+//    the immediately following instruction is skipped. These instructions
+//    expect their operands to be Smis, but don't check that they are.
+//
+//  - Neg rA , rD
+//
+//    FP[rA] <- -FP[rD]. Assumes FP[rD] is a Smi. If there is no overflow the
+//    immediately following instruction is skipped.
+//
+//  - BitOr, BitAnd, BitXor rA, rB, rC
+//
+//    FP[rA] <- FP[rB] op FP[rC]. These instructions expect their operands to be
+//    Smis, but don't check that they are.
+//
+//  - BitNot rA, rD
+//
+//    FP[rA] <- ~FP[rD]. As above, assumes FP[rD] is a Smi.
+//
+//  - StoreStaticT`OS D
 //
 //    Stores TOS into the static field PP[D].
 //
@@ -185,6 +222,11 @@ namespace dart {
 //
 //        IfNeStrictTOS
 //        Jump T         ;; jump if not equal
+//
+//  - If<Cond>Null rA
+//
+//    Cond is Eq or Ne. Skips the next instruction unless the given condition
+//    holds.
 //
 //  - CreateArrayTOS
 //
@@ -314,6 +356,12 @@ namespace dart {
 //
 //    Instantiate type arguments PP[D] with instantiator SP[0].
 //
+//  - InstanceOf A
+//
+//    Test if instance SP[-3] with type arguments SP[-2] is (A = 0) or is not
+//    (A = 1) a subtype of SP[-1] using SubtypeTestCache SP[0], with result
+//    placed at top of stack.
+//
 //  - AssertAssignable D
 //
 //    Assert that SP[-3] is assignable to variable named SP[0] of type
@@ -322,6 +370,33 @@ namespace dart {
 //  - AssertBoolean A
 //
 //    Assert that TOS is a boolean (A = 1) or that TOS is not null (A = 0).
+//
+//  - TestSmi rA, rD
+//
+//    If FP[rA] & FP[rD] != 0, then skip the next instruction. FP[rA] and FP[rD]
+//    must be Smis.
+//
+//  - CheckSmi rA
+//
+//    If FP[rA] is a Smi, then skip the next instruction.
+//
+//  - CheckClassId rA, D
+//
+//    If the object at FP[rA]'s class id matches the class id D, then skip the
+//    following instruction.
+//
+//  - CheckDenseSwitch rA, D
+//
+//    Skips the next 3 instructions if the object at FP[rA] is a valid class for
+//    a dense switch with low cid encoded in the following Nop instruction, and
+//    the cid mask encoded in the Nop instruction after that, or if D == 1 and
+//    FP[rA] is a Smi. Skips 2 instructions otherwise.
+//
+//  - CheckCids rA, rB, rC
+//
+//    Skips rC + 1 instructions if the object at FP[rA] is a Smi and
+//    rB == 1, or if FP[rA]'s cid is found in the array of cids encoded by the
+//    following rC Nop instructions. Otherwise skips only rC instructions.
 //
 //  - CheckStack
 //
@@ -359,7 +434,7 @@ namespace dart {
 //    e.g. in bytecode sequences like
 //
 //    InstanceCall ... <- lazy deopt inside first call
-//    InstanceCall ... <- patches seconds call with Deopt
+//    InstanceCall ... <- patches second call with Deopt
 //
 // BYTECODE LIST FORMAT
 //
@@ -385,6 +460,7 @@ namespace dart {
 //
 #define BYTECODES_LIST(V)                              \
   V(Trap,                            0, ___, ___, ___) \
+  V(Nop,                             D, lit, ___, ___) \
   V(Compile,                         0, ___, ___, ___) \
   V(HotCheck,                      A_D, num, num, ___) \
   V(Intrinsic,                       A, num, ___, ___) \
@@ -404,12 +480,14 @@ namespace dart {
   V(StoreLocal,                      X, xeg, ___, ___) \
   V(PopLocal,                        X, xeg, ___, ___) \
   V(StaticCall,                    A_D, num, num, ___) \
-  V(InstanceCall1,                  A_D, num, num, ___) \
+  V(InstanceCall1,                 A_D, num, num, ___) \
   V(InstanceCall2,                 A_D, num, num, ___) \
   V(InstanceCall1Opt,              A_D, num, num, ___) \
   V(InstanceCall2Opt,              A_D, num, num, ___) \
   V(NativeCall,                      0, ___, ___, ___) \
   V(NativeBootstrapCall,             0, ___, ___, ___) \
+  V(OneByteStringFromCharCode,     A_X, reg, xeg, ___) \
+  V(StringToCharCode,              A_X, reg, xeg, ___) \
   V(AddTOS,                          0, ___, ___, ___) \
   V(SubTOS,                          0, ___, ___, ___) \
   V(MulTOS,                          0, ___, ___, ___) \
@@ -418,6 +496,18 @@ namespace dart {
   V(EqualTOS,                        0, ___, ___, ___) \
   V(LessThanTOS,                     0, ___, ___, ___) \
   V(GreaterThanTOS,                  0, ___, ___, ___) \
+  V(Add,                         A_B_C, reg, reg, reg) \
+  V(Sub,                         A_B_C, reg, reg, reg) \
+  V(Mul,                         A_B_C, reg, reg, reg) \
+  V(Div,                         A_B_C, reg, reg, reg) \
+  V(Mod,                         A_B_C, reg, reg, reg) \
+  V(Shl,                         A_B_C, reg, reg, reg) \
+  V(Shr,                         A_B_C, reg, reg, reg) \
+  V(Neg,                           A_D, reg, reg, ___) \
+  V(BitOr,                       A_B_C, reg, reg, reg) \
+  V(BitAnd,                      A_B_C, reg, reg, reg) \
+  V(BitXor,                      A_B_C, reg, reg, reg) \
+  V(BitNot,                        A_D, reg, reg, ___) \
   V(StoreStaticTOS,                  D, lit, ___, ___) \
   V(PushStatic,                      D, lit, ___, ___) \
   V(InitStaticTOS,                   0, ___, ___, ___) \
@@ -429,6 +519,8 @@ namespace dart {
   V(IfEqStrict,                    A_D, reg, reg, ___) \
   V(IfNeStrictNum,                 A_D, reg, reg, ___) \
   V(IfEqStrictNum,                 A_D, reg, reg, ___) \
+  V(IfEqNull,                        A, reg, ___, ___) \
+  V(IfNeNull,                        A, reg, ___, ___) \
   V(CreateArrayTOS,                  0, ___, ___, ___) \
   V(Allocate,                        D, lit, ___, ___) \
   V(AllocateT,                       0, ___, ___, ___) \
@@ -451,8 +543,14 @@ namespace dart {
   V(MoveSpecial,                   A_D, reg, num, ___) \
   V(InstantiateType,                 D, lit, ___, ___) \
   V(InstantiateTypeArgumentsTOS,   A_D, num, lit, ___) \
+  V(InstanceOf,                      A, num, ___, ___) \
   V(AssertAssignable,                D, num, lit, ___) \
   V(AssertBoolean,                   A, num, ___, ___) \
+  V(TestSmi,                       A_D, reg, reg, ___) \
+  V(CheckSmi,                        A, reg, ___, ___) \
+  V(CheckClassId,                  A_D, reg, num, ___) \
+  V(CheckDenseSwitch,              A_D, reg, num, ___) \
+  V(CheckCids,                   A_B_C, reg, num, ___) \
   V(CheckStack,                      0, ___, ___, ___) \
   V(DebugStep,                       0, ___, ___, ___) \
   V(DebugBreak,                      A, num, ___, ___) \
@@ -570,7 +668,11 @@ enum FpuRegister {
 const FpuRegister FpuTMP = kFakeFpuRegister;
 const intptr_t kNumberOfFpuRegisters = 1;
 
-enum Condition { EQ, NE };
+// After a comparison, the condition NEXT_IS_TRUE means the following
+// instruction is executed if the comparision is true and skipped over overwise.
+// Conidition NEXT_IS_FALSE means the following instruction is executed if the
+// comparison is false and skipped over otherwise.
+enum Condition { NEXT_IS_TRUE, NEXT_IS_FALSE };
 
 }  // namespace dart
 

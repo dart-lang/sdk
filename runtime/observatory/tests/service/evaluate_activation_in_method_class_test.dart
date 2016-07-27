@@ -20,6 +20,7 @@ class Subclass extends Superclass with Klass {
   var instVar = 'Subclass';
   method() => 'Subclass';
   static staticMethod() => 'Subclass';
+  suppress_warning() => _instVar;
 }
 
 testeeDo() {
@@ -70,7 +71,7 @@ testerDo(Isolate isolate) async {
   result = await isolate.evalFrame(topFrame, 'staticMethod()');
   print(result);
   expect(result.valueAsString, equals('Klass'));
-  
+
   // function.Owner verus function.Origin
   // The mixin of Superclass is in _other.dart and the mixin
   // application is in _test.dart.

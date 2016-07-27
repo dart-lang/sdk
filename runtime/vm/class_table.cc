@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/atomic.h"
 #include "vm/class_table.h"
+
+#include "vm/atomic.h"
 #include "vm/flags.h"
 #include "vm/freelist.h"
 #include "vm/growable_array.h"
@@ -35,6 +36,7 @@ ClassTable::ClassTable()
       table_[i] = vm_class_table->At(i);
     }
     table_[kFreeListElement] = vm_class_table->At(kFreeListElement);
+    table_[kForwardingCorpse] = vm_class_table->At(kForwardingCorpse);
     table_[kDynamicCid] = vm_class_table->At(kDynamicCid);
     table_[kVoidCid] = vm_class_table->At(kVoidCid);
     class_heap_stats_table_ = reinterpret_cast<ClassHeapStats*>(
@@ -142,10 +144,7 @@ void ClassTable::Register(const Class& cls) {
 }
 
 
-void ClassTable::RegisterAt(intptr_t index, const Class& cls) {
-  ASSERT(Thread::Current()->IsMutatorThread());
-  ASSERT(index != kIllegalCid);
-  ASSERT(index >= kNumPredefinedCids);
+void ClassTable::AllocateIndex(intptr_t index) {
   if (index >= capacity_) {
     // Grow the capacity of the class table.
     // TODO(koda): Add ClassTable::Grow to share code.
@@ -170,12 +169,21 @@ void ClassTable::RegisterAt(intptr_t index, const Class& cls) {
     class_heap_stats_table_ = new_stats_table;
     ASSERT(capacity_increment_ >= 1);
   }
+
   ASSERT(table_[index] == 0);
-  cls.set_id(index);
-  table_[index] = cls.raw();
   if (index >= top_) {
     top_ = index + 1;
   }
+}
+
+
+void ClassTable::RegisterAt(intptr_t index, const Class& cls) {
+  ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(index != kIllegalCid);
+  ASSERT(index >= kNumPredefinedCids);
+  AllocateIndex(index);
+  cls.set_id(index);
+  table_[index] = cls.raw();
 }
 
 
@@ -218,9 +226,6 @@ void ClassTable::Print() {
     if (!HasValidClassAt(i)) {
       continue;
     }
-    if (i == kFreeListElement) {
-      continue;
-    }
     cls = At(i);
     if (cls.raw() != reinterpret_cast<RawClass*>(0)) {
       name = cls.Name();
@@ -230,6 +235,7 @@ void ClassTable::Print() {
 }
 
 
+#ifndef PRODUCT
 void ClassTable::PrintToJSONObject(JSONObject* object) {
   if (!FLAG_support_service) {
     return;
@@ -246,6 +252,7 @@ void ClassTable::PrintToJSONObject(JSONObject* object) {
     }
   }
 }
+#endif  // PRODUCT
 
 
 void ClassHeapStats::Initialize() {
@@ -325,6 +332,7 @@ void ClassHeapStats::UpdatePromotedAfterNewGC() {
 }
 
 
+#ifndef PRODUCT
 void ClassHeapStats::PrintToJSONObject(const Class& cls,
                                        JSONObject* obj) const {
   if (!FLAG_support_service) {
@@ -361,6 +369,7 @@ void ClassHeapStats::PrintToJSONObject(const Class& cls,
   obj->AddProperty("promotedInstances", promoted_count);
   obj->AddProperty("promotedBytes", promoted_size);
 }
+#endif
 
 
 void ClassTable::UpdateAllocatedNew(intptr_t cid, intptr_t size) {
@@ -395,7 +404,10 @@ ClassHeapStats* ClassTable::PreliminaryStatsAt(intptr_t cid) {
 
 
 ClassHeapStats* ClassTable::StatsWithUpdatedSize(intptr_t cid) {
-  if (!HasValidClassAt(cid) || (cid == kFreeListElement) || (cid == kSmiCid)) {
+  if (!HasValidClassAt(cid) ||
+      (cid == kFreeListElement) ||
+      (cid == kForwardingCorpse) ||
+      (cid == kSmiCid)) {
     return NULL;
   }
   Class& cls = Class::Handle(At(cid));
@@ -471,7 +483,7 @@ intptr_t ClassTable::CounterOffsetFor(intptr_t cid, bool is_new_space) {
 
 
 intptr_t ClassTable::StateOffsetFor(intptr_t cid) {
-  return ClassOffsetFor(cid)+ ClassHeapStats::state_offset();
+  return ClassOffsetFor(cid) + ClassHeapStats::state_offset();
 }
 
 
@@ -484,6 +496,7 @@ intptr_t ClassTable::SizeOffsetFor(intptr_t cid, bool is_new_space) {
 }
 
 
+#ifndef PRODUCT
 void ClassTable::AllocationProfilePrintJSON(JSONStream* stream) {
   if (!FLAG_support_service) {
     return;
@@ -525,6 +538,7 @@ void ClassTable::AllocationProfilePrintJSON(JSONStream* stream) {
     }
   }
 }
+#endif
 
 
 void ClassTable::ResetAllocationAccumulators() {

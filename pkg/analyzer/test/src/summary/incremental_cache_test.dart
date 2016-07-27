@@ -3,16 +3,66 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/incremental_cache.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
 import '../abstract_single_unit.dart';
 
 main() {
   groupSep = ' | ';
+  runReflectiveTests(ComparePathsTest);
   runReflectiveTests(IncrementalCacheTest);
+}
+
+@reflectiveTest
+class ComparePathsTest extends AbstractSingleUnitTest {
+  void test_empty() {
+    expect(comparePaths('', ''), 0);
+  }
+
+  void test_equal() {
+    expect(comparePaths('abc', 'abc'), 0);
+  }
+
+  void test_longer_suffixAfter() {
+    expect(comparePaths('aab', 'aa'), 1);
+  }
+
+  void test_longer_suffixBefore() {
+    expect(comparePaths('aaa', 'ab'), -1);
+  }
+
+  void test_longer_suffixSame() {
+    expect(comparePaths('aaa', 'aa'), 1);
+  }
+
+  void test_sameLength_before0() {
+    expect(comparePaths('aaa', 'bbb'), -1);
+  }
+
+  void test_sameLength_before1() {
+    expect(comparePaths('aaa', 'bba'), -1);
+  }
+
+  void test_sameLength_before2() {
+    expect(comparePaths('aaa', 'bba'), -1);
+  }
+
+  void test_shorter_suffixAfter() {
+    expect(comparePaths('ab', 'aaa'), 1);
+  }
+
+  void test_shorter_suffixBefore() {
+    expect(comparePaths('aa', 'aab'), -1);
+  }
+
+  void test_shorter_suffixSame() {
+    expect(comparePaths('aa', 'aaa'), -1);
+  }
 }
 
 /**
@@ -119,6 +169,63 @@ main() {}
     expect(bundles, isNotNull);
   }
 
+  void test_getLibraryParts_hasParts() {
+    Source part1Source = addSource('/part1.dart', r'part of test;');
+    Source part2Source = addSource('/part2.dart', r'part of test;');
+    putTestLibrary(r'''
+library test;
+part 'part1.dart';
+part 'part2.dart';
+''');
+    expect(cache.getLibraryParts(testSource),
+        unorderedEquals([part1Source, part2Source]));
+  }
+
+  void test_getLibraryParts_noParts() {
+    putTestLibrary(r'''
+main() {}
+''');
+    expect(cache.getLibraryParts(testSource), isEmpty);
+  }
+
+  void test_getSourceErrorsInLibrary_library() {
+    verifyNoTestUnitErrors = false;
+    putTestLibrary(r'''
+main() {
+  int unusedVar = 42;
+}
+''');
+    List<AnalysisError> computedErrors = context.computeErrors(testSource);
+    cache.putSourceErrorsInLibrary(testSource, testSource, computedErrors);
+    List<AnalysisError> readErrors =
+        cache.getSourceErrorsInLibrary(testSource, testSource);
+    new GatheringErrorListener()
+      ..addAll(readErrors)
+      ..assertErrors(computedErrors);
+  }
+
+  void test_getSourceErrorsInLibrary_part() {
+    verifyNoTestUnitErrors = false;
+    Source partSource = addSource(
+        '/foo.dart',
+        r'''
+main() {
+  int unusedVar = 42;
+}
+''');
+    putTestLibrary(r'''
+library lib;
+part 'foo.dart';
+''');
+    List<AnalysisError> computedErrors = context.computeErrors(partSource);
+    cache.putSourceErrorsInLibrary(testSource, partSource, computedErrors);
+    List<AnalysisError> readErrors =
+        cache.getSourceErrorsInLibrary(testSource, partSource);
+    new GatheringErrorListener()
+      ..addAll(readErrors)
+      ..assertErrors(computedErrors);
+  }
+
   void test_getSourceKind_library() {
     putTestLibrary(r'''
 main() {}
@@ -174,6 +281,9 @@ part 'foo.dart';
  */
 class _TestCacheStorage implements CacheStorage {
   final Map<String, List<int>> map = <String, List<int>>{};
+
+  @override
+  void compact() {}
 
   @override
   List<int> get(String key) {

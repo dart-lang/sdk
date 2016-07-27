@@ -229,6 +229,9 @@ async/multiple_timer_test: Pass, Fail # Probably issue 14734
 # TODO(efortuna): Investigate.
 async/timer_test: Fail, Pass
 
+[ $runtime == vm ]
+convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
+
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
 async/timer_not_available_test: Fail, OK
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
@@ -370,3 +373,8 @@ convert/utf85_test: Pass, Timeout
 # TODO(vegorov) LoadField bytecode supports only up to 256 fields. Need a long
 # version.
 mirrors/accessor_cache_overflow_test: Skip
+
+[ $hot_reload ]
+convert/chunked_conversion_utf88_test: Pass, Timeout
+convert/streamed_conversion_json_utf8_decode_test: Fail, Crash
+convert/utf85_test: Fail, Crash

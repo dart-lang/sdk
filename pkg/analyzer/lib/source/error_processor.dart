@@ -121,6 +121,14 @@ class _StrongModeTypeErrorProcessor implements ErrorProcessor {
   ErrorSeverity get severity => ErrorSeverity.ERROR;
 
   /// Check if this processor applies to the given [error].
-  bool appliesTo(AnalysisError error) =>
-      error.errorCode.type == ErrorType.STATIC_TYPE_WARNING;
+  bool appliesTo(AnalysisError error) {
+    ErrorCode errorCode = error.errorCode;
+    if (errorCode is StaticTypeWarningCode) {
+      return true;
+    }
+    if (errorCode is StaticWarningCode) {
+      return errorCode.isStrongModeError;
+    }
+    return false;
+  }
 }

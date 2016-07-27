@@ -1349,17 +1349,11 @@ class Assembler : public ValueObject {
                            Register scratch2,
                            Label* miss);
 
+  void SetupDartSP();
+  void RestoreCSP();
+
   void EnterFrame(intptr_t frame_size);
   void LeaveFrame();
-
-  // When entering Dart code from C++, we copy the system stack pointer (CSP)
-  // to the Dart stack pointer (SP), and reserve a little space for the stack
-  // to grow.
-  void SetupDartSP(intptr_t reserved_space) {
-    ASSERT(Utils::IsAligned(reserved_space, 16));
-    mov(SP, CSP);
-    sub(CSP, CSP, Operand(reserved_space));
-  }
 
   void CheckCodePointer();
   void RestoreCodePointer();

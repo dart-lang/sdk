@@ -101,15 +101,18 @@ class AnalysisDriver {
     try {
       isTaskRunning = true;
       AnalysisTask task;
-      WorkOrder workOrder = createWorkOrderForResult(target, result);
-      if (workOrder != null) {
-        while (workOrder.moveNext()) {
-//          AnalysisTask previousTask = task;
-//          String message = workOrder.current.toString();
-          task = performWorkItem(workOrder.current);
-//          if (task == null) {
-//            throw new AnalysisException(message, previousTask.caughtException);
-//          }
+      while (true) {
+        try {
+          WorkOrder workOrder = createWorkOrderForResult(target, result);
+          if (workOrder != null) {
+            while (workOrder.moveNext()) {
+              task = performWorkItem(workOrder.current);
+            }
+          }
+          break;
+        } on ModificationTimeMismatchError {
+          // Cache inconsistency was detected and fixed by invalidating
+          // corresponding results in cache. Computation must be restarted.
         }
       }
       return task;
@@ -248,7 +251,12 @@ class AnalysisDriver {
       if (currentWorkOrder == null) {
         currentWorkOrder = createNextWorkOrder();
       } else if (currentWorkOrder.moveNext()) {
-        performWorkItem(currentWorkOrder.current);
+        try {
+          performWorkItem(currentWorkOrder.current);
+        } on ModificationTimeMismatchError {
+          reset();
+          return true;
+        }
       } else {
         currentWorkOrder = createNextWorkOrder();
       }
@@ -278,7 +286,10 @@ class AnalysisDriver {
       AnalysisTarget target = task.target;
       CacheEntry entry = context.getCacheEntry(target);
       if (task.caughtException == null) {
-        List<TargetedResult> dependedOn = item.inputTargetedResults.toList();
+        List<TargetedResult> dependedOn =
+            context.analysisOptions.trackCacheDependencies
+                ? item.inputTargetedResults.toList()
+                : const <TargetedResult>[];
         Map<ResultDescriptor, dynamic> outputs = task.outputs;
         List<ResultDescriptor> results = task.descriptor.results;
         int resultLength = results.length;
@@ -761,7 +772,6 @@ class WorkItem {
             throw new AnalysisException(
                 'Cannot create work order to build $inputResult for $inputTarget',
                 this.exception);
-            return null;
           }
         }
       } else {

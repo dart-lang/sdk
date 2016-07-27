@@ -19,7 +19,6 @@ import 'package:analysis_server/starter.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/file_instrumentation.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/plugin/embedded_resolver_provider.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/incremental_logger.dart';
@@ -245,6 +244,11 @@ class Driver implements ServerStarter {
       "incremental-resolution-validation";
 
   /**
+   * The name of the option used to enable fined grained invalidation.
+   */
+  static const String FINER_GRAINED_INVALIDATION = 'finer-grained-invalidation';
+
+  /**
    * The name of the option used to cause instrumentation to also be written to
    * a local file.
    */
@@ -298,10 +302,10 @@ class Driver implements ServerStarter {
   InstrumentationServer instrumentationServer;
 
   /**
-   * The embedded library URI resolver provider used to override the way
-   * embedded library URI's are resolved in some contexts.
+   * The file resolver provider used to override the way file URI's are
+   * resolved in some contexts.
    */
-  EmbeddedResolverProvider embeddedUriResolverProvider;
+  ResolverProvider fileResolverProvider;
 
   /**
    * The package resolver provider used to override the way package URI's are
@@ -375,6 +379,8 @@ class Driver implements ServerStarter {
         results[ENABLE_INCREMENTAL_RESOLUTION_API];
     analysisServerOptions.enableIncrementalResolutionValidation =
         results[INCREMENTAL_RESOLUTION_VALIDATION];
+    analysisServerOptions.finerGrainedInvalidation =
+        results[FINER_GRAINED_INVALIDATION];
     analysisServerOptions.noErrorNotification = results[NO_ERROR_NOTIFICATION];
     analysisServerOptions.noIndex = results[NO_INDEX];
     analysisServerOptions.useAnalysisHighlight2 =
@@ -407,10 +413,12 @@ class Driver implements ServerStarter {
       // Use DirectoryBasedDartSdk.defaultSdkDirectory, which will make a guess.
       defaultSdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
     }
+    bool useSummaries = analysisServerOptions.fileReadMode == 'as-is';
     SdkCreator defaultSdkCreator = (AnalysisOptions options) {
       DirectoryBasedDartSdk sdk =
           new DirectoryBasedDartSdk(defaultSdkDirectory);
       sdk.analysisOptions = options;
+      sdk.useSummary = useSummaries;
       return sdk;
     };
     // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
@@ -440,11 +448,12 @@ class Driver implements ServerStarter {
     //
     socketServer = new SocketServer(
         analysisServerOptions,
-        defaultSdkCreator,
+        new DartSdkManager(defaultSdkDirectory.getAbsolutePath(), useSummaries,
+            defaultSdkCreator),
         defaultSdk,
         service,
         serverPlugin,
-        embeddedUriResolverProvider,
+        fileResolverProvider,
         packageResolverProvider,
         useSingleContextManager);
     httpServer = new HttpAnalysisServer(socketServer);
@@ -521,6 +530,10 @@ class Driver implements ServerStarter {
         help: "set a destination for the incremental resolver's log");
     parser.addFlag(INCREMENTAL_RESOLUTION_VALIDATION,
         help: "enable validation of incremental resolution results (slow)",
+        defaultsTo: false,
+        negatable: false);
+    parser.addFlag(FINER_GRAINED_INVALIDATION,
+        help: "enable finer grained invalidation",
         defaultsTo: false,
         negatable: false);
     parser.addOption(INSTRUMENTATION_LOG_FILE,

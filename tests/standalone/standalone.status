@@ -7,6 +7,9 @@
 # listed in tests/lib/analyzer/analyze_tests.status without the "standalone"
 # prefix.
 
+packages_file_test: Skip # Issue 26715
+packages_file_test/none: Skip   # contains no tests.
+
 package/invalid_uri_test: Fail, OK # CompileTimeErrors intentionally
 package/scenarios/packages_file_strange_formatting/empty_package_dir_test: Fail, OK # CompileTimeErrors intentionally
 package/scenarios/empty_packages_file/empty_packages_file_discovery_test: Fail, OK # CompileTimeErrors intentionally
@@ -14,9 +17,11 @@ package/scenarios/empty_packages_file/empty_packages_file_option_test: Fail, OK 
 package/scenarios/invalid/invalid_package_name_test: RuntimeError, CompileTimeError # Errors intentionally
 package/scenarios/invalid/same_package_twice_test.dart: RuntimeError, CompileTimeError # Errors intentionally
 full_coverage_test: Pass, Slow, Timeout
-verified_mem_test: Pass, Slow, Timeout # Does verify before and after GC.
 
 issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue 14516 comment #4.
+
+[ ($runtime != vm || $compiler != none) && $compiler != dartanalyzer && $compiler != dart2analyzer ]
+packages_file_test: Skip # Uses Platform.executable
 
 [ ($runtime != vm && $runtime != dart_precompiled && $runtime != dart_app) && ($runtime != drt || $compiler != none)) ]
 no_assert_test: Fail, OK # This is testing a vm flag.
@@ -108,6 +113,7 @@ issue14236_test: Skip # dart2js does not deal with Script snapshots.
 unboxed_int_converter_test: Skip
 pair_location_remapping_test: Skip
 regress_25335_test: Skip # Int64List not supported.
+deferred_transitive_import_error_test: Skip # Contains intentional errors.
 
 [ $compiler == dart2js && $cps_ir && $checked ]
 *: Skip # `assert` not implemented
@@ -134,6 +140,9 @@ oom_error_stacktrace_test: Pass # The test only fails at runtime.
 [ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simmips ]
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
+
+[ $arch == simarm && $mode == debug && $checked ]
+io/web_socket_test: Pass, Fail # Issue 26814
 
 [ $arch == mips ]
 io/file_stat_test: Fail # Issue 17440
@@ -164,6 +173,7 @@ package/scenarios/both_dir_and_file/prefers_packages_file_test: StaticWarning
 package/scenarios/packages_file_in_parent/sub/packages_file_in_parent_test: StaticWarning
 typed_data_test: StaticWarning
 typed_data_view_test: StaticWarning
+deferred_transitive_import_error_test: Skip # Contains intentional errors.
 
 [ $compiler == dart2analyzer ]
 package/package1_test: CompileTimeError
@@ -181,10 +191,8 @@ package/scenarios/invalid/same_package_twice_test: Crash, OK # Analyzer exits on
 io/skipping_dart2js_compilations_test: Fail # Issue 19551.
 verbose_gc_to_bmu_test: Skip
 io/platform_resolved_executable_test/06: RuntimeError  # Issue 23641
+io/process_sync_test: Pass, Timeout # Issue 24596
 io/sleep_test: Pass, Fail # Issue 25757
-
-[ $arch != ia32 && $arch != x64 && $arch != simarm && $arch != simarmv5te && $mode == debug ]
-verified_mem_test: Skip  # Not yet implemented.
 
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $mode == debug && $builder_tag == asan ]
 full_coverage_test: Skip  # Timeout.
@@ -253,7 +261,7 @@ io/socket_cross_process_test: Skip # Platform.executable
 io/test_runner_test: Skip # Platform.executable
 io/file_lock_test: Skip # Platform.executable
 io/code_collection_test: Skip # Platform.executable
-io/file_lock_test: Skip # Platform.executable
+io/file_blocking_lock_test: Skip # Platform.executable
 io/raw_socket_cross_process_test: Skip # Platform.executable
 io/test_extension_test: Skip # Platform.executable
 io/named_pipe_script_test: Skip # Platform.executable
@@ -310,3 +318,14 @@ typed_array_int64_uint64_test: Skip # Issue #26376
 
 oom_error_stacktrace_test: Skip # Issue #26377
 out_of_memory_test: Skip # Issue #26377
+
+[ $runtime == dart_precompiled ]
+deferred_transitive_import_error_test: Skip # Contains intentional errors.
+
+[ $hot_reload ]
+io/bytes_builder_test: RuntimeError
+io/file_input_stream_test: Crash
+io/file_test: Pass, Crash
+io/web_socket_protocol_processor_test: Pass, Crash
+map_insert_remove_oom_test: Crash
+priority_queue_stress_test: Crash

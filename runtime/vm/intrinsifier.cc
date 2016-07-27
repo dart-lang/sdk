@@ -68,7 +68,7 @@ void Intrinsifier::InitializeState() {
   String& str = String::Handle(zone);
   Error& error = Error::Handle(zone);
 
-#define SETUP_FUNCTION(class_name, function_name, destination, fp)             \
+#define SETUP_FUNCTION(class_name, function_name, destination, type, fp)       \
   if (strcmp(#class_name, "::") == 0) {                                        \
     str = String::New(#function_name);                                         \
     func = lib.LookupFunctionAllowPrivate(str);                                \
@@ -179,7 +179,7 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
   FlowGraph* graph = new FlowGraph(parsed_function, graph_entry, block_id);
   const Function& function = parsed_function.function();
   switch (function.recognized_kind()) {
-#define EMIT_CASE(class_name, function_name, enum_name, fp)                    \
+#define EMIT_CASE(class_name, function_name, enum_name, type, fp)              \
     case MethodRecognizer::k##enum_name:                                       \
       if (!Build_##enum_name(graph)) return false;                             \
       break;
@@ -227,7 +227,7 @@ void Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
     return;
   }
 
-#define EMIT_CASE(class_name, function_name, enum_name, fp)                    \
+#define EMIT_CASE(class_name, function_name, enum_name, type, fp)              \
     case MethodRecognizer::k##enum_name:                                       \
       compiler->assembler()->Comment("Intrinsic");                             \
       enum_name(compiler->assembler());                                        \
@@ -607,7 +607,8 @@ bool Intrinsifier::Build_Float64ArraySetIndexed(FlowGraph* flow_graph) {
       String::Handle(flow_graph->function().name()),
       Object::empty_array(),  // Dummy args. descr.
       Thread::kNoDeoptId,
-      1));
+      1,
+      false));
   value_check.AddReceiverCheck(kDoubleCid, flow_graph->function());
   builder.AddInstruction(
       new CheckClassInstr(new Value(value),
@@ -740,7 +741,8 @@ static bool BuildBinaryFloat32x4Op(FlowGraph* flow_graph, Token::Kind kind) {
       String::Handle(flow_graph->function().name()),
       Object::empty_array(),  // Dummy args. descr.
       Thread::kNoDeoptId,
-      1));
+      1,
+      false));
   value_check.AddReceiverCheck(kFloat32x4Cid, flow_graph->function());
   // Check argument. Receiver (left) is known to be a Float32x4.
   builder.AddInstruction(
@@ -982,7 +984,8 @@ bool Intrinsifier::Build_GrowableArraySetData(FlowGraph* flow_graph) {
       String::Handle(flow_graph->function().name()),
       Object::empty_array(),  // Dummy args. descr.
       Thread::kNoDeoptId,
-      1));
+      1,
+      false));
   value_check.AddReceiverCheck(kArrayCid, flow_graph->function());
   builder.AddInstruction(
       new CheckClassInstr(new Value(data),

@@ -9,11 +9,14 @@ import '../memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
+import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/constants/constructors.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/invariant.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/visitor.dart';
+import 'package:compiler/src/filenames.dart';
+import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/ordered_typeset.dart';
 import 'package:compiler/src/serialization/element_serialization.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
@@ -21,6 +24,14 @@ import 'package:compiler/src/serialization/json_serializer.dart';
 import 'package:compiler/src/serialization/serialization.dart';
 import 'package:expect/expect.dart';
 import 'test_helper.dart';
+
+const TEST_SOURCES = const <String, String>{
+  'main.dart': '''
+import 'a.dart' deferred as a;
+''',
+  'a.dart': '''
+''',
+};
 
 main(List<String> arguments) {
   // Ensure that we can print out constant expressions.
@@ -42,20 +53,27 @@ main(List<String> arguments) {
       if (entryPoint != null) {
         print("Multiple entrypoints is not supported.");
       }
-      entryPoint = Uri.parse(arg);
+      entryPoint = Uri.base.resolve(nativeToUriPath(arg));
     }
   }
+  Map<String, String> sourceFiles = const <String, String>{};
   if (entryPoint == null) {
-    entryPoint = Uri.parse('dart:core');
+    entryPoint = Uri.parse('memory:main.dart');
+    sourceFiles = TEST_SOURCES;
   }
   asyncTest(() async {
     CompilationResult result = await runCompiler(
-        entryPoint: entryPoint, options: [Flags.analyzeAll]);
+        memorySourceFiles: sourceFiles,
+        entryPoint: entryPoint,
+        options: [Flags.analyzeAll]);
     Compiler compiler = result.compiler;
-    testSerialization(compiler.libraryLoader.libraries,
-                      compiler.reporter,
-                      outPath: outPath,
-                      prettyPrint: prettyPrint);
+    testSerialization(
+        compiler.libraryLoader.libraries,
+        compiler.reporter,
+        compiler.resolution,
+        compiler.libraryLoader,
+        outPath: outPath,
+        prettyPrint: prettyPrint);
     Expect.isFalse(compiler.reporter.hasReportedError,
         "Unexpected errors occured.");
   });
@@ -64,6 +82,8 @@ main(List<String> arguments) {
 void testSerialization(
     Iterable<LibraryElement> libraries1,
     DiagnosticReporter reporter,
+    Resolution resolution,
+    LibraryProvider libraryProvider,
     {String outPath,
      bool prettyPrint}) {
   Serializer serializer = new Serializer();
@@ -82,7 +102,8 @@ void testSerialization(
   }
 
   Deserializer deserializer = new Deserializer.fromText(
-      new DeserializationContext(reporter), Uri.parse('out1.data'),
+      new DeserializationContext(reporter, resolution, libraryProvider),
+      Uri.parse('out1.data'),
       text, const JsonSerializationDecoder());
   List<LibraryElement> libraries2 = <LibraryElement>[];
   for (LibraryElement library1 in libraries1) {
@@ -102,7 +123,8 @@ void testSerialization(
   String text2 = serializer2.toText(const JsonSerializationEncoder());
 
   Deserializer deserializer3 = new Deserializer.fromText(
-      new DeserializationContext(reporter), Uri.parse('out2.data'),
+      new DeserializationContext(reporter, resolution, libraryProvider),
+      Uri.parse('out2.data'),
       text2, const JsonSerializationDecoder());
   for (LibraryElement library1 in libraries1) {
     LibraryElement library2 =
@@ -135,7 +157,10 @@ checkLibraryContent(
 checkElementProperties(
     Object object1, object2, String property,
     Element element1, Element element2) {
+  currentCheck =
+      new Check(currentCheck, object1, object2, property, element1, element2);
   const ElementPropertyEquivalence().visit(element1, element2);
+  currentCheck = currentCheck.parent;
 }
 
 /// Checks the equivalence of [constructor1] and [constructor2].
@@ -236,6 +261,16 @@ checkElementLists(Object object1, Object object2, String property,
                   list1, list2, checkElementProperties);
 }
 
+/// Check the equivalence of the two metadata annotations, [metadata1] and
+/// [metadata2].
+///
+/// Uses [object1], [object2] and [property] to provide context for failures.
+checkMetadata(Object object1, Object object2, String property,
+    MetadataAnnotation metadata1, MetadataAnnotation metadata2) {
+  check(object1, object2, property,
+      metadata1, metadata2, areMetadataAnnotationsEquivalent);
+}
+
 /// Visitor that checks for equivalence of [Element] properties.
 class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
   const ElementPropertyEquivalence();
@@ -255,6 +290,28 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1.isFinal, element2.isFinal);
     check(element1, element2, 'isConst',
         element1.isConst, element2.isConst);
+    check(element1, element2, 'isAbstract',
+        element1.isAbstract, element2.isAbstract);
+    check(element1, element2, 'isStatic',
+        element1.isStatic, element2.isStatic);
+    check(element1, element2, 'isTopLevel',
+        element1.isTopLevel, element2.isTopLevel);
+    check(element1, element2, 'isClassMember',
+        element1.isClassMember, element2.isClassMember);
+    check(element1, element2, 'isInstanceMember',
+        element1.isInstanceMember, element2.isInstanceMember);
+    List<MetadataAnnotation> metadata1 = <MetadataAnnotation>[];
+    metadata1.addAll(element1.metadata);
+    if (element1.isPatched) {
+      metadata1.addAll(element1.implementation.metadata);
+    }
+    List<MetadataAnnotation> metadata2 = <MetadataAnnotation>[];
+    metadata2.addAll(element2.metadata);
+    if (element2.isPatched) {
+      metadata2.addAll(element2.implementation.metadata);
+    }
+    checkListEquivalence(element1, element2, 'metadata',
+        metadata1, metadata2, checkMetadata);
   }
 
   @override
@@ -360,7 +417,10 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
           throw message;
         }
       }
+      currentCheck = new Check(currentCheck, element1, element2,
+          'member:$name', member1, member2);
       visit(member1, member2);
+      currentCheck = currentCheck.parent;
     }
   }
 
@@ -368,15 +428,35 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
   void visitClassElement(ClassElement element1, ClassElement element2) {
     checkElementIdentities(null, null, null, element1, element2);
     check(element1, element2, 'name',
-          element1.name, element2.name);
-    check(element1, element2, 'sourcePosition',
+        element1.name, element2.name);
+    if (!element1.isUnnamedMixinApplication) {
+      check(element1, element2, 'sourcePosition',
           element1.sourcePosition, element2.sourcePosition);
+    } else {
+      check(element1, element2, 'sourcePosition.uri',
+          element1.sourcePosition.uri, element2.sourcePosition.uri);
+      MixinApplicationElement mixin1 = element1;
+      MixinApplicationElement mixin2 = element2;
+      checkElementIdentities(mixin1, mixin2, 'subclass',
+          mixin1.subclass, mixin2.subclass);
+      checkTypes(mixin1, mixin2, 'mixinType',
+          mixin1.mixinType, mixin2.mixinType);
+    }
     checkElementIdentities(
         element1, element2, 'library',
         element1.library, element2.library);
     checkElementIdentities(
         element1, element2, 'compilationUnit',
         element1.compilationUnit, element2.compilationUnit);
+    checkTypeLists(
+        element1, element2, 'typeVariables',
+        element1.typeVariables, element2.typeVariables);
+    checkTypes(
+        element1, element2, 'thisType',
+        element1.thisType, element2.thisType);
+    checkTypes(
+        element1, element2, 'rawType',
+        element1.rawType, element2.rawType);
     check(element1, element2, 'isObject',
         element1.isObject, element2.isObject);
     checkTypeLists(element1, element2, 'typeVariables',
@@ -385,33 +465,37 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1.isAbstract, element2.isAbstract);
     check(element1, element2, 'isUnnamedMixinApplication',
         element1.isUnnamedMixinApplication, element2.isUnnamedMixinApplication);
+    check(element1, element2, 'isProxy',
+        element1.isProxy, element2.isProxy);
+    check(element1, element2, 'isInjected',
+        element1.isInjected, element2.isInjected);
     check(element1, element2, 'isEnumClass',
         element1.isEnumClass, element2.isEnumClass);
     if (element1.isEnumClass) {
       EnumClassElement enum1 = element1;
       EnumClassElement enum2 = element2;
       checkElementLists(enum1, enum2, 'enumValues',
-                        enum1.enumValues, enum2.enumValues);
+          enum1.enumValues, enum2.enumValues);
     }
     if (!element1.isObject) {
       checkTypes(element1, element2, 'supertype',
           element1.supertype, element2.supertype);
     }
     check(element1, element2, 'hierarchyDepth',
-          element1.hierarchyDepth, element2.hierarchyDepth);
+        element1.hierarchyDepth, element2.hierarchyDepth);
     checkTypeLists(
         element1, element2, 'allSupertypes',
         element1.allSupertypes.toList(),
         element2.allSupertypes.toList());
     OrderedTypeSet typeSet1 = element1.allSupertypesAndSelf;
-    OrderedTypeSet typeSet2 = element1.allSupertypesAndSelf;
+    OrderedTypeSet typeSet2 = element2.allSupertypesAndSelf;
     checkListEquivalence(
         element1, element2, 'allSupertypes',
         typeSet1.levelOffsets,
         typeSet2.levelOffsets,
         check);
     check(element1, element2, 'allSupertypesAndSelf.levels',
-          typeSet1.levels, typeSet2.levels);
+        typeSet1.levels, typeSet2.levels);
     checkTypeLists(
         element1, element2, 'supertypes',
         typeSet1.supertypes.toList(),
@@ -435,7 +519,20 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         getConstructors(element1),
         getConstructors(element2));
 
+    checkElementIdentities(element1, element2, 'defaultConstructor',
+        element1.lookupDefaultConstructor(),
+        element2.lookupDefaultConstructor());
+
     visitMembers(element1, element2);
+
+    ClassElement superclass1 = element1.superclass;
+    ClassElement superclass2 = element2.superclass;
+    while (superclass1 != null && superclass1.isMixinApplication) {
+      checkElementProperties(element1, element2, 'supermixin',
+          superclass1, superclass2);
+      superclass1 = superclass1.superclass;
+      superclass2 = superclass2.superclass;
+    }
   }
 
   @override
@@ -457,6 +554,8 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
           element1.isStatic, element2.isStatic);
     check(element1, element2, 'isInstanceMember',
           element1.isInstanceMember, element2.isInstanceMember);
+    check(element1, element2, 'isInjected',
+        element1.isInjected, element2.isInjected);
 
     checkElementIdentities(
         element1, element2, 'library',
@@ -490,6 +589,8 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1, element2, 'asyncMarker',
         element1.asyncMarker,
         element2.asyncMarker);
+    check(element1, element2, 'isInjected',
+        element1.isInjected, element2.isInjected);
 
     checkElementIdentities(
         element1, element2, 'library',
@@ -550,8 +651,13 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
     check(
         element1, element2, 'name',
         element1.name, element2.name);
-    check(element1, element2, 'sourcePosition',
+    if (!element1.isSynthesized) {
+      check(element1, element2, 'sourcePosition',
           element1.sourcePosition, element2.sourcePosition);
+    } else {
+      check(element1, element2, 'sourcePosition.uri',
+          element1.sourcePosition.uri, element2.sourcePosition.uri);
+    }
     checkListEquivalence(
         element1, element2, 'parameters',
         element1.parameters, element2.parameters,
@@ -589,6 +695,8 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element2.immediateRedirectionTarget);
     checkElementIdentities(element1, element2, 'redirectionDeferredPrefix',
         element1.redirectionDeferredPrefix, element2.redirectionDeferredPrefix);
+    check(element1, element2, 'isInjected',
+        element1.isInjected, element2.isInjected);
   }
 
   @override
@@ -703,8 +811,12 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1, element2, 'isDeferred',
         element1.isDeferred, element2.isDeferred);
     checkElementIdentities(
-        element1, element2, 'importedLibrary',
+        element1, element2, 'deferredImport',
         element1.deferredImport, element2.deferredImport);
+    if (element1.isDeferred) {
+      checkElementProperties(element1, element2,
+          'loadLibrary', element1.loadLibrary, element2.loadLibrary);
+    }
     // TODO(johnniwinther): Check members.
   }
 }

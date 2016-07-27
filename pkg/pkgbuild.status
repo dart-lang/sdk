@@ -2,15 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-samples/searchable_list: Pass, Slow
-
-[ $use_repository_packages ]
-pkg/analyzer: PubGetError
-samples/third_party/angular_todo: Fail # angular needs to be updated
+third_party/pkg/scheduled_test: Fail # Issue 26585
 
 [ $use_public_packages ]
 pkg/compiler: SkipByDesign # js_ast is not published
-samples/third_party/angular_todo: Pass, Slow
 
-[ $builder_tag == russian ]
-samples/third_party/angular_todo: Fail # Issue 16356
+[ ($use_repository_packages || $use_public_packages) && ($system == windows || $system == linux) ]
+third_party/pkg/*: Pass, PubGetError # Issue 26696

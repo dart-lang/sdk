@@ -14,50 +14,29 @@
 [ $runtime == vm || $runtime != vm ]
 # Tests that fail everywhere, including the analyzer.
 
-Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t01: Pass, Fail, OK # co19 issue 18
-Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t02: Pass, Fail, OK # co19 issue 18
-Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t03: Pass, Fail, OK # co19 issue 18
-Language/Classes/Constructors/Constant_Constructors/not_a_constant_in_superclass_t01: Pass, Fail, OK # co19 issue 18
-Language/Classes/Constructors/Constant_Constructors/not_a_constant_in_superclass_t02: Pass, Fail, OK # co19 issue 18
-
-# Super is now allowed in mixins and mixins may now extend a subclass of Object.
-Language/09_Mixins/09_Mixins_A01_t01: Skip # co19 issue 9.
-Language/09_Mixins/09_Mixins_A03_t01: Skip # co19 issue 9.
-
-# No longer correct, y#$ now has a meaning. github.com/dart-lang/co19/issues/2
-Language/12_Expressions/30_Identifier_Reference_A01_t03: Skip
-
 LibTest/typed_data/ByteData/buffer_A01_t01: Fail # co19 r736 bug - sent comment.
 
 LibTest/core/RegExp/firstMatch_A01_t01: Fail # co19 issue 742
 
-# These tests are obsolete and need updating.
-WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-002_t01: Skip # Issue 19019
-WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-003_t01: Skip # Issue 19019
-
-# These tests are broken in both Javascript and Dart (co19 folks contacted to fix).
-WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-004_t01: Skip # Issue 21115
-
 [ $compiler != dart2analyzer ]
 # Tests that fail on every runtime, but not on the analyzer.
-
-LibTest/async/Future/Future.error_A01_t01: RuntimeError # co19 issue 712
-LibTest/async/Completer/completeError_A02_t01: RuntimeError # co19 issue 712
 LibTest/isolate/ReceivePort/asBroadcastStream_A02_t01: Fail # co19 issue 687
 LibTest/async/Stream/asBroadcastStream_A02_t01: Fail # co19 issue 687
 
 LibTest/core/Symbol/Symbol_A01_t04: RuntimeError # Issue 25804
 
-Language/Classes/same_name_type_variable_t01: Pass, MissingCompileTimeError, Fail # Issue 14513
-Language/Classes/same_name_type_variable_t04: Pass, MissingCompileTimeError, Fail # Issue 14513
-Language/Classes/same_name_type_variable_t07: Pass, MissingCompileTimeError, Fail # Issue 14513
+Language/Classes/same_name_type_variable_t04: Pass, MissingCompileTimeError, Fail # Issue 14513,25525
+Language/Classes/same_name_type_variable_t07: Pass, MissingCompileTimeError, Fail # Issue 14513,25525
 
-LibTest/math/acos_A01_t01: PASS, FAIL, OK # co19 issue 44
-LibTest/math/asin_A01_t01: PASS, FAIL, OK # co19 issue 44
-LibTest/math/atan_A01_t01: PASS, FAIL, OK # co19 issue 44
+Language/Expressions/Instance_Creation/Const/abstract_class_t01: Pass, Fail # co19 issue 66
+Language/Expressions/Instance_Creation/Const/abstract_class_t03: Pass, Fail # co19 issue 66
 
-LibTest/math/cos_A01_t01: PASS, FAIL, OK # co19 issue 44
-LibTest/math/tan_A01_t01: PASS, FAIL, OK # co19 issue 44
+LibTest/math/acos_A01_t01: PASS, FAIL, OK  # Issue 26261
+LibTest/math/asin_A01_t01: PASS, FAIL, OK  # Issue 26261
+LibTest/math/atan_A01_t01: PASS, FAIL, OK  # Issue 26261
+
+LibTest/math/cos_A01_t01: PASS, FAIL, OK  # Issue 26261
+LibTest/math/tan_A01_t01: PASS, FAIL, OK  # Issue 26261
 
 LibTest/core/Expando/Expando_A03_t01: RuntimeError # Issue 17735
 LibTest/core/Expando/Expando_A03_t03: RuntimeError # Issue 17735
@@ -97,9 +76,13 @@ LibTest/isolate/SendPort/send_A03_t02: Fail # Co19 issue 639
 [ $runtime == dartium || $compiler == dart2js ]
 LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
 
-### CHECKED MODE FAILURES ###
-
-[ $compiler != dart2analyzer && $checked ]
-LibTest/collection/DoubleLinkedQueue/removeFirst_A01_t01: RuntimeError # co19 issue 22
-LibTest/collection/LinkedList/LinkedList_A01_t01: RuntimeError # co19 issue 23
-LibTest/collection/LinkedList/lastWhere_A02_t01: RuntimeError # co19 issue 737
+[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == drt || $runtime == dartium || $runtime == dart_precompiled) ]
+# Optional trailing commas for argument and parameter lists added to language.
+# https://github.com/dart-lang/co19/issues/68
+Language/Expressions/Function_Invocation/Actual_Argument_List_Evaluation/syntax_t05: Fail, OK
+Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t05: Fail, OK
+Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t10: Fail, OK
+Language/Expressions/Method_Invocation/Super_Invocation/syntax_t05: Fail, OK
+Language/Functions/Formal_Parameters/syntax_t04: Fail, OK
+Language/Functions/Formal_Parameters/syntax_t05: Fail, OK
+Language/Functions/Formal_Parameters/syntax_t12: Fail, OK

@@ -891,6 +891,8 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 
   void ClearEnv() { env_ = NULL; }
 
+  void Unsupported(FlowGraphCompiler* compiler);
+
  protected:
   // GetDeoptId and/or CopyDeoptIdFrom.
   friend class CallSiteInliner;
@@ -2912,6 +2914,8 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
     return instance_call_->token_pos();
   }
 
+  virtual CompileType ComputeType() const;
+
   virtual intptr_t ArgumentCount() const {
     return instance_call()->ArgumentCount();
   }
@@ -3265,6 +3269,25 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
     ASSERT(argument_names.IsZoneHandle() ||  argument_names.InVMHeap());
   }
 
+  StaticCallInstr(TokenPosition token_pos,
+                  const Function& function,
+                  const Array& argument_names,
+                  ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                  intptr_t deopt_id)
+      : TemplateDefinition(deopt_id),
+        ic_data_(NULL),
+        token_pos_(token_pos),
+        function_(function),
+        argument_names_(argument_names),
+        arguments_(arguments),
+        result_cid_(kDynamicCid),
+        is_known_list_constructor_(false),
+        is_native_list_factory_(false),
+        identity_(AliasIdentity::Unknown()) {
+    ASSERT(function.IsZoneHandle());
+    ASSERT(argument_names.IsZoneHandle() ||  argument_names.InVMHeap());
+  }
+
   // ICData for static calls carries call count.
   const ICData* ic_data() const { return ic_data_; }
   bool HasICData() const {
@@ -3560,8 +3583,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
         offset_in_bytes_(field.Offset()),
         emit_store_barrier_(emit_store_barrier),
         token_pos_(token_pos),
-        is_potential_unboxed_initialization_(false),
-        is_object_reference_initialization_(false) {
+        is_initialization_(false) {
     SetInputAt(kInstancePos, instance);
     SetInputAt(kValuePos, value);
     CheckField(field);
@@ -3576,20 +3598,14 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
         offset_in_bytes_(offset_in_bytes),
         emit_store_barrier_(emit_store_barrier),
         token_pos_(token_pos),
-        is_potential_unboxed_initialization_(false),
-        is_object_reference_initialization_(false) {
+        is_initialization_(false) {
     SetInputAt(kInstancePos, instance);
     SetInputAt(kValuePos, value);
   }
 
   DECLARE_INSTRUCTION(StoreInstanceField)
 
-  void set_is_potential_unboxed_initialization(bool value) {
-    is_potential_unboxed_initialization_ = value;
-  }
-  void set_is_object_reference_initialization(bool value) {
-    is_object_reference_initialization_ = value;
-  }
+  void set_is_initialization(bool value) { is_initialization_ = value; }
 
   enum {
     kInstancePos = 0,
@@ -3598,12 +3614,8 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
 
   Value* instance() const { return inputs_[kInstancePos]; }
   Value* value() const { return inputs_[kValuePos]; }
-  bool is_potential_unboxed_initialization() const {
-    return is_potential_unboxed_initialization_;
-  }
-  bool is_object_reference_initialization() const {
-    return is_object_reference_initialization_;
-  }
+  bool is_initialization() const { return is_initialization_; }
+
   virtual TokenPosition token_pos() const { return token_pos_; }
 
   const Field& field() const { return field_; }
@@ -3648,11 +3660,8 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
   intptr_t offset_in_bytes_;
   const StoreBarrierType emit_store_barrier_;
   const TokenPosition token_pos_;
-  // This may be the first store to an unboxed field.
-  bool is_potential_unboxed_initialization_;
-  // True if this store initializes an object reference field of an object that
-  // was allocated uninitialized; see AllocateUninitializedContext.
-  bool is_object_reference_initialization_;
+  // Marks initialiing stores. E.g. in the constructor.
+  bool is_initialization_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreInstanceFieldInstr);
 };
@@ -6888,6 +6897,8 @@ class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
   virtual bool CanDeoptimize() const { return true; }
 
   virtual EffectSet Effects() const { return EffectSet::All(); }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   PRINT_OPERANDS_TO_SUPPORT
 

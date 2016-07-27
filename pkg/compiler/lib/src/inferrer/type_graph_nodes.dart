@@ -473,7 +473,7 @@ class MemberTypeInformation extends ElementTypeInformation
       if (element.isField) {
         return inferrer
             .typeOfNativeBehavior(
-                native.NativeBehavior.ofFieldLoad(element, inferrer.compiler))
+                inferrer.backend.getNativeFieldLoadBehavior(element))
             .type;
       } else {
         assert(element.isFunction ||
@@ -487,22 +487,25 @@ class MemberTypeInformation extends ElementTypeInformation
         } else {
           return inferrer
               .typeOfNativeBehavior(
-                  native.NativeBehavior.ofMethod(element, inferrer.compiler))
+                  inferrer.backend.getNativeMethodBehavior(element))
               .type;
         }
       }
     }
 
     Compiler compiler = inferrer.compiler;
-    if (element.declaration == compiler.intEnvironment) {
-      giveUp(inferrer);
-      return compiler.typesTask.intType.nullable();
-    } else if (element.declaration == compiler.boolEnvironment) {
-      giveUp(inferrer);
-      return compiler.typesTask.boolType.nullable();
-    } else if (element.declaration == compiler.stringEnvironment) {
-      giveUp(inferrer);
-      return compiler.typesTask.stringType.nullable();
+    if (element.isConstructor) {
+      ConstructorElement constructor = element;
+      if (constructor.isIntFromEnvironmentConstructor) {
+        giveUp(inferrer);
+        return compiler.typesTask.intType.nullable();
+      } else if (constructor.isBoolFromEnvironmentConstructor) {
+        giveUp(inferrer);
+        return compiler.typesTask.boolType.nullable();
+      } else if (constructor.isStringFromEnvironmentConstructor) {
+        giveUp(inferrer);
+        return compiler.typesTask.stringType.nullable();
+      }
     }
     return null;
   }

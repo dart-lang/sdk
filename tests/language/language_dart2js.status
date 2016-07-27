@@ -16,6 +16,8 @@ try_catch_on_syntax_test/11: Fail # Issue 19823
 deep_nesting1_negative_test: Crash # Issue 25557
 deep_nesting2_negative_test: Crash # Issue 25557
 
+regress_18713_test: Fail # Issue 26743
+
 call_function_apply_test: RuntimeError # Issue 23873
 mixin_supertype_subclass_test: CompileTimeError # Issue 23773
 mixin_supertype_subclass2_test: CompileTimeError # Issue 23773
@@ -53,6 +55,12 @@ generic_sends_test: CompileTimeError # DartOptions not passed to compiler.
 generic_methods_new_test: CompiletimeError # DartOptions not passed to compiler.
 generic_methods_function_type_test: CompiletimeError # DartOptions not passed to compiler.
 generic_methods_type_expression_test: CompiletimeError # DartOptions not passed to compiler.
+
+# Experimental feature: Use initializing formals in initializers and constructor body.
+initializing_formal_access_test: CompiletimeError # DartOptions not passed to compiler.
+initializing_formal_capture_test: CompiletimeError # DartOptions not passed to compiler.
+initializing_formal_final_test: CompiletimeError # DartOptions not passed to compiler.
+initializing_formal_type_test: CompiletimeError # DartOptions not passed to compiler.
 
 [ $compiler == dart2js ]
 invocation_mirror_empty_arguments_test: Fail # Issue 24331
@@ -220,6 +228,9 @@ round_test: Fail, OK # Common JavaScript engine Math.round bug.
 
 [ $compiler == dart2js && $runtime == ff ]
 round_test: Pass, Fail, OK # Fixed in ff 35. Common JavaScript engine Math.round bug.
+
+[ $compiler == dart2js && $runtime == chrome && $system == macos ]
+await_future_test: Pass, Timeout # Issue 26735
 
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim)]
 # Safari codegen bug, fixed on some versions of Safari 7.1 (Version 7.1 (9537.85.10.17.1))

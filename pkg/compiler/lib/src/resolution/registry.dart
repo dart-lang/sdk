@@ -5,7 +5,8 @@
 library dart2js.resolution.registry;
 
 import '../common.dart';
-import '../common/backend_api.dart' show Backend, ForeignResolver;
+import '../common/backend_api.dart'
+    show Backend, ForeignResolver, NativeRegistry;
 import '../common/resolution.dart'
     show Feature, ListLiteralUse, MapLiteralUse, ResolutionImpact;
 import '../common/registry.dart' show Registry;
@@ -28,7 +29,9 @@ import 'send_structure.dart';
 import 'members.dart' show ResolverVisitor;
 import 'tree_elements.dart' show TreeElementMapping;
 
-class _ResolutionWorldImpact extends ResolutionImpact with WorldImpactBuilder {
+class _ResolutionWorldImpact extends ResolutionImpact
+    with WorldImpactBuilder
+    implements NativeRegistry {
   final String name;
   EnumSet<Feature> _features;
   Setlet<MapLiteralUse> _mapLiterals;
@@ -329,10 +332,6 @@ class ResolutionRegistry extends Registry {
 
   void registerStaticUse(StaticUse staticUse) {
     worldImpact.registerStaticUse(staticUse);
-  }
-
-  void registerMetadataConstant(MetadataAnnotation metadata) {
-    backend.registerMetadataConstant(metadata, metadata.annotatedElement, this);
   }
 
   /// Register the use of a type.

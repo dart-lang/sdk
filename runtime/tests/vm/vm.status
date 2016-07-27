@@ -13,6 +13,9 @@ cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash
 cc/ArrayNew_Overflow_Crash: Crash, Timeout
 cc/AllocGeneric_Overflow: Crash, Timeout
 cc/CodeImmutability: Crash
+cc/Fail0: Fail
+cc/Fail1: Fail
+cc/Fail2: Fail
 
 cc/SNPrint_BadArgs: Skip
 
@@ -85,12 +88,8 @@ cc/Dart2JSCompileAll: SkipSlow  # Timeout.
 [ $builder_tag == asan ]
 cc/CodeImmutability: Fail,OK # Address Sanitizer turns a crash into a failure.
 
-[ $arch == ia32 && $builder_tag == asan ]
-cc/Dart2JSCompileAll: Crash # Issue 26487 - stack overflow
-cc/Dart2JSCompilerStats: Crash # Issue 26487 - stack overflow
-
-[ $noopt ]
-dart/byte_array_test: Crash # Incompatible flag --disable_alloc_stubs_after_gc
+[ $noopt || $compiler == precompiler ]
+dart/byte_array_test: Skip # Incompatible flag --disable_alloc_stubs_after_gc
 
 [ $noopt || $compiler == precompiler || $mode == product ]
 dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
@@ -145,6 +144,7 @@ cc/SourceReport_CallSites_PolymorphicCall: Skip
 cc/SourceReport_CallSites_SimpleCall: Skip
 cc/SourceReport_Coverage_AllFunctions: Skip
 cc/SourceReport_Coverage_ForceCompile: Skip
+cc/SourceReport_Coverage_AllFunctions_ForceCompile: Skip
 cc/SourceReport_Coverage_NestedFunctions: Skip
 cc/SourceReport_Coverage_SimpleCall: Skip
 cc/SourceReport_Coverage_UnusedClass_NoForceCompile: Skip

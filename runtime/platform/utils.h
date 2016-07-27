@@ -215,6 +215,8 @@ class Utils {
 
 #if defined(TARGET_OS_ANDROID)
 #include "platform/utils_android.h"
+#elif defined(TARGET_OS_FUCHSIA)
+#include "platform/utils_fuchsia.h"
 #elif defined(TARGET_OS_LINUX)
 #include "platform/utils_linux.h"
 #elif defined(TARGET_OS_MACOS)

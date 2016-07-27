@@ -1,3 +1,11 @@
+## 1.18.0 - 2016-07-27
+
+### Core library changes
+
+* `dart:io`
+  * Adds file locking modes `FileLock.BLOCKING_SHARED` and
+    `FileLock.BLOCKING_EXCLUSIVE`.
+
 ## 1.17.1 - 2016-06-10
 
 Patch release, resolves two issues:

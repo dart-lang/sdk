@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart' hide ConstantEvaluator;
@@ -53,7 +54,6 @@ main() {
   runReflectiveTests(ExitDetectorTest);
   runReflectiveTests(ExitDetectorTest2);
   runReflectiveTests(FileBasedSourceTest);
-  runReflectiveTests(FileUriResolverTest);
   runReflectiveTests(ResolveRelativeUriTest);
   runReflectiveTests(SDKLibrariesReaderTest);
   runReflectiveTests(UriKindTest);
@@ -2565,14 +2565,14 @@ class C {
 
 @reflectiveTest
 class ElementLocatorTest extends ResolverTestCase {
-  void fail_locate_ExportDirective() {
+  void test_locate_ExportDirective() {
     AstNode id = _findNodeIn("export", "export 'dart:core';");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
-        (obj) => obj is ImportElement, ImportElement, element);
+        (obj) => obj is ExportElement, ExportElement, element);
   }
 
-  void fail_locate_Identifier_libraryDirective() {
+  void test_locate_Identifier_libraryDirective() {
     AstNode id = _findNodeIn("foo", "library foo.bar;");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
@@ -3267,18 +3267,6 @@ class ErrorSeverityTest extends EngineTestCase {
  */
 @reflectiveTest
 class ExitDetectorTest extends ParserTestCase {
-  void fail_doStatement_continue_with_label() {
-    _assertFalse("{ x: do { continue x; } while(true); }");
-  }
-
-  void fail_whileStatement_continue_with_label() {
-    _assertFalse("{ x: while (true) { continue x; } }");
-  }
-
-  void fail_whileStatement_doStatement_scopeRequired() {
-    _assertTrue("{ while (true) { x: do { continue x; } while(true); }");
-  }
-
   void test_asExpression() {
     _assertFalse("a as Object;");
   }
@@ -3479,12 +3467,46 @@ class ExitDetectorTest extends ParserTestCase {
     expect(new ExitDetector(), isNotNull);
   }
 
+  void test_doStatement_return() {
+    _assertTrue("{ do { return null; } while (1 == 2); }");
+  }
+
   void test_doStatement_throwCondition() {
     _assertTrue("{ do {} while (throw ''); }");
   }
 
-  void test_doStatement_return() {
-    _assertTrue("{ do { return null; } while (1 == 2); }");
+  void test_doStatement_break_and_throw() {
+    _assertFalse("{ do { if (1==1) break; throw 'T'; } while (0==1); }");
+  }
+
+  void test_doStatement_continue_and_throw() {
+    _assertFalse("{ do { if (1==1) continue; throw 'T'; } while (0==1); }");
+  }
+
+  void test_doStatement_continueInSwitch_and_throw() {
+    _assertFalse('''
+{
+  do {
+    switch (1) {
+      L: case 0: continue;
+      M: case 1: break;
+    }
+    throw 'T';
+  } while (0 == 1);
+}''');
+  }
+
+  void test_doStatement_continueDoInSwitch_and_throw() {
+    _assertFalse('''
+{
+  D: do {
+    switch (1) {
+      L: case 0: continue D;
+      M: case 1: break;
+    }
+    throw 'T';
+  } while (0 == 1);
+}''');
   }
 
   void test_doStatement_true_break() {
@@ -3494,6 +3516,11 @@ class ExitDetectorTest extends ParserTestCase {
   void test_doStatement_true_continue() {
     _assertTrue("{ do { continue; } while (true); }");
   }
+
+  void test_doStatement_true_continueWithLabel() {
+    _assertTrue("{ x: do { continue x; } while (true); }");
+  }
+
 
   void test_doStatement_true_if_return() {
     _assertTrue("{ do { if (true) {return null;} } while (true); }");
@@ -3759,6 +3786,19 @@ class ExitDetectorTest extends ParserTestCase {
     _assertTrue("switch (i) { case 0: case 1: return 0; default: return 1; }");
   }
 
+  // The ExitDetector could conceivably follow switch continue labels and
+  // determine that `case 0` exits, `case 1` continues to an exiting case, and
+  // `default` exits, so the switch exits.
+  @failingTest
+  void test_switch_includesContinue() {
+    _assertTrue('''
+switch (i) {
+  zero: case 0: return 0;
+  case 1: continue zero;
+  default: return 1;
+}''');
+  }
+
   void test_switch_noDefault() {
     _assertFalse("switch (i) { case 0: return 0; }");
   }
@@ -3779,16 +3819,85 @@ class ExitDetectorTest extends ParserTestCase {
     _assertFalse("try {} catch (e, s) {} finally {}");
   }
 
+  void test_tryStatement_noReturn_noFinally() {
+    _assertFalse("try {} catch (e, s) {}");
+  }
+
   void test_tryStatement_return_catch() {
     _assertFalse("try {} catch (e, s) { return 1; } finally {}");
+  }
+
+  void test_tryStatement_return_catch_noFinally() {
+    _assertFalse("try {} catch (e, s) { return 1; }");
   }
 
   void test_tryStatement_return_finally() {
     _assertTrue("try {} catch (e, s) {} finally { return 1; }");
   }
 
-  void test_tryStatement_return_try() {
-    _assertTrue("try { return 1; } catch (e, s) {} finally {}");
+  void test_tryStatement_return_try_noCatch() {
+    _assertTrue("try { return 1; } finally {}");
+  }
+
+  void test_tryStatement_return_try_oneCatchDoesNotExit() {
+    _assertFalse("try { return 1; } catch (e, s) {} finally {}");
+  }
+
+  void test_tryStatement_return_try_oneCatchDoesNotExit_noFinally() {
+    _assertFalse("try { return 1; } catch (e, s) {}");
+  }
+
+  void test_tryStatement_return_try_oneCatchExits() {
+    _assertTrue("try { return 1; } catch (e, s) { return 1; } finally {}");
+  }
+
+  void test_tryStatement_return_try_oneCatchExits_noFinally() {
+    _assertTrue("try { return 1; } catch (e, s) { return 1; }");
+  }
+
+  void test_tryStatement_return_try_twoCatchesDoExit() {
+    _assertTrue('''
+try { return 1; }
+on int catch (e, s) { return 1; }
+on String catch (e, s) { return 1; }
+finally {}''');
+  }
+
+  void test_tryStatement_return_try_twoCatchesDoExit_noFinally() {
+    _assertTrue('''
+try { return 1; }
+on int catch (e, s) { return 1; }
+on String catch (e, s) { return 1; }''');
+  }
+
+  void test_tryStatement_return_try_twoCatchesDoNotExit() {
+    _assertFalse('''
+try { return 1; }
+on int catch (e, s) {}
+on String catch (e, s) {}
+finally {}''');
+  }
+
+  void test_tryStatement_return_try_twoCatchesDoNotExit_noFinally() {
+    _assertFalse('''
+try { return 1; }
+on int catch (e, s) {}
+on String catch (e, s) {}''');
+  }
+
+  void test_tryStatement_return_try_twoCatchesMixed() {
+    _assertFalse('''
+try { return 1; }
+on int catch (e, s) {}
+on String catch (e, s) { return 1; }
+finally {}''');
+  }
+
+  void test_tryStatement_return_try_twoCatchesMixed_noFinally() {
+    _assertFalse('''
+try { return 1; }
+on int catch (e, s) {}
+on String catch (e, s) { return 1; }''');
   }
 
   void test_variableDeclarationStatement_noInitializer() {
@@ -3819,6 +3928,14 @@ class ExitDetectorTest extends ParserTestCase {
     _assertTrue("{ while (true) { continue; } }");
   }
 
+  void test_whileStatement_true_continueWithLabel() {
+    _assertTrue("{ x: while (true) { continue x; } }");
+  }
+
+  void test_whileStatement_true_doStatement_scopeRequired() {
+    _assertTrue("{ while (true) { x: do { continue x; } while (true); } }");
+  }
+
   void test_whileStatement_true_if_return() {
     _assertTrue("{ while (true) { if (true) {return null;} } }");
   }
@@ -3833,6 +3950,10 @@ class ExitDetectorTest extends ParserTestCase {
 
   void test_whileStatement_true_throw() {
     _assertTrue("{ while (true) { throw ''; } }");
+  }
+
+  void test_whileStatement_true_break_and_throw() {
+    _assertFalse("{ while (true) { if (1==1) break; throw 'T'; } }");
   }
 
   void _assertFalse(String source) {
@@ -3916,10 +4037,10 @@ String f(E e) {
   }
 }
 ''');
-    _assertNthStatementExits(source, 0);
+    _assertNthStatementDoesNotExit(source, 0);
   }
 
-  void test_switch_withEnum_true_withDefault() {
+  void test_switch_withEnum_true_withExitingDefault() {
     Source source = addSource(r'''
 enum E { A, B }
 String f(E e) {
@@ -3934,6 +4055,22 @@ String f(E e) {
     _assertNthStatementExits(source, 0);
   }
 
+  void test_switch_withEnum_true_withNonExitingDefault() {
+    Source source = addSource(r'''
+enum E { A, B }
+String f(E e) {
+  var x;
+  switch (e) {
+    case A:
+      return 'A';
+    default:
+      x = '?';
+  }
+}
+''');
+    _assertNthStatementDoesNotExit(source, 1);
+  }
+
   void test_whileStatement_breakWithLabel() {
     Source source = addSource(r'''
 void f() {
@@ -3942,6 +4079,20 @@ void f() {
       break x;
     }
     return;
+  }
+}
+''');
+    _assertNthStatementDoesNotExit(source, 0);
+  }
+
+  void test_whileStatement_switchWithBreakWithLabel() {
+    Source source = addSource(r'''
+void f() {
+  x: while (true) {
+    switch (true) {
+      case false: break;
+      case true: break x;
+    }
   }
 }
 ''');
@@ -3962,6 +4113,42 @@ void f() {
     _assertNthStatementExits(source, 0);
   }
 
+  void test_yieldStatement_plain() {
+    Source source = addSource(r'''
+void f() sync* {
+  yield 1;
+}
+''');
+    _assertNthStatementDoesNotExit(source, 0);
+  }
+
+  void test_yieldStatement_star_plain() {
+    Source source = addSource(r'''
+void f() sync* {
+  yield* 1;
+}
+''');
+    _assertNthStatementDoesNotExit(source, 0);
+  }
+
+  void test_yieldStatement_star_throw() {
+    Source source = addSource(r'''
+void f() sync* {
+  yield* throw '';
+}
+''');
+    _assertNthStatementExits(source, 0);
+  }
+
+  void test_yieldStatement_throw() {
+    Source source = addSource(r'''
+void f() sync* {
+  yield throw '';
+}
+''');
+    _assertNthStatementExits(source, 0);
+  }
+
   void _assertHasReturn(bool expectedResult, Source source, int n) {
     LibraryElement element = resolve2(source);
     CompilationUnit unit = resolveCompilationUnit(source, element);
@@ -3973,14 +4160,14 @@ void f() {
 
   // Assert that the [n]th statement in the last function declaration of
   // [source] exits.
-  void _assertNthStatementExits(Source source, int n) {
-    _assertHasReturn(true, source, n);
+  void _assertNthStatementDoesNotExit(Source source, int n) {
+    _assertHasReturn(false, source, n);
   }
 
   // Assert that the [n]th statement in the last function declaration of
   // [source] does not exit.
-  void _assertNthStatementDoesNotExit(Source source, int n) {
-    _assertHasReturn(false, source, n);
+  void _assertNthStatementExits(Source source, int n) {
+    _assertHasReturn(true, source, n);
   }
 }
 
@@ -4051,7 +4238,8 @@ class FileBasedSourceTest {
   }
 
   void test_getEncoding() {
-    SourceFactory factory = new SourceFactory([new FileUriResolver()]);
+    SourceFactory factory = new SourceFactory(
+        [new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)]);
     String fullPath = "/does/not/exist.dart";
     JavaFile file = FileUtilities2.createFile(fullPath);
     FileBasedSource source = new FileBasedSource(file);
@@ -4166,41 +4354,6 @@ class FileBasedSourceTest {
     expect(source, isNotNull);
     expect(source.fullName, file.getAbsolutePath());
     expect(source.isInSystemLibrary, isTrue);
-  }
-}
-
-@reflectiveTest
-class FileUriResolverTest {
-  void test_creation() {
-    expect(new FileUriResolver(), isNotNull);
-  }
-
-  void test_resolve_file() {
-    UriResolver resolver = new FileUriResolver();
-    Source result = resolver
-        .resolveAbsolute(parseUriWithException("file:/does/not/exist.dart"));
-    expect(result, isNotNull);
-    expect(result.fullName,
-        FileUtilities2.createFile("/does/not/exist.dart").getAbsolutePath());
-  }
-
-  void test_resolve_nonFile() {
-    UriResolver resolver = new FileUriResolver();
-    Source result =
-        resolver.resolveAbsolute(parseUriWithException("dart:core"));
-    expect(result, isNull);
-  }
-
-  void test_restore() {
-    UriResolver resolver = new FileUriResolver();
-    Uri uri = parseUriWithException('file:///foo/bar.dart');
-    Source source = resolver.resolveAbsolute(uri);
-    expect(source, isNotNull);
-    expect(resolver.restoreAbsolute(source), uri);
-    expect(
-        resolver.restoreAbsolute(
-            new NonExistingSource(source.fullName, null, null)),
-        uri);
   }
 }
 

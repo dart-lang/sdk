@@ -1790,7 +1790,8 @@ foo(a, b) {}
           0,
           0,
           0,
-          2
+          2,
+          0
         ],
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, null, 'foo',
@@ -1821,7 +1822,8 @@ foo(a, b, c) {}
           0,
           1,
           0,
-          3
+          3,
+          0
         ],
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, null, 'foo',
@@ -2322,7 +2324,8 @@ const v = const Foo();
     ], ints: [
       42,
       0,
-      2
+      2,
+      0
     ], referenceValidators: [
       (EntityRef r) {
         checkTypeRef(r, 'dart:core', 'dart:core', 'identical',
@@ -6881,9 +6884,9 @@ final v = a..m(5).abs()..m(6);
           UnlinkedConstOperation.cascadeSectionEnd,
         ],
         ints: [
-          5, 0, 1, // m(5)
-          0, 0, // abs()
-          6, 0, 1, // m(5)
+          5, 0, 1, 0, // m(5)
+          0, 0, 0, // abs()
+          6, 0, 1, 0, // m(5)
         ],
         strings: [
           'm',
@@ -6977,7 +6980,8 @@ foo(a, b) {}
           0,
           0,
           0,
-          2
+          2,
+          0
         ],
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, null, 'foo',
@@ -7008,7 +7012,8 @@ foo(a, b, c) {}
           0,
           1,
           0,
-          3
+          3,
+          0
         ],
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, null, 'foo',
@@ -7101,6 +7106,53 @@ final v = ((a, b) => 42)(1, 2);
         operators: [UnlinkedConstOperation.pushParameter], strings: ['x']);
   }
 
+  test_expr_inClosure_refersToParam_methodCall() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('var v = (x) => x.f();');
+    _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
+        isValidConst: false,
+        operators: [
+          UnlinkedConstOperation.pushParameter,
+          UnlinkedConstOperation.invokeMethod
+        ],
+        strings: [
+          'x',
+          'f'
+        ],
+        ints: [
+          0,
+          0,
+          0
+        ]);
+  }
+
+  test_expr_inClosure_refersToParam_methodCall_prefixed() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable =
+        serializeVariableText('var v = (x) => x.y.f();');
+    _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
+        isValidConst: false,
+        operators: [
+          UnlinkedConstOperation.pushParameter,
+          UnlinkedConstOperation.extractProperty,
+          UnlinkedConstOperation.invokeMethod
+        ],
+        strings: [
+          'x',
+          'y',
+          'f'
+        ],
+        ints: [
+          0,
+          0,
+          0
+        ]);
+  }
+
   test_expr_inClosure_refersToParam_outOfScope() {
     if (skipNonConstInitializers) {
       return;
@@ -7125,6 +7177,86 @@ final v = ((a, b) => 42)(1, 2);
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, null, 'x',
               expectedKind: ReferenceKind.topLevelPropertyAccessor)
+        ]);
+  }
+
+  test_expr_inClosure_refersToParam_prefixedIdentifier() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('var v = (x) => x.y;');
+    _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
+        operators: [
+          UnlinkedConstOperation.pushParameter,
+          UnlinkedConstOperation.extractProperty
+        ],
+        strings: [
+          'x',
+          'y'
+        ]);
+  }
+
+  test_expr_inClosure_refersToParam_prefixedIdentifier_assign() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable =
+        serializeVariableText('var v = (x) => x.y = null;');
+    _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
+        isValidConst: false,
+        operators: [
+          UnlinkedConstOperation.pushNull,
+          UnlinkedConstOperation.pushParameter,
+          UnlinkedConstOperation.assignToProperty
+        ],
+        strings: [
+          'x',
+          'y'
+        ],
+        assignmentOperators: [
+          UnlinkedExprAssignOperator.assign
+        ]);
+  }
+
+  test_expr_inClosure_refersToParam_prefixedPrefixedIdentifier() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('var v = (x) => x.y.z;');
+    _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
+        operators: [
+          UnlinkedConstOperation.pushParameter,
+          UnlinkedConstOperation.extractProperty,
+          UnlinkedConstOperation.extractProperty
+        ],
+        strings: [
+          'x',
+          'y',
+          'z'
+        ]);
+  }
+
+  test_expr_inClosure_refersToParam_prefixedPrefixedIdentifier_assign() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable =
+        serializeVariableText('var v = (x) => x.y.z = null;');
+    _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
+        isValidConst: false,
+        operators: [
+          UnlinkedConstOperation.pushNull,
+          UnlinkedConstOperation.pushParameter,
+          UnlinkedConstOperation.extractProperty,
+          UnlinkedConstOperation.assignToProperty
+        ],
+        strings: [
+          'x',
+          'y',
+          'z'
+        ],
+        assignmentOperators: [
+          UnlinkedExprAssignOperator.assign
         ]);
   }
 
@@ -7154,7 +7286,8 @@ final v = new C().m(1, b: 2, c: 3);
           2,
           3,
           2,
-          1
+          1,
+          0
         ],
         strings: [
           'b',
@@ -7164,6 +7297,39 @@ final v = new C().m(1, b: 2, c: 3);
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, null, 'C',
               expectedKind: ReferenceKind.classOrEnum)
+        ]);
+  }
+
+  test_expr_invokeMethod_withTypeParameters() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+class C {
+  f<T, U>() => null;
+}
+final v = new C().f<int, String>();
+''');
+    _assertUnlinkedConst(variable.initializer.bodyExpr,
+        isValidConst: false,
+        operators: [
+          UnlinkedConstOperation.invokeConstructor,
+          UnlinkedConstOperation.invokeMethod
+        ],
+        ints: [
+          0,
+          0,
+          0,
+          0,
+          2
+        ],
+        strings: [
+          'f'
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, null, null, 'C'),
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'dart:core', 'int'),
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'dart:core', 'String')
         ]);
   }
 
@@ -7195,7 +7361,8 @@ final v = a.b.c.m(10, 20);
           10,
           20,
           0,
-          2
+          2,
+          0
         ],
         strings: [],
         referenceValidators: [
@@ -7232,6 +7399,7 @@ final v = p.C.m();
         ],
         ints: [
           0,
+          0,
           0
         ],
         strings: [],
@@ -7263,13 +7431,41 @@ final v = f(u);
         ],
         ints: [
           0,
-          1
+          1,
+          0
         ],
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, null, 'u',
               expectedKind: ReferenceKind.topLevelPropertyAccessor),
           (EntityRef r) => checkTypeRef(r, null, null, 'f',
               expectedKind: ReferenceKind.topLevelFunction)
+        ]);
+  }
+
+  test_expr_invokeMethodRef_withTypeParameters() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+f<T, U>() => null;
+final v = f<int, String>();
+''');
+    _assertUnlinkedConst(variable.initializer.bodyExpr,
+        isValidConst: false,
+        operators: [
+          UnlinkedConstOperation.invokeMethodRef
+        ],
+        ints: [
+          0,
+          0,
+          2
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, null, null, 'f',
+              expectedKind: ReferenceKind.topLevelFunction,
+              numTypeParameters: 2),
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'dart:core', 'int'),
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'dart:core', 'String')
         ]);
   }
 
@@ -7398,6 +7594,7 @@ class C {
         ],
         ints: [
           1,
+          0,
           0,
           0
         ],

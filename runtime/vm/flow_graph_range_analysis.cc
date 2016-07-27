@@ -910,7 +910,7 @@ class Scheduler {
     // Attempt to find equivalent instruction that was already scheduled.
     // If the instruction is still in the graph (it could have been
     // un-scheduled by a rollback action) and it dominates the sink - use it.
-    Instruction* emitted = map_.Lookup(instruction);
+    Instruction* emitted = map_.LookupValue(instruction);
     if (emitted != NULL &&
         !emitted->WasEliminated() &&
         sink->IsDominatedBy(emitted)) {
@@ -1569,7 +1569,8 @@ void RangeAnalysis::MarkUnreachableBlocks() {
           target->PredecessorAt(0)->last_instruction()->AsBranch();
       if (target == branch->true_successor()) {
         // True unreachable.
-        if (FLAG_trace_constant_propagation) {
+        if (FLAG_trace_constant_propagation &&
+            FlowGraphPrinter::ShouldPrint(flow_graph_->function())) {
           THR_Print("Range analysis: True unreachable (B%" Pd ")\n",
                     branch->true_successor()->block_id());
         }
@@ -1577,7 +1578,8 @@ void RangeAnalysis::MarkUnreachableBlocks() {
       } else {
         ASSERT(target == branch->false_successor());
         // False unreachable.
-        if (FLAG_trace_constant_propagation) {
+        if (FLAG_trace_constant_propagation &&
+            FlowGraphPrinter::ShouldPrint(flow_graph_->function())) {
           THR_Print("Range analysis: False unreachable (B%" Pd ")\n",
                     branch->false_successor()->block_id());
         }

@@ -4,6 +4,7 @@
 
 library js_backend.serialization;
 
+import '../common.dart';
 import '../common/backend_api.dart' show BackendSerialization;
 import '../dart_types.dart';
 import '../elements/elements.dart';
@@ -38,6 +39,9 @@ class JavaScriptBackendSerialization implements BackendSerialization {
 const Key JS_INTEROP_NAME = const Key('jsInteropName');
 const Key NATIVE_MEMBER_NAME = const Key('nativeMemberName');
 const Key NATIVE_CLASS_TAG_INFO = const Key('nativeClassTagInfo');
+const Key NATIVE_METHOD_BEHAVIOR = const Key('nativeMethodBehavior');
+const Key NATIVE_FIELD_LOAD_BEHAVIOR = const Key('nativeFieldLoadBehavior');
+const Key NATIVE_FIELD_STORE_BEHAVIOR = const Key('nativeFieldStoreBehavior');
 
 class JavaScriptBackendSerializer implements SerializerPlugin {
   final JavaScriptBackend backend;
@@ -63,41 +67,31 @@ class JavaScriptBackendSerializer implements SerializerPlugin {
     if (nativeClassTagInfo != null) {
       getEncoder().setString(NATIVE_CLASS_TAG_INFO, nativeClassTagInfo);
     }
-  }
-
-  /// Returns a list of the [DartType]s in [types].
-  static List<DartType> filterDartTypes(List types) {
-    return types.where((type) => type is DartType).toList();
-  }
-
-  /// Returns a list of the names of the [SpecialType]s in [types].
-  static List<String> filterSpecialTypes(List types) {
-    return types
-        .where((type) => type is SpecialType)
-        .map((SpecialType type) => type.name)
-        .toList();
+    NativeBehavior nativeMethodBehavior =
+        backend.nativeData.nativeMethodBehavior[element];
+    if (nativeMethodBehavior != null) {
+      NativeBehaviorSerialization.serializeNativeBehavior(nativeMethodBehavior,
+          getEncoder().createObject(NATIVE_METHOD_BEHAVIOR));
+    }
+    NativeBehavior nativeFieldLoadBehavior =
+        backend.nativeData.nativeFieldLoadBehavior[element];
+    if (nativeFieldLoadBehavior != null) {
+      NativeBehaviorSerialization.serializeNativeBehavior(
+          nativeFieldLoadBehavior,
+          getEncoder().createObject(NATIVE_FIELD_LOAD_BEHAVIOR));
+    }
+    NativeBehavior nativeFieldStoreBehavior =
+        backend.nativeData.nativeFieldStoreBehavior[element];
+    if (nativeFieldStoreBehavior != null) {
+      NativeBehaviorSerialization.serializeNativeBehavior(
+          nativeFieldStoreBehavior,
+          getEncoder().createObject(NATIVE_FIELD_STORE_BEHAVIOR));
+    }
   }
 
   @override
   void onData(NativeBehavior behavior, ObjectEncoder encoder) {
-    encoder.setTypes(
-        DART_TYPES_RETURNED, filterDartTypes(behavior.typesReturned));
-    encoder.setStrings(
-        SPECIAL_TYPES_RETURNED, filterSpecialTypes(behavior.typesReturned));
-
-    encoder.setTypes(
-        DART_TYPES_INSTANTIATED, filterDartTypes(behavior.typesInstantiated));
-    encoder.setStrings(SPECIAL_TYPES_INSTANTIATED,
-        filterSpecialTypes(behavior.typesInstantiated));
-
-    if (behavior.codeTemplateText != null) {
-      encoder.setString(CODE_TEMPLATE, behavior.codeTemplateText);
-    }
-
-    encoder.setInt(SIDE_EFFECTS, behavior.sideEffects.flags);
-    encoder.setEnum(THROW_BEHAVIOR, behavior.throwBehavior);
-    encoder.setBool(IS_ALLOCATION, behavior.isAllocation);
-    encoder.setBool(USE_GVN, behavior.useGvn);
+    NativeBehaviorSerialization.serializeNativeBehavior(behavior, encoder);
   }
 }
 
@@ -125,11 +119,73 @@ class JavaScriptBackendDeserializer implements DeserializerPlugin {
       if (nativeClassTagInfo != null) {
         backend.nativeData.nativeClassTagInfo[element] = nativeClassTagInfo;
       }
+      ObjectDecoder nativeMethodBehavior =
+          decoder.getObject(NATIVE_METHOD_BEHAVIOR, isOptional: true);
+      if (nativeMethodBehavior != null) {
+        backend.nativeData.nativeMethodBehavior[element] =
+            NativeBehaviorSerialization
+                .deserializeNativeBehavior(nativeMethodBehavior);
+      }
+      ObjectDecoder nativeFieldLoadBehavior =
+          decoder.getObject(NATIVE_FIELD_LOAD_BEHAVIOR, isOptional: true);
+      if (nativeFieldLoadBehavior != null) {
+        backend.nativeData.nativeFieldLoadBehavior[element] =
+            NativeBehaviorSerialization
+                .deserializeNativeBehavior(nativeFieldLoadBehavior);
+      }
+      ObjectDecoder nativeFieldStoreBehavior =
+          decoder.getObject(NATIVE_FIELD_STORE_BEHAVIOR, isOptional: true);
+      if (nativeFieldStoreBehavior != null) {
+        backend.nativeData.nativeFieldStoreBehavior[element] =
+            NativeBehaviorSerialization
+                .deserializeNativeBehavior(nativeFieldStoreBehavior);
+      }
     }
   }
 
   @override
   NativeBehavior onData(ObjectDecoder decoder) {
+    return NativeBehaviorSerialization.deserializeNativeBehavior(decoder);
+  }
+}
+
+class NativeBehaviorSerialization {
+  /// Returns a list of the [DartType]s in [types].
+  static List<DartType> filterDartTypes(List types) {
+    return types.where((type) => type is DartType).toList();
+  }
+
+  /// Returns a list of the names of the [SpecialType]s in [types].
+  static List<String> filterSpecialTypes(List types) {
+    return types
+        .where((type) => type is SpecialType)
+        .map((SpecialType type) => type.name)
+        .toList();
+  }
+
+  static void serializeNativeBehavior(
+      NativeBehavior behavior, ObjectEncoder encoder) {
+    encoder.setTypes(
+        DART_TYPES_RETURNED, filterDartTypes(behavior.typesReturned));
+    encoder.setStrings(
+        SPECIAL_TYPES_RETURNED, filterSpecialTypes(behavior.typesReturned));
+
+    encoder.setTypes(
+        DART_TYPES_INSTANTIATED, filterDartTypes(behavior.typesInstantiated));
+    encoder.setStrings(SPECIAL_TYPES_INSTANTIATED,
+        filterSpecialTypes(behavior.typesInstantiated));
+
+    if (behavior.codeTemplateText != null) {
+      encoder.setString(CODE_TEMPLATE, behavior.codeTemplateText);
+    }
+
+    encoder.setInt(SIDE_EFFECTS, behavior.sideEffects.flags);
+    encoder.setEnum(THROW_BEHAVIOR, behavior.throwBehavior);
+    encoder.setBool(IS_ALLOCATION, behavior.isAllocation);
+    encoder.setBool(USE_GVN, behavior.useGvn);
+  }
+
+  static NativeBehavior deserializeNativeBehavior(ObjectDecoder decoder) {
     SideEffects sideEffects =
         new SideEffects.fromFlags(decoder.getInt(SIDE_EFFECTS));
     NativeBehavior behavior = new NativeBehavior.internal(sideEffects);

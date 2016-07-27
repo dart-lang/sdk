@@ -104,7 +104,6 @@ void StoreBuffer::PushBlock(Block* block, ThresholdPolicy policy) {
     // Sanity check: it makes no sense to schedule the GC in another isolate.
     // (If Isolate ever gets multiple store buffers, we should avoid this
     // coupling by passing in an explicit callback+parameter at construction.)
-    ASSERT(thread->isolate()->mutator_thread() == thread);
     ASSERT(thread->isolate()->store_buffer() == this);
     thread->ScheduleInterrupts(Thread::kVMInterrupt);
   }

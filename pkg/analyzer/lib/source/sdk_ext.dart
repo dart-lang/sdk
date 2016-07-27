@@ -43,6 +43,13 @@ class SdkExtUriResolver extends UriResolver {
   /// Number of sdk extensions.
   int get length => _urlMappings.length;
 
+  /**
+   * Return a table mapping the names of extensions to the paths where those
+   * extensions can be found.
+   */
+  Map<String, String> get urlMappings =>
+      new Map<String, String>.from(_urlMappings);
+
   /// Return the path mapping for [libName] or null if there is none.
   String operator [](String libName) => _urlMappings[libName];
 

@@ -5,6 +5,18 @@
 library dart2js.serialization_test_data;
 
 const List<Test> TESTS = const <Test>[
+  // This test is very long-running and put here first to compile it on its own
+  // in compilation0_test.dart
+  const Test('Disable tree shaking through reflection', const {
+    'main.dart': '''
+import 'dart:mirrors';
+
+main() {
+  reflect(null).invoke(#toString, []).reflectee;
+}
+''',
+  }, expectedWarningCount: 1),
+
   const Test('Empty program', const {
     'main.dart': 'main() {}'
   }),
@@ -308,12 +320,239 @@ class S {
 class C = S with M;
 ''',
       }),
+
+  const Test('Import mirrors, thus checking import paths', const {
+    'main.dart': '''
+import 'dart:mirrors';
+main() {}
+''',
+  },
+      expectedWarningCount: 1),
+
+  const Test('Serialized symbol literal', const {
+    'main.dart': '''
+import 'lib.dart';
+main() => m();
+''',
+  }, preserializedSourceFiles: const {
+    'lib.dart': '''
+m() => print(#main);
+''',
+  }),
+
+  const Test('Indirect unserialized library', const {
+    'main.dart': '''
+import 'a.dart';
+main() => foo();
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+import 'memory:b.dart';
+foo() => bar();
+''',
+  }, unserializedSourceFiles: const {
+    'b.dart': '''
+import 'memory:a.dart';
+bar() => foo();
+''',
+  }),
+
+  const Test('Multiple structurally identical mixins', const {
+    'main.dart': '''
+class S {}
+class M {}
+class C1 extends S with M {}
+class C2 extends S with M {}
+main() {
+  new C1();
+  new C2();
+}
+''',
+  }),
+
+  const Test('Deferred loading', const {
+    'main.dart': '''
+import 'a.dart' deferred as lib;
+main() {
+  lib.foo();
+}
+''',
+    'a.dart': '''
+void foo() {}
+''',
+  }),
+
+  const Test('fromEnvironment constants', const {
+    'main.dart': '''
+main() => const String.fromEnvironment("foo");
+''',
+  }),
+
+  const Test('Unused noSuchMethod', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  new A().m();
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+class A {
+  noSuchMethod(_) => null;
+  m();
+}
+''',
+  }),
+
+  const Test('Malformed types', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  m();
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+Unresolved m() {}
+''',
+  }),
+
+  const Test('Function types for closures', const {
+    'main.dart': '''
+import 'a.dart';
+
+typedef Func();
+
+main(args) {
+  (args.isEmpty ? new B() : new C()) is Func;
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+class B {
+  call(a) {}
+}
+class C {
+  call() {}
+}
+''',
+  }),
+
+  const Test('Double literal in constant constructor', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  const A(1.0);
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+class A {
+  final field1;
+  const A(a) : this.field1 = a + 1.0;
+}
+''',
+  }),
+
+  const Test('If-null expression in constant constructor', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  const A(1.0);
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+class A {
+  final field1;
+  const A(a) : this.field1 = a ?? 1.0;
+}
+''',
+  }),
+
+  const Test('Forwarding constructor defined by forwarding constructor', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() => new C();
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+class A {}
+class B {}
+class C {}
+class D = A with B, C;
+''',
+    'b.dart': '''
+''',
+}),
+
+  const Test('Deferred prefix loadLibrary', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  test();
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+import 'b.dart' deferred as pre;
+test() {
+  pre.loadLibrary();
+}
+''',
+    'b.dart': '''
+''',
+  }),
+
+  const Test('Deferred without prefix', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  test();
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+import 'b.dart' deferred;
+test() {}
+''',
+    'b.dart': '''
+''',
+  }, expectedErrorCount: 1),
+
+  const Test('Deferred with duplicate prefix', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  test();
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+import 'b.dart' deferred as pre;
+import 'c.dart' deferred as pre;
+test() {}
+''',
+    'b.dart': '''
+''',
+    'c.dart': '''
+''',
+  }, expectedErrorCount: 1),
 ];
 
 class Test {
   final String name;
   final Map sourceFiles;
   final Map preserializedSourceFiles;
+  final Map unserializedSourceFiles;
   final int expectedErrorCount;
   final int expectedWarningCount;
   final int expectedHintCount;
@@ -323,6 +562,7 @@ class Test {
       this.name,
       this.sourceFiles,
       {this.preserializedSourceFiles,
+      this.unserializedSourceFiles,
       this.expectedErrorCount: 0,
       this.expectedWarningCount: 0,
       this.expectedHintCount: 0,

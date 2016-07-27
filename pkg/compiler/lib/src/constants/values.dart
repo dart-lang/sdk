@@ -28,6 +28,7 @@ abstract class ConstantValueVisitor<R, A> {
   R visitInterceptor(InterceptorConstantValue constant, A arg);
   R visitSynthetic(SyntheticConstantValue constant, A arg);
   R visitDeferred(DeferredConstantValue constant, A arg);
+  R visitNonConstant(NonConstantValue constant, A arg);
 }
 
 abstract class ConstantValue {
@@ -657,13 +658,15 @@ class SyntheticConstantValue extends ConstantValue {
 }
 
 class ConstructedConstantValue extends ObjectConstantValue {
+  // TODO(johnniwinther): Make [fields] private to avoid misuse of the map
+  // ordering and mutability.
   final Map<FieldElement, ConstantValue> fields;
   final int hashCode;
 
   ConstructedConstantValue(
       InterfaceType type, Map<FieldElement, ConstantValue> fields)
       : this.fields = fields,
-        hashCode = Hashing.mapHash(fields, Hashing.objectHash(type)),
+        hashCode = Hashing.unorderedMapHash(fields, Hashing.objectHash(type)),
         super(type) {
     assert(type != null);
     assert(!fields.containsValue(null));
@@ -751,7 +754,9 @@ class DeferredConstantValue extends ConstantValue {
 
   String toDartText() => 'deferred(${referenced.toDartText()})';
 
-  String toStructuredText() => 'DeferredConstant($referenced)';
+  String toStructuredText() {
+    return 'DeferredConstant(${referenced.toStructuredText()})';
+  }
 }
 
 /// A constant value resulting from a non constant or erroneous constant
@@ -762,7 +767,7 @@ class NonConstantValue extends ConstantValue {
 
   @override
   accept(ConstantValueVisitor visitor, arg) {
-    // TODO(johnniwinther): Should this be part of the visiting?
+    return visitor.visitNonConstant(this, arg);
   }
 
   @override

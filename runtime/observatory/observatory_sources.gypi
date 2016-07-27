@@ -105,6 +105,8 @@
     'lib/src/elements/library_ref.html',
     'lib/src/elements/library_view.dart',
     'lib/src/elements/library_view.html',
+    'lib/src/elements/objectstore_view.dart',
+    'lib/src/elements/objectstore_view.html',
     'lib/src/elements/logging.dart',
     'lib/src/elements/logging.html',
     'lib/src/elements/megamorphiccache_view.dart',

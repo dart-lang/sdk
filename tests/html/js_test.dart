@@ -194,6 +194,8 @@ someObject.role = "object";
   document.body.append(script);
 }
 
+typedef bool StringToBool(String s);
+
 // Some test are either causing other test to fail in IE9, or they are failing
 // for unknown reasons
 // useHtmlConfiguration+ImageData bug: dartbug.com/14355
@@ -920,6 +922,17 @@ main() {
         }
       });
 
+    });
+
+    group('JavaScriptFunction', () {
+      test('is check', () {
+        var fn = (String s) => true;
+        var jsFn = allowInterop(fn);
+        expect(fn is StringToBool, isTrue);
+        expect(jsFn is StringToBool, isTrue);
+        expect(jsFn is Function, isTrue);
+        expect(jsFn is List, isFalse);
+      });
     });
 
     group('Dart->JS', () {

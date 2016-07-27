@@ -25,6 +25,8 @@ patch bool sendIsolateServiceMessage(SendPort sp, List m)
     native "VMService_SendIsolateServiceMessage";
 patch void sendRootServiceMessage(List m)
     native "VMService_SendRootServiceMessage";
+patch void sendObjectRootServiceMessage(List m)
+    native "VMService_SendObjectRootServiceMessage";
 patch void _onStart() native "VMService_OnStart";
 patch void _onExit() native "VMService_OnExit";
 patch void onServerAddressChange(String address)

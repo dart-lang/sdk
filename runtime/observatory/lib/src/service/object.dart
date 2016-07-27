@@ -42,7 +42,11 @@ class ServerRpcException extends RpcException {
   static const kStreamNotSubscribed     = 104;
   static const kIsolateMustBeRunnable   = 105;
   static const kIsolateMustBePaused     = 106;
-  static const kIsolateIsReloading      = 107;
+  static const kIsolateIsReloading      = 1000;
+  static const kFileSystemAlreadyExists = 1001;
+  static const kFileSystemDoesNotExist  = 1002;
+  static const kFileDoesNotExist        = 1003;
+  static const kIsolateReloadFailed     = 1004;
 
   int code;
   Map data;
@@ -1636,6 +1640,14 @@ class Isolate extends ServiceObjectOwner {
     return invokeRpc('getStack', {});
   }
 
+  Future<ObjectStore> getObjectStore() {
+    return invokeRpcNoUpgrade('_getObjectStore', {}).then((map) {
+      ObjectStore objectStore = new ObjectStore._empty(this);
+      objectStore._update(map, false);
+      return objectStore;
+    });
+  }
+
   Future<ServiceObject> _eval(ServiceObject target,
                               String expression) {
     Map params = {
@@ -1743,6 +1755,36 @@ class Isolate extends ServiceObjectOwner {
 
   String toString() => "Isolate($name)";
 }
+
+
+class NamedField {
+  final String name;
+  final ServiceObject value;
+  NamedField(this.name, this.value);
+}
+
+
+class ObjectStore extends ServiceObject {
+  @observable List<NamedField> fields = new List<NamedField>();
+
+  ObjectStore._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    // Extract full properties.
+    _upgradeCollection(map, isolate);
+
+    if (mapIsRef) {
+      return;
+    }
+
+    fields.clear();
+    map['fields'].forEach((key, value) {
+      fields.add(new NamedField(key, value));
+    });
+    _loaded = true;
+  }
+}
+
 
 /// A [ServiceObject] which implements [ObservableMap].
 class ServiceMap extends ServiceObject implements ObservableMap {

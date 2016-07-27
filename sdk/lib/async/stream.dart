@@ -316,26 +316,37 @@ abstract class Stream<T> {
   /**
    * Adds a subscription to this stream.
    *
-   * On each data event from this stream, the subscriber's [onData] handler
-   * is called. If [onData] is null, nothing happens.
+   * Returns a [StreamSubscription] which handles events from the stream using
+   * the provided [onData], [onError] and [onDone] handlers.
+   * The handlers can be changed on the subscription, but they start out
+   * as the provided functions.
    *
-   * On errors from this stream, the [onError] handler is given a
-   * object describing the error.
+   * On each data event from this stream, the subscriber's [onData] handler
+   * is called. If [onData] is `null`, nothing happens.
+   *
+   * On errors from this stream, the [onError] handler is called with the
+   * error object and possibly a stack trace.
    *
    * The [onError] callback must be of type `void onError(error)` or
    * `void onError(error, StackTrace stackTrace)`. If [onError] accepts
-   * two arguments it is called with the stack trace (which could be `null` if
-   * the stream itself received an error without stack trace).
+   * two arguments it is called with the error object and the stack trace
+   * (which could be `null` if the stream itself received an error without
+   * stack trace).
    * Otherwise it is called with just the error object.
    * If [onError] is omitted, any errors on the stream are considered unhandled,
    * and will be passed to the current [Zone]'s error handler.
    * By default unhandled async errors are treated
    * as if they were uncaught top-level errors.
    *
-   * If this stream closes, the [onDone] handler is called.
+   * If this stream closes and sends a done event, the [onDone] handler is
+   * called. If [onDone] is `null`, nothing happens.
    *
-   * If [cancelOnError] is true, the subscription is ended when
-   * the first error is reported. The default is false.
+   * If [cancelOnError] is true, the subscription is automatically cancelled
+   * when the first error event is delivered. The default is `false`.
+   *
+   * While a subscription is paused, or when it has been cancelled,
+   * the subscription doesn't receive events and none of the
+   * event handler functions are called.
    */
   StreamSubscription<T> listen(void onData(T event),
                                { Function onError,

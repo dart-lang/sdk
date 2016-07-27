@@ -16,6 +16,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:plugin/manager.dart';
@@ -48,7 +49,7 @@ main() {
           null,
           serverPlugin,
           new AnalysisServerOptions(),
-          (_) => new MockSdk(),
+          new DartSdkManager('', false, (_) => new MockSdk()),
           InstrumentationService.NULL_SERVICE);
       handler = new ExecutionDomainHandler(server);
     });

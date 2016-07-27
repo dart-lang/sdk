@@ -141,9 +141,190 @@ class _UnlinkedParamKindReader extends fb.Reader<idl.UnlinkedParamKind> {
   }
 }
 
-class CacheSourceContentBuilder extends Object with _CacheSourceContentMixin implements idl.CacheSourceContent {
-  bool _finished = false;
+class CacheAnalysisErrorBuilder extends Object with _CacheAnalysisErrorMixin implements idl.CacheAnalysisError {
+  String _correction;
+  String _errorCodeUniqueName;
+  int _length;
+  String _message;
+  int _offset;
 
+  @override
+  String get correction => _correction ??= '';
+
+  /**
+   * The correction to be displayed for this error, or `null` if there is no
+   * correction information for this error. The correction should indicate how
+   * the user can fix the error.
+   */
+  void set correction(String _value) {
+    _correction = _value;
+  }
+
+  @override
+  String get errorCodeUniqueName => _errorCodeUniqueName ??= '';
+
+  /**
+   * The unique name of the error code.
+   */
+  void set errorCodeUniqueName(String _value) {
+    _errorCodeUniqueName = _value;
+  }
+
+  @override
+  int get length => _length ??= 0;
+
+  /**
+   * Length of the error range.
+   */
+  void set length(int _value) {
+    assert(_value == null || _value >= 0);
+    _length = _value;
+  }
+
+  @override
+  String get message => _message ??= '';
+
+  /**
+   * The message to be displayed for this error. The message should indicate
+   * what is wrong and why it is wrong.
+   */
+  void set message(String _value) {
+    _message = _value;
+  }
+
+  @override
+  int get offset => _offset ??= 0;
+
+  /**
+   * Offset of the error range relative to the beginning of the file.
+   */
+  void set offset(int _value) {
+    assert(_value == null || _value >= 0);
+    _offset = _value;
+  }
+
+  CacheAnalysisErrorBuilder({String correction, String errorCodeUniqueName, int length, String message, int offset})
+    : _correction = correction,
+      _errorCodeUniqueName = errorCodeUniqueName,
+      _length = length,
+      _message = message,
+      _offset = offset;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_correction;
+    fb.Offset offset_errorCodeUniqueName;
+    fb.Offset offset_message;
+    if (_correction != null) {
+      offset_correction = fbBuilder.writeString(_correction);
+    }
+    if (_errorCodeUniqueName != null) {
+      offset_errorCodeUniqueName = fbBuilder.writeString(_errorCodeUniqueName);
+    }
+    if (_message != null) {
+      offset_message = fbBuilder.writeString(_message);
+    }
+    fbBuilder.startTable();
+    if (offset_correction != null) {
+      fbBuilder.addOffset(4, offset_correction);
+    }
+    if (offset_errorCodeUniqueName != null) {
+      fbBuilder.addOffset(0, offset_errorCodeUniqueName);
+    }
+    if (_length != null && _length != 0) {
+      fbBuilder.addUint32(2, _length);
+    }
+    if (offset_message != null) {
+      fbBuilder.addOffset(3, offset_message);
+    }
+    if (_offset != null && _offset != 0) {
+      fbBuilder.addUint32(1, _offset);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _CacheAnalysisErrorReader extends fb.TableReader<_CacheAnalysisErrorImpl> {
+  const _CacheAnalysisErrorReader();
+
+  @override
+  _CacheAnalysisErrorImpl createObject(fb.BufferContext bc, int offset) => new _CacheAnalysisErrorImpl(bc, offset);
+}
+
+class _CacheAnalysisErrorImpl extends Object with _CacheAnalysisErrorMixin implements idl.CacheAnalysisError {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _CacheAnalysisErrorImpl(this._bc, this._bcOffset);
+
+  String _correction;
+  String _errorCodeUniqueName;
+  int _length;
+  String _message;
+  int _offset;
+
+  @override
+  String get correction {
+    _correction ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 4, '');
+    return _correction;
+  }
+
+  @override
+  String get errorCodeUniqueName {
+    _errorCodeUniqueName ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
+    return _errorCodeUniqueName;
+  }
+
+  @override
+  int get length {
+    _length ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
+    return _length;
+  }
+
+  @override
+  String get message {
+    _message ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 3, '');
+    return _message;
+  }
+
+  @override
+  int get offset {
+    _offset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
+    return _offset;
+  }
+}
+
+abstract class _CacheAnalysisErrorMixin implements idl.CacheAnalysisError {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (correction != '') _result["correction"] = correction;
+    if (errorCodeUniqueName != '') _result["errorCodeUniqueName"] = errorCodeUniqueName;
+    if (length != 0) _result["length"] = length;
+    if (message != '') _result["message"] = message;
+    if (offset != 0) _result["offset"] = offset;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+    "correction": correction,
+    "errorCodeUniqueName": errorCodeUniqueName,
+    "length": length,
+    "message": message,
+    "offset": offset,
+  };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
+}
+
+class CacheSourceContentBuilder extends Object with _CacheSourceContentMixin implements idl.CacheSourceContent {
   List<String> _exportedUris;
   List<String> _importedUris;
   idl.CacheSourceKind _kind;
@@ -157,7 +338,6 @@ class CacheSourceContentBuilder extends Object with _CacheSourceContentMixin imp
    * or `package:foo/bar.dart`.  Empty if [kind] is [CacheSourceKind.part].
    */
   void set exportedUris(List<String> _value) {
-    assert(!_finished);
     _exportedUris = _value;
   }
 
@@ -169,7 +349,6 @@ class CacheSourceContentBuilder extends Object with _CacheSourceContentMixin imp
    * or `package:foo/bar.dart`.  Empty if [kind] is [CacheSourceKind.part].
    */
   void set importedUris(List<String> _value) {
-    assert(!_finished);
     _importedUris = _value;
   }
 
@@ -180,7 +359,6 @@ class CacheSourceContentBuilder extends Object with _CacheSourceContentMixin imp
    * The kind of the source.
    */
   void set kind(idl.CacheSourceKind _value) {
-    assert(!_finished);
     _kind = _value;
   }
 
@@ -192,7 +370,6 @@ class CacheSourceContentBuilder extends Object with _CacheSourceContentMixin imp
    * [CacheSourceKind.part].
    */
   void set partUris(List<String> _value) {
-    assert(!_finished);
     _partUris = _value;
   }
 
@@ -214,8 +391,6 @@ class CacheSourceContentBuilder extends Object with _CacheSourceContentMixin imp
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_exportedUris;
     fb.Offset offset_importedUris;
     fb.Offset offset_partUris;
@@ -316,9 +491,92 @@ abstract class _CacheSourceContentMixin implements idl.CacheSourceContent {
   String toString() => convert.JSON.encode(toJson());
 }
 
-class CodeRangeBuilder extends Object with _CodeRangeMixin implements idl.CodeRange {
-  bool _finished = false;
+class CacheSourceErrorsInLibraryBuilder extends Object with _CacheSourceErrorsInLibraryMixin implements idl.CacheSourceErrorsInLibrary {
+  List<CacheAnalysisErrorBuilder> _errors;
 
+  @override
+  List<CacheAnalysisErrorBuilder> get errors => _errors ??= <CacheAnalysisErrorBuilder>[];
+
+  /**
+   * The list of errors in the source in the library.
+   */
+  void set errors(List<CacheAnalysisErrorBuilder> _value) {
+    _errors = _value;
+  }
+
+  CacheSourceErrorsInLibraryBuilder({List<CacheAnalysisErrorBuilder> errors})
+    : _errors = errors;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _errors?.forEach((b) => b.flushInformative());
+  }
+
+  List<int> toBuffer() {
+    fb.Builder fbBuilder = new fb.Builder();
+    return fbBuilder.finish(finish(fbBuilder), "CSEL");
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_errors;
+    if (!(_errors == null || _errors.isEmpty)) {
+      offset_errors = fbBuilder.writeList(_errors.map((b) => b.finish(fbBuilder)).toList());
+    }
+    fbBuilder.startTable();
+    if (offset_errors != null) {
+      fbBuilder.addOffset(0, offset_errors);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+idl.CacheSourceErrorsInLibrary readCacheSourceErrorsInLibrary(List<int> buffer) {
+  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  return const _CacheSourceErrorsInLibraryReader().read(rootRef, 0);
+}
+
+class _CacheSourceErrorsInLibraryReader extends fb.TableReader<_CacheSourceErrorsInLibraryImpl> {
+  const _CacheSourceErrorsInLibraryReader();
+
+  @override
+  _CacheSourceErrorsInLibraryImpl createObject(fb.BufferContext bc, int offset) => new _CacheSourceErrorsInLibraryImpl(bc, offset);
+}
+
+class _CacheSourceErrorsInLibraryImpl extends Object with _CacheSourceErrorsInLibraryMixin implements idl.CacheSourceErrorsInLibrary {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _CacheSourceErrorsInLibraryImpl(this._bc, this._bcOffset);
+
+  List<idl.CacheAnalysisError> _errors;
+
+  @override
+  List<idl.CacheAnalysisError> get errors {
+    _errors ??= const fb.ListReader<idl.CacheAnalysisError>(const _CacheAnalysisErrorReader()).vTableGet(_bc, _bcOffset, 0, const <idl.CacheAnalysisError>[]);
+    return _errors;
+  }
+}
+
+abstract class _CacheSourceErrorsInLibraryMixin implements idl.CacheSourceErrorsInLibrary {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (errors.isNotEmpty) _result["errors"] = errors.map((_value) => _value.toJson()).toList();
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+    "errors": errors,
+  };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
+}
+
+class CodeRangeBuilder extends Object with _CodeRangeMixin implements idl.CodeRange {
   int _length;
   int _offset;
 
@@ -329,7 +587,6 @@ class CodeRangeBuilder extends Object with _CodeRangeMixin implements idl.CodeRa
    * Length of the element code.
    */
   void set length(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _length = _value;
   }
@@ -341,7 +598,6 @@ class CodeRangeBuilder extends Object with _CodeRangeMixin implements idl.CodeRa
    * Offset of the element code relative to the beginning of the file.
    */
   void set offset(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _offset = _value;
   }
@@ -357,8 +613,6 @@ class CodeRangeBuilder extends Object with _CodeRangeMixin implements idl.CodeRa
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fbBuilder.startTable();
     if (_length != null && _length != 0) {
       fbBuilder.addUint32(1, _length);
@@ -419,8 +673,6 @@ abstract class _CodeRangeMixin implements idl.CodeRange {
 }
 
 class EntityRefBuilder extends Object with _EntityRefMixin implements idl.EntityRef {
-  bool _finished = false;
-
   List<int> _implicitFunctionTypeIndices;
   int _paramReference;
   int _reference;
@@ -455,7 +707,6 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
    * first to the class and then to the method.
    */
   void set implicitFunctionTypeIndices(List<int> _value) {
-    assert(!_finished);
     assert(_value == null || _value.every((e) => e >= 0));
     _implicitFunctionTypeIndices = _value;
   }
@@ -483,7 +734,6 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
    * zero.
    */
   void set paramReference(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _paramReference = _value;
   }
@@ -496,7 +746,6 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
    * zero if this is a reference to a type parameter.
    */
   void set reference(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _reference = _value;
   }
@@ -512,7 +761,6 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
    * Otherwise zero.
    */
   void set slot(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _slot = _value;
   }
@@ -527,7 +775,6 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
    * empty.
    */
   void set syntheticParams(List<UnlinkedParamBuilder> _value) {
-    assert(!_finished);
     _syntheticParams = _value;
   }
 
@@ -541,7 +788,6 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
    * Otherwise `null`.
    */
   void set syntheticReturnType(EntityRefBuilder _value) {
-    assert(!_finished);
     _syntheticReturnType = _value;
   }
 
@@ -553,7 +799,6 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
    * type arguments used to instantiate it (if any).
    */
   void set typeArguments(List<EntityRefBuilder> _value) {
-    assert(!_finished);
     _typeArguments = _value;
   }
 
@@ -576,8 +821,6 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_implicitFunctionTypeIndices;
     fb.Offset offset_syntheticParams;
     fb.Offset offset_syntheticReturnType;
@@ -714,8 +957,6 @@ abstract class _EntityRefMixin implements idl.EntityRef {
 }
 
 class LinkedDependencyBuilder extends Object with _LinkedDependencyMixin implements idl.LinkedDependency {
-  bool _finished = false;
-
   List<String> _parts;
   String _uri;
 
@@ -727,7 +968,6 @@ class LinkedDependencyBuilder extends Object with _LinkedDependencyMixin impleme
    * These URIs are relative to the importing library.
    */
   void set parts(List<String> _value) {
-    assert(!_finished);
     _parts = _value;
   }
 
@@ -742,7 +982,6 @@ class LinkedDependencyBuilder extends Object with _LinkedDependencyMixin impleme
    * `b/d/e.dart`.
    */
   void set uri(String _value) {
-    assert(!_finished);
     _uri = _value;
   }
 
@@ -757,8 +996,6 @@ class LinkedDependencyBuilder extends Object with _LinkedDependencyMixin impleme
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_parts;
     fb.Offset offset_uri;
     if (!(_parts == null || _parts.isEmpty)) {
@@ -827,8 +1064,6 @@ abstract class _LinkedDependencyMixin implements idl.LinkedDependency {
 }
 
 class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin implements idl.LinkedExportName {
-  bool _finished = false;
-
   int _dependency;
   idl.ReferenceKind _kind;
   String _name;
@@ -842,7 +1077,6 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
    * entity is defined.
    */
   void set dependency(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _dependency = _value;
   }
@@ -854,7 +1088,6 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
    * The kind of the entity being referred to.
    */
   void set kind(idl.ReferenceKind _value) {
-    assert(!_finished);
     _kind = _value;
   }
 
@@ -866,7 +1099,6 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
    * the trailing '='.
    */
   void set name(String _value) {
-    assert(!_finished);
     _name = _value;
   }
 
@@ -880,7 +1112,6 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
    * represent parts in the order of the corresponding `part` declarations.
    */
   void set unit(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _unit = _value;
   }
@@ -898,8 +1129,6 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_name;
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
@@ -988,8 +1217,6 @@ abstract class _LinkedExportNameMixin implements idl.LinkedExportName {
 }
 
 class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements idl.LinkedLibrary {
-  bool _finished = false;
-
   List<LinkedDependencyBuilder> _dependencies;
   List<int> _exportDependencies;
   List<LinkedExportNameBuilder> _exportNames;
@@ -1018,7 +1245,6 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
    * depends on the lack of a certain declaration in the library).
    */
   void set dependencies(List<LinkedDependencyBuilder> _value) {
-    assert(!_finished);
     _dependencies = _value;
   }
 
@@ -1030,7 +1256,6 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
    * of the library being exported.
    */
   void set exportDependencies(List<int> _value) {
-    assert(!_finished);
     assert(_value == null || _value.every((e) => e >= 0));
     _exportDependencies = _value;
   }
@@ -1046,7 +1271,6 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
    * Sorted by name.
    */
   void set exportNames(List<LinkedExportNameBuilder> _value) {
-    assert(!_finished);
     _exportNames = _value;
   }
 
@@ -1058,7 +1282,6 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
    * true, all other fields in the data structure have their default values.
    */
   void set fallbackMode(bool _value) {
-    assert(!_finished);
     _fallbackMode = _value;
   }
 
@@ -1070,7 +1293,6 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
    * of the library being imported.
    */
   void set importDependencies(List<int> _value) {
-    assert(!_finished);
     assert(_value == null || _value.every((e) => e >= 0));
     _importDependencies = _value;
   }
@@ -1084,7 +1306,6 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
    * the transitive closure of exports, plus the library itself).
    */
   void set numPrelinkedDependencies(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _numPrelinkedDependencies = _value;
   }
@@ -1099,7 +1320,6 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
    * declarations in the defining compilation unit.
    */
   void set units(List<LinkedUnitBuilder> _value) {
-    assert(!_finished);
     _units = _value;
   }
 
@@ -1127,8 +1347,6 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_dependencies;
     fb.Offset offset_exportDependencies;
     fb.Offset offset_exportNames;
@@ -1274,8 +1492,6 @@ abstract class _LinkedLibraryMixin implements idl.LinkedLibrary {
 }
 
 class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implements idl.LinkedReference {
-  bool _finished = false;
-
   int _containingReference;
   int _dependency;
   idl.ReferenceKind _kind;
@@ -1299,7 +1515,6 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
    * LinkedUnit.references[i].containingReference < i.
    */
   void set containingReference(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _containingReference = _value;
   }
@@ -1315,7 +1530,6 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
    * member), or if [kind] is [ReferenceKind.prefix].
    */
   void set dependency(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _dependency = _value;
   }
@@ -1328,7 +1542,6 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
    * and `void`, the kind is [ReferenceKind.classOrEnum].
    */
   void set kind(idl.ReferenceKind _value) {
-    assert(!_finished);
     _kind = _value;
   }
 
@@ -1343,7 +1556,6 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
    * [UnlinkedExecutable.localVariables].  Otherwise zero.
    */
   void set localIndex(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _localIndex = _value;
   }
@@ -1357,7 +1569,6 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
    * string is "dynamic".  For the pseudo-type `void`, the string is "void".
    */
   void set name(String _value) {
-    assert(!_finished);
     _name = _value;
   }
 
@@ -1370,7 +1581,6 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
    * Otherwise zero.
    */
   void set numTypeParameters(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _numTypeParameters = _value;
   }
@@ -1388,7 +1598,6 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
    * member).
    */
   void set unit(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _unit = _value;
   }
@@ -1409,8 +1618,6 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_name;
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
@@ -1535,8 +1742,6 @@ abstract class _LinkedReferenceMixin implements idl.LinkedReference {
 }
 
 class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.LinkedUnit {
-  bool _finished = false;
-
   List<int> _constCycles;
   List<LinkedReferenceBuilder> _references;
   List<EntityRefBuilder> _types;
@@ -1549,7 +1754,6 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
    * corresponding to const constructors that are part of cycles.
    */
   void set constCycles(List<int> _value) {
-    assert(!_finished);
     assert(_value == null || _value.every((e) => e >= 0));
     _constCycles = _value;
   }
@@ -1566,7 +1770,6 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
    * (e.g. elements involved in inferred or propagated types).
    */
   void set references(List<LinkedReferenceBuilder> _value) {
-    assert(!_finished);
     _references = _value;
   }
 
@@ -1578,7 +1781,6 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
    * compilation unit with propagated and inferred types.
    */
   void set types(List<EntityRefBuilder> _value) {
-    assert(!_finished);
     _types = _value;
   }
 
@@ -1596,8 +1798,6 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_constCycles;
     fb.Offset offset_references;
     fb.Offset offset_types;
@@ -1682,8 +1882,6 @@ abstract class _LinkedUnitMixin implements idl.LinkedUnit {
 }
 
 class PackageBundleBuilder extends Object with _PackageBundleMixin implements idl.PackageBundle {
-  bool _finished = false;
-
   List<LinkedLibraryBuilder> _linkedLibraries;
   List<String> _linkedLibraryUris;
   int _majorVersion;
@@ -1699,7 +1897,6 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
    * Linked libraries.
    */
   void set linkedLibraries(List<LinkedLibraryBuilder> _value) {
-    assert(!_finished);
     _linkedLibraries = _value;
   }
 
@@ -1711,7 +1908,6 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
    * `package:foo/bar.dart`.
    */
   void set linkedLibraryUris(List<String> _value) {
-    assert(!_finished);
     _linkedLibraryUris = _value;
   }
 
@@ -1723,7 +1919,6 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
    * [PackageBundleAssembler.currentMajorVersion].
    */
   void set majorVersion(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _majorVersion = _value;
   }
@@ -1736,7 +1931,6 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
    * [PackageBundleAssembler.currentMinorVersion].
    */
   void set minorVersion(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _minorVersion = _value;
   }
@@ -1749,7 +1943,6 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
    * is encoded as a hexadecimal string using lower case letters.
    */
   void set unlinkedUnitHashes(List<String> _value) {
-    assert(!_finished);
     _unlinkedUnitHashes = _value;
   }
 
@@ -1760,7 +1953,6 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
    * Unlinked information for the compilation units constituting the package.
    */
   void set unlinkedUnits(List<UnlinkedUnitBuilder> _value) {
-    assert(!_finished);
     _unlinkedUnits = _value;
   }
 
@@ -1771,7 +1963,6 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
    * The list of URIs of items in [unlinkedUnits], e.g. `dart:core/bool.dart`.
    */
   void set unlinkedUnitUris(List<String> _value) {
-    assert(!_finished);
     _unlinkedUnitUris = _value;
   }
 
@@ -1799,8 +1990,6 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_linkedLibraries;
     fb.Offset offset_linkedLibraryUris;
     fb.Offset offset_unlinkedUnitHashes;
@@ -1946,8 +2135,6 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
 }
 
 class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.PackageIndex {
-  bool _finished = false;
-
   List<idl.IndexSyntheticElementKind> _elementKinds;
   List<int> _elementOffsets;
   List<int> _elementUnits;
@@ -1964,7 +2151,6 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
    * the kind of the synthetic element.
    */
   void set elementKinds(List<idl.IndexSyntheticElementKind> _value) {
-    assert(!_finished);
     _elementKinds = _value;
   }
 
@@ -1978,7 +2164,6 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
    * whether an element is referenced in this [PackageIndex].
    */
   void set elementOffsets(List<int> _value) {
-    assert(!_finished);
     assert(_value == null || _value.every((e) => e >= 0));
     _elementOffsets = _value;
   }
@@ -1992,7 +2177,6 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
    * specific unit where the element is declared.
    */
   void set elementUnits(List<int> _value) {
-    assert(!_finished);
     assert(_value == null || _value.every((e) => e >= 0));
     _elementUnits = _value;
   }
@@ -2006,7 +2190,6 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
    * presence of a string in this [PackageIndex].
    */
   void set strings(List<String> _value) {
-    assert(!_finished);
     _strings = _value;
   }
 
@@ -2019,7 +2202,6 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
    * [strings] list.
    */
   void set unitLibraryUris(List<int> _value) {
-    assert(!_finished);
     assert(_value == null || _value.every((e) => e >= 0));
     _unitLibraryUris = _value;
   }
@@ -2031,7 +2213,6 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
    * List of indexes of each unit in this [PackageIndex].
    */
   void set units(List<UnitIndexBuilder> _value) {
-    assert(!_finished);
     _units = _value;
   }
 
@@ -2044,7 +2225,6 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
    * [strings] list.
    */
   void set unitUnitUris(List<int> _value) {
-    assert(!_finished);
     assert(_value == null || _value.every((e) => e >= 0));
     _unitUnitUris = _value;
   }
@@ -2071,8 +2251,6 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_elementKinds;
     fb.Offset offset_elementOffsets;
     fb.Offset offset_elementUnits;
@@ -2226,8 +2404,6 @@ abstract class _PackageIndexMixin implements idl.PackageIndex {
 }
 
 class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIndex {
-  bool _finished = false;
-
   List<idl.IndexNameKind> _definedNameKinds;
   List<int> _definedNameOffsets;
   List<int> _definedNames;
@@ -2249,7 +2425,6 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
    * Each item of this list is the kind of an element defined in this unit.
    */
   void set definedNameKinds(List<idl.IndexNameKind> _value) {
-    assert(!_finished);
     _definedNameKinds = _value;
   }
 
@@ -2261,7 +2436,6 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
    * unit relative to the beginning of the file.
    */
   void set definedNameOffsets(List<int> _value) {
-    assert(!_finished);
     assert(_value == null || _value.every((e) => e >= 0));
     _definedNameOffsets = _value;
   }
@@ -2276,7 +2450,6 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
    * this [UnitIndex].
    */
   void set definedNames(List<int> _value) {
-    assert(!_finished);
     assert(_value == null || _value.every((e) => e >= 0));
     _definedNames = _value;
   }
@@ -2289,7 +2462,6 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
    * for the library specific unit that corresponds to this [UnitIndex].
    */
   void set unit(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _unit = _value;
   }
@@ -2302,7 +2474,6 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
    * is qualified with some prefix.
    */
   void set usedElementIsQualifiedFlags(List<bool> _value) {
-    assert(!_finished);
     _usedElementIsQualifiedFlags = _value;
   }
 
@@ -2313,7 +2484,6 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
    * Each item of this list is the kind of the element usage.
    */
   void set usedElementKinds(List<idl.IndexRelationKind> _value) {
-    assert(!_finished);
     _usedElementKinds = _value;
   }
 
@@ -2324,7 +2494,6 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
    * Each item of this list is the length of the element usage.
    */
   void set usedElementLengths(List<int> _value) {
-    assert(!_finished);
     assert(_value == null || _value.every((e) => e >= 0));
     _usedElementLengths = _value;
   }
@@ -2337,7 +2506,6 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
    * beginning of the file.
    */
   void set usedElementOffsets(List<int> _value) {
-    assert(!_finished);
     assert(_value == null || _value.every((e) => e >= 0));
     _usedElementOffsets = _value;
   }
@@ -2351,7 +2519,6 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
    * that the client can quickly find element references in this [UnitIndex].
    */
   void set usedElements(List<int> _value) {
-    assert(!_finished);
     assert(_value == null || _value.every((e) => e >= 0));
     _usedElements = _value;
   }
@@ -2364,7 +2531,6 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
    * is qualified with some prefix.
    */
   void set usedNameIsQualifiedFlags(List<bool> _value) {
-    assert(!_finished);
     _usedNameIsQualifiedFlags = _value;
   }
 
@@ -2375,7 +2541,6 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
    * Each item of this list is the kind of the name usage.
    */
   void set usedNameKinds(List<idl.IndexRelationKind> _value) {
-    assert(!_finished);
     _usedNameKinds = _value;
   }
 
@@ -2387,7 +2552,6 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
    * beginning of the file.
    */
   void set usedNameOffsets(List<int> _value) {
-    assert(!_finished);
     assert(_value == null || _value.every((e) => e >= 0));
     _usedNameOffsets = _value;
   }
@@ -2401,7 +2565,6 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
    * quickly find name uses in this [UnitIndex].
    */
   void set usedNames(List<int> _value) {
-    assert(!_finished);
     assert(_value == null || _value.every((e) => e >= 0));
     _usedNames = _value;
   }
@@ -2428,8 +2591,6 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_definedNameKinds;
     fb.Offset offset_definedNameOffsets;
     fb.Offset offset_definedNames;
@@ -2670,8 +2831,6 @@ abstract class _UnitIndexMixin implements idl.UnitIndex {
 }
 
 class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements idl.UnlinkedClass {
-  bool _finished = false;
-
   List<UnlinkedConstBuilder> _annotations;
   CodeRangeBuilder _codeRange;
   UnlinkedDocumentationCommentBuilder _documentationComment;
@@ -2694,7 +2853,6 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
    * Annotations for this class.
    */
   void set annotations(List<UnlinkedConstBuilder> _value) {
-    assert(!_finished);
     _annotations = _value;
   }
 
@@ -2705,7 +2863,6 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
    * Code range of the class.
    */
   void set codeRange(CodeRangeBuilder _value) {
-    assert(!_finished);
     _codeRange = _value;
   }
 
@@ -2717,7 +2874,6 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
    * documentation comment.
    */
   void set documentationComment(UnlinkedDocumentationCommentBuilder _value) {
-    assert(!_finished);
     _documentationComment = _value;
   }
 
@@ -2728,7 +2884,6 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
    * Executable objects (methods, getters, and setters) contained in the class.
    */
   void set executables(List<UnlinkedExecutableBuilder> _value) {
-    assert(!_finished);
     _executables = _value;
   }
 
@@ -2739,7 +2894,6 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
    * Field declarations contained in the class.
    */
   void set fields(List<UnlinkedVariableBuilder> _value) {
-    assert(!_finished);
     _fields = _value;
   }
 
@@ -2751,7 +2905,6 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
    * supertype)
    */
   void set hasNoSupertype(bool _value) {
-    assert(!_finished);
     _hasNoSupertype = _value;
   }
 
@@ -2762,7 +2915,6 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
    * Interfaces appearing in an `implements` clause, if any.
    */
   void set interfaces(List<EntityRefBuilder> _value) {
-    assert(!_finished);
     _interfaces = _value;
   }
 
@@ -2773,7 +2925,6 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
    * Indicates whether the class is declared with the `abstract` keyword.
    */
   void set isAbstract(bool _value) {
-    assert(!_finished);
     _isAbstract = _value;
   }
 
@@ -2784,7 +2935,6 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
    * Indicates whether the class is declared using mixin application syntax.
    */
   void set isMixinApplication(bool _value) {
-    assert(!_finished);
     _isMixinApplication = _value;
   }
 
@@ -2795,7 +2945,6 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
    * Mixins appearing in a `with` clause, if any.
    */
   void set mixins(List<EntityRefBuilder> _value) {
-    assert(!_finished);
     _mixins = _value;
   }
 
@@ -2806,7 +2955,6 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
    * Name of the class.
    */
   void set name(String _value) {
-    assert(!_finished);
     _name = _value;
   }
 
@@ -2817,7 +2965,6 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
    * Offset of the class name relative to the beginning of the file.
    */
   void set nameOffset(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _nameOffset = _value;
   }
@@ -2831,7 +2978,6 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
    * the class *is* `Object` (and hence has no supertype).
    */
   void set supertype(EntityRefBuilder _value) {
-    assert(!_finished);
     _supertype = _value;
   }
 
@@ -2842,7 +2988,6 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
    * Type parameters of the class, if any.
    */
   void set typeParameters(List<UnlinkedTypeParamBuilder> _value) {
-    assert(!_finished);
     _typeParameters = _value;
   }
 
@@ -2879,8 +3024,6 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_annotations;
     fb.Offset offset_codeRange;
     fb.Offset offset_documentationComment;
@@ -3125,8 +3268,6 @@ abstract class _UnlinkedClassMixin implements idl.UnlinkedClass {
 }
 
 class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin implements idl.UnlinkedCombinator {
-  bool _finished = false;
-
   int _end;
   List<String> _hides;
   int _offset;
@@ -3140,7 +3281,6 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
    * names.  Otherwise zero.
    */
   void set end(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _end = _value;
   }
@@ -3152,7 +3292,6 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
    * List of names which are hidden.  Empty if this is a `show` combinator.
    */
   void set hides(List<String> _value) {
-    assert(!_finished);
     _hides = _value;
   }
 
@@ -3164,7 +3303,6 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
    * zero.
    */
   void set offset(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _offset = _value;
   }
@@ -3176,7 +3314,6 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
    * List of names which are shown.  Empty if this is a `hide` combinator.
    */
   void set shows(List<String> _value) {
-    assert(!_finished);
     _shows = _value;
   }
 
@@ -3195,8 +3332,6 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_hides;
     fb.Offset offset_shows;
     if (!(_hides == null || _hides.isEmpty)) {
@@ -3289,8 +3424,6 @@ abstract class _UnlinkedCombinatorMixin implements idl.UnlinkedCombinator {
 }
 
 class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements idl.UnlinkedConst {
-  bool _finished = false;
-
   List<idl.UnlinkedExprAssignOperator> _assignmentOperators;
   List<double> _doubles;
   List<int> _ints;
@@ -3306,7 +3439,6 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
    * Sequence of operators used by assignment operations.
    */
   void set assignmentOperators(List<idl.UnlinkedExprAssignOperator> _value) {
-    assert(!_finished);
     _assignmentOperators = _value;
   }
 
@@ -3317,7 +3449,6 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
    * Sequence of 64-bit doubles consumed by the operation `pushDouble`.
    */
   void set doubles(List<double> _value) {
-    assert(!_finished);
     _doubles = _value;
   }
 
@@ -3330,7 +3461,6 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
    * `makeList`, and `makeMap`.
    */
   void set ints(List<int> _value) {
-    assert(!_finished);
     assert(_value == null || _value.every((e) => e >= 0));
     _ints = _value;
   }
@@ -3343,7 +3473,6 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
    * expression.
    */
   void set isValidConst(bool _value) {
-    assert(!_finished);
     _isValidConst = _value;
   }
 
@@ -3355,7 +3484,6 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
    * the constant value.
    */
   void set operations(List<idl.UnlinkedConstOperation> _value) {
-    assert(!_finished);
     _operations = _value;
   }
 
@@ -3369,7 +3497,6 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
    * actual entity being referred to may be something other than a type.
    */
   void set references(List<EntityRefBuilder> _value) {
-    assert(!_finished);
     _references = _value;
   }
 
@@ -3381,7 +3508,6 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
    * `invokeConstructor`.
    */
   void set strings(List<String> _value) {
-    assert(!_finished);
     _strings = _value;
   }
 
@@ -3402,8 +3528,6 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_assignmentOperators;
     fb.Offset offset_doubles;
     fb.Offset offset_ints;
@@ -3548,8 +3672,6 @@ abstract class _UnlinkedConstMixin implements idl.UnlinkedConst {
 }
 
 class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstructorInitializerMixin implements idl.UnlinkedConstructorInitializer {
-  bool _finished = false;
-
   List<String> _argumentNames;
   List<UnlinkedConstBuilder> _arguments;
   UnlinkedConstBuilder _expression;
@@ -3565,7 +3687,6 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
    * with the name at `n + i - m`.
    */
   void set argumentNames(List<String> _value) {
-    assert(!_finished);
     _argumentNames = _value;
   }
 
@@ -3577,7 +3698,6 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
    * invocation.  Otherwise empty.
    */
   void set arguments(List<UnlinkedConstBuilder> _value) {
-    assert(!_finished);
     _arguments = _value;
   }
 
@@ -3589,7 +3709,6 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
    * Otherwise `null`.
    */
   void set expression(UnlinkedConstBuilder _value) {
-    assert(!_finished);
     _expression = _value;
   }
 
@@ -3600,7 +3719,6 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
    * The kind of the constructor initializer (field, redirect, super).
    */
   void set kind(idl.UnlinkedConstructorInitializerKind _value) {
-    assert(!_finished);
     _kind = _value;
   }
 
@@ -3614,7 +3732,6 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
    * constructor, declared in the superclass, to invoke.
    */
   void set name(String _value) {
-    assert(!_finished);
     _name = _value;
   }
 
@@ -3634,8 +3751,6 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_argumentNames;
     fb.Offset offset_arguments;
     fb.Offset offset_expression;
@@ -3748,8 +3863,6 @@ abstract class _UnlinkedConstructorInitializerMixin implements idl.UnlinkedConst
 }
 
 class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumentationCommentMixin implements idl.UnlinkedDocumentationComment {
-  bool _finished = false;
-
   int _length;
   int _offset;
   String _text;
@@ -3761,7 +3874,6 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
    * Length of the documentation comment (prior to replacing '\r\n' with '\n').
    */
   void set length(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _length = _value;
   }
@@ -3774,7 +3886,6 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
    * beginning of the file.
    */
   void set offset(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _offset = _value;
   }
@@ -3789,7 +3900,6 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
    * specially encoded.
    */
   void set text(String _value) {
-    assert(!_finished);
     _text = _value;
   }
 
@@ -3805,8 +3915,6 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_text;
     if (_text != null) {
       offset_text = fbBuilder.writeString(_text);
@@ -3883,8 +3991,6 @@ abstract class _UnlinkedDocumentationCommentMixin implements idl.UnlinkedDocumen
 }
 
 class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.UnlinkedEnum {
-  bool _finished = false;
-
   List<UnlinkedConstBuilder> _annotations;
   CodeRangeBuilder _codeRange;
   UnlinkedDocumentationCommentBuilder _documentationComment;
@@ -3899,7 +4005,6 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
    * Annotations for this enum.
    */
   void set annotations(List<UnlinkedConstBuilder> _value) {
-    assert(!_finished);
     _annotations = _value;
   }
 
@@ -3910,7 +4015,6 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
    * Code range of the enum.
    */
   void set codeRange(CodeRangeBuilder _value) {
-    assert(!_finished);
     _codeRange = _value;
   }
 
@@ -3922,7 +4026,6 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
    * comment.
    */
   void set documentationComment(UnlinkedDocumentationCommentBuilder _value) {
-    assert(!_finished);
     _documentationComment = _value;
   }
 
@@ -3933,7 +4036,6 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
    * Name of the enum type.
    */
   void set name(String _value) {
-    assert(!_finished);
     _name = _value;
   }
 
@@ -3944,7 +4046,6 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
    * Offset of the enum name relative to the beginning of the file.
    */
   void set nameOffset(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _nameOffset = _value;
   }
@@ -3956,7 +4057,6 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
    * Values listed in the enum declaration, in declaration order.
    */
   void set values(List<UnlinkedEnumValueBuilder> _value) {
-    assert(!_finished);
     _values = _value;
   }
 
@@ -3980,8 +4080,6 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_annotations;
     fb.Offset offset_codeRange;
     fb.Offset offset_documentationComment;
@@ -4110,8 +4208,6 @@ abstract class _UnlinkedEnumMixin implements idl.UnlinkedEnum {
 }
 
 class UnlinkedEnumValueBuilder extends Object with _UnlinkedEnumValueMixin implements idl.UnlinkedEnumValue {
-  bool _finished = false;
-
   UnlinkedDocumentationCommentBuilder _documentationComment;
   String _name;
   int _nameOffset;
@@ -4124,7 +4220,6 @@ class UnlinkedEnumValueBuilder extends Object with _UnlinkedEnumValueMixin imple
    * documentation comment.
    */
   void set documentationComment(UnlinkedDocumentationCommentBuilder _value) {
-    assert(!_finished);
     _documentationComment = _value;
   }
 
@@ -4135,7 +4230,6 @@ class UnlinkedEnumValueBuilder extends Object with _UnlinkedEnumValueMixin imple
    * Name of the enumerated value.
    */
   void set name(String _value) {
-    assert(!_finished);
     _name = _value;
   }
 
@@ -4146,7 +4240,6 @@ class UnlinkedEnumValueBuilder extends Object with _UnlinkedEnumValueMixin imple
    * Offset of the enum value name relative to the beginning of the file.
    */
   void set nameOffset(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _nameOffset = _value;
   }
@@ -4165,8 +4258,6 @@ class UnlinkedEnumValueBuilder extends Object with _UnlinkedEnumValueMixin imple
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_documentationComment;
     fb.Offset offset_name;
     if (_documentationComment != null) {
@@ -4247,8 +4338,6 @@ abstract class _UnlinkedEnumValueMixin implements idl.UnlinkedEnumValue {
 }
 
 class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
-  bool _finished = false;
-
   List<UnlinkedConstBuilder> _annotations;
   UnlinkedConstBuilder _bodyExpr;
   CodeRangeBuilder _codeRange;
@@ -4287,7 +4376,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * Annotations for this executable.
    */
   void set annotations(List<UnlinkedConstBuilder> _value) {
-    assert(!_finished);
     _annotations = _value;
   }
 
@@ -4300,7 +4388,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * constant evaluation depends on the function body.
    */
   void set bodyExpr(UnlinkedConstBuilder _value) {
-    assert(!_finished);
     _bodyExpr = _value;
   }
 
@@ -4311,7 +4398,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * Code range of the executable.
    */
   void set codeRange(CodeRangeBuilder _value) {
-    assert(!_finished);
     _codeRange = _value;
   }
 
@@ -4323,7 +4409,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * initializers.  Otherwise empty.
    */
   void set constantInitializers(List<UnlinkedConstructorInitializerBuilder> _value) {
-    assert(!_finished);
     _constantInitializers = _value;
   }
 
@@ -4339,7 +4424,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * Otherwise, zero.
    */
   void set constCycleSlot(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _constCycleSlot = _value;
   }
@@ -4352,7 +4436,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * documentation comment.
    */
   void set documentationComment(UnlinkedDocumentationCommentBuilder _value) {
-    assert(!_finished);
     _documentationComment = _value;
   }
 
@@ -4367,7 +4450,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * `dynamic`.
    */
   void set inferredReturnTypeSlot(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _inferredReturnTypeSlot = _value;
   }
@@ -4379,7 +4461,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * Indicates whether the executable is declared using the `abstract` keyword.
    */
   void set isAbstract(bool _value) {
-    assert(!_finished);
     _isAbstract = _value;
   }
 
@@ -4390,7 +4471,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * Indicates whether the executable has body marked as being asynchronous.
    */
   void set isAsynchronous(bool _value) {
-    assert(!_finished);
     _isAsynchronous = _value;
   }
 
@@ -4401,7 +4481,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * Indicates whether the executable is declared using the `const` keyword.
    */
   void set isConst(bool _value) {
-    assert(!_finished);
     _isConst = _value;
   }
 
@@ -4412,7 +4491,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * Indicates whether the executable is declared using the `external` keyword.
    */
   void set isExternal(bool _value) {
-    assert(!_finished);
     _isExternal = _value;
   }
 
@@ -4423,7 +4501,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * Indicates whether the executable is declared using the `factory` keyword.
    */
   void set isFactory(bool _value) {
-    assert(!_finished);
     _isFactory = _value;
   }
 
@@ -4434,7 +4511,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * Indicates whether the executable has body marked as being a generator.
    */
   void set isGenerator(bool _value) {
-    assert(!_finished);
     _isGenerator = _value;
   }
 
@@ -4445,7 +4521,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * Indicates whether the executable is a redirected constructor.
    */
   void set isRedirectedConstructor(bool _value) {
-    assert(!_finished);
     _isRedirectedConstructor = _value;
   }
 
@@ -4460,7 +4535,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * static for semantic purposes).
    */
   void set isStatic(bool _value) {
-    assert(!_finished);
     _isStatic = _value;
   }
 
@@ -4472,7 +4546,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * constructor).
    */
   void set kind(idl.UnlinkedExecutableKind _value) {
-    assert(!_finished);
     _kind = _value;
   }
 
@@ -4483,7 +4556,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * The list of local functions.
    */
   void set localFunctions(List<UnlinkedExecutableBuilder> _value) {
-    assert(!_finished);
     _localFunctions = _value;
   }
 
@@ -4494,7 +4566,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * The list of local labels.
    */
   void set localLabels(List<UnlinkedLabelBuilder> _value) {
-    assert(!_finished);
     _localLabels = _value;
   }
 
@@ -4505,7 +4576,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * The list of local variables.
    */
   void set localVariables(List<UnlinkedVariableBuilder> _value) {
-    assert(!_finished);
     _localVariables = _value;
   }
 
@@ -4518,7 +4588,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * For unnamed constructors, this is the empty string.
    */
   void set name(String _value) {
-    assert(!_finished);
     _name = _value;
   }
 
@@ -4530,7 +4599,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * the offset of the end of the constructor name.  Otherwise zero.
    */
   void set nameEnd(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _nameEnd = _value;
   }
@@ -4545,7 +4613,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * offset of the second "C" in "class C { C(); }").
    */
   void set nameOffset(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _nameOffset = _value;
   }
@@ -4559,7 +4626,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * parameter.
    */
   void set parameters(List<UnlinkedParamBuilder> _value) {
-    assert(!_finished);
     _parameters = _value;
   }
 
@@ -4571,7 +4637,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * the offset of the period before the constructor name.  Otherwise zero.
    */
   void set periodOffset(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _periodOffset = _value;
   }
@@ -4584,7 +4649,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * constructor to which this constructor redirects; otherwise empty.
    */
   void set redirectedConstructor(EntityRefBuilder _value) {
-    assert(!_finished);
     _redirectedConstructor = _value;
   }
 
@@ -4597,7 +4661,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * empty.
    */
   void set redirectedConstructorName(String _value) {
-    assert(!_finished);
     _redirectedConstructorName = _value;
   }
 
@@ -4612,7 +4675,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * imports.
    */
   void set returnType(EntityRefBuilder _value) {
-    assert(!_finished);
     _returnType = _value;
   }
 
@@ -4624,7 +4686,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * method syntax is disabled.
    */
   void set typeParameters(List<UnlinkedTypeParamBuilder> _value) {
-    assert(!_finished);
     _typeParameters = _value;
   }
 
@@ -4635,7 +4696,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * If a local function, the length of the visible range; zero otherwise.
    */
   void set visibleLength(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _visibleLength = _value;
   }
@@ -4647,7 +4707,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * If a local function, the beginning of the visible range; zero otherwise.
    */
   void set visibleOffset(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _visibleOffset = _value;
   }
@@ -4708,8 +4767,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_annotations;
     fb.Offset offset_bodyExpr;
     fb.Offset offset_codeRange;
@@ -5162,8 +5219,6 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
 }
 
 class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPublicMixin implements idl.UnlinkedExportNonPublic {
-  bool _finished = false;
-
   List<UnlinkedConstBuilder> _annotations;
   int _offset;
   int _uriEnd;
@@ -5176,7 +5231,6 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
    * Annotations for this export directive.
    */
   void set annotations(List<UnlinkedConstBuilder> _value) {
-    assert(!_finished);
     _annotations = _value;
   }
 
@@ -5187,7 +5241,6 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
    * Offset of the "export" keyword.
    */
   void set offset(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _offset = _value;
   }
@@ -5200,7 +5253,6 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
    * file.
    */
   void set uriEnd(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _uriEnd = _value;
   }
@@ -5213,7 +5265,6 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
    * the file.
    */
   void set uriOffset(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _uriOffset = _value;
   }
@@ -5235,8 +5286,6 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_annotations;
     if (!(_annotations == null || _annotations.isEmpty)) {
       offset_annotations = fbBuilder.writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
@@ -5325,8 +5374,6 @@ abstract class _UnlinkedExportNonPublicMixin implements idl.UnlinkedExportNonPub
 }
 
 class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin implements idl.UnlinkedExportPublic {
-  bool _finished = false;
-
   List<UnlinkedCombinatorBuilder> _combinators;
   String _uri;
 
@@ -5337,7 +5384,6 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
    * Combinators contained in this import declaration.
    */
   void set combinators(List<UnlinkedCombinatorBuilder> _value) {
-    assert(!_finished);
     _combinators = _value;
   }
 
@@ -5348,7 +5394,6 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
    * URI used in the source code to reference the exported library.
    */
   void set uri(String _value) {
-    assert(!_finished);
     _uri = _value;
   }
 
@@ -5364,8 +5409,6 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_combinators;
     fb.Offset offset_uri;
     if (!(_combinators == null || _combinators.isEmpty)) {
@@ -5434,8 +5477,6 @@ abstract class _UnlinkedExportPublicMixin implements idl.UnlinkedExportPublic {
 }
 
 class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements idl.UnlinkedImport {
-  bool _finished = false;
-
   List<UnlinkedConstBuilder> _annotations;
   List<UnlinkedCombinatorBuilder> _combinators;
   bool _isDeferred;
@@ -5454,7 +5495,6 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
    * Annotations for this import declaration.
    */
   void set annotations(List<UnlinkedConstBuilder> _value) {
-    assert(!_finished);
     _annotations = _value;
   }
 
@@ -5465,7 +5505,6 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
    * Combinators contained in this import declaration.
    */
   void set combinators(List<UnlinkedCombinatorBuilder> _value) {
-    assert(!_finished);
     _combinators = _value;
   }
 
@@ -5476,7 +5515,6 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
    * Indicates whether the import declaration uses the `deferred` keyword.
    */
   void set isDeferred(bool _value) {
-    assert(!_finished);
     _isDeferred = _value;
   }
 
@@ -5487,7 +5525,6 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
    * Indicates whether the import declaration is implicit.
    */
   void set isImplicit(bool _value) {
-    assert(!_finished);
     _isImplicit = _value;
   }
 
@@ -5499,7 +5536,6 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
    * is true, zero.
    */
   void set offset(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _offset = _value;
   }
@@ -5512,7 +5548,6 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
    * if there is no prefix.
    */
   void set prefixOffset(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _prefixOffset = _value;
   }
@@ -5527,7 +5562,6 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
    * Note that multiple imports can declare the same prefix.
    */
   void set prefixReference(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _prefixReference = _value;
   }
@@ -5539,7 +5573,6 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
    * URI used in the source code to reference the imported library.
    */
   void set uri(String _value) {
-    assert(!_finished);
     _uri = _value;
   }
 
@@ -5551,7 +5584,6 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
    * file.  If [isImplicit] is true, zero.
    */
   void set uriEnd(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _uriEnd = _value;
   }
@@ -5564,7 +5596,6 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
    * the file.  If [isImplicit] is true, zero.
    */
   void set uriOffset(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _uriOffset = _value;
   }
@@ -5594,8 +5625,6 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_annotations;
     fb.Offset offset_combinators;
     fb.Offset offset_uri;
@@ -5764,8 +5793,6 @@ abstract class _UnlinkedImportMixin implements idl.UnlinkedImport {
 }
 
 class UnlinkedLabelBuilder extends Object with _UnlinkedLabelMixin implements idl.UnlinkedLabel {
-  bool _finished = false;
-
   bool _isOnSwitchMember;
   bool _isOnSwitchStatement;
   String _name;
@@ -5779,7 +5806,6 @@ class UnlinkedLabelBuilder extends Object with _UnlinkedLabelMixin implements id
    * `default`).
    */
   void set isOnSwitchMember(bool _value) {
-    assert(!_finished);
     _isOnSwitchMember = _value;
   }
 
@@ -5790,7 +5816,6 @@ class UnlinkedLabelBuilder extends Object with _UnlinkedLabelMixin implements id
    * Return `true` if this label is associated with a `switch` statement.
    */
   void set isOnSwitchStatement(bool _value) {
-    assert(!_finished);
     _isOnSwitchStatement = _value;
   }
 
@@ -5801,7 +5826,6 @@ class UnlinkedLabelBuilder extends Object with _UnlinkedLabelMixin implements id
    * Name of the label.
    */
   void set name(String _value) {
-    assert(!_finished);
     _name = _value;
   }
 
@@ -5812,7 +5836,6 @@ class UnlinkedLabelBuilder extends Object with _UnlinkedLabelMixin implements id
    * Offset of the label relative to the beginning of the file.
    */
   void set nameOffset(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _nameOffset = _value;
   }
@@ -5831,8 +5854,6 @@ class UnlinkedLabelBuilder extends Object with _UnlinkedLabelMixin implements id
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_name;
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
@@ -5921,8 +5942,6 @@ abstract class _UnlinkedLabelMixin implements idl.UnlinkedLabel {
 }
 
 class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements idl.UnlinkedParam {
-  bool _finished = false;
-
   List<UnlinkedConstBuilder> _annotations;
   CodeRangeBuilder _codeRange;
   String _defaultValueCode;
@@ -5945,7 +5964,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
    * Annotations for this parameter.
    */
   void set annotations(List<UnlinkedConstBuilder> _value) {
-    assert(!_finished);
     _annotations = _value;
   }
 
@@ -5956,7 +5974,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
    * Code range of the parameter.
    */
   void set codeRange(CodeRangeBuilder _value) {
-    assert(!_finished);
     _codeRange = _value;
   }
 
@@ -5968,7 +5985,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
    * expression in the default value.  Otherwise the empty string.
    */
   void set defaultValueCode(String _value) {
-    assert(!_finished);
     _defaultValueCode = _value;
   }
 
@@ -5987,7 +6003,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
    * field.
    */
   void set inferredTypeSlot(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _inferredTypeSlot = _value;
   }
@@ -6000,7 +6015,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
    * does not have an initializer.
    */
   void set initializer(UnlinkedExecutableBuilder _value) {
-    assert(!_finished);
     _initializer = _value;
   }
 
@@ -6011,7 +6025,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
    * Indicates whether this is a function-typed parameter.
    */
   void set isFunctionTyped(bool _value) {
-    assert(!_finished);
     _isFunctionTyped = _value;
   }
 
@@ -6023,7 +6036,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
    * declared using `this.` syntax).
    */
   void set isInitializingFormal(bool _value) {
-    assert(!_finished);
     _isInitializingFormal = _value;
   }
 
@@ -6034,7 +6046,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
    * Kind of the parameter.
    */
   void set kind(idl.UnlinkedParamKind _value) {
-    assert(!_finished);
     _kind = _value;
   }
 
@@ -6045,7 +6056,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
    * Name of the parameter.
    */
   void set name(String _value) {
-    assert(!_finished);
     _name = _value;
   }
 
@@ -6056,7 +6066,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
    * Offset of the parameter name relative to the beginning of the file.
    */
   void set nameOffset(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _nameOffset = _value;
   }
@@ -6068,7 +6077,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
    * If [isFunctionTyped] is `true`, the parameters of the function type.
    */
   void set parameters(List<UnlinkedParamBuilder> _value) {
-    assert(!_finished);
     _parameters = _value;
   }
 
@@ -6081,7 +6089,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
    * implicit.
    */
   void set type(EntityRefBuilder _value) {
-    assert(!_finished);
     _type = _value;
   }
 
@@ -6092,7 +6099,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
    * The length of the visible range.
    */
   void set visibleLength(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _visibleLength = _value;
   }
@@ -6104,7 +6110,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
    * The beginning of the visible range.
    */
   void set visibleOffset(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _visibleOffset = _value;
   }
@@ -6139,8 +6144,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_annotations;
     fb.Offset offset_codeRange;
     fb.Offset offset_defaultValueCode;
@@ -6373,8 +6376,6 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
 }
 
 class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements idl.UnlinkedPart {
-  bool _finished = false;
-
   List<UnlinkedConstBuilder> _annotations;
   int _uriEnd;
   int _uriOffset;
@@ -6386,7 +6387,6 @@ class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements idl.
    * Annotations for this part declaration.
    */
   void set annotations(List<UnlinkedConstBuilder> _value) {
-    assert(!_finished);
     _annotations = _value;
   }
 
@@ -6398,7 +6398,6 @@ class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements idl.
    * file.
    */
   void set uriEnd(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _uriEnd = _value;
   }
@@ -6411,7 +6410,6 @@ class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements idl.
    * the file.
    */
   void set uriOffset(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _uriOffset = _value;
   }
@@ -6431,8 +6429,6 @@ class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements idl.
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_annotations;
     if (!(_annotations == null || _annotations.isEmpty)) {
       offset_annotations = fbBuilder.writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
@@ -6509,8 +6505,6 @@ abstract class _UnlinkedPartMixin implements idl.UnlinkedPart {
 }
 
 class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin implements idl.UnlinkedPublicName {
-  bool _finished = false;
-
   idl.ReferenceKind _kind;
   List<UnlinkedPublicNameBuilder> _members;
   String _name;
@@ -6523,7 +6517,6 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
    * The kind of object referred to by the name.
    */
   void set kind(idl.ReferenceKind _value) {
-    assert(!_finished);
     _kind = _value;
   }
 
@@ -6539,7 +6532,6 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
    * separate name added to any namespace.
    */
   void set members(List<UnlinkedPublicNameBuilder> _value) {
-    assert(!_finished);
     _members = _value;
   }
 
@@ -6550,7 +6542,6 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
    * The name itself.
    */
   void set name(String _value) {
-    assert(!_finished);
     _name = _value;
   }
 
@@ -6562,7 +6553,6 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
    * it accepts.  Otherwise zero.
    */
   void set numTypeParameters(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _numTypeParameters = _value;
   }
@@ -6581,8 +6571,6 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_members;
     fb.Offset offset_name;
     if (!(_members == null || _members.isEmpty)) {
@@ -6675,8 +6663,6 @@ abstract class _UnlinkedPublicNameMixin implements idl.UnlinkedPublicName {
 }
 
 class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespaceMixin implements idl.UnlinkedPublicNamespace {
-  bool _finished = false;
-
   List<UnlinkedExportPublicBuilder> _exports;
   List<UnlinkedPublicNameBuilder> _names;
   List<String> _parts;
@@ -6688,7 +6674,6 @@ class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespac
    * Export declarations in the compilation unit.
    */
   void set exports(List<UnlinkedExportPublicBuilder> _value) {
-    assert(!_finished);
     _exports = _value;
   }
 
@@ -6702,7 +6687,6 @@ class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespac
    * relinking.
    */
   void set names(List<UnlinkedPublicNameBuilder> _value) {
-    assert(!_finished);
     _names = _value;
   }
 
@@ -6713,7 +6697,6 @@ class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespac
    * URIs referenced by part declarations in the compilation unit.
    */
   void set parts(List<String> _value) {
-    assert(!_finished);
     _parts = _value;
   }
 
@@ -6736,8 +6719,6 @@ class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespac
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_exports;
     fb.Offset offset_names;
     fb.Offset offset_parts;
@@ -6827,8 +6808,6 @@ abstract class _UnlinkedPublicNamespaceMixin implements idl.UnlinkedPublicNamesp
 }
 
 class UnlinkedReferenceBuilder extends Object with _UnlinkedReferenceMixin implements idl.UnlinkedReference {
-  bool _finished = false;
-
   String _name;
   int _prefixReference;
 
@@ -6841,7 +6820,6 @@ class UnlinkedReferenceBuilder extends Object with _UnlinkedReferenceMixin imple
    * For the pseudo-type `bottom`, the string is "*bottom*".
    */
   void set name(String _value) {
-    assert(!_finished);
     _name = _value;
   }
 
@@ -6857,7 +6835,6 @@ class UnlinkedReferenceBuilder extends Object with _UnlinkedReferenceMixin imple
    * UnlinkedUnit.references[i].prefixReference < i.
    */
   void set prefixReference(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _prefixReference = _value;
   }
@@ -6873,8 +6850,6 @@ class UnlinkedReferenceBuilder extends Object with _UnlinkedReferenceMixin imple
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_name;
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
@@ -6939,8 +6914,6 @@ abstract class _UnlinkedReferenceMixin implements idl.UnlinkedReference {
 }
 
 class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implements idl.UnlinkedTypedef {
-  bool _finished = false;
-
   List<UnlinkedConstBuilder> _annotations;
   CodeRangeBuilder _codeRange;
   UnlinkedDocumentationCommentBuilder _documentationComment;
@@ -6957,7 +6930,6 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
    * Annotations for this typedef.
    */
   void set annotations(List<UnlinkedConstBuilder> _value) {
-    assert(!_finished);
     _annotations = _value;
   }
 
@@ -6968,7 +6940,6 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
    * Code range of the typedef.
    */
   void set codeRange(CodeRangeBuilder _value) {
-    assert(!_finished);
     _codeRange = _value;
   }
 
@@ -6980,7 +6951,6 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
    * documentation comment.
    */
   void set documentationComment(UnlinkedDocumentationCommentBuilder _value) {
-    assert(!_finished);
     _documentationComment = _value;
   }
 
@@ -6991,7 +6961,6 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
    * Name of the typedef.
    */
   void set name(String _value) {
-    assert(!_finished);
     _name = _value;
   }
 
@@ -7002,7 +6971,6 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
    * Offset of the typedef name relative to the beginning of the file.
    */
   void set nameOffset(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _nameOffset = _value;
   }
@@ -7014,7 +6982,6 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
    * Parameters of the executable, if any.
    */
   void set parameters(List<UnlinkedParamBuilder> _value) {
-    assert(!_finished);
     _parameters = _value;
   }
 
@@ -7025,7 +6992,6 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
    * Return type of the typedef.
    */
   void set returnType(EntityRefBuilder _value) {
-    assert(!_finished);
     _returnType = _value;
   }
 
@@ -7036,7 +7002,6 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
    * Type parameters of the typedef, if any.
    */
   void set typeParameters(List<UnlinkedTypeParamBuilder> _value) {
-    assert(!_finished);
     _typeParameters = _value;
   }
 
@@ -7064,8 +7029,6 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_annotations;
     fb.Offset offset_codeRange;
     fb.Offset offset_documentationComment;
@@ -7226,8 +7189,6 @@ abstract class _UnlinkedTypedefMixin implements idl.UnlinkedTypedef {
 }
 
 class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin implements idl.UnlinkedTypeParam {
-  bool _finished = false;
-
   List<UnlinkedConstBuilder> _annotations;
   EntityRefBuilder _bound;
   CodeRangeBuilder _codeRange;
@@ -7241,7 +7202,6 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
    * Annotations for this type parameter.
    */
   void set annotations(List<UnlinkedConstBuilder> _value) {
-    assert(!_finished);
     _annotations = _value;
   }
 
@@ -7253,7 +7213,6 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
    * null.
    */
   void set bound(EntityRefBuilder _value) {
-    assert(!_finished);
     _bound = _value;
   }
 
@@ -7264,7 +7223,6 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
    * Code range of the type parameter.
    */
   void set codeRange(CodeRangeBuilder _value) {
-    assert(!_finished);
     _codeRange = _value;
   }
 
@@ -7275,7 +7233,6 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
    * Name of the type parameter.
    */
   void set name(String _value) {
-    assert(!_finished);
     _name = _value;
   }
 
@@ -7286,7 +7243,6 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
    * Offset of the type parameter name relative to the beginning of the file.
    */
   void set nameOffset(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _nameOffset = _value;
   }
@@ -7309,8 +7265,6 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_annotations;
     fb.Offset offset_bound;
     fb.Offset offset_codeRange;
@@ -7423,8 +7377,6 @@ abstract class _UnlinkedTypeParamMixin implements idl.UnlinkedTypeParam {
 }
 
 class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.UnlinkedUnit {
-  bool _finished = false;
-
   List<UnlinkedClassBuilder> _classes;
   CodeRangeBuilder _codeRange;
   List<UnlinkedEnumBuilder> _enums;
@@ -7450,7 +7402,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * Classes declared in the compilation unit.
    */
   void set classes(List<UnlinkedClassBuilder> _value) {
-    assert(!_finished);
     _classes = _value;
   }
 
@@ -7461,7 +7412,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * Code range of the unit.
    */
   void set codeRange(CodeRangeBuilder _value) {
-    assert(!_finished);
     _codeRange = _value;
   }
 
@@ -7472,7 +7422,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * Enums declared in the compilation unit.
    */
   void set enums(List<UnlinkedEnumBuilder> _value) {
-    assert(!_finished);
     _enums = _value;
   }
 
@@ -7484,7 +7433,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * the compilation unit.
    */
   void set executables(List<UnlinkedExecutableBuilder> _value) {
-    assert(!_finished);
     _executables = _value;
   }
 
@@ -7495,7 +7443,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * Export declarations in the compilation unit.
    */
   void set exports(List<UnlinkedExportNonPublicBuilder> _value) {
-    assert(!_finished);
     _exports = _value;
   }
 
@@ -7510,7 +7457,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * their default values.
    */
   void set fallbackModePath(String _value) {
-    assert(!_finished);
     _fallbackModePath = _value;
   }
 
@@ -7521,7 +7467,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * Import declarations in the compilation unit.
    */
   void set imports(List<UnlinkedImportBuilder> _value) {
-    assert(!_finished);
     _imports = _value;
   }
 
@@ -7533,7 +7478,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * library declaration.
    */
   void set libraryAnnotations(List<UnlinkedConstBuilder> _value) {
-    assert(!_finished);
     _libraryAnnotations = _value;
   }
 
@@ -7545,7 +7489,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * documentation comment.
    */
   void set libraryDocumentationComment(UnlinkedDocumentationCommentBuilder _value) {
-    assert(!_finished);
     _libraryDocumentationComment = _value;
   }
 
@@ -7556,7 +7499,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * Name of the library (from a "library" declaration, if present).
    */
   void set libraryName(String _value) {
-    assert(!_finished);
     _libraryName = _value;
   }
 
@@ -7568,7 +7510,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * library has no name).
    */
   void set libraryNameLength(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _libraryNameLength = _value;
   }
@@ -7581,7 +7522,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * the library has no name).
    */
   void set libraryNameOffset(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _libraryNameOffset = _value;
   }
@@ -7593,7 +7533,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * Part declarations in the compilation unit.
    */
   void set parts(List<UnlinkedPartBuilder> _value) {
-    assert(!_finished);
     _parts = _value;
   }
 
@@ -7604,7 +7543,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * Unlinked public namespace of this compilation unit.
    */
   void set publicNamespace(UnlinkedPublicNamespaceBuilder _value) {
-    assert(!_finished);
     _publicNamespace = _value;
   }
 
@@ -7619,7 +7557,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * UnlinkedImport.prefixReference]).
    */
   void set references(List<UnlinkedReferenceBuilder> _value) {
-    assert(!_finished);
     _references = _value;
   }
 
@@ -7630,7 +7567,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * Typedefs declared in the compilation unit.
    */
   void set typedefs(List<UnlinkedTypedefBuilder> _value) {
-    assert(!_finished);
     _typedefs = _value;
   }
 
@@ -7641,7 +7577,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * Top level variables declared in the compilation unit.
    */
   void set variables(List<UnlinkedVariableBuilder> _value) {
-    assert(!_finished);
     _variables = _value;
   }
 
@@ -7691,8 +7626,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_classes;
     fb.Offset offset_codeRange;
     fb.Offset offset_enums;
@@ -7998,8 +7931,6 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
 }
 
 class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin implements idl.UnlinkedVariable {
-  bool _finished = false;
-
   List<UnlinkedConstBuilder> _annotations;
   CodeRangeBuilder _codeRange;
   UnlinkedDocumentationCommentBuilder _documentationComment;
@@ -8022,7 +7953,6 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
    * Annotations for this variable.
    */
   void set annotations(List<UnlinkedConstBuilder> _value) {
-    assert(!_finished);
     _annotations = _value;
   }
 
@@ -8033,7 +7963,6 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
    * Code range of the variable.
    */
   void set codeRange(CodeRangeBuilder _value) {
-    assert(!_finished);
     _codeRange = _value;
   }
 
@@ -8045,7 +7974,6 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
    * documentation comment.
    */
   void set documentationComment(UnlinkedDocumentationCommentBuilder _value) {
-    assert(!_finished);
     _documentationComment = _value;
   }
 
@@ -8059,7 +7987,6 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
    * inferred for this variable, so its static type is `dynamic`.
    */
   void set inferredTypeSlot(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _inferredTypeSlot = _value;
   }
@@ -8072,7 +7999,6 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
    * does not have an initializer.
    */
   void set initializer(UnlinkedExecutableBuilder _value) {
-    assert(!_finished);
     _initializer = _value;
   }
 
@@ -8083,7 +8009,6 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
    * Indicates whether the variable is declared using the `const` keyword.
    */
   void set isConst(bool _value) {
-    assert(!_finished);
     _isConst = _value;
   }
 
@@ -8094,7 +8019,6 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
    * Indicates whether the variable is declared using the `final` keyword.
    */
   void set isFinal(bool _value) {
-    assert(!_finished);
     _isFinal = _value;
   }
 
@@ -8109,7 +8033,6 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
    * static for semantic purposes).
    */
   void set isStatic(bool _value) {
-    assert(!_finished);
     _isStatic = _value;
   }
 
@@ -8120,7 +8043,6 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
    * Name of the variable.
    */
   void set name(String _value) {
-    assert(!_finished);
     _name = _value;
   }
 
@@ -8131,7 +8053,6 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
    * Offset of the variable name relative to the beginning of the file.
    */
   void set nameOffset(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _nameOffset = _value;
   }
@@ -8148,7 +8069,6 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
    * Non-propagable variables have a [propagatedTypeSlot] of zero.
    */
   void set propagatedTypeSlot(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _propagatedTypeSlot = _value;
   }
@@ -8160,7 +8080,6 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
    * Declared type of the variable.  Absent if the type is implicit.
    */
   void set type(EntityRefBuilder _value) {
-    assert(!_finished);
     _type = _value;
   }
 
@@ -8171,7 +8090,6 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
    * If a local variable, the length of the visible range; zero otherwise.
    */
   void set visibleLength(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _visibleLength = _value;
   }
@@ -8183,7 +8101,6 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
    * If a local variable, the beginning of the visible range; zero otherwise.
    */
   void set visibleOffset(int _value) {
-    assert(!_finished);
     assert(_value == null || _value >= 0);
     _visibleOffset = _value;
   }
@@ -8217,8 +8134,6 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
     fb.Offset offset_annotations;
     fb.Offset offset_codeRange;
     fb.Offset offset_documentationComment;

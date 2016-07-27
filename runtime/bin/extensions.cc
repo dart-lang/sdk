@@ -19,11 +19,6 @@ namespace bin {
 Dart_Handle Extensions::LoadExtension(const char* extension_directory,
                                       const char* extension_name,
                                       Dart_Handle parent_library) {
-  if (strncmp(extension_directory, "http://", 7) == 0 ||
-      strncmp(extension_directory, "https://", 8) == 0) {
-    return Dart_NewApiError("Cannot load native extensions over http:");
-  }
-
   // For example on Linux: directory/libfoo-arm.so
   const char* library_strings[] = {
     extension_directory,  // directory/

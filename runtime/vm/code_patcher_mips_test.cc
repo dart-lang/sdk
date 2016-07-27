@@ -40,7 +40,8 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
                                                          target_name,
                                                          args_descriptor,
                                                          15,
-                                                         1));
+                                                         1,
+                                                         false));
 
   __ LoadObject(S5, ic_data);
   __ BranchLinkPatchable(*StubCode::OneArgCheckInlineCache_entry());

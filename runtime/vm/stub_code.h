@@ -17,6 +17,8 @@ class ObjectPointerVisitor;
 class RawCode;
 class SnapshotReader;
 class SnapshotWriter;
+class Serializer;
+class Deserializer;
 
 // List of stubs created in the VM isolate, these stubs are shared by different
 // isolates running in this dart process.
@@ -71,6 +73,7 @@ class SnapshotWriter;
   V(FixCallersTarget)                                                          \
   V(Deoptimize)                                                                \
   V(DeoptimizeLazy)                                                            \
+  V(FrameAwaitingMaterialization)                                              \
 
 #endif  // !defined(TARGET_ARCH_DBC)
 
@@ -112,8 +115,9 @@ class StubCode : public AllStatic {
   // only once and the stub code resides in the vm_isolate heap.
   static void InitOnce();
 
-  static void ReadFrom(SnapshotReader* reader);
-  static void WriteTo(SnapshotWriter* writer);
+  static void Push(Serializer* serializer);
+  static void WriteRef(Serializer* serializer);
+  static void ReadRef(Deserializer* deserializer);
 
   // Generate all stubs which are generated on a per isolate basis as they
   // have embedded objects which are isolate specific.

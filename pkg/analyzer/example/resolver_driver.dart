@@ -14,6 +14,8 @@ import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/file_system/file_system.dart' hide File;
+import 'package:analyzer/file_system/physical_file_system.dart';
 
 void main(List<String> args) {
   print('working dir ${new File('.').resolveSymbolicLinksSync()}');
@@ -31,7 +33,10 @@ void main(List<String> args) {
   JavaSystemIO.setProperty("com.google.dart.sdk", args[0]);
   DartSdk sdk = DirectoryBasedDartSdk.defaultSdk;
 
-  var resolvers = [new DartUriResolver(sdk), new FileUriResolver()];
+  var resolvers = [
+    new DartUriResolver(sdk),
+    new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)
+  ];
 
   if (packageRoot != null) {
     var packageDirectory = new JavaFile(packageRoot);

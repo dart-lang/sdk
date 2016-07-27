@@ -30,8 +30,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/task/strong/info.dart'
-    show InferredType, StaticInfo;
 
 export 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 export 'package:analyzer/src/dart/resolver/scope.dart';
@@ -91,6 +89,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       {TypeSystem typeSystem})
       : _futureNullType = typeProvider.futureNullType,
         _typeSystem = typeSystem ?? new TypeSystemImpl();
+
+  @override
+  Object visitAnnotation(Annotation node) {
+    if (node.elementAnnotation?.isFactory == true) {
+      AstNode parent = node.parent;
+      if (parent is MethodDeclaration) {
+        _checkForInvalidFactory(parent);
+      } else {
+        _errorReporter
+            .reportErrorForNode(HintCode.INVALID_FACTORY_ANNOTATION, node, []);
+      }
+    }
+    return super.visitAnnotation(node);
+  }
 
   @override
   Object visitArgumentList(ArgumentList node) {
@@ -262,7 +274,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitMethodInvocation(MethodInvocation node) {
     _checkForCanBeNullAfterNullAware(node.realTarget, node.operator);
-    _checkForInvalidProtectedMethodCalls(node);
     DartType staticInvokeType = node.staticInvokeType;
     if (staticInvokeType is InterfaceType) {
       MethodElement methodElement = staticInvokeType.lookUpMethod(
@@ -300,7 +311,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     _checkForDeprecatedMemberUseAtIdentifier(node);
-    _checkForInvalidProtectedPropertyAccess(node);
+    _checkForInvalidProtectedMemberAccess(node);
     return super.visitSimpleIdentifier(node);
   }
 
@@ -677,62 +688,83 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     return false;
   }
 
-  /**
-   * Produces a hint if the given invocation is of a protected method outside
-   * a subclass instance method.
-   */
-  void _checkForInvalidProtectedMethodCalls(MethodInvocation node) {
-    Element element = node.methodName.bestElement;
-    if (element == null || !element.isProtected) {
+  void _checkForInvalidFactory(MethodDeclaration decl) {
+    // Check declaration.
+    // Note that null return types are expected to be flagged by other analyses.
+    DartType returnType = decl.returnType?.type;
+    if (returnType is VoidType) {
+      _errorReporter.reportErrorForNode(HintCode.INVALID_FACTORY_METHOD_DECL,
+          decl.name, [decl.name.toString()]);
       return;
     }
 
-    ClassElement definingClass = element.enclosingElement;
+    // Check implementation.
 
-    MethodDeclaration decl =
-        node.getAncestor((AstNode node) => node is MethodDeclaration);
-    if (decl == null) {
-      _errorReporter.reportErrorForNode(
-          HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
-          node,
-          [node.methodName.toString(), definingClass.name]);
+    FunctionBody body = decl.body;
+    if (body is EmptyFunctionBody) {
+      // Abstract methods are OK.
       return;
     }
 
-    ClassElement invokingClass = decl.element?.enclosingElement;
-    if (invokingClass != null) {
-      if (!_hasSuperClassOrMixin(invokingClass, definingClass.type)) {
-        _errorReporter.reportErrorForNode(
-            HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
-            node,
-            [node.methodName.toString(), definingClass.name]);
+    // `new Foo()` or `null`.
+    bool factoryExpression(Expression expression) =>
+        expression is InstanceCreationExpression || expression is NullLiteral;
+
+    if (body is ExpressionFunctionBody && factoryExpression(body.expression)) {
+      return;
+    } else if (body is BlockFunctionBody) {
+      NodeList<Statement> statements = body.block.statements;
+      if (statements.isNotEmpty) {
+        Statement last = statements.last;
+        if (last is ReturnStatement && factoryExpression(last.expression)) {
+          return;
+        }
       }
     }
+
+    _errorReporter.reportErrorForNode(HintCode.INVALID_FACTORY_METHOD_IMPL,
+        decl.name, [decl.name.toString()]);
   }
 
   /**
-   * Produces a hint if the given identifier is a protected field or getter
-   * accessed outside a subclass.
+   * Produces a hint if the given identifier is a protected closure, field or
+   * getter/setter, method closure or invocation accessed outside a subclass.
    */
-  void _checkForInvalidProtectedPropertyAccess(SimpleIdentifier identifier) {
+  void _checkForInvalidProtectedMemberAccess(SimpleIdentifier identifier) {
     if (identifier.inDeclarationContext()) {
       return;
     }
+
+    bool isProtected(Element element) {
+      if (element is PropertyAccessorElement &&
+          element.enclosingElement is ClassElement &&
+          (element.isProtected || element.variable.isProtected)) {
+        return true;
+      }
+      if (element is MethodElement &&
+          element.enclosingElement is ClassElement &&
+          element.isProtected) {
+        return true;
+      }
+      return false;
+    }
+
+    bool inCommentReference(SimpleIdentifier identifier) =>
+        identifier.getAncestor((AstNode node) => node is CommentReference) !=
+        null;
+
+    bool inCurrentLibrary(Element element) =>
+        element.library == _currentLibrary;
+
     Element element = identifier.bestElement;
-    if (element is PropertyAccessorElement &&
-        element.enclosingElement is ClassElement &&
-        (element.isProtected || element.variable.isProtected)) {
+    if (isProtected(element) &&
+        !inCurrentLibrary(element) &&
+        !inCommentReference(identifier)) {
       ClassElement definingClass = element.enclosingElement;
       ClassDeclaration accessingClass =
           identifier.getAncestor((AstNode node) => node is ClassDeclaration);
-
-      if (accessingClass == null) {
-        _errorReporter.reportErrorForNode(
-            HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
-            identifier,
-            [identifier.name.toString(), definingClass.name]);
-      } else if (!_hasSuperClassOrMixin(
-          accessingClass.element, definingClass.type)) {
+      if (accessingClass == null ||
+          !_hasTypeOrSuperType(accessingClass.element, definingClass.type)) {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
             identifier,
@@ -962,6 +994,25 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Check for situations where the result of a method or function is used, when
+   * it returns 'void'.
+   *
+   * See [HintCode.USE_OF_VOID_RESULT].
+   */
+  void _checkForUseOfVoidResult(Expression expression) {
+    // TODO(jwren) Many other situations of use could be covered. We currently
+    // cover the cases var x = m() and x = m(), but we could also cover cases
+    // such as m().x, m()[k], a + m(), f(m()), return m().
+    if (expression is MethodInvocation) {
+      if (identical(expression.staticType, VoidTypeImpl.instance)) {
+        SimpleIdentifier methodName = expression.methodName;
+        _errorReporter.reportErrorForNode(
+            HintCode.USE_OF_VOID_RESULT, methodName, [methodName.name]);
+      }
+    }
+  }
+
+  /**
    * Check for the passed class declaration for the
    * [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE] hint code.
    *
@@ -990,41 +1041,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 //    return false;
 //  }
 
-  /**
-   * Check for situations where the result of a method or function is used, when
-   * it returns 'void'.
-   *
-   * See [HintCode.USE_OF_VOID_RESULT].
-   */
-  void _checkForUseOfVoidResult(Expression expression) {
-    // TODO(jwren) Many other situations of use could be covered. We currently
-    // cover the cases var x = m() and x = m(), but we could also cover cases
-    // such as m().x, m()[k], a + m(), f(m()), return m().
-    if (expression is MethodInvocation) {
-      if (identical(expression.staticType, VoidTypeImpl.instance)) {
-        SimpleIdentifier methodName = expression.methodName;
-        _errorReporter.reportErrorForNode(
-            HintCode.USE_OF_VOID_RESULT, methodName, [methodName.name]);
-      }
+  bool _hasTypeOrSuperType(ClassElement element, InterfaceType type) {
+    if (element == null) {
+      return false;
     }
-  }
-
-  bool _hasSuperClassOrMixin(ClassElement element, InterfaceType type) {
-    List<ClassElement> seenClasses = <ClassElement>[];
-    while (element != null && !seenClasses.contains(element)) {
-      if (element.type == type) {
-        return true;
-      }
-
-      if (element.mixins.any((InterfaceType t) => t == type)) {
-        return true;
-      }
-
-      seenClasses.add(element);
-      element = element.supertype?.element;
-    }
-
-    return false;
+    ClassElement typeElement = type.element;
+    return element == typeElement ||
+        element.allSupertypes
+            .any((InterfaceType t) => t.element == typeElement);
   }
 
   /**
@@ -1950,13 +1974,13 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitSwitchCase(SwitchCase node) {
-    _checkForDeadStatementsInNodeList(node.statements);
+    _checkForDeadStatementsInNodeList(node.statements, allowMandated: true);
     return super.visitSwitchCase(node);
   }
 
   @override
   Object visitSwitchDefault(SwitchDefault node) {
-    _checkForDeadStatementsInNodeList(node.statements);
+    _checkForDeadStatementsInNodeList(node.statements, allowMandated: true);
     return super.visitSwitchDefault(node);
   }
 
@@ -2079,24 +2103,38 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
 
   /**
    * Given some [NodeList] of [Statement]s, from either a [Block] or
-   * [SwitchMember], this loops through the list in reverse order searching for statements
-   * after a return, unlabeled break or unlabeled continue statement to mark them as dead code.
+   * [SwitchMember], this loops through the list searching for dead statements.
    *
    * @param statements some ordered list of statements in a [Block] or [SwitchMember]
+   * @param allowMandated allow dead statements mandated by the language spec.
+   *            This allows for a final break, continue, return, or throw statement
+   *            at the end of a switch case, that are mandated by the language spec.
    */
-  void _checkForDeadStatementsInNodeList(NodeList<Statement> statements) {
+  void _checkForDeadStatementsInNodeList(NodeList<Statement> statements,
+      {bool allowMandated: false}) {
+    bool statementExits(Statement statement) {
+      if (statement is BreakStatement) {
+        return statement.label == null;
+      } else if (statement is ContinueStatement) {
+        return statement.label == null;
+      }
+      return ExitDetector.exits(statement);
+    }
+
     int size = statements.length;
     for (int i = 0; i < size; i++) {
       Statement currentStatement = statements[i];
       currentStatement?.accept(this);
-      bool returnOrBreakingStatement = currentStatement is ReturnStatement ||
-          (currentStatement is BreakStatement &&
-              currentStatement.label == null) ||
-          (currentStatement is ContinueStatement &&
-              currentStatement.label == null);
-      if (returnOrBreakingStatement && i != size - 1) {
+      if (statementExits(currentStatement) && i != size - 1) {
         Statement nextStatement = statements[i + 1];
         Statement lastStatement = statements[size - 1];
+        // If mandated statements are allowed, and only the last statement is
+        // dead, and it's a BreakStatement, then assume it is a statement
+        // mandated by the language spec, there to avoid a
+        // CASE_BLOCK_NOT_TERMINATED error.
+        if (allowMandated && i == size - 2 && nextStatement is BreakStatement) {
+          return;
+        }
         int offset = nextStatement.offset;
         int length = lastStatement.end - offset;
         _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE, offset, length);
@@ -3346,9 +3384,8 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
     //
     // Finish building the enum.
     //
-    ClassElementImpl enumElement = node.name.staticElement as ClassElementImpl;
+    EnumElementImpl enumElement = node.name.staticElement as EnumElementImpl;
     InterfaceType enumType = enumElement.type;
-    enumElement.supertype = _typeProvider.objectType;
     //
     // Populate the fields.
     //
@@ -3407,19 +3444,10 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Create a getter that corresponds to the given field.
-   *
-   * @param field the field for which a getter is to be created
-   * @return the getter that was created
+   * Create a getter that corresponds to the given [field].
    */
   PropertyAccessorElement _createGetter(FieldElementImpl field) {
-    PropertyAccessorElementImpl getter =
-        new PropertyAccessorElementImpl.forVariable(field);
-    getter.getter = true;
-    getter.returnType = field.type;
-    getter.type = new FunctionTypeImpl(getter);
-    field.getter = getter;
-    return getter;
+    return new PropertyAccessorElementImpl_ImplicitGetter(field);
   }
 }
 
@@ -3469,6 +3497,12 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
    * `do`, `while`, `for` or `switch` block is entered.
    */
   bool _enclosingBlockContainsBreak = false;
+
+  /**
+   * Set to `true` when a `continue` is encountered, and reset to `false` when a
+   * `do`, `while`, `for` or `switch` block is entered.
+   */
+  bool _enclosingBlockContainsContinue = false;
 
   /**
    * Add node when a labelled `break` is encountered.
@@ -3578,14 +3612,24 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   }
 
   @override
-  bool visitContinueStatement(ContinueStatement node) => false;
+  bool visitContinueStatement(ContinueStatement node) {
+    _enclosingBlockContainsContinue = true;
+    return false;
+  }
 
   @override
   bool visitDoStatement(DoStatement node) {
     bool outerBreakValue = _enclosingBlockContainsBreak;
+    bool outerContinueValue = _enclosingBlockContainsContinue;
     _enclosingBlockContainsBreak = false;
+    _enclosingBlockContainsContinue = false;
     try {
-      if (_nodeExits(node.body)) {
+      bool bodyExits = _nodeExits(node.body);
+      bool containsBreakOrContinue =
+          _enclosingBlockContainsBreak || _enclosingBlockContainsContinue;
+      // Even if we determine that the body "exits", there might be break or
+      // continue statements that actually mean it _doesn't_ always exit.
+      if (bodyExits && !containsBreakOrContinue) {
         return true;
       }
       Expression conditionExpression = node.condition;
@@ -3602,6 +3646,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       return false;
     } finally {
       _enclosingBlockContainsBreak = outerBreakValue;
+      _enclosingBlockContainsContinue = outerContinueValue;
     }
   }
 
@@ -3799,36 +3844,30 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     _enclosingBlockContainsBreak = false;
     try {
       bool hasDefault = false;
+      bool hasNonExitingCase = false;
       List<SwitchMember> members = node.members;
       for (int i = 0; i < members.length; i++) {
         SwitchMember switchMember = members[i];
         if (switchMember is SwitchDefault) {
           hasDefault = true;
-          // If this is the last member and there are no statements, return
-          // false
+          // If this is the last member and there are no statements, then it
+          // does not exit.
           if (switchMember.statements.isEmpty && i + 1 == members.length) {
-            return false;
+            hasNonExitingCase = true;
+            continue;
           }
         }
-        // For switch members with no statements, don't visit the children,
-        // otherwise, return false if no return is found in the children
-        // statements.
+        // For switch members with no statements, don't visit the children.
+        // Otherwise, if there children statements don't exit, mark this as a
+        // non-exiting case.
         if (!switchMember.statements.isEmpty && !switchMember.accept(this)) {
-          return false;
+          hasNonExitingCase = true;
         }
       }
-      // All of the members exit, determine whether there are possible cases
-      // that are not caught by the members.
-      DartType type = node.expression?.bestType;
-      if (type is InterfaceType) {
-        ClassElement element = type.element;
-        if (element != null && element.isEnum) {
-          // If some of the enum values are not covered, then a warning will
-          // have already been generated, so there's no point in generating a
-          // hint.
-          return true;
-        }
+      if (hasNonExitingCase) {
+        return false;
       }
+      // As all cases exit, return whether that list includes `default`.
       return hasDefault;
     } finally {
       _enclosingBlockContainsBreak = outerBreakValue;
@@ -3843,14 +3882,18 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitTryStatement(TryStatement node) {
-    if (_nodeExits(node.body)) {
+    if (_nodeExits(node.finallyBlock)) {
       return true;
     }
-    Block finallyBlock = node.finallyBlock;
-    if (_nodeExits(finallyBlock)) {
-      return true;
+    if (!_nodeExits(node.body)) {
+      return false;
     }
-    return false;
+    for (CatchClause c in node.catchClauses) {
+      if (!_nodeExits(c.body)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @override
@@ -3889,13 +3932,21 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       if (conditionExpression.accept(this)) {
         return true;
       }
-      bool blockReturns = node.body.accept(this);
+      node.body.accept(this);
       // TODO(jwren) Do we want to take all constant expressions into account?
       if (conditionExpression is BooleanLiteral) {
-        // If while(true), and the body doesn't return or the body doesn't have
-        // a break, then return true.
-        if (conditionExpression.value &&
-            (blockReturns || !_enclosingBlockContainsBreak)) {
+        // If while(true), and the body doesn't have a break, then return true.
+        // The body might be found to exit, but if there are any break
+        // statements, then it is a faulty finding. In other words:
+        //
+        // * If the body exits, and does not contain a break statement, then
+        //   it exits.
+        // * If the body does not exit, and does not contain a break statement,
+        //   then it loops infinitely (also an exit).
+        //
+        // As both conditions forbid any break statements to be found, the logic
+        // just boils down to checking [_enclosingBlockContainsBreak].
+        if (conditionExpression.value && !_enclosingBlockContainsBreak) {
           return true;
         }
       }
@@ -3904,6 +3955,9 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       _enclosingBlockContainsBreak = outerBreakValue;
     }
   }
+
+  @override
+  bool visitYieldStatement(YieldStatement node) => _nodeExits(node.expression);
 
   /**
    * Return `true` if the given node exits.
@@ -4692,7 +4746,7 @@ class InferenceContext {
   /**
    * The error listener on which to record inference information.
    */
-  final AnalysisErrorListener _errorListener;
+  final ErrorReporter _errorReporter;
 
   /**
    * If true, emit hints when types are inferred
@@ -4725,7 +4779,7 @@ class InferenceContext {
   // https://github.com/dart-lang/sdk/issues/25322
   final List<DartType> _returnStack = <DartType>[];
 
-  InferenceContext._(this._errorListener, TypeProvider typeProvider,
+  InferenceContext._(this._errorReporter, TypeProvider typeProvider,
       this._typeSystem, this._inferenceHints)
       : _typeProvider = typeProvider;
 
@@ -4804,12 +4858,22 @@ class InferenceContext {
    * [type] has been inferred as the type of [node].
    */
   void recordInference(Expression node, DartType type) {
-    StaticInfo info = InferredType.create(_typeSystem, node, type);
-    if (!_inferenceHints || info == null) {
+    if (!_inferenceHints) {
       return;
     }
-    AnalysisError error = info.toAnalysisError();
-    _errorListener.onError(error);
+
+    ErrorCode error;
+    if (node is Literal) {
+      error = StrongModeCode.INFERRED_TYPE_LITERAL;
+    } else if (node is InstanceCreationExpression) {
+      error = StrongModeCode.INFERRED_TYPE_ALLOCATION;
+    } else if (node is FunctionExpression) {
+      error = StrongModeCode.INFERRED_TYPE_CLOSURE;
+    } else {
+      error = StrongModeCode.INFERRED_TYPE;
+    }
+
+    _errorReporter.reportErrorForNode(error, node, [node, type]);
   }
 
   List<DartType> _matchTypes(InterfaceType t1, InterfaceType t2) {
@@ -5623,7 +5687,7 @@ class ResolverVisitor extends ScopedVisitor {
       strongModeHints = options.strongModeHints;
     }
     this.inferenceContext = new InferenceContext._(
-        errorListener, typeProvider, typeSystem, strongModeHints);
+        errorReporter, typeProvider, typeSystem, strongModeHints);
     this.typeAnalyzer = new StaticTypeAnalyzer(this);
   }
 
@@ -5976,7 +6040,6 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitAsExpression(AsExpression node) {
-    InferenceContext.setType(node.expression, node.type.type);
     super.visitAsExpression(node);
     // Since an as-statement doesn't actually change the type, we don't
     // let it affect the propagated type when it would result in a loss
@@ -9995,8 +10058,7 @@ class TypeResolverVisitor extends ScopedVisitor {
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     super.visitConstructorDeclaration(node);
-    ExecutableElementImpl element = node.element as ExecutableElementImpl;
-    if (element == null) {
+    if (node.element == null) {
       ClassDeclaration classNode =
           node.getAncestor((node) => node is ClassDeclaration);
       StringBuffer buffer = new StringBuffer();
@@ -10013,10 +10075,6 @@ class TypeResolverVisitor extends ScopedVisitor {
       buffer.write(" was not set while trying to resolve types.");
       AnalysisEngine.instance.logger.logError(buffer.toString(),
           new CaughtException(new AnalysisException(), null));
-    } else {
-      ClassElement definingClass = element.enclosingElement as ClassElement;
-      element.returnType = definingClass.type;
-      element.type = new FunctionTypeImpl(element);
     }
     return null;
   }
@@ -10047,18 +10105,15 @@ class TypeResolverVisitor extends ScopedVisitor {
         TypeName typeName = node.type;
         if (typeName == null) {
           element.hasImplicitType = true;
-          type = _dynamicType;
           if (element is FieldFormalParameterElement) {
             FieldElement fieldElement =
                 (element as FieldFormalParameterElement).field;
-            if (fieldElement != null) {
-              type = fieldElement.type;
-            }
+            type = fieldElement?.type;
           }
         } else {
           type = _typeNameResolver._getType(typeName);
         }
-        element.type = type;
+        element.type = type ?? _dynamicType;
       } else {
         _setFunctionTypedParameterType(element, node.type, node.parameters);
       }
@@ -10216,26 +10271,8 @@ class TypeResolverVisitor extends ScopedVisitor {
       declaredType = _typeNameResolver._getType(typeName);
     }
     Element element = node.name.staticElement;
-    if (element is VariableElement) {
-      (element as VariableElementImpl).type = declaredType;
-      if (element is PropertyInducingElement) {
-        PropertyAccessorElementImpl getter =
-            element.getter as PropertyAccessorElementImpl;
-        getter.returnType = declaredType;
-        getter.type = new FunctionTypeImpl(getter);
-        PropertyAccessorElementImpl setter =
-            element.setter as PropertyAccessorElementImpl;
-        if (setter != null) {
-          List<ParameterElement> parameters = setter.parameters;
-          if (parameters.length > 0) {
-            (parameters[0] as ParameterElementImpl).type = declaredType;
-          }
-          setter.returnType = VoidTypeImpl.instance;
-          setter.type = new FunctionTypeImpl(setter);
-        }
-      }
-    } else {
-      // TODO(brianwilkerson) Report the internal error.
+    if (element is VariableElementImpl) {
+      element.type = declaredType;
     }
     return null;
   }

@@ -15,7 +15,6 @@
 #include "vm/store_buffer.h"
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
-#include "vm/verified_memory.h"
 #include "vm/verifier.h"
 #include "vm/visitor.h"
 #include "vm/weak_table.h"
@@ -161,7 +160,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       memmove(reinterpret_cast<void*>(new_addr),
               reinterpret_cast<void*>(raw_addr),
               size);
-      VerifiedMemory::Accept(new_addr, size);
       // Remember forwarding address.
       ForwardTo(raw_addr, new_addr);
     }
@@ -170,7 +168,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     *p = new_obj;
     // Update the store buffer as needed.
     if (visiting_old_object_ != NULL) {
-      VerifiedMemory::Accept(reinterpret_cast<uword>(p), sizeof(*p));
       UpdateStoreBuffer(p, new_obj);
     }
   }
@@ -193,10 +190,13 @@ class ScavengerVisitor : public ObjectPointerVisitor {
 
 class ScavengerWeakVisitor : public HandleVisitor {
  public:
-  explicit ScavengerWeakVisitor(Scavenger* scavenger)
-      :  HandleVisitor(Thread::Current()),
-         scavenger_(scavenger) {
-    ASSERT(scavenger->heap_->isolate() == Thread::Current()->isolate());
+  ScavengerWeakVisitor(Thread* thread,
+                       Scavenger* scavenger,
+                       FinalizationQueue* finalization_queue) :
+      HandleVisitor(thread),
+      scavenger_(scavenger),
+      queue_(finalization_queue) {
+    ASSERT(scavenger->heap_->isolate() == thread->isolate());
   }
 
   void VisitHandle(uword addr) {
@@ -204,7 +204,7 @@ class ScavengerWeakVisitor : public HandleVisitor {
       reinterpret_cast<FinalizablePersistentHandle*>(addr);
     RawObject** p = handle->raw_addr();
     if (scavenger_->IsUnreachable(p)) {
-      handle->UpdateUnreachable(thread()->isolate());
+      handle->UpdateUnreachable(thread()->isolate(), queue_);
     } else {
       handle->UpdateRelocated(thread()->isolate());
     }
@@ -212,6 +212,7 @@ class ScavengerWeakVisitor : public HandleVisitor {
 
  private:
   Scavenger* scavenger_;
+  FinalizationQueue* queue_;
 
   DISALLOW_COPY_AND_ASSIGN(ScavengerWeakVisitor);
 };
@@ -285,7 +286,7 @@ SemiSpace* SemiSpace::New(intptr_t size_in_words) {
     return new SemiSpace(NULL);
   } else {
     intptr_t size_in_bytes = size_in_words << kWordSizeLog2;
-    VirtualMemory* reserved = VerifiedMemory::Reserve(size_in_bytes);
+    VirtualMemory* reserved = VirtualMemory::Reserve(size_in_bytes);
     if ((reserved == NULL) || !reserved->Commit(false)) {  // Not executable.
       // TODO(koda): If cache_ is not empty, we could try to delete it.
       delete reserved;
@@ -293,7 +294,6 @@ SemiSpace* SemiSpace::New(intptr_t size_in_words) {
     }
 #if defined(DEBUG)
     memset(reserved->address(), Heap::kZapByte, size_in_bytes);
-    VerifiedMemory::Accept(reserved->start(), size_in_bytes);
 #endif  // defined(DEBUG)
     return new SemiSpace(reserved);
   }
@@ -305,7 +305,6 @@ void SemiSpace::Delete() {
   if (reserved_ != NULL) {
     const intptr_t size_in_bytes = size_in_words() << kWordSizeLog2;
     memset(reserved_->address(), Heap::kZapByte, size_in_bytes);
-    VerifiedMemory::Accept(reserved_->start(), size_in_bytes);
   }
 #endif
   SemiSpace* old_cache = NULL;
@@ -425,7 +424,6 @@ void Scavenger::Epilogue(Isolate* isolate,
     // objects candidates for promotion next time.
     survivor_end_ = end_;
   }
-  VerifiedMemory::Accept(to_->start(), to_->end() - to_->start());
 #if defined(DEBUG)
   // We can only safely verify the store buffers from old space if there is no
   // concurrent old space task. At the same time we prevent new tasks from
@@ -464,11 +462,9 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
     total_count += count;
     while (!pending->IsEmpty()) {
       RawObject* raw_object = pending->Pop();
-      if (raw_object->IsFreeListElement()) {
-        // TODO(rmacnak): Forwarding corpse from become. Probably we should also
-        // visit the store buffer blocks during become, and mark any forwardees
-        // as remembered if their forwarders are remembered to satisfy the
-        // following assert.
+      if (raw_object->IsForwardingCorpse()) {
+        // A source object in a become was a remembered object, but we do
+        // not visit the store buffer during become to remove it.
         continue;
       }
       ASSERT(raw_object->IsRemembered());
@@ -814,8 +810,19 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
     int64_t middle = OS::GetCurrentTimeMicros();
     {
       TIMELINE_FUNCTION_GC_DURATION(thread, "WeakHandleProcessing");
-      ScavengerWeakVisitor weak_visitor(this);
-      IterateWeakRoots(isolate, &weak_visitor);
+      if (FLAG_background_finalization) {
+        FinalizationQueue* queue = new FinalizationQueue();
+        ScavengerWeakVisitor weak_visitor(thread, this, queue);
+        IterateWeakRoots(isolate, &weak_visitor);
+        if (queue->length() > 0) {
+          Dart::thread_pool()->Run(new BackgroundFinalizer(isolate, queue));
+        } else {
+          delete queue;
+        }
+      } else {
+        ScavengerWeakVisitor weak_visitor(thread, this, NULL);
+        IterateWeakRoots(isolate, &weak_visitor);
+      }
     }
     ProcessWeakReferences();
     page_space->ReleaseDataLock();

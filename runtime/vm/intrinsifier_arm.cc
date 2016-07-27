@@ -103,7 +103,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // Store backing array object in growable array object.
   __ ldr(R1, Address(SP, kArrayOffset));  // Data argument.
   // R0 is new, no barrier needed.
-  __ InitializeFieldNoBarrier(
+  __ StoreIntoObjectNoBarrier(
       R0,
       FieldAddress(R0, GrowableObjectArray::data_offset()),
       R1);
@@ -111,14 +111,14 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // R0: new growable array object start as a tagged pointer.
   // Store the type argument field in the growable array object.
   __ ldr(R1, Address(SP, kTypeArgumentsOffset));  // Type argument.
-  __ InitializeFieldNoBarrier(
+  __ StoreIntoObjectNoBarrier(
       R0,
       FieldAddress(R0, GrowableObjectArray::type_arguments_offset()),
       R1);
 
   // Set the length field in the growable array object to 0.
   __ LoadImmediate(R1, 0);
-  __ InitializeFieldNoBarrier(
+  __ StoreIntoObjectNoBarrier(
       R0,
       FieldAddress(R0, GrowableObjectArray::length_offset()),
       R1);
@@ -166,7 +166,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_shift)           \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 0 * kWordSize;                      \
-  __ MaybeTraceAllocation(cid, R2, &fall_through);                             \
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, R2, &fall_through));             \
   __ ldr(R2, Address(SP, kArrayLengthStackOffset));  /* Array length. */       \
   /* Check that length is a positive Smi. */                                   \
   /* R2: requested array length argument. */                                   \
@@ -183,7 +183,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
   __ AddImmediate(R2, fixed_size);                                             \
   __ bic(R2, R2, Operand(kObjectAlignment - 1));                               \
-  Heap::Space space = Heap::SpaceForAllocation(cid);                           \
+  Heap::Space space = Heap::kNew;                                              \
   __ ldr(R3, Address(THR, Thread::heap_offset()));                             \
   __ ldr(R0, Address(R3, Heap::TopOffset(space)));                             \
                                                                                \
@@ -202,7 +202,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
                                                                                \
   /* Successfully allocated the object(s), now update top to point to */       \
   /* next object start and initialize the object. */                           \
-  __ LoadAllocationStatsAddress(R4, cid);                                      \
+  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R4, cid));                      \
   __ str(R1, Address(R3, Heap::TopOffset(space)));                             \
   __ AddImmediate(R0, kHeapObjectTag);                                         \
   /* Initialize the tags. */                                                   \
@@ -227,7 +227,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* R2: allocation size. */                                                   \
   /* R4: allocation stats address. */                                          \
   __ ldr(R3, Address(SP, kArrayLengthStackOffset));  /* Array length. */       \
-  __ InitializeFieldNoBarrier(R0,                                              \
+  __ StoreIntoObjectNoBarrier(R0,                                              \
                               FieldAddress(R0, type_name::length_offset()),    \
                               R3);                                             \
   /* Initialize all array elements to 0. */                                    \
@@ -249,7 +249,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ b(&init_loop, CC);                                                        \
   __ str(R8, Address(R3, -2 * kWordSize), HI);                                 \
                                                                                \
-  __ IncrementAllocationStatsWithSize(R4, R2, space);                          \
+  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2, space));          \
   __ Ret();                                                                    \
   __ Bind(&fall_through);                                                      \
 
@@ -775,6 +775,11 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
   __ rsb(R0, R0, Operand(32));
   __ SmiTag(R0);
   __ Ret();
+}
+
+
+void Intrinsifier::Smi_bitAndFromSmi(Assembler* assembler) {
+  Integer_bitAndFromInteger(assembler);
 }
 
 
@@ -1824,7 +1829,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* failure) {
   const Register length_reg = R2;
   Label fail;
-  __ MaybeTraceAllocation(kOneByteStringCid, R0, failure);
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kOneByteStringCid, R0, failure));
   __ mov(R8, Operand(length_reg));  // Save the length register.
   // TODO(koda): Protect against negative length and overflow here.
   __ SmiUntag(length_reg);
@@ -1833,7 +1838,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ bic(length_reg, length_reg, Operand(kObjectAlignment - 1));
 
   const intptr_t cid = kOneByteStringCid;
-  Heap::Space space = Heap::SpaceForAllocation(cid);
+  Heap::Space space = Heap::kNew;
   __ ldr(R3, Address(THR, Thread::heap_offset()));
   __ ldr(R0, Address(R3, Heap::TopOffset(space)));
 
@@ -1852,7 +1857,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ LoadAllocationStatsAddress(R4, cid);
+  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R4, cid));
   __ str(R1, Address(R3, Heap::TopOffset(space)));
   __ AddImmediate(R0, kHeapObjectTag);
 
@@ -1876,16 +1881,16 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   }
 
   // Set the length field using the saved length (R8).
-  __ InitializeFieldNoBarrier(R0,
+  __ StoreIntoObjectNoBarrier(R0,
                               FieldAddress(R0, String::length_offset()),
                               R8);
   // Clear hash.
   __ LoadImmediate(TMP, 0);
-  __ InitializeFieldNoBarrier(R0,
+  __ StoreIntoObjectNoBarrier(R0,
                               FieldAddress(R0, String::hash_offset()),
                               TMP);
 
-  __ IncrementAllocationStatsWithSize(R4, R2, space);
+  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2, space));
   __ b(ok);
 
   __ Bind(&fail);

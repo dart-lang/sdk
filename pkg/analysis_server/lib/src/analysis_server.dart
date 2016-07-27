@@ -7,6 +7,7 @@ library analysis.server;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:core' hide Resource;
+import 'dart:io' as io;
 import 'dart:math' show max;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart'
@@ -27,7 +28,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/plugin/embedded_resolver_provider.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
@@ -43,6 +43,7 @@ import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:plugin/plugin.dart';
+import 'package:yaml/yaml.dart';
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
 
@@ -149,11 +150,6 @@ class AnalysisServer {
    * server.
    */
   List<RequestHandler> handlers;
-
-  /**
-   * The function used to create a new SDK using the default SDK.
-   */
-  final SdkCreator defaultSdkCreator;
 
   /**
    * The object used to manage the SDK's known to this server.
@@ -296,6 +292,12 @@ class AnalysisServer {
       new StreamController<ContextsChangedEvent>.broadcast();
 
   /**
+   * The file resolver provider used to override the way file URI's are
+   * resolved in some contexts.
+   */
+  ResolverProvider fileResolverProvider;
+
+  /**
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    *
@@ -311,9 +313,9 @@ class AnalysisServer {
       Index _index,
       this.serverPlugin,
       this.options,
-      this.defaultSdkCreator,
+      this.sdkManager,
       this.instrumentationService,
-      {EmbeddedResolverProvider embeddedResolverProvider: null,
+      {ResolverProvider fileResolverProvider: null,
       ResolverProvider packageResolverProvider: null,
       bool useSingleContextManager: false,
       this.rethrowExceptions: true})
@@ -325,9 +327,10 @@ class AnalysisServer {
         options.enableIncrementalResolutionApi;
     defaultContextOptions.incrementalValidation =
         options.enableIncrementalResolutionValidation;
+    defaultContextOptions.finerGrainedInvalidation =
+        options.finerGrainedInvalidation;
     defaultContextOptions.generateImplicitErrors = false;
     operationQueue = new ServerOperationQueue();
-    sdkManager = new DartSdkManager(defaultSdkCreator);
     if (useSingleContextManager) {
       contextManager = new SingleContextManager(resourceProvider, sdkManager,
           packageResolverProvider, analyzedFilesGlobs, defaultContextOptions);
@@ -336,12 +339,12 @@ class AnalysisServer {
           resourceProvider,
           sdkManager,
           packageResolverProvider,
-          embeddedResolverProvider,
           packageMapProvider,
           analyzedFilesGlobs,
           instrumentationService,
           defaultContextOptions);
     }
+    this.fileResolverProvider = fileResolverProvider;
     ServerContextManagerCallbacks contextManagerCallbacks =
         new ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
@@ -360,7 +363,7 @@ class AnalysisServer {
     });
     _setupIndexInvalidation();
     Notification notification =
-        new ServerConnectedParams(VERSION).toNotification();
+        new ServerConnectedParams(VERSION, io.pid).toNotification();
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
     handlers = serverPlugin.createDomains(this);
@@ -1506,6 +1509,7 @@ class AnalysisServer {
 class AnalysisServerOptions {
   bool enableIncrementalResolutionApi = false;
   bool enableIncrementalResolutionValidation = false;
+  bool finerGrainedInvalidation = false;
   bool noErrorNotification = false;
   bool noIndex = false;
   bool useAnalysisHighlight2 = false;
@@ -1559,13 +1563,14 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         AnalysisEngine.instance.createAnalysisContext();
     context.contentCache = analysisServer.overlayState;
     analysisServer.folderMap[folder] = context;
-    _locateEmbedderYamls(context, disposition);
+    context.fileResolverProvider = analysisServer.fileResolverProvider;
     context.sourceFactory =
         _createSourceFactory(context, options, disposition, folder);
     context.analysisOptions = options;
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(added: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
+
     return context;
   }
 
@@ -1626,48 +1631,42 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     List<UriResolver> packageUriResolvers =
         disposition.createPackageUriResolvers(resourceProvider);
 
-    EmbedderUriResolver embedderUriResolver;
-
-    // First check for a resolver provider.
-    ContextManager contextManager = analysisServer.contextManager;
-    if (contextManager is ContextManagerImpl) {
-      EmbeddedResolverProvider resolverProvider =
-          contextManager.embeddedUriResolverProvider;
-      if (resolverProvider != null) {
-        embedderUriResolver = resolverProvider(folder);
-      }
-    }
-
     // If no embedded URI resolver was provided, defer to a locator-backed one.
-    embedderUriResolver ??= new EmbedderUriResolver(
-        context.embedderYamlLocator.embedderYamls);
-    if (embedderUriResolver.length == 0) {
-      // The embedder uri resolver has no mappings. Use the default Dart SDK
-      // uri resolver.
+    EmbedderYamlLocator locator =
+        disposition.getEmbedderLocator(resourceProvider);
+    Map<Folder, YamlMap> embedderYamls = locator.embedderYamls;
+    EmbedderSdk embedderSdk = new EmbedderSdk(embedderYamls);
+    if (embedderSdk.libraryMap.size() == 0) {
+      // There was no embedder file, or the file was empty, so used the default
+      // SDK.
       resolvers.add(new DartUriResolver(
           analysisServer.sdkManager.getSdkForOptions(options)));
     } else {
-      // The embedder uri resolver has mappings, use it instead of the default
-      // Dart SDK uri resolver.
-      resolvers.add(embedderUriResolver);
+      // The embedder file defines an alternate SDK, so use it.
+      List<String> paths = <String>[];
+      for (Folder folder in embedderYamls.keys) {
+        paths.add(folder
+            .getChildAssumingFile(EmbedderYamlLocator.EMBEDDER_FILE_NAME)
+            .path);
+      }
+      DartSdk dartSdk = analysisServer.sdkManager
+          .getSdk(new SdkDescription(paths, options), () {
+        embedderSdk.analysisOptions = options;
+        // TODO(brianwilkerson) Enable summary use after we have decided where
+        // summary files for embedder files will live.
+        embedderSdk.useSummary = false;
+        return embedderSdk;
+      });
+      resolvers.add(new DartUriResolver(dartSdk));
     }
 
     resolvers.addAll(packageUriResolvers);
-    resolvers.add(new ResourceUriResolver(resourceProvider));
-    return new SourceFactory(resolvers, disposition.packages);
-  }
-
-  /// If [disposition] has a package map, attempt to locate `_embedder.yaml`
-  /// files.
-  void _locateEmbedderYamls(
-      InternalAnalysisContext context, FolderDisposition disposition) {
-    Map<String, List<Folder>> packageMap;
-    if (disposition is PackageMapDisposition) {
-      packageMap = disposition.packageMap;
-    } else if (disposition is PackagesFileDisposition) {
-      packageMap = disposition.buildPackageMap(resourceProvider);
+    if (context.fileResolverProvider == null) {
+      resolvers.add(new ResourceUriResolver(resourceProvider));
+    } else {
+      resolvers.add(context.fileResolverProvider(folder));
     }
-    context.embedderYamlLocator.refresh(packageMap);
+    return new SourceFactory(resolvers, disposition.packages);
   }
 }
 

@@ -11,7 +11,6 @@
 #include "vm/snapshot.h"
 #include "vm/token.h"
 #include "vm/token_position.h"
-#include "vm/verified_memory.h"
 
 namespace dart {
 
@@ -181,9 +180,12 @@ CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
   kDynamicCid,
   kVoidCid,
 
-  // The following entry does not describe a real class, but instead it is an
-  // id which is used to identify free list elements in the heap.
+  // The following entries describes classes for pseudo-objects in the heap
+  // that should never be reachable from live objects. Free list elements
+  // maintain the free list for old space, and forwarding corpses are used to
+  // implement one-way become.
   kFreeListElement,
+  kForwardingCorpse,
 
   kNumPredefinedCids,
 };
@@ -247,9 +249,11 @@ CLASS_LIST_TYPED_DATA(V)
     }                                                                          \
     SNAPSHOT_WRITER_SUPPORT()                                                  \
     HEAP_PROFILER_SUPPORT()                                                    \
+    friend class object##SerializationCluster;                                 \
+    friend class object##DeserializationCluster;                               \
 
-// RawObject is the base class of all raw objects, even though it carries the
-// class_ field not all raw objects are allocated in the heap and thus cannot
+// RawObject is the base class of all raw objects; even though it carries the
+// tags_ field not all raw objects are allocated in the heap and thus cannot
 // be dereferenced (e.g. RawSmi).
 class RawObject {
  public:
@@ -442,6 +446,12 @@ CLASS_LIST_TYPED_DATA(DEFINE_IS_CID)
   bool IsFreeListElement() const {
     return ((GetClassId() == kFreeListElement));
   }
+  bool IsForwardingCorpse() const {
+    return ((GetClassId() == kForwardingCorpse));
+  }
+  bool IsPseudoObject() const {
+    return IsFreeListElement() || IsForwardingCorpse();
+  }
 
   intptr_t Size() const {
     uword tags = ptr()->tags_;
@@ -561,10 +571,7 @@ CLASS_LIST_TYPED_DATA(DEFINE_IS_CID)
 
   template<typename type>
   void StorePointer(type const* addr, type value) {
-#if defined(DEBUG)
-    ValidateOverwrittenPointer(*addr);
-#endif  // DEBUG
-    VerifiedMemory::Write(const_cast<type*>(addr), value);
+    *const_cast<type*>(addr) = value;
     // Filter stores based on source and target.
     if (!value->IsHeapObject()) return;
     if (value->IsNewObject() && this->IsOldObject() &&
@@ -577,29 +584,14 @@ CLASS_LIST_TYPED_DATA(DEFINE_IS_CID)
   // Use for storing into an explicitly Smi-typed field of an object
   // (i.e., both the previous and new value are Smis).
   void StoreSmi(RawSmi* const* addr, RawSmi* value) {
-#if defined(DEBUG)
-    ValidateOverwrittenSmi(*addr);
-#endif  // DEBUG
     // Can't use Contains, as array length is initialized through this method.
     ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(this));
-    VerifiedMemory::Write(const_cast<RawSmi**>(addr), value);
+    *const_cast<RawSmi**>(addr) = value;
   }
-
-  void InitializeSmi(RawSmi* const* addr, RawSmi* value) {
-    // Can't use Contains, as array length is initialized through this method.
-    ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(this));
-    // This is an initializing store, so any previous content is OK.
-    VerifiedMemory::Accept(reinterpret_cast<uword>(addr), kWordSize);
-    VerifiedMemory::Write(const_cast<RawSmi**>(addr), value);
-  }
-
-#if defined(DEBUG)
-  static void ValidateOverwrittenPointer(RawObject* raw);
-  static void ValidateOverwrittenSmi(RawSmi* raw);
-#endif  // DEBUG
 
   friend class Api;
   friend class ApiMessageReader;  // GetClassId
+  friend class Serializer;  // GetClassId
   friend class Array;
   friend class Bigint;
   friend class ByteBuffer;
@@ -635,6 +627,7 @@ CLASS_LIST_TYPED_DATA(DEFINE_IS_CID)
   friend class AssemblyInstructionsWriter;
   friend class BlobInstructionsWriter;
   friend class SnapshotReader;
+  friend class Deserializer;
   friend class SnapshotWriter;
   friend class String;
   friend class Type;  // GetClassId
@@ -721,6 +714,7 @@ class RawClass : public RawObject {
   friend class RawInstance;
   friend class RawInstructions;
   friend class SnapshotReader;
+  friend class InstanceSerializationCluster;
 };
 
 
@@ -820,7 +814,9 @@ class RawFunction : public RawObject {
   // So that the SkippedCodeFunctions::DetachCode can null out the code fields.
   friend class SkippedCodeFunctions;
   friend class Class;
+
   RAW_HEAP_OBJECT_IMPLEMENTATION(Function);
+
   static bool ShouldVisitCode(RawCode* raw_code);
   static bool CheckUsageCounter(RawFunction* raw_fun);
 
@@ -1152,6 +1148,7 @@ class RawCode : public RawObject {
   friend class SkippedCodeFunctions;
   friend class StackFrame;
   friend class Profiler;
+  friend class FunctionDeserializationCluster;
 };
 
 
@@ -1841,6 +1838,7 @@ class RawOneByteString : public RawString {
 
   friend class ApiMessageReader;
   friend class SnapshotReader;
+  friend class RODataSerializationCluster;
 };
 
 
@@ -1852,6 +1850,7 @@ class RawTwoByteString : public RawString {
   const uint16_t* data() const { OPEN_ARRAY_START(uint16_t, uint16_t); }
 
   friend class SnapshotReader;
+  friend class RODataSerializationCluster;
 };
 
 
@@ -1927,6 +1926,9 @@ class RawArray : public RawInstance {
     return reinterpret_cast<RawObject**>(&ptr()->data()[length - 1]);
   }
 
+  friend class LinkedHashMapSerializationCluster;
+  friend class LinkedHashMapDeserializationCluster;
+  friend class Deserializer;
   friend class RawCode;
   friend class RawImmutableArray;
   friend class SnapshotReader;
@@ -1979,7 +1981,6 @@ class RawLinkedHashMap : public RawInstance {
     return reinterpret_cast<RawObject**>(&ptr()->deleted_keys_);
   }
 
-
   friend class SnapshotReader;
 };
 
@@ -1987,41 +1988,47 @@ class RawLinkedHashMap : public RawInstance {
 class RawFloat32x4 : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Float32x4);
 
-  float value_[4];
+  ALIGN8 float value_[4];
 
   friend class SnapshotReader;
+
  public:
   float x() const { return value_[0]; }
   float y() const { return value_[1]; }
   float z() const { return value_[2]; }
   float w() const { return value_[3]; }
 };
+COMPILE_ASSERT(sizeof(RawFloat32x4) == 24);
 
 
 class RawInt32x4 : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Int32x4);
 
-  int32_t value_[4];
+  ALIGN8 int32_t value_[4];
 
   friend class SnapshotReader;
+
  public:
   int32_t x() const { return value_[0]; }
   int32_t y() const { return value_[1]; }
   int32_t z() const { return value_[2]; }
   int32_t w() const { return value_[3]; }
 };
+COMPILE_ASSERT(sizeof(RawInt32x4) == 24);
 
 
 class RawFloat64x2 : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Float64x2);
 
-  double value_[2];
+  ALIGN8 double value_[2];
 
   friend class SnapshotReader;
+
  public:
   double x() const { return value_[0]; }
   double y() const { return value_[1]; }
 };
+COMPILE_ASSERT(sizeof(RawFloat64x2) == 24);
 
 
 // Define an aliases for intptr_t.
@@ -2053,6 +2060,8 @@ class RawTypedData : public RawInstance {
   friend class SnapshotReader;
   friend class ObjectPool;
   friend class RawObjectPool;
+  friend class ObjectPoolSerializationCluster;
+  friend class ObjectPoolDeserializationCluster;
 };
 
 
@@ -2269,10 +2278,7 @@ inline bool RawObject::IsTwoByteStringClassId(intptr_t index) {
                  kTwoByteStringCid == kStringCid + 2 &&
                  kExternalOneByteStringCid == kStringCid + 3 &&
                  kExternalTwoByteStringCid == kStringCid + 4);
-  return (index == kOneByteStringCid ||
-          index == kTwoByteStringCid ||
-          index == kExternalOneByteStringCid ||
-          index == kExternalTwoByteStringCid);
+  return (index == kTwoByteStringCid || index == kExternalTwoByteStringCid);
 }
 
 

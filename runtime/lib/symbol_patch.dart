@@ -51,4 +51,9 @@ patch class Symbol {
     }
     return result.toString();
   }
+
+  /* patch */ int get hashCode {
+    const arbitraryPrime = 664597;
+    return 0x1fffffff & (arbitraryPrime * _name.hashCode);
+  }
 }

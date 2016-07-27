@@ -50,6 +50,14 @@ class FileTest extends _BaseTest {
     expect(source.contents.data, 'contents');
   }
 
+  void test_delete() {
+    new io.File(path).writeAsStringSync('contents');
+    expect(file.exists, isTrue);
+    // delete
+    file.delete();
+    expect(file.exists, isFalse);
+  }
+
   void test_equals_differentPaths() {
     String path2 = join(tempPath, 'file2.txt');
     File file2 = PhysicalResourceProvider.INSTANCE.getResource(path2);
@@ -222,6 +230,16 @@ class FolderTest extends _BaseTest {
     expect(folder.contains(path), isFalse);
   }
 
+  void test_delete() {
+    new io.File(join(path, 'myFile')).createSync();
+    var child = folder.getChild('myFile');
+    expect(child, _isFile);
+    expect(child.exists, isTrue);
+    // delete "folder"
+    folder.delete();
+    expect(child.exists, isFalse);
+  }
+
   void test_equals_differentPaths() {
     String path2 = join(tempPath, 'folder2');
     new io.Directory(path2).createSync();
@@ -252,6 +270,26 @@ class FolderTest extends _BaseTest {
     var child = folder.getChild('myFolder');
     expect(child, _isFolder);
     expect(child.exists, isTrue);
+  }
+
+  void test_getChildAssumingFile_doesNotExist() {
+    File child = folder.getChildAssumingFile('no-such-resource');
+    expect(child, isNotNull);
+    expect(child.exists, isFalse);
+  }
+
+  void test_getChildAssumingFile_file() {
+    new io.File(join(path, 'myFile')).createSync();
+    File child = folder.getChildAssumingFile('myFile');
+    expect(child, isNotNull);
+    expect(child.exists, isTrue);
+  }
+
+  void test_getChildAssumingFile_folder() {
+    new io.Directory(join(path, 'myFolder')).createSync();
+    File child = folder.getChildAssumingFile('myFolder');
+    expect(child, isNotNull);
+    expect(child.exists, isFalse);
   }
 
   void test_getChildAssumingFolder_doesNotExist() {

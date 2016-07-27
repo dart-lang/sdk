@@ -392,6 +392,9 @@ class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
     ..addAll(_arguments)
     ..add(rightParenthesis);
 
+  List<ParameterElement> get correspondingPropagatedParameters =>
+      _correspondingPropagatedParameters;
+
   @override
   void set correspondingPropagatedParameters(
       List<ParameterElement> parameters) {
@@ -401,6 +404,9 @@ class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
     }
     _correspondingPropagatedParameters = parameters;
   }
+
+  List<ParameterElement> get correspondingStaticParameters =>
+      _correspondingStaticParameters;
 
   @override
   void set correspondingStaticParameters(List<ParameterElement> parameters) {
@@ -9036,6 +9042,10 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
           parent.operator.type == TokenType.EQ) {
         return false;
       }
+    }
+    if (parent is ConstructorFieldInitializer &&
+        identical(parent.fieldName, target)) {
+      return false;
     }
     if (parent is ForEachStatement) {
       if (identical(parent.identifier, target)) {

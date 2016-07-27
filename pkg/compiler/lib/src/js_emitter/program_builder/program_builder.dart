@@ -260,9 +260,9 @@ class ProgramBuilder {
     return staticNonFinalFields.map(_buildStaticField).toList(growable: false);
   }
 
-  StaticField _buildStaticField(Element element) {
+  StaticField _buildStaticField(FieldElement element) {
     JavaScriptConstantCompiler handler = backend.constants;
-    ConstantValue initialValue = handler.getInitialValueFor(element);
+    ConstantValue initialValue = handler.getConstantValue(element.constant);
     // TODO(zarah): The holder should not be registered during building of
     // a static field.
     _registry.registerHolder(namer.globalObjectForConstant(initialValue),

@@ -941,6 +941,9 @@ abstract class PrefixElement extends Element {
 
   /// Import that declared this deferred prefix.
   ImportElement get deferredImport;
+
+  /// The `loadLibrary` getter implicitly defined on deferred prefixes.
+  GetterElement get loadLibrary;
 }
 
 /// A type alias definition.
@@ -1067,7 +1070,7 @@ abstract class FormalElement extends Element
 ///
 /// Normal parameter that introduce a local variable are modeled by
 /// [LocalParameterElement] whereas initializing formals, that is parameter of
-/// the form `this.x`, are modeled by [InitializingFormalParameter].
+/// the form `this.x`, are modeled by [InitializingFormalElement].
 abstract class ParameterElement extends Element
     implements VariableElement, FormalElement, LocalElement {
   /// Use [functionDeclaration] instead.
@@ -1092,7 +1095,7 @@ abstract class LocalParameterElement extends ParameterElement
 /// A formal parameter in a constructor that directly initializes a field.
 ///
 /// For example: `A(this.field)`.
-abstract class InitializingFormalElement extends ParameterElement {
+abstract class InitializingFormalElement extends LocalParameterElement {
   /// The field initialized by this initializing formal.
   FieldElement get fieldElement;
 
@@ -1324,6 +1327,15 @@ abstract class ConstructorElement extends FunctionElement
   /// `int.fromEnvironment`, or `String.fromEnvironment`.
   bool get isFromEnvironmentConstructor;
 
+  /// `true` if this constructor is `int.fromEnvironment`.
+  bool get isIntFromEnvironmentConstructor;
+
+  /// `true` if this constructor is `bool.fromEnvironment`.
+  bool get isBoolFromEnvironmentConstructor;
+
+  /// `true` if this constructor is `String.fromEnvironment`.
+  bool get isStringFromEnvironmentConstructor;
+
   /// Use [enclosingClass] instead.
   @deprecated
   get enclosingElement;
@@ -1490,6 +1502,8 @@ abstract class ClassElement extends TypeDeclarationElement
 
   Element lookupSuperMemberInLibrary(String memberName, LibraryElement library);
 
+  // TODO(johnniwinther): Clean up semantics. Can the default constructor take
+  // optional arguments? Must it be resolved?
   ConstructorElement lookupDefaultConstructor();
   ConstructorElement lookupConstructor(String name);
 
@@ -1526,6 +1540,10 @@ abstract class ClassElement extends TypeDeclarationElement
 abstract class MixinApplicationElement extends ClassElement {
   ClassElement get mixin;
   InterfaceType get mixinType;
+
+  /// If this is an unnamed mixin application [subclass] is the subclass for
+  /// which this mixin application is created.
+  ClassElement get subclass;
 }
 
 /// Enum declaration.
@@ -1605,9 +1623,7 @@ abstract class MetadataAnnotation implements Spannable {
   /// The front-end constant of this metadata annotation.
   ConstantExpression get constant;
   Element get annotatedElement;
-  int get resolutionState;
-  Token get beginToken;
-  Token get endToken;
+  SourceSpan get sourcePosition;
 
   bool get hasNode;
   Node get node;
@@ -1678,6 +1694,10 @@ enum ResolvedAstKind {
   /// The element is an implicit forwarding constructor on a mixin application.
   /// No AST or [TreeElements] are provided.
   FORWARDING_CONSTRUCTOR,
+
+  /// The element is the `loadLibrary` getter implicitly defined on a deferred
+  /// prefix.
+  DEFERRED_LOAD_LIBRARY,
 }
 
 /// [ResolvedAst] contains info that define the semantics of an element.

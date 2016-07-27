@@ -209,15 +209,6 @@ abstract class Compiler implements LibraryLoaderListener {
   Element loadLibraryFunction;
   Element functionApplyMethod;
 
-  /// The [int.fromEnvironment] constructor.
-  ConstructorElement intEnvironment;
-
-  /// The [bool.fromEnvironment] constructor.
-  ConstructorElement boolEnvironment;
-
-  /// The [String.fromEnvironment] constructor.
-  ConstructorElement stringEnvironment;
-
   // TODO(zarah): Remove this map and incorporate compile-time errors
   // in the model.
   /// Tracks elements with compile-time errors.
@@ -623,12 +614,6 @@ abstract class Compiler implements LibraryLoaderListener {
       mirrorSystemGetNameFunction = cls.lookupLocalMember('getName');
     } else if (mirrorsUsedClass == cls) {
       mirrorsUsedConstructor = cls.constructors.head;
-    } else if (coreClasses.intClass == cls) {
-      intEnvironment = cls.lookupConstructor(Identifiers.fromEnvironment);
-    } else if (coreClasses.stringClass == cls) {
-      stringEnvironment = cls.lookupConstructor(Identifiers.fromEnvironment);
-    } else if (coreClasses.boolClass == cls) {
-      boolEnvironment = cls.lookupConstructor(Identifiers.fromEnvironment);
     }
   }
 
@@ -825,7 +810,14 @@ abstract class Compiler implements LibraryLoaderListener {
             supportSerialization: serialization.supportSerialization);
 
         phase = PHASE_RESOLVING;
-        if (analyzeAll) {
+        if (options.resolveOnly) {
+          libraryLoader.libraries.where((LibraryElement library) {
+            return !serialization.isDeserialized(library);
+          }).forEach((LibraryElement library) {
+            reporter.log('Enqueuing ${library.canonicalUri}');
+            fullyEnqueueLibrary(library, enqueuer.resolution);
+          });
+        } else if (analyzeAll) {
           libraryLoader.libraries.forEach((LibraryElement library) {
             reporter.log('Enqueuing ${library.canonicalUri}');
             fullyEnqueueLibrary(library, enqueuer.resolution);
@@ -861,9 +853,11 @@ abstract class Compiler implements LibraryLoaderListener {
 
         if (options.resolveOnly) {
           reporter.log('Serializing to ${options.resolutionOutput}');
-          serialization.serializeToSink(
-              userOutputProvider.createEventSink('', 'data'),
-              libraryLoader.libraries);
+          serialization
+              .serializeToSink(userOutputProvider.createEventSink('', 'data'),
+                  libraryLoader.libraries.where((LibraryElement library) {
+            return !serialization.isDeserialized(library);
+          }));
         }
         if (options.analyzeOnly) {
           if (!analyzeAll && !compilationFailed) {
@@ -926,6 +920,16 @@ abstract class Compiler implements LibraryLoaderListener {
       fullyEnqueueTopLevelElement(element, world);
     }
     library.implementation.forEachLocalMember(enqueueAll);
+    library.imports.forEach((ImportElement import) {
+      if (import.isDeferred) {
+        // `import.prefix` and `loadLibrary` may be `null` when the deferred
+        // import has compile-time errors.
+        GetterElement loadLibrary = import.prefix?.loadLibrary;
+        if (loadLibrary != null) {
+          world.addToWorkList(loadLibrary);
+        }
+      }
+    });
   }
 
   void fullyEnqueueTopLevelElement(Element element, Enqueuer world) {
@@ -1079,7 +1083,6 @@ abstract class Compiler implements LibraryLoaderListener {
           return const WorldImpact();
         }
         WorldImpact worldImpact = analyzeElement(element);
-        backend.onElementResolved(element);
         world.registerProcessedElement(element);
         return worldImpact;
       });
@@ -1674,7 +1677,12 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
             Token from = astElement.node.getBeginToken();
             Token to = astElement.node.getEndToken();
             if (astElement.metadata.isNotEmpty) {
-              from = astElement.metadata.first.beginToken;
+              if (!astElement.metadata.first.hasNode) {
+                // We might try to report an error while parsing the metadata
+                // itself.
+                return true;
+              }
+              from = astElement.metadata.first.node.getBeginToken();
             }
             return validateToken(from, to);
           }
@@ -1755,8 +1763,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     } else if (node is Element) {
       return spanFromElement(node);
     } else if (node is MetadataAnnotation) {
-      Uri uri = node.annotatedElement.compilationUnit.script.resourceUri;
-      return spanFromTokens(node.beginToken, node.endToken, uri);
+      return node.sourcePosition;
     } else if (node is Local) {
       Local local = node;
       return spanFromElement(local.executableContext);
@@ -2022,10 +2029,17 @@ class _CompilerResolution implements Resolution {
         // Only analyze nodes with a corresponding [TreeElements].
         compiler.checker.check(element);
       }
-      WorldImpact worldImpact = compiler.backend.impactTransformer
-          .transformResolutionImpact(resolutionImpact);
-      return worldImpact;
+      return transformResolutionImpact(element, resolutionImpact);
     });
+  }
+
+  @override
+  WorldImpact transformResolutionImpact(
+      Element element, ResolutionImpact resolutionImpact) {
+    WorldImpact worldImpact = compiler.backend.impactTransformer
+        .transformResolutionImpact(resolutionImpact);
+    _worldImpactCache[element] = worldImpact;
+    return worldImpact;
   }
 
   @override

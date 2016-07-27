@@ -219,8 +219,9 @@ TEST_CASE(JSON_JSONStream_DartString) {
       "var unicode = '\\u00CE\\u00F1\\u0163\\u00E9r\\u00F1\\u00E5\\u0163"
       "\\u00EE\\u00F6\\u00F1\\u00E5\\u013C\\u00EE\\u017E\\u00E5\\u0163"
       "\\u00EE\\u1EDD\\u00F1';\n"
-      "var surrogates = '\\u{1D11E}\\u{1D11E}\\u{1D11E}\\u{1D11E}"
-      "\\u{1D11E}';\n"
+      "var surrogates = '\\u{1D11E}\\u{1D11E}\\u{1D11E}"
+      "\\u{1D11E}\\u{1D11E}';\n"
+      "var wrongEncoding = '\\u{1D11E}' + surrogates[0] + '\\u{1D11E}';"
       "var nullInMiddle = 'This has\\u0000 four words.';";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
@@ -265,9 +266,7 @@ TEST_CASE(JSON_JSONStream_DartString) {
       JSONObject jsobj(&js);
       EXPECT(!jsobj.AddPropertyStr("unicode", obj));
     }
-    EXPECT_STREQ("{\"unicode\":\"\\u00CE\\u00F1\\u0163\\u00E9r\\u00F1\\u00E5"
-                 "\\u0163\\u00EE\\u00F6\\u00F1\\u00E5\\u013C\\u00EE\\u017E"
-                 "\\u00E5\\u0163\\u00EE\\u1EDD\\u00F1\"}", js.ToCString());
+    EXPECT_STREQ("{\"unicode\":\"Îñţérñåţîöñåļîžåţîờñ\"}", js.ToCString());
   }
 
   {
@@ -280,9 +279,22 @@ TEST_CASE(JSON_JSONStream_DartString) {
       JSONObject jsobj(&js);
       EXPECT(!jsobj.AddPropertyStr("surrogates", obj));
     }
-    EXPECT_STREQ("{\"surrogates\":\"\\uD834\\uDD1E\\uD834\\uDD1E\\uD834\\uDD1E"
-                 "\\uD834\\uDD1E\\uD834\\uDD1E\"}", js.ToCString());
+    EXPECT_STREQ("{\"surrogates\":\"𝄞𝄞𝄞𝄞𝄞\"}", js.ToCString());
   }
+
+  {
+    result = Dart_GetField(lib, NewString("wrongEncoding"));
+    EXPECT_VALID(result);
+    obj ^= Api::UnwrapHandle(result);
+
+    JSONStream js;
+    {
+      JSONObject jsobj(&js);
+      EXPECT(!jsobj.AddPropertyStr("wrongEncoding", obj));
+    }
+    EXPECT_STREQ("{\"wrongEncoding\":\"𝄞\\uD834𝄞\"}", js.ToCString());
+  }
+
 
   {
     result = Dart_GetField(lib, NewString("nullInMiddle"));

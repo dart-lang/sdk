@@ -347,7 +347,14 @@ class ConstantEvaluationEngine {
         // This could happen in the event of invalid code.  The error will be
         // reported at constant evaluation time.
       }
-      if (constNode.arguments != null) {
+      if (constNode == null) {
+        // We cannot determine what element the annotation is on, nor the offset
+        // of the annotation, so there's not a lot of information in this
+        // message, but it's better than getting an exception.
+        // https://github.com/dart-lang/sdk/issues/26811
+        AnalysisEngine.instance.logger.logInformation(
+            'No annotationAst for $constant in ${constant.compilationUnit}');
+      } else if (constNode.arguments != null) {
         constNode.arguments.accept(referenceFinder);
       }
     } else if (constant is VariableElement) {
@@ -1123,56 +1130,52 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       }
     }
     // evaluate operator
-    while (true) {
-      if (operatorType == TokenType.AMPERSAND) {
-        return _dartObjectComputer.bitAnd(node, leftResult, rightResult);
-      } else if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
-        return _dartObjectComputer.logicalAnd(node, leftResult, rightResult);
-      } else if (operatorType == TokenType.BANG_EQ) {
-        return _dartObjectComputer.notEqual(node, leftResult, rightResult);
-      } else if (operatorType == TokenType.BAR) {
-        return _dartObjectComputer.bitOr(node, leftResult, rightResult);
-      } else if (operatorType == TokenType.BAR_BAR) {
-        return _dartObjectComputer.logicalOr(node, leftResult, rightResult);
-      } else if (operatorType == TokenType.CARET) {
-        return _dartObjectComputer.bitXor(node, leftResult, rightResult);
-      } else if (operatorType == TokenType.EQ_EQ) {
-        return _dartObjectComputer.equalEqual(node, leftResult, rightResult);
-      } else if (operatorType == TokenType.GT) {
-        return _dartObjectComputer.greaterThan(node, leftResult, rightResult);
-      } else if (operatorType == TokenType.GT_EQ) {
-        return _dartObjectComputer.greaterThanOrEqual(
-            node, leftResult, rightResult);
-      } else if (operatorType == TokenType.GT_GT) {
-        return _dartObjectComputer.shiftRight(node, leftResult, rightResult);
-      } else if (operatorType == TokenType.LT) {
-        return _dartObjectComputer.lessThan(node, leftResult, rightResult);
-      } else if (operatorType == TokenType.LT_EQ) {
-        return _dartObjectComputer.lessThanOrEqual(
-            node, leftResult, rightResult);
-      } else if (operatorType == TokenType.LT_LT) {
-        return _dartObjectComputer.shiftLeft(node, leftResult, rightResult);
-      } else if (operatorType == TokenType.MINUS) {
-        return _dartObjectComputer.minus(node, leftResult, rightResult);
-      } else if (operatorType == TokenType.PERCENT) {
-        return _dartObjectComputer.remainder(node, leftResult, rightResult);
-      } else if (operatorType == TokenType.PLUS) {
-        return _dartObjectComputer.add(node, leftResult, rightResult);
-      } else if (operatorType == TokenType.STAR) {
-        return _dartObjectComputer.times(node, leftResult, rightResult);
-      } else if (operatorType == TokenType.SLASH) {
-        return _dartObjectComputer.divide(node, leftResult, rightResult);
-      } else if (operatorType == TokenType.TILDE_SLASH) {
-        return _dartObjectComputer.integerDivide(node, leftResult, rightResult);
-      } else if (operatorType == TokenType.QUESTION_QUESTION) {
-        return _dartObjectComputer.questionQuestion(
-            node, leftResult, rightResult);
-      } else {
-        // TODO(brianwilkerson) Figure out which error to report.
-        _error(node, null);
-        return null;
-      }
-      break;
+    if (operatorType == TokenType.AMPERSAND) {
+      return _dartObjectComputer.bitAnd(node, leftResult, rightResult);
+    } else if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
+      return _dartObjectComputer.logicalAnd(node, leftResult, rightResult);
+    } else if (operatorType == TokenType.BANG_EQ) {
+      return _dartObjectComputer.notEqual(node, leftResult, rightResult);
+    } else if (operatorType == TokenType.BAR) {
+      return _dartObjectComputer.bitOr(node, leftResult, rightResult);
+    } else if (operatorType == TokenType.BAR_BAR) {
+      return _dartObjectComputer.logicalOr(node, leftResult, rightResult);
+    } else if (operatorType == TokenType.CARET) {
+      return _dartObjectComputer.bitXor(node, leftResult, rightResult);
+    } else if (operatorType == TokenType.EQ_EQ) {
+      return _dartObjectComputer.equalEqual(node, leftResult, rightResult);
+    } else if (operatorType == TokenType.GT) {
+      return _dartObjectComputer.greaterThan(node, leftResult, rightResult);
+    } else if (operatorType == TokenType.GT_EQ) {
+      return _dartObjectComputer.greaterThanOrEqual(
+          node, leftResult, rightResult);
+    } else if (operatorType == TokenType.GT_GT) {
+      return _dartObjectComputer.shiftRight(node, leftResult, rightResult);
+    } else if (operatorType == TokenType.LT) {
+      return _dartObjectComputer.lessThan(node, leftResult, rightResult);
+    } else if (operatorType == TokenType.LT_EQ) {
+      return _dartObjectComputer.lessThanOrEqual(node, leftResult, rightResult);
+    } else if (operatorType == TokenType.LT_LT) {
+      return _dartObjectComputer.shiftLeft(node, leftResult, rightResult);
+    } else if (operatorType == TokenType.MINUS) {
+      return _dartObjectComputer.minus(node, leftResult, rightResult);
+    } else if (operatorType == TokenType.PERCENT) {
+      return _dartObjectComputer.remainder(node, leftResult, rightResult);
+    } else if (operatorType == TokenType.PLUS) {
+      return _dartObjectComputer.add(node, leftResult, rightResult);
+    } else if (operatorType == TokenType.STAR) {
+      return _dartObjectComputer.times(node, leftResult, rightResult);
+    } else if (operatorType == TokenType.SLASH) {
+      return _dartObjectComputer.divide(node, leftResult, rightResult);
+    } else if (operatorType == TokenType.TILDE_SLASH) {
+      return _dartObjectComputer.integerDivide(node, leftResult, rightResult);
+    } else if (operatorType == TokenType.QUESTION_QUESTION) {
+      return _dartObjectComputer.questionQuestion(
+          node, leftResult, rightResult);
+    } else {
+      // TODO(brianwilkerson) Figure out which error to report.
+      _error(node, null);
+      return null;
     }
   }
 
@@ -1399,19 +1402,16 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       _error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
       return null;
     }
-    while (true) {
-      if (node.operator.type == TokenType.BANG) {
-        return _dartObjectComputer.logicalNot(node, operand);
-      } else if (node.operator.type == TokenType.TILDE) {
-        return _dartObjectComputer.bitNot(node, operand);
-      } else if (node.operator.type == TokenType.MINUS) {
-        return _dartObjectComputer.negated(node, operand);
-      } else {
-        // TODO(brianwilkerson) Figure out which error to report.
-        _error(node, null);
-        return null;
-      }
-      break;
+    if (node.operator.type == TokenType.BANG) {
+      return _dartObjectComputer.logicalNot(node, operand);
+    } else if (node.operator.type == TokenType.TILDE) {
+      return _dartObjectComputer.bitNot(node, operand);
+    } else if (node.operator.type == TokenType.MINUS) {
+      return _dartObjectComputer.negated(node, operand);
+    } else {
+      // TODO(brianwilkerson) Figure out which error to report.
+      _error(node, null);
+      return null;
     }
   }
 
