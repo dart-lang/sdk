@@ -1547,12 +1547,25 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
       &Symbols::ClosureParameter(),
       &Object::dynamic_type());
 
-  const Function& parent = Function::ZoneHandle(func.parent_function());
-  if (parent.IsImplicitSetterFunction()) {
+  const Function& parent = Function::Handle(func.parent_function());
+  const String& target_name = String::Handle(parent.name());
+  const Class& owner = Class::Handle(parent.Owner());
+  Function& target = Function::ZoneHandle(owner.LookupFunction(target_name));
+  if (target.raw() != parent.raw()) {
+    ASSERT(Isolate::Current()->HasAttemptedReload());
+    if (target.IsNull() ||
+        (target.is_static() != parent.is_static()) ||
+        (target.kind() != parent.kind())) {
+      // TODO(26977): call noSuchMethod/throw NSME instead.
+      target = parent.raw();
+    }
+  }
+
+  if (target.IsImplicitSetterFunction()) {
     const TokenPosition ident_pos = func.token_pos();
     ASSERT(IsIdentifier());
     const String& field_name = *CurrentLiteral();
-    const Class& field_class = Class::ZoneHandle(Z, parent.Owner());
+    const Class& field_class = Class::ZoneHandle(Z, target.Owner());
     const Field& field =
         Field::ZoneHandle(Z, field_class.LookupInstanceField(field_name));
     const AbstractType& field_type = AbstractType::ZoneHandle(Z, field.type());
@@ -1560,7 +1573,7 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
                              &Symbols::Value(),
                              &field_type);
     ASSERT(func.num_fixed_parameters() == 2);  // closure, value.
-  } else if (!parent.IsGetterFunction() && !parent.IsImplicitGetterFunction()) {
+  } else if (!target.IsGetterFunction() && !target.IsImplicitGetterFunction()) {
     const bool allow_explicit_default_values = true;
     SkipFunctionPreamble();
     ParseFormalParameterList(allow_explicit_default_values, false, &params);
@@ -1591,7 +1604,7 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
     }
     func_args->set_names(arg_names);
   }
-  StaticCallNode* call = new StaticCallNode(token_pos, parent, func_args);
+  StaticCallNode* call = new StaticCallNode(token_pos, target, func_args);
   ReturnNode* return_node = new ReturnNode(token_pos, call);
   current_block_->statements->Add(return_node);
   return CloseBlock();

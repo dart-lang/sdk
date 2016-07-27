@@ -1003,11 +1003,11 @@ TEST_CASE(IsolateReload_PendingUnqualifiedCall_StaticToInstance) {
 
   TestCase::SetReloadTestScript(kReloadScript);
 
-  EXPECT_EQ("instance", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("instance", SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);
-  EXPECT_EQ("instance", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("instance", SimpleInvokeStr(lib, "main"));
 }
 
 
@@ -1043,11 +1043,11 @@ TEST_CASE(IsolateReload_PendingUnqualifiedCall_InstanceToStatic) {
 
   TestCase::SetReloadTestScript(kReloadScript);
 
-  EXPECT_EQ("static", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("static", SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);
-  EXPECT_EQ("static", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("static", SimpleInvokeStr(lib, "main"));
 }
 
 
@@ -1093,11 +1093,11 @@ TEST_CASE(IsolateReload_PendingConstructorCall_AbstractToConcrete) {
 
   TestCase::SetReloadTestScript(kReloadScript);
 
-  EXPECT_EQ("okay", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);
-  EXPECT_EQ("okay", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 }
 
 
@@ -1143,11 +1143,11 @@ TEST_CASE(IsolateReload_PendingConstructorCall_ConcreteToAbstract) {
 
   TestCase::SetReloadTestScript(kReloadScript);
 
-  EXPECT_EQ("exception", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("exception", SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);
-  EXPECT_EQ("exception", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("exception", SimpleInvokeStr(lib, "main"));
 }
 
 
@@ -1190,11 +1190,11 @@ TEST_CASE(IsolateReload_PendingStaticCall_DefinedToNSM) {
 
   TestCase::SetReloadTestScript(kReloadScript);
 
-  EXPECT_EQ("exception", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("exception", SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);
-  EXPECT_EQ("exception", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("exception", SimpleInvokeStr(lib, "main"));
 }
 
 
@@ -1237,11 +1237,11 @@ TEST_CASE(IsolateReload_PendingStaticCall_NSMToDefined) {
 
   TestCase::SetReloadTestScript(kReloadScript);
 
-  EXPECT_EQ("static", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("static", SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);
-  EXPECT_EQ("static", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("static", SimpleInvokeStr(lib, "main"));
 }
 
 
@@ -1287,6 +1287,46 @@ TEST_CASE(IsolateReload_PendingSuperCall) {
 
   EXPECT_EQ(11, SimpleInvoke(lib, "main"));
 }
+
+
+TEST_CASE(IsolateReload_TearOff_Equality) {
+  const char* kScript =
+      "import 'test:isolate_reload_helper';\n"
+      "class C {\n"
+      "  foo() => 'old';\n"
+      "}\n"
+      "main() {\n"
+      "  var c = new C();\n"
+      "  var f1 = c.foo;\n"
+      "  reloadTest();\n"
+      "  var f2 = c.foo;\n"
+      "  return '${f1()} ${f2()} ${f1 == f2} ${identical(f1, f2)}';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+
+  const char* kReloadScript =
+      "import 'test:isolate_reload_helper';\n"
+      "class C {\n"
+      "  foo() => 'new';\n"
+      "}\n"
+      "main() {\n"
+      "  var c = new C();\n"
+      "  var f1 = c.foo;\n"
+      "  reloadTest();\n"
+      "  var f2 = c.foo;\n"
+      "  return '${f1()} ${f2()} ${f1 == f2} ${identical(f1, f2)}';\n"
+      "}\n";
+
+  TestCase::SetReloadTestScript(kReloadScript);
+
+  EXPECT_STREQ("new new true false", SimpleInvokeStr(lib, "main"));
+
+  lib = TestCase::GetReloadErrorOrRootLibrary();
+  EXPECT_VALID(lib);
+}
+
 
 
 TEST_CASE(IsolateReload_EnumEquality) {
