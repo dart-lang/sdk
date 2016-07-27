@@ -450,7 +450,33 @@ class SsaInstructionSimplifier extends HBaseVisitor
           node.element = element;
         }
       }
+      return node;
     }
+
+    // Replace method calls through fields with a closure call on the value of
+    // the field. This usually removes the demand for the call-through stub and
+    // makes the field load available to further optimization, e.g. LICM.
+
+    if (element != null &&
+        element.isField &&
+        element.name == node.selector.name) {
+      if (!backend.isNative(element) && !node.isCallOnInterceptor(compiler)) {
+        HInstruction receiver = node.getDartReceiver(compiler);
+        TypeMask type =
+            TypeMaskFactory.inferredTypeForElement(element, compiler);
+        HInstruction load = new HFieldGet(element, receiver, type);
+        node.block.addBefore(node, load);
+        Selector callSelector = new Selector.callClosureFrom(node.selector);
+        List<HInstruction> inputs = <HInstruction>[load]
+          ..addAll(node.inputs.skip(node.isInterceptedCall ? 2 : 1));
+        HInstruction closureCall =
+            new HInvokeClosure(callSelector, inputs, node.instructionType)
+              ..sourceInformation = node.sourceInformation;
+        node.block.addAfter(load, closureCall);
+        return closureCall;
+      }
+    }
+
     return node;
   }
 
