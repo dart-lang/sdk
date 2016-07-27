@@ -13,6 +13,7 @@ import 'incremental_cache_test.dart' as incremental_cache_test;
 import 'index_unit_test.dart' as index_unit_test;
 import 'linker_test.dart' as linker_test;
 import 'name_filter_test.dart' as name_filter_test;
+import 'package_bundle_reader_test.dart' as package_bundle_reader_test;
 import 'prelinker_test.dart' as prelinker_test;
 import 'resynthesize_ast_test.dart' as resynthesize_ast_test;
 import 'resynthesize_strong_test.dart' as resynthesize_strong_test;
@@ -32,6 +33,7 @@ main() {
     index_unit_test.main();
     linker_test.main();
     name_filter_test.main();
+    package_bundle_reader_test.main();
     prelinker_test.main();
     resynthesize_ast_test.main();
     resynthesize_strong_test.main();

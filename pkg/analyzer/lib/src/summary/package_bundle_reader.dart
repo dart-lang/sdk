@@ -186,7 +186,7 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
         return false;
       } else if (result == CONTAINING_LIBRARIES) {
         List<String> libraryUriStrings =
-            _dataStore._getContainingLibraryUris(uriString);
+            _dataStore.getContainingLibraryUris(uriString);
         if (libraryUriStrings != null) {
           List<Source> librarySources = libraryUriStrings
               .map((libraryUriString) =>
@@ -308,18 +308,11 @@ class SummaryDataStore {
     }
   }
 
-  void _fillMaps(String path) {
-    io.File file = new io.File(path);
-    List<int> buffer = file.readAsBytesSync();
-    PackageBundle bundle = new PackageBundle.fromBuffer(buffer);
-    addBundle(path, bundle);
-  }
-
   /**
    * Return a list of absolute URIs of the libraries that contain the unit with
    * the given [unitUriString], or `null` if no such library is in the store.
    */
-  List<String> _getContainingLibraryUris(String unitUriString) {
+  List<String> getContainingLibraryUris(String unitUriString) {
     // The unit is the defining unit of a library.
     if (linkedMap.containsKey(unitUriString)) {
       return <String>[unitUriString];
@@ -338,6 +331,13 @@ class SummaryDataStore {
       }
     });
     return libraryUriStrings.isNotEmpty ? libraryUriStrings : null;
+  }
+
+  void _fillMaps(String path) {
+    io.File file = new io.File(path);
+    List<int> buffer = file.readAsBytesSync();
+    PackageBundle bundle = new PackageBundle.fromBuffer(buffer);
+    addBundle(path, bundle);
   }
 }
 
