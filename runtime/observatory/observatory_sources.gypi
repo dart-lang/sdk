@@ -185,6 +185,7 @@
     'lib/src/mocks/objects/vm.dart',
     'lib/src/mocks/repositories/crash_dump.dart',
     'lib/src/mocks/repositories/notification.dart',
+    'lib/src/mocks/repositories/target.dart',
     'lib/src/models/exceptions.dart',
     'lib/src/models/objects/breakpoint.dart',
     'lib/src/models/objects/class.dart',
