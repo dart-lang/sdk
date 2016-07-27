@@ -2717,6 +2717,12 @@ class DartDelta extends Delta {
   @override
   DeltaResult validate(InternalAnalysisContext context, AnalysisTarget target,
       ResultDescriptor descriptor, Object value) {
+    // Always invalidate compounding results.
+    if (descriptor == LIBRARY_ELEMENT4 ||
+        descriptor == READY_LIBRARY_ELEMENT6 ||
+        descriptor == READY_LIBRARY_ELEMENT7) {
+      return DeltaResult.INVALIDATE_KEEP_DEPENDENCIES;
+    }
     // Prepare target source.
     Source targetUnit = target.source;
     Source targetLibrary = target.librarySource;
@@ -2759,7 +2765,7 @@ class DartDelta extends Delta {
         return DeltaResult.INVALIDATE;
       }
       if (librariesWithAllValidResults.contains(targetLibrary)) {
-        return DeltaResult.STOP;
+        return DeltaResult.KEEP_CONTINUE;
       }
       // The library is almost, but not completely valid.
       // Some error results are invalid.
@@ -2784,7 +2790,7 @@ class DartDelta extends Delta {
         return DeltaResult.KEEP_CONTINUE;
       }
       librariesWithAllValidResults.add(targetLibrary);
-      return DeltaResult.STOP;
+      return DeltaResult.KEEP_CONTINUE;
     }
     // We don't know what to do with the given target, invalidate it.
     return DeltaResult.INVALIDATE;

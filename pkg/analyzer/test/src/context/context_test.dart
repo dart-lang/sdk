@@ -3522,6 +3522,175 @@ f(c(int p)) {}
     expect(parameterName.propagatedType, context.typeProvider.intType);
   }
 
+  void test_sequence_compoundingResults_exportNamespace() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A<T> {}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+export 'a.dart';
+''');
+    Source c = addSource(
+        '/c.dart',
+        r'''
+import 'b.dart';
+main() {
+  new A<int>();
+}
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(c).errors, isEmpty);
+    // Update a.dart, so that `A<T>` has a type bound.
+    //   This should invalidate export namespace for b.dart.
+    //   Currently we invalidate the whole LIBRARY_ELEMENT4.
+    //   So, c.dart will see the new `A<T extends B>` and report an error.
+    context.setContents(
+        a,
+        r'''
+class A<T extends B> {}
+class B {}
+''');
+    _assertInvalid(b, LIBRARY_ELEMENT4);
+    // Analyze and validate that a new error is reported.
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(c).errors, hasLength(1));
+    _assertValid(a, LIBRARY_ERRORS_READY);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+    _assertValid(c, LIBRARY_ERRORS_READY);
+  }
+
+  void test_sequence_compoundingResults_invalidateButKeepDependency() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+import 'b.dart';
+class A {}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+import 'c.dart';
+class B {}
+''');
+    Source c = addSource(
+        '/c.dart',
+        r'''
+class C {}
+''');
+    Source d = addSource(
+        '/d.dart',
+        r'''
+export 'b.dart';
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(c).errors, isEmpty);
+    // Update: a.dart (limited) and b.dart (limited).
+    //   This should invalidate LIBRARY_ELEMENT4 in d.dart, but it should be
+    //   done in a way that keep dependency of other results od d.dart on
+    //   LIBRARY_ELEMENT4 of d.dart, so that when we perform unlimited
+    //   invalidation of c.dart, this makes d.dart invalid.
+    context.setContents(
+        a,
+        r'''
+import 'b.dart';
+class A2 {}
+''');
+    context.setContents(
+        b,
+        r'''
+import 'a.dart';
+import 'c.dart';
+class B2 {}
+''');
+    context.setContents(
+        c,
+        r'''
+import 'dart:async';
+class C {}
+''');
+    _assertInvalid(d, LIBRARY_ELEMENT4);
+    _assertInvalid(d, LIBRARY_ERRORS_READY);
+    // Analyze and validate that a new error is reported.
+    _performPendingAnalysisTasks();
+    _assertValid(a, EXPORT_SOURCE_CLOSURE);
+    _assertValid(b, EXPORT_SOURCE_CLOSURE);
+    _assertValid(c, EXPORT_SOURCE_CLOSURE);
+    _assertValid(d, EXPORT_SOURCE_CLOSURE);
+    _assertValid(a, LIBRARY_ERRORS_READY);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+    _assertValid(c, LIBRARY_ERRORS_READY);
+    _assertValid(d, LIBRARY_ERRORS_READY);
+  }
+
+  void test_sequence_compoundingResults_resolvedTypeNames() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+class B<T> {
+  B(p);
+}
+''');
+    Source c = addSource(
+        '/c.dart',
+        r'''
+export 'a.dart';
+export 'b.dart';
+''');
+    Source d = addSource(
+        '/d.dart',
+        r'''
+import 'c.dart';
+main() {
+  new B<int>(null);
+}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart and b.dart
+    //   This should invalidate most results in a.dart and b.dart
+    //
+    //   This should also invalidate "compounding" results in c.dart, such as
+    //   READY_LIBRARY_ELEMENT6, which represent a state of the whole source
+    //   closure, not a result of this single unit or a library.
+    //
+    //   The reason is that although type names (RESOLVED_UNIT5) b.dart will be
+    //   eventually resolved and set into b.dart elements, it may happen
+    //   after we attempted to re-resolve c.dart, which created Member(s), and
+    //   attempts to use elements without types set.
+    context.setContents(
+        a,
+        r'''
+class A2 {}
+''');
+    context.setContents(
+        b,
+        r'''
+class B<T> {
+  B(T p);
+}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForChangedLibrary(b);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalid(c, READY_LIBRARY_ELEMENT6);
+    _assertInvalid(c, READY_LIBRARY_ELEMENT7);
+    // Analyze and validate that all results are valid.
+    _performPendingAnalysisTasks();
+    _assertValid(a, LIBRARY_ERRORS_READY);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+    _assertValid(c, LIBRARY_ERRORS_READY);
+    _assertValid(d, LIBRARY_ERRORS_READY);
+  }
+
   void test_sequence_dependenciesWithCycles() {
     Source a = addSource(
         '/a.dart',
@@ -4338,10 +4507,13 @@ class A {
   }
 
   void _assertValidAllLibraryUnitResults(Source source, {Source library}) {
-    for (ResultDescriptor<LibraryElement> result in LIBRARY_ELEMENT_RESULTS) {
-      _assertValid(source, result);
-    }
     library ??= source;
+    for (ResultDescriptor<LibraryElement> result in LIBRARY_ELEMENT_RESULTS) {
+      if (result == LIBRARY_ELEMENT4) {
+        continue;
+      }
+      _assertValid(library, result);
+    }
     LibrarySpecificUnit target = new LibrarySpecificUnit(library, source);
     for (ResultDescriptor<CompilationUnit> result in RESOLVED_UNIT_RESULTS) {
       _assertValid(target, result);

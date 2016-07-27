@@ -8,8 +8,6 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/element/element.dart'
-    show ElementImpl, Modifier;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -559,7 +557,7 @@ class CacheEntry {
 //      }
 //      valueStr = valueStr.replaceAll('\n', '\\n');
 //      print(
-//          'setValue $descriptor for $target value=$valueStr $dependedOn=$dependedOn');
+//          'setValue $descriptor for $target value=$valueStr dependedOn=$dependedOn');
 //    }
     _validateStateChange(descriptor, CacheState.VALID);
     TargetedResult thisResult = new TargetedResult(target, descriptor);
@@ -659,7 +657,7 @@ class CacheEntry {
         return;
       }
     }
-//    if (deltaResult != null && deltaResult != DeltaResult.KEEP_CONTINUE) {
+//    if (deltaResult != null) {
 //      String indent = '  ' * level;
 //      String deltaResultName = deltaResult.toString().split('.').last;
 //      print('[$id]$indent$deltaResultName $descriptor for $target');
@@ -667,36 +665,43 @@ class CacheEntry {
     if (deltaResult == DeltaResult.INVALIDATE_NO_DELTA) {
       delta = null;
     }
-    if (deltaResult == null ||
+    if (deltaResult == DeltaResult.INVALIDATE_KEEP_DEPENDENCIES) {
+      thisData.value = descriptor.defaultValue;
+      thisData.state = CacheState.INVALID;
+    } else if (deltaResult == null ||
         deltaResult == DeltaResult.INVALIDATE ||
         deltaResult == DeltaResult.INVALIDATE_NO_DELTA) {
       _resultMap.remove(descriptor);
-//      {
-//        String indent = '  ' * level;
-//        print('[$id]$indent invalidate $descriptor for $target');
-//      }
-    }
-    // Stop depending on other results.
-    if (deltaResult != DeltaResult.KEEP_CONTINUE) {
-      TargetedResult thisResult = new TargetedResult(target, descriptor);
-      List<AnalysisCache> caches = _partition.containingCaches;
-      int cacheLength = caches.length;
-      List<TargetedResult> results = thisData.dependedOnResults;
-      int resultLength = results.length;
-      for (int i = 0; i < resultLength; i++) {
-        TargetedResult dependedOnResult = results[i];
-        for (int j = 0; j < cacheLength; j++) {
-          AnalysisCache cache = caches[j];
-          CacheEntry entry = cache.get(dependedOnResult.target);
-          if (entry != null) {
-            ResultData data =
-                entry.getResultDataOrNull(dependedOnResult.result);
-            if (data != null) {
-              data.dependentResults.remove(thisResult);
+      // Stop depending on other results.
+      if (deltaResult != DeltaResult.KEEP_CONTINUE) {
+        TargetedResult thisResult = new TargetedResult(target, descriptor);
+        List<AnalysisCache> caches = _partition.containingCaches;
+        int cacheLength = caches.length;
+        List<TargetedResult> results = thisData.dependedOnResults;
+        int resultLength = results.length;
+        for (int i = 0; i < resultLength; i++) {
+          TargetedResult dependedOnResult = results[i];
+          for (int j = 0; j < cacheLength; j++) {
+            AnalysisCache cache = caches[j];
+            CacheEntry entry = cache.get(dependedOnResult.target);
+            if (entry != null) {
+              ResultData data =
+                  entry.getResultDataOrNull(dependedOnResult.result);
+              if (data != null) {
+                data.dependentResults.remove(thisResult);
+              }
             }
           }
         }
       }
+//      if (deltaResult == null) {
+//        String indent = '  ' * level;
+//        print('[$id]$indent invalidate $descriptor for $target');
+//        if ('$descriptor for $target' ==
+//            'READY_LIBRARY_ELEMENT2 for /Users/scheglov/tmp/limited-invalidation/async/lib/async.dart') {
+//          print('interesting');
+//        }
+//      }
     }
     // Invalidate results that depend on this result.
     _invalidateDependentResults(id, thisData, delta, level + 1);
@@ -1269,9 +1274,15 @@ class Delta {
 enum DeltaResult {
   /**
    * Invalidate this result and continue visiting dependent results
-   * with this [Delta].
+   * with this [Delta]. Remove the result and all its dependencies.
    */
   INVALIDATE,
+
+  /**
+   * Invalidate this result and continue visiting dependent results
+   * with this [Delta]. Keep the dependencies of this result.
+   */
+  INVALIDATE_KEEP_DEPENDENCIES,
 
   /**
    * Invalidate this result and stop using this [Delta], so unconditionally
