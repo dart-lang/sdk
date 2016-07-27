@@ -4047,7 +4047,6 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     parser.parseFunctionBodies = options.analyzeFunctionBodiesPredicate(source);
     parser.parseGenericMethods = options.enableGenericMethods;
     parser.parseGenericMethodComments = options.strongMode;
-    parser.parseTrailingCommas = options.enableTrailingCommas;
     CompilationUnit unit = parser.parseCompilationUnit(tokenStream);
     unit.lineInfo = lineInfo;
 

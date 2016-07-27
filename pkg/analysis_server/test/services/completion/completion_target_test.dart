@@ -64,11 +64,7 @@ class CompletionTargetTest extends AbstractContextTest {
   test_ArgumentList_InstanceCreationExpression2() {
     // ArgumentList  InstanceCreationExpression  Block
     addTestSource('main() {new Foo(a,^)}');
-    if (context.analysisOptions.enableTrailingCommas) {
-      assertTarget(')', '(a)', argIndex: 1);
-    } else {
-      assertTarget('', '(a, )', argIndex: 1);
-    }
+    assertTarget(')', '(a)', argIndex: 1);
   }
 
   test_ArgumentList_InstanceCreationExpression_functionArg2() {
@@ -104,11 +100,7 @@ class CompletionTargetTest extends AbstractContextTest {
   test_ArgumentList_MethodInvocation4() {
     // ArgumentList  MethodInvocation  Block
     addTestSource('main() {foo(n,^)}');
-    if (context.analysisOptions.enableTrailingCommas) {
-      assertTarget(')', '(n)', argIndex: 1);
-    } else {
-      assertTarget('', '(n, )', argIndex: 1);
-    }
+    assertTarget(')', '(n)', argIndex: 1);
   }
 
   test_ArgumentList_MethodInvocation_functionArg() {

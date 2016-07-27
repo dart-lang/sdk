@@ -49,7 +49,6 @@ class AnalyzerOptions {
   static const String enableGenericMethods = 'enableGenericMethods';
   static const String enableStrictCallChecks = 'enableStrictCallChecks';
   static const String enableSuperMixins = 'enableSuperMixins';
-  static const String enableTrailingCommas = 'enableTrailingCommas';
 
   static const String errors = 'errors';
   static const String exclude = 'exclude';
@@ -88,8 +87,7 @@ class AnalyzerOptions {
     enableAsync,
     enableGenericMethods,
     enableStrictCallChecks,
-    enableSuperMixins,
-    enableTrailingCommas
+    enableSuperMixins
   ];
 }
 
@@ -501,14 +499,6 @@ class _OptionsProcessor {
         AnalysisOptionsImpl options =
             new AnalysisOptionsImpl.from(context.analysisOptions);
         options.enableSuperMixins = true;
-        context.analysisOptions = options;
-      }
-    }
-    if (feature == AnalyzerOptions.enableTrailingCommas) {
-      if (isTrue(value)) {
-        AnalysisOptionsImpl options =
-            new AnalysisOptionsImpl.from(context.analysisOptions);
-        options.enableTrailingCommas = true;
         context.analysisOptions = options;
       }
     }
