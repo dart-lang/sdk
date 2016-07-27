@@ -5,6 +5,12 @@
 library repositories;
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:html';
 import 'package:observatory/models.dart' as M;
+import 'package:observatory/service_common.dart' as SC;
+import 'package:observatory/utils.dart';
 
 part 'src/repositories/notification.dart';
+part 'src/repositories/settings.dart';
+part 'src/repositories/target.dart';

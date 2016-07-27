@@ -18,7 +18,7 @@ class TargetEvent {
 class VMConnectTargetElement extends HtmlElement implements Renderable{
 
   static const tag =
-    const Tag<VMConnectTargetElement>('vm-connect-target-wrapped');
+    const Tag<VMConnectTargetElement>('vm-connect-target');
 
   RenderingScheduler<VMConnectTargetElement> _r;
 

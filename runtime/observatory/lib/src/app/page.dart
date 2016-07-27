@@ -18,7 +18,7 @@ abstract class Page extends Observable {
   final ObservatoryApplication app;
   final ObservableMap<String, String> internalArguments =
       new ObservableMap<String, String>();
-  @observable ObservatoryElement element;
+  @observable HtmlElement element;
 
   Page(this.app);
 
@@ -370,7 +370,12 @@ class VMConnectPage extends Page {
 
   void onInstall() {
     if (element == null) {
-      element = new Element.tag('vm-connect');
+      element = new VMConnectElement(
+            ObservatoryApplication.app.targets,
+            new CrashDumpRepositoryMock(
+                load: ObservatoryApplication.app.loadCrashDump),
+            ObservatoryApplication.app.notifications,
+            queue: ObservatoryApplication.app.queue);
     }
     assert(element != null);
   }
