@@ -644,7 +644,9 @@ class Namer {
   String _jsNameHelper(Element e) {
     String jsInteropName = backend.nativeData.getJsInteropName(e);
     if (jsInteropName != null && jsInteropName.isNotEmpty) return jsInteropName;
-    return e.isLibrary ? 'self' : e.name;
+    return e.isLibrary
+        ? 'self'
+        : backend.nativeData.getUnescapedJSInteropName(e.name);
   }
 
   /// Returns a JavaScript path specifying the context in which
