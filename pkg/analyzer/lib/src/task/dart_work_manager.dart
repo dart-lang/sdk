@@ -202,6 +202,7 @@ class DartWorkManager implements WorkManager {
       }
     }
     List<Source> libraries = partLibrariesMap[part];
+    libraries ??= _getLibrariesContainingPartFromResultProvider(part);
     return libraries?.toList() ?? Source.EMPTY_LIST;
   }
 
@@ -352,6 +353,19 @@ class DartWorkManager implements WorkManager {
 
   void unitIncrementallyResolved(Source librarySource, Source unitSource) {
     librarySourceQueue.add(librarySource);
+  }
+
+  /**
+   * Ask the [context]'s result provider for [CONTAINING_LIBRARIES].
+   * Return the list of containing libraries, or `null` if unknown.
+   */
+  List<Source> _getLibrariesContainingPartFromResultProvider(Source part) {
+    CacheEntry cacheEntry = context.getCacheEntry(part);
+    bool knows = context.aboutToComputeResult(cacheEntry, CONTAINING_LIBRARIES);
+    if (knows) {
+      return cacheEntry.getValue(CONTAINING_LIBRARIES);
+    }
+    return null;
   }
 
   /**

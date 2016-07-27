@@ -329,6 +329,7 @@ class DartWorkManagerTest {
   }
 
   void test_getLibrariesContainingPart() {
+    when(context.aboutToComputeResult(anyObject, anyObject)).thenReturn(false);
     Source part1 = new TestSource('part1.dart');
     Source part2 = new TestSource('part2.dart');
     Source part3 = new TestSource('part3.dart');
