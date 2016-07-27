@@ -14,7 +14,7 @@ evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
 isolate_lifecycle_test: Pass, RuntimeError # Issue 24174
 
 # Disable on simulators.
-[ $arch == simarm || $arch == simmips || $arch == simarm64]
+[ $arch == simarm || $arch == simmips || $arch == simarm64 ]
 *: SkipSlow
 
 # All tests use dart:io
@@ -51,9 +51,14 @@ coverage_test: Pass, Slow
 evaluate_activation_in_method_class_test: CompileTimeError # Issue 24478
 
 [ $arch == simdbc || $arch == simdbc64 ]
-# TODO(vegorov) re-enable when debugger, coverage and profiling is completely
-# fixed for SIMDBC.
-*: Skip
+get_source_report_test: RuntimeError # Coverage unimplemented.
+get_allocation_samples_test: RuntimeError # Profiling unimplemented.
+get_cpu_profile_timeline_rpc_test: RuntimeError # Profiling unimplemented.
+implicit_getter_setter_test: RuntimeError # Field guards unimplemented.
+get_stack_rpc_test: RuntimeError # Missing breakpoint at fast Smi op
+vm_restart_test: RuntimeError # Missing breakpoint at fast Smi op
+steal_breakpoint_test: Skip # Testee crashes / hangs
+debugging_test: Skip # Testee crashes / hangs
 
 [ $hot_reload ]
 # Skip all service tests because random reloads interfere.

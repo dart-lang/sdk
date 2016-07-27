@@ -273,10 +273,10 @@ EMIT_NATIVE_CODE(CheckStackOverflow,
                  0, Location::NoLocation(),
                  LocationSummary::kCall) {
   __ CheckStack();
-  compiler->RecordSafepoint(locs());
-  compiler->AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
-                                 Thread::kNoDeoptId,
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
+                                 deopt_id(),
                                  token_pos());
+  compiler->RecordAfterCall(this);
 }
 
 

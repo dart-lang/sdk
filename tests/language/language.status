@@ -237,9 +237,6 @@ library_env_test/has_no_mirror_support: RuntimeError, OK
 library_env_test/has_mirror_support: RuntimeError, OK
 
 [ $arch == simdbc || $arch == simdbc64 ]
-# TODO(vegorov) StopInstr is unimplemented.
-vm/debug_break_enabled_vm_test/none: Skip
-
 # TODO(vegorov) Encoding limitation: StoreField bytecode only supports 256
 # fields in an object.
 large_class_declaration_test: Skip

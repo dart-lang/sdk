@@ -7,6 +7,7 @@
 #include "vm/assembler.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
+#include "vm/disassembler.h"
 #include "vm/intermediate_language.h"
 #include "vm/locations.h"
 #include "vm/parser.h"
@@ -52,6 +53,13 @@ DeoptContext::DeoptContext(const StackFrame* frame,
       deoptimizing_code_(deoptimizing_code) {
   const TypedData& deopt_info = TypedData::Handle(
       code.GetDeoptInfoAtPc(frame->pc(), &deopt_reason_, &deopt_flags_));
+#if defined(DEBUG)
+  if (deopt_info.IsNull()) {
+    OS::PrintErr("Missing deopt info for pc %" Px "\n", frame->pc());
+    DisassembleToStdout formatter;
+    code.Disassemble(&formatter);
+  }
+#endif
   ASSERT(!deopt_info.IsNull());
   deopt_info_ = deopt_info.raw();
 
