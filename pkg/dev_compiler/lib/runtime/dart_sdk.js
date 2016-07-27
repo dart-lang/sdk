@@ -496,6 +496,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let dynamicAnddynamicTodynamic$ = () => (dynamicAnddynamicTodynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic])))();
   let StringAndObjectTovoid = () => (StringAndObjectTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.String, core.Object])))();
   let dynamicAnddynamicTovoid = () => (dynamicAnddynamicTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [dart.dynamic, dart.dynamic])))();
+  let StringToNameValuePair = () => (StringToNameValuePair = dart.constFn(dart.definiteFunctionType(_debugger.NameValuePair, [core.String])))();
   let VoidTodynamic$ = () => (VoidTodynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   let StringAndString__Todynamic = () => (StringAndString__Todynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.String, core.String], [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic])))();
   let VoidToIsolateContext = () => (VoidToIsolateContext = dart.constFn(dart.definiteFunctionType(_foreign_helper.IsolateContext, [])))();
@@ -2642,7 +2643,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         c = dart.toString(object);
       }
       let element = new _debugger.JsonMLElement('span');
-      element.setStyle('background-color: #d9edf7');
+      element.setStyle('background-color: #d9edf7;');
       element.createTextChild(c);
       return element.toJsonML();
     }
@@ -2651,7 +2652,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     body(object) {
       let body = new _debugger.JsonMLElement('ol');
-      body.setStyle('list-style-type: none;' + 'padding-left: 0px;' + 'margin-top: 0px;' + 'margin-bottom: 0px;' + 'margin-left: 12px');
+      body.setStyle('list-style-type: none;' + 'padding-left: 0px;' + 'margin-top: 0px;' + 'margin-bottom: 0px;' + 'margin-left: 12px;');
+      if (core.StackTrace.is(object)) {
+        body.addStyle('color: rgb(196, 26, 22);');
+      }
       let children = this[_simpleFormatter].children(object);
       for (let child of children) {
         let li = body.createChild('li');
@@ -2690,7 +2694,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _debugger.DartFormatter = class DartFormatter extends core.Object {
     new() {
       this[_formatters] = null;
-      this[_formatters] = JSArrayOfFormatter().of([new _debugger.NamedConstructorFormatter(), new _debugger.FunctionFormatter(), new _debugger.MapFormatter(), new _debugger.IterableFormatter(), new _debugger.MapEntryFormatter(), new _debugger.IterableSpanFormatter(), new _debugger.ClassMetadataFormatter(), new _debugger.HeritageClauseFormatter(), new _debugger.LibraryModuleFormatter(), new _debugger.LibraryFormatter(), new _debugger.ObjectFormatter()]);
+      this[_formatters] = JSArrayOfFormatter().of([new _debugger.NamedConstructorFormatter(), new _debugger.FunctionFormatter(), new _debugger.MapFormatter(), new _debugger.IterableFormatter(), new _debugger.MapEntryFormatter(), new _debugger.IterableSpanFormatter(), new _debugger.StackTraceFormatter(), new _debugger.ClassMetadataFormatter(), new _debugger.HeritageClauseFormatter(), new _debugger.LibraryModuleFormatter(), new _debugger.LibraryFormatter(), new _debugger.ObjectFormatter()]);
     }
     preview(object) {
       try {
@@ -3131,6 +3135,29 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   _debugger.IterableSpanFormatter[dart.implements] = () => [_debugger.Formatter];
   dart.setSignature(_debugger.IterableSpanFormatter, {
+    methods: () => ({
+      accept: dart.definiteFunctionType(core.bool, [dart.dynamic]),
+      preview: dart.definiteFunctionType(core.String, [dart.dynamic]),
+      hasChildren: dart.definiteFunctionType(core.bool, [dart.dynamic]),
+      children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
+    })
+  });
+  _debugger.StackTraceFormatter = class StackTraceFormatter extends core.Object {
+    accept(object) {
+      return core.StackTrace.is(object);
+    }
+    preview(object) {
+      return 'StackTrace';
+    }
+    hasChildren(object) {
+      return true;
+    }
+    children(object) {
+      return dart.toString(object)[dartx.split]('\n')[dartx.map](_debugger.NameValuePair)(dart.fn(line => new _debugger.NameValuePair({value: line[dartx.replaceFirst](core.RegExp.new('^\\s+at\\s'), ''), hideName: true}), StringToNameValuePair()))[dartx.toList]();
+    }
+  };
+  _debugger.StackTraceFormatter[dart.implements] = () => [_debugger.Formatter];
+  dart.setSignature(_debugger.StackTraceFormatter, {
     methods: () => ({
       accept: dart.definiteFunctionType(core.bool, [dart.dynamic]),
       preview: dart.definiteFunctionType(core.String, [dart.dynamic]),
