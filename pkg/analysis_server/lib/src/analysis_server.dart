@@ -699,23 +699,6 @@ class AnalysisServer {
     return nodes;
   }
 
-// TODO(brianwilkerson) Add the following method after 'prioritySources' has
-// been added to InternalAnalysisContext.
-//  /**
-//   * Return a list containing the full names of all of the sources that are
-//   * priority sources.
-//   */
-//  List<String> getPriorityFiles() {
-//    List<String> priorityFiles = new List<String>();
-//    folderMap.values.forEach((ContextDirectory directory) {
-//      InternalAnalysisContext context = directory.context;
-//      context.prioritySources.forEach((Source source) {
-//        priorityFiles.add(source.fullName);
-//      });
-//    });
-//    return priorityFiles;
-//  }
-
   /**
    * Returns resolved [CompilationUnit]s of the Dart file with the given [path].
    *
@@ -744,6 +727,23 @@ class AnalysisServer {
     // done
     return units;
   }
+
+// TODO(brianwilkerson) Add the following method after 'prioritySources' has
+// been added to InternalAnalysisContext.
+//  /**
+//   * Return a list containing the full names of all of the sources that are
+//   * priority sources.
+//   */
+//  List<String> getPriorityFiles() {
+//    List<String> priorityFiles = new List<String>();
+//    folderMap.values.forEach((ContextDirectory directory) {
+//      InternalAnalysisContext context = directory.context;
+//      context.prioritySources.forEach((Source source) {
+//        priorityFiles.add(source.fullName);
+//      });
+//    });
+//    return priorityFiles;
+//  }
 
   /**
    * Handle a [request] that was read from the communication channel.
@@ -926,6 +926,32 @@ class AnalysisServer {
     // Instruct the contextDirectoryManager to rebuild all contexts from
     // scratch.
     contextManager.refresh(roots);
+  }
+
+  /**
+   * Schedule cache consistency validation in [context].
+   * The most of the validation must be done asynchronously.
+   */
+  void scheduleCacheConsistencyValidation(AnalysisContext context) {
+    if (context is InternalAnalysisContext) {
+      CacheConsistencyValidator validator = context.cacheConsistencyValidator;
+      List<Source> sources = validator.getSourcesToComputeModificationTimes();
+      // Compute modification times and notify the validator asynchronously.
+      new Future(() async {
+        try {
+          List<int> modificationTimes =
+              await resourceProvider.getModificationTimes(sources);
+          bool cacheInconsistencyFixed = validator
+              .sourceModificationTimesComputed(sources, modificationTimes);
+          if (cacheInconsistencyFixed) {
+            scheduleOperation(new PerformAnalysisOperation(context, false));
+          }
+        } catch (exception, stackTrace) {
+          sendServerErrorNotification(
+              'Failed to check cache consistency', exception, stackTrace);
+        }
+      });
+    }
   }
 
   /**

@@ -150,10 +150,15 @@ class TestScanner extends ScannerTask {
 }
 
 class TestResolver extends ResolverTask {
-  TestResolver(TestCompiler compiler, ConstantCompiler constantCompiler)
-      : super(compiler, constantCompiler);
+  final TestCompiler compiler;
 
-  TestCompiler get compiler => super.compiler;
+  TestResolver(TestCompiler compiler, ConstantCompiler constantCompiler)
+      : this.compiler = compiler,
+        super(
+            compiler.resolution,
+            constantCompiler,
+            compiler.world,
+            compiler.measurer);
 
   void computeClassMembers(ClassElement element) {
     compiler.test('ResolverTask.computeClassMembers');

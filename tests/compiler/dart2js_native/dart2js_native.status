@@ -6,7 +6,6 @@
 *: Skip
 
 [ $compiler == dart2js ]
-call_on_native_class_test: CompileTimeError # Issue 14813
 native_no_such_method_exception4_frog_test: CompileTimeError # Issue 9631
 native_no_such_method_exception5_frog_test: CompileTimeError # Issue 9631
 

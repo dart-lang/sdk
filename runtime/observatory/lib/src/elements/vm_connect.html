@@ -1,34 +1,6 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
-<link rel="import" href="nav_bar.html">
-<link rel="import" href="observatory_element.html">
-<link rel="import" href="view_footer.html">
 
-<polymer-element name="vm-connect-target" extends="observatory-element">
-  <template>
-    <style>
-      .delete-button {
-        padding: 4px;
-        background: transparent;
-        border: none !important;
-      }
-      .delete-button:hover {
-        background: #ff0000;
-      }
-    </style>
-    <link rel="stylesheet" href="css/shared.css">
-    <span>
-      <template if="{{ isCurrentTarget }}">
-        <a on-click="{{ connectToVm }}" _href="{{ gotoLinkForwardingParameters('/vm') }}">{{ target.name }} (Connected)</a>
-      </template>
-      <template if="{{ !isCurrentTarget }}">
-        <a on-click="{{ connectToVm }}" _href="{{ gotoLinkForwardingParameters('/vm') }}">{{ target.name }}</a>
-      </template>
-      <button class="delete-button" on-click="{{ deleteVm }}">&#10006; Remove</button>
-    </span>
-  </template>
-</polymer-element>
-
-<polymer-element name="vm-connect" extends="observatory-element">
+<polymer-element name="vm-connect">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <style>
@@ -40,6 +12,7 @@
 
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
 
     <div class="content-centered">

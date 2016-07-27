@@ -692,6 +692,7 @@ class Serializer {
         /// Helper used to check that external references are serialized by
         /// the right kind.
         bool verifyElement(var found, var expected) {
+          if (found == null) return false;
           found = found.declaration;
           if (found == expected) return true;
           if (found.isAbstractField && expected.isGetter) {

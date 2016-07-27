@@ -4,6 +4,15 @@
 
 [ $compiler == dart2analyzer ]
 
+# Trailing commas are now allowed by the language - issue #26644
+Language/Functions/Formal_Parameters/syntax_t12: MissingCompileTimeError
+Language/Functions/Formal_Parameters/syntax_t05: MissingCompileTimeError
+Language/Functions/Formal_Parameters/syntax_t04: MissingCompileTimeError
+Language/Expressions/Function_Invocation/Actual_Argument_List_Evaluation/syntax_t05: MissingCompileTimeError
+Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t05: MissingCompileTimeError
+Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t10: MissingCompileTimeError
+Language/Expressions/Method_Invocation/Super_Invocation/syntax_t05: MissingCompileTimeError
+
 WebPlatformTest/html/semantics/forms/the-textarea-element/textarea-type_t01: fail
 LayoutTests/fast/events/event-creation_t01: Skip # Roll 45 OverflowEvent removed
 LayoutTests/fast/forms/checkValidity-001_t01: fail

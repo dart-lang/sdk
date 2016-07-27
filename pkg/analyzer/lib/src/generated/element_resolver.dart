@@ -1100,19 +1100,23 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       if (_isConstructorReturnType(node)) {
         _resolver.errorReporter.reportErrorForNode(
             CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
+      } else if (parent is Annotation) {
+        _resolver.errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.INVALID_ANNOTATION, parent);
+      } else if (element != null) {
+        _resolver.errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+            node,
+            [element.name]);
+      } else if (node.name == "await" && _resolver.enclosingFunction != null) {
+        _recordUndefinedNode(
+            _resolver.enclosingClass,
+            StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT,
+            node,
+            [_resolver.enclosingFunction.displayName]);
       } else {
-        if (parent is Annotation) {
-          _resolver.errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.INVALID_ANNOTATION, parent);
-        } else if (element != null) {
-          _resolver.errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-              node,
-              [element.name]);
-        } else {
-          _recordUndefinedNode(_resolver.enclosingClass,
-              StaticWarningCode.UNDEFINED_IDENTIFIER, node, [node.name]);
-        }
+        _recordUndefinedNode(_resolver.enclosingClass,
+            StaticWarningCode.UNDEFINED_IDENTIFIER, node, [node.name]);
       }
     }
     node.staticElement = element;

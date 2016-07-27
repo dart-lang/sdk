@@ -180,6 +180,12 @@ class FileTest extends _BaseTest {
     expect(file.exists, isTrue);
   }
 
+  void test_toUri() {
+    String path = '/foo/file.txt';
+    File file = PhysicalResourceProvider.INSTANCE.getFile(path);
+    expect(file.toUri(), new Uri.file(path));
+  }
+
   void test_shortName() {
     expect(file.shortName, 'file.txt');
   }
@@ -373,10 +379,25 @@ class FolderTest extends _BaseTest {
       parent = grandParent;
     }
   }
+
+  void test_toUri() {
+    String path = '/foo/directory';
+    Folder folder = PhysicalResourceProvider.INSTANCE.getFolder(path);
+    expect(folder.toUri(), new Uri.directory(path));
+  }
 }
 
 @reflectiveTest
 class PhysicalResourceProviderTest extends _BaseTest {
+  test_getModificationTimes() async {
+    PhysicalResourceProvider provider = PhysicalResourceProvider.INSTANCE;
+    String path = join(tempPath, 'file1.txt');
+    new io.File(path).writeAsStringSync('');
+    Source source = provider.getFile(path).createSource();
+    List<int> times = await provider.getModificationTimes([source]);
+    expect(times, [source.modificationStamp]);
+  }
+
   void test_getStateLocation_uniqueness() {
     PhysicalResourceProvider provider = PhysicalResourceProvider.INSTANCE;
     String idOne = 'one';

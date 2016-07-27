@@ -148,6 +148,17 @@ class ForwardHeapPointersHandleVisitor : public HandleVisitor {
 };
 
 
+void Become::MakeDummyObject(const Instance& instance) {
+  // Make the forward pointer point to itself.
+  // This is needed to distinguish it from a real forward object.
+  ForwardObjectTo(instance.raw(), instance.raw());
+}
+
+static bool IsDummyObject(RawObject* object) {
+  if (!object->IsForwardingCorpse()) return false;
+  return GetForwardedObject(object) == object;
+}
+
 void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
@@ -174,7 +185,7 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
     if (before_obj->IsVMHeapObject()) {
       FATAL("become: Cannot forward VM heap objects");
     }
-    if (before_obj->IsForwardingCorpse()) {
+    if (before_obj->IsForwardingCorpse() && !IsDummyObject(before_obj)) {
       FATAL("become: Cannot forward to multiple targets");
     }
     if (after_obj->IsForwardingCorpse()) {

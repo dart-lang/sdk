@@ -408,8 +408,8 @@ class _Smi extends _IntegerImplementation implements int {
     throw new UnsupportedError(
         "_Smi can only be allocated by the VM");
   }
-  int get _identityHashCode => this;
   int get hashCode => this;
+  int get _identityHashCode => this;
   int operator ~() native "Smi_bitNegate";
   int get bitLength native "Smi_bitLength";
 
@@ -608,8 +608,8 @@ class _Mint extends _IntegerImplementation implements int {
     throw new UnsupportedError(
         "_Mint can only be allocated by the VM");
   }
-  int get _identityHashCode => this;
   int get hashCode => this;
+  int get _identityHashCode => this;
   int operator ~() native "Mint_bitNegate";
   int get bitLength native "Mint_bitLength";
 

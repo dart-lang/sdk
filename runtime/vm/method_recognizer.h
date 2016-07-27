@@ -359,6 +359,7 @@ namespace dart {
   V(_ImmutableList, get:length, ImmutableArrayLength, 0x25943ad2)              \
   V(_TypedList, get:length, TypedDataLength, 0x2090dc1a)                       \
   V(_GrowableList, get:length, GrowableArrayLength, 0x18dc9df6)                \
+  V(_GrowableList, get:_capacity, GrowableArrayCapacity, 0x02734d82)           \
   V(_GrowableList, add, GrowableListAdd, 0x0d1358ed)                           \
   V(_GrowableList, removeLast, GrowableListRemoveLast, 0x135d7384)             \
   V(_StringBase, get:length, StringBaseLength, 0x2a2c1b13)                     \

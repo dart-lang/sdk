@@ -18,6 +18,8 @@ class Monitor;
 // Declare the OS-specific types ahead of defining the generic classes.
 #if defined(TARGET_OS_ANDROID)
 #include "bin/thread_android.h"
+#elif defined(TARGET_OS_FUCHSIA)
+#include "bin/thread_fuchsia.h"
 #elif defined(TARGET_OS_LINUX)
 #include "bin/thread_linux.h"
 #elif defined(TARGET_OS_MACOS)

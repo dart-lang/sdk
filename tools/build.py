@@ -88,7 +88,7 @@ def ProcessOsOption(os_name):
 
 def ProcessOptions(options, args):
   if options.arch == 'all':
-    options.arch = 'ia32,x64,simarm,simarm64,simmips,simdbc'
+    options.arch = 'ia32,x64,simarm,simarm64,simmips,simdbc64'
   if options.mode == 'all':
     options.mode = 'debug,release,product'
   if options.os == 'all':

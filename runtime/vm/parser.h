@@ -39,61 +39,44 @@ struct QualIdent;
 class TopLevel;
 class RecursionChecker;
 
-// We cache computed compile-time constants in a map so we can look them
-// up when the same code gets compiled again. The map key is a pair
-// (script url, token position) which is encoded in an array with 2
-// elements:
-// - key[0] contains the canonicalized url of the script.
-// - key[1] contains the token position of the constant in the script.
-
-// ConstantPosKey allows us to look up a constant in the map without
-// allocating a key pair (array).
-struct ConstantPosKey : ValueObject {
-  ConstantPosKey(const String& url, TokenPosition pos)
-      : script_url(url), token_pos(pos) { }
-  const String& script_url;
-  TokenPosition token_pos;
-};
-
-
+// We cache compile time constants during compilation.  This allows us
+// to look them up when the same code gets compiled again.  During
+// background compilation, we are not able to evaluate the constants
+// so this cache is necessary to support background compilation.
+//
+// We cache the constants with the script itself. This is helpful during isolate
+// reloading, as it allows us to reference the compile time constants associated
+// with a particular version of a script. The map key is simply the
+// TokenPosition where the constant is defined.
 class ConstMapKeyEqualsTraits {
  public:
   static const char* Name() { return "ConstMapKeyEqualsTraits"; }
   static bool ReportStats() { return false; }
 
   static bool IsMatch(const Object& a, const Object& b) {
-    const Array& key1 = Array::Cast(a);
-    const Array& key2 = Array::Cast(b);
-    // Compare raw strings of script url symbol and raw smi of token positon.
-    return (key1.At(0) == key2.At(0)) && (key1.At(1) == key2.At(1));
+    const Smi& key1 = Smi::Cast(a);
+    const Smi& key2 = Smi::Cast(b);
+    return (key1.Value() == key2.Value());
   }
-  static bool IsMatch(const ConstantPosKey& key1, const Object& b) {
-    const Array& key2 = Array::Cast(b);
-    // Compare raw strings of script url symbol and token positon.
-    return (key1.script_url.raw() == key2.At(0))
-        && (key1.token_pos.value() == Smi::Value(Smi::RawCast(key2.At(1))));
+  static bool IsMatch(const TokenPosition& key1, const Object& b) {
+    const Smi& key2 = Smi::Cast(b);
+    return (key1.value() == key2.Value());
   }
   static uword Hash(const Object& obj) {
-    const Array& key = Array::Cast(obj);
-    intptr_t url_hash = String::HashRawSymbol(String::RawCast(key.At(0)));
-    intptr_t pos = Smi::Value(Smi::RawCast(key.At(1)));
-    return HashValue(url_hash, pos);
+    const Smi& key = Smi::Cast(obj);
+    return HashValue(key.Value());
   }
-  static uword Hash(const ConstantPosKey& key) {
-    return HashValue(String::HashRawSymbol(key.script_url.raw()),
-                     key.token_pos.value());
+  static uword Hash(const TokenPosition& key) {
+    return HashValue(key.value());
   }
-  // Used by CachConstantValue if a new constant is added to the map.
-  static RawObject* NewKey(const ConstantPosKey& key) {
-    const Array& key_obj = Array::Handle(Array::New(2));
-    key_obj.SetAt(0, key.script_url);
-    key_obj.SetAt(1, Smi::Handle(Smi::New(key.token_pos.value())));
-    return key_obj.raw();;
+  // Used by CacheConstantValue if a new constant is added to the map.
+  static RawObject* NewKey(const TokenPosition& key) {
+    return Smi::New(key.value());
   }
 
  private:
-  static uword HashValue(intptr_t url_hash, intptr_t pos) {
-    return url_hash * pos % (Smi::kMaxValue - 13);
+  static uword HashValue(intptr_t pos) {
+    return pos % (Smi::kMaxValue - 13);
   }
 };
 typedef UnorderedHashMap<ConstMapKeyEqualsTraits> ConstantsMap;
@@ -278,7 +261,7 @@ class Parser : public ValueObject {
   // given static field.
   static ParsedFunction* ParseStaticFieldInitializer(const Field& field);
 
-  static void InsertCachedConstantValue(const String& url,
+  static void InsertCachedConstantValue(const Script& script,
                                         TokenPosition token_pos,
                                         const Instance& value);
 
@@ -617,8 +600,7 @@ class Parser : public ValueObject {
   ClosureNode* CreateImplicitClosureNode(const Function& func,
                                          TokenPosition token_pos,
                                          AstNode* receiver);
-  static void AddFormalParamsToFunction(const ParamList* params,
-                                        const Function& func);
+  void AddFormalParamsToFunction(const ParamList* params, const Function& func);
   void AddFormalParamsToScope(const ParamList* params, LocalScope* scope);
 
   SequenceNode* ParseConstructor(const Function& func);

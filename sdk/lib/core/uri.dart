@@ -669,9 +669,9 @@ class Uri {
    * With non-Windows semantics the slash ("/") is used to separate
    * path segments.
    *
-   * With Windows semantics, backslash ("\") and forward-slash ("/")
+   * With Windows semantics, backslash ("\\") and forward-slash ("/")
    * are used to separate path segments, except if the path starts
-   * with "\\?\" in which case, only backslash ("\") separates path
+   * with "\\\\?\\" in which case, only backslash ("\\") separates path
    * segments.
    *
    * If the path starts with a path separator an absolute URI is
@@ -1878,7 +1878,7 @@ class Uri {
    * For non-Windows semantics the slash ("/") is used to separate
    * path segments.
    *
-   * For Windows semantics the backslash ("\") separator is used to
+   * For Windows semantics the backslash ("\\") separator is used to
    * separate path segments.
    *
    * If the URI is absolute the path starts with a path separator

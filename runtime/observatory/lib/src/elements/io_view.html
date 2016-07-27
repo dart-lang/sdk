@@ -1,15 +1,14 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
-<link rel="import" href="nav_bar.html">
-<link rel="import" href="observatory_element.html">
 <link rel="import" href="service_ref.html">
 
-<polymer-element name="io-view" extends="observatory-element">
+<polymer-element name="io-view">
   <template>
     <link rel="stylesheet" href="css/shared.css">
 
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
 
     <div class="content">
@@ -61,7 +60,7 @@
   </template>
 </polymer-element>
 
-<polymer-element name="io-ref" extends="service-ref">
+<polymer-element name="io-ref">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <template if="{{ ref.type == 'Socket' }}">
@@ -82,13 +81,14 @@
   </template>
 </polymer-element>
 
-<polymer-element name="io-http-server-list-view" extends="observatory-element">
+<polymer-element name="io-http-server-list-view">
   <template>
     <link rel="stylesheet" href="css/shared.css">
 
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
 
     <div class="content">
@@ -109,20 +109,21 @@
   </template>
 </polymer-element>
 
-<polymer-element name="io-http-server-ref" extends="service-ref">
+<polymer-element name="io-http-server-ref">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <a on-click="{{ goto }}" _href="{{ url }}">{{ name }}</a>
   </template>
 </polymer-element>
 
-<polymer-element name="io-http-server-view" extends="observatory-element">
+<polymer-element name="io-http-server-view">
   <template>
     <link rel="stylesheet" href="css/shared.css">
 
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
 
     <div class="content">
@@ -170,20 +171,21 @@
   </template>
 </polymer-element>
 
-<polymer-element name="io-http-server-connection-ref" extends="service-ref">
+<polymer-element name="io-http-server-connection-ref">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <a _href="{{ url }}">{{ name }}</a>
   </template>
 </polymer-element>
 
-<polymer-element name="io-http-server-connection-view" extends="observatory-element">
+<polymer-element name="io-http-server-connection-view">
   <template>
     <link rel="stylesheet" href="css/shared.css">
 
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
 
     <div class="content">
@@ -211,20 +213,21 @@
   </template>
 </polymer-element>
 
-<polymer-element name="io-socket-ref" extends="service-ref">
+<polymer-element name="io-socket-ref">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <a on-click="{{ goto }}" _href="{{ url }}">{{ name }}</a>
   </template>
 </polymer-element>
 
-<polymer-element name="io-socket-list-view" extends="observatory-element">
+<polymer-element name="io-socket-list-view">
   <template>
     <link rel="stylesheet" href="css/shared.css">
 
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
 
     <div class="content">
@@ -245,7 +248,7 @@
   </template>
 </polymer-element>
 
-<polymer-element name="io-socket-view" extends="observatory-element">
+<polymer-element name="io-socket-view">
   <template>
     <link rel="stylesheet" href="css/shared.css">
 
@@ -341,20 +344,21 @@
   </template>
 </polymer-element>
 
-<polymer-element name="io-web-socket-ref" extends="service-ref">
+<polymer-element name="io-web-socket-ref">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <a on-click="{{ goto }}" _href="{{ url }}">{{ name }}</a>
   </template>
 </polymer-element>
 
-<polymer-element name="io-web-socket-list-view" extends="observatory-element">
+<polymer-element name="io-web-socket-list-view">
   <template>
     <link rel="stylesheet" href="css/shared.css">
 
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
 
     <div class="content">
@@ -375,13 +379,14 @@
   </template>
 </polymer-element>
 
-<polymer-element name="io-web-socket-view" extends="observatory-element">
+<polymer-element name="io-web-socket-view">
   <template>
     <link rel="stylesheet" href="css/shared.css">
 
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
 
     <div class="content">
@@ -401,20 +406,21 @@
   </template>
 </polymer-element>
 
-<polymer-element name="io-random-access-file-ref" extends="service-ref">
+<polymer-element name="io-random-access-file-ref">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <a on-click="{{ goto }}" _href="{{ url }}">{{ name }}</a>
   </template>
 </polymer-element>
 
-<polymer-element name="io-random-access-file-list-view" extends="observatory-element">
+<polymer-element name="io-random-access-file-list-view">
   <template>
     <link rel="stylesheet" href="css/shared.css">
 
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
 
     <div class="content">
@@ -435,13 +441,14 @@
   </template>
 </polymer-element>
 
-<polymer-element name="io-random-access-file-view" extends="observatory-element">
+<polymer-element name="io-random-access-file-view">
   <template>
     <link rel="stylesheet" href="css/shared.css">
 
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
 
     <div class="content">
@@ -469,13 +476,14 @@
   </template>
 </polymer-element>
 
-<polymer-element name="io-process-list-view" extends="observatory-element">
+<polymer-element name="io-process-list-view">
   <template>
     <link rel="stylesheet" href="css/shared.css">
 
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
 
     <div class="content">
@@ -496,7 +504,7 @@
   </template>
 </polymer-element>
 
-<polymer-element name="io-process-ref" extends="service-ref">
+<polymer-element name="io-process-ref">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <template if="{{ small }}">
@@ -508,13 +516,14 @@
   </template>
 </polymer-element>
 
-<polymer-element name="io-process-view" extends="observatory-element">
+<polymer-element name="io-process-view">
   <template>
     <link rel="stylesheet" href="css/shared.css">
 
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
 
     <div class="content">

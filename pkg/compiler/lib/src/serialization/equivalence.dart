@@ -516,6 +516,20 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
             element1, element2, 'name', element1.name, element2.name) &&
         visit(element1.library, element2.library);
   }
+
+  @override
+  bool visitErroneousElement(
+      ErroneousElement element1, ErroneousElement element2) {
+    return strategy.test(element1, element2, 'messageKind',
+        element1.messageKind, element2.messageKind);
+  }
+
+  @override
+  bool visitWarnOnUseElement(
+      WarnOnUseElement element1, WarnOnUseElement element2) {
+    return strategy.testElements(element1, element2, 'wrappedElement',
+        element1.wrappedElement, element2.wrappedElement);
+  }
 }
 
 /// Visitor that checks for equivalence of [DartType]s.
@@ -562,7 +576,9 @@ class TypeEquivalence implements DartTypeVisitor<bool, DartType> {
   @override
   bool visitTypeVariableType(TypeVariableType type, TypeVariableType other) {
     return strategy.testElements(
-        type, other, 'element', type.element, other.element);
+            type, other, 'element', type.element, other.element) &&
+        strategy.test(type, other, 'is MethodTypeVariableType',
+            type is MethodTypeVariableType, other is MethodTypeVariableType);
   }
 
   @override

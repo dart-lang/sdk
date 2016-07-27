@@ -1,9 +1,7 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
-<link rel="import" href="nav_bar.html">
-<link rel="import" href="observatory_element.html">
 <link rel="import" href="class_ref.html">
 
-<polymer-element name="class-tree" extends="observatory-element">
+<polymer-element name="class-tree">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <style>
@@ -31,6 +29,7 @@
       <vm-nav-menu vm="{{ isolate.vm }}"></vm-nav-menu>
       <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
       <nav-menu link="{{ makeLink('/class-tree', isolate) }}" anchor="class hierarchy" last="{{ true }}"></nav-menu>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
     <div class="content-centered">
       <h1>Class Hierarchy</h1>

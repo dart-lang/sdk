@@ -43,7 +43,6 @@ DEFINE_FLAG(int, optimization_counter_scale, 2000,
 DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
 DEFINE_FLAG(bool, trace_inlining_intervals, false,
     "Inlining interval diagnostics");
-DEFINE_FLAG(bool, use_megamorphic_stub, true, "Out of line megamorphic lookup");
 
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(charp, deoptimize_filter);
@@ -85,9 +84,7 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_inlining_constant_arguments_min_size_threshold = 30;
 
     FLAG_background_compilation = false;
-    FLAG_always_megamorphic_calls = true;
     FLAG_fields_may_be_reset = true;
-    FLAG_ic_range_profiling = false;
     FLAG_interpret_irregexp = true;
     FLAG_lazy_dispatchers = false;
     FLAG_link_natives_lazily = true;
@@ -356,7 +353,7 @@ bool FlowGraphCompiler::CanOSRFunction() const {
 bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
   if ((FLAG_stacktrace_every > 0) ||
       (FLAG_deoptimize_every > 0) ||
-      (FLAG_reload_every > 0)) {
+      (isolate()->reload_every_n_stack_overflow_checks() > 0)) {
     return true;
   }
   if (FLAG_stacktrace_filter != NULL &&
@@ -1196,12 +1193,6 @@ void FlowGraphCompiler::GenerateInstanceCall(
     ic_data = ic_data.AsUnaryClassChecks();
     EmitSwitchableInstanceCall(ic_data, argument_count,
                                deopt_id, token_pos, locs);
-    return;
-  }
-  if (FLAG_always_megamorphic_calls) {
-    EmitMegamorphicInstanceCall(ic_data_in, argument_count,
-                                deopt_id, token_pos, locs,
-                                CatchClauseNode::kInvalidTryIndex);
     return;
   }
   ASSERT(!ic_data.IsNull());

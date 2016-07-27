@@ -380,6 +380,12 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   @override
+  void visitFunctionExpression(FunctionExpression node) {
+    _checkForUnsafeBlockClosureInference(node);
+    super.visitFunctionExpression(node);
+  }
+
+  @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     checkFunctionApplication(node, node.function, node.argumentList);
     node.visitChildren(this);
@@ -633,6 +639,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
       if (!rules.isSubtypeOf(returnType, lhsType)) {
         final numType = typeProvider.numType;
+        // TODO(jmesserly): this seems to duplicate logic in StaticTypeAnalyzer.
         // Try to fix up the numerical case if possible.
         if (rules.isSubtypeOf(lhsType, numType) &&
             rules.isSubtypeOf(lhsType, rhsType)) {
@@ -640,6 +647,8 @@ class CodeChecker extends RecursiveAstVisitor {
           // compound operators in the int += num and num += dynamic cases.
           _recordImplicitCast(expr.rightHandSide, rhsType, lhsType);
         } else {
+          // TODO(jmesserly): this results in a duplicate error, because
+          // ErrorVerifier also reports it.
           _recordMessage(expr, StrongModeCode.STATIC_TYPE_ERROR,
               [expr, returnType, lhsType]);
         }
@@ -710,6 +719,105 @@ class CodeChecker extends RecursiveAstVisitor {
     node.visitChildren(this);
   }
 
+  /**
+   * Check if the closure [node] is unsafe due to dartbug.com/26947.  If so,
+   * issue a warning.
+   *
+   * TODO(paulberry): eliminate this once dartbug.com/26947 is fixed.
+   */
+  void _checkForUnsafeBlockClosureInference(FunctionExpression node) {
+    if (node.body is! BlockFunctionBody) {
+      return;
+    }
+    if (node.element.returnType.isDynamic) {
+      return;
+    }
+    // Find the enclosing variable declaration whose inferred type might depend
+    // on the inferred return type of the block closure (if any).
+    AstNode prevAncestor = node;
+    AstNode ancestor = node.parent;
+    while (ancestor != null && ancestor is! VariableDeclaration) {
+      if (ancestor is BlockFunctionBody) {
+        // node is inside another block function body; if that block
+        // function body is unsafe, we've already warned about it.
+        return;
+      }
+      if (ancestor is InstanceCreationExpression) {
+        // node appears inside an instance creation expression; we may be safe
+        // if the type of the instance creation expression requires no
+        // inference.
+        TypeName typeName = ancestor.constructorName.type;
+        if (typeName.typeArguments != null) {
+          // Type arguments were explicitly specified.  We are safe.
+          return;
+        }
+        DartType type = typeName.type;
+        if (!(type is ParameterizedType && type.typeParameters.isNotEmpty)) {
+          // Type is not generic.  We are safe.
+          return;
+        }
+      }
+      if (ancestor is MethodInvocation) {
+        // node appears inside a method or function invocation; we may be safe
+        // if the type of the method or function requires no inference.
+        if (ancestor.typeArguments != null) {
+          // Type arguments were explicitly specified.  We are safe.
+          return;
+        }
+        Element methodElement = ancestor.methodName.staticElement;
+        if (!(methodElement is ExecutableElement &&
+            methodElement.typeParameters.isNotEmpty)) {
+          // Method is not generic.  We are safe.
+          return;
+        }
+      }
+      if (ancestor is FunctionExpressionInvocation &&
+          !identical(prevAncestor, ancestor.function)) {
+        // node appears inside an argument to a function expression invocation;
+        // we may be safe if the type of the function expression requires no
+        // inference.
+        if (ancestor.typeArguments != null) {
+          // Type arguments were explicitly specified.  We are safe.
+          return;
+        }
+        DartType type = ancestor.function.staticType;
+        if (!(type is FunctionTypeImpl && type.typeFormals.isNotEmpty)) {
+          // Type is not generic or has had its type parameters instantiated.
+          // We are safe.
+          return;
+        }
+      }
+      if ((ancestor is ListLiteral && ancestor.typeArguments != null) ||
+          (ancestor is MapLiteral && ancestor.typeArguments != null)) {
+        // node appears inside a list or map literal with an explicit type.  We
+        // are safe because no type inference is required.
+        return;
+      }
+      prevAncestor = ancestor;
+      ancestor = ancestor.parent;
+    }
+    if (ancestor == null) {
+      // node is not inside a variable declaration, so it is safe.
+      return;
+    }
+    VariableDeclaration decl = ancestor;
+    VariableElement declElement = decl.element;
+    if (!declElement.hasImplicitType) {
+      // Variable declaration has an explicit type, so it's safe.
+      return;
+    }
+    if (declElement.type.isDynamic) {
+      // No type was successfully inferred for this variable, so it's safe.
+      return;
+    }
+    if (declElement.enclosingElement is ExecutableElement) {
+      // Variable declaration is inside a function or method, so it's safe.
+      return;
+    }
+    _recordMessage(node, StrongModeCode.UNSAFE_BLOCK_CLOSURE_INFERENCE,
+        [declElement.name]);
+  }
+
   void _checkReturnOrYield(Expression expression, AstNode node,
       {bool yieldStar: false}) {
     FunctionBody body = node.getAncestor((n) => n is FunctionBody);
@@ -719,14 +827,6 @@ class CodeChecker extends RecursiveAstVisitor {
       // not match the return or yield type.  We should have already gotten an
       // analyzer error in this case.
       return;
-    }
-    InterfaceType futureType = typeProvider.futureType;
-    DartType actualType = expression?.staticType;
-    if (body.isAsynchronous &&
-        !body.isGenerator &&
-        actualType is InterfaceType &&
-        actualType.element == futureType.element) {
-      type = futureType.instantiate([type]);
     }
     // TODO(vsm): Enforce void or dynamic (to void?) when expression is null.
     if (expression != null) checkAssignment(expression, type);
@@ -858,9 +958,9 @@ class CodeChecker extends RecursiveAstVisitor {
         // Stream<T> -> T
         expectedType = typeProvider.streamType;
       } else {
-        // Future<T> -> T
-        // TODO(vsm): Revisit with issue #228.
-        expectedType = typeProvider.futureType;
+        // Don't validate return type of async methods.
+        // They're handled by the runtime implementation.
+        return null;
       }
     } else {
       if (body.isGenerator) {

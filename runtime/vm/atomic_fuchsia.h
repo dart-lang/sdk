@@ -13,34 +13,30 @@
 #error This file should only be included on Fuchsia builds.
 #endif
 
-#include "platform/assert.h"
-
 namespace dart {
 
 inline uintptr_t AtomicOperations::FetchAndIncrement(uintptr_t* p) {
-  UNIMPLEMENTED();
-  return 0;
+  return __sync_fetch_and_add(p, 1);
 }
 
 
 inline void AtomicOperations::IncrementBy(intptr_t* p, intptr_t value) {
-  UNIMPLEMENTED();
+  __sync_fetch_and_add(p, value);
 }
 
 
 inline void AtomicOperations::IncrementInt64By(int64_t* p, int64_t value) {
-  UNIMPLEMENTED();
+  __sync_fetch_and_add(p, value);
 }
 
 
 inline uintptr_t AtomicOperations::FetchAndDecrement(uintptr_t* p) {
-  UNIMPLEMENTED();
-  return 0;
+  return __sync_fetch_and_sub(p, 1);
 }
 
 
 inline void AtomicOperations::DecrementBy(intptr_t* p, intptr_t value) {
-  UNIMPLEMENTED();
+  __sync_fetch_and_sub(p, value);
 }
 
 
@@ -48,16 +44,14 @@ inline void AtomicOperations::DecrementBy(intptr_t* p, intptr_t value) {
 inline uword AtomicOperations::CompareAndSwapWord(uword* ptr,
                                                   uword old_value,
                                                   uword new_value) {
-  UNIMPLEMENTED();
-  return 0;
+  return __sync_val_compare_and_swap(ptr, old_value, new_value);
 }
 
 
 inline uint32_t AtomicOperations::CompareAndSwapUint32(uint32_t* ptr,
                                                        uint32_t old_value,
                                                        uint32_t new_value) {
-  UNIMPLEMENTED();
-  return 0;
+  return __sync_val_compare_and_swap(ptr, old_value, new_value);
 }
 #endif  // !defined(USING_SIMULATOR_ATOMICS)
 

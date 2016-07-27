@@ -74,6 +74,7 @@ class Builtin {
   static const char* html_source_paths_[];
   static const char* html_common_source_paths_[];
   static const char* js_source_paths_[];
+  static const char* js_util_source_paths_[];
   static const char* blink_source_paths_[];
   static const char* indexeddb_source_paths_[];
   static const char* cached_patches_source_paths_[];

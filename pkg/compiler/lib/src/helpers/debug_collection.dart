@@ -131,12 +131,16 @@ class DebugIterable<E> implements Iterable<E> {
   E singleWhere(bool test(E element)) => iterable.singleWhere(test);
 
   E elementAt(int index) => iterable.elementAt(index);
+
+  String toString() => iterable.toString();
 }
 
 class DebugList<E> extends DebugIterable<E> implements List<E> {
   DebugCallback addCallback;
+  DebugCallback addAllCallback;
 
-  DebugList(List<E> list, {this.addCallback}) : super(list);
+  DebugList(List<E> list, {this.addCallback, this.addAllCallback})
+      : super(list);
 
   List<E> get list => iterable;
 
@@ -159,7 +163,12 @@ class DebugList<E> extends DebugIterable<E> implements List<E> {
     list.add(value);
   }
 
-  void addAll(Iterable<E> iterable) => list.addAll(iterable);
+  void addAll(Iterable<E> iterable) {
+    if (addAllCallback != null) {
+      addAllCallback('addAll', iterable, null);
+    }
+    list.addAll(iterable);
+  }
 
   Iterable<E> get reversed => list.reversed;
 

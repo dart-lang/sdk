@@ -46,7 +46,7 @@ abstract class AbstractAnalysisServerPerformanceTest
       expect(serverConnected.isCompleted, isFalse);
       serverConnected.complete();
     });
-    return startServer().then((_) {
+    return startServer(checked: false).then((_) {
       server.listenToOutput(dispatchNotification);
       server.exitCode.then((_) {
         skipShutdown = true;

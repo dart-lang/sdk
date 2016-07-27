@@ -101,8 +101,9 @@ class A {
 }
 class B {
   int test = 1;
+  int testTwo = 2;
   main() {
-    int test = 2;
+    int test = 3;
   }
 }
 ''');

@@ -523,7 +523,7 @@ class Driver implements CommandLineStarter {
   _PackageInfo _findPackages(CommandLineOptions options) {
     if (packageResolverProvider != null) {
       // The resolver provider will do all the work later.
-      return null;
+      return new _PackageInfo(null, null);
     }
 
     Packages packages;
@@ -648,6 +648,8 @@ class Driver implements CommandLineStarter {
     contextOptions.generateSdkErrors = options.showSdkWarnings;
     contextOptions.lint = options.lints;
     contextOptions.strongMode = options.strongMode;
+    contextOptions.implicitCasts = options.implicitCasts;
+    contextOptions.implicitDynamic = options.implicitDynamic;
     return contextOptions;
   }
 

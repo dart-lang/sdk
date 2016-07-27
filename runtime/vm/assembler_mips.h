@@ -1472,6 +1472,11 @@ class Assembler : public ValueObject {
     sra(dst, src, kSmiTagSize);
   }
 
+  void BranchIfNotSmi(Register reg, Label* label) {
+    andi(CMPRES1, reg, Immediate(kSmiTagMask));
+    bne(CMPRES1, ZR, label);
+  }
+
   void LoadFromOffset(Register reg, Register base, int32_t offset) {
     ASSERT(!in_delay_slot_);
     if (Utils::IsInt(kImmBits, offset)) {
@@ -1548,16 +1553,6 @@ class Assembler : public ValueObject {
   void LoadClass(Register result, Register object);
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
-
-  void ComputeRange(Register result,
-                    Register value,
-                    Label* miss);
-
-  void UpdateRangeFeedback(Register value,
-                           intptr_t index,
-                           Register ic_data,
-                           Register scratch,
-                           Label* miss);
 
   void StoreIntoObject(Register object,  // Object we are storing into.
                        const Address& dest,  // Where we are storing into.

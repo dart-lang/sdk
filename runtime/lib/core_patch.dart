@@ -11,13 +11,9 @@ _fatal(msg) native "DartCore_fatal";
 // The members of this class are cloned and added to each class that
 // represents an enum type.
 class _EnumHelper {
-  // Declare the list of enum value names private. When this field is
-  // cloned into a user-defined enum class, the field will be inaccessible
-  // because of the library-specific name suffix. The toString() function
-  // below can access it because it uses the same name suffix.
-  static const List<String> _enum_names = null;
-  String toString() => _enum_names[index];
-  int get hashCode => _enum_names[index].hashCode;
+  String _name;
+  String toString() => _name;
+  int get hashCode => _name.hashCode;
 }
 
 // _SyncIterable and _syncIterator are used by the compiler to

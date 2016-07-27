@@ -11,10 +11,8 @@ patch class Null {
   }
 
   static const _HASH_CODE = 2011; // The year Dart was announced and a prime.
-  int get _identityHashCode => _HASH_CODE;
   int get hashCode => _HASH_CODE;
+  int get _identityHashCode => _HASH_CODE;
 
-  String toString() {
-    return 'null';
-  }
+  String toString() => 'null';
 }

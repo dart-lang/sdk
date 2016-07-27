@@ -4,6 +4,7 @@
 
 #include "vm/object.h"
 
+#include "vm/hash_table.h"
 #include "vm/isolate_reload.h"
 #include "vm/log.h"
 #include "vm/resolver.h"
@@ -14,9 +15,9 @@ namespace dart {
 #ifndef PRODUCT
 
 DECLARE_FLAG(bool, trace_reload);
+DECLARE_FLAG(bool, trace_reload_verbose);
 DECLARE_FLAG(bool, two_args_smi_icd);
 
-#define IRC (Isolate::Current()->reload_context())
 
 class ObjectReloadUtils : public AllStatic {
   static void DumpLibraryDictionary(const Library& lib) {
@@ -141,6 +142,8 @@ void Class::CopyStaticFieldValues(const Class& old_cls) const {
 
 void Class::CopyCanonicalConstants(const Class& old_cls) const {
   if (is_enum_class()) {
+    // We do not copy enum classes's canonical constants because we explicitly
+    // become the old enum values to the new enum values.
     return;
   }
 #if defined(DEBUG)
@@ -171,31 +174,47 @@ void Class::CopyCanonicalType(const Class& old_cls) const {
 }
 
 
-static intptr_t IndexOfEnum(const Array& enum_names, const String& name) {
-  ASSERT(!enum_names.IsNull());
-  ASSERT(!name.IsNull());
-  String& enum_name = String::Handle();
-  for (intptr_t i = 0; i < enum_names.Length(); i++) {
-    enum_name = String::RawCast(enum_names.At(i));
-    ASSERT(!enum_name.IsNull());
-    if (enum_name.Equals(name)) {
-      return i;
-    }
+class EnumMapTraits {
+ public:
+  static bool ReportStats() { return false; }
+  static const char* Name() { return "EnumMapTraits"; }
+
+  static bool IsMatch(const Object& a, const Object& b) {
+    return a.raw() == b.raw();
   }
 
-  return -1;
-}
+  static uword Hash(const Object& obj) {
+    ASSERT(obj.IsString());
+    return String::Cast(obj).Hash();
+  }
+};
 
 
-static void UpdateEnumIndex(const Instance& enum_value,
-                            const Field& enum_index_field,
-                            const intptr_t index) {
-  enum_value.SetField(enum_index_field, Smi::Handle(Smi::New(index)));
-}
-
-
-// TODO(johnmccutchan): The code in the class finalizer canonicalizes all
-// instances and the values array. We probably should do the same thing.
+// Given an old enum class, add become mappings from old values to new values.
+// Some notes about how we reload enums below:
+//
+// When an enum is reloaded the following three things can happen, possibly
+// simultaneously.
+//
+// 1) A new enum value is added.
+//   This case is handled automatically.
+// 2) Enum values are reordered.
+//   We pair old and new enums and the old enums 'become' the new ones so
+//   the ordering is always correct (i.e. enum indicies match slots in values
+//   array)
+// 3) An existing enum value is removed.
+//   We leave old enum values that have no mapping to the reloaded class
+//   in the heap. This means that if a programmer does the following:
+//   enum Foo { A, B }; var x = Foo.A;
+//   *reload*
+//   enum Foo { B };
+//   *reload*
+//   enum Foo { A, B }; expect(identical(x, Foo.A));
+//   The program will fail because we were not able to pair Foo.A on the second
+//   reload.
+//
+//   Deleted enum values still in the heap continue to function but their
+//   index field will not be valid.
 void Class::ReplaceEnum(const Class& old_enum) const {
   // We only do this for finalized enum classes.
   ASSERT(is_enum_class());
@@ -204,160 +223,98 @@ void Class::ReplaceEnum(const Class& old_enum) const {
   ASSERT(old_enum.is_finalized());
 
   Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   IsolateReloadContext* reload_context = Isolate::Current()->reload_context();
   ASSERT(reload_context != NULL);
 
-  TIR_Print("ReplaceEnum `%s` (%" Pd " and %" Pd ")\n",
-            ToCString(), id(), old_enum.id());
+  Array& enum_fields = Array::Handle(zone);
+  Field& field = Field::Handle(zone);
+  String& enum_ident = String::Handle();
+  Instance& old_enum_value = Instance::Handle(zone);
+  Instance& enum_value = Instance::Handle(zone);
 
-  // Grab '_enum_names' from |old_enum|.
-  const Field& old_enum_names_field = Field::Handle(
-      old_enum.LookupStaticFieldAllowPrivate(Symbols::_EnumNames()));
-  ASSERT(!old_enum_names_field.IsNull());
-  const Array& old_enum_names =
-      Array::Handle(Array::RawCast(old_enum_names_field.StaticValue()));
-  ASSERT(!old_enum_names.IsNull());
+  Array& enum_map_storage = Array::Handle(zone,
+      HashTables::New<UnorderedHashMap<EnumMapTraits> >(4));
+  ASSERT(!enum_map_storage.IsNull());
 
-  // Grab 'values' from |old_enum|.
-  const Field& old_enum_values_field = Field::Handle(
-      old_enum.LookupStaticField(Symbols::Values()));
-  ASSERT(!old_enum_values_field.IsNull());
-  const Array& old_enum_values =
-      Array::Handle(Array::RawCast(old_enum_values_field.StaticValue()));
-  ASSERT(!old_enum_values.IsNull());
+  TIR_Print("Replacing enum `%s`\n", String::Handle(Name()).ToCString());
 
-  // Grab _enum_names from |this|.
-  const Field& enum_names_field = Field::Handle(
-      LookupStaticFieldAllowPrivate(Symbols::_EnumNames()));
-  ASSERT(!enum_names_field.IsNull());
-  Array& enum_names =
-      Array::Handle(Array::RawCast(enum_names_field.StaticValue()));
-  ASSERT(!enum_names.IsNull());
-
-  // Grab values from |this|.
-  const Field& enum_values_field = Field::Handle(
-      LookupStaticField(Symbols::Values()));
-  ASSERT(!enum_values_field.IsNull());
-  Array& enum_values =
-      Array::Handle(Array::RawCast(enum_values_field.StaticValue()));
-  ASSERT(!enum_values.IsNull());
-
-  // Grab the |index| field.
-  const Field& index_field =
-      Field::Handle(old_enum.LookupInstanceField(Symbols::Index()));
-  ASSERT(!index_field.IsNull());
-
-  // Build list of enum from |old_enum| that aren't present in |this|.
-  // This array holds pairs: (name, value).
-  const GrowableObjectArray& to_add =
-      GrowableObjectArray::Handle(GrowableObjectArray::New(Heap::kOld));
-  const String& enum_class_name = String::Handle(UserVisibleName());
-  String& enum_name = String::Handle();
-  String& enum_field_name = String::Handle();
-  Object& enum_value = Object::Handle();
-  Field& enum_field = Field::Handle();
-
-  TIR_Print("New version of enum has %" Pd " elements\n",
-            enum_values.Length());
-  TIR_Print("Old version of enum had %" Pd " elements\n",
-            old_enum_values.Length());
-
-  for (intptr_t i = 0; i < old_enum_names.Length(); i++) {
-    enum_name = String::RawCast(old_enum_names.At(i));
-    const intptr_t index_in_new_cls = IndexOfEnum(enum_names, enum_name);
-    if (index_in_new_cls < 0) {
-      // Doesn't exist in new enum, add.
-      TIR_Print("Adding enum value `%s` to %s\n",
-                enum_name.ToCString(),
-                this->ToCString());
-      enum_value = old_enum_values.At(i);
-      ASSERT(!enum_value.IsNull());
-      to_add.Add(enum_name);
-      to_add.Add(enum_value);
-    } else {
-      // Exists in both the new and the old.
-      TIR_Print("Moving enum value `%s` to %" Pd "\n",
-                enum_name.ToCString(),
-                index_in_new_cls);
-      // Grab old value.
-      enum_value = old_enum_values.At(i);
-      // Update index to the be new index.
-      UpdateEnumIndex(Instance::Cast(enum_value),
-                      index_field,
-                      index_in_new_cls);
-      // Chop off the 'EnumClass.'
-      enum_field_name = String::SubString(enum_name,
-                                          enum_class_name.Length() + 1);
-      ASSERT(!enum_field_name.IsNull());
-      // Grab the static field.
-      enum_field = LookupStaticField(enum_field_name);
-      ASSERT(!enum_field.IsNull());
-      // Use old value with updated index.
-      enum_field.SetStaticValue(Instance::Cast(enum_value), true);
-      enum_values.SetAt(index_in_new_cls, enum_value);
-      enum_names.SetAt(index_in_new_cls, enum_name);
+  {
+    UnorderedHashMap<EnumMapTraits> enum_map(enum_map_storage.raw());
+    // Build a map of all enum name -> old enum instance.
+    enum_fields = old_enum.fields();
+    for (intptr_t i = 0; i < enum_fields.Length(); i++) {
+      field = Field::RawCast(enum_fields.At(i));
+      enum_ident = field.name();
+      if (!field.is_static()) {
+        // Enum instances are only held in static fields.
+        continue;
+      }
+      if (enum_ident.Equals(Symbols::Values())) {
+        // Non-enum instance.
+        continue;
+      }
+      old_enum_value = field.StaticValue();
+      ASSERT(!old_enum_value.IsNull());
+      VTIR_Print("Element %s being added to mapping\n", enum_ident.ToCString());
+      bool update = enum_map.UpdateOrInsert(enum_ident, old_enum_value);
+      VTIR_Print("Element %s added to mapping\n", enum_ident.ToCString());
+      ASSERT(!update);
     }
+    // The storage given to the map may have been reallocated, remember the new
+    // address.
+    enum_map_storage = enum_map.Release().raw();
   }
 
-  if (to_add.Length() == 0) {
-    // Nothing to do.
-    TIR_Print("Found no missing enums in %s\n", ToCString());
-    return;
+  bool enums_deleted = false;
+  {
+    UnorderedHashMap<EnumMapTraits> enum_map(enum_map_storage.raw());
+    // Add a become mapping from the old instances to the new instances.
+    enum_fields = fields();
+    for (intptr_t i = 0; i < enum_fields.Length(); i++) {
+      field = Field::RawCast(enum_fields.At(i));
+      enum_ident = field.name();
+      if (!field.is_static()) {
+        // Enum instances are only held in static fields.
+        continue;
+      }
+      if (enum_ident.Equals(Symbols::Values())) {
+        // Non-enum instance.
+        continue;
+      }
+      enum_value = field.StaticValue();
+      ASSERT(!enum_value.IsNull());
+      old_enum_value ^= enum_map.GetOrNull(enum_ident);
+      if (old_enum_value.IsNull()) {
+        VTIR_Print("New element %s was not found in mapping\n",
+                   enum_ident.ToCString());
+      } else {
+        VTIR_Print("Adding element `%s` to become mapping\n",
+                   enum_ident.ToCString());
+        bool removed = enum_map.Remove(enum_ident);
+        ASSERT(removed);
+        reload_context->AddEnumBecomeMapping(old_enum_value, enum_value);
+      }
+    }
+    enums_deleted = enum_map.NumOccupied() > 0;
+    // The storage given to the map may have been reallocated, remember the new
+    // address.
+    enum_map_storage = enum_map.Release().raw();
   }
 
-  // Grow the values and enum_names arrays.
-  const intptr_t offset = enum_names.Length();
-  const intptr_t num_to_add = to_add.Length() / 2;
-  ASSERT(offset == enum_values.Length());
-  enum_names = Array::Grow(enum_names,
-                           enum_names.Length() + num_to_add,
-                           Heap::kOld);
-  enum_values = Array::Grow(enum_values,
-                            enum_values.Length() + num_to_add,
-                            Heap::kOld);
-
-  // Install new names and values into the grown arrays. Also, update
-  // the index of the new enum values and add static fields for the new
-  // enum values.
-  Field& enum_value_field = Field::Handle();
-  for (intptr_t i = 0; i < num_to_add; i++) {
-    const intptr_t target_index = offset + i;
-    enum_name = String::RawCast(to_add.At(i * 2));
-    enum_value = to_add.At(i * 2 + 1);
-
-    // Update the enum value's index into the new arrays.
-    TIR_Print("Updating index of %s in %s to %" Pd "\n",
-              enum_name.ToCString(),
-              ToCString(),
-              target_index);
-    UpdateEnumIndex(Instance::Cast(enum_value), index_field, target_index);
-
-    enum_names.SetAt(target_index, enum_name);
-    enum_values.SetAt(target_index, enum_value);
-
-    // Install new static field into class.
-    // Chop off the 'EnumClass.'
-    enum_field_name = String::SubString(enum_name,
-                                        enum_class_name.Length() + 1);
-    ASSERT(!enum_field_name.IsNull());
-    enum_field_name = Symbols::New(thread, enum_field_name);
-    enum_value_field = Field::New(enum_field_name,
-                                  /* is_static = */ true,
-                                  /* is_final = */ true,
-                                  /* is_const = */ true,
-                                  /* is_reflectable = */ true,
-                                  *this,
-                                  Object::dynamic_type(),
-                                  token_pos());
-    enum_value_field.set_has_initializer(false);
-    enum_value_field.SetStaticValue(Instance::Cast(enum_value), true);
-    enum_value_field.RecordStore(Instance::Cast(enum_value));
-    AddField(enum_value_field);
+  if (enums_deleted && FLAG_trace_reload_verbose) {
+    // TODO(johnmccutchan): Add this to the reload 'notices' list.
+    VTIR_Print("The following enum values were deleted and are forever lost in "
+               "the heap:\n");
+    UnorderedHashMap<EnumMapTraits> enum_map(enum_map_storage.raw());
+    UnorderedHashMap<EnumMapTraits>::Iterator it(&enum_map);
+    while (it.MoveNext()) {
+      const intptr_t entry = it.Current();
+      enum_ident = String::RawCast(enum_map.GetKey(entry));
+      ASSERT(!enum_ident.IsNull());
+    }
+    enum_map.Release();
   }
-
-  // Replace the arrays stored in the static fields.
-  enum_names_field.SetStaticValue(enum_names, true);
-  enum_values_field.SetStaticValue(enum_values, true);
 }
 
 
@@ -406,132 +363,256 @@ void Class::PatchFieldsAndFunctions() const {
 }
 
 
-bool Class::CanReload(const Class& replacement) const {
+class EnumClassConflict : public ClassReasonForCancelling {
+ public:
+  EnumClassConflict(const Class& from, const Class& to)
+      : ClassReasonForCancelling(from, to) { }
+
+  RawString* ToString() {
+    return String::NewFormatted(
+        from_.is_enum_class()
+        ? "Enum class cannot be redefined to be a non-enum class: %s"
+        : "Class cannot be redefined to be a enum class: %s",
+        from_.ToCString());
+  }
+};
+
+
+class EnsureFinalizedError : public ClassReasonForCancelling {
+ public:
+  EnsureFinalizedError(const Class& from, const Class& to, const Error& error)
+      : ClassReasonForCancelling(from, to), error_(error) { }
+
+ private:
+  const Error& error_;
+
+  RawError* ToError() { return error_.raw(); }
+};
+
+
+class NativeFieldsConflict : public ClassReasonForCancelling {
+ public:
+  NativeFieldsConflict(const Class& from, const Class& to)
+      : ClassReasonForCancelling(from, to) { }
+
+ private:
+  RawString* ToString() {
+    return String::NewFormatted(
+        "Number of native fields changed in %s", from_.ToCString());
+  }
+};
+
+
+class TypeParametersChanged : public ClassReasonForCancelling {
+ public:
+  TypeParametersChanged(const Class& from, const Class& to)
+      : ClassReasonForCancelling(from, to) {}
+
+  RawString* ToString() {
+    return String::NewFormatted(
+        "Limitation: type parameters have changed for %s", from_.ToCString());
+  }
+};
+
+
+class PreFinalizedConflict :  public ClassReasonForCancelling {
+ public:
+  PreFinalizedConflict(const Class& from, const Class& to)
+      : ClassReasonForCancelling(from, to) {}
+
+ private:
+  RawString* ToString() {
+    return String::NewFormatted(
+        "Original class ('%s') is prefinalized and replacement class "
+        "('%s') is not ",
+        from_.ToCString(), to_.ToCString());
+  }
+};
+
+
+class InstanceSizeConflict :  public ClassReasonForCancelling {
+ public:
+  InstanceSizeConflict(const Class& from, const Class& to)
+      : ClassReasonForCancelling(from, to) {}
+
+ private:
+  RawString* ToString() {
+    return String::NewFormatted(
+        "Instance size mismatch between '%s' (%" Pd ") and replacement "
+        "'%s' ( %" Pd ")",
+        from_.ToCString(),
+        from_.instance_size(),
+        to_.ToCString(),
+        to_.instance_size());
+  }
+};
+
+
+class UnimplementedDeferredLibrary : public ReasonForCancelling {
+ public:
+  UnimplementedDeferredLibrary(const Library& from,
+                               const Library& to,
+                               const String& name)
+      : ReasonForCancelling(), from_(from), to_(to), name_(name) {}
+
+ private:
+  const Library& from_;
+  const Library& to_;
+  const String& name_;
+
+  RawString* ToString() {
+    const String& lib_url = String::Handle(to_.url());
+    from_.ToCString();
+    return String::NewFormatted(
+        "Reloading support for deferred loading has not yet been implemented:"
+        " library '%s' has deferred import '%s'",
+        lib_url.ToCString(), name_.ToCString());
+  }
+};
+
+
+// This is executed before interating over the instances.
+void Class::CheckReload(const Class& replacement,
+                        IsolateReloadContext* context) const {
   ASSERT(IsolateReloadContext::IsSameClass(*this, replacement));
 
-  if (is_enum_class() && !replacement.is_enum_class()) {
-    IRC->ReportError(String::Handle(String::NewFormatted(
-        "Enum class cannot be redefined to be a non-enum class: %s",
-        ToCString())));
-    return false;
-  }
-
-  if (!is_enum_class() && replacement.is_enum_class()) {
-    IRC->ReportError(String::Handle(String::NewFormatted(
-        "Class cannot be redefined to be a enum class: %s",
-        ToCString())));
-    return false;
+  // Class cannot change enum property.
+  if (is_enum_class() != replacement.is_enum_class()) {
+    context->AddReasonForCancelling(
+        new EnumClassConflict(*this, replacement));
+    return;
   }
 
   if (is_finalized()) {
+    // Ensure the replacement class is also finalized.
     const Error& error =
         Error::Handle(replacement.EnsureIsFinalized(Thread::Current()));
     if (!error.IsNull()) {
-      IRC->ReportError(error);
-      return false;
+      context->AddReasonForCancelling(
+          new EnsureFinalizedError(*this, replacement, error));
+      return;  // No reason to check other properties.
     }
     TIR_Print("Finalized replacement class for %s\n", ToCString());
   }
 
-  // At this point the original and replacement must be in the same state.
-  ASSERT(is_finalized() == replacement.is_finalized());
+  // Native field count cannot change.
+  if (num_native_fields() != replacement.num_native_fields()) {
+      context->AddReasonForCancelling(
+          new NativeFieldsConflict(*this, replacement));
+      return;
+  }
+
+  // Just checking.
+  ASSERT(is_enum_class() == replacement.is_enum_class());
+  ASSERT(num_native_fields() == replacement.num_native_fields());
 
   if (is_finalized()) {
-    // Get the field maps for both classes. These field maps walk the class
-    // hierarchy.
-    const Array& fields =
-        Array::Handle(OffsetToFieldMap());
-    const Array& replacement_fields =
-        Array::Handle(replacement.OffsetToFieldMap());
-
-    // Check that the size of the instance is the same.
-    if (fields.Length() != replacement_fields.Length()) {
-      IRC->ReportError(String::Handle(String::NewFormatted(
-          "Number of instance fields changed in %s", ToCString())));
-      return false;
-    }
-
-    // Check that we have the same next field offset. This check is not
-    // redundant with the one above because the instance OffsetToFieldMap
-    // array length is based on the instance size (which may be aligned up).
-    if (next_field_offset() != replacement.next_field_offset()) {
-      IRC->ReportError(String::Handle(String::NewFormatted(
-          "Number of instance fields changed in %s", ToCString())));
-      return false;
-    }
-
-    if (NumTypeArguments() != replacement.NumTypeArguments()) {
-      IRC->ReportError(String::Handle(String::NewFormatted(
-          "Number of type arguments changed in %s", ToCString())));
-      return false;
-    }
-
-    // Verify that field names / offsets match across the entire hierarchy.
-    Field& field = Field::Handle();
-    String& field_name = String::Handle();
-    Field& replacement_field = Field::Handle();
-    String& replacement_field_name = String::Handle();
-    for (intptr_t i = 0; i < fields.Length(); i++) {
-      if (fields.At(i) == Field::null()) {
-        ASSERT(replacement_fields.At(i) == Field::null());
-        continue;
-      }
-      field = Field::RawCast(fields.At(i));
-      replacement_field = Field::RawCast(replacement_fields.At(i));
-      field_name = field.name();
-      replacement_field_name = replacement_field.name();
-      if (!field_name.Equals(replacement_field_name)) {
-        IRC->ReportError(String::Handle(String::NewFormatted(
-            "Name of instance field changed ('%s' vs '%s') in '%s'",
-            field_name.ToCString(),
-            replacement_field_name.ToCString(),
-            ToCString())));
-        return false;
-      }
-    }
-  } else if (is_prefinalized()) {
-    if (!replacement.is_prefinalized()) {
-      IRC->ReportError(String::Handle(String::NewFormatted(
-          "Original class ('%s') is prefinalized and replacement class "
-          "('%s') is not ",
-          ToCString(), replacement.ToCString())));
-      return false;
-    }
-    if (instance_size() != replacement.instance_size()) {
-     IRC->ReportError(String::Handle(String::NewFormatted(
-         "Instance size mismatch between '%s' (%" Pd ") and replacement "
-         "'%s' ( %" Pd ")",
-         ToCString(),
-         instance_size(),
-         replacement.ToCString(),
-         replacement.instance_size())));
-     return false;
-    }
+    if (!CanReloadFinalized(replacement, context)) return;
   }
+  if (is_prefinalized()) {
+    if (!CanReloadPreFinalized(replacement, context)) return;
+  }
+  ASSERT(is_finalized() == replacement.is_finalized());
+  TIR_Print("Class `%s` can be reloaded (%" Pd " and %" Pd ")\n",
+            ToCString(), id(), replacement.id());
+}
 
-  // native field count check.
-  if (num_native_fields() != replacement.num_native_fields()) {
-    IRC->ReportError(String::Handle(String::NewFormatted(
-        "Number of native fields changed in %s", ToCString())));
+
+
+bool Class::RequiresInstanceMorphing(const Class& replacement) const {
+  // Get the field maps for both classes. These field maps walk the class
+  // hierarchy.
+  const Array& fields = Array::Handle(OffsetToFieldMap());
+  const Array& replacement_fields
+      = Array::Handle(replacement.OffsetToFieldMap());
+
+  // Check that the size of the instance is the same.
+  if (fields.Length() != replacement_fields.Length()) return true;
+
+  // Check that we have the same next field offset. This check is not
+  // redundant with the one above because the instance OffsetToFieldMap
+  // array length is based on the instance size (which may be aligned up).
+  if (next_field_offset() != replacement.next_field_offset()) return true;
+
+  // Verify that field names / offsets match across the entire hierarchy.
+  Field& field = Field::Handle();
+  String& field_name = String::Handle();
+  Field& replacement_field = Field::Handle();
+  String& replacement_field_name = String::Handle();
+
+  for (intptr_t i = 0; i < fields.Length(); i++) {
+    if (fields.At(i) == Field::null()) {
+      ASSERT(replacement_fields.At(i) == Field::null());
+      continue;
+    }
+    field = Field::RawCast(fields.At(i));
+    replacement_field = Field::RawCast(replacement_fields.At(i));
+    field_name = field.name();
+    replacement_field_name = replacement_field.name();
+    if (!field_name.Equals(replacement_field_name)) return true;
+  }
+  return false;
+}
+
+
+bool Class::CanReloadFinalized(const Class& replacement,
+                               IsolateReloadContext* context) const {
+  // Make sure the declaration types matches for the two classes.
+  // ex. class A<int,B> {} cannot be replace with class A<B> {}.
+
+  const AbstractType& dt = AbstractType::Handle(DeclarationType());
+  const AbstractType& replacement_dt =
+      AbstractType::Handle(replacement.DeclarationType());
+  if (!dt.Equals(replacement_dt)) {
+    context->AddReasonForCancelling(
+        new TypeParametersChanged(*this, replacement));
     return false;
   }
-
-  // TODO(johnmccutchan) type parameter count check.
-
-  TIR_Print("Class `%s` can be reloaded (%" Pd " and %" Pd ")\n",
-            ToCString(),
-            id(),
-            replacement.id());
+  if (RequiresInstanceMorphing(replacement)) {
+    context->AddInstanceMorpher(new InstanceMorpher(*this, replacement));
+  }
   return true;
 }
 
 
-bool Library::CanReload(const Library& replacement) const {
+bool Class::CanReloadPreFinalized(const Class& replacement,
+                                  IsolateReloadContext* context) const {
+  // The replacement class must also prefinalized.
+  if (!replacement.is_prefinalized()) {
+      context->AddReasonForCancelling(
+          new PreFinalizedConflict(*this, replacement));
+      return false;
+  }
+  // Check the instance sizes are equal.
+  if (instance_size() != replacement.instance_size()) {
+      context->AddReasonForCancelling(
+          new InstanceSizeConflict(*this, replacement));
+      return false;
+  }
   return true;
+}
+
+
+void Library::CheckReload(const Library& replacement,
+                          IsolateReloadContext* context) const {
+  // TODO(26878): If the replacement library uses deferred loading,
+  // reject it.  We do not yet support reloading deferred libraries.
+  LibraryPrefix& prefix = LibraryPrefix::Handle();
+  LibraryPrefixIterator it(replacement);
+  while (it.HasNext()) {
+    prefix = it.GetNext();
+    if (prefix.is_deferred_load()) {
+      const String& prefix_name = String::Handle(prefix.name());
+      context->AddReasonForCancelling(
+          new UnimplementedDeferredLibrary(*this, replacement, prefix_name));
+      return;
+    }
+  }
 }
 
 
 static const Function* static_call_target = NULL;
+
 
 void ICData::Reset() const {
   if (is_static_call()) {
@@ -540,22 +621,62 @@ void ICData::Reset() const {
       FATAL("old_target is NULL.\n");
     }
     static_call_target = &old_target;
-    if (!old_target.is_static()) {
-      // TODO(johnmccutchan): Improve this.
-      TIR_Print("Cannot rebind super-call to %s from %s\n",
-                old_target.ToCString(),
-                Object::Handle(Owner()).ToCString());
-      return;
-    }
+
     const String& selector = String::Handle(old_target.name());
-    const Class& cls = Class::Handle(old_target.Owner());
-    const Function& new_target =
-        Function::Handle(cls.LookupStaticFunction(selector));
-    if (new_target.IsNull()) {
-      // TODO(johnmccutchan): Improve this.
-      TIR_Print("Cannot rebind static call to %s from %s\n",
-                old_target.ToCString(),
-                Object::Handle(Owner()).ToCString());
+    Function& new_target = Function::Handle();
+    if (!old_target.is_static()) {
+      if (old_target.kind() == RawFunction::kConstructor) {
+        return;  // Super constructor call.
+      }
+      Function& caller = Function::Handle();
+      caller ^= Owner();
+      ASSERT(!caller.is_static());
+      Class& cls = Class::Handle(caller.Owner());
+      if (cls.raw() == old_target.Owner()) {
+        // Dispatcher.
+        if (caller.IsImplicitClosureFunction()) {
+          return;  // Tear-off.
+        }
+        if (caller.kind() == RawFunction::kNoSuchMethodDispatcher) {
+          // TODO(rmacnak): noSuchMethod might have been redefined.
+          return;
+        }
+        const Function& caller_parent =
+            Function::Handle(caller.parent_function());
+        if (!caller_parent.IsNull()) {
+          if (caller_parent.kind() == RawFunction::kInvokeFieldDispatcher) {
+            return;  // Call-through-getter.
+          }
+        }
+        FATAL2("Unexpected dispatcher-like call site: %s from %s\n",
+               selector.ToCString(), caller.ToQualifiedCString());
+      }
+      // Super call.
+      cls = cls.SuperClass();
+      while (!cls.IsNull()) {
+        // TODO(rmacnak): Should use Resolver::ResolveDynamicAnyArgs to handle
+        // method-extractors and call-through-getters, but we're in a no
+        // safepoint scope here.
+        new_target = cls.LookupDynamicFunction(selector);
+        if (!new_target.IsNull()) {
+          break;
+        }
+        cls = cls.SuperClass();
+      }
+    } else {
+      // This can be incorrect if the call site was an unqualified invocation.
+      const Class& cls = Class::Handle(old_target.Owner());
+      new_target = cls.LookupStaticFunction(selector);
+    }
+
+    const Array& args_desc_array = Array::Handle(arguments_descriptor());
+    ArgumentsDescriptor args_desc(args_desc_array);
+    if (new_target.IsNull() ||
+        !new_target.AreValidArguments(args_desc, NULL)) {
+      // TODO(rmacnak): Patch to a NSME stub.
+      VTIR_Print("Cannot rebind static call to %s from %s\n",
+                 old_target.ToCString(),
+                 Object::Handle(Owner()).ToCString());
       return;
     }
     ClearAndSetStaticTarget(new_target);

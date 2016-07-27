@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:math';
 import 'observatory_element.dart';
-import 'nav_bar.dart';
 import 'package:observatory/app.dart';
 import 'package:observatory/cli.dart';
 import 'package:observatory/debugger.dart';
@@ -2005,7 +2004,8 @@ class DebuggerPageElement extends ObservatoryElement {
     var cmdDiv = $['commandDiv'];
 
     // For now, force navbar height to 40px in the debugger.
-    int navbarHeight = NavBarElement.height;
+    // TODO (cbernaschina) check if this is needed.
+    const navbarHeight = 40;
     int splitterHeight = splitterDiv.clientHeight;
     int cmdHeight = cmdDiv.clientHeight;
 
@@ -2255,7 +2255,8 @@ class DebuggerFrameElement extends ObservatoryElement {
     if (varsDiv == null) {
       return minTop;
     }
-    const navbarHeight = NavBarElement.height;
+    // TODO (cbernaschina) check if this is needed.
+    const navbarHeight = 40;
     const bottomPad = 6;
     var parent = varsDiv.parent.getBoundingClientRect();
     var varsHeight = varsDiv.clientHeight;

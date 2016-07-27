@@ -19,6 +19,7 @@ const Iterable<String> _allowedDartSchemePaths = const <String>[
   'html_common',
   'indexed_db',
   'js',
+  'js_util',
   'svg',
   '_native_typed_data',
   'web_audio',

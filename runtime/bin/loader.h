@@ -37,6 +37,8 @@ class Loader {
     return error_;
   }
 
+  static void InitOnce();
+
  private:
   // The port assigned to our native message handler.
   Dart_Port port_;
@@ -124,7 +126,7 @@ class Loader {
   };
 
   // The map of active loaders.
-  static Mutex loader_infos_lock_;
+  static Mutex* loader_infos_lock_;
   static LoaderInfo* loader_infos_;
   static intptr_t loader_infos_length_;
   static intptr_t loader_infos_capacity_;

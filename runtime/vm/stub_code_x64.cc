@@ -783,7 +783,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Set up arguments for the Dart call.
   Label push_arguments;
   Label done_push_arguments;
-  __ testq(RBX, RBX);  // check if there are arguments.
   __ j(ZERO, &done_push_arguments, Assembler::kNearJump);
   __ movq(RAX, Immediate(0));
   __ Bind(&push_arguments);
@@ -1227,8 +1226,7 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
 static void EmitFastSmiOp(Assembler* assembler,
                           Token::Kind kind,
                           intptr_t num_args,
-                          Label* not_smi_or_overflow,
-                          bool should_update_result_range) {
+                          Label* not_smi_or_overflow) {
   __ Comment("Fast Smi op");
   ASSERT(num_args == 2);
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Right
@@ -1260,14 +1258,6 @@ static void EmitFastSmiOp(Assembler* assembler,
       break;
     }
     default: UNIMPLEMENTED();
-  }
-
-
-  if (should_update_result_range) {
-    Label done;
-    __ movq(RSI, RAX);
-    __ UpdateRangeFeedback(RSI, 2, RBX, RCX, &done);
-    __ Bind(&done);
   }
 
   // RBX: IC data object (preserved).
@@ -1318,7 +1308,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     intptr_t num_args,
     const RuntimeEntry& handle_ic_miss,
     Token::Kind kind,
-    RangeCollectionMode range_collection_mode,
     bool optimized) {
   ASSERT(num_args > 0);
 #if defined(DEBUG)
@@ -1344,25 +1333,13 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ Bind(&done_stepping);
   }
 
-  __ Comment("Range feedback collection");
   Label not_smi_or_overflow;
-  if (range_collection_mode == kCollectRanges) {
-    ASSERT((num_args == 1) || (num_args == 2));
-    if (num_args == 2) {
-      __ movq(RAX, Address(RSP, + 2 * kWordSize));
-      __ UpdateRangeFeedback(RAX, 0, RBX, RCX, &not_smi_or_overflow);
-    }
-
-    __ movq(RAX, Address(RSP, + 1 * kWordSize));
-    __ UpdateRangeFeedback(RAX, (num_args - 1), RBX, RCX, &not_smi_or_overflow);
-  }
   if (kind != Token::kILLEGAL) {
     EmitFastSmiOp(
         assembler,
         kind,
         num_args,
-        &not_smi_or_overflow,
-        range_collection_mode == kCollectRanges);
+        &not_smi_or_overflow);
   }
   __ Bind(&not_smi_or_overflow);
 
@@ -1475,34 +1452,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ Bind(&call_target_function);
   // RAX: Target function.
   Label is_compiled;
-  if (range_collection_mode == kCollectRanges) {
-    __ movq(R13, FieldAddress(RAX, Function::code_offset()));
-    __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
-    __ movq(R8, Address(RSP, + 1 * kWordSize));
-    if (num_args == 2) {
-      __ movq(R9, Address(RSP, + 2 * kWordSize));
-    }
-    __ EnterStubFrame();
-    __ pushq(RBX);
-    if (num_args == 2) {
-      __ pushq(R9);
-    }
-    __ pushq(R8);
-    __ movq(CODE_REG, R13);
-    __ call(RCX);
-
-    Label done;
-    __ movq(RDX, RAX);
-    __ movq(RBX, Address(RBP, kFirstLocalSlotFromFp * kWordSize));
-    __ UpdateRangeFeedback(RDX, 2, RBX, RCX, &done);
-    __ Bind(&done);
-    __ LeaveStubFrame();
-    __ ret();
-  } else {
-    __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
-    __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
-    __ jmp(RCX);
-  }
+  __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
+  __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
+  __ jmp(RCX);
 
   if (FLAG_support_debugger && !optimized) {
     __ Bind(&stepping);
@@ -1531,8 +1483,7 @@ void StubCode::GenerateOneArgCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, RCX);
   GenerateNArgsCheckInlineCacheStub(assembler, 1,
       kInlineCacheMissHandlerOneArgRuntimeEntry,
-      Token::kILLEGAL,
-      kIgnoreRanges);
+      Token::kILLEGAL);
 }
 
 
@@ -1540,8 +1491,7 @@ void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, RCX);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
       kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-      Token::kILLEGAL,
-      kIgnoreRanges);
+      Token::kILLEGAL);
 }
 
 
@@ -1549,8 +1499,7 @@ void StubCode::GenerateSmiAddInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, RCX);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
       kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-      Token::kADD,
-      kCollectRanges);
+      Token::kADD);
 }
 
 
@@ -1558,8 +1507,7 @@ void StubCode::GenerateSmiSubInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, RCX);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
       kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-      Token::kSUB,
-      kCollectRanges);
+      Token::kSUB);
 }
 
 
@@ -1567,28 +1515,7 @@ void StubCode::GenerateSmiEqualInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, RCX);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
       kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-      Token::kEQ,
-      kIgnoreRanges);
-}
-
-
-void StubCode::GenerateUnaryRangeCollectingInlineCacheStub(
-    Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, RCX);
-  GenerateNArgsCheckInlineCacheStub(assembler, 1,
-      kInlineCacheMissHandlerOneArgRuntimeEntry,
-      Token::kILLEGAL,
-      kCollectRanges);
-}
-
-
-void StubCode::GenerateBinaryRangeCollectingInlineCacheStub(
-    Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, RCX);
-  GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-      Token::kILLEGAL,
-      kCollectRanges);
+      Token::kEQ);
 }
 
 
@@ -1609,7 +1536,7 @@ void StubCode::GenerateOneArgOptimizedCheckInlineCacheStub(
   GenerateNArgsCheckInlineCacheStub(assembler, 1,
       kInlineCacheMissHandlerOneArgRuntimeEntry,
       Token::kILLEGAL,
-      kIgnoreRanges, true /* optimized */);
+      true /* optimized */);
 }
 
 
@@ -1619,7 +1546,7 @@ void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
       kInlineCacheMissHandlerTwoArgsRuntimeEntry,
       Token::kILLEGAL,
-      kIgnoreRanges, true /* optimized */);
+      true /* optimized */);
 }
 
 
@@ -1702,8 +1629,7 @@ void StubCode::GenerateOneArgUnoptimizedStaticCallStub(Assembler* assembler) {
       assembler,
       1,
       kStaticCallMissHandlerOneArgRuntimeEntry,
-      Token::kILLEGAL,
-      kIgnoreRanges);
+      Token::kILLEGAL);
 }
 
 
@@ -1712,8 +1638,7 @@ void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateNArgsCheckInlineCacheStub(assembler,
       2,
       kStaticCallMissHandlerTwoArgsRuntimeEntry,
-      Token::kILLEGAL,
-      kIgnoreRanges);
+      Token::kILLEGAL);
 }
 
 
@@ -2083,47 +2008,6 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
 }
 
 
-void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
-  __ LoadTaggedClassIdMayBeSmi(RAX, RDI);
-  // RAX: class ID of the receiver (smi).
-  __ movq(R10,
-          FieldAddress(RBX, MegamorphicCache::arguments_descriptor_offset()));
-  __ movq(RDI, FieldAddress(RBX, MegamorphicCache::buckets_offset()));
-  __ movq(R9, FieldAddress(RBX, MegamorphicCache::mask_offset()));
-  // R10: arguments descriptor (result).
-  // RDI: cache buckets array.
-  // RBX: mask.
-  __ movq(RCX, RAX);
-  __ imulq(RCX, Immediate(MegamorphicCache::kSpreadFactor));
-
-  Label loop, update, load_target_function;
-  __ jmp(&loop);
-
-  __ Bind(&update);
-  __ AddImmediate(RCX, Immediate(Smi::RawValue(1)));
-  __ Bind(&loop);
-  __ andq(RCX, R9);
-  const intptr_t base = Array::data_offset();
-  // RCX is smi tagged, but table entries are two words, so TIMES_8.
-  __ movq(RDX, FieldAddress(RDI, RCX, TIMES_8, base));
-
-  ASSERT(kIllegalCid == 0);
-  __ testq(RDX, RDX);
-  __ j(ZERO, &load_target_function, Assembler::kNearJump);
-  __ cmpq(RDX, RAX);
-  __ j(NOT_EQUAL, &update, Assembler::kNearJump);
-
-  __ Bind(&load_target_function);
-  // Call the target found in the cache.  For a class id match, this is a
-  // proper target for the given name and arguments descriptor.  If the
-  // illegal class id was found, the target is a cache miss handler that can
-  // be invoked as a normal Dart function.
-  __ movq(RAX, FieldAddress(RDI, RCX, TIMES_8, base + kWordSize));
-  __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
-  __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
-}
-
-
 // Called from megamorphic calls.
 //  RDI: receiver
 //  RBX: MegamorphicCache (preserved)
@@ -2132,8 +2016,68 @@ void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
 //  CODE_REG: target Code
 //  R10: arguments descriptor
 void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
-  EmitMegamorphicLookup(assembler);
+  // Jump if receiver is a smi.
+  Label smi_case;
+  __ testq(RDI, Immediate(kSmiTagMask));
+  // Jump out of line for smi case.
+  __ j(ZERO, &smi_case, Assembler::kNearJump);
+
+  // Loads the cid of the object.
+  __ LoadClassId(RAX, RDI);
+
+  Label cid_loaded;
+  __ Bind(&cid_loaded);
+  __ movq(R9, FieldAddress(RBX, MegamorphicCache::mask_offset()));
+  __ movq(RDI, FieldAddress(RBX, MegamorphicCache::buckets_offset()));
+  // R9: mask.
+  // RDI: cache buckets array.
+
+  // Tag cid as a smi.
+  __ addq(RAX, RAX);
+
+  // Compute the table index.
+  ASSERT(MegamorphicCache::kSpreadFactor == 7);
+  // Use leaq and subq multiply with 7 == 8 - 1.
+  __ leaq(RCX, Address(RAX, TIMES_8, 0));
+  __ subq(RCX, RAX);
+
+  Label loop;
+  __ Bind(&loop);
+  __ andq(RCX, R9);
+
+  const intptr_t base = Array::data_offset();
+  // RCX is smi tagged, but table entries are two words, so TIMES_8.
+  Label probe_failed;
+  __ cmpq(RAX, FieldAddress(RDI, RCX, TIMES_8, base));
+  __ j(NOT_EQUAL, &probe_failed, Assembler::kNearJump);
+
+  Label load_target;
+  __ Bind(&load_target);
+  // Call the target found in the cache.  For a class id match, this is a
+  // proper target for the given name and arguments descriptor.  If the
+  // illegal class id was found, the target is a cache miss handler that can
+  // be invoked as a normal Dart function.
+  __ movq(RAX, FieldAddress(RDI, RCX, TIMES_8, base + kWordSize));
+  __ movq(R10,
+          FieldAddress(RBX, MegamorphicCache::arguments_descriptor_offset()));
+  __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
+  __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
+
   __ ret();
+
+  // Probe failed, check if it is a miss.
+  __ Bind(&probe_failed);
+  __ cmpq(FieldAddress(RDI, RCX, TIMES_8, base), Immediate(kIllegalCid));
+  __ j(ZERO, &load_target, Assembler::kNearJump);
+
+  // Try next extry in the table.
+  __ AddImmediate(RCX, Immediate(Smi::RawValue(1)));
+  __ jmp(&loop);
+
+  // Load cid for the Smi case.
+  __ Bind(&smi_case);
+  __ movq(RAX, Immediate(kSmiCid));
+  __ jmp(&cid_loaded);
 }
 
 

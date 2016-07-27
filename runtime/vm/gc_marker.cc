@@ -534,6 +534,7 @@ class ObjectIdRingClearPointerVisitor : public ObjectPointerVisitor {
 
 
 void GCMarker::ProcessObjectIdTable(Isolate* isolate) {
+#ifndef PRODUCT
   if (!FLAG_support_service) {
     return;
   }
@@ -541,6 +542,7 @@ void GCMarker::ProcessObjectIdTable(Isolate* isolate) {
   ObjectIdRing* ring = isolate->object_id_ring();
   ASSERT(ring != NULL);
   ring->VisitPointers(&visitor);
+#endif  // !PRODUCT
 }
 
 
@@ -666,6 +668,7 @@ class MarkTask : public ThreadPool::Task {
 
 template<class MarkingVisitorType>
 void GCMarker::FinalizeResultsFrom(MarkingVisitorType* visitor) {
+#ifndef PRODUCT
   {
     MutexLocker ml(&stats_mutex_);
     marked_bytes_ += visitor->marked_bytes();
@@ -680,6 +683,7 @@ void GCMarker::FinalizeResultsFrom(MarkingVisitorType* visitor) {
       }
     }
   }
+#endif  // !PRODUCT
   visitor->Finalize();
 }
 

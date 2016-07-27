@@ -1,10 +1,7 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
 <link rel="import" href="class_ref.html">
-<link rel="import" href="observatory_element.html">
-<link rel="import" href="nav_bar.html">
-<link rel="import" href="view_footer.html">
 
-<polymer-element name="heap-map" extends="observatory-element">
+<polymer-element name="heap-map">
 <template>
   <link rel="stylesheet" href="css/shared.css">
   <style>
@@ -30,6 +27,7 @@
     <isolate-nav-menu isolate="{{ fragmentation.isolate }}"></isolate-nav-menu>
     <nav-menu link="{{ makeLink('/heap-map', fragmentation.isolate) }}" anchor="heap map" last="{{ true }}"></nav-menu>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    <nav-notify notifications="{{ app.notifications }}"></nav-notify>
   </nav-bar>
   <div class="hover">
     <p style="text-align:center">{{ status }}</p>

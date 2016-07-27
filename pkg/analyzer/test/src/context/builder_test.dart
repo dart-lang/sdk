@@ -9,7 +9,9 @@ import 'dart:io' as io;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -51,12 +53,56 @@ class ContextBuilderTest_WithDisk extends EngineTestCase {
    */
   ContentCache contentCache;
 
+  /**
+   * The context builder to be used in the test.
+   */
+  ContextBuilder builder;
+
+  /**
+   * The path to the default SDK, or `null` if the test has not explicitly
+   * invoked [createDefaultSdk].
+   */
+  String defaultSdkPath = null;
+
+  void createDefaultSdk(io.Directory tempDir) {
+    defaultSdkPath = pathContext.join(tempDir.path, 'default', 'sdk');
+    String librariesFilePath = pathContext.join(defaultSdkPath, 'lib',
+        '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart');
+    createFile(
+        librariesFilePath,
+        r'''
+const Map<String, LibraryInfo> libraries = const {
+  "async": const LibraryInfo("async/async.dart"),
+  "core": const LibraryInfo("core/core.dart"),
+};
+''');
+    sdkManager =
+        new DartSdkManager(defaultSdkPath, false, (_) => new MockSdk());
+    builder = new ContextBuilder(resourceProvider, sdkManager, contentCache);
+  }
+
+  void createDirectory(String path) {
+    new io.Directory(path).createSync(recursive: true);
+  }
+
+  void createFile(String path, String content) {
+    new io.File(path)
+      ..createSync(recursive: true)
+      ..writeAsStringSync(content);
+  }
+
   @override
   void setUp() {
     resourceProvider = PhysicalResourceProvider.INSTANCE;
     pathContext = resourceProvider.pathContext;
     sdkManager = new DartSdkManager('', false, (_) => new MockSdk());
     contentCache = new ContentCache();
+    builder = new ContextBuilder(resourceProvider, sdkManager, contentCache);
+  }
+
+  @failingTest
+  void test_buildContext() {
+    fail('Incomplete test');
   }
 
   void test_createPackageMap_fromPackageDirectory_explicit() {
@@ -69,12 +115,10 @@ class ContextBuilderTest_WithDisk extends EngineTestCase {
       String fooPath = pathContext.join(packageDirPath, fooName);
       String barName = 'bar';
       String barPath = pathContext.join(packageDirPath, barName);
-      new io.Directory(projectPath).createSync(recursive: true);
-      new io.Directory(fooPath).createSync(recursive: true);
-      new io.Directory(barPath).createSync(recursive: true);
+      createDirectory(projectPath);
+      createDirectory(fooPath);
+      createDirectory(barPath);
 
-      ContextBuilder builder =
-          new ContextBuilder(resourceProvider, sdkManager, contentCache);
       builder.defaultPackagesDirectoryPath = packageDirPath;
 
       Packages packages = builder.createPackageMap(projectPath);
@@ -95,11 +139,9 @@ class ContextBuilderTest_WithDisk extends EngineTestCase {
       String fooPath = pathContext.join(packageDirPath, fooName);
       String barName = 'bar';
       String barPath = pathContext.join(packageDirPath, barName);
-      new io.Directory(fooPath).createSync(recursive: true);
-      new io.Directory(barPath).createSync(recursive: true);
+      createDirectory(fooPath);
+      createDirectory(barPath);
 
-      ContextBuilder builder =
-          new ContextBuilder(resourceProvider, sdkManager, contentCache);
       Packages packages = builder.createPackageMap(projectPath);
       expect(packages, isNotNull);
       Map<String, Uri> map = packages.asMap();
@@ -115,16 +157,14 @@ class ContextBuilderTest_WithDisk extends EngineTestCase {
       String rootPath = tempDir.path;
       String projectPath = pathContext.join(rootPath, 'project');
       String packageFilePath = pathContext.join(rootPath, 'child', '.packages');
-      new io.Directory(projectPath).createSync(recursive: true);
-      new io.File(packageFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync(r'''
+      createDirectory(projectPath);
+      createFile(
+          packageFilePath,
+          r'''
 foo:/pkg/foo
 bar:/pkg/bar
 ''');
 
-      ContextBuilder builder =
-          new ContextBuilder(resourceProvider, sdkManager, contentCache);
       builder.defaultPackageFilePath = packageFilePath;
       Packages packages = builder.createPackageMap(projectPath);
       expect(packages, isNotNull);
@@ -141,16 +181,14 @@ bar:/pkg/bar
       String rootPath = tempDir.path;
       String projectPath = pathContext.join(rootPath, 'project');
       String packageFilePath = pathContext.join(rootPath, '.packages');
-      new io.Directory(projectPath).createSync(recursive: true);
-      new io.File(packageFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync(r'''
+      createDirectory(projectPath);
+      createFile(
+          packageFilePath,
+          r'''
 foo:/pkg/foo
 bar:/pkg/bar
 ''');
 
-      ContextBuilder builder =
-          new ContextBuilder(resourceProvider, sdkManager, contentCache);
       Packages packages = builder.createPackageMap(projectPath);
       expect(packages, isNotNull);
       Map<String, Uri> map = packages.asMap();
@@ -166,16 +204,14 @@ bar:/pkg/bar
       String rootPath = tempDir.path;
       String projectPath = pathContext.join(rootPath, 'project');
       String packageFilePath = pathContext.join(projectPath, '.packages');
-      new io.Directory(projectPath).createSync(recursive: true);
-      new io.File(packageFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync(r'''
+      createDirectory(projectPath);
+      createFile(
+          packageFilePath,
+          r'''
 foo:/pkg/foo
 bar:/pkg/bar
 ''');
 
-      ContextBuilder builder =
-          new ContextBuilder(resourceProvider, sdkManager, contentCache);
       Packages packages = builder.createPackageMap(projectPath);
       expect(packages, isNotNull);
       Map<String, Uri> map = packages.asMap();
@@ -187,11 +223,190 @@ bar:/pkg/bar
 
   void test_createPackageMap_none() {
     withTempDir((io.Directory tempDir) {
-      ContextBuilder builder =
-          new ContextBuilder(resourceProvider, sdkManager, contentCache);
       Packages packages = builder.createPackageMap(tempDir.path);
       expect(packages, same(Packages.noPackages));
     });
+  }
+
+  void test_createSourceFactory_fileProvider() {
+    withTempDir((io.Directory tempDir) {
+      createDefaultSdk(tempDir);
+      String rootPath = tempDir.path;
+      String projectPath = pathContext.join(rootPath, 'project');
+      String packageFilePath = pathContext.join(projectPath, '.packages');
+      String packageA = pathContext.join(rootPath, 'pkgs', 'a');
+      String packageB = pathContext.join(rootPath, 'pkgs', 'b');
+      createFile(
+          packageFilePath,
+          '''
+a:${pathContext.toUri(packageA)}
+b:${pathContext.toUri(packageB)}
+''');
+      AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+      UriResolver resolver = new ResourceUriResolver(resourceProvider);
+      builder.fileResolverProvider = (folder) => resolver;
+      SourceFactoryImpl factory =
+          builder.createSourceFactory(projectPath, options);
+      expect(factory.resolvers, contains(same(resolver)));
+    });
+  }
+
+  void test_createSourceFactory_noProvider_packages_embedder_extensions() {
+    withTempDir((io.Directory tempDir) {
+      createDefaultSdk(tempDir);
+      String rootPath = tempDir.path;
+      String projectPath = pathContext.join(rootPath, 'project');
+      String packageFilePath = pathContext.join(projectPath, '.packages');
+      String packageA = pathContext.join(rootPath, 'pkgs', 'a');
+      String embedderPath = pathContext.join(packageA, '_embedder.yaml');
+      String packageB = pathContext.join(rootPath, 'pkgs', 'b');
+      String extensionPath = pathContext.join(packageB, '_sdkext');
+      createFile(
+          packageFilePath,
+          '''
+a:${pathContext.toUri(packageA)}
+b:${pathContext.toUri(packageB)}
+''');
+      String asyncPath = pathContext.join(packageA, 'sdk', 'async.dart');
+      String corePath = pathContext.join(packageA, 'sdk', 'core.dart');
+      createFile(
+          embedderPath,
+          '''
+embedded_libs:
+  "dart:async": ${_relativeUri(asyncPath, from: packageA)}
+  "dart:core": ${_relativeUri(corePath, from: packageA)}
+''');
+      String fooPath = pathContext.join(packageB, 'ext', 'foo.dart');
+      createFile(
+          extensionPath,
+          '''{
+"dart:foo": "${_relativeUri(fooPath, from: packageB)}"
+}''');
+      AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+
+      SourceFactory factory = builder.createSourceFactory(projectPath, options);
+
+      Source asyncSource = factory.forUri('dart:async');
+      expect(asyncSource, isNotNull);
+      expect(asyncSource.fullName, asyncPath);
+
+      Source fooSource = factory.forUri('dart:foo');
+      expect(fooSource, isNotNull);
+      expect(fooSource.fullName, fooPath);
+
+      Source packageSource = factory.forUri('package:b/b.dart');
+      expect(packageSource, isNotNull);
+      expect(packageSource.fullName, pathContext.join(packageB, 'b.dart'));
+    });
+  }
+
+  void test_createSourceFactory_noProvider_packages_embedder_noExtensions() {
+    withTempDir((io.Directory tempDir) {
+      createDefaultSdk(tempDir);
+      String rootPath = tempDir.path;
+      String projectPath = pathContext.join(rootPath, 'project');
+      String packageFilePath = pathContext.join(projectPath, '.packages');
+      String packageA = pathContext.join(rootPath, 'pkgs', 'a');
+      String embedderPath = pathContext.join(packageA, '_embedder.yaml');
+      String packageB = pathContext.join(rootPath, 'pkgs', 'b');
+      createFile(
+          packageFilePath,
+          '''
+a:${pathContext.toUri(packageA)}
+b:${pathContext.toUri(packageB)}
+''');
+      String asyncPath = pathContext.join(packageA, 'sdk', 'async.dart');
+      String corePath = pathContext.join(packageA, 'sdk', 'core.dart');
+      createFile(
+          embedderPath,
+          '''
+embedded_libs:
+  "dart:async": ${_relativeUri(asyncPath, from: packageA)}
+  "dart:core": ${_relativeUri(corePath, from: packageA)}
+''');
+      AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+
+      SourceFactory factory = builder.createSourceFactory(projectPath, options);
+
+      Source dartSource = factory.forUri('dart:async');
+      expect(dartSource, isNotNull);
+      expect(dartSource.fullName, asyncPath);
+
+      Source packageSource = factory.forUri('package:b/b.dart');
+      expect(packageSource, isNotNull);
+      expect(packageSource.fullName, pathContext.join(packageB, 'b.dart'));
+    });
+  }
+
+  @failingTest
+  void test_createSourceFactory_noProvider_packages_noEmbedder_extensions() {
+    fail('Incomplete test');
+  }
+
+  void test_createSourceFactory_noProvider_packages_noEmbedder_noExtensions() {
+    withTempDir((io.Directory tempDir) {
+      createDefaultSdk(tempDir);
+      String rootPath = tempDir.path;
+      String projectPath = pathContext.join(rootPath, 'project');
+      String packageFilePath = pathContext.join(projectPath, '.packages');
+      String packageA = pathContext.join(rootPath, 'pkgs', 'a');
+      String packageB = pathContext.join(rootPath, 'pkgs', 'b');
+      createFile(
+          packageFilePath,
+          '''
+a:${pathContext.toUri(packageA)}
+b:${pathContext.toUri(packageB)}
+''');
+      AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+
+      SourceFactory factory = builder.createSourceFactory(projectPath, options);
+
+      Source dartSource = factory.forUri('dart:core');
+      expect(dartSource, isNotNull);
+      expect(dartSource.fullName, '$defaultSdkPath/lib/core/core.dart');
+
+      Source packageSource = factory.forUri('package:a/a.dart');
+      expect(packageSource, isNotNull);
+      expect(packageSource.fullName, pathContext.join(packageA, 'a.dart'));
+    });
+  }
+
+  void test_createSourceFactory_packageProvider() {
+    withTempDir((io.Directory tempDir) {
+      createDefaultSdk(tempDir);
+      String rootPath = tempDir.path;
+      String projectPath = pathContext.join(rootPath, 'project');
+      AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+      UriResolver resolver = new PackageMapUriResolver(resourceProvider, {});
+      builder.packageResolverProvider = (folder) => resolver;
+      SourceFactoryImpl factory =
+          builder.createSourceFactory(projectPath, options);
+      expect(factory.resolvers, contains(same(resolver)));
+    });
+  }
+
+  @failingTest
+  void test_findSdk_embedder_extensions() {
+    // See test_createSourceFactory_noProvider_packages_embedder_extensions
+    fail('Incomplete test');
+  }
+
+  @failingTest
+  void test_findSdk_embedder_noExtensions() {
+    // See test_createSourceFactory_noProvider_packages_embedder_noExtensions
+    fail('Incomplete test');
+  }
+
+  @failingTest
+  void test_findSdk_noEmbedder_extensions() {
+    // See test_createSourceFactory_noProvider_packages_noEmbedder_extensions
+    fail('Incomplete test');
+  }
+
+  @failingTest
+  void test_findSdk_noEmbedder_noExtensions() {
+    // See test_createSourceFactory_noProvider_packages_noEmbedder_noExtensions
+    fail('Incomplete test');
   }
 
   /**
@@ -207,6 +422,11 @@ bar:/pkg/bar
     } finally {
       directory.deleteSync(recursive: true);
     }
+  }
+
+  Uri _relativeUri(String path, {String from}) {
+    String relativePath = pathContext.relative(path, from: from);
+    return pathContext.toUri(relativePath);
   }
 }
 
@@ -227,30 +447,24 @@ class ContextBuilderTest_WithoutDisk extends EngineTestCase {
    */
   ContentCache contentCache;
 
-  void fail_createSourceFactory() {
-    fail('Incomplete test');
-  }
-
-  void fail_findSdkResolver() {
-    fail('Incomplete test');
-  }
+  /**
+   * The context builder to be used in the test.
+   */
+  ContextBuilder builder;
 
   @override
   void setUp() {
     resourceProvider = new MemoryResourceProvider();
     sdkManager = new DartSdkManager('', false, (_) => new MockSdk());
     contentCache = new ContentCache();
+    builder = new ContextBuilder(resourceProvider, sdkManager, contentCache);
   }
 
   void test_convertPackagesToMap_noPackages() {
-    ContextBuilder builder =
-        new ContextBuilder(resourceProvider, sdkManager, contentCache);
     expect(builder.convertPackagesToMap(Packages.noPackages), isNull);
   }
 
   void test_convertPackagesToMap_null() {
-    ContextBuilder builder =
-        new ContextBuilder(resourceProvider, sdkManager, contentCache);
     expect(builder.convertPackagesToMap(null), isNull);
   }
 
@@ -262,8 +476,6 @@ class ContextBuilderTest_WithoutDisk extends EngineTestCase {
     String barPath = '/pkg/bar';
     Uri barUri = new Uri.directory(barPath);
 
-    ContextBuilder builder =
-        new ContextBuilder(resourceProvider, sdkManager, contentCache);
     MapPackages packages = new MapPackages({fooName: fooUri, barName: barUri});
     Map<String, List<Folder>> result = builder.convertPackagesToMap(packages);
     expect(result, isNotNull);
@@ -274,13 +486,137 @@ class ContextBuilderTest_WithoutDisk extends EngineTestCase {
     expect(result[barName][0].path, barPath);
   }
 
+  void test_createDefaultOptions_default() {
+    // Invert a subset of the options to ensure that the default options are
+    // being returned.
+    AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
+    defaultOptions.dart2jsHint = !defaultOptions.dart2jsHint;
+    defaultOptions.enableAssertMessage = !defaultOptions.enableAssertMessage;
+    defaultOptions.enableAsync = !defaultOptions.enableAsync;
+    defaultOptions.enableGenericMethods = !defaultOptions.enableGenericMethods;
+    defaultOptions.enableStrictCallChecks =
+        !defaultOptions.enableStrictCallChecks;
+    defaultOptions.enableSuperMixins = !defaultOptions.enableSuperMixins;
+    builder.defaultOptions = defaultOptions;
+    AnalysisOptions options = builder.createDefaultOptions();
+    _expectEqualOptions(options, defaultOptions);
+  }
+
+  void test_createDefaultOptions_noDefault() {
+    AnalysisOptions options = builder.createDefaultOptions();
+    _expectEqualOptions(options, new AnalysisOptionsImpl());
+  }
+
+  void test_declareVariables_emptyMap() {
+    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+    Iterable<String> expected = context.declaredVariables.variableNames;
+    builder.declaredVariables = <String, String>{};
+
+    builder.declareVariables(context);
+    expect(context.declaredVariables.variableNames, unorderedEquals(expected));
+  }
+
+  void test_declareVariables_nonEmptyMap() {
+    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+    List<String> expected = context.declaredVariables.variableNames.toList();
+    expect(expected, isNot(contains('a')));
+    expect(expected, isNot(contains('b')));
+    expected.addAll(['a', 'b']);
+    builder.declaredVariables = <String, String>{'a': 'a', 'b': 'b'};
+
+    builder.declareVariables(context);
+    expect(context.declaredVariables.variableNames, unorderedEquals(expected));
+  }
+
+  void test_declareVariables_null() {
+    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+    Iterable<String> expected = context.declaredVariables.variableNames;
+
+    builder.declareVariables(context);
+    expect(context.declaredVariables.variableNames, unorderedEquals(expected));
+  }
+
+  void test_findSdk_noPackageMap() {
+    DartSdk sdk = builder.findSdk(null, new AnalysisOptionsImpl());
+    expect(sdk, isNotNull);
+  }
+
+  void test_getAnalysisOptions_default_noOverrides() {
+    AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
+    defaultOptions.enableGenericMethods = true;
+    builder.defaultOptions = defaultOptions;
+    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
+    expected.enableGenericMethods = true;
+    String path = '/some/directory/path';
+    String filePath = '$path/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
+    resourceProvider.newFile(
+        filePath,
+        '''
+linter:
+  rules:
+    - empty_constructor_bodies
+''');
+
+    AnalysisOptions options = builder.getAnalysisOptions(path);
+    _expectEqualOptions(options, expected);
+  }
+
+  void test_getAnalysisOptions_default_overrides() {
+    AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
+    defaultOptions.enableGenericMethods = true;
+    builder.defaultOptions = defaultOptions;
+    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
+    expected.enableAsync = true;
+    expected.enableGenericMethods = true;
+    String path = '/some/directory/path';
+    String filePath = '$path/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
+    resourceProvider.newFile(
+        filePath,
+        '''
+analyzer:
+  enableAsync : true
+''');
+
+    AnalysisOptions options = builder.getAnalysisOptions(path);
+    _expectEqualOptions(options, expected);
+  }
+
+  void test_getAnalysisOptions_noDefault_noOverrides() {
+    String path = '/some/directory/path';
+    String filePath = '$path/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
+    resourceProvider.newFile(
+        filePath,
+        '''
+linter:
+  rules:
+    - empty_constructor_bodies
+''');
+
+    AnalysisOptions options = builder.getAnalysisOptions(path);
+    _expectEqualOptions(options, new AnalysisOptionsImpl());
+  }
+
+  void test_getAnalysisOptions_noDefault_overrides() {
+    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
+    expected.enableAsync = true;
+    String path = '/some/directory/path';
+    String filePath = '$path/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
+    resourceProvider.newFile(
+        filePath,
+        '''
+analyzer:
+  enableAsync : true
+''');
+
+    AnalysisOptions options = builder.getAnalysisOptions(path);
+    _expectEqualOptions(options, expected);
+  }
+
   void test_getOptionsFile_explicit() {
     String path = '/some/directory/path';
     String filePath = '/options/analysis.yaml';
     resourceProvider.newFile(filePath, '');
 
-    ContextBuilder builder =
-        new ContextBuilder(resourceProvider, sdkManager, contentCache);
     builder.defaultAnalysisOptionsFilePath = filePath;
     File result = builder.getOptionsFile(path);
     expect(result, isNotNull);
@@ -294,8 +630,6 @@ class ContextBuilderTest_WithoutDisk extends EngineTestCase {
         '$parentPath/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
     resourceProvider.newFile(filePath, '');
 
-    ContextBuilder builder =
-        new ContextBuilder(resourceProvider, sdkManager, contentCache);
     File result = builder.getOptionsFile(path);
     expect(result, isNotNull);
     expect(result.path, filePath);
@@ -307,8 +641,6 @@ class ContextBuilderTest_WithoutDisk extends EngineTestCase {
     String filePath = '$parentPath/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}';
     resourceProvider.newFile(filePath, '');
 
-    ContextBuilder builder =
-        new ContextBuilder(resourceProvider, sdkManager, contentCache);
     File result = builder.getOptionsFile(path);
     expect(result, isNotNull);
     expect(result.path, filePath);
@@ -319,8 +651,6 @@ class ContextBuilderTest_WithoutDisk extends EngineTestCase {
     String filePath = '$path/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
     resourceProvider.newFile(filePath, '');
 
-    ContextBuilder builder =
-        new ContextBuilder(resourceProvider, sdkManager, contentCache);
     File result = builder.getOptionsFile(path);
     expect(result, isNotNull);
     expect(result.path, filePath);
@@ -331,10 +661,38 @@ class ContextBuilderTest_WithoutDisk extends EngineTestCase {
     String filePath = '$path/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}';
     resourceProvider.newFile(filePath, '');
 
-    ContextBuilder builder =
-        new ContextBuilder(resourceProvider, sdkManager, contentCache);
     File result = builder.getOptionsFile(path);
     expect(result, isNotNull);
     expect(result.path, filePath);
+  }
+
+  void _expectEqualOptions(
+      AnalysisOptionsImpl actual, AnalysisOptionsImpl expected) {
+    // TODO(brianwilkerson) Consider moving this to AnalysisOptionsImpl.==.
+    expect(actual.analyzeFunctionBodiesPredicate,
+        same(expected.analyzeFunctionBodiesPredicate));
+    expect(actual.cacheSize, expected.cacheSize);
+    expect(actual.dart2jsHint, expected.dart2jsHint);
+    expect(actual.enableAssertMessage, expected.enableAssertMessage);
+    expect(actual.enableAsync, expected.enableAsync);
+    expect(actual.enableStrictCallChecks, expected.enableStrictCallChecks);
+    expect(actual.enableGenericMethods, expected.enableGenericMethods);
+    expect(actual.enableSuperMixins, expected.enableSuperMixins);
+    expect(actual.enableTiming, expected.enableTiming);
+    expect(actual.enableTrailingCommas, expected.enableTrailingCommas);
+    expect(actual.generateImplicitErrors, expected.generateImplicitErrors);
+    expect(actual.generateSdkErrors, expected.generateSdkErrors);
+    expect(actual.hint, expected.hint);
+    expect(actual.incremental, expected.incremental);
+    expect(actual.incrementalApi, expected.incrementalApi);
+    expect(actual.incrementalValidation, expected.incrementalValidation);
+    expect(actual.lint, expected.lint);
+    expect(actual.preserveComments, expected.preserveComments);
+    expect(actual.strongMode, expected.strongMode);
+    expect(actual.strongModeHints, expected.strongModeHints);
+    expect(actual.implicitCasts, expected.implicitCasts);
+    expect(actual.implicitDynamic, expected.implicitDynamic);
+    expect(actual.trackCacheDependencies, expected.trackCacheDependencies);
+    expect(actual.finerGrainedInvalidation, expected.finerGrainedInvalidation);
   }
 }

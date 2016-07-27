@@ -1,12 +1,8 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
 <link rel="import" href="code_ref.html">
 <link rel="import" href="function_ref.html">
-<link rel="import" href="nav_bar.html">
-<link rel="import" href="observatory_element.html">
-<link rel="import" href="sliding_checkbox.html">
-<link rel="import" href="view_footer.html">
 
-<polymer-element name="sample-buffer-control" extends="observatory-element">
+<polymer-element name="sample-buffer-control">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <style>
@@ -115,7 +111,7 @@
   </template>
 </polymer-element>
 
-<polymer-element name="stack-trace-tree-config" extends="observatory-element">
+<polymer-element name="stack-trace-tree-config">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <style>
@@ -182,7 +178,7 @@
   </template>
 </polymer-element>
 
-<polymer-element name="cpu-profile-tree" extends="observatory-element">
+<polymer-element name="cpu-profile-tree">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <style>
@@ -254,7 +250,7 @@
   </template>
 </polymer-element>
 
-<polymer-element name="cpu-profile-virtual-tree" extends="observatory-element">
+<polymer-element name="cpu-profile-virtual-tree">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <style>
@@ -277,7 +273,7 @@
 </polymer-element>
 
 
-<polymer-element name="cpu-profile-table" extends="observatory-element">
+<polymer-element name="cpu-profile-table">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
@@ -287,6 +283,7 @@
       <nav-menu link="{{ makeLink('/profiler-table', isolate) }}" anchor="cpu profile (table)" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
       <nav-refresh callback="{{ clearCpuProfile }}" label="Clear"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
     <style>
       /* general */
@@ -491,7 +488,7 @@
   </template>
 </polymer-element>
 
-<polymer-element name="cpu-profile" extends="observatory-element">
+<polymer-element name="cpu-profile">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
@@ -501,6 +498,7 @@
       <nav-menu link="{{ makeLink('/profiler', isolate) }}" anchor="cpu profile" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
       <nav-refresh callback="{{ clearCpuProfile }}" label="Clear"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
     <style>
       .tableWell {

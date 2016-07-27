@@ -4655,7 +4655,9 @@ class ImportsVerifier {
     for (Combinator combinator in importDirective.combinators) {
       if (combinator is ShowCombinator) {
         for (SimpleIdentifier name in combinator.shownNames) {
-          identifiers.add(name);
+          if (name.staticElement != null) {
+            identifiers.add(name);
+          }
         }
       }
     }
@@ -5141,7 +5143,7 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
  * Instances of the class `OverrideVerifier` visit all of the declarations in a compilation
  * unit to verify that if they have an override annotation it is being used correctly.
  */
-class OverrideVerifier extends RecursiveAstVisitor<Object> {
+class OverrideVerifier extends RecursiveAstVisitor {
   /**
    * The error reporter used to report errors.
    */
@@ -5161,7 +5163,23 @@ class OverrideVerifier extends RecursiveAstVisitor<Object> {
   OverrideVerifier(this._errorReporter, this._manager);
 
   @override
-  Object visitMethodDeclaration(MethodDeclaration node) {
+  visitFieldDeclaration(FieldDeclaration node) {
+    for (VariableDeclaration field in node.fields.variables) {
+      VariableElement fieldElement = field.element;
+      if (fieldElement is FieldElement && _isOverride(fieldElement)) {
+        PropertyAccessorElement getter = fieldElement.getter;
+        PropertyAccessorElement setter = fieldElement.setter;
+        if (!(getter != null && _getOverriddenMember(getter) != null ||
+            setter != null && _getOverriddenMember(setter) != null)) {
+          _errorReporter.reportErrorForNode(
+              HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, field.name);
+        }
+      }
+    }
+  }
+
+  @override
+  visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement element = node.element;
     if (_isOverride(element)) {
       if (_getOverriddenMember(element) == null) {
@@ -5179,7 +5197,6 @@ class OverrideVerifier extends RecursiveAstVisitor<Object> {
         }
       }
     }
-    return super.visitMethodDeclaration(node);
   }
 
   /**
@@ -5658,6 +5675,11 @@ class ResolverVisitor extends ScopedVisitor {
   FunctionBody _currentFunctionBody;
 
   /**
+   * Are we running in strong mode or not.
+   */
+  bool strongMode;
+
+  /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
    *
    * The [definingLibrary] is the element for the library containing the node
@@ -5679,10 +5701,11 @@ class ResolverVisitor extends ScopedVisitor {
       {Scope nameScope})
       : super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
+    AnalysisOptions options = definingLibrary.context.analysisOptions;
+    this.strongMode = options.strongMode;
     this.elementResolver = new ElementResolver(this);
     this.typeSystem = definingLibrary.context.typeSystem;
     bool strongModeHints = false;
-    AnalysisOptions options = definingLibrary.context.analysisOptions;
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
     }
@@ -6621,7 +6644,6 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.function?.accept(this);
     node.accept(elementResolver);
-    _inferFunctionExpressionsParametersTypes(node.argumentList);
     _inferArgumentTypesFromContext(node);
     node.argumentList?.accept(this);
     node.accept(typeAnalyzer);
@@ -6723,6 +6745,16 @@ class ResolverVisitor extends ScopedVisitor {
       if (contextType is InterfaceType &&
           contextType.typeArguments != null &&
           contextType.typeArguments.length > 0) {
+        // TODO(jmesserly): for generic methods we use the
+        // StrongTypeSystemImpl.inferGenericFunctionCall, which appears to
+        // be a tad more powerful than matchTypes.
+        //
+        // For example it can infer this case:
+        //
+        //     class E<S, T> extends A<C<S>, T> { ... }
+        //     A<C<int>, String> a0 = /*infer<int, String>*/new E("hello");
+        //
+        // See _inferArgumentTypesFromContext in this file for use of it.
         List<DartType> targs =
             inferenceContext.matchTypes(classTypeName.type, contextType);
         if (targs != null && targs.any((t) => !t.isDynamic)) {
@@ -6838,7 +6870,6 @@ class ResolverVisitor extends ScopedVisitor {
     node.target?.accept(this);
     node.typeArguments?.accept(this);
     node.accept(elementResolver);
-    _inferFunctionExpressionsParametersTypes(node.argumentList);
     _inferArgumentTypesFromContext(node);
     node.argumentList?.accept(this);
     node.accept(typeAnalyzer);
@@ -7201,6 +7232,12 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   void _inferArgumentTypesFromContext(InvocationExpression node) {
+    if (!strongMode) {
+      // Use propagated type inference for lambdas if not in strong mode.
+      _inferFunctionExpressionsParametersTypes(node.argumentList);
+      return;
+    }
+
     DartType contextType = node.staticInvokeType;
     if (contextType is FunctionType) {
       DartType originalType = node.function.staticType;
@@ -10141,6 +10178,20 @@ class TypeResolverVisitor extends ScopedVisitor {
     element.type = new FunctionTypeImpl(element);
     _inferSetterReturnType(element);
     return null;
+  }
+
+  @override
+  Object visitFunctionExpression(FunctionExpression node) {
+    // Clear the static element return type of closures.
+    // We need this to restore the state when closure parameter types can
+    // be propagated from invocation parameter types.
+    if (node is! FunctionDeclaration) {
+      ExecutableElement element = node.element;
+      if (element is FunctionElementImpl) {
+        element.returnType = null;
+      }
+    }
+    return super.visitFunctionExpression(node);
   }
 
   @override

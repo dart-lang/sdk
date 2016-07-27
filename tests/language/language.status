@@ -5,12 +5,6 @@
 # This directory contains tests that are intended to show the
 # current state of the language.
 
-# Trailing commas are so far supported by:
-# - The VM (vm, dartium, drt, precompiler+dart_precompiled)
-# Remaining targets still fail on arg_param_trailing_comma_test/none.
-[($compiler != none && $compiler != precompiler) || ($runtime != vm && $runtime != dartium && $runtime != drt && $runtime != dart_precompiled)]
-arg_param_trailing_comma_test/none: Fail # Issue 26644
-
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) ]
 tearoff_constructor_basic_test: Skip # Crashes in checked mode -- hausner investigating
 
@@ -197,6 +191,9 @@ regress_22443_test: Skip
 ct_const2_test: Skip # Incompatible flag: --compile_all
 hello_dart_test: Skip # Incompatible flag: --compile_all
 
+[ $runtime == dart_app ]
+number_identity_test: RuntimeError # Issue 26873
+
 [ $compiler == precompiler ]
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
 deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
@@ -252,6 +249,37 @@ vm/optimized_guarded_field_isolates_test: Skip # Issue #26373
 issue23244_test: Skip # Issue #26373
 
 [ $hot_reload ]
-deferred_load_inval_code_test: RuntimeError
-regress_26453_test: Pass, Fail, Crash
-vm/regress_16873_test: Pass, Crash
+bound_closure_equality_test: Pass, Fail # Closure identity
+static_closure_identical_test: Pass, Fail # Closure identity
+cha_deopt1_test: Crash # Requires deferred libraries
+cha_deopt2_test: Crash # Requires deferred libraries
+cha_deopt3_test: Crash # Requires deferred libraries
+deferred_call_empty_before_load_test: Crash # Requires deferred libraries
+deferred_closurize_load_library_test: Crash # Requires deferred libraries
+deferred_constant_list_test: Crash # Requires deferred libraries
+deferred_constraints_constants_test: Crash # Requires deferred libraries
+deferred_constraints_type_annotation_test: Crash # Requires deferred libraries
+deferred_function_type_test: Crash # Requires deferred libraries
+deferred_global_test: Crash # Requires deferred libraries
+deferred_import_core_test: Crash # Requires deferred libraries
+deferred_inlined_test: Crash # Requires deferred libraries
+deferred_inheritance_constraints_test: Crash # Requires deferred libraries
+deferred_load_constants_test: Crash # Requires deferred libraries
+deferred_load_inval_code_test: Crash # Requires deferred libraries
+deferred_load_library_wrong_args_test: Crash # Requires deferred libraries
+deferred_mixin_test: Crash # Requires deferred libraries
+deferred_no_such_method_test: Crash # Requires deferred libraries
+deferred_not_loaded_check_test: Crash # Requires deferred libraries
+deferred_only_constant_test: Crash # Requires deferred libraries
+deferred_optimized_test: Crash # Requires deferred libraries
+deferred_redirecting_factory_test: Crash # Requires deferred libraries
+deferred_regression_22995_test: Crash # Requires deferred libraries
+deferred_shadow_load_library_test: Crash # Requires deferred libraries
+deferred_shared_and_unshared_classes_test: Crash # Requires deferred libraries
+deferred_static_seperate_test: Crash # Requires deferred libraries
+deferred_super_dependency_test: Pass, Crash # Requires deferred libraries
+deferred_type_dependency_test: Crash # Requires deferred libraries
+issue_1751477_test: Crash # Requires deferred libraries
+regress_23408_test: Crash # Requires deferred libraries
+regress_22443_test: Crash # Requires deferred libraries
+tearoff_basic_test: Crash # Requires deferred libraries

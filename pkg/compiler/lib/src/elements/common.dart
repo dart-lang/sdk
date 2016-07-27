@@ -67,7 +67,7 @@ abstract class ElementCommon implements Element {
   bool get isAbstractField => kind == ElementKind.ABSTRACT_FIELD;
 
   @override
-  bool get isParameter => kind == ElementKind.PARAMETER;
+  bool get isRegularParameter => kind == ElementKind.PARAMETER;
 
   @override
   bool get isInitializingFormal => kind == ElementKind.INITIALIZING_FORMAL;

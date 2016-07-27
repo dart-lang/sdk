@@ -6,27 +6,35 @@ library dart2js.common.resolution;
 
 import '../common.dart';
 import '../compiler.dart' show Compiler;
+import '../compile_time_constants.dart';
 import '../constants/expressions.dart' show ConstantExpression;
+import '../constants/values.dart' show ConstantValue;
 import '../core_types.dart' show CoreClasses, CoreTypes;
 import '../dart_types.dart' show DartType, InterfaceType, Types;
 import '../elements/elements.dart'
     show
         AstElement,
         ClassElement,
+        ConstructorElement,
         Element,
         ExecutableElement,
         FunctionElement,
         FunctionSignature,
         LibraryElement,
         MetadataAnnotation,
+        MethodElement,
         ResolvedAst,
         TypedefElement;
 import '../enqueue.dart' show ResolutionEnqueuer;
-import '../options.dart' show ParserOptions;
+import '../id_generator.dart';
+import '../mirrors_used.dart';
+import '../options.dart' show CompilerOptions, ParserOptions;
 import '../parser/element_listener.dart' show ScannerOptions;
 import '../parser/parser_task.dart';
 import '../patch_parser.dart';
-import '../tree/tree.dart' show TypeAnnotation;
+import '../resolution/resolution.dart';
+import '../tree/tree.dart' show Send, TypeAnnotation;
+import '../universe/call_structure.dart' show CallStructure;
 import '../universe/world_impact.dart' show WorldImpact;
 import 'backend_api.dart';
 import 'work.dart' show ItemCompilationContext, WorkItem;
@@ -55,9 +63,8 @@ class ResolutionImpact extends WorldImpact {
   Iterable<MapLiteralUse> get mapLiterals => const <MapLiteralUse>[];
   Iterable<ListLiteralUse> get listLiterals => const <ListLiteralUse>[];
   Iterable<String> get constSymbolNames => const <String>[];
-  Iterable<ConstantExpression> get constantLiterals {
-    return const <ConstantExpression>[];
-  }
+  Iterable<ConstantExpression> get constantLiterals =>
+      const <ConstantExpression>[];
 
   Iterable<dynamic> get nativeData => const <dynamic>[];
 }
@@ -206,6 +213,32 @@ abstract class Target {
   /// Resolve target specific information for [element] and register it with
   /// [registry].
   void resolveNativeElement(Element element, NativeRegistry registry) {}
+
+  /// Processes [element] for resolution and returns the [MethodElement] that
+  /// defines the implementation of [element].
+  MethodElement resolveExternalFunction(MethodElement element) => element;
+
+  /// Called when resolving a call to a foreign function. If a non-null value
+  /// is returned, this is stored as native data for [node] in the resolved
+  /// AST.
+  dynamic resolveForeignCall(Send node, Element element,
+      CallStructure callStructure, ForeignResolver resolver) {
+    return null;
+  }
+
+  /// Returns the default superclass for the given [element] in this target.
+  ClassElement defaultSuperclass(ClassElement element);
+
+  /// Returns `true` if [element] is a native element, that is, that the
+  /// corresponding entity already exists in the target language.
+  bool isNative(Element element) => false;
+
+  /// Returns `true` if [element] is a foreign element, that is, that the
+  /// backend has specialized handling for the element.
+  bool isForeign(Element element) => false;
+
+  /// Returns `true` if this target supports async/await.
+  bool get supportsAsyncAwait => true;
 }
 
 // TODO(johnniwinther): Rename to `Resolver` or `ResolverContext`.
@@ -216,6 +249,24 @@ abstract class Resolution implements Frontend {
   CoreTypes get coreTypes;
   Types get types;
   Target get target;
+  ResolverTask get resolver;
+  ResolutionEnqueuer get enqueuer;
+  CompilerOptions get options;
+  IdGenerator get idGenerator;
+  ConstantEnvironment get constants;
+  MirrorUsageAnalyzerTask get mirrorUsageAnalyzerTask;
+
+  // TODO(het): Move all elements into common/elements.dart
+  LibraryElement get coreLibrary;
+  FunctionElement get identicalFunction;
+  ClassElement get mirrorSystemClass;
+  FunctionElement get mirrorSystemGetNameFunction;
+  ConstructorElement get mirrorsUsedConstructor;
+  ConstructorElement get symbolConstructor;
+
+  // TODO(het): This is only referenced in a test...
+  /// The constant for the [proxy] variable defined in dart:core.
+  ConstantValue get proxyConstant;
 
   /// If set to `true` resolution caches will not be cleared. Use this only for
   /// testing.
@@ -236,6 +287,14 @@ abstract class Resolution implements Frontend {
 
   /// Resolve [element] if it has not already been resolved.
   void ensureResolved(Element element);
+
+  /// Called whenever a class has been resolved.
+  void onClassResolved(ClassElement element);
+
+  /// Registers that [element] has a compile time error.
+  ///
+  /// The error itself is given in [message].
+  void registerCompileTimeError(Element element, DiagnosticMessage message);
 
   ResolutionWorkItem createWorkItem(
       Element element, ItemCompilationContext compilationContext);
@@ -274,6 +333,10 @@ abstract class Resolution implements Frontend {
   void emptyCache();
 
   void forgetElement(Element element);
+
+  /// Returns `true` if [value] is the top-level [proxy] annotation from the
+  /// core library.
+  bool isProxyConstant(ConstantValue value);
 }
 
 /// A container of commonly used dependencies for tasks that involve parsing.

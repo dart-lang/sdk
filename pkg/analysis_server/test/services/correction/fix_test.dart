@@ -463,40 +463,42 @@ main() {
 ''');
     List<AnalysisError> errors = context.computeErrors(testSource);
     expect(errors, hasLength(2));
-    String message1 = "Expected to find ';'";
-    String message2 = "Undefined name 'await'";
-    expect(errors.map((e) => e.message), unorderedEquals([message1, message2]));
-    for (AnalysisError error in errors) {
-      if (error.message == message1) {
-        List<Fix> fixes = await _computeFixes(error);
-        expect(fixes, isEmpty);
-      }
-      if (error.message == message2) {
-        List<Fix> fixes = await _computeFixes(error);
-        // has exactly one fix
-        expect(fixes, hasLength(1));
-        Fix fix = fixes[0];
-        expect(fix.kind, DartFixKind.ADD_ASYNC);
-        // apply to "file"
-        List<SourceFileEdit> fileEdits = fix.change.edits;
-        expect(fileEdits, hasLength(1));
-        resultCode = SourceEdit.applySequence(testCode, fileEdits[0].edits);
-        // verify
-        expect(
-            resultCode,
-            '''
+    errors.sort((a, b) => a.message.compareTo(b.message));
+    // No fix for ";".
+    {
+      AnalysisError error = errors[0];
+      expect(error.message, "Expected to find ';'");
+      List<Fix> fixes = await _computeFixes(error);
+      expect(fixes, isEmpty);
+    }
+    // Has fix for "await".
+    {
+      AnalysisError error = errors[1];
+      expect(error.message, startsWith("Undefined name 'await';"));
+      List<Fix> fixes = await _computeFixes(error);
+      // has exactly one fix
+      expect(fixes, hasLength(1));
+      Fix fix = fixes[0];
+      expect(fix.kind, DartFixKind.ADD_ASYNC);
+      // apply to "file"
+      List<SourceFileEdit> fileEdits = fix.change.edits;
+      expect(fileEdits, hasLength(1));
+      resultCode = SourceEdit.applySequence(testCode, fileEdits[0].edits);
+      // verify
+      expect(
+          resultCode,
+          '''
 foo() {}
 main() async {
   await foo();
 }
 ''');
-      }
     }
   }
 
   test_addSync_expressionFunctionBody() async {
     errorFilter = (AnalysisError error) {
-      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER;
+      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
     };
     resolveTestUnit('''
 foo() {}
@@ -512,7 +514,7 @@ main() async => await foo();
 
   test_addSync_returnFuture() async {
     errorFilter = (AnalysisError error) {
-      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER;
+      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
     };
     resolveTestUnit('''
 foo() {}
@@ -536,7 +538,7 @@ Future<int> main() async {
 
   test_addSync_returnFuture_alreadyFuture() async {
     errorFilter = (AnalysisError error) {
-      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER;
+      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
     };
     resolveTestUnit('''
 import 'dart:async';
@@ -560,7 +562,7 @@ Future<int> main() async {
 
   test_addSync_returnFuture_dynamic() async {
     errorFilter = (AnalysisError error) {
-      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER;
+      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
     };
     resolveTestUnit('''
 foo() {}
@@ -582,7 +584,7 @@ dynamic main() async {
 
   test_addSync_returnFuture_noType() async {
     errorFilter = (AnalysisError error) {
-      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER;
+      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
     };
     resolveTestUnit('''
 foo() {}
@@ -708,8 +710,8 @@ main(B b) {
     await assertHasFix(
         DartFixKind.CHANGE_TO_STATIC_ACCESS,
         '''
-import 'libB.dart';
 import 'libA.dart';
+import 'libB.dart';
 main(B b) {
   A.foo();
 }
@@ -779,8 +781,8 @@ main(B b) {
     await assertHasFix(
         DartFixKind.CHANGE_TO_STATIC_ACCESS,
         '''
-import 'libB.dart';
 import 'libA.dart';
+import 'libB.dart';
 main(B b) {
   A.foo;
 }
@@ -1239,8 +1241,8 @@ class C extends B {
     await assertHasFix(
         DartFixKind.CREATE_CONSTRUCTOR_SUPER,
         '''
-import 'libB.dart';
 import 'libA.dart';
+import 'libB.dart';
 class C extends B {
   C(A a) : super(a);
 }
@@ -1563,8 +1565,8 @@ main(C c) {
     await assertHasFix(
         DartFixKind.CREATE_FIELD,
         '''
-import 'libB.dart';
 import 'libA.dart';
+import 'libB.dart';
 class C {
   A test;
 }
@@ -2631,7 +2633,7 @@ class B extends A {
   }
 
   @override
-  void set s3(String x) {
+  set s3(String x) {
     // TODO: implement s3
   }
 }
@@ -2802,8 +2804,8 @@ main() {
     await assertHasFix(
         DartFixKind.CREATE_FUNCTION,
         '''
-import 'libB.dart';
 import 'libA.dart';
+import 'libB.dart';
 main() {
   useFunction(test);
 }
@@ -2976,6 +2978,7 @@ int main() async {
         DartFixKind.REPLACE_RETURN_TYPE_FUTURE,
         '''
 library main;
+
 import 'dart:async';
 Future<int> main() async {
 }
@@ -3111,8 +3114,8 @@ main () {
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT,
         '''
-import 'b.dart' show Two;
 import 'a.dart';
+import 'b.dart' show Two;
 main () {
   new Two();
   new One();
@@ -4131,8 +4134,8 @@ main() {
     await assertHasFix(
         DartFixKind.CREATE_FUNCTION,
         '''
-import 'lib.dart';
 import 'dart:async';
+import 'lib.dart';
 main() {
   test(getFuture());
 }

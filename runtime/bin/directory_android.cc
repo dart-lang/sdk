@@ -403,6 +403,9 @@ bool Directory::Create(const char* dir_name) {
 
 
 const char* Directory::SystemTemp() {
+  if (Directory::system_temp_path_override_ != NULL) {
+    return DartUtils::ScopedCopyCString(Directory::system_temp_path_override_);
+  }
   // Android does not have a /tmp directory. A partial substitute,
   // suitable for bring-up work and tests, is to create a tmp
   // directory in /data/local/tmp.

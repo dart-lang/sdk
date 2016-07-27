@@ -9,13 +9,14 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:logging/logging.dart';
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart';
 
 // Export the service library.
 export 'package:observatory/service.dart';
 
 /// Description of a VM target.
-class WebSocketVMTarget {
+class WebSocketVMTarget implements M.Target {
   // Last time this VM has been connected to.
   int lastConnectionTime = 0;
   bool get hasEverConnected => lastConnectionTime > 0;

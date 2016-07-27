@@ -1,9 +1,6 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
-<link rel="import" href="nav_bar.html">
-<link rel="import" href="observatory_element.html">
-<link rel="import" href="view_footer.html">
 
-<polymer-element name="flag-list" extends="observatory-element">
+<polymer-element name="flag-list">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
@@ -11,6 +8,7 @@
       <vm-nav-menu vm="{{ app.vm }}"></vm-nav-menu>
       <nav-menu link="{{ makeLink('/flags') }}" anchor="flags" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
 
     <div class="content-centered">
@@ -40,7 +38,7 @@
   </template>
 </polymer-element>
 
-<polymer-element name="flag-item" extends="observatory-element">
+<polymer-element name="flag-item">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <span style="color:#aaa">// {{ flag['comment'] }}</span>

@@ -155,7 +155,7 @@ class Scrollbar implements ScrollListener {
     }
   }
 
-  void _onStart(UIEvent e) {
+  void _onStart(/*MouseEvent | Touch*/ e) {
     Element elementOver = e.target;
     if (elementOver == _verticalElement ||
         elementOver == _horizontalElement) {
@@ -196,7 +196,7 @@ class Scrollbar implements ScrollListener {
     }
   }
 
-  void _onMove(UIEvent e) {
+  void _onMove(/*MouseEvent | Touch*/ e) {
     if (!_scrollBarDragInProgress) {
       return;
     }

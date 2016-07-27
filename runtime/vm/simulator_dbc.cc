@@ -1374,7 +1374,7 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(StaticCall, A_D);
+    BYTECODE(IndirectStaticCall, A_D);
 
     // Check if single stepping.
     if (thread->isolate()->single_step()) {
@@ -1386,12 +1386,28 @@ RawObject* Simulator::Call(const Code& code,
     // Invoke target function.
     {
       const uint16_t argc = rA;
+      // Lookup the funciton in the ICData.
+      RawObject* ic_data_obj = SP[0];
+      RawICData* ic_data = RAW_CAST(ICData, ic_data_obj);
+      RawArray* cache = ic_data->ptr()->ic_data_->ptr();
+      SP[0] = cache->data()[ICData::TargetIndexFor(
+          ic_data->ptr()->state_bits_ & 0x3)];
       RawObject** call_base = SP - argc;
       RawObject** call_top = SP;  // *SP contains function
       argdesc = static_cast<RawArray*>(LOAD_CONSTANT(rD));
       Invoke(thread, call_base, call_top, &pp, &pc, &FP, &SP);
     }
 
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StaticCall, A_D);
+    const uint16_t argc = rA;
+    RawObject** call_base = SP - argc;
+    RawObject** call_top = SP;  // *SP contains function
+    argdesc = static_cast<RawArray*>(LOAD_CONSTANT(rD));
+    Invoke(thread, call_base, call_top, &pp, &pc, &FP, &SP);
     DISPATCH();
   }
 
@@ -1693,6 +1709,316 @@ RawObject* Simulator::Call(const Code& code,
     }
     DISPATCH();
   }
+
+  {
+    BYTECODE(ShrImm, A_B_C);
+    const uint8_t shift = rC;
+    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]) >> kSmiTagSize;
+    *reinterpret_cast<intptr_t*>(&FP[rA]) = (lhs >> shift) << kSmiTagSize;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(Min, A_B_C);
+    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]);
+    FP[rA] = reinterpret_cast<RawObject*>((lhs < rhs) ? lhs : rhs);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(Max, A_B_C);
+    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]);
+    FP[rA] = reinterpret_cast<RawObject*>((lhs > rhs) ? lhs : rhs);
+    DISPATCH();
+  }
+
+#if defined(ARCH_IS_64_BIT)
+  {
+    BYTECODE(WriteIntoDouble, A_D);
+    const double value = bit_cast<double, RawObject*>(FP[rD]);
+    RawDouble* box = RAW_CAST(Double, *SP--);
+    box->ptr()->value_ = value;
+    FP[rA] = box;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(UnboxDouble, A_D);
+    const RawDouble* box = RAW_CAST(Double, FP[rD]);
+    FP[rA] = bit_cast<RawObject*, double>(box->ptr()->value_);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CheckedUnboxDouble, A_D);
+    const intptr_t box_cid = SimulatorHelpers::GetClassId(FP[rD]);
+    if (box_cid == kSmiCid) {
+      const intptr_t value = reinterpret_cast<intptr_t>(FP[rD]) >> kSmiTagSize;
+      const double result = static_cast<double>(value);
+      FP[rA] = bit_cast<RawObject*, double>(result);
+      pc++;
+    } else if (box_cid == kDoubleCid) {
+      const RawDouble* box = RAW_CAST(Double, FP[rD]);
+      FP[rA] = bit_cast<RawObject*, double>(box->ptr()->value_);
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DoubleToSmi, A_D);
+    const double value = bit_cast<double, RawObject*>(FP[rD]);
+    if (!isnan(value)) {
+      const intptr_t result = static_cast<intptr_t>(value);
+      if ((result <= Smi::kMaxValue) && (result >= Smi::kMinValue)) {
+        FP[rA] = reinterpret_cast<RawObject*>(result << kSmiTagSize);
+        pc++;
+      }
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(SmiToDouble, A_D);
+    const intptr_t value = reinterpret_cast<intptr_t>(FP[rD]) >> kSmiTagSize;
+    const double result = static_cast<double>(value);
+    FP[rA] = bit_cast<RawObject*, double>(result);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DAdd, A_B_C);
+    const double lhs = bit_cast<double, RawObject*>(FP[rB]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rC]);
+    FP[rA] = bit_cast<RawObject*, double>(lhs + rhs);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DSub, A_B_C);
+    const double lhs = bit_cast<double, RawObject*>(FP[rB]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rC]);
+    FP[rA] = bit_cast<RawObject*, double>(lhs - rhs);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DMul, A_B_C);
+    const double lhs = bit_cast<double, RawObject*>(FP[rB]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rC]);
+    FP[rA] = bit_cast<RawObject*, double>(lhs * rhs);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DDiv, A_B_C);
+    const double lhs = bit_cast<double, RawObject*>(FP[rB]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rC]);
+    const double result = lhs / rhs;
+    FP[rA] = bit_cast<RawObject*, double>(result);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DNeg, A_D);
+    const double value = bit_cast<double, RawObject*>(FP[rD]);
+    FP[rA] = bit_cast<RawObject*, double>(-value);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DSqrt, A_D);
+    const double value = bit_cast<double, RawObject*>(FP[rD]);
+    FP[rA] = bit_cast<RawObject*, double>(sqrt(value));
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DSin, A_D);
+    const double value = bit_cast<double, RawObject*>(FP[rD]);
+    FP[rA] = bit_cast<RawObject*, double>(sin(value));
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DCos, A_D);
+    const double value = bit_cast<double, RawObject*>(FP[rD]);
+    FP[rA] = bit_cast<RawObject*, double>(cos(value));
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DPow, A_B_C);
+    const double lhs = bit_cast<double, RawObject*>(FP[rB]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rC]);
+    const double result = pow(lhs, rhs);
+    FP[rA] = bit_cast<RawObject*, double>(result);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DMod, A_B_C);
+    const double lhs = bit_cast<double, RawObject*>(FP[rB]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rC]);
+    const double result = DartModulo(lhs, rhs);
+    FP[rA] = bit_cast<RawObject*, double>(result);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DMin, A_B_C);
+    const double lhs = bit_cast<double, RawObject*>(FP[rB]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rC]);
+    FP[rA] = bit_cast<RawObject*, double>(fmin(lhs, rhs));
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DMax, A_B_C);
+    const double lhs = bit_cast<double, RawObject*>(FP[rB]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rC]);
+    FP[rA] = bit_cast<RawObject*, double>(fmax(lhs, rhs));
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadFloat64Indexed, A_B_C);
+    ASSERT(RawObject::IsTypedDataClassId(FP[rB]->GetClassId()));
+    RawTypedData* array = reinterpret_cast<RawTypedData*>(FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
+    double* data = reinterpret_cast<double*>(array->ptr()->data());
+    FP[rA] = bit_cast<RawObject*, double>(data[Smi::Value(index)]);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreFloat64Indexed, A_B_C);
+    ASSERT(RawObject::IsTypedDataClassId(FP[rA]->GetClassId()));
+    RawTypedData* array = reinterpret_cast<RawTypedData*>(FP[rA]);
+    RawSmi* index = RAW_CAST(Smi, FP[rB]);
+    ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
+    double* data = reinterpret_cast<double*>(array->ptr()->data());
+    data[Smi::Value(index)] = bit_cast<double, RawObject*>(FP[rC]);
+    DISPATCH();
+  }
+#else  // defined(ARCH_IS_64_BIT)
+  {
+    BYTECODE(WriteIntoDouble, A_D);
+    UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(UnboxDouble, A_D);
+    UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CheckedUnboxDouble, A_D);
+    UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DoubleToSmi, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(SmiToDouble, A_D);
+    UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DAdd, A_B_C);
+    UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DSub, A_B_C);
+    UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DMul, A_B_C);
+    UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DDiv, A_B_C);
+    UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DNeg, A_D);
+    UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DSqrt, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DSin, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DCos, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DPow, A_B_C);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DMod, A_B_C);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DMin, A_B_C);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DMax, A_B_C);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadFloat64Indexed, A_B_C);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreFloat64Indexed, A_B_C);
+    UNREACHABLE();
+    DISPATCH();
+  }
+#endif  // defined(ARCH_IS_64_BIT)
 
   // Return and return like instructions (Instrinsic).
   {
@@ -2058,6 +2384,27 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(TestCids, A_D);
+    const intptr_t cid = SimulatorHelpers::GetClassId(FP[rA]);
+    const intptr_t num_cases = rD;
+    for (intptr_t i = 0; i < num_cases; i++) {
+      ASSERT(Bytecode::DecodeOpcode(pc[i]) == Bytecode::kNop);
+      intptr_t test_target = Bytecode::DecodeA(pc[i]);
+      intptr_t test_cid = Bytecode::DecodeD(pc[i]);
+      if (cid == test_cid) {
+        if (test_target != 0) {
+          pc += 1;  // Match true.
+        } else {
+          pc += 2;  // Match false.
+        }
+        break;
+      }
+    }
+    pc += num_cases;
+    DISPATCH();
+  }
+
+  {
     BYTECODE(CheckSmi, 0);
     intptr_t obj = reinterpret_cast<intptr_t>(FP[rA]);
     if ((obj & kSmiTagMask) == kSmiTag) {
@@ -2067,8 +2414,20 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(CheckEitherNonSmi, A_D);
+    const intptr_t obj1 = reinterpret_cast<intptr_t>(FP[rA]);
+    const intptr_t obj2 = reinterpret_cast<intptr_t>(FP[rD]);
+    const intptr_t tag = (obj1 | obj2) & kSmiTagMask;
+    if (tag != kSmiTag) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
     BYTECODE(CheckClassId, A_D);
-    const intptr_t actual_cid = SimulatorHelpers::GetClassId(FP[rA]);
+    const intptr_t actual_cid =
+        reinterpret_cast<intptr_t>(FP[rA]) >> kSmiTagSize;
     const intptr_t desired_cid = rD;
     pc += (actual_cid == desired_cid) ? 1 : 0;
     DISPATCH();
@@ -2194,6 +2553,172 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(IfLe, A_D);
+    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rA]);
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rD]);
+    if (lhs > rhs) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfLt, A_D);
+    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rA]);
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rD]);
+    if (lhs >= rhs) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfGe, A_D);
+    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rA]);
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rD]);
+    if (lhs < rhs) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfGt, A_D);
+    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rA]);
+    const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rD]);
+    if (lhs <= rhs) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfULe, A_D);
+    const uintptr_t lhs = reinterpret_cast<uintptr_t>(FP[rA]);
+    const uintptr_t rhs = reinterpret_cast<uintptr_t>(FP[rD]);
+    if (lhs > rhs) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfULt, A_D);
+    const uintptr_t lhs = reinterpret_cast<uintptr_t>(FP[rA]);
+    const uintptr_t rhs = reinterpret_cast<uintptr_t>(FP[rD]);
+    if (lhs >= rhs) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfUGe, A_D);
+    const uintptr_t lhs = reinterpret_cast<uintptr_t>(FP[rA]);
+    const uintptr_t rhs = reinterpret_cast<uintptr_t>(FP[rD]);
+    if (lhs < rhs) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfUGt, A_D);
+    const uintptr_t lhs = reinterpret_cast<uintptr_t>(FP[rA]);
+    const uintptr_t rhs = reinterpret_cast<uintptr_t>(FP[rD]);
+    if (lhs <= rhs) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+#if defined(ARCH_IS_64_BIT)
+  {
+    BYTECODE(IfDEq, A_D);
+    const double lhs = bit_cast<double, RawObject*>(FP[rA]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rD]);
+    pc += (lhs == rhs) ? 0 : 1;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfDNe, A_D);
+    const double lhs = bit_cast<double, RawObject*>(FP[rA]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rD]);
+    pc += (lhs != rhs) ? 0 : 1;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfDLe, A_D);
+    const double lhs = bit_cast<double, RawObject*>(FP[rA]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rD]);
+    pc += (lhs <= rhs) ? 0 : 1;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfDLt, A_D);
+    const double lhs = bit_cast<double, RawObject*>(FP[rA]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rD]);
+    pc += (lhs < rhs) ? 0 : 1;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfDGe, A_D);
+    const double lhs = bit_cast<double, RawObject*>(FP[rA]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rD]);
+    pc += (lhs >= rhs) ? 0 : 1;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfDGt, A_D);
+    const double lhs = bit_cast<double, RawObject*>(FP[rA]);
+    const double rhs = bit_cast<double, RawObject*>(FP[rD]);
+    pc += (lhs > rhs) ? 0 : 1;
+    DISPATCH();
+  }
+#else  // defined(ARCH_IS_64_BIT)
+  {
+    BYTECODE(IfDEq, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfDNe, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfDLe, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfDLt, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfDGe, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfDGt, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+#endif  // defined(ARCH_IS_64_BIT)
+
+  {
     BYTECODE(IfEqStrictNum, A_D);
     RawObject* lhs = FP[rA];
     RawObject* rhs = FP[rD];
@@ -2254,11 +2779,9 @@ RawObject* Simulator::Call(const Code& code,
   {
     BYTECODE(StoreIndexedTOS, 0);
     SP -= 3;
-    RawArray* array = static_cast<RawArray*>(SP[1]);
-    RawSmi* index = static_cast<RawSmi*>(SP[2]);
+    RawArray* array = RAW_CAST(Array, SP[1]);
+    RawSmi* index = RAW_CAST(Smi, SP[2]);
     RawObject* value = SP[3];
-    ASSERT(array->GetClassId() == kArrayCid);
-    ASSERT(!index->IsHeapObject());
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
     array->StorePointer(array->ptr()->data() + Smi::Value(index), value);
     DISPATCH();
@@ -2266,13 +2789,38 @@ RawObject* Simulator::Call(const Code& code,
 
   {
     BYTECODE(StoreIndexed, A_B_C);
-    RawArray* array = static_cast<RawArray*>(FP[rA]);
-    RawSmi* index = static_cast<RawSmi*>(FP[rB]);
+    RawArray* array = RAW_CAST(Array, FP[rA]);
+    RawSmi* index = RAW_CAST(Smi, FP[rB]);
     RawObject* value = FP[rC];
-    ASSERT(array->GetClassId() == kArrayCid);
-    ASSERT(!index->IsHeapObject());
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
     array->StorePointer(array->ptr()->data() + Smi::Value(index), value);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexed, A_B_C);
+    RawArray* array = RAW_CAST(Array, FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
+    FP[rA] = array->ptr()->data()[Smi::Value(index)];
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadOneByteStringIndexed, A_B_C);
+    RawOneByteString* array = RAW_CAST(OneByteString, FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
+    FP[rA] = Smi::New(array->ptr()->data()[Smi::Value(index)]);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadTwoByteStringIndexed, A_B_C);
+    RawTwoByteString* array = RAW_CAST(TwoByteString, FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
+    FP[rA] = Smi::New(array->ptr()->data()[Smi::Value(index)]);
     DISPATCH();
   }
 
@@ -2422,6 +2970,7 @@ RawObject* Simulator::Call(const Code& code,
   return 0;
 }
 
+
 void Simulator::Longjmp(uword pc,
                         uword sp,
                         uword fp,
@@ -2458,6 +3007,5 @@ void Simulator::Longjmp(uword pc,
 }
 
 }  // namespace dart
-
 
 #endif  // defined TARGET_ARCH_DBC

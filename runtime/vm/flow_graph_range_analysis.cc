@@ -693,6 +693,7 @@ bool RangeAnalysis::InferRange(JoinOperator op,
     }
 
     if (!range.Equals(defn->range())) {
+#ifndef PRODUCT
       if (FLAG_support_il_printer && FLAG_trace_range_analysis) {
         THR_Print("%c [%" Pd "] %s:  %s => %s\n",
                   OpPrefix(op),
@@ -701,6 +702,7 @@ bool RangeAnalysis::InferRange(JoinOperator op,
                   Range::ToCString(defn->range()),
                   Range::ToCString(&range));
       }
+#endif  // !PRODUCT
       defn->set_range(range);
       return true;
     }
@@ -1022,12 +1024,14 @@ class BoundsCheckGeneralizer {
     // range give up on generalization for simplicity.
     GrowableArray<Definition*> non_positive_symbols;
     if (!FindNonPositiveSymbols(&non_positive_symbols, upper_bound)) {
+#ifndef PRODUCT
       if (FLAG_support_il_printer && FLAG_trace_range_analysis) {
         THR_Print("Failed to generalize %s index to %s"
                   " (can't ensure positivity)\n",
                   check->ToCString(),
                   IndexBoundToCString(upper_bound));
       }
+#endif  // !PRODUCT
       return;
     }
 
@@ -1056,21 +1060,25 @@ class BoundsCheckGeneralizer {
     if (!RangeUtils::IsPositive(lower_bound->range())) {
       // Can't prove that lower bound is positive even with additional checks
       // against potentially non-positive symbols. Give up.
+#ifndef PRODUCT
       if (FLAG_support_il_printer && FLAG_trace_range_analysis) {
         THR_Print("Failed to generalize %s index to %s"
                   " (lower bound is not positive)\n",
                   check->ToCString(),
                   IndexBoundToCString(upper_bound));
       }
+#endif  // !PRODUCT
       return;
     }
 
+#ifndef PRODUCT
     if (FLAG_support_il_printer && FLAG_trace_range_analysis) {
       THR_Print("For %s computed index bounds [%s, %s]\n",
                 check->ToCString(),
                 IndexBoundToCString(lower_bound),
                 IndexBoundToCString(upper_bound));
     }
+#endif  // !PRODUCT
 
     // At this point we know that 0 <= index < UpperBound(index) under
     // certain preconditions. Start by emitting this preconditions.
@@ -1493,6 +1501,7 @@ class BoundsCheckGeneralizer {
     return defn;
   }
 
+#ifndef PRODUCT
   static void PrettyPrintIndexBoundRecursively(BufferFormatter* f,
                                                Definition* index_bound) {
     BinarySmiOpInstr* binary_op = index_bound->AsBinarySmiOp();
@@ -1518,6 +1527,7 @@ class BoundsCheckGeneralizer {
     PrettyPrintIndexBoundRecursively(&f, index_bound);
     return Thread::Current()->zone()->MakeCopyOfString(buffer);
   }
+#endif  // !PRODUCT
 
   RangeAnalysis* range_analysis_;
   FlowGraph* flow_graph_;

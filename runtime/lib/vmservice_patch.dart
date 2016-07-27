@@ -34,3 +34,5 @@ patch void onServerAddressChange(String address)
 patch bool _vmListenStream(String streamId) native "VMService_ListenStream";
 patch void _vmCancelStream(String streamId) native "VMService_CancelStream";
 patch Uint8List _requestAssets() native "VMService_RequestAssets";
+patch void _spawnUriNotify(obj, String token)
+    native "VMService_spawnUriNotify";

@@ -56,7 +56,7 @@ vars = {
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.4",
   "dartdoc_tag" : "@v0.9.6+2",
-  "dev_compiler_rev": "@7e9708eb5e9f3fcdc68b9af039d78cf39ce502b7",
+  "dev_compiler_rev": "@108f2a2a03b1926e640013f3244df625b42ec380",
   "fixnum_tag": "@0.10.5",
   "func_rev": "@8d4aea75c21be2179cb00dc2b94a71414653094e",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
@@ -68,6 +68,7 @@ vars = {
   "idl_parser_rev": "@7fbe68cab90c38147dee4f48c30ad0d496c17915",
   "initialize_rev": "@595d501a92c3716395ad2d81f9aabdb9f90879b6",
   "intl_tag": "@0.13.0",
+  "isolate_tag": "@0.2.2",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@2.0.0",
   "linter_rev": "@7ca3aab6ca45b988440e425c187993a533fbe27e",
@@ -92,7 +93,7 @@ vars = {
   "quiver_tag": "@0.21.4",
   "resource_rev":"@a49101ba2deb29c728acba6fb86000a8f730f4b1",
   "root_certificates_rev": "@aed07942ce98507d2be28cbd29e879525410c7fc",
-  "scheduled_test_tag": "@0.12.5+2",
+  "scheduled_test_tag": "@0.12.6",
   "shelf_static_tag": "@0.2.3+4",
   "shelf_tag": "@0.6.5+2",
   "shelf_web_socket_tag": "@0.2.0",
@@ -106,7 +107,7 @@ vars = {
   "string_scanner_tag": "@0.1.4",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
   "test_reflective_loader_tag": "@0.0.3",
-  "test_tag": "@0.12.13+5",
+  "test_tag": "@0.12.15+1",
   "typed_data_tag": "@1.1.2",
   "usage_rev": "@b5080dac0d26a5609b266f8fdb0d053bc4c1c638",
   "utf_rev": "@1f55027068759e2d52f2c12de6a57cce5f3c5ee6",
@@ -222,6 +223,8 @@ deps = {
       (Var("github_dartlang") % "initialize") + Var("initialize_rev"),
   Var("dart_root") + "/third_party/pkg/intl":
       (Var("github_mirror") % "intl") + Var("intl_tag"),
+  Var("dart_root") + "/third_party/pkg/isolate":
+      (Var("github_dartlang") % "isolate") + Var("isolate_tag"),
   Var("dart_root") + "/third_party/pkg/json_rpc_2":
       (Var("github_mirror") % "json_rpc_2") + Var("json_rpc_2_tag"),
   Var("dart_root") + "/third_party/pkg/linter":

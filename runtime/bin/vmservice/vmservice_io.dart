@@ -19,8 +19,10 @@ int _port;
 String _ip;
 // Should the HTTP server auto start?
 bool _autoStart;
-
+// Should the HTTP server run in devmode?
+bool _originCheckDisabled;
 bool _isWindows = false;
+bool _isFuchsia = false;
 var _signalWatch;
 var _signalSubscription;
 
@@ -35,7 +37,7 @@ _lazyServerBoot() {
   // Lazily create service.
   var service = new VMService();
   // Lazily create server.
-  server = new Server(service, _ip, _port);
+  server = new Server(service, _ip, _port, _originCheckDisabled);
 }
 
 Future cleanupCallback() async {
@@ -70,13 +72,63 @@ Future deleteDirCallback(Uri path) async {
   await dir.delete(recursive: true);
 }
 
+class PendingWrite {
+  PendingWrite(this.uri, this.bytes);
+  final Completer completer = new Completer();
+  final Uri uri;
+  final List<int> bytes;
+
+  Future write() async {
+    var file = new File.fromUri(uri);
+    var parent_directory = file.parent;
+    await parent_directory.create(recursive: true);
+    var result = await file.writeAsBytes(bytes);
+    completer.complete(null);
+    WriteLimiter._writeCompleted();
+  }
+}
+
+class WriteLimiter {
+  static final List<PendingWrite> pendingWrites = new List<PendingWrite>();
+
+  // non-rooted Android devices have a very low limit for the number of
+  // open files. Artificially cap ourselves to 16.
+  static const kMaxOpenWrites = 16;
+  static int openWrites = 0;
+
+  static Future scheduleWrite(Uri path, List<int> bytes) async {
+    // Create a new pending write.
+    PendingWrite pw = new PendingWrite(path, bytes);
+    pendingWrites.add(pw);
+    _maybeWriteFiles();
+    return pw.completer.future;
+  }
+
+  static _maybeWriteFiles() {
+    while (openWrites < kMaxOpenWrites) {
+      if (pendingWrites.length > 0) {
+        PendingWrite pw = pendingWrites.removeLast();
+        pw.write();
+        openWrites++;
+      } else {
+        break;
+      }
+    }
+  }
+
+  static _writeCompleted() {
+    openWrites--;
+    assert(openWrites >= 0);
+    _maybeWriteFiles();
+  }
+}
+
 Future writeFileCallback(Uri path, List<int> bytes) async {
-  var file = await new File.fromUri(path);
-  await file.writeAsBytes(bytes);
+  return WriteLimiter.scheduleWrite(path, bytes);
 }
 
 Future<List<int>> readFileCallback(Uri path) async {
-  var file = await new File.fromUri(path);
+  var file = new File.fromUri(path);
   return await file.readAsBytes();
 }
 
@@ -126,8 +178,8 @@ _registerSignalHandler() {
     // Cannot register for signals.
     return;
   }
-  if (_isWindows) {
-    // Cannot register for signals on Windows.
+  if (_isWindows || _isFuchsia) {
+    // Cannot register for signals on Windows or Fuchsia.
     return;
   }
   _signalSubscription = _signalWatch(ProcessSignal.SIGQUIT).listen(_onSignal);

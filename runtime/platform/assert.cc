@@ -34,9 +34,8 @@ void DynamicAssertionHelper::Fail(const char* format, ...) {
             arguments);
   va_end(arguments);
 
-  // Print the buffer on stderr.
-  fprintf(stderr, "%s\n", buffer);
-  fflush(stderr);
+  // Print the buffer on stderr and/or syslog.
+  OS::PrintErr("%s\n", buffer);
 
   // In case of failed assertions, abort right away. Otherwise, wait
   // until the program is exiting before producing a non-zero exit

@@ -1,13 +1,9 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
-<link rel="import" href="observatory_element.html">
 
-<polymer-element name="service-ref" extends="observatory-element">
+<polymer-element name="any-service-ref">
 </polymer-element>
 
-<polymer-element name="any-service-ref" extends="observatory-element">
-</polymer-element>
-
-<polymer-element name="object-ref" extends="service-ref">
+<polymer-element name="object-ref">
   <template><link rel="stylesheet" href="css/shared.css">
 
     <template if="{{ ref.isObjectPool }}">

@@ -125,7 +125,7 @@ class EnclosedScope extends Scope {
             getSource(identifier),
             identifier.offset,
             identifier.length,
-            CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, []));
+            CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, [name]));
         return hiddenElement;
       }
     }

@@ -629,14 +629,6 @@ abstract class AnalysisContext {
    * so that the default contents will be returned.
    */
   void setContents(Source source, String contents);
-
-  /**
-   * Check the cache for any invalid entries (entries whose modification time
-   * does not match the modification time of the source associated with the
-   * entry). Invalid entries will be marked as invalid so that the source will
-   * be re-analyzed. Return `true` if at least one entry was invalid.
-   */
-  bool validateCacheConsistency();
 }
 
 /**
@@ -1249,7 +1241,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool enableTiming = false;
 
   @override
-  bool enableTrailingCommas = false;
+  bool enableTrailingCommas = true;
 
   /**
    * A flag indicating whether errors, warnings and hints should be generated
@@ -1550,6 +1542,50 @@ class ApplyChangesStatus {
   final bool hasChanges;
 
   ApplyChangesStatus(this.hasChanges);
+}
+
+/**
+ * Statistics about cache consistency validation.
+ */
+class CacheConsistencyValidationStatistics {
+  /**
+   * Number of sources which were modified, but the context was not notified
+   * about it, so this fact was detected only during cache consistency
+   * validation.
+   */
+  int numOfModified = 0;
+
+  /**
+   * Number of sources which were deleted, but the context was not notified
+   * about it, so this fact was detected only during cache consistency
+   * validation.
+   */
+  int numOfDeleted = 0;
+}
+
+/**
+ * Interface for cache consistency validation in an [InternalAnalysisContext].
+ */
+abstract class CacheConsistencyValidator {
+  /**
+   * Return sources for which the contexts needs to know modification times.
+   */
+  List<Source> getSourcesToComputeModificationTimes();
+
+  /**
+   * Notify the validator that modification [times] were computed for [sources].
+   * If a source does not exist, its modification time is `-1`.
+   *
+   * It's up to the validator and the context how to use this information,
+   * the list of sources the context has might have been changed since the
+   * previous invocation of [getSourcesToComputeModificationTimes].
+   *
+   * Check the cache for any invalid entries (entries whose modification time
+   * does not match the modification time of the source associated with the
+   * entry). Invalid entries will be marked as invalid so that the source will
+   * be re-analyzed. Return `true` if at least one entry was invalid.
+   */
+  bool sourceModificationTimesComputed(List<Source> sources, List<int> times);
 }
 
 /**
@@ -2037,6 +2073,11 @@ abstract class InternalAnalysisContext implements AnalysisContext {
   AnalysisCache get analysisCache;
 
   /**
+   * The cache consistency validator for this context.
+   */
+  CacheConsistencyValidator get cacheConsistencyValidator;
+
+  /**
    * Allow the client to supply its own content cache.  This will take the
    * place of the content cache created by default, allowing clients to share
    * the content cache between contexts.
@@ -2332,6 +2373,13 @@ class PerformanceStatistics {
    * The [PerformanceTag] for time spent in summaries support.
    */
   static PerformanceTag summary = new PerformanceTag('summary');
+
+  /**
+   * Statistics about cache consistency validation.
+   */
+  static final CacheConsistencyValidationStatistics
+      cacheConsistencyValidationStatistics =
+      new CacheConsistencyValidationStatistics();
 }
 
 /**

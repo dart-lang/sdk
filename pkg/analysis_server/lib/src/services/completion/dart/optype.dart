@@ -184,8 +184,19 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
         if (elem is FunctionTypedElement) {
           List<ParameterElement> parameters = elem.parameters;
           if (parameters != null) {
-            int index =
-                node.arguments.isEmpty ? 0 : node.arguments.indexOf(entity);
+            int index;
+            if (node.arguments.isEmpty) {
+              index = 0;
+            } else if (entity == node.rightParenthesis) {
+              // Parser ignores trailing commas
+              if (node.rightParenthesis.previous?.lexeme == ',') {
+                index = node.arguments.length;
+              } else {
+                index = node.arguments.length - 1;
+              }
+            } else {
+              index = node.arguments.indexOf(entity);
+            }
             if (0 <= index && index < parameters.length) {
               ParameterElement param = parameters[index];
               if (param?.parameterKind == ParameterKind.NAMED) {

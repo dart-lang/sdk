@@ -311,6 +311,9 @@ class ObjectPointerVisitor;
   V(TwoNewlines, "\n\n")                                                       \
   V(TwoSpaces, "  ")                                                           \
   V(_instanceOf, "_instanceOf")                                                \
+  V(_simpleInstanceOf, "_simpleInstanceOf")                                    \
+  V(_simpleInstanceOfTrue, "_simpleInstanceOfTrue")                            \
+  V(_simpleInstanceOfFalse, "_simpleInstanceOfFalse")                          \
   V(_instanceOfSmi, "_instanceOfSmi")                                          \
   V(_instanceOfNum, "_instanceOfNum")                                          \
   V(_instanceOfInt, "_instanceOfInt")                                          \
@@ -393,6 +396,7 @@ class ObjectPointerVisitor;
   V(_runPendingImmediateCallback, "_runPendingImmediateCallback")              \
   V(DartLibrary, "dart.library.")                                              \
   V(DartLibraryMirrors, "dart.library.mirrors")                                \
+  V(_name, "_name")                                                            \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

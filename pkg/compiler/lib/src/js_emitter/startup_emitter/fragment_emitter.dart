@@ -64,13 +64,9 @@ function copyProperties(from, to) {
   }
 }
 
-var supportsDirectProtoAccess = (function () {
-  var cls = function () {};
-  cls.prototype = {'p': {}};
-  var object = new cls();
-  return object.__proto__ &&
-         object.__proto__.p === cls.prototype.p;
-})();
+// Only use direct proto access to construct the prototype chain (instead of
+// copying properties) on platforms where we know it works well (Chrome / d8).
+var supportsDirectProtoAccess = #directAccessTestExpression;
 
 var functionsHaveName = (function() {
   function t() {};
@@ -354,6 +350,36 @@ var #staticStateDeclaration = {};
 })()
 ''';
 
+/// An expression that returns `true` if `__proto__` can be assigned to stitch
+/// together a prototype chain, and the performance is good.
+const String directAccessTestExpression = r'''
+  (function () {
+    var cls = function () {};
+    cls.prototype = {'p': {}};
+    var object = new cls();
+    if (!(object.__proto__ && object.__proto__.p === cls.prototype.p))
+      return false;
+    
+    try {
+      // Are we running on a platform where the performance is good?
+      // (i.e. Chrome or d8).
+
+      // Chrome userAgent?
+      if (typeof navigator != "undefined" &&
+          typeof navigator.userAgent == "string" &&
+          navigator.userAgent.indexOf("Chrome/") >= 0) return true;
+      // d8 version() looks like "N.N.N.N", jsshell version() like "N".
+      if (typeof version == "function" &&
+          version.length == 0) {
+        var v = version();
+        if (/^\d+\.\d+\.\d+\.\d+$/.test(v)) return true;
+      }
+    } catch(_) {}
+
+    return false;
+  })()
+''';
+
 /// Deferred fragments (aka 'hunks') are built similarly to the main fragment.
 ///
 /// However, at specific moments they need to contribute their data.
@@ -436,6 +462,7 @@ class FragmentEmitter {
         program.holders.where((Holder holder) => !holder.isStaticStateHolder);
 
     return js.js.statement(mainBoilerplate, {
+      'directAccessTestExpression': js.js(directAccessTestExpression),
       'typeNameProperty': js.string(ModelEmitter.typeNameProperty),
       'cyclicThrow': backend.emitter
           .staticFunctionAccess(backend.helpers.cyclicThrowHelper),

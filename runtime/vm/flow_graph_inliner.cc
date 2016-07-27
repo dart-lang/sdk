@@ -634,7 +634,9 @@ class CallSiteInliner : public ValueObject {
 
     // Don't inline any intrinsified functions in precompiled mode
     // to reduce code size and make sure we use the intrinsic code.
-    if (FLAG_precompiled_mode && function.is_intrinsic()) {
+    if (FLAG_precompiled_mode &&
+        function.is_intrinsic() &&
+        !inliner_->AlwaysInline(function)) {
       TRACE_INLINING(THR_Print("     Bailout: intrinisic\n"));
       PRINT_INLINING_TREE("intrinsic",
           &call_data->caller, &function, call_data->call);
@@ -2045,15 +2047,6 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
                                        Definition** array,
                                        Definition* index,
                                        Instruction** cursor) {
-  // Insert index smi check.
-  *cursor = flow_graph->AppendTo(
-      *cursor,
-      new(Z) CheckSmiInstr(new(Z) Value(index),
-                           call->deopt_id(),
-                           call->token_pos()),
-      call->env(),
-      FlowGraph::kEffect);
-
   // Insert array length load and bounds check.
   LoadFieldInstr* length =
       new(Z) LoadFieldInstr(
@@ -2460,6 +2453,29 @@ static bool InlineDoubleOp(FlowGraph* flow_graph,
 }
 
 
+static bool InlineSmiBitAndFromSmi(FlowGraph* flow_graph,
+                                   Instruction* call,
+                                   TargetEntryInstr** entry,
+                                   Definition** last) {
+  Definition* left = call->ArgumentAt(0);
+  Definition* right = call->ArgumentAt(1);
+
+  *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                   call->GetBlock()->try_index());
+  (*entry)->InheritDeoptTarget(Z, call);
+  // Right arguments is known to be smi: other._bitAndFromSmi(this);
+  BinarySmiOpInstr* smi_op =
+      new(Z) BinarySmiOpInstr(Token::kBIT_AND,
+                              new(Z) Value(left),
+                              new(Z) Value(right),
+                              call->deopt_id());
+  flow_graph->AppendTo(*entry, smi_op, call->env(), FlowGraph::kValue);
+  *last = smi_op;
+
+  return true;
+}
+
+
 static bool InlineGrowableArraySetter(FlowGraph* flow_graph,
                                       intptr_t offset,
                                       StoreBarrierType store_barrier_type,
@@ -2495,15 +2511,6 @@ static intptr_t PrepareInlineByteArrayBaseOp(
     Definition** array,
     Definition* byte_index,
     Instruction** cursor) {
-  // Insert byte_index smi check.
-  *cursor = flow_graph->AppendTo(*cursor,
-                                 new(Z) CheckSmiInstr(
-                                     new(Z) Value(byte_index),
-                                     call->deopt_id(),
-                                     call->token_pos()),
-                                 call->env(),
-                                 FlowGraph::kEffect);
-
   LoadFieldInstr* length =
       new(Z) LoadFieldInstr(
           new(Z) Value(*array),
@@ -2804,15 +2811,6 @@ static Definition* PrepareInlineStringIndexOp(
     Definition* str,
     Definition* index,
     Instruction* cursor) {
-
-  cursor = flow_graph->AppendTo(cursor,
-                                new(Z) CheckSmiInstr(
-                                    new(Z) Value(index),
-                                    call->deopt_id(),
-                                    call->token_pos()),
-                                call->env(),
-                                FlowGraph::kEffect);
-
   // Load the length of the string.
   // Treat length loads as mutable (i.e. affected by side effects) to avoid
   // hoisting them since we can't hoist the preceding class-check. This
@@ -3227,6 +3225,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
       return InlineGrowableArraySetter(
           flow_graph, GrowableObjectArray::length_offset(), kNoStoreBarrier,
           call, entry, last);
+    case MethodRecognizer::kSmi_bitAndFromSmi:
+      return InlineSmiBitAndFromSmi(flow_graph, call, entry, last);
     default:
       return false;
   }

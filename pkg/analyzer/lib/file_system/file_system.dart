@@ -166,6 +166,11 @@ abstract class Resource {
    * this folder.
    */
   bool isOrContains(String path);
+
+  /**
+   * Return a Uri representing this resource.
+   */
+  Uri toUri();
 }
 
 /**
@@ -198,6 +203,14 @@ abstract class ResourceProvider {
   Folder getFolder(String path);
 
   /**
+   * Complete with a list of modification times for the given [sources].
+   *
+   * If the file of a source is not managed by this provider, return `null`.
+   * If the file a source does not exist, return `-1`.
+   */
+  Future<List<int>> getModificationTimes(List<Source> sources);
+
+  /**
    * Return the [Resource] that corresponds to the given [path].
    */
   Resource getResource(String path);
@@ -225,6 +238,8 @@ class ResourceUriResolver extends UriResolver {
 
   ResourceUriResolver(this._provider);
 
+  ResourceProvider get provider => _provider;
+
   @override
   Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     if (!isFileUri(uri)) {
@@ -241,8 +256,6 @@ class ResourceUriResolver extends UriResolver {
   @override
   Uri restoreAbsolute(Source source) =>
       _provider.pathContext.toUri(source.fullName);
-
-  ResourceProvider get provider => _provider;
 
   /**
    * Return `true` if the given [uri] is a `file` URI.

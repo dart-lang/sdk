@@ -15,20 +15,22 @@ patch class Object {
   static _getHash(obj) native "Object_getHash";
   static _setHash(obj, hash) native "Object_setHash";
 
-  /* patch */ int get hashCode => _identityHashCode;
-
-  int get _identityHashCode {
-    var result = _getHash(this);
+  // Shared static implentation for hashCode and _identityHashCode.
+  static int _objectHashCode(obj) {
+    var result = _getHash(obj);
     if (result == 0) {
       // We want the hash to be a Smi value greater than 0.
       result = _hashCodeRnd.nextInt(0x40000000);
       while (result == 0) {
         result = _hashCodeRnd.nextInt(0x40000000);
       }
-      _setHash(this, result);
+      _setHash(obj, result);
     }
     return result;
   }
+
+  /* patch */ int get hashCode => _objectHashCode(this);
+  int get _identityHashCode => _objectHashCode(this);
 
   /* patch */ String toString() native "Object_toString";
   // A statically dispatched version of Object.toString.
@@ -56,6 +58,11 @@ patch class Object {
   bool _instanceOf(instantiator_type_arguments, type, bool negate)
       native "Object_instanceOf";
 
+  // Group of functions for implementing fast simple instance of.
+  bool _simpleInstanceOf(type) native "Object_simpleInstanceOf";
+  bool _simpleInstanceOfTrue(type) => true;
+  bool _simpleInstanceOfFalse(type) => false;
+  
   bool _instanceOfDouble(bool negate) native "Object_instanceOfDouble";
   bool _instanceOfNum(bool negate) native "Object_instanceOfNum";
   bool _instanceOfInt(bool negate) native "Object_instanceOfInt";

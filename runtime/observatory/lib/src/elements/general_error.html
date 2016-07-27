@@ -1,12 +1,11 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
-<link rel="import" href="nav_bar.html">
-<link rel="import" href="observatory_element.html">
 
-<polymer-element name="general-error" extends="observatory-element">
+<polymer-element name="general-error">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
     <div class="content-centered">
       <h1>Error</h1>

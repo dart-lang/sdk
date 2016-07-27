@@ -12,6 +12,12 @@
 #define USING_DBC false
 #endif
 
+#if defined(TARGET_OS_FUCHSIA)
+#define USING_FUCHSIA true
+#else
+#define USING_FUCHSIA false
+#endif
+
 // Don't use USING_MULTICORE outside of this file.
 #if defined(ARCH_IS_MULTI_CORE)
 #define USING_MULTICORE true
@@ -35,8 +41,6 @@
 //   D(name, type, default_value, comment)
 //   C(name, precompiled_value, product_value, type, default_value, comment)
 #define FLAG_LIST(P, R, D, C)                                                  \
-P(always_megamorphic_calls, bool, false,                                       \
-  "Instance call always as megamorphic.")                                      \
 P(background_compilation, bool, USING_MULTICORE,                               \
   "Run optimizing compilation in background")                                  \
 R(background_compilation_stop_alot, false, bool, false,                        \
@@ -90,8 +94,6 @@ P(getter_setter_ratio, int, 13,                                                \
   "Ratio of getter/setter usage used for double field unboxing heuristics")    \
 P(guess_icdata_cid, bool, true,                                                \
   "Artificially create type feedback for arithmetic etc. operations")          \
-P(ic_range_profiling, bool, !USING_DBC,                                        \
-  "Generate special IC stubs collecting range information ")                   \
 P(interpret_irregexp, bool, USING_DBC,                                         \
   "Use irregexp bytecode interpreter")                                         \
 P(lazy_dispatchers, bool, true,                                                \
@@ -108,7 +110,7 @@ R(marker_tasks, USING_MULTICORE ? 2 : 0, int, USING_MULTICORE ? 2 : 0,         \
 P(max_polymorphic_checks, int, 4,                                              \
   "Maximum number of polymorphic check, otherwise it is megamorphic.")         \
 P(max_equality_polymorphic_checks, int, 32,                                    \
-    "Maximum number of polymorphic checks in equality operator,")              \
+  "Maximum number of polymorphic checks in equality operator,")                \
 P(merge_sin_cos, bool, false,                                                  \
   "Merge sin/cos into sincos")                                                 \
 P(new_gen_ext_limit, int, 64,                                                  \
@@ -138,7 +140,9 @@ R(print_ssa_liveranges, false, bool, false,                                    \
   "Print live ranges after allocation.")                                       \
 C(print_stop_message, false, false, bool, false,                               \
   "Print stop message.")                                                       \
-R(profiler, false, bool, !USING_DBC,                                           \
+D(print_variable_descriptors, bool, false,                                     \
+  "Print variable descriptors in disassembly.")                                \
+R(profiler, false, bool, !USING_DBC && !USING_FUCHSIA,                         \
   "Enable the profiler.")                                                      \
 P(reorder_basic_blocks, bool, true,                                            \
   "Reorder basic blocks")                                                      \
@@ -146,13 +150,13 @@ R(support_ast_printer, false, bool, true,                                      \
   "Support the AST printer.")                                                  \
 R(support_compiler_stats, false, bool, true,                                   \
   "Support compiler stats.")                                                   \
-R(support_debugger, false, bool, true,                                         \
+C(support_debugger, false, false, bool, true,                                  \
   "Support the debugger.")                                                     \
 R(support_disassembler, false, bool, true,                                     \
   "Support the disassembler.")                                                 \
 R(support_il_printer, false, bool, true,                                       \
   "Support the IL printer.")                                                   \
-R(support_reload, false, bool, true,                                           \
+C(support_reload, false, false, bool, true,                                    \
   "Support isolate reload.")                                                   \
 R(support_service, false, bool, true,                                          \
   "Support the service protocol.")                                             \
@@ -184,8 +188,6 @@ P(use_field_guards, bool, !USING_DBC,                                          \
   "Use field guards and track field types")                                    \
 C(use_osr, false, true, bool, true,                                            \
   "Use OSR")                                                                   \
-R(verbose_dev, false, bool, false,                                             \
-  "Enables verbose messages during development.")                              \
 P(verbose_gc, bool, false,                                                     \
   "Enables verbose GC.")                                                       \
 P(verbose_gc_hdr, int, 40,                                                     \

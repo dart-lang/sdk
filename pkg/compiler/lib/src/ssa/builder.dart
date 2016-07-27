@@ -82,6 +82,10 @@ class SyntheticLocal extends Local {
   final String name;
   final ExecutableElement executableContext;
 
+  // Avoid slow Object.hashCode.
+  final int hashCode = _nextHashCode = (_nextHashCode + 1).toUnsigned(30);
+  static int _nextHashCode = 0;
+
   SyntheticLocal(this.name, this.executableContext);
 
   toString() => 'SyntheticLocal($name)';
@@ -283,7 +287,7 @@ class LocalsHandler {
         (LocalVariableElement from, BoxFieldElement to) {
       // The [from] can only be a parameter for function-scopes and not
       // loop scopes.
-      if (from.isParameter && !element.isGenerativeConstructorBody) {
+      if (from.isRegularParameter && !element.isGenerativeConstructorBody) {
         // Now that the redirection is set up, the update to the local will
         // write the parameter value into the box.
         // Store the captured parameter in the box. Get the current value
@@ -1746,7 +1750,8 @@ class SsaBuilder extends ast.Visitor
   }
 
   HGraph buildCheckedSetter(VariableElement field) {
-    openFunction(field, field.node);
+    ResolvedAst resolvedAst = field.resolvedAst;
+    openFunction(field, resolvedAst.node);
     HInstruction thisInstruction = localsHandler.readThis();
     // Use dynamic type because the type computed by the inferrer is
     // narrowed to the type annotation.
@@ -5614,14 +5619,15 @@ class SsaBuilder extends ast.Visitor
       var filteredArguments = <HInstruction>[];
       var parameterNameMap = new Map<String, js.Expression>();
       params.orderedForEachParameter((ParameterElement parameter) {
-        // TODO(jacobr): throw if parameter names do not match names of property
-        // names in the class.
+        // TODO(jacobr): consider throwing if parameter names do not match
+        // names of properties in the class.
         assert(parameter.isNamed);
         HInstruction argument = arguments[i];
         if (argument != null) {
           filteredArguments.add(argument);
-          parameterNameMap[parameter.name] =
-              new js.InterpolatedExpression(positions++);
+          var jsName =
+              backend.nativeData.getUnescapedJSInteropName(parameter.name);
+          parameterNameMap[jsName] = new js.InterpolatedExpression(positions++);
         }
         i++;
       });

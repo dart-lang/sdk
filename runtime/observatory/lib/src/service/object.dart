@@ -22,14 +22,14 @@ Future cancelFutureSubscription(
 
 /// An RpcException represents an exceptional event that happened
 /// while invoking an rpc.
-abstract class RpcException implements Exception {
+abstract class RpcException implements Exception, M.BasicException {
   RpcException(this.message);
 
   String message;
 }
 
 /// A ServerRpcException represents an error returned by the VM.
-class ServerRpcException extends RpcException {
+class ServerRpcException extends RpcException implements M.RequestException {
   /// A list of well-known server error codes.
   static const kParseError     = -32700;
   static const kInvalidRequest = -32600;
@@ -70,7 +70,8 @@ class ServerRpcException extends RpcException {
 
 /// A NetworkRpcException is used to indicate that an rpc has
 /// been canceled due to network error.
-class NetworkRpcException extends RpcException {
+class NetworkRpcException extends RpcException
+                          implements M.ConnectionException {
   NetworkRpcException(String message) : super(message);
 
   String toString() => 'NetworkRpcException(${message})';
@@ -424,7 +425,8 @@ abstract class Location  {
 }
 
 /// A [SourceLocation] represents a location or range in the source code.
-class SourceLocation extends ServiceObject implements Location {
+class SourceLocation extends ServiceObject implements Location,
+                                                          M.SourceLocation {
   Script script;
   int tokenPos;
   int endTokenPos;
@@ -603,7 +605,7 @@ class _EventStreamState {
 }
 
 /// State for a VM being inspected.
-abstract class VM extends ServiceObjectOwner {
+abstract class VM extends ServiceObjectOwner implements M.VM {
   @reflectable VM get vm => this;
   @reflectable Isolate get isolate => null;
 
@@ -622,6 +624,7 @@ abstract class VM extends ServiceObjectOwner {
   final ObservableList<Isolate> isolates = new ObservableList<Isolate>();
 
   @observable String version = 'unknown';
+  @observable String hostCPU;
   @observable String targetCPU;
   @observable int architectureBits;
   @observable bool assertsEnabled = false;
@@ -896,6 +899,7 @@ abstract class VM extends ServiceObjectOwner {
 
     _loaded = true;
     version = map['version'];
+    hostCPU = map['hostCPU'];
     targetCPU = map['targetCPU'];
     architectureBits = map['architectureBits'];
     int startTimeMillis = map['startTime'];
@@ -1117,7 +1121,7 @@ class HeapSnapshot {
 }
 
 /// State for a running isolate.
-class Isolate extends ServiceObjectOwner {
+class Isolate extends ServiceObjectOwner implements M.Isolate {
   static const kLoggingStream = '_Logging';
   static const kExtensionStream = 'Extension';
 
@@ -1451,7 +1455,11 @@ class Isolate extends ServiceObjectOwner {
 
     updateHeapsFromMap(map['_heaps']);
     _updateBreakpoints(map['breakpoints']);
-    exceptionsPauseInfo = map['_debuggerSettings']['_exceptions'];
+    if (map['_debuggerSettings'] != null) {
+      exceptionsPauseInfo = map['_debuggerSettings']['_exceptions'];
+    } else {
+      exceptionsPauseInfo = "none";
+    }
 
     var newPauseEvent = map['pauseEvent'];
     assert((pauseEvent == null) ||
@@ -1886,6 +1894,7 @@ class ServiceEvent extends ServiceObject {
   static const kIsolateExit            = 'IsolateExit';
   static const kIsolateUpdate          = 'IsolateUpdate';
   static const kIsolateReload          = 'IsolateReload';
+  static const kIsolateSpawn           = 'IsolateSpawn';
   static const kServiceExtensionAdded  = 'ServiceExtensionAdded';
   static const kPauseStart             = 'PauseStart';
   static const kPauseExit              = 'PauseExit';
@@ -1929,6 +1938,8 @@ class ServiceEvent extends ServiceObject {
   @observable String extensionKind;
   @observable Map extensionData;
   @observable List timelineEvents;
+  @observable String spawnToken;
+  @observable String spawnError;
 
   int chunkIndex, chunkCount, nodeCount;
 
@@ -2011,6 +2022,12 @@ class ServiceEvent extends ServiceObject {
     if (map['timelineEvents'] != null) {
       timelineEvents = map['timelineEvents'];
     }
+    if (map['spawnToken'] != null) {
+      spawnToken = map['spawnToken'];
+    }
+    if (map['spawnError'] != null) {
+      spawnError = map['spawnError'];
+    }
   }
 
   String toString() {
@@ -2025,7 +2042,7 @@ class ServiceEvent extends ServiceObject {
   }
 }
 
-class Breakpoint extends ServiceObject {
+class Breakpoint extends ServiceObject implements M.Breakpoint {
   Breakpoint._empty(ServiceObjectOwner owner) : super._empty(owner);
 
   // TODO(turnidge): Add state to track if a breakpoint has been
@@ -2121,7 +2138,7 @@ class LibraryDependency {
 }
 
 
-class Library extends HeapObject {
+class Library extends HeapObject implements M.LibraryRef {
   @observable String uri;
   @reflectable final dependencies = new ObservableList<LibraryDependency>();
   @reflectable final scripts = new ObservableList<Script>();
@@ -2223,7 +2240,7 @@ class Allocations {
   bool get empty => accumulated.empty && current.empty;
 }
 
-class Class extends HeapObject {
+class Class extends HeapObject implements M.ClassRef {
   @observable Library library;
 
   @observable bool isAbstract;
@@ -2918,7 +2935,7 @@ class LocalVarLocation {
   LocalVarLocation(this.line, this.column, this.endColumn);
 }
 
-class Script extends HeapObject {
+class Script extends HeapObject implements M.Script {
   final lines = new ObservableList<ScriptLine>();
   @observable String uri;
   @observable String kind;
@@ -2928,6 +2945,8 @@ class Script extends HeapObject {
   @observable int lineOffset;
   @observable int columnOffset;
   @observable Library library;
+
+  String source;
 
   bool get immutable => true;
 
@@ -3030,6 +3049,7 @@ class Script extends HeapObject {
     lineOffset = map['lineOffset'];
     columnOffset = map['columnOffset'];
     _parseTokenPosTable(map['tokenPosTable']);
+    source = map['source'];
     _processSource(map['source']);
     library = map['library'];
   }
@@ -3987,7 +4007,7 @@ class MetricPoller {
   }
 }
 
-class Frame extends ServiceObject {
+class Frame extends ServiceObject implements M.Frame {
   @observable int index;
   @observable ServiceFunction function;
   @observable SourceLocation location;

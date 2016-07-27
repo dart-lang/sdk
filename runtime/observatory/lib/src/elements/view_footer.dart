@@ -4,10 +4,50 @@
 
 library view_footer_element;
 
-import 'package:polymer/polymer.dart';
-import 'observatory_element.dart';
+import 'dart:html';
+import 'dart:async';
+import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
-@CustomTag('view-footer')
-class ViewFooterElement extends ObservatoryElement {
-  ViewFooterElement.created() : super.created();
+class ViewFooterElement extends HtmlElement implements Renderable {
+  static const tag = const Tag<ViewFooterElement>('view-footer');
+
+  RenderingScheduler _r;
+
+  Stream<RenderedEvent<ViewFooterElement>> get onRendered => _r.onRendered;
+
+  factory ViewFooterElement({RenderingQueue queue}) {
+    ViewFooterElement e = document.createElement(tag.name);
+    e._r = new RenderingScheduler(e, queue: queue);
+    return e;
+  }
+
+  ViewFooterElement.created() : super.created() {
+    // TODO(cbernaschina) remove this when no more needed.
+    _r = new RenderingScheduler(this);
+  }
+
+  @override
+  void attached() {
+    super.attached();
+    _r.enable();
+  }
+
+  @override
+  void detached() {
+    super.detached();
+    _r.disable(notify: true);
+    children = [];
+  }
+
+  void render() {
+    children = [
+        new AnchorElement()
+          ..href = 'https://www.dartlang.org/tools/observatory'
+          ..text = 'View documentation',
+        new AnchorElement()
+          ..href = 'https://github.com/dart-lang/sdk/issues/new?title=Observatory:&amp;body=Observatory%20Feedback'
+          ..text = 'File a bug report'
+    ];
+  }
 }

@@ -152,7 +152,7 @@ class SweeperTask : public ThreadPool::Task {
     {
       MonitorLocker ml(old_space_->tasks_lock());
       old_space_->set_tasks(old_space_->tasks() - 1);
-      ml.Notify();
+      ml.NotifyAll();
     }
   }
 

@@ -303,6 +303,7 @@ void PortMap::InitOnce() {
 
 void PortMap::PrintPortsForMessageHandler(MessageHandler* handler,
                                           JSONStream* stream) {
+#ifndef PRODUCT
   if (!FLAG_support_service) {
     return;
   }
@@ -324,6 +325,7 @@ void PortMap::PrintPortsForMessageHandler(MessageHandler* handler,
       }
     }
   }
+#endif
 }
 
 

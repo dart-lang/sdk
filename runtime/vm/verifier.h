@@ -81,6 +81,21 @@ class VerifyWeakPointersVisitor : public HandleVisitor {
   DISALLOW_COPY_AND_ASSIGN(VerifyWeakPointersVisitor);
 };
 
+
+#if defined(DEBUG)
+class VerifyCanonicalVisitor : public ObjectVisitor {
+ public:
+  explicit VerifyCanonicalVisitor(Thread* thread);
+  virtual void VisitObject(RawObject* obj);
+
+ private:
+  Thread* thread_;
+  Instance& instanceHandle_;
+
+  DISALLOW_COPY_AND_ASSIGN(VerifyCanonicalVisitor);
+};
+#endif  // defined(DEBUG)
+
 }  // namespace dart
 
 #endif  // VM_VERIFIER_H_

@@ -4,6 +4,9 @@
 
 library analyzer.test.src.context.cache_test;
 
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -778,6 +781,28 @@ class CacheEntryTest extends AbstractCacheTest {
     expect(entry.getValue(result2), 222);
   }
 
+  test_setValue_userBeforeProvider_invalidateProvider_alsoUser() {
+    AnalysisTarget target1 = new TestSource('/a.dart');
+    AnalysisTarget target2 = new TestSource('/b.dart');
+    CacheEntry entry1 = new CacheEntry(target1);
+    CacheEntry entry2 = new CacheEntry(target2);
+    cache.put(entry1);
+    cache.put(entry2);
+    ResultDescriptor result1 = new ResultDescriptor('result1', -1);
+    ResultDescriptor result2 = new ResultDescriptor('result2', -2);
+    // set results, all of them are VALID
+    entry2.setValue(result2, 222, [new TargetedResult(target1, result1)]);
+    entry1.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    expect(entry1.getState(result1), CacheState.VALID);
+    expect(entry2.getState(result2), CacheState.VALID);
+    expect(entry1.getValue(result1), 111);
+    expect(entry2.getValue(result2), 222);
+    // invalidate result1, should invalidate also result2
+    entry1.setState(result1, CacheState.INVALID);
+    expect(entry1.getState(result1), CacheState.INVALID);
+    expect(entry2.getState(result2), CacheState.INVALID);
+  }
+
   test_setValueIncremental() {
     AnalysisTarget target = new TestSource();
     CacheEntry entry = new CacheEntry(target);
@@ -1079,6 +1104,35 @@ abstract class CachePartitionTest extends EngineTestCase {
 }
 
 @reflectiveTest
+class PackageCachePartitionTest extends CachePartitionTest {
+  MemoryResourceProvider resourceProvider;
+  Folder rootFolder;
+
+  CachePartition createPartition() {
+    resourceProvider = new MemoryResourceProvider();
+    rootFolder = resourceProvider.newFolder('/package/root');
+    return new PackageCachePartition(null, rootFolder);
+  }
+
+  void test_contains_false() {
+    CachePartition partition = createPartition();
+    AnalysisTarget target = new TestSource();
+    expect(partition.isResponsibleFor(target), isFalse);
+  }
+
+  void test_contains_true() {
+    SdkCachePartition partition = new SdkCachePartition(null);
+    SourceFactory factory = new SourceFactory([
+      new PackageMapUriResolver(resourceProvider, <String, List<Folder>>{
+        'root': <Folder>[rootFolder]
+      })
+    ]);
+    AnalysisTarget target = factory.forUri("package:root/root.dart");
+    expect(partition.isResponsibleFor(target), isTrue);
+  }
+}
+
+@reflectiveTest
 class ResultDataTest extends EngineTestCase {
   test_creation() {
     String value = 'value';
@@ -1175,6 +1229,15 @@ class _KeepContinueDelta implements Delta {
   final ResultDescriptor keepDescriptor;
 
   _KeepContinueDelta(this.source, this.keepDescriptor);
+
+  @override
+  bool gatherChanges(InternalAnalysisContext context, AnalysisTarget target,
+      ResultDescriptor descriptor, Object value) {
+    return false;
+  }
+
+  @override
+  void gatherEnd() {}
 
   @override
   DeltaResult validate(InternalAnalysisContext context, AnalysisTarget target,

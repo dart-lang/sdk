@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:math';
 import 'observatory_element.dart';
-import 'nav_bar.dart';
 import 'service_ref.dart';
 import 'package:observatory/service.dart';
 import 'package:observatory/utils.dart';
@@ -984,7 +983,8 @@ class ScriptInsetElement extends ObservatoryElement {
       return 5;
     }
     const padding = 5;
-    const navbarHeight = NavBarElement.height;
+    // TODO (cbernaschina) check if this is needed.
+    const navbarHeight = 40;
     var rect = getBoundingClientRect();
     var buttonHeight = element.clientHeight;
     return min(max(0, navbarHeight - rect.top) + padding,

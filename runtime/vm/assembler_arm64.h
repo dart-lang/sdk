@@ -1219,6 +1219,11 @@ class Assembler : public ValueObject {
     LslImmediate(dst, src, kSmiTagSize);
   }
 
+  void BranchIfNotSmi(Register reg, Label* label) {
+    tsti(reg, Immediate(kSmiTagMask));
+    b(label, NE);
+  }
+
   void Branch(const StubEntry& stub_entry,
               Register pp,
               Patchability patchable = kNotPatchable);
@@ -1336,18 +1341,6 @@ class Assembler : public ValueObject {
   void CompareClassId(Register object, intptr_t class_id);
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
-
-  void ComputeRange(Register result,
-                    Register value,
-                    Register scratch,
-                    Label* miss);
-
-  void UpdateRangeFeedback(Register value,
-                           intptr_t idx,
-                           Register ic_data,
-                           Register scratch1,
-                           Register scratch2,
-                           Label* miss);
 
   void SetupDartSP();
   void RestoreCSP();

@@ -101,12 +101,7 @@ abstract class ConstantExpression {
 
   int _computeHashCode();
 
-  int get hashCode {
-    if (_hashCode == null) {
-      _hashCode = _computeHashCode();
-    }
-    return _hashCode;
-  }
+  int get hashCode => _hashCode ??= _computeHashCode();
 
   bool _equals(ConstantExpression other);
 
@@ -482,11 +477,15 @@ class MapConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
-    return constantSystem.createMap(
-        environment.compiler,
-        type,
-        keys.map((k) => k.evaluate(environment, constantSystem)).toList(),
-        values.map((v) => v.evaluate(environment, constantSystem)).toList());
+    Map<ConstantValue, ConstantValue> valueMap =
+        <ConstantValue, ConstantValue>{};
+    for (int index = 0; index < keys.length; index++) {
+      ConstantValue key = keys[index].evaluate(environment, constantSystem);
+      ConstantValue value = values[index].evaluate(environment, constantSystem);
+      valueMap[key] = value;
+    }
+    return constantSystem.createMap(environment.compiler, type,
+        valueMap.keys.toList(), valueMap.values.toList());
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
@@ -654,7 +653,7 @@ class ConcatenateConstantExpression extends ConstantExpression {
     for (ConstantExpression expression in expressions) {
       ConstantValue value = expression.evaluate(environment, constantSystem);
       DartString valueString;
-      if (value.isNum || value.isBool) {
+      if (value.isNum || value.isBool || value.isNull) {
         PrimitiveConstantValue primitive = value;
         valueString =
             new DartString.literal(primitive.primitiveValue.toString());

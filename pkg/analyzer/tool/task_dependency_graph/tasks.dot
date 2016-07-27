@@ -25,7 +25,6 @@ digraph G {
   BuildLibraryElementTask -> BUILD_LIBRARY_ERRORS
   BuildLibraryElementTask -> IS_LAUNCHABLE
   BuildLibraryElementTask -> LIBRARY_ELEMENT1
-  BuildLibraryElementTask -> REFERENCED_NAMES
   BuildPublicNamespaceTask -> LIBRARY_ELEMENT3
   BuildSourceExportClosureTask -> EXPORT_SOURCE_CLOSURE
   BuildTypeProviderTask -> TYPE_PROVIDER
@@ -91,6 +90,7 @@ digraph G {
   EXPORTED_LIBRARIES -> ResolveTopLevelLibraryTypeBoundsTask
   EXPORTED_LIBRARIES [shape=box]
   EXPORT_SOURCE_CLOSURE -> BuildExportNamespaceTask
+  EXPORT_SOURCE_CLOSURE -> ResolveTopLevelUnitTypeBoundsTask
   EXPORT_SOURCE_CLOSURE [shape=box]
   EvaluateUnitConstantsTask -> CREATED_RESOLVED_UNIT13
   EvaluateUnitConstantsTask -> RESOLVED_UNIT13
@@ -211,6 +211,7 @@ digraph G {
   ParseDartTask -> LIBRARY_SPECIFIC_UNITS
   ParseDartTask -> PARSED_UNIT
   ParseDartTask -> PARSE_ERRORS
+  ParseDartTask -> REFERENCED_NAMES
   ParseDartTask -> REFERENCED_SOURCES
   ParseDartTask -> SOURCE_KIND
   ParseDartTask -> UNITS

@@ -625,7 +625,7 @@ class ContextManagerImpl implements ContextManager {
     if (analyzer is Map) {
       // Set ignore patterns.
       YamlList exclude = analyzer[AnalyzerOptions.exclude];
-      List<String> excludeList = _toStringList(exclude);
+      List<String> excludeList = toStringList(exclude);
       if (excludeList != null) {
         setIgnorePatternsForContext(info, excludeList);
       }
@@ -1591,25 +1591,6 @@ class ContextManagerImpl implements ContextManager {
       }
     }
     return false;
-  }
-
-  /**
-   * If all of the elements of [list] are strings, return a list of strings
-   * containing the same elements. Otherwise, return `null`.
-   */
-  List<String> _toStringList(YamlList list) {
-    if (list == null) {
-      return null;
-    }
-    List<String> stringList = <String>[];
-    for (var element in list) {
-      if (element is String) {
-        stringList.add(element);
-      } else {
-        return null;
-      }
-    }
-    return stringList;
   }
 
   /**

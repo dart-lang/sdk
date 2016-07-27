@@ -58,7 +58,7 @@ var tests = [
 
   (VM vm) async {
     var fsId = 'banana';
-    var filePath = '/foobar.dat';
+    var filePath = '/foo/bar.dat';
     var fileContents = BASE64.encode(UTF8.encode('fileContents'));
 
     var result;

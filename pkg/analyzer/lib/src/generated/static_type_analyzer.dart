@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -92,7 +93,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     _dynamicType = _typeProvider.dynamicType;
     _overrideManager = _resolver.overrideManager;
     _promoteManager = _resolver.promoteManager;
-    _strongMode = _resolver.definingLibrary.context.analysisOptions.strongMode;
+    _strongMode = _resolver.strongMode;
   }
 
   /**
@@ -257,13 +258,23 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else {
       ExecutableElement staticMethodElement = node.staticElement;
       DartType staticType = _computeStaticReturnType(staticMethodElement);
-      staticType =
-          _refineAssignmentExpressionType(node, staticType, _getStaticType);
+      staticType = _typeSystem.refineBinaryExpressionType(
+          _typeProvider,
+          node.leftHandSide.staticType,
+          operator,
+          node.rightHandSide.staticType,
+          staticType);
       _recordStaticType(node, staticType);
       MethodElement propagatedMethodElement = node.propagatedElement;
       if (!identical(propagatedMethodElement, staticMethodElement)) {
         DartType propagatedType =
             _computeStaticReturnType(propagatedMethodElement);
+        propagatedType = _typeSystem.refineBinaryExpressionType(
+            _typeProvider,
+            node.leftHandSide.propagatedType,
+            operator,
+            node.rightHandSide.propagatedType,
+            propagatedType);
         _resolver.recordPropagatedTypeIfBetter(node, propagatedType);
       }
     }
@@ -521,7 +532,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   @override
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     if (_strongMode) {
-      _inferGenericInvoke(node);
+      _inferGenericInvocationExpression(node);
     }
     DartType staticType = _computeInvokeReturnType(node.staticInvokeType);
     _recordStaticType(node, staticType);
@@ -574,6 +585,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (_strongMode) {
+      _inferInstanceCreationExpression(node);
+    }
+
     _recordStaticType(node, node.constructorName.type.type);
     ConstructorElement element = node.staticElement;
     if (element != null && "Element" == element.enclosingElement.name) {
@@ -812,7 +827,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     SimpleIdentifier methodNameNode = node.methodName;
     Element staticMethodElement = methodNameNode.staticElement;
     if (_strongMode) {
-      _inferGenericInvoke(node);
+      _inferGenericInvocationExpression(node);
     }
     // Record types of the variable invoked as a function.
     if (staticMethodElement is VariableElement) {
@@ -1605,6 +1620,33 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     return returnType.type;
   }
 
+  /**
+   * Given a constructor for a generic type, returns the equivalent generic
+   * function type that we could use to forward to the constructor, or for a
+   * non-generic type simply returns the constructor type.
+   *
+   * For example given the type `class C<T> { C(T arg); }`, the generic function
+   * type is `<T>(T) -> C<T>`.
+   */
+  FunctionType _constructorToGenericFunctionType(
+      ConstructorElement constructor) {
+    // TODO(jmesserly): it may be worth making this available from the
+    // constructor. It's nice if our inference code can operate uniformly on
+    // function types.
+    ClassElement cls = constructor.enclosingElement;
+    FunctionType type = constructor.type;
+    if (cls.typeParameters.isEmpty) {
+      return type;
+    }
+
+    FunctionElementImpl function = new FunctionElementImpl("", -1);
+    function.synthetic = true;
+    function.returnType = type.returnType;
+    function.shareTypeParameters(cls.typeParameters);
+    function.shareParameters(type.parameters);
+    return function.type = new FunctionTypeImpl(function);
+  }
+
   DartType _findIteratedType(DartType type, DartType targetType) {
     // TODO(vsm): Use leafp's matchType here?
     // Set by _find if match is found
@@ -1864,8 +1906,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Given an uninstantiated generic type, try to infer the instantiated generic
-   * type from the surrounding context.
+   * Given an uninstantiated generic function type, try to infer the
+   * instantiated generic function type from the surrounding context.
    */
   DartType _inferGenericInstantiationFromContext(
       DartType context, DartType type) {
@@ -1878,14 +1920,40 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     return type;
   }
 
-  bool _inferGenericInvoke(InvocationExpression node) {
+  /**
+   * Given a possibly generic invocation like `o.m(args)` or `(f)(args)` try to
+   * infer the instantiated generic function type.
+   *
+   * This takes into account both the context type, as well as information from
+   * the argument types.
+   */
+  void _inferGenericInvocationExpression(InvocationExpression node) {
+    ArgumentList arguments = node.argumentList;
+    FunctionType inferred = _inferGenericInvoke(
+        node, node.function.staticType, node.typeArguments, arguments);
+    if (inferred != null && inferred != node.staticInvokeType) {
+      // Fix up the parameter elements based on inferred method.
+      arguments.correspondingStaticParameters = ResolverVisitor
+          .resolveArgumentsToParameters(arguments, inferred.parameters, null);
+      node.staticInvokeType = inferred;
+    }
+  }
+
+  /**
+   * Given a possibly generic invocation or instance creation, such as
+   * `o.m(args)` or `(f)(args)` or `new T(args)` try to infer the instantiated
+   * generic function type.
+   *
+   * This takes into account both the context type, as well as information from
+   * the argument types.
+   */
+  FunctionType _inferGenericInvoke(Expression node, DartType fnType,
+      TypeArgumentList typeArguments, ArgumentList argumentList) {
     TypeSystem ts = _typeSystem;
-    DartType fnType = node.function.staticType;
-    if (node.typeArguments == null &&
+    if (typeArguments == null &&
         fnType is FunctionType &&
         fnType.typeFormals.isNotEmpty &&
         ts is StrongTypeSystemImpl) {
-      ArgumentList argumentList = node.argumentList;
       // Get the parameters that correspond to the uninstantiated generic.
       List<ParameterElement> rawParameters = ResolverVisitor
           .resolveArgumentsToParameters(argumentList, fnType.parameters, null);
@@ -1900,20 +1968,48 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         }
       }
 
-      FunctionType inferred = ts.inferGenericFunctionCall(_typeProvider, fnType,
-          paramTypes, argTypes, InferenceContext.getType(node));
-
-      if (inferred != node.staticInvokeType) {
-        // Fix up the parameter elements based on inferred method.
-        List<ParameterElement> inferredParameters =
-            ResolverVisitor.resolveArgumentsToParameters(
-                argumentList, inferred.parameters, null);
-        argumentList.correspondingStaticParameters = inferredParameters;
-        node.staticInvokeType = inferred;
-        return true;
-      }
+      return ts.inferGenericFunctionCall(_typeProvider, fnType, paramTypes,
+          argTypes, InferenceContext.getType(node));
     }
-    return false;
+    return null;
+  }
+
+  /**
+   * Given an instance creation of a possibly generic type, infer the type
+   * arguments using the current context type as well as the argument types.
+   */
+  void _inferInstanceCreationExpression(InstanceCreationExpression node) {
+    ConstructorName constructor = node.constructorName;
+    ConstructorElement originalElement = constructor.staticElement;
+    // If the constructor is generic, we'll have a ConstructorMember that
+    // substitutes in type arguments (possibly `dynamic`) from earlier in
+    // resolution.
+    //
+    // Otherwise we'll have a ConstructorElement, and we can skip inference
+    // because there's nothing to infer in a non-generic type.
+    if (originalElement is! ConstructorMember) {
+      return;
+    }
+
+    // Get back to the uninstantiated generic constructor.
+    // TODO(jmesserly): should we store this earlier in resolution?
+    // Or look it up, instead of jumping backwards through the Member?
+    var rawElement = (originalElement as ConstructorMember).baseElement;
+
+    FunctionType constructorType =
+        _constructorToGenericFunctionType(rawElement);
+
+    ArgumentList arguments = node.argumentList;
+    FunctionType inferred = _inferGenericInvoke(
+        node, constructorType, constructor.type.typeArguments, arguments);
+
+    if (inferred != null && inferred != originalElement.type) {
+      // Fix up the parameter elements based on inferred method.
+      arguments.correspondingStaticParameters = ResolverVisitor
+          .resolveArgumentsToParameters(arguments, inferred.parameters, null);
+      inferConstructorName(constructor, inferred.returnType);
+      // TODO(jmesserly): should we fix up the staticElement as well?
+    }
   }
 
   /**
@@ -2143,44 +2239,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else {
       expression.staticType = type;
     }
-  }
-
-  /**
-   * Attempts to make a better guess for the type of the given assignment
-   * [expression], given that resolution has so far produced the [currentType].
-   * The [typeAccessor] is used to access the corresponding type of the left
-   * and right operands.
-   */
-  DartType _refineAssignmentExpressionType(AssignmentExpression expression,
-      DartType currentType, DartType typeAccessor(Expression node)) {
-    Expression leftHandSize = expression.leftHandSide;
-    Expression rightHandSide = expression.rightHandSide;
-    TokenType operator = expression.operator.type;
-    DartType intType = _typeProvider.intType;
-    if (typeAccessor(leftHandSize) == intType) {
-      // int op= double
-      if (operator == TokenType.MINUS_EQ ||
-          operator == TokenType.PERCENT_EQ ||
-          operator == TokenType.PLUS_EQ ||
-          operator == TokenType.STAR_EQ) {
-        DartType doubleType = _typeProvider.doubleType;
-        if (typeAccessor(rightHandSide) == doubleType) {
-          return doubleType;
-        }
-      }
-      // int op= int
-      if (operator == TokenType.MINUS_EQ ||
-          operator == TokenType.PERCENT_EQ ||
-          operator == TokenType.PLUS_EQ ||
-          operator == TokenType.STAR_EQ ||
-          operator == TokenType.TILDE_SLASH_EQ) {
-        if (typeAccessor(rightHandSide) == intType) {
-          return intType;
-        }
-      }
-    }
-    // default
-    return currentType;
   }
 
   /**

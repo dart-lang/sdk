@@ -2244,6 +2244,18 @@ class A {
     verify([source]);
   }
 
+  void test_fieldInitializerOutsideConstructor_inFunctionTypeParameter() {
+    Source source = addSource(r'''
+class A {
+  int x;
+  A(int p(this.x));
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR]);
+    verify([source]);
+  }
+
   void test_fieldInitializerRedirectingConstructor_afterRedirection() {
     Source source = addSource(r'''
 class A {

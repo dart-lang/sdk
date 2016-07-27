@@ -5,8 +5,7 @@
 library dart2js.resolution.class_hierarchy;
 
 import '../common.dart';
-import '../common/resolution.dart' show Feature;
-import '../compiler.dart' show Compiler;
+import '../common/resolution.dart' show Feature, Resolution;
 import '../core_types.dart' show CoreClasses, CoreTypes;
 import '../dart_types.dart';
 import '../elements/elements.dart';
@@ -34,13 +33,13 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
   final TypeDeclarationElement enclosingElement;
   TypeDeclarationElement get element => enclosingElement;
 
-  TypeDefinitionVisitor(Compiler compiler, TypeDeclarationElement element,
+  TypeDefinitionVisitor(Resolution resolution, TypeDeclarationElement element,
       ResolutionRegistry registry)
       : this.enclosingElement = element,
         scope = Scope.buildEnclosingScope(element),
-        super(compiler, registry);
+        super(resolution, registry);
 
-  CoreTypes get coreTypes => compiler.coreTypes;
+  CoreTypes get coreTypes => resolution.coreTypes;
 
   DartType get objectType => coreTypes.objectType;
 
@@ -118,9 +117,9 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
 class ClassResolverVisitor extends TypeDefinitionVisitor {
   BaseClassElementX get element => enclosingElement;
 
-  ClassResolverVisitor(
-      Compiler compiler, ClassElement classElement, ResolutionRegistry registry)
-      : super(compiler, classElement, registry);
+  ClassResolverVisitor(Resolution resolution, ClassElement classElement,
+      ResolutionRegistry registry)
+      : super(resolution, classElement, registry);
 
   DartType visitClassNode(ClassNode node) {
     if (element == null) {
@@ -212,7 +211,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
           new SynthesizedConstructorElementX.forDefault(superMember, element);
       if (superMember.isMalformed) {
         ErroneousElement erroneousElement = superMember;
-        compiler.registerCompiletimeError(
+        resolution.registerCompileTimeError(
             constructor,
             reporter.createMessage(node, erroneousElement.messageKind,
                 erroneousElement.messageArguments));
@@ -243,7 +242,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     }
 
     EnumCreator creator =
-        new EnumCreator(reporter, compiler.coreTypes, element);
+        new EnumCreator(reporter, resolution.coreTypes, element);
     creator.createMembers();
     return enumType;
   }
@@ -304,7 +303,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     String mixinName = mixinType.name;
     MixinApplicationElementX mixinApplication =
         new UnnamedMixinApplicationElementX("${superName}+${mixinName}",
-            element, compiler.idGenerator.getNextFreeId(), node);
+            element, resolution.idGenerator.getNextFreeId(), node);
     // Create synthetic type variables for the mixin application.
     List<DartType> typeVariables = <DartType>[];
     int index = 0;
@@ -360,7 +359,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
     if (mixinApplication.supertype != null) {
       // [supertype] is not null if there was a cycle.
-      assert(invariant(node, compiler.compilationFailed));
+      assert(invariant(node, reporter.hasReportedError));
       supertype = mixinApplication.supertype;
       assert(invariant(node, supertype.isObject));
     } else {
@@ -545,7 +544,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
               reporter: reporter, objectType: coreTypes.objectType)
           .createOrderedTypeSet(supertype, cls.interfaces);
     } else {
-      assert(cls == compiler.coreClasses.objectClass);
+      assert(cls == resolution.coreClasses.objectClass);
       cls.allSupertypesAndSelf =
           new OrderedTypeSet.singleton(cls.computeType(resolution));
     }
@@ -553,7 +552,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
   isBlackListed(DartType type) {
     LibraryElement lib = element.library;
-    return !identical(lib, compiler.coreLibrary) &&
+    return !identical(lib, resolution.coreLibrary) &&
         !resolution.target.isTargetSpecificLibrary(lib) &&
         (type.isDynamic ||
             type == coreTypes.boolType ||
@@ -569,16 +568,16 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
   Scope context;
   ClassElement classElement;
 
-  ClassSupertypeResolver(Compiler compiler, ClassElement cls)
+  ClassSupertypeResolver(Resolution resolution, ClassElement cls)
       : context = Scope.buildEnclosingScope(cls),
         this.classElement = cls,
-        super(compiler);
+        super(resolution);
 
-  CoreClasses get coreClasses => compiler.coreClasses;
+  CoreClasses get coreClasses => resolution.coreClasses;
 
   void loadSupertype(ClassElement element, Node from) {
     if (!element.isResolved) {
-      compiler.resolver.loadSupertypes(element, from);
+      resolution.resolver.loadSupertypes(element, from);
       element.ensureResolved(resolution);
     }
   }

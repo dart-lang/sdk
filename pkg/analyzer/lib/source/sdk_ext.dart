@@ -31,6 +31,12 @@ class SdkExtUriResolver extends UriResolver {
 
   final Map<String, String> _urlMappings = <String, String>{};
 
+  /**
+   * The absolute paths of the extension files that contributed to the
+   * [_urlMappings].
+   */
+  final List<String> extensionFilePaths = <String>[];
+
   /// Construct a [SdkExtUriResolver] from a package map
   /// (see [PackageMapProvider]).
   SdkExtUriResolver(Map<String, List<Folder>> packageMap) {
@@ -147,18 +153,27 @@ class SdkExtUriResolver extends UriResolver {
     if ((sdkExt == null) || (sdkExt is! Map)) {
       return;
     }
-    sdkExt.forEach((k, v) => _processSdkExtension(k, v, libDir));
+    bool contributed = false;
+    sdkExt.forEach((k, v) {
+      if (_processSdkExtension(k, v, libDir)) {
+        contributed = true;
+      }
+    });
+    if (contributed) {
+      extensionFilePaths.add(libDir.getChild(SDK_EXT_NAME).path);
+    }
   }
 
   /// Install the mapping from [name] to [libDir]/[file].
-  void _processSdkExtension(String name, String file, Folder libDir) {
+  bool _processSdkExtension(String name, String file, Folder libDir) {
     if (!name.startsWith(DART_COLON_PREFIX)) {
       // SDK extensions must begin with 'dart:'.
-      return;
+      return false;
     }
     var key = name;
     var value = libDir.canonicalizePath(file);
     _urlMappings[key] = value;
+    return true;
   }
 
   /// Read the contents of [libDir]/[SDK_EXT_NAME] as a string.

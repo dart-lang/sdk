@@ -24,6 +24,7 @@ class VirtualMemory {
   // The reserved memory is unmapped on destruction.
   ~VirtualMemory();
 
+  int32_t handle() const { return handle_; }
   uword start() const { return region_.start(); }
   uword end() const { return region_.end(); }
   void* address() const { return region_.pointer(); }
@@ -82,9 +83,10 @@ class VirtualMemory {
 
   // This constructor is only used internally when reserving new virtual spaces.
   // It does not reserve any virtual address space on its own.
-  explicit VirtualMemory(const MemoryRegion& region) :
+  explicit VirtualMemory(const MemoryRegion& region, int32_t handle = 0) :
       region_(region.pointer(), region.size()),
       reserved_size_(region.size()),
+      handle_(handle),
       embedder_allocated_(false) { }
 
   MemoryRegion region_;
@@ -92,6 +94,8 @@ class VirtualMemory {
   // The size of the underlying reservation not yet given back to the OS.
   // Its start coincides with region_, but its size might not, due to Truncate.
   intptr_t reserved_size_;
+
+  int32_t handle_;
 
   static uword page_size_;
 

@@ -548,7 +548,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
             handler.registerDependency(
                 library,
                 new SyntheticImportElement(
-                    library.entryCompilationUnit, Uris.dart_core),
+                    library.entryCompilationUnit, Uris.dart_core, coreLibrary),
                 coreLibrary);
           });
         }
@@ -916,10 +916,9 @@ class ExportLink {
 class LibraryDependencyNode {
   final LibraryElementX library;
 
-  // TODO(ahe): Remove [hashCodeCounter] and [hashCode] when
-  // VM implementation of Object.hashCode is not slow.
-  final int hashCode = ++hashCodeCounter;
-  static int hashCodeCounter = 0;
+  // Stored identity based hashCode for performance.
+  final int hashCode = _nextHash = (_nextHash + 100019).toUnsigned(30);
+  static int _nextHash = 0;
 
   /**
    * A linked list of the import tags that import [library] mapped to the

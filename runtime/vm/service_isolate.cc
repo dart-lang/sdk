@@ -23,8 +23,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, shutdown);
-
 #define Z (T->zone())
 
 
@@ -462,9 +460,6 @@ void ServiceIsolate::Run() {
 
 
 void ServiceIsolate::KillServiceIsolate() {
-  if (!FLAG_shutdown) {
-    return;
-  }
   {
     MonitorLocker ml(monitor_);
     shutting_down_ = true;

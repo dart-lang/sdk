@@ -6,9 +6,9 @@
 
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_ARM.
 #if defined(TARGET_ARCH_ARM)
-
 #include "platform/assert.h"
 #include "vm/cpu.h"
+#include "vm/instructions.h"
 
 namespace dart {
 
@@ -1534,13 +1534,22 @@ void ARMDecoder::InstructionDecode(uword pc) {
 
 void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
                                      char* human_buffer, intptr_t human_size,
-                                     int* out_instr_size, uword pc) {
+                                     int* out_instr_size, const Code& code,
+                                     Object** object, uword pc) {
   ARMDecoder decoder(human_buffer, human_size);
   decoder.InstructionDecode(pc);
   int32_t instruction_bits = Instr::At(pc)->InstructionBits();
   OS::SNPrint(hex_buffer, hex_size, "%08x", instruction_bits);
   if (out_instr_size) {
     *out_instr_size = Instr::kInstrSize;
+  }
+
+  *object = NULL;
+  if (!code.IsNull()) {
+    *object = &Object::Handle();
+    if (!DecodeLoadObjectFromPoolOrThread(pc, code, *object)) {
+      *object = NULL;
+    }
   }
 }
 

@@ -8,7 +8,7 @@ import '../common.dart';
 import '../common/backend_api.dart'
     show Backend, ForeignResolver, NativeRegistry;
 import '../common/resolution.dart'
-    show Feature, ListLiteralUse, MapLiteralUse, ResolutionImpact;
+    show Feature, ListLiteralUse, MapLiteralUse, ResolutionImpact, Target;
 import '../common/registry.dart' show Registry;
 import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart';
@@ -160,19 +160,16 @@ class _ResolutionWorldImpact extends ResolutionImpact
 /// [Backend], [World] and [Enqueuer].
 // TODO(johnniwinther): Split this into an interface and implementation class.
 class ResolutionRegistry extends Registry {
-  final Compiler compiler;
+  final Target target;
   final TreeElementMapping mapping;
   final _ResolutionWorldImpact worldImpact;
 
-  ResolutionRegistry(Compiler compiler, TreeElementMapping mapping)
-      : this.compiler = compiler,
-        this.mapping = mapping,
+  ResolutionRegistry(this.target, TreeElementMapping mapping)
+      : this.mapping = mapping,
         this.worldImpact =
             new _ResolutionWorldImpact(mapping.analyzedElement.toString());
 
   bool get isForResolution => true;
-
-  Backend get backend => compiler.backend;
 
   String toString() => 'ResolutionRegistry for ${mapping.analyzedElement}';
 
@@ -364,7 +361,7 @@ class ResolutionRegistry extends Registry {
 
   void registerForeignCall(Node node, Element element,
       CallStructure callStructure, ResolverVisitor visitor) {
-    var nativeData = backend.resolveForeignCall(node, element, callStructure,
+    var nativeData = target.resolveForeignCall(node, element, callStructure,
         new ForeignResolutionResolver(visitor, this));
     if (nativeData != null) {
       // Split impact from resolution result.
@@ -390,7 +387,7 @@ class ResolutionRegistry extends Registry {
   }
 
   ClassElement defaultSuperclass(ClassElement element) {
-    return backend.defaultSuperclass(element);
+    return target.defaultSuperclass(element);
   }
 
   void registerInstantiation(InterfaceType type) {

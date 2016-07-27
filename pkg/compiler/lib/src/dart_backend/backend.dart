@@ -20,8 +20,6 @@ class DartBackend extends Backend {
 
   bool get supportsReflection => true;
 
-  bool get supportsAsyncAwait => true;
-
   // TODO(zarah) Maybe change this to a command-line option.
   // Right now, it is set by the tests.
   bool useMirrorHelperLibrary = false;

@@ -106,6 +106,21 @@ class DartWorkManagerTest {
     expect_unknownSourceQueue([source4, source1]);
   }
 
+  /**
+   * When we perform limited invalidation, we keep [SOURCE_KIND] valid. So, we
+   * don't need to put such sources into [DartWorkManager.unknownSourceQueue],
+   * and remove from [DartWorkManager.librarySourceQueue].
+   */
+  void test_applyChange_change_hasSourceKind() {
+    entry1.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
+    manager.librarySourceQueue.addAll([source1, source2]);
+    manager.unknownSourceQueue.addAll([source3]);
+    // change source1
+    manager.applyChange([], [source1, source2], []);
+    expect_librarySourceQueue([source1]);
+    expect_unknownSourceQueue([source2, source3]);
+  }
+
   void test_applyChange_remove() {
     manager.librarySourceQueue.addAll([source1, source3]);
     manager.unknownSourceQueue.addAll([source4]);

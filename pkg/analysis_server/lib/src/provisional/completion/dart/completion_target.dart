@@ -22,6 +22,13 @@ int _computeArgIndex(AstNode containingNode, Object entity) {
     if (args.isEmpty) {
       return 0;
     }
+    if (entity == argList.rightParenthesis) {
+      // Parser ignores trailing commas
+      if (argList.rightParenthesis.previous?.lexeme == ',') {
+        return args.length;
+      }
+      return args.length - 1;
+    }
   }
   return null;
 }

@@ -254,17 +254,21 @@ abstract class Element implements Entity {
   /// explicit getter and/or setter.
   bool get isAbstractField;
 
-  /// `true` if this element is formal parameter either from a constructor,
-  /// method, or typedef declaration or from an inlined function typed
+  /// `true` if this element is a formal parameter from a constructor,
+  /// a method, a typedef declaration, or from an inlined function typed
   /// parameter.
   ///
   /// This property is `false` if this element is an initializing formal.
   /// See [isInitializingFormal].
-  bool get isParameter;
+  bool get isRegularParameter;
 
   /// `true` if this element is an initializing formal of constructor, that
   /// is a formal of the form `this.foo`.
   bool get isInitializingFormal;
+
+  /// `true` if this element is a formal parameter, either regular or
+  /// initializing.
+  bool get isParameter => isRegularParameter || isInitializingFormal;
 
   /// `true` if this element represents a resolution error.
   bool get isError;
@@ -590,45 +594,45 @@ class Elements {
   static String operatorNameToIdentifier(String name) {
     if (name == null) {
       return name;
-    } else if (identical(name, '==')) {
+    } else if (name == '==') {
       return r'operator$eq';
-    } else if (identical(name, '~')) {
+    } else if (name == '~') {
       return r'operator$not';
-    } else if (identical(name, '[]')) {
+    } else if (name == '[]') {
       return r'operator$index';
-    } else if (identical(name, '[]=')) {
+    } else if (name == '[]=') {
       return r'operator$indexSet';
-    } else if (identical(name, '*')) {
+    } else if (name == '*') {
       return r'operator$mul';
-    } else if (identical(name, '/')) {
+    } else if (name == '/') {
       return r'operator$div';
-    } else if (identical(name, '%')) {
+    } else if (name == '%') {
       return r'operator$mod';
-    } else if (identical(name, '~/')) {
+    } else if (name == '~/') {
       return r'operator$tdiv';
-    } else if (identical(name, '+')) {
+    } else if (name == '+') {
       return r'operator$add';
-    } else if (identical(name, '<<')) {
+    } else if (name == '<<') {
       return r'operator$shl';
-    } else if (identical(name, '>>')) {
+    } else if (name == '>>') {
       return r'operator$shr';
-    } else if (identical(name, '>=')) {
+    } else if (name == '>=') {
       return r'operator$ge';
-    } else if (identical(name, '>')) {
+    } else if (name == '>') {
       return r'operator$gt';
-    } else if (identical(name, '<=')) {
+    } else if (name == '<=') {
       return r'operator$le';
-    } else if (identical(name, '<')) {
+    } else if (name == '<') {
       return r'operator$lt';
-    } else if (identical(name, '&')) {
+    } else if (name == '&') {
       return r'operator$and';
-    } else if (identical(name, '^')) {
+    } else if (name == '^') {
       return r'operator$xor';
-    } else if (identical(name, '|')) {
+    } else if (name == '|') {
       return r'operator$or';
-    } else if (identical(name, '-')) {
+    } else if (name == '-') {
       return r'operator$sub';
-    } else if (identical(name, 'unary-')) {
+    } else if (name == 'unary-') {
       return r'operator$negate';
     } else {
       return name;
@@ -935,6 +939,8 @@ abstract class LibraryElement extends Element
 /// The implicit scope defined by a import declaration with a prefix clause.
 abstract class PrefixElement extends Element {
   Element lookupLocalMember(String memberName);
+
+  void forEachLocalMember(void f(Element member));
 
   /// Is true if this prefix belongs to a deferred import.
   bool get isDeferred;

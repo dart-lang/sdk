@@ -33,21 +33,45 @@ class SafepointHandler {
   void EnterSafepointUsingLock(Thread* T);
   void ExitSafepointUsingLock(Thread* T);
 
-  void SafepointThreads(Thread* T);
-  void ResumeThreads(Thread* T);
-
   void BlockForSafepoint(Thread* T);
 
  private:
+  void SafepointThreads(Thread* T);
+  void ResumeThreads(Thread* T);
+
   Isolate* isolate() const { return isolate_; }
   Monitor* threads_lock() const { return isolate_->threads_lock(); }
-  bool safepoint_in_progress() const {
+  bool SafepointInProgress() const {
     ASSERT(threads_lock()->IsOwnedByCurrentThread());
-    return safepoint_in_progress_;
+    return ((safepoint_operation_count_ > 0) && (owner_ != NULL));
   }
-  void set_safepoint_in_progress(bool value) {
+  void SetSafepointInProgress(Thread* T) {
     ASSERT(threads_lock()->IsOwnedByCurrentThread());
-    safepoint_in_progress_ = value;
+    ASSERT(owner_ == NULL);
+    ASSERT(safepoint_operation_count_ == 0);
+    safepoint_operation_count_ = 1;
+    owner_ = T;
+  }
+  void ResetSafepointInProgress(Thread* T) {
+    ASSERT(threads_lock()->IsOwnedByCurrentThread());
+    ASSERT(owner_ == T);
+    ASSERT(safepoint_operation_count_ == 1);
+    safepoint_operation_count_ = 0;
+    owner_ = NULL;
+  }
+  int32_t safepoint_operation_count() const {
+    ASSERT(threads_lock()->IsOwnedByCurrentThread());
+    return safepoint_operation_count_;
+  }
+  void increment_safepoint_operation_count() {
+    ASSERT(threads_lock()->IsOwnedByCurrentThread());
+    ASSERT(safepoint_operation_count_ < kMaxInt32);
+    safepoint_operation_count_ += 1;
+  }
+  void decrement_safepoint_operation_count() {
+    ASSERT(threads_lock()->IsOwnedByCurrentThread());
+    ASSERT(safepoint_operation_count_ > 0);
+    safepoint_operation_count_ -= 1;
   }
 
   Isolate* isolate_;
@@ -57,8 +81,14 @@ class SafepointHandler {
   Monitor* safepoint_lock_;
   int32_t number_threads_not_at_safepoint_;
 
-  // Flag to indicate if a safepoint operation is currently in progress.
-  bool safepoint_in_progress_;
+  // Count that indicates if a safepoint operation is currently in progress
+  // and also tracks the number of recursive safepoint operations on the
+  // same thread.
+  int32_t safepoint_operation_count_;
+
+  // If a safepoint operation is currently in progress, this field contains
+  // the thread that initiated the safepoint operation, otherwise it is NULL.
+  Thread* owner_;
 
   friend class Isolate;
   friend class SafepointOperationScope;

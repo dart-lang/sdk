@@ -74,6 +74,7 @@ TEST_CASE(LargeSweep) {
 }
 
 
+#ifndef PRODUCT
 class ClassHeapStatsTestHelper {
  public:
   static ClassHeapStats* GetHeapStatsForCid(ClassTable* class_table,
@@ -231,6 +232,7 @@ TEST_CASE(ArrayHeapStats) {
   EXPECT_GT(expected_size + kTolerance, after - before);
   Dart_ExitScope();
 }
+#endif  // !PRODUCT
 
 
 class FindOnly : public FindObjectVisitor {

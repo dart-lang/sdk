@@ -264,7 +264,7 @@ foo() => new A();
 test() {
   int x = 0;
   x += 5;
-  /*error:STATIC_TYPE_ERROR*/x += 3.14;
+  /*error:STATIC_TYPE_ERROR*/x += /*error:INVALID_ASSIGNMENT*/3.14;
 
   double y = 0.0;
   y += 5;
@@ -690,14 +690,14 @@ dynamic x;
 
 foo1() async => x;
 Future foo2() async => x;
-Future<int> foo3() async => /*info:DYNAMIC_CAST*/x;
+Future<int> foo3() async => x;
 Future<int> foo4() async => new Future<int>.value(/*info:DYNAMIC_CAST*/x);
 Future<int> foo5() async =>
     /*error:RETURN_OF_INVALID_TYPE*/new Future<String>.value(/*info:DYNAMIC_CAST*/x);
 
 bar1() async { return x; }
 Future bar2() async { return x; }
-Future<int> bar3() async { return /*info:DYNAMIC_CAST*/x; }
+Future<int> bar3() async { return x; }
 Future<int> bar4() async { return new Future<int>.value(/*info:DYNAMIC_CAST*/x); }
 Future<int> bar5() async {
   return /*error:RETURN_OF_INVALID_TYPE*/new Future<String>.value(/*info:DYNAMIC_CAST*/x);
@@ -713,13 +713,18 @@ baz() async {
   String d = /*error:INVALID_ASSIGNMENT*/await z;
 }
 
-Future<bool> get issue_264 async {
+Future<bool> get issue_ddc_264 async {
   await 42;
   if (new Random().nextBool()) {
     return true;
   } else {
     return new Future<bool>.value(false);
   }
+}
+
+
+Future<String> issue_sdk_26404() async {
+  return (1 > 0) ? new Future<String>.value('hello') : "world";
 }
 ''');
   }
@@ -1914,6 +1919,23 @@ main() {
     // It is a "strong mode hint" however, so it will not be user visible.
     addFile(
         'num n; int i = /*info:ASSIGNMENT_CAST,error:INVALID_ASSIGNMENT*/n;');
+    check(implicitCasts: false);
+  }
+
+  void test_implicitCasts_genericMethods() {
+    addFile('var x = <String>[].map((x) => "");');
+    check(implicitCasts: false);
+  }
+
+  void test_implicitCasts_numericOps() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26912
+    addFile(r'''
+void f() {
+  int x = 0;
+  int y = 0;
+  x += y;
+}
+    ''');
     check(implicitCasts: false);
   }
 

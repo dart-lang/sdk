@@ -12,10 +12,12 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/dart.dart';
 
 /**
  * The change of a single [ClassElement].
@@ -34,6 +36,7 @@ class ClassElementDelta {
 
   final List<ConstructorElement> addedConstructors = <ConstructorElement>[];
   final List<ConstructorElement> removedConstructors = <ConstructorElement>[];
+  bool hasUnnamedConstructorChange = false;
 
   final List<MethodElement> addedMethods = <MethodElement>[];
   final List<MethodElement> removedMethods = <MethodElement>[];
@@ -99,6 +102,9 @@ class IncrementalCompilationUnitElementBuilder {
   final CompilationUnit newUnit;
   final ElementHolder unitElementHolder = new ElementHolder();
 
+  final List<ConstantEvaluationTarget> unitConstants =
+      <ConstantEvaluationTarget>[];
+
   /**
    * The change between element models of [oldUnit] and [newUnit].
    */
@@ -124,11 +130,14 @@ class IncrementalCompilationUnitElementBuilder {
    * Fills [unitDelta] with added/remove elements.
    */
   void build() {
+    _materializeLazyElements();
     new CompilationUnitBuilder()
         .buildCompilationUnit(unitSource, newUnit, librarySource);
+    newUnit.accept(new EnumMemberBuilder(unitElement.context.typeProvider));
     _processDirectives();
     _processUnitMembers();
     _replaceUnitContents(oldUnit, newUnit);
+    _findConstants();
     newUnit.element = unitElement;
     unitElement.setCodeRange(0, newUnit.endToken.end);
   }
@@ -151,11 +160,29 @@ class IncrementalCompilationUnitElementBuilder {
     }
   }
 
+  void _findConstants() {
+    ConstantFinder finder = new ConstantFinder();
+    oldUnit.accept(finder);
+    unitConstants.addAll(finder.constantsToCompute);
+    // Update annotation constants to using the old unit element.
+    for (ConstantEvaluationTarget constant in unitConstants) {
+      if (constant is ElementAnnotationImpl) {
+        constant.compilationUnit = unitElement;
+      }
+    }
+  }
+
+  void _materializeLazyElements() {
+    unitElement.accept(new RecursiveElementVisitor());
+  }
+
   ClassElementDelta _processClassMembers(
       ClassDeclaration oldClass, ClassDeclaration newClass) {
     // If the class hierarchy or type parameters are changed,
     // then the class changed too much - don't compute the delta.
-    if (TokenUtils.getFullCode(newClass.typeParameters) !=
+    if (newClass.abstractKeyword != null && oldClass.abstractKeyword == null ||
+        newClass.abstractKeyword == null && oldClass.abstractKeyword != null ||
+        TokenUtils.getFullCode(newClass.typeParameters) !=
             TokenUtils.getFullCode(oldClass.typeParameters) ||
         TokenUtils.getFullCode(newClass.extendsClause) !=
             TokenUtils.getFullCode(oldClass.extendsClause) ||
@@ -334,6 +361,7 @@ class IncrementalCompilationUnitElementBuilder {
     classElement.constructors = classElementHolder.constructors;
     classElement.fields = newFields.values.toList();
     classElement.methods = classElementHolder.methods;
+    classElement.version++;
     classElementHolder.validate();
     // Ensure at least a default synthetic constructor.
     if (classElement.constructors.isEmpty) {
@@ -341,7 +369,11 @@ class IncrementalCompilationUnitElementBuilder {
           new ConstructorElementImpl.forNode(null);
       constructor.synthetic = true;
       classElement.constructors = <ConstructorElement>[constructor];
+      classDelta.addedConstructors.add(constructor);
     }
+    classDelta.hasUnnamedConstructorChange =
+        classDelta.addedConstructors.any((c) => c.name == '') ||
+            classDelta.removedConstructors.any((c) => c.name == '');
     // OK
     return classDelta;
   }
@@ -538,22 +570,35 @@ class TokenUtils {
   static void copyTokenOffsets(Map<int, int> offsetMap, Token oldToken,
       Token newToken, Token oldEndToken, Token newEndToken) {
     if (oldToken is CommentToken && newToken is CommentToken) {
-      // Update (otherwise unlinked) reference tokens in documentation.
-      if (oldToken is DocumentationCommentToken &&
-          newToken is DocumentationCommentToken) {
-        List<Token> oldReferences = oldToken.references;
-        List<Token> newReferences = newToken.references;
-        assert(oldReferences.length == newReferences.length);
-        for (int i = 0; i < oldReferences.length; i++) {
-          copyTokenOffsets(offsetMap, oldReferences[i], newReferences[i],
-              oldEndToken, newEndToken);
-        }
-      }
       // Update documentation tokens.
       while (oldToken != null) {
         offsetMap[oldToken.offset] = newToken.offset;
         offsetMap[oldToken.end] = newToken.end;
         oldToken.offset = newToken.offset;
+        // Update (otherwise unlinked) reference tokens in documentation.
+        if (oldToken is DocumentationCommentToken &&
+            newToken is DocumentationCommentToken) {
+          List<Token> oldReferences = oldToken.references;
+          List<Token> newReferences = newToken.references;
+          assert(oldReferences.length == newReferences.length);
+          for (int i = 0; i < oldReferences.length; i++) {
+            Token oldToken = oldReferences[i];
+            Token newToken = newReferences[i];
+            // For [new Name] the 'Name' token is the reference.
+            // But we need to process all tokens, including 'new'.
+            while (oldToken.previous != null &&
+                oldToken.previous.type != TokenType.EOF) {
+              oldToken = oldToken.previous;
+            }
+            while (newToken.previous != null &&
+                newToken.previous.type != TokenType.EOF) {
+              newToken = newToken.previous;
+            }
+            copyTokenOffsets(
+                offsetMap, oldToken, newToken, oldEndToken, newEndToken);
+          }
+        }
+        // Next tokens.
         oldToken = oldToken.next;
         newToken = newToken.next;
       }
@@ -644,15 +689,18 @@ class _UpdateElementOffsetsVisitor extends GeneralizingElementVisitor {
     if (element is LibraryElement) {
       return;
     }
-    if (element.isSynthetic && !_isVariableInitializer(element)) {
-      return;
-    }
     if (element is ElementImpl) {
       // name offset
       {
         int oldOffset = element.nameOffset;
         int newOffset = map[oldOffset];
-        assert(newOffset != null);
+        // Some synthetic elements have new offsets, e.g. synthetic accessors
+        // of property inducing elements.  But some are purely synthetic, e.g.
+        // synthetic enum fields and their accessors.
+        if (newOffset == null) {
+          assert(element.isSynthetic);
+          return;
+        }
         element.nameOffset = newOffset;
       }
       // code range
@@ -693,10 +741,5 @@ class _UpdateElementOffsetsVisitor extends GeneralizingElementVisitor {
       }
     }
     super.visitElement(element);
-  }
-
-  static bool _isVariableInitializer(Element element) {
-    return element is FunctionElement &&
-        element.enclosingElement is VariableElement;
   }
 }

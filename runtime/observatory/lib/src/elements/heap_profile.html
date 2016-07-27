@@ -1,10 +1,7 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
 <link rel="import" href="class_ref.html">
-<link rel="import" href="observatory_element.html">
-<link rel="import" href="nav_bar.html">
-<link rel="import" href="view_footer.html">
 
-<polymer-element name="heap-profile" extends="observatory-element">
+<polymer-element name="heap-profile">
 <template>
   <link rel="stylesheet" href="css/shared.css">
   <style>
@@ -76,6 +73,7 @@ overflow-y: auto;
     <div class="nav-option">
       <input type="checkbox" checked="{{ autoRefresh }}">Auto-refresh on GC
     </div>
+    <nav-notify notifications="{{ app.notifications }}"></nav-notify>
   </nav-bar>
   <div class="content">
     <h1>Allocation Profile</h1>

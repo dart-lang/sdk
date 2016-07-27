@@ -3387,17 +3387,6 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
     ASSERT(AbstractType::Handle(Z, func.result_type()).IsResolved());
     ASSERT(func.NumParameters() == params.parameters->length());
 
-    // Check whether the function has any field initializer formal parameters,
-    // which are not allowed in non-constructor functions.
-    if (params.has_field_initializer) {
-      for (int i = 0; i < params.parameters->length(); i++) {
-        ParamDesc& param = (*params.parameters)[i];
-        if (param.is_field_initializer) {
-          ReportError(param.name_pos,
-                      "field initializer only allowed in constructors");
-        }
-      }
-    }
     // Populate function scope with the formal parameters.
     AddFormalParamsToScope(&params, current_block_->scope);
 
@@ -4743,6 +4732,10 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   TRACE_PARSER("ParseEnumDefinition");
   INC_STAT(thread(), num_classes_parsed, 1);
 
+  const Class& helper_class =
+      Class::Handle(Z, Library::LookupCoreClass(Symbols::_EnumHelper()));
+  ASSERT(!helper_class.IsNull());
+
   SkipMetadata();
   ExpectToken(Token::kENUM);
 
@@ -4754,9 +4747,9 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   const Type& int_type = Type::Handle(Z, Type::IntType());
   index_field = Field::New(Symbols::Index(),
                            false,  // Not static.
-                           true,  // Field is final.
+                           true,   // Field is final.
                            false,  // Not const.
-                           true,  // Is reflectable.
+                           true,   // Is reflectable.
                            cls,
                            int_type,
                            cls.token_pos());
@@ -4782,18 +4775,12 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   AddFormalParamsToFunction(&params, getter);
   enum_members.AddFunction(getter);
 
-  GrowableObjectArray& enum_names = GrowableObjectArray::Handle(Z,
-      GrowableObjectArray::New(8, Heap::kOld));
-  const String& name_prefix =
-      String::Handle(String::Concat(enum_name, Symbols::Dot()));
-
   ASSERT(IsIdentifier());
   ASSERT(CurrentLiteral()->raw() == cls.Name());
 
   ConsumeToken();  // Enum type name.
   ExpectToken(Token::kLBRACE);
   Field& enum_value = Field::Handle(Z);
-  String& enum_value_name = String::Handle(Z);
   intptr_t i = 0;
   GrowableArray<String*> declared_names(8);
 
@@ -4841,24 +4828,12 @@ void Parser::ParseEnumDefinition(const Class& cls) {
     enum_value.RecordStore(ordinal_value);
     i++;
 
-    // For the user-visible name of the enumeration value, we need to
-    // unmangle private names.
-    if (enum_ident->CharAt(0) == '_') {
-      *enum_ident = String::ScrubName(*enum_ident);
-    }
-    enum_value_name = Symbols::FromConcat(T, name_prefix, *enum_ident);
-    enum_names.Add(enum_value_name, Heap::kOld);
-
     ConsumeToken();  // Enum value name.
     if (CurrentToken() == Token::kCOMMA) {
       ConsumeToken();
     }
   }
   ExpectToken(Token::kRBRACE);
-
-  const Class& helper_class =
-      Class::Handle(Z, Library::LookupCoreClass(Symbols::_EnumHelper()));
-  ASSERT(!helper_class.IsNull());
 
   // Add static field 'const List values'.
   Field& values_field = Field::ZoneHandle(Z);
@@ -4878,16 +4853,35 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   values_field.SetStaticValue(values_array, true);
   values_field.RecordStore(values_array);
 
-  // Create a static field that contains the list of enumeration names.
-  // Clone the _enum_names field from the helper class.
-  Field& names_field = Field::Handle(Z,
-      helper_class.LookupStaticFieldAllowPrivate(Symbols::_EnumNames()));
-  ASSERT(!names_field.IsNull());
-  names_field = names_field.Clone(cls);
-  enum_members.AddField(names_field);
-  const Array& names_array = Array::Handle(Array::MakeArray(enum_names));
-  names_field.SetStaticValue(names_array, true);
-  names_field.RecordStore(names_array);
+  // Clone the _name field from the helper class.
+  Field& _name_field = Field::Handle(Z,
+      helper_class.LookupInstanceFieldAllowPrivate(Symbols::_name()));
+  ASSERT(!_name_field.IsNull());
+  _name_field = _name_field.Clone(cls);
+  enum_members.AddField(_name_field);
+
+  // Add an implicit getter function for the _name field. We use the field's
+  // name directly here so that the private key matches those of the other
+  // cloned helper functions and fields.
+  const Type& string_type = Type::Handle(Z, Type::StringType());
+  const String& name_getter_name = String::Handle(Z,
+      Field::GetterSymbol(String::Handle(_name_field.name())));
+  Function& name_getter = Function::Handle(Z);
+  name_getter = Function::New(name_getter_name,
+                              RawFunction::kImplicitGetter,
+                              /* is_static = */ false,
+                              /* is_const = */ true,
+                              /* is_abstract = */ false,
+                              /* is_external = */ false,
+                              /* is_native = */ false,
+                              cls,
+                              cls.token_pos());
+  name_getter.set_result_type(string_type);
+  name_getter.set_is_debuggable(false);
+  ParamList name_params;
+  name_params.AddReceiver(&Object::dynamic_type(), cls.token_pos());
+  AddFormalParamsToFunction(&name_params, name_getter);
+  enum_members.AddFunction(name_getter);
 
   // Clone the toString() function from the helper class.
   Function& to_string_func = Function::Handle(Z,
@@ -7397,6 +7391,12 @@ void Parser::AddFormalParamsToFunction(const ParamList* params,
     ParamDesc& param_desc = (*params->parameters)[i];
     func.SetParameterTypeAt(i, *param_desc.type);
     func.SetParameterNameAt(i, *param_desc.name);
+    if (param_desc.is_field_initializer && !func.IsGenerativeConstructor()) {
+      // Redirecting constructors are detected later in ParseConstructor.
+      ReportError(param_desc.name_pos,
+                  "only generative constructors may have "
+                  "initializing formal parameters");
+    }
   }
 }
 
@@ -12134,21 +12134,21 @@ bool Parser::IsInstantiatorRequired() const {
 }
 
 
-void Parser::InsertCachedConstantValue(const String& url,
+void Parser::InsertCachedConstantValue(const Script& script,
                                        TokenPosition token_pos,
                                        const Instance& value) {
   ASSERT(Thread::Current()->IsMutatorThread());
-  Isolate* isolate = Isolate::Current();
-  ConstantPosKey key(url, token_pos);
-  if (isolate->object_store()->compile_time_constants() == Array::null()) {
-    const intptr_t kInitialConstMapSize = 16;
-    isolate->object_store()->set_compile_time_constants(
+  const intptr_t kInitialConstMapSize = 16;
+  ASSERT(!script.InVMHeap());
+  if (script.compile_time_constants() == Array::null()) {
+    const Array& array =
         Array::Handle(HashTables::New<ConstantsMap>(kInitialConstMapSize,
-                                                    Heap::kNew)));
+                                                    Heap::kNew));
+    script.set_compile_time_constants(array);
   }
-  ConstantsMap constants(isolate->object_store()->compile_time_constants());
-  constants.InsertNewOrGetValue(key, value);
-  isolate->object_store()->set_compile_time_constants(constants.Release());
+  ConstantsMap constants(script.compile_time_constants());
+  constants.InsertNewOrGetValue(token_pos, value);
+  script.set_compile_time_constants(constants.Release());
 }
 
 
@@ -12159,26 +12159,20 @@ void Parser::CacheConstantValue(TokenPosition token_pos,
     // evaluated only once.
     return;
   }
-  const String& url = String::Handle(Z, script_.url());
-  InsertCachedConstantValue(url, token_pos, value);
-  if (FLAG_compiler_stats) {
-    ConstantsMap constants(isolate()->object_store()->compile_time_constants());
-    thread_->compiler_stats()->num_cached_consts = constants.NumOccupied();
-    constants.Release();
-  }
+  InsertCachedConstantValue(script_, token_pos, value);
 }
 
 
 bool Parser::GetCachedConstant(TokenPosition token_pos, Instance* value) {
-  if (isolate()->object_store()->compile_time_constants() == Array::null()) {
+  bool is_present = false;
+  ASSERT(!script_.InVMHeap());
+  if (script_.compile_time_constants() == Array::null()) {
     return false;
   }
-  ConstantPosKey key(String::Handle(Z, script_.url()), token_pos);
-  ConstantsMap constants(isolate()->object_store()->compile_time_constants());
-  bool is_present = false;
-  *value ^= constants.GetOrNull(key, &is_present);
+  ConstantsMap constants(script_.compile_time_constants());
+  *value ^= constants.GetOrNull(token_pos, &is_present);
   // Mutator compiler thread may add constants while background compiler
-  // is running , and thus change the value of 'compile_time_constants';
+  // is running, and thus change the value of 'compile_time_constants';
   // do not assert that 'compile_time_constants' has not changed.
   constants.Release();
   if (FLAG_compiler_stats && is_present) {
@@ -12230,6 +12224,8 @@ StaticGetterNode* Parser::RunStaticFieldInitializer(
     // not been evaluated. If the field is const, call the static getter method
     // to evaluate the expression and canonicalize the value.
     if (field.is_const()) {
+      NoReloadScope no_reload_scope(isolate(), thread());
+      NoOOBMessageScope no_msg_scope(thread());
       field.SetStaticValue(Object::transition_sentinel());
       const int kNumArguments = 0;  // no arguments.
       const Function& func = Function::Handle(Z,
@@ -12287,6 +12283,8 @@ RawObject* Parser::EvaluateConstConstructorCall(
     const TypeArguments& type_arguments,
     const Function& constructor,
     ArgumentListNode* arguments) {
+  NoReloadScope no_reload_scope(isolate(), thread());
+  NoOOBMessageScope no_msg_scope(thread());
   // Factories have one extra argument: the type arguments.
   // Constructors have 1 extra arguments: receiver.
   const int kNumExtraArgs = 1;
@@ -13801,6 +13799,8 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
 
 
 String& Parser::Interpolate(const GrowableArray<AstNode*>& values) {
+  NoReloadScope no_reload_scope(isolate(), thread());
+  NoOOBMessageScope no_msg_scope(thread());
   const Class& cls = Class::Handle(
       Z, Library::LookupCoreClass(Symbols::StringBase()));
   ASSERT(!cls.IsNull());
@@ -14148,6 +14148,8 @@ AstNode* Parser::ParsePrimary() {
 // be a compile time constant.
 const Instance& Parser::EvaluateConstExpr(TokenPosition expr_pos,
                                           AstNode* expr) {
+  NoReloadScope no_reload_scope(isolate(), thread());
+  NoOOBMessageScope no_msg_scope(thread());
   if (expr->IsLiteralNode()) {
     return expr->AsLiteralNode()->literal();
   } else if (expr->IsLoadLocalNode() &&
@@ -14623,7 +14625,7 @@ ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
 }
 
 
-void Parser::InsertCachedConstantValue(const String& url,
+void Parser::InsertCachedConstantValue(const Script& script,
                                        TokenPosition token_pos,
                                        const Instance& value) {
   UNREACHABLE();

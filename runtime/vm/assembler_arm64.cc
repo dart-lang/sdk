@@ -1036,51 +1036,6 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
 }
 
 
-void Assembler::ComputeRange(Register result,
-                             Register value,
-                             Register scratch,
-                             Label* not_mint) {
-  Label done, not_smi;
-  tsti(value, Immediate(kSmiTagMask));
-  b(&not_smi, NE);
-
-  AsrImmediate(scratch, value, 32);
-  LoadImmediate(result, ICData::kUint32RangeBit);
-  cmp(scratch, Operand(1));
-  b(&done, EQ);
-
-  neg(scratch, scratch);
-  add(result, scratch, Operand(ICData::kInt32RangeBit));
-  cmp(scratch, Operand(1));
-  LoadImmediate(TMP, ICData::kSignedRangeBit);
-  csel(result, result, TMP, LS);
-  b(&done);
-
-  Bind(&not_smi);
-  CompareClassId(value, kMintCid);
-  b(not_mint, NE);
-
-  LoadImmediate(result, ICData::kInt64RangeBit);
-  Bind(&done);
-}
-
-
-void Assembler::UpdateRangeFeedback(Register value,
-                                    intptr_t index,
-                                    Register ic_data,
-                                    Register scratch1,
-                                    Register scratch2,
-                                    Label* miss) {
-  ASSERT(ICData::IsValidRangeFeedbackIndex(index));
-  ComputeRange(scratch1, value, scratch2, miss);
-  ldr(scratch2, FieldAddress(ic_data, ICData::state_bits_offset()), kWord);
-  orrw(scratch2,
-       scratch2,
-       Operand(scratch1, LSL, ICData::RangeFeedbackShift(index)));
-  str(scratch2, FieldAddress(ic_data, ICData::state_bits_offset()), kWord);
-}
-
-
 // Frame entry and exit.
 void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   // Reserve space for arguments and align frame before entering
@@ -1288,6 +1243,23 @@ void Assembler::LeaveStubFrame() {
 }
 
 
+#ifndef PRODUCT
+void Assembler::MaybeTraceAllocation(intptr_t cid,
+                                     Register temp_reg,
+                                     Label* trace) {
+  ASSERT(cid > 0);
+  intptr_t state_offset = ClassTable::StateOffsetFor(cid);
+  LoadIsolate(temp_reg);
+  intptr_t table_offset =
+      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  ldr(temp_reg, Address(temp_reg, table_offset));
+  AddImmediate(temp_reg, temp_reg, state_offset);
+  ldr(temp_reg, Address(temp_reg, 0));
+  tsti(temp_reg, Immediate(ClassHeapStats::TraceAllocationMask()));
+  b(trace, NE);
+}
+
+
 void Assembler::UpdateAllocationStats(intptr_t cid,
                                       Heap::Space space) {
   ASSERT(cid > 0);
@@ -1327,22 +1299,7 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
   add(TMP, TMP, Operand(size_reg));
   str(TMP, Address(TMP2, size_field_offset));
 }
-
-
-void Assembler::MaybeTraceAllocation(intptr_t cid,
-                                     Register temp_reg,
-                                     Label* trace) {
-  ASSERT(cid > 0);
-  intptr_t state_offset = ClassTable::StateOffsetFor(cid);
-  LoadIsolate(temp_reg);
-  intptr_t table_offset =
-      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
-  ldr(temp_reg, Address(temp_reg, table_offset));
-  AddImmediate(temp_reg, temp_reg, state_offset);
-  ldr(temp_reg, Address(temp_reg, 0));
-  tsti(temp_reg, Immediate(ClassHeapStats::TraceAllocationMask()));
-  b(trace, NE);
-}
+#endif  // !PRODUCT
 
 
 void Assembler::TryAllocate(const Class& cls,

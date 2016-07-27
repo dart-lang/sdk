@@ -702,13 +702,13 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  bool validateCacheConsistency() {
-    fail("Unexpected invocation of validateCacheConsistency");
-    return false;
+  void visitContentCache(ContentCacheVisitor visitor) {
+    fail("Unexpected invocation of visitContentCache");
   }
 
   @override
-  void visitContentCache(ContentCacheVisitor visitor) {
-    fail("Unexpected invocation of visitContentCache");
+  CacheConsistencyValidator get cacheConsistencyValidator {
+    fail("Unexpected invocation of cacheConsistencyValidator");
+    return null;
   }
 }

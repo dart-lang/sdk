@@ -10,8 +10,6 @@ patch class bool {
                                                  {bool defaultValue: false})
       native "Bool_fromEnvironment";
 
-  int get _identityHashCode {
-    return this ? 1231 : 1237;
-  }
-  int get hashCode => _identityHashCode;
+  int get hashCode => this ? 1231 : 1237;
+  int get _identityHashCode => this ? 1231 : 1237;
 }

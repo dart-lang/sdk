@@ -24,6 +24,7 @@ Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
   { "dart:html", html_source_paths_, NULL, NULL, true },
   { "dart:html_common", html_common_source_paths_, NULL, NULL, true},
   { "dart:js", js_source_paths_, NULL, NULL, true},
+  { "dart:js_util", js_util_source_paths_, NULL, NULL, true},
   { "dart:_blink", blink_source_paths_, NULL, NULL, true },
   { "dart:indexed_db", indexeddb_source_paths_, NULL, NULL, true },
   { "cached_patches.dart", cached_patches_source_paths_, NULL, NULL, true },

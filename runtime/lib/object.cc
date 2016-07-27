@@ -39,9 +39,12 @@ DEFINE_NATIVE_ENTRY(Object_equals, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Object_getHash, 1) {
-  const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  // Please note that no handle is created for the argument.
+  // This is safe since the argument is only used in a tail call.
+  // The performance benefit is more than 5% when using hashCode.
   Heap* heap = isolate->heap();
-  return Smi::New(heap->GetHash(instance.raw()));
+  ASSERT(arguments->NativeArgAt(0)->IsDartInstance());
+  return Smi::New(heap->GetHash(arguments->NativeArgAt(0)));
 }
 
 
@@ -163,6 +166,37 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
   return Bool::Get(negate.value() ? !is_instance_of : is_instance_of).raw();
 }
 
+DEFINE_NATIVE_ENTRY(Object_simpleInstanceOf, 2) {
+  // This native is only called when the right hand side passes
+  // simpleInstanceOfType and it is a non-negative test.
+  const Instance& instance =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const AbstractType& type =
+      AbstractType::CheckedHandle(zone, arguments->NativeArgAt(1));
+  const TypeArguments& instantiator_type_arguments =
+      TypeArguments::Handle(TypeArguments::null());
+  ASSERT(type.IsFinalized());
+  ASSERT(!type.IsMalformed());
+  ASSERT(!type.IsMalbounded());
+  Error& bound_error = Error::Handle(zone, Error::null());
+  const bool is_instance_of = instance.IsInstanceOf(type,
+                                                    instantiator_type_arguments,
+                                                    &bound_error);
+  if (!is_instance_of && !bound_error.IsNull()) {
+    // Throw a dynamic type error only if the instanceof test fails.
+    DartFrameIterator iterator;
+    StackFrame* caller_frame = iterator.NextFrame();
+    ASSERT(caller_frame != NULL);
+    const TokenPosition location = caller_frame->GetTokenPos();
+    String& bound_error_message = String::Handle(
+        zone, String::New(bound_error.ToErrorCString()));
+    Exceptions::CreateAndThrowTypeError(
+        location, AbstractType::Handle(zone), AbstractType::Handle(zone),
+        Symbols::Empty(), bound_error_message);
+    UNREACHABLE();
+  }
+  return Bool::Get(is_instance_of).raw();
+}
 
 DEFINE_NATIVE_ENTRY(Object_instanceOfNum, 2) {
   const Instance& instance =

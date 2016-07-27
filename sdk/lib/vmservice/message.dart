@@ -130,6 +130,7 @@ class Message {
       case '_writeDevFSFile':
       case '_writeDevFSFiles':
       case '_readDevFSFile':
+      case '_spawnUri':
         return true;
       default:
         return false;

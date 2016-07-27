@@ -119,7 +119,9 @@ static const char* vm_service_server_ip = DEFAULT_VM_SERVICE_SERVER_IP;
 // The 0 port is a magic value which results in the first available port
 // being allocated.
 static int vm_service_server_port = -1;
-
+// True when we are running in development mode and cross origin security
+// checks are disabled.
+static bool vm_service_dev_mode = false;
 
 // Exit code indicating an API error.
 static const int kApiErrorExitCode = 253;
@@ -129,10 +131,6 @@ static const int kCompilationErrorExitCode = 254;
 static const int kErrorExitCode = 255;
 // Exit code indicating a vm restart request.  Never returned to the user.
 static const int kRestartRequestExitCode = 1000;
-
-// Global flag that is used to indicate that the VM should do a clean
-// shutdown.
-static bool do_vm_shutdown = true;
 
 static void ErrorExit(int exit_code, const char* format, ...) {
   va_list arguments;
@@ -153,9 +151,7 @@ static void ErrorExit(int exit_code, const char* format, ...) {
     free(error);
   }
 
-  if (do_vm_shutdown) {
-    EventHandler::Stop();
-  }
+  EventHandler::Stop();
   Platform::Exit(exit_code);
 }
 
@@ -393,6 +389,16 @@ static bool ProcessEnableVmServiceOption(const char* option_value,
 }
 
 
+static bool ProcessDisableServiceOriginCheckOption(
+    const char* option_value, CommandLineOptions* vm_options) {
+  ASSERT(option_value != NULL);
+  Log::PrintErr("WARNING: You are running with the service protocol in an "
+                "insecure mode.\n");
+  vm_service_dev_mode = true;
+  return true;
+}
+
+
 static bool ProcessObserveOption(const char* option_value,
                                  CommandLineOptions* vm_options) {
   ASSERT(option_value != NULL);
@@ -434,42 +440,15 @@ static bool ProcessHotReloadTestModeOption(const char* arg,
   // Identity reload.
   vm_options->AddArgument("--identity_reload");
   // Start reloading quickly.
-  vm_options->AddArgument("--reload_every=50");
+  vm_options->AddArgument("--reload_every=4");
   // Reload from optimized and unoptimized code.
   vm_options->AddArgument("--reload_every_optimized=false");
   // Reload less frequently as time goes on.
   vm_options->AddArgument("--reload_every_back_off");
-  // Ensure that an isolate has reloaded once.
+  // Ensure that every isolate has reloaded once before exiting.
   vm_options->AddArgument("--check_reloaded");
 
   return true;
-}
-
-
-static bool ProcessShutdownOption(const char* arg,
-                                  CommandLineOptions* vm_options) {
-  ASSERT(arg != NULL);
-  if (*arg == '\0') {
-    do_vm_shutdown = true;
-    vm_options->AddArgument("--shutdown");
-    return true;
-  }
-
-  if ((*arg != '=') && (*arg != ':')) {
-    return false;
-  }
-
-  if (strcmp(arg + 1, "true") == 0) {
-    do_vm_shutdown = true;
-    vm_options->AddArgument("--shutdown");
-    return true;
-  } else if (strcmp(arg + 1, "false") == 0) {
-    do_vm_shutdown = false;
-    vm_options->AddArgument("--no-shutdown");
-    return true;
-  }
-
-  return false;
 }
 
 
@@ -490,8 +469,8 @@ static struct {
   // VM specific options to the standalone dart program.
   { "--compile_all", ProcessCompileAllOption },
   { "--enable-vm-service", ProcessEnableVmServiceOption },
+  { "--disable-service-origin-check", ProcessDisableServiceOriginCheckOption },
   { "--observe", ProcessObserveOption },
-  { "--shutdown", ProcessShutdownOption },
   { "--snapshot=", ProcessSnapshotFilenameOption },
   { "--snapshot-kind=", ProcessSnapshotKindOption },
   { "--run-app-snapshot=", ProcessRunAppSnapshotOption },
@@ -766,7 +745,8 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
     bool skip_library_load = run_app_snapshot;
     if (!VmService::Setup(vm_service_server_ip,
                           vm_service_server_port,
-                          skip_library_load)) {
+                          skip_library_load,
+                          vm_service_dev_mode)) {
       *error = strdup(VmService::GetErrorMessage());
       return NULL;
     }
@@ -1131,7 +1111,7 @@ static void ReadSnapshotFile(const char* snapshot_directory,
   }
   DartUtils::CloseFile(file);
   if (concat != NULL) {
-    delete concat;
+    delete[] concat;
   }
 }
 
@@ -1160,7 +1140,7 @@ static void ReadExecutableSnapshotFile(const char* snapshot_directory,
     Platform::Exit(kErrorExitCode);
   }
   if (concat != NULL) {
-    delete concat;
+    delete[] concat;
   }
 }
 
@@ -1377,9 +1357,7 @@ bool RunMainIsolate(const char* script_name,
       Log::PrintErr("VM cleanup failed: %s\n", error);
       free(error);
     }
-    if (do_vm_shutdown) {
-      EventHandler::Stop();
-    }
+    EventHandler::Stop();
     Platform::Exit((exit_code != 0) ? exit_code : kErrorExitCode);
   }
   delete [] isolate_name;
@@ -1521,7 +1499,7 @@ bool RunMainIsolate(const char* script_name,
 
 
 // Observatory assets are only needed in the regular dart binary.
-#if !defined(DART_PRECOMPILER)
+#if !defined(DART_PRECOMPILER) && !defined(NO_OBSERVATORY)
 extern unsigned int observatory_assets_archive_len;
 extern const uint8_t* observatory_assets_archive;
 
@@ -1610,7 +1588,7 @@ static Dart_GetVMServiceAssetsArchive GetVMServiceAssetsArchiveCallback = NULL;
 
 void main(int argc, char** argv) {
   char* script_name;
-  const int EXTRA_VM_ARGUMENTS = 2;
+  const int EXTRA_VM_ARGUMENTS = 8;
   CommandLineOptions vm_options(argc + EXTRA_VM_ARGUMENTS);
   CommandLineOptions dart_options(argc);
   bool print_flags_seen = false;
@@ -1652,6 +1630,8 @@ void main(int argc, char** argv) {
   }
 
   Thread::InitOnce();
+
+  Loader::InitOnce();
 
   if (!DartUtils::SetOriginalWorkingDirectory()) {
     OSError err;
@@ -1717,9 +1697,7 @@ void main(int argc, char** argv) {
       DartUtils::EntropySource,
       GetVMServiceAssetsArchiveCallback);
   if (error != NULL) {
-    if (do_vm_shutdown) {
-      EventHandler::Stop();
-    }
+    EventHandler::Stop();
     fprintf(stderr, "VM initialization failed: %s\n", error);
     fflush(stderr);
     free(error);
@@ -1744,9 +1722,7 @@ void main(int argc, char** argv) {
     Log::PrintErr("VM cleanup failed: %s\n", error);
     free(error);
   }
-  if (do_vm_shutdown) {
-    EventHandler::Stop();
-  }
+  EventHandler::Stop();
 
   // Free copied argument strings if converted.
   if (argv_converted) {

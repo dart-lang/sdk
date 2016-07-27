@@ -345,6 +345,8 @@ class ProgramBuilder {
       for (Element e in elements) {
         if (e is ClassElement && backend.isJsInterop(e)) {
           e.declaration.forEachMember((_, Element member) {
+            var jsName =
+                backend.nativeData.getUnescapedJSInteropName(member.name);
             if (!member.isInstanceMember) return;
             if (member.isGetter || member.isField || member.isFunction) {
               var selectors =
@@ -354,7 +356,7 @@ class ProgramBuilder {
                   var stubName = namer.invocationName(selector);
                   if (stubNames.add(stubName.key)) {
                     interceptorClass.callStubs.add(_buildStubMethod(stubName,
-                        js.js('function(obj) { return obj.# }', [member.name]),
+                        js.js('function(obj) { return obj.# }', [jsName]),
                         element: member));
                   }
                 }
@@ -367,10 +369,8 @@ class ProgramBuilder {
               if (selectors != null && !selectors.isEmpty) {
                 var stubName = namer.setterForElement(member);
                 if (stubNames.add(stubName.key)) {
-                  interceptorClass.callStubs.add(_buildStubMethod(
-                      stubName,
-                      js.js('function(obj, v) { return obj.# = v }',
-                          [member.name]),
+                  interceptorClass.callStubs.add(_buildStubMethod(stubName,
+                      js.js('function(obj, v) { return obj.# = v }', [jsName]),
                       element: member));
                 }
               }
@@ -447,7 +447,7 @@ class ProgramBuilder {
                   interceptorClass.callStubs.add(_buildStubMethod(
                       stubName,
                       js.js('function(receiver, #) { return receiver.#(#) }',
-                          [parameters, member.name, parameters]),
+                          [parameters, jsName, parameters]),
                       element: member));
                 }
               }

@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -21,16 +20,17 @@ import 'package:analyzer/src/summary/public_namespace_computer.dart'
     as public_namespace;
 import 'package:analyzer/src/summary/summarize_elements.dart'
     as summarize_elements;
+import 'package:path/path.dart' show posix;
 import 'package:unittest/unittest.dart';
 
 import '../context/mock_sdk.dart';
 
 /**
- * Convert [path] to a suitably formatted absolute path URI for the current
- * platform.
+ * Convert the given Posix style file [path] to the corresponding absolute URI.
  */
 String absUri(String path) {
-  return FileUtilities2.createFile(path).toURI().toString();
+  String absolutePath = posix.absolute(path);
+  return posix.toUri(absolutePath).toString();
 }
 
 /**

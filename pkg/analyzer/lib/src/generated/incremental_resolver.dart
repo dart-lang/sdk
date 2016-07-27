@@ -95,6 +95,7 @@ class IncrementalBodyDelta extends Delta {
         isByTask(BuildSourceExportClosureTask.DESCRIPTOR) ||
         isByTask(ComputeConstantDependenciesTask.DESCRIPTOR) ||
         isByTask(ComputeConstantValueTask.DESCRIPTOR) ||
+        isByTask(ComputeInferableStaticVariableDependenciesTask.DESCRIPTOR) ||
         isByTask(ComputeLibraryCycleTask.DESCRIPTOR) ||
         isByTask(ComputePropagableVariableDependenciesTask.DESCRIPTOR) ||
         isByTask(DartErrorsTask.DESCRIPTOR) ||
@@ -106,6 +107,7 @@ class IncrementalBodyDelta extends Delta {
         isByTask(GenerateHintsTask.DESCRIPTOR) ||
         isByTask(InferInstanceMembersInUnitTask.DESCRIPTOR) ||
         isByTask(InferStaticVariableTypesInUnitTask.DESCRIPTOR) ||
+        isByTask(InferStaticVariableTypeTask.DESCRIPTOR) ||
         isByTask(LibraryErrorsReadyTask.DESCRIPTOR) ||
         isByTask(LibraryUnitErrorsTask.DESCRIPTOR) ||
         isByTask(ParseDartTask.DESCRIPTOR) ||
@@ -295,9 +297,9 @@ class IncrementalResolver {
     // compute values
     {
       CompilationUnit unit = node.getAncestor((n) => n is CompilationUnit);
-      ConstantValueComputer computer = new ConstantValueComputer(_context,
+      ConstantValueComputer computer = new ConstantValueComputer(
           _typeProvider, _context.declaredVariables, null, _typeSystem);
-      computer.add(unit, _source, _librarySource);
+      computer.add(unit);
       computer.computeValues();
     }
     // validate
@@ -740,6 +742,7 @@ class PoorMansIncrementalResolver {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       Parser parser = new Parser(_unitSource, errorListener);
       AnalysisOptions options = _unitElement.context.analysisOptions;
+      parser.parseGenericMethodComments = options.strongMode;
       parser.parseGenericMethods = options.enableGenericMethods;
       CompilationUnit unit = parser.parseCompilationUnit(token);
       _newParseErrors = errorListener.errors;
@@ -819,6 +822,8 @@ class PoorMansIncrementalResolver {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     CharSequenceReader reader = new CharSequenceReader(code);
     Scanner scanner = new Scanner(_unitSource, reader, errorListener);
+    AnalysisOptions options = _unitElement.context.analysisOptions;
+    scanner.scanGenericMethodComments = options.strongMode;
     Token token = scanner.tokenize();
     _newLineInfo = new LineInfo(scanner.lineStarts);
     _newScanErrors = errorListener.errors;
@@ -870,6 +875,10 @@ class PoorMansIncrementalResolver {
     // parse results
     _sourceEntry.setValueIncremental(PARSE_ERRORS, _newParseErrors, true);
     _sourceEntry.setValueIncremental(PARSED_UNIT, _oldUnit, false);
+    // referenced names
+    ReferencedNames referencedNames = new ReferencedNames(_unitSource);
+    new ReferencedNamesBuilder(referencedNames).build(_oldUnit);
+    _sourceEntry.setValueIncremental(REFERENCED_NAMES, referencedNames, false);
   }
 
   /**
@@ -1196,19 +1205,13 @@ class _ElementOffsetUpdater extends GeneralizingElementVisitor {
     // name offset
     int nameOffset = element.nameOffset;
     if (nameOffset > updateOffset) {
-      // TODO(scheglov) make sure that we don't put local variables
-      // and functions into the cache at all.
-      try {
-        (element as ElementImpl).nameOffset = nameOffset + updateDelta;
-      } on FrozenHashCodeException {
-        cache.remove(element);
-        (element as ElementImpl).nameOffset = nameOffset + updateDelta;
-      }
+      (element as ElementImpl).nameOffset = nameOffset + updateDelta;
       if (element is ConstVariableElement) {
         Expression initializer = element.constantInitializer;
         if (initializer != null) {
           _shiftTokens(initializer.beginToken);
         }
+        _shiftErrors(element.evaluationResult?.errors);
       }
     }
     // code range
@@ -1249,6 +1252,17 @@ class _ElementOffsetUpdater extends GeneralizingElementVisitor {
       }
     }
     super.visitElement(element);
+  }
+
+  void _shiftErrors(List<AnalysisError> errors) {
+    if (errors != null) {
+      for (AnalysisError error in errors) {
+        int errorOffset = error.offset;
+        if (errorOffset > updateOffset) {
+          error.offset += updateDelta;
+        }
+      }
+    }
   }
 
   void _shiftTokens(Token token) {

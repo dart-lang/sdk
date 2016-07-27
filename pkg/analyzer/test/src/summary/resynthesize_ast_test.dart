@@ -157,6 +157,51 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
+  void test_constructors_inferFromArguments() {
+    // TODO(jmesserly): does this need to be implemented in AST summaries?
+    // The test might need a change as well to not be based on local variable
+    // types, which don't seem to be available.
+    super.test_constructors_inferFromArguments();
+  }
+
+  @override
+  @failingTest
+  void test_constructors_inferFromArguments_const() {
+    super.test_constructors_inferFromArguments_const();
+  }
+
+  @override
+  @failingTest
+  void test_constructors_inferFromArguments_factory() {
+    super.test_constructors_inferFromArguments_factory();
+  }
+
+  @override
+  @failingTest
+  void test_constructors_inferFromArguments_named() {
+    super.test_constructors_inferFromArguments_named();
+  }
+
+  @override
+  @failingTest
+  void test_constructors_inferFromArguments_namedFactory() {
+    super.test_constructors_inferFromArguments_namedFactory();
+  }
+
+  @override
+  @failingTest
+  void test_constructors_inferFromArguments_redirecting() {
+    super.test_constructors_inferFromArguments_redirecting();
+  }
+
+  @override
+  @failingTest
+  void test_constructors_inferFromArguments_redirectingFactory() {
+    super.test_constructors_inferFromArguments_redirectingFactory();
+  }
+
+  @override
+  @failingTest
   void test_genericMethods_inferJSBuiltin() {
     super.test_genericMethods_inferJSBuiltin();
   }
@@ -545,6 +590,72 @@ class C {
 var v = new C().m(1, b: 'bbb', c: 2.0);
   ''');
     expect(unit.topLevelVariables[0].type.toString(), 'int');
+  }
+
+  @override
+  @failingTest
+  void test_unsafeBlockClosureInference_closureCall() {
+    super.test_unsafeBlockClosureInference_closureCall();
+  }
+
+  @override
+  @failingTest
+  void test_unsafeBlockClosureInference_constructorCall_implicitTypeParam() {
+    super.test_unsafeBlockClosureInference_constructorCall_implicitTypeParam();
+  }
+
+  @override
+  @failingTest
+  void
+      test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2() {
+    super
+        .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2();
+  }
+
+  @override
+  @failingTest
+  void
+      test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2() {
+    super
+        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2();
+  }
+
+  @override
+  @failingTest
+  void test_unsafeBlockClosureInference_functionCall_implicitTypeParam() {
+    super.test_unsafeBlockClosureInference_functionCall_implicitTypeParam();
+  }
+
+  @override
+  @failingTest
+  void
+      test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr() {
+    super
+        .test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr();
+  }
+
+  @override
+  @failingTest
+  void test_unsafeBlockClosureInference_functionCall_noTypeParam_viaExpr() {
+    super.test_unsafeBlockClosureInference_functionCall_noTypeParam_viaExpr();
+  }
+
+  @override
+  @failingTest
+  void test_unsafeBlockClosureInference_inList_untyped() {
+    super.test_unsafeBlockClosureInference_inList_untyped();
+  }
+
+  @override
+  @failingTest
+  void test_unsafeBlockClosureInference_inMap_untyped() {
+    super.test_unsafeBlockClosureInference_inMap_untyped();
+  }
+
+  @override
+  @failingTest
+  void test_unsafeBlockClosureInference_methodCall_implicitTypeParam() {
+    super.test_unsafeBlockClosureInference_methodCall_implicitTypeParam();
   }
 
   LibraryElementImpl _checkSource(

@@ -1206,9 +1206,9 @@ class _Bigint extends _IntegerImplementation implements int {
     return r_used;
   }
 
-  int get _identityHashCode {
-    return this;
-  }
+  int get hashCode => this;
+  int get _identityHashCode => this;
+
   int operator ~() {
     return _not()._toValidInt();
   }

@@ -5,8 +5,8 @@
 library dart2js.serialization.compilation0_test;
 
 import 'compilation_test_helper.dart' as test;
-import 'test_data.dart';
+import 'test_helper.dart';
 
 main() {
-  test.main(['0', '0']);
+  test.main(testSkipped(0, test.SKIP_COUNT));
 }

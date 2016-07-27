@@ -17,6 +17,7 @@ import 'sort_members_test.dart' as sort_members_test;
 import 'source_range_test.dart' as source_range_test;
 import 'status_test.dart' as status_test;
 import 'strings_test.dart' as strings_test;
+import 'util_test.dart' as util_test;
 
 /// Utility for manually running all tests.
 main() {
@@ -32,5 +33,6 @@ main() {
     source_range_test.main();
     status_test.main();
     strings_test.main();
+    util_test.main();
   });
 }

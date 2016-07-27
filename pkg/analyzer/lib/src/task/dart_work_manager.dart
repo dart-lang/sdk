@@ -117,7 +117,10 @@ class DartWorkManager implements WorkManager {
   void applyChange(List<Source> addedSources, List<Source> changedSources,
       List<Source> removedSources) {
     addedSources = addedSources.where(_isDartSource).toList();
-    changedSources = changedSources.where(_isDartSource).toList();
+    changedSources = changedSources
+        .where(_isDartSource)
+        .where((source) => _needsComputing(source, SOURCE_KIND))
+        .toList();
     removedSources = removedSources.where(_isDartSource).toList();
     // unknown queue
     unknownSourceQueue.addAll(addedSources);

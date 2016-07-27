@@ -54,6 +54,11 @@ class LocationManager extends Observable {
   /// Update the application location. After this function returns,
   /// [uri] and [debugArguments] will be updated.
   _updateApplicationLocation(String url) {
+    if (url == makeLink('/vm-connect')) {
+      // When we go to the vm-connect page, drop all notifications.
+      _app.notifications.deleteAll();
+    }
+
     // Chop off leading '#'.
     if (url.startsWith('#')) {
       url = url.substring(1);
@@ -113,11 +118,6 @@ class LocationManager extends Observable {
         return;
       }
       url = makeLink('/vm-connect');
-    }
-
-    if (url == makeLink('/vm-connect')) {
-      // When we go to the vm-connect page, drop all notifications.
-      _app.notifications.clear();
     }
 
     if (addToBrowserHistory) {

@@ -3527,6 +3527,12 @@ f(var l) {
     assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
   }
 
+  void test_undefinedIdentifierAwait_function() {
+    Source source = addSource("void a() { await; }");
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT]);
+  }
+
   void test_undefinedIdentifier_importCore_withShow() {
     Source source = addSource(r'''
 import 'dart:core' show List;

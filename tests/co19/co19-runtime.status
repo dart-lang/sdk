@@ -158,11 +158,13 @@ Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t04: RuntimeEr
 Language/Metadata/*: SkipByDesign # Uses dart:mirrors
 Language/Expressions/Null/instance_of_class_null_t01: Skip # Uses dart:mirrors
 
+[ $noopt || $compiler == precompiler || $compiler == dart2appjit || $mode == product ]
+Language/Libraries_and_Scripts/Imports/deferred_import_t02: Skip # Eager loading
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01: Skip # Eager loading
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: Skip # Eager loading
+
 [ $runtime == dart_precompiled || $runtime == dart_app ]
 LibTest/isolate/Isolate/spawnUri*: Skip # Isolate.spawnUri
-Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01: CompileTimeError # spawnUri
-Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: RuntimeError # spawnUri
-Language/Libraries_and_Scripts/Imports/deferred_import_t02: RuntimeError # Unsupported
 
 [ $noopt || $compiler == precompiler ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
@@ -192,21 +194,41 @@ Language/Expressions/Object_Identity/double_t02: RuntimeError # Issue #26374
 LibTest/typed_data/Float32x4/operator_division_A01_t02: RuntimeError # Issue #26675
 
 [ $hot_reload ]
-LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Pass, Crash
-LibTest/collection/HashSet/HashSet_class_A01_t01: Crash
-LibTest/collection/IterableBase/IterableBase_class_A01_t02: Crash
-LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: Crash
-LibTest/collection/LinkedList/iterator_current_A01_t01: Crash
-LibTest/collection/ListBase/ListBase_class_A01_t01: Pass, Timeout, Crash
+Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/getter_closurization_t08: Pass, Fail # Closure identity
+Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/method_identical_t03: Pass, Fail # Closure identity
+Language/Expressions/Property_Extraction/conditional_t05: Pass, Fail # Closure identity
+Language/Expressions/Assignment/prefix_object_t02: Crash # Requires deferred libraries
+Language/Expressions/Constants/constant_constructor_t03: Crash # Requires deferred libraries
+Language/Expressions/Constants/identifier_denotes_a_constant_t06: Crash # Requires deferred libraries
+Language/Expressions/Constants/identifier_denotes_a_constant_t07: Crash # Requires deferred libraries
+Language/Expressions/Constants/static_constant_t06: Crash # Requires deferred libraries
+Language/Expressions/Constants/static_constant_t07: Crash # Requires deferred libraries
+Language/Expressions/Constants/top_level_function_t04: Crash # Requires deferred libraries
+Language/Expressions/Constants/top_level_function_t05: Crash # Requires deferred libraries
+Language/Expressions/Instance_Creation/Const/deferred_type_t01: Crash # Requires deferred libraries
+Language/Expressions/Instance_Creation/Const/deferred_type_t02: Crash # Requires deferred libraries
+Language/Expressions/Instance_Creation/New/evaluation_t19: Crash # Requires deferred libraries
+Language/Expressions/Instance_Creation/New/evaluation_t20: Crash # Requires deferred libraries
+Language/Expressions/Property_Extraction/Anonymous_Constructor_Extraction/deferred_type_t01: Crash # Requires deferred libraries
+Language/Expressions/Property_Extraction/Named_Constructor_Extraction/deferred_type_t01: Crash # Requires deferred libraries
+Language/Expressions/Type_Cast/evaluation_t10: Crash # Requires deferred libraries
+Language/Expressions/Type_Test/evaluation_t10: Crash # Requires deferred libraries
+Language/Libraries_and_Scripts/Imports/deferred_import_t01: Crash # Requires deferred libraries
+Language/Libraries_and_Scripts/Imports/deferred_import_t02: Crash # Requires deferred libraries
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01: Crash # Requires deferred libraries
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: Crash # Requires deferred libraries
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t03: Crash # Requires deferred libraries
+Language/Libraries_and_Scripts/Imports/static_type_t01: Crash # Requires deferred libraries
+Language/Types/Dynamic_Type_System/deferred_type_error_t01: Crash # Requires deferred libraries
+Language/Types/Static_Types/deferred_type_t01: Crash # Requires deferred libraries
+LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Crash # Requires deferred libraries
+LibTest/collection/ListBase/ListBase_class_A01_t01: Pass, Timeout
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
-LibTest/collection/ListMixin/ListMixin_class_A01_t01: Pass, Timeout, Crash
+LibTest/collection/ListMixin/ListMixin_class_A01_t01: Pass, Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Timeout
-LibTest/collection/ListQueue/ListQueue_class_A01_t01: Pass, Crash
-LibTest/collection/Queue/Queue_class_A01_t01: Pass, Crash
-LibTest/core/List/List.from_A01_t01: Crash
-LibTest/core/List/List_class_A01_t01: Pass, Crash
-LibTest/core/List/List_class_A01_t02: Pass, Timeout, Crash
+LibTest/core/List/List_class_A01_t02: Pass, Timeout
 LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
-LibTest/core/Set/IterableBase_A01_t01: Pass, Crash
 LibTest/core/Uri/Uri_A06_t03: Pass, Timeout
 LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
+LibTest/isolate/Isolate/spawn_A01_t04: Pass, Timeout
+

@@ -3399,29 +3399,34 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   void _checkForFieldInitializingFormalRedirectingConstructor(
       FieldFormalParameter parameter) {
-    ConstructorDeclaration constructor =
-        parameter.getAncestor((node) => node is ConstructorDeclaration);
-    if (constructor == null) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
-          parameter);
-      return;
+    // prepare the node that should be a ConstructorDeclaration
+    AstNode formalParameterList = parameter.parent;
+    if (formalParameterList is! FormalParameterList) {
+      formalParameterList = formalParameterList?.parent;
     }
-    // constructor cannot be a factory
-    if (constructor.factoryKeyword != null) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR,
-          parameter);
-      return;
-    }
-    // constructor cannot have a redirection
-    for (ConstructorInitializer initializer in constructor.initializers) {
-      if (initializer is RedirectingConstructorInvocation) {
+    AstNode constructor = formalParameterList?.parent;
+    // now check whether the node is actually a ConstructorDeclaration
+    if (constructor is ConstructorDeclaration) {
+      // constructor cannot be a factory
+      if (constructor.factoryKeyword != null) {
         _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
+            CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR,
             parameter);
         return;
       }
+      // constructor cannot have a redirection
+      for (ConstructorInitializer initializer in constructor.initializers) {
+        if (initializer is RedirectingConstructorInvocation) {
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
+              parameter);
+          return;
+        }
+      }
+    } else {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
+          parameter);
     }
   }
 
@@ -4065,18 +4070,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (lhs == null) {
       return;
     }
-    VariableElement leftVariableElement = getVariableElement(lhs);
-    DartType leftType = (leftVariableElement == null)
-        ? getStaticType(lhs)
-        : leftVariableElement.type;
-    MethodElement invokedMethod = assignment.staticElement;
-    if (invokedMethod == null) {
-      return;
-    }
-    DartType rightType = invokedMethod.type.returnType;
-    if (leftType == null || rightType == null) {
-      return;
-    }
+    DartType leftType = getStaticType(lhs);
+    DartType rightType = getStaticType(assignment);
     if (!_typeSystem.isAssignableTo(rightType, leftType)) {
       _errorReporter.reportTypeErrorForNode(
           StaticTypeWarningCode.INVALID_ASSIGNMENT, rhs, [rightType, leftType]);

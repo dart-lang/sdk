@@ -29,6 +29,7 @@ class ServiceEvent {
     kIsolateExit,            // Isolate has exited
     kIsolateUpdate,          // Isolate identity information has changed
     kIsolateReload,          // Result of a reload request
+    kIsolateSpawn,           // Result of an isolate spawn request
     kServiceExtensionAdded,  // A service extension was registered
 
     kPauseStart,         // --pause-isolates-on-start
@@ -158,6 +159,24 @@ class ServiceEvent {
     reload_error_ = error;
   }
 
+  const String* spawn_token() const {
+    ASSERT(kind_ == kIsolateSpawn);
+    return spawn_token_;
+  }
+  void set_spawn_token(const String* error) {
+    ASSERT(kind_ == kIsolateSpawn);
+    spawn_token_ = error;
+  }
+
+  const String* spawn_error() const {
+    ASSERT(kind_ == kIsolateSpawn);
+    return spawn_error_;
+  }
+  void set_spawn_error(const String* error) {
+    ASSERT(kind_ == kIsolateSpawn);
+    spawn_error_ = error;
+  }
+
   bool at_async_jump() const {
     return at_async_jump_;
   }
@@ -232,6 +251,8 @@ class ServiceEvent {
   const String* extension_rpc_;
   const Object* exception_;
   const Error* reload_error_;
+  const String* spawn_token_;
+  const String* spawn_error_;
   bool at_async_jump_;
   const Object* inspectee_;
   const Heap::GCStats* gc_stats_;

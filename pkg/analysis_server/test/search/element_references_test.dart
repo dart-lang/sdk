@@ -268,13 +268,13 @@ main() {
   test_hierarchy_method() async {
     addTestFile('''
 class A {
-  mmm() {} // in A
+  mmm(_) {} // in A
 }
 class B extends A {
-  mmm() {} // in B
+  mmm(_) {} // in B
 }
 class C extends B {
-  mmm() {} // in C
+  mmm(_) {} // in C
 }
 main(A a, B b, C c) {
   a.mmm(10);
@@ -282,11 +282,34 @@ main(A a, B b, C c) {
   c.mmm(30);
 }
 ''');
-    await findElementReferences('mmm() {} // in B', false);
+    await findElementReferences('mmm(_) {} // in B', false);
     expect(searchElement.kind, ElementKind.METHOD);
     assertHasResult(SearchResultKind.INVOCATION, 'mmm(10)');
     assertHasResult(SearchResultKind.INVOCATION, 'mmm(20)');
     assertHasResult(SearchResultKind.INVOCATION, 'mmm(30)');
+  }
+
+  test_hierarchy_method_static() async {
+    addTestFile('''
+class A {
+  static void mmm(_) {} // in A
+}
+class B extends A {
+  static void mmm(_) {} // in B
+}
+class C extends B {
+  static void mmm(_) {} // in C
+}
+main() {
+  A.mmm(10);
+  B.mmm(20);
+  C.mmm(30);
+}
+''');
+    await findElementReferences('mmm(_) {} // in B', false);
+    expect(searchElement.kind, ElementKind.METHOD);
+    expect(results, hasLength(1));
+    assertHasResult(SearchResultKind.INVOCATION, 'mmm(20)');
   }
 
   test_label() async {

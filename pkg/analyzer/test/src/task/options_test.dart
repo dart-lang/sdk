@@ -7,6 +7,7 @@ library analyzer.test.src.task.options_test;
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
@@ -126,6 +127,18 @@ analyzer:
     // error
     var unusedLocal = processors.firstWhere((p) => p.appliesTo(unused_local));
     expect(unusedLocal.severity, ErrorSeverity.ERROR);
+  }
+
+  test_configure_excludes() {
+    configureContext('''
+analyzer:
+  exclude:
+    - foo/bar.dart
+    - 'test/**'
+''');
+
+    List<String> excludes = context.getConfigurationData(CONTEXT_EXCLUDES);
+    expect(excludes, unorderedEquals(['foo/bar.dart', 'test/**']));
   }
 
   test_configure_strong_mode() {

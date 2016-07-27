@@ -168,9 +168,6 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
   @override
   void report(var code, Uri uri, int begin, int end, String message,
       api.Diagnostic kind) {
-    // TODO(ahe): Remove this when source map is handled differently.
-    if (identical(kind.name, 'source map')) return;
-
     if (isAborting) return;
     isAborting = (kind == api.Diagnostic.CRASH);
 

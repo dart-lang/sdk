@@ -878,7 +878,8 @@ void _useSerializedDataForDartCore(CompileFunc oldCompileFunc) {
           }
         }
       }
-      options = options.copy(resolutionInputs: resolutionInputs);
+      options =
+          CompilerOptions.copy(options, resolutionInputs: resolutionInputs);
     }
     return oldCompileFunc(options, input, compilerDiagnostics, compilerOutput);
   }
@@ -892,15 +893,12 @@ void _useSerializedDataForDartCore(CompileFunc oldCompileFunc) {
       api.CompilerDiagnostics compilerDiagnostics,
       api.CompilerOutput compilerOutput,
       [List<_SerializedData> serializedData]) {
-    CompilerOptions options = new CompilerOptions.parse(
+    CompilerOptions options = CompilerOptions.copy(compilerOptions,
         entryPoint: entryPoint,
-        libraryRoot: compilerOptions.libraryRoot,
-        packageRoot: compilerOptions.packageRoot,
-        packageConfig: compilerOptions.packageConfig,
-        packagesDiscoveryProvider: compilerOptions.packagesDiscoveryProvider,
-        environment: compilerOptions.environment,
         resolutionOutput: serializedUri,
-        options: [Flags.resolveOnly]);
+        analyzeAll: true,
+        analyzeOnly: true,
+        resolveOnly: true);
     return compileWithSerializedData(options, compilerInput,
         compilerDiagnostics, compilerOutput, serializedData);
   }

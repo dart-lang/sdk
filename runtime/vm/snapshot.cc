@@ -166,14 +166,10 @@ intptr_t BaseReader::ReadSmiValue() {
 SnapshotReader::SnapshotReader(
     const uint8_t* buffer,
     intptr_t size,
-    const uint8_t* instructions_buffer,
-    const uint8_t* data_buffer,
     Snapshot::Kind kind,
     ZoneGrowableArray<BackRefNode>* backward_refs,
     Thread* thread)
     : BaseReader(buffer, size),
-      instructions_buffer_(instructions_buffer),
-      data_buffer_(data_buffer),
       kind_(kind),
       thread_(thread),
       zone_(thread->zone()),
@@ -192,19 +188,12 @@ SnapshotReader::SnapshotReader(
       stream_(TokenStream::Handle(zone_)),
       data_(ExternalTypedData::Handle(zone_)),
       typed_data_(TypedData::Handle(zone_)),
-      code_(Code::Handle(zone_)),
       function_(Function::Handle(zone_)),
-      megamorphic_cache_(MegamorphicCache::Handle(zone_)),
       error_(UnhandledException::Handle(zone_)),
       max_vm_isolate_object_id_(
           (Snapshot::IsFull(kind)) ?
               Object::vm_isolate_snapshot_object_table().Length() : 0),
-      backward_references_(backward_refs),
-      instructions_reader_(NULL) {
-  if (instructions_buffer != NULL) {
-    instructions_reader_ =
-        new InstructionsReader(instructions_buffer, data_buffer);
-  }
+      backward_references_(backward_refs) {
 }
 
 
@@ -220,9 +209,7 @@ RawObject* SnapshotReader::ReadObject() {
         (*backward_references_)[i].set_state(kIsDeserialized);
       }
     }
-    if (!Snapshot::IsFull(kind())) {
-      ProcessDeferredCanonicalizations();
-    }
+    ProcessDeferredCanonicalizations();
     return obj.raw();
   } else {
     // An error occurred while reading, return the error object.
@@ -480,11 +467,7 @@ RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
     instance_size = cls_.instance_size();
     ASSERT(instance_size > 0);
     // Allocate the instance and read in all the fields for the object.
-    if (Snapshot::IsFull(kind_)) {
-      *result ^= AllocateUninitialized(cls_.id(), instance_size);
-    } else {
-      *result ^= Object::Allocate(cls_.id(), instance_size, HEAP_SPACE(kind_));
-    }
+    *result ^= Object::Allocate(cls_.id(), instance_size, HEAP_SPACE(kind_));
   } else {
     cls_ ^= ReadObjectImpl(kAsInlinedObject);
     ASSERT(!cls_.IsNull());
@@ -522,21 +505,9 @@ RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
       // snapshot (kFull, kScript) with asserts.
       offset += kWordSize;
     }
-    if (Snapshot::IsFull(kind_)) {
-      // We create an uninitialized object in the case of full snapshots, so
-      // we need to initialize any remaining padding area with the Null object.
-      while (offset < instance_size) {
-        result->SetFieldAtOffset(offset, Object::null_object());
-        offset += kWordSize;
-      }
-    }
     if (RawObject::IsCanonical(tags)) {
-      if (Snapshot::IsFull(kind_)) {
-        result->SetCanonical();
-      } else {
-        *result = result->CheckAndCanonicalize(thread(), NULL);
-        ASSERT(!result->IsNull());
-      }
+      *result = result->CheckAndCanonicalize(thread(), NULL);
+      ASSERT(!result->IsNull());
     }
   }
   return result->raw();
@@ -681,415 +652,13 @@ RawApiError* SnapshotReader::VerifyVersionAndFeatures() {
 }
 
 
-#define ALLOC_NEW_OBJECT_WITH_LEN(type, length)                                \
-  ASSERT(Snapshot::IsFull(kind_));                                            \
-  ASSERT_NO_SAFEPOINT_SCOPE();                                                 \
-  Raw##type* obj = reinterpret_cast<Raw##type*>(                               \
-      AllocateUninitialized(k##type##Cid, type::InstanceSize(length)));        \
-  obj->StoreSmi(&(obj->ptr()->length_), Smi::New(length));                     \
-  return obj;                                                                  \
-
-
-RawArray* SnapshotReader::NewArray(intptr_t len) {
-  ALLOC_NEW_OBJECT_WITH_LEN(Array, len);
-}
-
-
-RawImmutableArray* SnapshotReader::NewImmutableArray(intptr_t len) {
-  ALLOC_NEW_OBJECT_WITH_LEN(ImmutableArray, len);
-}
-
-
-RawOneByteString* SnapshotReader::NewOneByteString(intptr_t len) {
-  ALLOC_NEW_OBJECT_WITH_LEN(OneByteString, len);
-}
-
-
-RawTwoByteString* SnapshotReader::NewTwoByteString(intptr_t len) {
-  ALLOC_NEW_OBJECT_WITH_LEN(TwoByteString, len);
-}
-
-
-RawTypeArguments* SnapshotReader::NewTypeArguments(intptr_t len) {
-  ALLOC_NEW_OBJECT_WITH_LEN(TypeArguments, len);
-}
-
-
-RawObjectPool* SnapshotReader::NewObjectPool(intptr_t len) {
-  ASSERT(Snapshot::IsFull(kind_));
-  ASSERT_NO_SAFEPOINT_SCOPE();
-  RawObjectPool* obj = reinterpret_cast<RawObjectPool*>(
-      AllocateUninitialized(kObjectPoolCid, ObjectPool::InstanceSize(len)));
-  obj->ptr()->length_ = len;
-  return obj;
-}
-
-
-RawLocalVarDescriptors* SnapshotReader::NewLocalVarDescriptors(
-    intptr_t num_entries) {
-  ASSERT(Snapshot::IsFull(kind_));
-  ASSERT_NO_SAFEPOINT_SCOPE();
-  RawLocalVarDescriptors* obj = reinterpret_cast<RawLocalVarDescriptors*>(
-      AllocateUninitialized(kLocalVarDescriptorsCid,
-                            LocalVarDescriptors::InstanceSize(num_entries)));
-  obj->ptr()->num_entries_ = num_entries;
-  return obj;
-}
-
-
-RawExceptionHandlers* SnapshotReader::NewExceptionHandlers(
-    intptr_t num_entries) {
-  ASSERT(Snapshot::IsFull(kind_));
-  ASSERT_NO_SAFEPOINT_SCOPE();
-  RawExceptionHandlers* obj = reinterpret_cast<RawExceptionHandlers*>(
-      AllocateUninitialized(kExceptionHandlersCid,
-                            ExceptionHandlers::InstanceSize(num_entries)));
-  obj->ptr()->num_entries_ = num_entries;
-  return obj;
-}
-
-
-RawPcDescriptors* SnapshotReader::NewPcDescriptors(intptr_t len) {
-  ASSERT(Snapshot::IsFull(kind_));
-  ASSERT_NO_SAFEPOINT_SCOPE();
-  RawPcDescriptors* obj = reinterpret_cast<RawPcDescriptors*>(
-      AllocateUninitialized(kPcDescriptorsCid,
-                            PcDescriptors::InstanceSize(len)));
-  obj->ptr()->length_ = len;
-  return obj;
-}
-
-
-RawCodeSourceMap* SnapshotReader::NewCodeSourceMap(intptr_t len) {
-  ASSERT(Snapshot::IsFull(kind_));
-  ASSERT_NO_SAFEPOINT_SCOPE();
-  RawCodeSourceMap* obj = reinterpret_cast<RawCodeSourceMap*>(
-      AllocateUninitialized(kCodeSourceMapCid,
-                            CodeSourceMap::InstanceSize(len)));
-  obj->ptr()->length_ = len;
-  return obj;
-}
-
-
-RawStackmap* SnapshotReader::NewStackmap(intptr_t len) {
-  ASSERT(Snapshot::IsFull(kind_));
-  ASSERT_NO_SAFEPOINT_SCOPE();
-  RawStackmap* obj = reinterpret_cast<RawStackmap*>(
-      AllocateUninitialized(kStackmapCid, Stackmap::InstanceSize(len)));
-  obj->ptr()->length_ = len;
-  return obj;
-}
-
-
-RawContextScope* SnapshotReader::NewContextScope(intptr_t num_variables) {
-  ASSERT(Snapshot::IsFull(kind_));
-  ASSERT_NO_SAFEPOINT_SCOPE();
-  RawContextScope* obj = reinterpret_cast<RawContextScope*>(
-      AllocateUninitialized(kContextScopeCid,
-                            ContextScope::InstanceSize(num_variables)));
-  obj->ptr()->num_variables_ = num_variables;
-  return obj;
-}
-
-
-RawCode* SnapshotReader::NewCode(intptr_t pointer_offsets_length) {
-  ASSERT(pointer_offsets_length == 0);
-  ASSERT(Snapshot::IsFull(kind_));
-  ASSERT_NO_SAFEPOINT_SCOPE();
-  RawCode* obj = reinterpret_cast<RawCode*>(
-      AllocateUninitialized(kCodeCid, Code::InstanceSize(0)));
-  return obj;
-}
-
-
-RawTokenStream* SnapshotReader::NewTokenStream(intptr_t len) {
-  ASSERT(Snapshot::IsFull(kind_));
-  ASSERT_NO_SAFEPOINT_SCOPE();
-  stream_ = reinterpret_cast<RawTokenStream*>(
-      AllocateUninitialized(kTokenStreamCid, TokenStream::InstanceSize()));
-  uint8_t* array = const_cast<uint8_t*>(CurrentBufferAddress());
-  ASSERT(array != NULL);
-  Advance(len);
-  data_ = reinterpret_cast<RawExternalTypedData*>(
-      AllocateUninitialized(kExternalTypedDataUint8ArrayCid,
-                            ExternalTypedData::InstanceSize()));
-  data_.SetData(array);
-  data_.SetLength(len);
-  stream_.SetStream(data_);
-  return stream_.raw();
-}
-
-
-RawContext* SnapshotReader::NewContext(intptr_t num_variables) {
-  ASSERT(Snapshot::IsFull(kind_));
-  ASSERT_NO_SAFEPOINT_SCOPE();
-  RawContext* obj = reinterpret_cast<RawContext*>(
-      AllocateUninitialized(kContextCid, Context::InstanceSize(num_variables)));
-  obj->ptr()->num_variables_ = num_variables;
-  return obj;
-}
-
-
-RawClass* SnapshotReader::NewClass(intptr_t class_id) {
-  ASSERT(Snapshot::IsFull(kind_));
-  ASSERT_NO_SAFEPOINT_SCOPE();
-  if (class_id < kNumPredefinedCids) {
-    ASSERT((class_id >= kInstanceCid) &&
-           (class_id <= kNullCid));
-    return isolate()->class_table()->At(class_id);
-  }
-  RawClass* obj = reinterpret_cast<RawClass*>(
-      AllocateUninitialized(kClassCid, Class::InstanceSize()));
-  Instance fake;
-  obj->ptr()->handle_vtable_ = fake.vtable();
-  cls_ = obj;
-  cls_.set_id(class_id);
-  isolate()->RegisterClassAt(class_id, cls_);
-  return cls_.raw();
-}
-
-
-RawInstance* SnapshotReader::NewInstance() {
-  ASSERT(Snapshot::IsFull(kind_));
-  ASSERT_NO_SAFEPOINT_SCOPE();
-  RawInstance* obj = reinterpret_cast<RawInstance*>(
-      AllocateUninitialized(kInstanceCid, Instance::InstanceSize()));
-  return obj;
-}
-
-
-RawMint* SnapshotReader::NewMint(int64_t value) {
-  ASSERT(Snapshot::IsFull(kind_));
-  ASSERT_NO_SAFEPOINT_SCOPE();
-  RawMint* obj = reinterpret_cast<RawMint*>(
-      AllocateUninitialized(kMintCid, Mint::InstanceSize()));
-  obj->ptr()->value_ = value;
-  return obj;
-}
-
-
-RawDouble* SnapshotReader::NewDouble(double value) {
-  ASSERT(Snapshot::IsFull(kind_));
-  ASSERT_NO_SAFEPOINT_SCOPE();
-  RawDouble* obj = reinterpret_cast<RawDouble*>(
-      AllocateUninitialized(kDoubleCid, Double::InstanceSize()));
-  obj->ptr()->value_ = value;
-  return obj;
-}
-
-
-RawTypedData* SnapshotReader::NewTypedData(intptr_t class_id, intptr_t len) {
-  ASSERT(Snapshot::IsFull(kind_));
-  ASSERT_NO_SAFEPOINT_SCOPE();
-  const intptr_t lengthInBytes = len * TypedData::ElementSizeInBytes(class_id);
-  RawTypedData* obj = reinterpret_cast<RawTypedData*>(
-      AllocateUninitialized(class_id, TypedData::InstanceSize(lengthInBytes)));
-  obj->StoreSmi(&(obj->ptr()->length_), Smi::New(len));
-  return obj;
-}
-
-
-#define ALLOC_NEW_OBJECT(type)                                                 \
-  ASSERT(Snapshot::IsFull(kind_));                                            \
-  ASSERT_NO_SAFEPOINT_SCOPE();                                                 \
-  return reinterpret_cast<Raw##type*>(                                         \
-      AllocateUninitialized(k##type##Cid, type::InstanceSize()));              \
-
-
-RawBigint* SnapshotReader::NewBigint() {
-  ALLOC_NEW_OBJECT(Bigint);
-}
-
-
-RawUnresolvedClass* SnapshotReader::NewUnresolvedClass() {
-  ALLOC_NEW_OBJECT(UnresolvedClass);
-}
-
-
-RawType* SnapshotReader::NewType() {
-  ALLOC_NEW_OBJECT(Type);
-}
-
-
-RawTypeRef* SnapshotReader::NewTypeRef() {
-  ALLOC_NEW_OBJECT(TypeRef);
-}
-
-
-RawTypeParameter* SnapshotReader::NewTypeParameter() {
-  ALLOC_NEW_OBJECT(TypeParameter);
-}
-
-
-RawBoundedType* SnapshotReader::NewBoundedType() {
-  ALLOC_NEW_OBJECT(BoundedType);
-}
-
-
-RawMixinAppType* SnapshotReader::NewMixinAppType() {
-  ALLOC_NEW_OBJECT(MixinAppType);
-}
-
-
-RawPatchClass* SnapshotReader::NewPatchClass() {
-  ALLOC_NEW_OBJECT(PatchClass);
-}
-
-
-RawClosure* SnapshotReader::NewClosure() {
-  ALLOC_NEW_OBJECT(Closure);
-}
-
-
-RawClosureData* SnapshotReader::NewClosureData() {
-  ALLOC_NEW_OBJECT(ClosureData);
-}
-
-
-RawRedirectionData* SnapshotReader::NewRedirectionData() {
-  ALLOC_NEW_OBJECT(RedirectionData);
-}
-
-
-RawFunction* SnapshotReader::NewFunction() {
-  ALLOC_NEW_OBJECT(Function);
-}
-
-
-RawICData* SnapshotReader::NewICData() {
-  ALLOC_NEW_OBJECT(ICData);
-}
-
-
-RawLinkedHashMap* SnapshotReader::NewLinkedHashMap() {
-  ALLOC_NEW_OBJECT(LinkedHashMap);
-}
-
-
-RawMegamorphicCache* SnapshotReader::NewMegamorphicCache() {
-  ALLOC_NEW_OBJECT(MegamorphicCache);
-}
-
-
-RawSubtypeTestCache* SnapshotReader::NewSubtypeTestCache() {
-  ALLOC_NEW_OBJECT(SubtypeTestCache);
-}
-
-
-RawField* SnapshotReader::NewField() {
-  ALLOC_NEW_OBJECT(Field);
-}
-
-
-RawLibrary* SnapshotReader::NewLibrary() {
-  ALLOC_NEW_OBJECT(Library);
-}
-
-
-RawLibraryPrefix* SnapshotReader::NewLibraryPrefix() {
-  ALLOC_NEW_OBJECT(LibraryPrefix);
-}
-
-
-RawNamespace* SnapshotReader::NewNamespace() {
-  ALLOC_NEW_OBJECT(Namespace);
-}
-
-
-RawScript* SnapshotReader::NewScript() {
-  ALLOC_NEW_OBJECT(Script);
-}
-
-
-RawLiteralToken* SnapshotReader::NewLiteralToken() {
-  ALLOC_NEW_OBJECT(LiteralToken);
-}
-
-
-RawGrowableObjectArray* SnapshotReader::NewGrowableObjectArray() {
-  ALLOC_NEW_OBJECT(GrowableObjectArray);
-}
-
-
-RawWeakProperty* SnapshotReader::NewWeakProperty() {
-  ALLOC_NEW_OBJECT(WeakProperty);
-}
-
-
-RawRegExp* SnapshotReader::NewRegExp() {
-  ALLOC_NEW_OBJECT(RegExp);
-}
-
-
-RawFloat32x4* SnapshotReader::NewFloat32x4(float v0, float v1, float v2,
-                                           float v3) {
-  ASSERT(Snapshot::IsFull(kind_));
-  ASSERT_NO_SAFEPOINT_SCOPE();
-  RawFloat32x4* obj = reinterpret_cast<RawFloat32x4*>(
-      AllocateUninitialized(kFloat32x4Cid, Float32x4::InstanceSize()));
-  obj->ptr()->value_[0] = v0;
-  obj->ptr()->value_[1] = v1;
-  obj->ptr()->value_[2] = v2;
-  obj->ptr()->value_[3] = v3;
-  return obj;
-}
-
-
-RawInt32x4* SnapshotReader::NewInt32x4(uint32_t v0, uint32_t v1, uint32_t v2,
-                                       uint32_t v3) {
-  ASSERT(Snapshot::IsFull(kind_));
-  ASSERT_NO_SAFEPOINT_SCOPE();
-  RawInt32x4* obj = reinterpret_cast<RawInt32x4*>(
-      AllocateUninitialized(kInt32x4Cid, Int32x4::InstanceSize()));
-  obj->ptr()->value_[0] = v0;
-  obj->ptr()->value_[1] = v1;
-  obj->ptr()->value_[2] = v2;
-  obj->ptr()->value_[3] = v3;
-  return obj;
-}
-
-
-RawFloat64x2* SnapshotReader::NewFloat64x2(double v0, double v1) {
-  ASSERT(Snapshot::IsFull(kind_));
-  ASSERT_NO_SAFEPOINT_SCOPE();
-  RawFloat64x2* obj = reinterpret_cast<RawFloat64x2*>(
-      AllocateUninitialized(kFloat64x2Cid, Float64x2::InstanceSize()));
-  obj->ptr()->value_[0] = v0;
-  obj->ptr()->value_[1] = v1;
-  return obj;
-}
-
-
-RawApiError* SnapshotReader::NewApiError() {
-  ALLOC_NEW_OBJECT(ApiError);
-}
-
-
-RawLanguageError* SnapshotReader::NewLanguageError() {
-  ALLOC_NEW_OBJECT(LanguageError);
-}
-
-
-RawUnhandledException* SnapshotReader::NewUnhandledException() {
-  ALLOC_NEW_OBJECT(UnhandledException);
-}
-
-
 RawObject* SnapshotReader::NewInteger(int64_t value) {
   ASSERT((value & kSmiTagMask) == kSmiTag);
   value = value >> kSmiTagShift;
   if (Smi::IsValid(value)) {
     return Smi::New(static_cast<intptr_t>(value));
   }
-  if (Snapshot::IsFull(kind_)) {
-    return NewMint(value);
-  }
   return Mint::NewCanonical(value);
-}
-
-
-RawStacktrace* SnapshotReader::NewStacktrace() {
-  ALLOC_NEW_OBJECT(Stacktrace);
 }
 
 
@@ -1422,34 +991,6 @@ intptr_t SnapshotReader::LookupInternalClass(intptr_t class_header) {
 }
 
 
-RawObject* SnapshotReader::AllocateUninitialized(intptr_t class_id,
-                                                 intptr_t size) {
-  ASSERT_NO_SAFEPOINT_SCOPE();
-  ASSERT(Utils::IsAligned(size, kObjectAlignment));
-
-  uword address =
-      old_space()->TryAllocateDataBumpLocked(size, PageSpace::kForceGrowth);
-  if (address == 0) {
-    // Use the preallocated out of memory exception to avoid calling
-    // into dart code or allocating any code.
-    // We do a longjmp at this point to unwind out of the entire
-    // read part and return the error object back.
-    const UnhandledException& error = UnhandledException::Handle(
-        object_store()->preallocated_unhandled_exception());
-    thread()->long_jump_base()->Jump(1, error);
-  }
-
-  RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
-  uword tags = 0;
-  ASSERT(class_id != kIllegalCid);
-  tags = RawObject::ClassIdTag::update(class_id, tags);
-  tags = RawObject::SizeTag::update(size, tags);
-  tags = RawObject::VMHeapObjectTag::update(is_vm_isolate(), tags);
-  raw_obj->ptr()->tags_ = tags;
-  return raw_obj;
-}
-
-
 #define READ_VM_SINGLETON_OBJ(id, obj)                                         \
   if (object_id == id) {                                                       \
     return obj;                                                                \
@@ -1520,10 +1061,8 @@ RawObject* SnapshotReader::ReadIndexedObject(intptr_t object_id,
   if (IsObjectStoreClassId(class_id)) {
     return isolate()->class_table()->At(class_id);  // get singleton class.
   }
-  if (!Snapshot::IsFull(kind_)) {
-    if (IsObjectStoreTypeId(object_id)) {
-      return GetType(object_store(), object_id);  // return type obj.
-    }
+  if (IsObjectStoreTypeId(object_id)) {
+    return GetType(object_store(), object_id);  // return type obj.
   }
   ASSERT(object_id >= kMaxPredefinedObjectIds);
   intptr_t index = (object_id - kMaxPredefinedObjectIds);
@@ -1538,7 +1077,7 @@ RawObject* SnapshotReader::ReadIndexedObject(intptr_t object_id,
 void SnapshotReader::AddPatchRecord(intptr_t object_id,
                                     intptr_t patch_object_id,
                                     intptr_t patch_offset) {
-  if (patch_object_id != kInvalidPatchIndex && !Snapshot::IsFull(kind())) {
+  if (patch_object_id != kInvalidPatchIndex) {
     ASSERT(object_id >= kMaxPredefinedObjectIds);
     intptr_t index = (object_id - kMaxPredefinedObjectIds);
     ASSERT(index >= max_vm_isolate_object_id_);
@@ -1623,8 +1162,6 @@ ScriptSnapshotReader::ScriptSnapshotReader(const uint8_t* buffer,
                                            Thread* thread)
     : SnapshotReader(buffer,
                      size,
-                     NULL, /* instructions_buffer */
-                     NULL, /* data_buffer */
                      Snapshot::kScript,
                      new ZoneGrowableArray<BackRefNode>(kNumInitialReferences),
                      thread) {
@@ -1641,8 +1178,6 @@ MessageSnapshotReader::MessageSnapshotReader(const uint8_t* buffer,
                                              Thread* thread)
     : SnapshotReader(buffer,
                      size,
-                     NULL, /* instructions_buffer */
-                     NULL, /* data_buffer */
                      Snapshot::kMessage,
                      new ZoneGrowableArray<BackRefNode>(kNumInitialReferences),
                      thread) {
@@ -1660,21 +1195,16 @@ SnapshotWriter::SnapshotWriter(Thread* thread,
                                ReAlloc alloc,
                                intptr_t initial_size,
                                ForwardList* forward_list,
-                               InstructionsWriter* instructions_writer,
-                               bool can_send_any_object,
-                               bool writing_vm_isolate)
+                               bool can_send_any_object)
     : BaseWriter(buffer, alloc, initial_size),
       thread_(thread),
       kind_(kind),
       object_store_(isolate()->object_store()),
       class_table_(isolate()->class_table()),
       forward_list_(forward_list),
-      instructions_writer_(instructions_writer),
       exception_type_(Exceptions::kNone),
       exception_msg_(NULL),
-      unmarked_objects_(false),
-      can_send_any_object_(can_send_any_object),
-      writing_vm_isolate_(writing_vm_isolate) {
+      can_send_any_object_(can_send_any_object) {
   ASSERT(forward_list_ != NULL);
 }
 
@@ -1766,47 +1296,25 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
     }
   }
 
-  if (writing_vm_isolate_) {
-    // When we are writing the VM isolate snapshot, write out the object
-    // itself instead of a VM object id.
-    return false;
-  }
-
-  if (Snapshot::IsFull(kind())) {
-    // Check it is a predefined symbol in the VM isolate.
-    id = Symbols::LookupPredefinedSymbol(rawobj);
-    if (id != kInvalidIndex) {
-      WriteVMIsolateObject(id);
-      return true;
-    }
-
-    // Check if it is an object from the vm isolate snapshot object table.
-    id = FindVmSnapshotObject(rawobj);
-    if (id != kInvalidIndex) {
-      WriteIndexedObject(id);
-      return true;
-    }
+  // In the case of script snapshots or for messages we do not use
+  // the index into the vm isolate snapshot object table, instead we
+  // explicitly write the object out.
+  intptr_t object_id = forward_list_->FindObject(rawobj);
+  if (object_id != -1) {
+    WriteIndexedObject(object_id);
+    return true;
   } else {
-    // In the case of script snapshots or for messages we do not use
-    // the index into the vm isolate snapshot object table, instead we
-    // explicitly write the object out.
-    intptr_t object_id = forward_list_->FindObject(rawobj);
-    if (object_id != -1) {
-      WriteIndexedObject(object_id);
-      return true;
-    } else {
-      switch (id) {
-        VM_OBJECT_CLASS_LIST(VM_OBJECT_WRITE)
-        case kTypedDataUint32ArrayCid: {
-          object_id = forward_list_->AddObject(zone(), rawobj, kIsSerialized);
-          RawTypedData* raw_obj = reinterpret_cast<RawTypedData*>(rawobj);
-          raw_obj->WriteTo(this, object_id, kind(), false);
-          return true;
-        }
-        default:
-          OS::Print("class id = %" Pd "\n", id);
-          break;
+    switch (id) {
+      VM_OBJECT_CLASS_LIST(VM_OBJECT_WRITE)
+      case kTypedDataUint32ArrayCid: {
+        object_id = forward_list_->AddObject(zone(), rawobj, kIsSerialized);
+        RawTypedData* raw_obj = reinterpret_cast<RawTypedData*>(rawobj);
+        raw_obj->WriteTo(this, object_id, kind(), false);
+        return true;
       }
+      default:
+        OS::Print("class id = %" Pd "\n", id);
+        break;
     }
   }
 
@@ -1930,32 +1438,30 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
 
   // Check if it is a code object in that case just write a Null object
   // as we do not want code objects in the snapshot.
-  if (cid == kCodeCid && !Snapshot::IncludesCode(kind_)) {
+  if (cid == kCodeCid) {
     WriteVMIsolateObject(kNullObject);
     return true;
   }
 
   // Check if classes are not being serialized and it is preinitialized type
   // or a predefined internal VM class in the object store.
-  if (!Snapshot::IsFull(kind_)) {
-    // Check if it is an internal VM class which is in the object store.
-    if (cid == kClassCid) {
-      RawClass* raw_class = reinterpret_cast<RawClass*>(rawobj);
-      intptr_t class_id = raw_class->ptr()->id_;
-      if (IsObjectStoreClassId(class_id)) {
-        intptr_t object_id = ObjectIdFromClassId(class_id);
-        WriteIndexedObject(object_id);
-        return true;
-      }
-    }
-
-    // Now check it is a preinitialized type object.
-    RawType* raw_type = reinterpret_cast<RawType*>(rawobj);
-    intptr_t index = GetTypeIndex(object_store(), raw_type);
-    if (index != kInvalidIndex) {
-      WriteIndexedObject(index);
+  // Check if it is an internal VM class which is in the object store.
+  if (cid == kClassCid) {
+    RawClass* raw_class = reinterpret_cast<RawClass*>(rawobj);
+    intptr_t class_id = raw_class->ptr()->id_;
+    if (IsObjectStoreClassId(class_id)) {
+      intptr_t object_id = ObjectIdFromClassId(class_id);
+      WriteIndexedObject(object_id);
       return true;
     }
+  }
+
+  // Now check it is a preinitialized type object.
+  RawType* raw_type = reinterpret_cast<RawType*>(rawobj);
+  intptr_t index = GetTypeIndex(object_store(), raw_type);
+  if (index != kInvalidIndex) {
+    WriteIndexedObject(index);
+    return true;
   }
 
   return false;
@@ -2358,9 +1864,7 @@ ScriptSnapshotWriter::ScriptSnapshotWriter(uint8_t** buffer,
                      alloc,
                      kInitialSize,
                      &forward_list_,
-                     NULL, /* instructions_writer */
-                     true, /* can_send_any_object */
-                     false /* writing_vm_isolate */),
+                     true /* can_send_any_object */),
       forward_list_(thread(), kMaxPredefinedObjectIds) {
   ASSERT(buffer != NULL);
   ASSERT(alloc != NULL);
@@ -2414,9 +1918,7 @@ MessageWriter::MessageWriter(uint8_t** buffer,
                      alloc,
                      kInitialSize,
                      &forward_list_,
-                     NULL, /* instructions_writer */
-                     can_send_any_object,
-                     false /* writing_vm_isolate */),
+                     can_send_any_object),
       forward_list_(thread(), kMaxPredefinedObjectIds) {
   ASSERT(buffer != NULL);
   ASSERT(alloc != NULL);

@@ -5,8 +5,8 @@
 library dart2js.serialization.model2_test;
 
 import 'model_test_helper.dart' as test;
-import 'test_data.dart';
+import 'test_helper.dart';
 
 main() {
-  test.main(['${TESTS.length ~/ 2}']);
+  test.main(testSegment(2, test.SPLIT_COUNT, test.SKIP_COUNT));
 }

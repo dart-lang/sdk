@@ -2223,7 +2223,7 @@ class CompileTimeErrorCode extends ErrorCode {
    */
   static const CompileTimeErrorCode REFERENCED_BEFORE_DECLARATION =
       const CompileTimeErrorCode('REFERENCED_BEFORE_DECLARATION',
-          "Local variables cannot be referenced before they are declared");
+          "Local variable '{0}' cannot be referenced before it is declared");
 
   /**
    * 12.8.1 Rethrow: It is a compile-time error if an expression of the form
@@ -2698,6 +2698,7 @@ abstract class ErrorCode {
     HintCode.MISSING_RETURN,
     HintCode.NULL_AWARE_IN_CONDITION,
     HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER,
+    HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD,
     HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD,
     HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER,
     HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE,
@@ -2881,6 +2882,7 @@ abstract class ErrorCode {
     StrongModeCode.INVALID_SUPER_INVOCATION,
     StrongModeCode.NON_GROUND_TYPE_CHECK_INFO,
     StrongModeCode.STATIC_TYPE_ERROR,
+    StrongModeCode.UNSAFE_BLOCK_CLOSURE_INFERENCE,
 
     TodoCode.TODO,
 
@@ -2894,10 +2896,6 @@ abstract class ErrorCode {
     ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE,
     ParserErrorCode.ABSTRACT_TYPEDEF,
     ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT,
-    ParserErrorCode.ASSERT_DOES_NOT_TAKE_ASSIGNMENT,
-    ParserErrorCode.ASSERT_DOES_NOT_TAKE_CASCADE,
-    ParserErrorCode.ASSERT_DOES_NOT_TAKE_THROW,
-    ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW,
     ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
     ParserErrorCode.ASYNC_NOT_SUPPORTED,
     ParserErrorCode.BREAK_OUTSIDE_OF_LOOP,
@@ -3732,6 +3730,13 @@ class HintCode extends ErrorCode {
   static const HintCode OVERRIDE_ON_NON_OVERRIDING_GETTER = const HintCode(
       'OVERRIDE_ON_NON_OVERRIDING_GETTER',
       "Getter does not override an inherited getter");
+
+  /**
+   * A field with the override annotation does not override a getter or setter.
+   */
+  static const HintCode OVERRIDE_ON_NON_OVERRIDING_FIELD = const HintCode(
+      'OVERRIDE_ON_NON_OVERRIDING_FIELD',
+      "Field does not override an inherited getter or setter");
 
   /**
    * A method with the override annotation does not override an existing method.
@@ -5760,6 +5765,13 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode('UNDEFINED_IDENTIFIER', "Undefined name '{0}'");
 
   /**
+   * If the identifier is 'await', be helpful about it.
+   */
+  static const StaticWarningCode UNDEFINED_IDENTIFIER_AWAIT =
+      const StaticWarningCode('UNDEFINED_IDENTIFIER_AWAIT',
+          "Undefined name 'await'; did you mean to add the 'async' marker to '{0}'?");
+
+  /**
    * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub></i>,
    * <i>1<=i<=l</i>, must have a corresponding named parameter in the set
    * {<i>p<sub>n+1</sub></i> &hellip; <i>p<sub>n+k</sub></i>} or a static
@@ -5893,6 +5905,11 @@ class StaticWarningCode extends ErrorCode {
 class StrongModeCode extends ErrorCode {
   static const String _implicitCastMessage =
       'Unsound implicit cast from {0} to {1}';
+
+  static const String _unsafeBlockClosureInferenceMessage =
+      'Unsafe use of block closure in a type-inferred variable outside a '
+      'function body.  Workaround: add a type annotation for `{0}`.  See '
+      'dartbug.com/26947';
 
   static const String _typeCheckMessage =
       'Type check failed: {0} is not of type {1}';
@@ -6040,6 +6057,12 @@ class StrongModeCode extends ErrorCode {
       'IMPLICIT_DYNAMIC_INVOKE',
       "Missing type arguments for calling generic function type '{0}'"
       "$_implicitDynamicTip");
+
+  static const StrongModeCode UNSAFE_BLOCK_CLOSURE_INFERENCE =
+      const StrongModeCode(
+          ErrorType.STATIC_WARNING,
+          'UNSAFE_BLOCK_CLOSURE_INFERENCE',
+          _unsafeBlockClosureInferenceMessage);
 
   @override
   final ErrorType type;

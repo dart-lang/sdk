@@ -124,14 +124,14 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       new_addr = ForwardedAddr(header);
     } else {
       intptr_t size = raw_obj->Size();
-      intptr_t cid = raw_obj->GetClassId();
-      ClassTable* class_table = isolate()->class_table();
+      NOT_IN_PRODUCT(intptr_t cid = raw_obj->GetClassId());
+      NOT_IN_PRODUCT(ClassTable* class_table = isolate()->class_table());
       // Check whether object should be promoted.
       if (scavenger_->survivor_end_ <= raw_addr) {
         // Not a survivor of a previous scavenge. Just copy the object into the
         // to space.
         new_addr = scavenger_->TryAllocate(size);
-        class_table->UpdateLiveNew(cid, size);
+        NOT_IN_PRODUCT(class_table->UpdateLiveNew(cid, size));
       } else {
         // TODO(iposva): Experiment with less aggressive promotion. For example
         // a coin toss determines if an object is promoted or whether it should
@@ -146,11 +146,11 @@ class ScavengerVisitor : public ObjectPointerVisitor {
           // be traversed later.
           scavenger_->PushToPromotedStack(new_addr);
           bytes_promoted_ += size;
-          class_table->UpdateAllocatedOld(cid, size);
+          NOT_IN_PRODUCT(class_table->UpdateAllocatedOld(cid, size));
         } else {
           // Promotion did not succeed. Copy into the to space instead.
           new_addr = scavenger_->TryAllocate(size);
-          class_table->UpdateLiveNew(cid, size);
+          NOT_IN_PRODUCT(class_table->UpdateLiveNew(cid, size));
         }
       }
       // During a scavenge we always succeed to at least copy all of the
@@ -487,6 +487,7 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
 
 void Scavenger::IterateObjectIdTable(Isolate* isolate,
                                      ScavengerVisitor* visitor) {
+#ifndef PRODUCT
   if (!FLAG_support_service) {
     return;
   }
@@ -497,6 +498,7 @@ void Scavenger::IterateObjectIdTable(Isolate* isolate,
     return;
   }
   ring->VisitPointers(visitor);
+#endif  // !PRODUCT
 }
 
 
@@ -858,6 +860,7 @@ void Scavenger::WriteProtect(bool read_only) {
 }
 
 
+#ifndef PRODUCT
 void Scavenger::PrintToJSONObject(JSONObject* object) const {
   if (!FLAG_support_service) {
     return;
@@ -885,6 +888,7 @@ void Scavenger::PrintToJSONObject(JSONObject* object) const {
   space.AddProperty64("external", ExternalInWords() * kWordSize);
   space.AddProperty("time", MicrosecondsToSeconds(gc_time_micros()));
 }
+#endif  // !PRODUCT
 
 
 void Scavenger::AllocateExternal(intptr_t size) {

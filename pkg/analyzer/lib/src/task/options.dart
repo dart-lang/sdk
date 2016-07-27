@@ -10,11 +10,13 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/general.dart';
+import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:source_span/source_span.dart';
@@ -49,14 +51,15 @@ class AnalyzerOptions {
   static const String enableSuperMixins = 'enableSuperMixins';
   static const String enableTrailingCommas = 'enableTrailingCommas';
 
-  /// This option is deprecated.
-  static const String enableConditionalDirectives =
-      "enableConditionalDirectives";
   static const String errors = 'errors';
   static const String exclude = 'exclude';
   static const String language = 'language';
   static const String plugins = 'plugins';
   static const String strong_mode = 'strong-mode';
+
+  // Strong mode options, see AnalysisOptionsImpl for documentation.
+  static const String implicitCasts = 'implicit-casts';
+  static const String implicitDynamic = 'implicit-dynamic';
 
   /// Ways to say `ignore`.
   static const List<String> ignoreSynonyms = const ['ignore', 'false'];
@@ -83,10 +86,10 @@ class AnalyzerOptions {
   /// Supported `analyzer` language configuration options.
   static const List<String> languageOptions = const [
     enableAsync,
-    enableConditionalDirectives,
     enableGenericMethods,
     enableStrictCallChecks,
-    enableSuperMixins
+    enableSuperMixins,
+    enableTrailingCommas
   ];
 }
 
@@ -431,9 +434,8 @@ class _OptionsProcessor {
     if (analyzer is Map) {
       // Process strong mode option.
       var strongMode = analyzer[AnalyzerOptions.strong_mode];
-      if (strongMode is bool) {
-        options.strongMode = strongMode;
-      }
+      _applyStrongOptions(options, strongMode);
+
       // Process language options.
       var language = analyzer[AnalyzerOptions.language];
       _applyLanguageOptions(options, language);
@@ -460,6 +462,19 @@ class _OptionsProcessor {
       // Process language options.
       var language = analyzer[AnalyzerOptions.language];
       setLanguageOptions(context, language);
+
+      // Process excludes.
+      var excludes = analyzer[AnalyzerOptions.exclude];
+      setExcludes(context, excludes);
+    }
+  }
+
+  void setExcludes(AnalysisContext context, Object excludes) {
+    if (excludes is YamlList) {
+      List<String> excludeList = toStringList(excludes);
+      if (excludeList != null) {
+        context.setConfigurationData(CONTEXT_EXCLUDES, excludeList);
+      }
     }
   }
 
@@ -527,12 +542,19 @@ class _OptionsProcessor {
   }
 
   void setStrongMode(AnalysisContext context, Object strongMode) {
-    bool strong = strongMode is bool ? strongMode : false;
-    if (context.analysisOptions.strongMode != strong) {
+    if (strongMode is Map) {
       AnalysisOptionsImpl options =
           new AnalysisOptionsImpl.from(context.analysisOptions);
-      options.strongMode = strong;
+      _applyStrongOptions(options, strongMode);
       context.analysisOptions = options;
+    } else {
+      strongMode = strongMode is bool ? strongMode : false;
+      if (context.analysisOptions.strongMode != strongMode) {
+        AnalysisOptionsImpl options =
+            new AnalysisOptionsImpl.from(context.analysisOptions);
+        options.strongMode = strongMode;
+        context.analysisOptions = options;
+      }
     }
   }
 
@@ -563,6 +585,35 @@ class _OptionsProcessor {
     } else if (configs is Map) {
       configs
           .forEach((key, value) => _applyLanguageOption(options, key, value));
+    }
+  }
+
+  void _applyStrongModeOption(
+      AnalysisOptionsImpl options, Object feature, Object value) {
+    bool boolValue = toBool(value);
+    if (boolValue != null) {
+      if (feature == AnalyzerOptions.implicitCasts) {
+        options.implicitCasts = boolValue;
+      }
+      if (feature == AnalyzerOptions.implicitDynamic) {
+        options.implicitDynamic = boolValue;
+      }
+    }
+  }
+
+  void _applyStrongOptions(AnalysisOptionsImpl options, Object config) {
+    if (config is YamlMap) {
+      options.strongMode = true;
+      config.nodes.forEach((k, v) {
+        if (k is YamlScalar && v is YamlScalar) {
+          _applyStrongModeOption(options, k.value?.toString(), v.value);
+        }
+      });
+    } else if (config is Map) {
+      options.strongMode = true;
+      config.forEach((k, v) => _applyStrongModeOption(options, k, v));
+    } else {
+      options.strongMode = config is bool ? config : false;
     }
   }
 }

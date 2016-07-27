@@ -66,20 +66,55 @@ class JSNumber extends Interceptor implements num {
 
   int toInt() {
     if (this >= _MIN_INT32 && this <= _MAX_INT32) {
+      // 0 and -0.0 handled here.
       return JS('int', '# | 0', this);
     }
     if (JS('bool', r'isFinite(#)', this)) {
       return JS('int', r'# + 0', truncateToDouble());  // Converts -0.0 to +0.0.
     }
-    // This is either NaN, Infinity or -Infinity.
-    throw new UnsupportedError(JS("String", '"" + #', this));
+    // [this] is either NaN, Infinity or -Infinity.
+    throw new UnsupportedError(JS("String", '"" + # + ".toInt()"', this));
   }
 
   int truncate() => toInt();
 
-  int ceil() => ceilToDouble().toInt();
+  int ceil() {
+    if (this >= 0) {
+      if (this <= _MAX_INT32) {
+        int truncated = JS('int', '# | 0', this);  // converts -0.0 to 0.
+        return this == truncated ? truncated : truncated + 1;
+      }
+    } else {
+      if (this >= _MIN_INT32) {
+        return JS('int', '# | 0', this);
+      }
+    }
+    var d = JS('num', 'Math.ceil(#)', this);
+    if (JS('bool', r'isFinite(#)', d)) {
+      return JS('int', r'#', d);
+    }
+    // [this] is either NaN, Infinity or -Infinity.
+    throw new UnsupportedError(JS("String", '"" + # + ".ceil()"', this));
+  }
 
-  int floor() => floorToDouble().toInt();
+  int floor() {
+    if (this >= 0) {
+      if (this <= _MAX_INT32) {
+        return JS('int', '# | 0', this);
+      }
+    } else {
+      if (this >= _MIN_INT32) {
+        int truncated = JS('int', '# | 0', this);
+        return this == truncated ? truncated : truncated - 1;
+      }
+    }
+    var d = JS('num', 'Math.floor(#)', this);
+    if (JS('bool', r'isFinite(#)', d)) {
+      return JS('int', r'#', d);
+    }
+    // [this] is either NaN, Infinity or -Infinity.
+    throw new UnsupportedError(JS("String", '"" + # + ".floor()"', this));
+  }
 
   int round() {
     if (this > 0) {
@@ -96,8 +131,8 @@ class JSNumber extends Interceptor implements num {
       // some JavaScript VMs can be a slow path.
       return JS('int', r'0 - Math.round(0 - #)', this);
     }
-    // This is either NaN, Infinity or -Infinity.
-    throw new UnsupportedError(JS("String", '"" + #', this));
+    // [this] is either NaN, Infinity or -Infinity.
+    throw new UnsupportedError(JS("String", '"" + # + ".round()"', this));
   }
 
   double ceilToDouble() => JS('num', r'Math.ceil(#)', this);
@@ -246,23 +281,43 @@ class JSNumber extends Interceptor implements num {
   bool _isInt32(value) => JS('bool', '(# | 0) === #', value, value);
 
   int operator ~/(num other) {
+    if (other is !num) throw argumentErrorValue(other);
     if (false) _tdivFast(other); // Ensure resolution.
-    if (_isInt32(this) && _isInt32(other) && 0 != other && -1 != other) {
-      return JS('int', r'(# / #) | 0', this, other);
-    } else {
-      return _tdivSlow(other);
+    if (_isInt32(this)) {
+      if (other >= 1 || other < -1) {
+        return JS('int', r'(# / #) | 0', this, other);
+      }
     }
+    return _tdivSlow(other);
   }
 
   int _tdivFast(num other) {
+    // [other] is known to be a number outside the range [-1, 1).
     return _isInt32(this)
         ? JS('int', r'(# / #) | 0', this, other)
-        : (JS('num', r'# / #', this, other)).toInt();
+        : _tdivSlow(other);
   }
 
   int _tdivSlow(num other) {
-    if (other is !num) throw argumentErrorValue(other);
-    return (JS('num', r'# / #', this, other)).toInt();
+    var quotient = JS('num', r'# / #', this, other);
+    if (quotient >= _MIN_INT32 && quotient <= _MAX_INT32) {
+      // This path includes -0.0 and +0.0.
+      return JS('int', '# | 0', quotient);
+    }
+    if (quotient > 0) {
+      // This path excludes the special cases -0.0, NaN and -Infinity, leaving
+      // only +Infinity, for which a direct test is faster than [isFinite].
+      if (JS('bool', r'# !== (1/0)', quotient)) {
+        return JS('int', r'Math.floor(#)', quotient);
+      }
+    } else if (JS('bool', '# > (-1/0)', quotient)) {
+      // This test excludes NaN and -Infinity.
+      return JS('int', r'Math.ceil(#)', quotient);
+    }
+
+    // [quotient] is either NaN, Infinity or -Infinity.
+    throw new UnsupportedError(
+        "Result of truncating division is $quotient: $this ~/ $other");
   }
 
   // TODO(ngeoffray): Move the bit operations below to [JSInt] and

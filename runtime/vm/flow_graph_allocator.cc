@@ -749,15 +749,22 @@ static Location::Kind RegisterKindFromPolicy(Location loc) {
 
 
 static Location::Kind RegisterKindForResult(Instruction* instr) {
-  if ((instr->representation() == kUnboxedDouble) ||
-      (instr->representation() == kUnboxedFloat32x4) ||
-      (instr->representation() == kUnboxedInt32x4) ||
-      (instr->representation() == kUnboxedFloat64x2) ||
-      (instr->representation() == kPairOfUnboxedDouble)) {
+  const Representation rep = instr->representation();
+#if !defined(TARGET_ARCH_DBC)
+  if ((rep == kUnboxedDouble) || (rep == kUnboxedFloat32x4) ||
+      (rep == kUnboxedInt32x4) || (rep == kUnboxedFloat64x2) ||
+      (rep == kPairOfUnboxedDouble)) {
     return Location::kFpuRegister;
   } else {
     return Location::kRegister;
   }
+#else
+  // DBC supports only unboxed doubles and does not have distinguished FPU
+  // registers.
+  ASSERT((rep != kUnboxedFloat32x4) && (rep != kUnboxedInt32x4) &&
+         (rep != kUnboxedFloat64x2) && (rep != kPairOfUnboxedDouble));
+  return Location::kRegister;
+#endif
 }
 
 
@@ -3055,6 +3062,11 @@ void FlowGraphAllocator::AllocateRegisters() {
                        unallocated_xmm_,
                        fpu_regs_,
                        blocked_fpu_registers_);
+#if defined(TARGET_ARCH_DBC)
+  // For DBC all registers should have been allocated in the first pass.
+  ASSERT(unallocated_.is_empty());
+#endif
+
   AllocateUnallocatedRanges();
 #if defined(TARGET_ARCH_DBC)
   const intptr_t last_used_fpu_register = last_used_register_;

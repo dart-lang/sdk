@@ -12,8 +12,32 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
+import 'package:isolate/isolate_runner.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
+
+/**
+ * Return modification times for every file path in [paths].
+ *
+ * If a path is `null`, the modification time is also `null`.
+ *
+ * If any exception happens, the file is considered as a not existing and
+ * `-1` is its modification time.
+ */
+List<int> _pathsToTimes(List<String> paths) {
+  return paths.map((path) {
+    if (path != null) {
+      try {
+        io.File file = new io.File(path);
+        return file.lastModifiedSync().millisecondsSinceEpoch;
+      } catch (_) {
+        return -1;
+      }
+    } else {
+      return null;
+    }
+  }).toList();
+}
 
 /**
  * A `dart:io` based implementation of [ResourceProvider].
@@ -30,6 +54,9 @@ class PhysicalResourceProvider implements ResourceProvider {
    * store data across sessions.
    */
   static final String SERVER_DIR = ".dartServer";
+
+  static _SingleIsolateRunnerProvider pathsToTimesIsolateProvider =
+      new _SingleIsolateRunnerProvider();
 
   @override
   final AbsolutePathContext absolutePathContext =
@@ -49,6 +76,15 @@ class PhysicalResourceProvider implements ResourceProvider {
 
   @override
   Folder getFolder(String path) => new _PhysicalFolder(new io.Directory(path));
+
+  @override
+  Future<List<int>> getModificationTimes(List<Source> sources) async {
+    List<String> paths = sources
+        .map((source) => source is FileBasedSource ? source.fullName : null)
+        .toList();
+    IsolateRunner runner = await pathsToTimesIsolateProvider.get();
+    return runner.run(_pathsToTimes, paths);
+  }
 
   @override
   Resource getResource(String path) {
@@ -143,6 +179,9 @@ class _PhysicalFile extends _PhysicalResource implements File {
   }
 
   @override
+  Uri toUri() => new Uri.file(path);
+
+  @override
   void writeAsBytesSync(List<int> bytes) {
     try {
       io.File file = _entry as io.File;
@@ -220,6 +259,9 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
     }
     return contains(path);
   }
+
+  @override
+  Uri toUri() => new Uri.directory(path);
 }
 
 /**
@@ -273,4 +315,34 @@ abstract class _PhysicalResource implements Resource {
 
   @override
   String toString() => path;
+}
+
+/**
+ * This class encapsulates logic for creating a single [IsolateRunner].
+ */
+class _SingleIsolateRunnerProvider {
+  bool _isSpawning = false;
+  IsolateRunner _runner;
+
+  /**
+   * Complete with the only [IsolateRunner] instance.
+   */
+  Future<IsolateRunner> get() async {
+    if (_runner != null) {
+      return _runner;
+    }
+    if (_isSpawning) {
+      Completer<IsolateRunner> completer = new Completer<IsolateRunner>();
+      new Timer.periodic(new Duration(milliseconds: 10), (Timer timer) {
+        if (_runner != null) {
+          completer.complete(_runner);
+          timer.cancel();
+        }
+      });
+      return completer.future;
+    }
+    _isSpawning = true;
+    _runner = await IsolateRunner.spawn();
+    return _runner;
+  }
 }

@@ -61,6 +61,8 @@ const List<TestData> DATA = const [
     const ConstantData('identical(0, 1)',
                        const { const {} : 'BoolConstant(false)' }),
     const ConstantData('"a" "b"', const { const {} : 'StringConstant("ab")' }),
+    const ConstantData(r'"${null}"',
+        const { const {} : 'StringConstant("null")' }),
     const ConstantData('identical',
         const { const {} : 'FunctionConstant(identical)' }),
     const ConstantData('true ? 0 : 1', const { const {} : 'IntConstant(0)' }),
@@ -79,6 +81,9 @@ const List<TestData> DATA = const [
         const { const {} :
           'MapConstant(<int, int>{IntConstant(0): IntConstant(1), '
                                  'IntConstant(2): IntConstant(3)})' }),
+    const ConstantData('const <int, int>{0: 1, 0: 2}',
+        const { const {} :
+        'MapConstant(<int, int>{IntConstant(0): IntConstant(2)})' }),
     const ConstantData(
         'const bool.fromEnvironment("foo", defaultValue: false)',
         const { const {} : 'BoolConstant(false)',

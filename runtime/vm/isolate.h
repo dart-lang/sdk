@@ -255,7 +255,9 @@ class Isolate : public BaseIsolate {
   void DoneLoading();
   void DoneFinalizing();
 
-  void ReloadSources(bool test_mode = false);
+  // By default the reload context is deleted. This parameter allows
+  // the caller to delete is separately if it is still needed.
+  void ReloadSources(bool dont_delete_reload_context = false);
 
   bool MakeRunnable();
   void Run();
@@ -480,6 +482,8 @@ class Isolate : public BaseIsolate {
     return reload_context_;
   }
 
+  void DeleteReloadContext();
+
   bool HasAttemptedReload() const {
     return has_attempted_reload_;
   }
@@ -583,6 +587,7 @@ class Isolate : public BaseIsolate {
   // Returns Field::null() if none available in the list.
   RawField* GetDeoptimizingBoxedField();
 
+#ifndef PRODUCT
   RawObject* InvokePendingServiceExtensionCalls();
   void AppendServiceExtensionCall(const Instance& closure,
                            const String& method_name,
@@ -593,6 +598,7 @@ class Isolate : public BaseIsolate {
   void RegisterServiceExtensionHandler(const String& name,
                                        const Instance& closure);
   RawInstance* LookupServiceExtensionHandler(const String& name);
+#endif
 
   static void VisitIsolates(IsolateVisitor* visitor);
 
@@ -629,8 +635,15 @@ class Isolate : public BaseIsolate {
 
   static void DisableIsolateCreation();
   static void EnableIsolateCreation();
+  static bool IsolateCreationEnabled();
 
   void StopBackgroundCompiler();
+
+  intptr_t reload_every_n_stack_overflow_checks() const {
+    return reload_every_n_stack_overflow_checks_;
+  }
+
+  void MaybeIncreaseReloadEveryNStackOverflowChecks();
 
  private:
   friend class Dart;  // Init, InitOnce, Shutdown.
@@ -815,6 +828,8 @@ class Isolate : public BaseIsolate {
   // Has a reload ever been attempted?
   bool has_attempted_reload_;
   intptr_t no_reload_scope_depth_;  // we can only reload when this is 0.
+  // Per-isolate copy of FLAG_reload_every.
+  intptr_t reload_every_n_stack_overflow_checks_;
   IsolateReloadContext* reload_context_;
 
 #define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \

@@ -27,7 +27,6 @@ DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 DEFINE_FLAG(bool, unbox_doubles, true, "Optimize double arithmetic.");
 DECLARE_FLAG(bool, enable_simd_inline);
-DECLARE_FLAG(bool, use_megamorphic_stub);
 DECLARE_FLAG(charp, optimization_filter);
 
 void MegamorphicSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -45,7 +44,12 @@ FlowGraphCompiler::~FlowGraphCompiler() {
 
 
 bool FlowGraphCompiler::SupportsUnboxedDoubles() {
+#if defined(ARCH_IS_64_BIT)
+  return true;
+#else
+  // We use 64-bit wide stack slots to unbox doubles.
   return false;
+#endif
 }
 
 
@@ -423,7 +427,18 @@ void ParallelMoveResolver::EmitMove(int index) {
   } else if (source.IsRegister() && destination.IsRegister()) {
     __ Move(destination.reg(), source.reg());
   } else if (source.IsConstant() && destination.IsRegister()) {
-    __ LoadConstant(destination.reg(), source.constant());
+    if (source.constant_instruction()->representation() == kUnboxedDouble) {
+      const Register result = destination.reg();
+      const Object& constant = source.constant();
+      if (Utils::DoublesBitEqual(Double::Cast(constant).value(), 0.0)) {
+        __ BitXor(result, result, result);
+      } else {
+        __ LoadConstant(result, constant);
+        __ UnboxDouble(result, result);
+      }
+    } else {
+      __ LoadConstant(destination.reg(), source.constant());
+    }
   } else {
     compiler_->Bailout("Unsupported move");
     UNREACHABLE();

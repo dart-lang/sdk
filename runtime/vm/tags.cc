@@ -137,6 +137,7 @@ int64_t VMTagCounters::count(uword tag) {
 }
 
 
+#ifndef PRODUCT
 void VMTagCounters::PrintToJSONObject(JSONObject* obj) {
   if (!FLAG_support_service) {
     return;
@@ -154,6 +155,7 @@ void VMTagCounters::PrintToJSONObject(JSONObject* obj) {
     }
   }
 }
+#endif  // !PRODUCT
 
 
 const char* UserTags::TagName(uword tag_id) {

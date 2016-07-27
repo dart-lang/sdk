@@ -100,7 +100,6 @@ enum MessageKind {
   BEFORE_TOP_LEVEL,
   BINARY_OPERATOR_BAD_ARITY,
   BODY_EXPECTED,
-  CALL_NOT_SUPPORTED_ON_NATIVE_CLASS,
   CANNOT_EXTEND,
   CANNOT_EXTEND_ENUM,
   CANNOT_EXTEND_MALFORMED,
@@ -186,9 +185,11 @@ enum MessageKind {
   DUPLICATED_RESOURCE,
   EMPTY_CATCH_DECLARATION,
   EMPTY_ENUM_DECLARATION,
+  EMPTY_NAMED_PARAMETER_LIST,
+  EMPTY_OPTIONAL_PARAMETER_LIST,
   EMPTY_HIDE,
-  EQUAL_MAP_ENTRY_KEY,
   EMPTY_SHOW,
+  EQUAL_MAP_ENTRY_KEY,
   EXISTING_DEFINITION,
   EXISTING_LABEL,
   EXPECTED_IDENTIFIER_NOT_RESERVED_WORD,
@@ -876,6 +877,36 @@ export 'dart:core' show Foo;
 
 main() {}"""
             },
+          ]),
+
+      MessageKind.EMPTY_OPTIONAL_PARAMETER_LIST: const MessageTemplate(
+          MessageKind.EMPTY_OPTIONAL_PARAMETER_LIST,
+          "Optional parameter lists cannot be empty.",
+          howToFix: "Try adding an optional parameter to the list.",
+          examples: const [
+            const {
+              'main.dart': """
+foo([]) {}
+
+main() {
+  foo();
+}"""
+            }
+          ]),
+
+      MessageKind.EMPTY_NAMED_PARAMETER_LIST: const MessageTemplate(
+          MessageKind.EMPTY_NAMED_PARAMETER_LIST,
+          "Named parameter lists cannot be empty.",
+          howToFix: "Try adding a named parameter to the list.",
+          examples: const [
+            const {
+              'main.dart': """
+foo({}) {}
+
+main() {
+  foo();
+}"""
+            }
           ]),
 
       MessageKind.NOT_A_TYPE: const MessageTemplate(
@@ -3670,11 +3701,6 @@ dart:mirrors library is not supported when using this backend.
 Your app imports dart:mirrors via:"""
           """
 $MIRRORS_NOT_SUPPORTED_BY_BACKEND_PADDING#{importChain}"""),
-
-      MessageKind.CALL_NOT_SUPPORTED_ON_NATIVE_CLASS: const MessageTemplate(
-          MessageKind.CALL_NOT_SUPPORTED_ON_NATIVE_CLASS,
-          "Non-supported 'call' member on a native class, or a "
-          "subclass of a native class."),
 
       MessageKind.DIRECTLY_THROWING_NSM: const MessageTemplate(
           MessageKind.DIRECTLY_THROWING_NSM,

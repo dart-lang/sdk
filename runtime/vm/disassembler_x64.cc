@@ -9,6 +9,7 @@
 #include "platform/utils.h"
 #include "vm/allocation.h"
 #include "vm/heap.h"
+#include "vm/instructions.h"
 #include "vm/os.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
@@ -785,65 +786,9 @@ int DisassemblerX64::PrintOperands(const char* mnem,
 }
 
 
-static const char* ObjectToCStringNoGC(const Object& obj) {
-  if (obj.IsSmi() ||
-      obj.IsMint() ||
-      obj.IsDouble() ||
-      obj.IsString() ||
-      obj.IsNull() ||
-      obj.IsBool() ||
-      obj.IsClass() ||
-      obj.IsFunction() ||
-      obj.IsICData() ||
-      obj.IsField() ||
-      obj.IsCode()) {
-    return obj.ToCString();
-  }
-
-  const Class& clazz = Class::Handle(obj.clazz());
-  const char* full_class_name = clazz.ToCString();
-  return OS::SCreate(Thread::Current()->zone(),
-      "instance of %s", full_class_name);
-}
-
-
 void DisassemblerX64::PrintAddress(uint8_t* addr_byte_ptr) {
   uword addr = reinterpret_cast<uword>(addr_byte_ptr);
   Print("%#" Px "", addr);
-  // Try to print as heap object or stub name
-  if (((addr & kSmiTagMask) == kHeapObjectTag) &&
-      reinterpret_cast<RawObject*>(addr)->IsWellFormed() &&
-      reinterpret_cast<RawObject*>(addr)->IsOldObject() &&
-      !Dart::vm_isolate()->heap()->CodeContains(addr) &&
-      !Isolate::Current()->heap()->CodeContains(addr) &&
-      Disassembler::CanFindOldObject(addr)) {
-    NoSafepointScope no_safepoint;
-    const Object& obj = Object::Handle(reinterpret_cast<RawObject*>(addr));
-    if (obj.IsArray()) {
-      const Array& arr = Array::Cast(obj);
-      intptr_t len = arr.Length();
-      if (len > 5) len = 5;  // Print a max of 5 elements.
-      Print("  Array[");
-      int i = 0;
-      Object& element = Object::Handle();
-      while (i < len) {
-        element = arr.At(i);
-        if (i > 0) Print(", ");
-        Print("%s", ObjectToCStringNoGC(element));
-        i++;
-      }
-      if (i < arr.Length()) Print(", ...");
-      Print("]");
-      return;
-    }
-    Print("  '%s'", ObjectToCStringNoGC(obj));
-  } else {
-    // 'addr' is not an object, but probably a code address.
-    const char* name_of_stub = StubCode::NameOfStub(addr);
-    if (name_of_stub != NULL) {
-      Print("  [stub: %s]", name_of_stub);
-    }
-  }
 }
 
 
@@ -1935,7 +1880,8 @@ int DisassemblerX64::InstructionDecode(uword pc) {
 
 void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
                                      char* human_buffer, intptr_t human_size,
-                                     int* out_instr_len, uword pc) {
+                                     int* out_instr_len, const Code& code,
+                                     Object** object, uword pc) {
   ASSERT(hex_size > 0);
   ASSERT(human_size > 0);
   DisassemblerX64 decoder(human_buffer, human_size);
@@ -1951,6 +1897,14 @@ void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
   hex_buffer[hex_index] = '\0';
   if (out_instr_len) {
     *out_instr_len = instruction_length;
+  }
+
+  *object = NULL;
+  if (!code.IsNull()) {
+    *object = &Object::Handle();
+    if (!DecodeLoadObjectFromPoolOrThread(pc, code, *object)) {
+      *object = NULL;
+    }
   }
 }
 

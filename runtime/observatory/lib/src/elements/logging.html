@@ -1,12 +1,8 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
 <link rel="import" href="code_ref.html">
 <link rel="import" href="function_ref.html">
-<link rel="import" href="nav_bar.html">
-<link rel="import" href="observatory_element.html">
-<link rel="import" href="sliding_checkbox.html">
-<link rel="import" href="view_footer.html">
 
-<polymer-element name="logging-page" extends="observatory-element">
+<polymer-element name="logging-page">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <style>
@@ -63,6 +59,7 @@
       <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
       <nav-menu link="{{ makeLink('/logging', isolate) }}" anchor="logging" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ clear }}" label="Clear"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
     <div id="page" class="content-centered-big">
       <span>Show messages with severity <select id="severityLevelSelector" value="{{ severityLevel }}"></select> and higher</span>

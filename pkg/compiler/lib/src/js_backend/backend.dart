@@ -232,8 +232,6 @@ class JavaScriptBackend extends Backend {
 
   bool get supportsReflection => emitter.emitter.supportsReflection;
 
-  bool get supportsAsyncAwait => true;
-
   final Annotations annotations;
 
   /// Set of classes that need to be considered for reflection although not
@@ -660,7 +658,7 @@ class JavaScriptBackend extends Backend {
   }
 
   bool usedByBackend(Element element) {
-    if (element.isParameter ||
+    if (element.isRegularParameter ||
         element.isInitializingFormal ||
         element.isField) {
       if (usedByBackend(element.enclosingElement)) return true;
@@ -669,7 +667,7 @@ class JavaScriptBackend extends Backend {
   }
 
   bool invokedReflectively(Element element) {
-    if (element.isParameter || element.isInitializingFormal) {
+    if (element.isRegularParameter || element.isInitializingFormal) {
       ParameterElement parameter = element;
       if (invokedReflectively(parameter.functionDeclaration)) return true;
     }
@@ -947,8 +945,6 @@ class JavaScriptBackend extends Backend {
       cls.ensureResolved(resolution);
       cls.forEachMember((ClassElement classElement, Element member) {
         if (member.name == Identifiers.call) {
-          reporter.reportErrorMessage(
-              member, MessageKind.CALL_NOT_SUPPORTED_ON_NATIVE_CLASS);
           return;
         }
         if (member.isSynthesized) return;

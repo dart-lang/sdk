@@ -25,7 +25,7 @@ namespace dart {
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 DECLARE_FLAG(bool, enable_simd_inline);
-DECLARE_FLAG(bool, use_megamorphic_stub);
+
 
 void MegamorphicSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
   Assembler* assembler = compiler->assembler();
@@ -1057,13 +1057,8 @@ void FlowGraphCompiler::CompileGraph() {
   // No such checking code is generated if only fixed parameters are declared,
   // unless we are in debug mode or unless we are compiling a closure.
   if (num_copied_params == 0) {
-#ifdef DEBUG
-    ASSERT(!parsed_function().function().HasOptionalParameters());
-    const bool check_arguments = !flow_graph().IsCompiledForOsr();
-#else
     const bool check_arguments =
         function.IsClosureFunction() && !flow_graph().IsCompiledForOsr();
-#endif
     if (check_arguments) {
       __ Comment("Check argument count");
       // Check that exactly num_fixed arguments are passed in.
@@ -1077,13 +1072,9 @@ void FlowGraphCompiler::CompileGraph() {
       __ j(EQUAL, &correct_num_arguments, Assembler::kNearJump);
 
       __ Bind(&wrong_num_arguments);
-      if (function.IsClosureFunction()) {
-        __ LeaveDartFrame(kKeepCalleePP);  // Leave arguments on the stack.
-        __ Jmp(*StubCode::CallClosureNoSuchMethod_entry());
-        // The noSuchMethod call may return to the caller, but not here.
-      } else {
-        __ Stop("Wrong number of arguments");
-      }
+      __ LeaveDartFrame(kKeepCalleePP);  // Leave arguments on the stack.
+      __ Jmp(*StubCode::CallClosureNoSuchMethod_entry());
+      // The noSuchMethod call may return to the caller, but not here.
       __ Bind(&correct_num_arguments);
     }
   } else if (!flow_graph().IsCompiledForOsr()) {
@@ -1348,11 +1339,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     __ Comment("Slow case: megamorphic call");
   }
   __ LoadObject(RBX, cache);
-  if (FLAG_use_megamorphic_stub) {
-    __ Call(*StubCode::MegamorphicLookup_entry());
-  } else  {
-    StubCode::EmitMegamorphicLookup(assembler());
-  }
+  __ call(Address(THR, Thread::megamorphic_lookup_entry_point_offset()));
   __ call(RCX);
 
   __ Bind(&done);
@@ -1419,7 +1406,12 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     intptr_t deopt_id,
     TokenPosition token_pos,
     LocationSummary* locs) {
-  __ LoadObject(R10, arguments_descriptor);
+  ASSERT(!function.IsClosureFunction());
+  if (function.HasOptionalParameters()) {
+    __ LoadObject(R10, arguments_descriptor);
+  } else {
+    __ xorq(R10, R10);  // GC safe smi zero because of stub.
+  }
   // Do not use the code from the function, but let the code be patched so that
   // we can record the outgoing edges to other code.
   GenerateStaticDartCall(deopt_id,

@@ -45,6 +45,7 @@
 #include "vm/timeline.h"
 #include "vm/timeline_analysis.h"
 #include "vm/timer.h"
+#include "vm/verifier.h"
 #include "vm/visitor.h"
 
 
@@ -53,9 +54,14 @@ namespace dart {
 DECLARE_FLAG(bool, print_metrics);
 DECLARE_FLAG(bool, timing);
 DECLARE_FLAG(bool, trace_service);
-DECLARE_FLAG(bool, trace_reload);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
+
+// Reload flags.
 DECLARE_FLAG(bool, check_reloaded);
+DECLARE_FLAG(int, reload_every);
+DECLARE_FLAG(bool, reload_every_back_off);
+DECLARE_FLAG(bool, trace_reload);
+
 
 NOT_IN_PRODUCT(
 static void CheckedModeHandler(bool value) {
@@ -202,8 +208,10 @@ class IsolateMessageHandler : public MessageHandler {
   const char* name() const;
   void MessageNotify(Message::Priority priority);
   MessageStatus HandleMessage(Message* message);
+#ifndef PRODUCT
   void NotifyPauseOnStart();
   void NotifyPauseOnExit();
+#endif  // !PRODUCT
 
 #if defined(DEBUG)
   // Check that it is safe to access this handler.
@@ -570,6 +578,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
     }
   }
   delete message;
+#ifndef PRODUCT
   if (status == kOK) {
     const Object& result =
         Object::Handle(zone, I->InvokePendingServiceExtensionCalls());
@@ -579,10 +588,12 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
       ASSERT(result.IsNull());
     }
   }
+#endif  // !PRODUCT
   return status;
 }
 
 
+#ifndef PRODUCT
 void IsolateMessageHandler::NotifyPauseOnStart() {
   if (!FLAG_support_service) {
     return;
@@ -615,6 +626,7 @@ void IsolateMessageHandler::NotifyPauseOnExit() {
               I->name());
   }
 }
+#endif  // !PRODUCT
 
 
 #if defined(DEBUG)
@@ -833,6 +845,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       spawn_count_(0),
       has_attempted_reload_(false),
       no_reload_scope_depth_(0),
+      reload_every_n_stack_overflow_checks_(FLAG_reload_every),
       reload_context_(NULL) {
   NOT_IN_PRODUCT(FlagsCopyFrom(api_flags));
   // TODO(asiva): A Thread is not available here, need to figure out
@@ -851,9 +864,11 @@ Isolate::~Isolate() {
   delete heap_;
   delete object_store_;
   delete api_state_;
+#ifndef PRODUCT
   if (FLAG_support_debugger) {
     delete debugger_;
   }
+#endif  // !PRODUCT
 #if defined(USING_SIMULATOR)
   delete simulator_;
 #endif
@@ -871,9 +886,11 @@ Isolate::~Isolate() {
   message_handler_ = NULL;  // Fail fast if we send messages to a dead isolate.
   ASSERT(deopt_context_ == NULL);  // No deopt in progress when isolate deleted.
   delete spawn_state_;
+#ifndef PRODUCT
   if (FLAG_support_service) {
     delete object_id_ring_;
   }
+#endif  // !PRODUCT
   object_id_ring_ = NULL;
   delete pause_loop_monitor_;
   pause_loop_monitor_ = NULL;
@@ -954,9 +971,11 @@ Isolate* Isolate::Init(const char* name_prefix,
     }
   }
 
+#ifndef PRODUCT
   if (FLAG_support_service) {
     ObjectIdRing::Init(result);
   }
+#endif  // !PRODUCT
 
   // Add to isolate list. Shutdown and delete the isolate on failure.
   if (!AddIsolateToList(result)) {
@@ -1054,8 +1073,9 @@ void Isolate::DoneLoading() {
 
 bool Isolate::CanReload() const {
 #ifndef PRODUCT
-  return (!ServiceIsolate::IsServiceIsolateDescendant(this) &&
-          is_runnable() && !IsReloading() && no_reload_scope_depth_ == 0);
+  return !ServiceIsolate::IsServiceIsolateDescendant(this) &&
+         is_runnable() && !IsReloading() && (no_reload_scope_depth_ == 0) &&
+         IsolateCreationEnabled();
 #else
   return false;
 #endif
@@ -1066,39 +1086,42 @@ bool Isolate::CanReload() const {
 void Isolate::ReportReloadError(const Error& error) {
   ASSERT(IsReloading());
   reload_context_->AbortReload(error);
+}
+
+
+void Isolate::ReloadSources(bool dont_delete_reload_context) {
+  // TODO(asiva): Add verification of canonical objects.
+  ASSERT(!IsReloading());
+  has_attempted_reload_ = true;
+  reload_context_ = new IsolateReloadContext(this);
+  reload_context_->StartReload();
+  // TODO(asiva): Add verification of canonical objects.
+  if (dont_delete_reload_context) {
+    // Unit tests use the reload context later. Caller is responsible
+    // for deleting the context.
+    return;
+  }
+  DeleteReloadContext();
+}
+
+
+void Isolate::DeleteReloadContext() {
   delete reload_context_;
   reload_context_ = NULL;
 }
-
-
-void Isolate::ReloadSources(bool test_mode) {
-  ASSERT(!IsReloading());
-  has_attempted_reload_ = true;
-  reload_context_ = new IsolateReloadContext(this, test_mode);
-  reload_context_->StartReload();
-}
-
-#endif
+#endif  // !PRODUCT
 
 
 void Isolate::DoneFinalizing() {
   NOT_IN_PRODUCT(
     if (IsReloading()) {
       reload_context_->FinishReload();
-      if (reload_context_->has_error() && reload_context_->test_mode()) {
-        // If the reload has an error and we are in test mode keep the reload
-        // context on the isolate so that it can be used by unit tests.
-        return;
-      }
       if (reload_context_->has_error()) {
         // Remember the reload error.
         sticky_reload_error_ = reload_context_->error();
-      }
-      if (!reload_context_->has_error()) {
+      } else {
         reload_context_->ReportSuccess();
       }
-      delete reload_context_;
-      reload_context_ = NULL;
     }
   )
 }
@@ -1117,11 +1140,13 @@ bool Isolate::MakeRunnable() {
   // isolate on thread pool for execution.
   ASSERT(object_store()->root_library() != Library::null());
   set_is_runnable(true);
+#ifndef PRODUCT
   if (FLAG_support_debugger && !ServiceIsolate::IsServiceIsolate(this)) {
     if (FLAG_pause_isolates_on_unhandled_exceptions) {
       debugger()->SetExceptionPauseInfo(kPauseOnUnhandledExceptions);
     }
   }
+#endif  // !PRODUCT
   IsolateSpawnState* state = spawn_state();
   if (state != NULL) {
     ASSERT(this == state->isolate());
@@ -1137,11 +1162,11 @@ bool Isolate::MakeRunnable() {
       event->Complete();
     }
   }
-#endif  // !PRODUCT
   if (FLAG_support_service && Service::isolate_stream.enabled()) {
     ServiceEvent runnableEvent(this, ServiceEvent::kIsolateRunnable);
     Service::HandleEvent(&runnableEvent);
   }
+#endif  // !PRODUCT
   return true;
 }
 
@@ -1472,6 +1497,13 @@ static void ShutdownIsolate(uword parameter) {
     ASSERT(thread->isolate() == isolate);
     StackZone zone(thread);
     HandleScope handle_scope(thread);
+#if defined(DEBUG)
+    if (!isolate->HasAttemptedReload()) {
+      isolate->heap()->CollectAllGarbage();
+      VerifyCanonicalVisitor check_canonical(thread);
+      isolate->heap()->IterateObjects(&check_canonical);
+    }
+#endif  // DEBUG
     const Error& error = Error::Handle(thread->sticky_error());
     if (!error.IsNull() && !error.IsUnwindError()) {
       OS::PrintErr("in ShutdownIsolate: %s\n", error.ToErrorCString());
@@ -1624,13 +1656,13 @@ void Isolate::LowLevelShutdown() {
   }
   if (FLAG_print_metrics) {
     LogBlock lb;
-    THR_Print("Printing metrics for %s\n", name());
+    OS::PrintErr("Printing metrics for %s\n", name());
 #define ISOLATE_METRIC_PRINT(type, variable, name, unit)                       \
-  THR_Print("%s\n", metric_##variable##_.ToString());
+  OS::PrintErr("%s\n", metric_##variable##_.ToString());
 
     ISOLATE_METRIC_LIST(ISOLATE_METRIC_PRINT);
 #undef ISOLATE_METRIC_PRINT
-    THR_Print("\n");
+    OS::PrintErr("\n");
   }
 }
 
@@ -1639,6 +1671,21 @@ void Isolate::StopBackgroundCompiler() {
   // Wait until all background compilation has finished.
   if (background_compiler_ != NULL) {
     BackgroundCompiler::Stop(this);
+  }
+}
+
+
+void Isolate::MaybeIncreaseReloadEveryNStackOverflowChecks() {
+  if (FLAG_reload_every_back_off) {
+    if (reload_every_n_stack_overflow_checks_ < 5000) {
+      reload_every_n_stack_overflow_checks_ += 99;
+    } else {
+      reload_every_n_stack_overflow_checks_ *= 2;
+    }
+    // Cap the value.
+    if (reload_every_n_stack_overflow_checks_ > 1000000) {
+      reload_every_n_stack_overflow_checks_ = 1000000;
+    }
   }
 }
 
@@ -1697,7 +1744,7 @@ void Isolate::Shutdown() {
     }
   }
 
-  if (FLAG_check_reloaded &&
+  if (FLAG_check_reloaded && is_runnable() &&
       (this != Dart::vm_isolate()) &&
       !ServiceIsolate::IsServiceIsolateDescendant(this)) {
     if (!HasAttemptedReload()) {
@@ -1893,36 +1940,35 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   jsobj.AddProperty("pauseOnExit", message_handler()->should_pause_on_exit());
   jsobj.AddProperty("_isReloading", IsReloading());
 
-  if (debugger() != NULL) {
-    if (!is_runnable()) {
-      // Isolate is not yet runnable.
-      ASSERT(debugger()->PauseEvent() == NULL);
-      ServiceEvent pause_event(this, ServiceEvent::kNone);
-      jsobj.AddProperty("pauseEvent", &pause_event);
-    } else if (message_handler()->is_paused_on_start() ||
-               message_handler()->should_pause_on_start()) {
-      ASSERT(debugger()->PauseEvent() == NULL);
-      ServiceEvent pause_event(this, ServiceEvent::kPauseStart);
-      jsobj.AddProperty("pauseEvent", &pause_event);
-    } else if (message_handler()->is_paused_on_exit()) {
-      ASSERT(debugger()->PauseEvent() == NULL);
-      ServiceEvent pause_event(this, ServiceEvent::kPauseExit);
-      jsobj.AddProperty("pauseEvent", &pause_event);
-    } else if (debugger()->PauseEvent() != NULL && !resume_request_) {
-      jsobj.AddProperty("pauseEvent", debugger()->PauseEvent());
-    } else {
-      ServiceEvent pause_event(this, ServiceEvent::kResume);
+  if (!is_runnable()) {
+    // Isolate is not yet runnable.
+    ASSERT((debugger() == NULL) || (debugger()->PauseEvent() == NULL));
+    ServiceEvent pause_event(this, ServiceEvent::kNone);
+    jsobj.AddProperty("pauseEvent", &pause_event);
+  } else if (message_handler()->is_paused_on_start() ||
+             message_handler()->should_pause_on_start()) {
+    ASSERT((debugger() == NULL) || (debugger()->PauseEvent() == NULL));
+    ServiceEvent pause_event(this, ServiceEvent::kPauseStart);
+    jsobj.AddProperty("pauseEvent", &pause_event);
+  } else if (message_handler()->is_paused_on_exit()) {
+    ASSERT((debugger() == NULL) || (debugger()->PauseEvent() == NULL));
+    ServiceEvent pause_event(this, ServiceEvent::kPauseExit);
+    jsobj.AddProperty("pauseEvent", &pause_event);
+  } else if ((debugger() != NULL) &&
+             (debugger()->PauseEvent() != NULL) &&
+             !resume_request_) {
+    jsobj.AddProperty("pauseEvent", debugger()->PauseEvent());
+  } else {
+    ServiceEvent pause_event(this, ServiceEvent::kResume);
 
+    if (debugger() != NULL) {
       // TODO(turnidge): Don't compute a full stack trace.
       DebuggerStackTrace* stack = debugger()->StackTrace();
       if (stack->Length() > 0) {
         pause_event.set_top_frame(stack->FrameAt(0));
       }
-      jsobj.AddProperty("pauseEvent", &pause_event);
     }
-
-    jsobj.AddProperty("exceptionPauseMode",
-        ExceptionPauseInfoToServiceEnum(debugger()->GetExceptionPauseInfo()));
+    jsobj.AddProperty("pauseEvent", &pause_event);
   }
 
   const Library& lib =
@@ -1959,16 +2005,22 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     }
   }
 
-  if (debugger() != NULL) {
-    {
-      JSONArray breakpoints(&jsobj, "breakpoints");
+  {
+    JSONArray breakpoints(&jsobj, "breakpoints");
+    if (debugger() != NULL) {
       debugger()->PrintBreakpointsToJSONArray(&breakpoints);
     }
+  }
 
-    {
-      JSONObject jssettings(&jsobj, "_debuggerSettings");
-      debugger()->PrintSettingsToJSONObject(&jssettings);
-    }
+  Dart_ExceptionPauseInfo pause_info = (debugger() != NULL)
+      ? debugger()->GetExceptionPauseInfo()
+      : kNoPauseOnExceptions;
+  jsobj.AddProperty("exceptionPauseMode",
+                    ExceptionPauseInfoToServiceEnum(pause_info));
+
+  if (debugger() != NULL) {
+    JSONObject settings(&jsobj, "_debuggerSettings");
+    debugger()->PrintSettingsToJSONObject(&settings);
   }
 
   {
@@ -2081,6 +2133,7 @@ RawField* Isolate::GetDeoptimizingBoxedField() {
 }
 
 
+#ifndef PRODUCT
 RawObject* Isolate::InvokePendingServiceExtensionCalls() {
   if (!FLAG_support_service) {
     return Object::null();
@@ -2261,6 +2314,7 @@ RawInstance* Isolate::LookupServiceExtensionHandler(const String& name) {
   }
   return Instance::null();
 }
+#endif  // !PRODUCT
 
 
 void Isolate::WakePauseEventHandler(Dart_Isolate isolate) {
@@ -2403,6 +2457,12 @@ void Isolate::EnableIsolateCreation() {
 }
 
 
+bool Isolate::IsolateCreationEnabled() {
+  MonitorLocker ml(isolates_list_monitor_);
+  return creation_enabled_;
+}
+
+
 void Isolate::KillLocked(LibMsgId msg_id) {
   Dart_CObject kill_msg;
   Dart_CObject* list_values[4];
@@ -2527,7 +2587,7 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
 
     // If a safepoint operation is in progress wait for it
     // to finish before scheduling this thread in.
-    while (!bypass_safepoint && safepoint_handler()->safepoint_in_progress()) {
+    while (!bypass_safepoint && safepoint_handler()->SafepointInProgress()) {
       ml.Wait();
     }
 

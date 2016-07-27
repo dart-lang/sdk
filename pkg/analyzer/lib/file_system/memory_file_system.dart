@@ -80,6 +80,14 @@ class MemoryResourceProvider implements ResourceProvider {
   Folder getFolder(String path) => newFolder(path);
 
   @override
+  Future<List<int>> getModificationTimes(List<Source> sources) async {
+    return sources.map((source) {
+      String path = source.fullName;
+      return _pathToTimestamp[path] ?? -1;
+    }).toList();
+  }
+
+  @override
   Resource getResource(String path) {
     path = pathContext.normalize(path);
     Resource resource = _pathToResource[path];
@@ -306,6 +314,9 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   }
 
   @override
+  Uri toUri() => new Uri.file(path, windows: _provider.pathContext == windows);
+
+  @override
   void writeAsBytesSync(List<int> bytes) {
     throw new FileSystemException(path, 'File could not be written');
   }
@@ -378,6 +389,9 @@ class _MemoryFile extends _MemoryResource implements File {
   File renameSync(String newPath) {
     return _provider.renameFileSync(this, newPath);
   }
+
+  @override
+  Uri toUri() => new Uri.file(path, windows: _provider.pathContext == windows);
 
   @override
   void writeAsBytesSync(List<int> bytes) {
@@ -553,6 +567,10 @@ class _MemoryFolder extends _MemoryResource implements Folder {
     }
     return contains(path);
   }
+
+  @override
+  Uri toUri() =>
+      new Uri.directory(path, windows: _provider.pathContext == windows);
 }
 
 /**

@@ -10,14 +10,24 @@
 namespace dart {
 
 inline int Utils::CountLeadingZeros(uword x) {
-  UNIMPLEMENTED();
-  return 0;
+#if defined(ARCH_IS_32_BIT)
+  return __builtin_clzl(x);
+#elif defined(ARCH_IS_64_BIT)
+  return __builtin_clzll(x);
+#else
+#error Architecture is not 32-bit or 64-bit.
+#endif
 }
 
 
 inline int Utils::CountTrailingZeros(uword x) {
-  UNIMPLEMENTED();
-  return 0;
+#if defined(ARCH_IS_32_BIT)
+  return __builtin_ctzl(x);
+#elif defined(ARCH_IS_64_BIT)
+  return __builtin_ctzll(x);
+#else
+#error Architecture is not 32-bit or 64-bit.
+#endif
 }
 
 
@@ -58,8 +68,8 @@ inline uint64_t Utils::HostToLittleEndian64(uint64_t value) {
 
 
 inline char* Utils::StrError(int err, char* buffer, size_t bufsize) {
-  UNIMPLEMENTED();
-  return NULL;
+  snprintf(buffer, bufsize, "errno = %d", err);
+  return buffer;
 }
 
 }  // namespace dart

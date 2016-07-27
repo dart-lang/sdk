@@ -300,6 +300,15 @@ abstract class TestSuite {
       return;
     }
 
+    if (configuration['hot_reload']) {
+      // Handle reload special cases.
+      if (expectations.contains(Expectation.COMPILETIME_ERROR)) {
+        // Running a test that expects a compilation error with hot reloading
+        // is redundant with a regular run of the test.
+        return;
+      }
+    }
+
     // Update Summary report
     if (configuration['report']) {
       if (testCase.expectCompileError &&
@@ -837,7 +846,11 @@ class StandardTestSuite extends TestSuite {
     CreateTest createTestCase = makeTestCaseCreator(optionsFromFile);
 
     if (optionsFromFile['isMultitest']) {
-      group.add(doMultitest(filePath, buildDir, suiteDir, createTestCase));
+      group.add(doMultitest(filePath,
+                            buildDir,
+                            suiteDir,
+                            createTestCase,
+                            configuration['hot_reload']));
     } else {
       createTestCase(filePath, filePath, optionsFromFile['hasCompileError'],
           optionsFromFile['hasRuntimeError'],
