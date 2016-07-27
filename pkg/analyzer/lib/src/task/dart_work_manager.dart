@@ -351,6 +351,10 @@ class DartWorkManager implements WorkManager {
     }
   }
 
+  /**
+   * The given unit was incrementally resolved. Some of its error results might
+   * have been invalidated, so we schedule it for computing errors.
+   */
   void unitIncrementallyResolved(Source librarySource, Source unitSource) {
     librarySourceQueue.add(librarySource);
   }

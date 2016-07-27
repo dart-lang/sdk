@@ -347,6 +347,33 @@ class DartWorkManagerTest {
     expect(manager.getLibrariesContainingPart(part3), isEmpty);
   }
 
+  void test_getLibrariesContainingPart_askResultProvider() {
+    Source part1 = new TestSource('part1.dart');
+    Source part2 = new TestSource('part2.dart');
+    Source part3 = new TestSource('part3.dart');
+    Source library1 = new TestSource('library1.dart');
+    Source library2 = new TestSource('library2.dart');
+    // configure AnalysisContext mock
+    when(context.aboutToComputeResult(anyObject, CONTAINING_LIBRARIES))
+        .thenInvoke((CacheEntry entry, ResultDescriptor result) {
+      if (entry.target == part1) {
+        entry.setValue(result, <Source>[library1, library2], []);
+        return true;
+      }
+      if (entry.target == part2) {
+        entry.setValue(result, <Source>[library2], []);
+        return true;
+      }
+      return false;
+    });
+    // getLibrariesContainingPart
+    expect(manager.getLibrariesContainingPart(part1),
+        unorderedEquals([library1, library2]));
+    expect(
+        manager.getLibrariesContainingPart(part2), unorderedEquals([library2]));
+    expect(manager.getLibrariesContainingPart(part3), isEmpty);
+  }
+
   void test_getLibrariesContainingPart_inSDK() {
     Source part = new _SourceMock('part.dart');
     when(part.isInSystemLibrary).thenReturn(true);
@@ -763,6 +790,11 @@ class DartWorkManagerTest {
     manager.resultsComputed(
         part, {SOURCE_KIND: SourceKind.PART, INCLUDED_PARTS: <Source>[]});
     expect(manager.libraryPartsMap, isEmpty);
+  }
+
+  void test_unitIncrementallyResolved() {
+    manager.unitIncrementallyResolved(source1, source2);
+    expect_librarySourceQueue([source1]);
   }
 
   CacheEntry _getOrCreateEntry(Source source, [bool explicit = true]) {
