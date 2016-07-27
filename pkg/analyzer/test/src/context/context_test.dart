@@ -3493,6 +3493,72 @@ class A {
     expect(context.getErrors(b).errors, hasLength(1));
   }
 
+  void test_sequence_clearParameterElements() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {
+  foo(int p) {}
+}
+final a = new A();
+main() {
+  a.foo(42);
+}
+''');
+    _performPendingAnalysisTasks();
+    Expression find42() {
+      CompilationUnit unit =
+          context.getResult(new LibrarySpecificUnit(a, a), RESOLVED_UNIT);
+      ExpressionStatement statement =
+          AstFinder.getStatementsInTopLevelFunction(unit, 'main').single;
+      MethodInvocation invocation = statement.expression;
+      return invocation.argumentList.arguments[0];
+    }
+    {
+      Expression argument = find42();
+      expect(argument.staticParameterElement, isNull);
+      expect(argument.propagatedParameterElement, isNotNull);
+    }
+    // Update a.dart: add type annotation for 'a'.
+    // '42' has 'staticParameterElement', but not 'propagatedParameterElement'.
+    context.setContents(
+        a,
+        r'''
+class A {
+  foo(int p) {}
+}
+final A a = new A();
+main() {
+  a.foo(42);
+}
+''');
+    _performPendingAnalysisTasks();
+    {
+      Expression argument = find42();
+      expect(argument.staticParameterElement, isNotNull);
+      expect(argument.propagatedParameterElement, isNull);
+    }
+    // Update a.dart: remove type annotation for 'a'.
+    // '42' has 'propagatedParameterElement', but not 'staticParameterElement'.
+    context.setContents(
+        a,
+        r'''
+class A {
+  foo(int p) {}
+}
+final a = new A();
+main() {
+  a.foo(42);
+}
+''');
+    _performPendingAnalysisTasks();
+    {
+      Expression argument = find42();
+      expect(argument.staticParameterElement, isNull);
+      expect(argument.propagatedParameterElement, isNotNull);
+    }
+  }
+
   void test_sequence_closureParameterTypesPropagation() {
     Source a = addSource(
         '/a.dart',

@@ -398,7 +398,7 @@ class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   @override
   void set correspondingPropagatedParameters(
       List<ParameterElement> parameters) {
-    if (parameters.length != _arguments.length) {
+    if (parameters != null && parameters.length != _arguments.length) {
       throw new IllegalArgumentException(
           "Expected ${_arguments.length} parameters, not ${parameters.length}");
     }
@@ -410,7 +410,7 @@ class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
 
   @override
   void set correspondingStaticParameters(List<ParameterElement> parameters) {
-    if (parameters.length != _arguments.length) {
+    if (parameters != null && parameters.length != _arguments.length) {
       throw new IllegalArgumentException(
           "Expected ${_arguments.length} parameters, not ${parameters.length}");
     }

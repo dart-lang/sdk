@@ -698,16 +698,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (staticInvokeType != null) {
       List<ParameterElement> parameters =
           _computeCorrespondingParameters(argumentList, staticInvokeType);
-      if (parameters != null) {
-        argumentList.correspondingStaticParameters = parameters;
-      }
+      argumentList.correspondingStaticParameters = parameters;
     }
     if (propagatedInvokeType != null) {
       List<ParameterElement> parameters =
           _computeCorrespondingParameters(argumentList, propagatedInvokeType);
-      if (parameters != null) {
-        argumentList.correspondingPropagatedParameters = parameters;
-      }
+      argumentList.correspondingPropagatedParameters = parameters;
     }
     //
     // Then check for error conditions.
