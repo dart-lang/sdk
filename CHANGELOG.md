@@ -1,3 +1,15 @@
+# 0.1.22
+
+* Grinder support (`rule:rule_name` and `docs:location`) for rule stub and doc generation (respectively).
+* Fix to allow leading underscores in `non_constant_identifier_names`.
+* New `valid_regexps` lint (#277).
+* New `whitespace_around_ops` lint (#249).
+* Fix to `overridden_fields` to flag overridden static fields (#274).
+* New `list_remove_unrelated_type` to detect passing a non-`T` value to `List.remove()`` (#271).
+* New `empty_catches` lint to catch empty catch blocks (#43).
+* Fixed `close_sinks` false positive (#268).
+* `linter` support for `--strong` to allow for running linter in strong mode.
+
 # 0.1.21
 
 * New `only_throw_errors` lint.
