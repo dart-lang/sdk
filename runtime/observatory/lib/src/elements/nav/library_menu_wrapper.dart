@@ -10,9 +10,11 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/shims/binding.dart';
 import 'package:observatory/src/elements/nav/library_menu.dart';
 
+@bindable
 class NavLibraryMenuElementWrapper extends HtmlElement {
-  static final binder = new Binder<NavLibraryMenuElementWrapper>(
-    const [const Binding('last'), const Binding('library')]);
+  static const binder = const Binder<NavLibraryMenuElementWrapper>(const {
+      'last': #last, 'library': #library
+    });
 
   static const tag =
     const Tag<NavLibraryMenuElementWrapper>('library-nav-menu');

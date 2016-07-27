@@ -12,11 +12,13 @@ import 'package:observatory/src/elements/shims/binding.dart';
 typedef _callback();
 typedef CurlyBlockToggleCallback(bool a, _callback b);
 
+@bindable
 class CurlyBlockElementWrapper extends HtmlElement {
 
-  static final binder = new Binder<CurlyBlockElementWrapper>(
-    const [const Binding('expand'), const Binding('busy'),
-           const Binding('expandKey'), const Binding('callback')]);
+  static const binder = const Binder<CurlyBlockElementWrapper>(const {
+      'expand': #expand, 'busy': #busy, 'expandKey': #expandKey,
+      'callback': #callback
+    });
 
   static const tag = const Tag<CurlyBlockElementWrapper>('curly-block');
 

@@ -10,9 +10,11 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/shims/binding.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 
+@bindable
 class NavNotifyElementWrapper extends HtmlElement {
-  static final binder = new Binder<NavNotifyElementWrapper>(
-    const [const Binding('notifications'), const Binding('notifyOnPause')]);
+  static const binder = const Binder<NavNotifyElementWrapper>(const {
+      'notifications': #notifications, 'notifyOnPause': #notifyOnPause
+    });
 
   static const tag = const Tag<NavNotifyElementWrapper>('nav-notify');
 

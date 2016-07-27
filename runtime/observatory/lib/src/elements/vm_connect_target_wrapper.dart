@@ -3,15 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
+
 import 'package:observatory/app.dart';
 import 'package:observatory/service_html.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/shims/binding.dart';
 import 'package:observatory/src/elements/vm_connect_target.dart';
 
+@bindable
 class VMConnectTargetElementWrapper extends HtmlElement {
-  static final binder = new Binder<VMConnectTargetElementWrapper>(
-    const [const Binding('target')]);
+  static const binder = const Binder<VMConnectTargetElementWrapper>(const {
+      'target': #target
+    });
 
   static const tag =
     const Tag<VMConnectTargetElementWrapper>('vm-connect-target');
