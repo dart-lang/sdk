@@ -19,7 +19,7 @@ dart_library.library('lib/html/canvasrenderingcontext2d_test', null, /* Imports 
   let ListOfint = () => (ListOfint = dart.constFn(core.List$(core.int)))();
   let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
   let EventTovoid = () => (EventTovoid = dart.constFn(dart.functionType(dart.void, [html.Event])))();
-  let RectangleOfnum = () => (RectangleOfnum = dart.constFn(math.Rectangle$(core.num)))();
+  let RectangleOfint = () => (RectangleOfint = dart.constFn(math.Rectangle$(core.int)))();
   let ListOfintAndListOfintTodynamic = () => (ListOfintAndListOfintTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [ListOfint(), ListOfint()])))();
   let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();
   let intAndintToListOfint = () => (intAndintToListOfint = dart.constFn(dart.definiteFunctionType(ListOfint(), [core.int, core.int])))();
@@ -302,7 +302,7 @@ dart_library.library('lib/html/canvasrenderingcontext2d_test', null, /* Imports 
         let dataUrl = dart.dsend(canvasrenderingcontext2d_test.otherCanvas, 'toDataUrl', 'image/gif');
         let img = html.ImageElement.new();
         img[dartx.onLoad].listen(EventTovoid()._check(unittest$.expectAsync(dart.fn(_ => {
-          dart.dsend(canvasrenderingcontext2d_test.context, 'drawImageToRect', img, new (RectangleOfnum())(50, 50, 20, 20));
+          dart.dsend(canvasrenderingcontext2d_test.context, 'drawImageToRect', img, new (RectangleOfint())(50, 50, 20, 20));
           canvasrenderingcontext2d_test.expectPixelFilled(50, 50);
           canvasrenderingcontext2d_test.expectPixelFilled(55, 55);
           canvasrenderingcontext2d_test.expectPixelFilled(59, 59);
@@ -323,7 +323,7 @@ dart_library.library('lib/html/canvasrenderingcontext2d_test', null, /* Imports 
         let dataUrl = dart.dsend(canvasrenderingcontext2d_test.otherCanvas, 'toDataUrl', 'image/gif');
         let img = html.ImageElement.new();
         img[dartx.onLoad].listen(EventTovoid()._check(unittest$.expectAsync(dart.fn(_ => {
-          dart.dsend(canvasrenderingcontext2d_test.context, 'drawImageToRect', img, new (RectangleOfnum())(50, 50, 20, 20), {sourceRect: new (RectangleOfnum())(2, 2, 6, 6)});
+          dart.dsend(canvasrenderingcontext2d_test.context, 'drawImageToRect', img, new (RectangleOfint())(50, 50, 20, 20), {sourceRect: new (RectangleOfint())(2, 2, 6, 6)});
           canvasrenderingcontext2d_test.checkPixel(canvasrenderingcontext2d_test.readPixel(50, 50), JSArrayOfint().of([255, 0, 0, 255]));
           canvasrenderingcontext2d_test.checkPixel(canvasrenderingcontext2d_test.readPixel(55, 55), JSArrayOfint().of([255, 0, 0, 255]));
           canvasrenderingcontext2d_test.checkPixel(canvasrenderingcontext2d_test.readPixel(60, 50), JSArrayOfint().of([255, 0, 0, 255]));
@@ -374,7 +374,7 @@ dart_library.library('lib/html/canvasrenderingcontext2d_test', null, /* Imports 
       }, VoidTodynamic()));
       unittest$.test('with 5 params', dart.fn(() => {
         dart.dsend(dart.dload(canvasrenderingcontext2d_test.video, 'onCanPlay'), 'listen', unittest$.expectAsync(dart.fn(_ => {
-          dart.dsend(canvasrenderingcontext2d_test.context, 'drawImageToRect', canvasrenderingcontext2d_test.video, new (RectangleOfnum())(50, 50, 20, 20));
+          dart.dsend(canvasrenderingcontext2d_test.context, 'drawImageToRect', canvasrenderingcontext2d_test.video, new (RectangleOfint())(50, 50, 20, 20));
           canvasrenderingcontext2d_test.expectPixelFilled(50, 50);
           canvasrenderingcontext2d_test.expectPixelFilled(55, 55);
           canvasrenderingcontext2d_test.expectPixelFilled(59, 59);
@@ -397,7 +397,7 @@ dart_library.library('lib/html/canvasrenderingcontext2d_test', null, /* Imports 
       }, VoidTodynamic()));
       unittest$.test('with 9 params', dart.fn(() => {
         dart.dsend(dart.dload(canvasrenderingcontext2d_test.video, 'onCanPlay'), 'listen', unittest$.expectAsync(dart.fn(_ => {
-          dart.dsend(canvasrenderingcontext2d_test.context, 'drawImageToRect', canvasrenderingcontext2d_test.video, new (RectangleOfnum())(50, 50, 20, 20), {sourceRect: new (RectangleOfnum())(2, 2, 6, 6)});
+          dart.dsend(canvasrenderingcontext2d_test.context, 'drawImageToRect', canvasrenderingcontext2d_test.video, new (RectangleOfint())(50, 50, 20, 20), {sourceRect: new (RectangleOfint())(2, 2, 6, 6)});
           canvasrenderingcontext2d_test.expectPixelFilled(50, 50);
           canvasrenderingcontext2d_test.expectPixelFilled(55, 55);
           canvasrenderingcontext2d_test.expectPixelFilled(59, 59);
@@ -426,7 +426,7 @@ dart_library.library('lib/html/canvasrenderingcontext2d_test', null, /* Imports 
         canvasrenderingcontext2d_test.video = html.VideoElement.new();
         canvasrenderingcontext2d_test.canvas = html.CanvasElement.new();
         dart.dsend(dart.dload(canvasrenderingcontext2d_test.video, 'onCanPlay'), 'listen', unittest$.expectAsync(dart.fn(_ => {
-          dart.dsend(canvasrenderingcontext2d_test.context, 'drawImageToRect', canvasrenderingcontext2d_test.video, new (RectangleOfnum())(50, 50, 20, 20), {sourceRect: new (RectangleOfnum())(2, 2, 6, 6)});
+          dart.dsend(canvasrenderingcontext2d_test.context, 'drawImageToRect', canvasrenderingcontext2d_test.video, new (RectangleOfint())(50, 50, 20, 20), {sourceRect: new (RectangleOfint())(2, 2, 6, 6)});
           canvasrenderingcontext2d_test.expectPixelFilled(50, 50);
           canvasrenderingcontext2d_test.expectPixelFilled(55, 55);
           canvasrenderingcontext2d_test.expectPixelFilled(59, 59);
@@ -461,7 +461,7 @@ dart_library.library('lib/html/canvasrenderingcontext2d_test', null, /* Imports 
         canvasrenderingcontext2d_test.expectPixelUnfilled(70, 70);
       }, VoidTodynamic()));
       unittest$.test('with 5 params', dart.fn(() => {
-        dart.dsend(canvasrenderingcontext2d_test.context, 'drawImageToRect', canvasrenderingcontext2d_test.otherCanvas, new (RectangleOfnum())(50, 50, 20, 20));
+        dart.dsend(canvasrenderingcontext2d_test.context, 'drawImageToRect', canvasrenderingcontext2d_test.otherCanvas, new (RectangleOfint())(50, 50, 20, 20));
         canvasrenderingcontext2d_test.expectPixelFilled(50, 50);
         canvasrenderingcontext2d_test.expectPixelFilled(55, 55);
         canvasrenderingcontext2d_test.expectPixelFilled(59, 59);
@@ -474,7 +474,7 @@ dart_library.library('lib/html/canvasrenderingcontext2d_test', null, /* Imports 
       unittest$.test('with 9 params', dart.fn(() => {
         dart.dput(canvasrenderingcontext2d_test.otherContext, 'fillStyle', "blue");
         dart.dsend(canvasrenderingcontext2d_test.otherContext, 'fillRect', 5, 5, 5, 5);
-        dart.dsend(canvasrenderingcontext2d_test.context, 'drawImageToRect', canvasrenderingcontext2d_test.otherCanvas, new (RectangleOfnum())(50, 50, 20, 20), {sourceRect: new (RectangleOfnum())(2, 2, 6, 6)});
+        dart.dsend(canvasrenderingcontext2d_test.context, 'drawImageToRect', canvasrenderingcontext2d_test.otherCanvas, new (RectangleOfint())(50, 50, 20, 20), {sourceRect: new (RectangleOfint())(2, 2, 6, 6)});
         canvasrenderingcontext2d_test.checkPixel(canvasrenderingcontext2d_test.readPixel(50, 50), JSArrayOfint().of([255, 0, 0, 255]));
         canvasrenderingcontext2d_test.checkPixel(canvasrenderingcontext2d_test.readPixel(55, 55), JSArrayOfint().of([255, 0, 0, 255]));
         canvasrenderingcontext2d_test.checkPixel(canvasrenderingcontext2d_test.readPixel(60, 50), JSArrayOfint().of([255, 0, 0, 255]));

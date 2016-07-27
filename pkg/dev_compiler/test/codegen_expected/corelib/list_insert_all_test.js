@@ -11,6 +11,7 @@ dart_library.library('corelib/list_insert_all_test', null, /* Imports */[
   const expect$ = expect.expect;
   const list_insert_all_test = Object.create(null);
   let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
+  let IterableOfint = () => (IterableOfint = dart.constFn(core.Iterable$(core.int)))();
   let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.functionType(dart.void, [])))();
   let ListAndintAndIterableTodynamic = () => (ListAndintAndIterableTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.List, core.int, core.Iterable])))();
   let intToint = () => (intToint = dart.constFn(dart.definiteFunctionType(core.int, [core.int])))();
@@ -95,12 +96,12 @@ dart_library.library('corelib/list_insert_all_test', null, /* Imports */[
     list_insert_all_test.test(JSArrayOfint().of([1, 2, 3]), 3, const$2 || (const$2 = dart.constList([4, 5], core.int)));
     list_insert_all_test.test(JSArrayOfint().of([1, 2, 3]), 2, const$3 || (const$3 = dart.constList([4], core.int)));
     list_insert_all_test.test(JSArrayOfint().of([1, 2, 3]), 3, const$4 || (const$4 = dart.constList([], dart.dynamic)));
-    list_insert_all_test.test(JSArrayOfint().of([1, 2, 3]), 0, core.Iterable.generate(2, dart.fn(x => dart.notNull(x) + 4, intToint())));
-    list_insert_all_test.test(JSArrayOfint().of([1, 2, 3]), 1, core.Iterable.generate(2, dart.fn(x => dart.notNull(x) + 4, intToint())));
-    list_insert_all_test.test(JSArrayOfint().of([1, 2, 3]), 2, core.Iterable.generate(2, dart.fn(x => dart.notNull(x) + 4, intToint())));
-    list_insert_all_test.test(JSArrayOfint().of([1, 2, 3]), 3, core.Iterable.generate(2, dart.fn(x => dart.notNull(x) + 4, intToint())));
-    list_insert_all_test.test(JSArrayOfint().of([1, 2, 3]), 2, core.Iterable.generate(1, dart.fn(x => dart.notNull(x) + 4, intToint())));
-    list_insert_all_test.test(JSArrayOfint().of([1, 2, 3]), 3, core.Iterable.generate(0, dart.fn(x => dart.notNull(x) + 4, intToint())));
+    list_insert_all_test.test(JSArrayOfint().of([1, 2, 3]), 0, IterableOfint().generate(2, dart.fn(x => dart.notNull(x) + 4, intToint())));
+    list_insert_all_test.test(JSArrayOfint().of([1, 2, 3]), 1, IterableOfint().generate(2, dart.fn(x => dart.notNull(x) + 4, intToint())));
+    list_insert_all_test.test(JSArrayOfint().of([1, 2, 3]), 2, IterableOfint().generate(2, dart.fn(x => dart.notNull(x) + 4, intToint())));
+    list_insert_all_test.test(JSArrayOfint().of([1, 2, 3]), 3, IterableOfint().generate(2, dart.fn(x => dart.notNull(x) + 4, intToint())));
+    list_insert_all_test.test(JSArrayOfint().of([1, 2, 3]), 2, IterableOfint().generate(1, dart.fn(x => dart.notNull(x) + 4, intToint())));
+    list_insert_all_test.test(JSArrayOfint().of([1, 2, 3]), 3, IterableOfint().generate(0, dart.fn(x => dart.notNull(x) + 4, intToint())));
     list_insert_all_test.test(new list_insert_all_test.MyList(JSArrayOfint().of([1, 2, 3])), 0, JSArrayOfint().of([4, 5]));
     list_insert_all_test.test(new list_insert_all_test.MyList(JSArrayOfint().of([1, 2, 3])), 1, JSArrayOfint().of([4, 5]));
     list_insert_all_test.test(new list_insert_all_test.MyList(JSArrayOfint().of([1, 2, 3])), 2, JSArrayOfint().of([4]));

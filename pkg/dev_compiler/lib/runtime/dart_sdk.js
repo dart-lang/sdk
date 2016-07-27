@@ -37,6 +37,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let MapOfString$int = () => (MapOfString$int = dart.constFn(core.Map$(core.String, core.int)))();
   let ListOfString = () => (ListOfString = dart.constFn(core.List$(core.String)))();
   let JSArrayOfNameValuePair = () => (JSArrayOfNameValuePair = dart.constFn(_interceptors.JSArray$(_debugger.NameValuePair)))();
+  let MapOfdynamic$Object = () => (MapOfdynamic$Object = dart.constFn(core.Map$(dart.dynamic, core.Object)))();
   let JSArrayOfFormatter = () => (JSArrayOfFormatter = dart.constFn(_interceptors.JSArray$(_debugger.Formatter)))();
   let LinkedHashSetOfNameValuePair = () => (LinkedHashSetOfNameValuePair = dart.constFn(collection.LinkedHashSet$(_debugger.NameValuePair)))();
   let SetOfString = () => (SetOfString = dart.constFn(core.Set$(core.String)))();
@@ -308,6 +309,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let _SplayTreeNodeIterator = () => (_SplayTreeNodeIterator = dart.constFn(collection._SplayTreeNodeIterator$()))();
   let SplayTreeSet = () => (SplayTreeSet = dart.constFn(collection.SplayTreeSet$()))();
   let dynamicAnddynamicTodynamic = () => (dynamicAnddynamicTodynamic = dart.constFn(dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])))();
+  let MappedIterableOfString$dynamic = () => (MappedIterableOfString$dynamic = dart.constFn(_internal.MappedIterable$(core.String, dart.dynamic)))();
   let Codec = () => (Codec = dart.constFn(convert.Codec$()))();
   let ComparableOfString = () => (ComparableOfString = dart.constFn(core.Comparable$(core.String)))();
   let List = () => (List = dart.constFn(core.List$()))();
@@ -365,6 +367,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let EventTovoid = () => (EventTovoid = dart.constFn(dart.functionType(dart.void, [html$.Event])))();
   let FutureOfint = () => (FutureOfint = dart.constFn(async.Future$(core.int)))();
   let CompleterOfDatabase = () => (CompleterOfDatabase = dart.constFn(async.Completer$(indexed_db.Database)))();
+  let RectangleOfint = () => (RectangleOfint = dart.constFn(math.Rectangle$(core.int)))();
+  let PointOfint = () => (PointOfint = dart.constFn(math.Point$(core.int)))();
   let _CustomEventStreamProviderOfWheelEvent = () => (_CustomEventStreamProviderOfWheelEvent = dart.constFn(html$._CustomEventStreamProvider$(html$.WheelEvent)))();
   let _CustomEventStreamProviderOfTransitionEvent = () => (_CustomEventStreamProviderOfTransitionEvent = dart.constFn(html$._CustomEventStreamProvider$(html$.TransitionEvent)))();
   let EventStreamProviderOfMouseEvent = () => (EventStreamProviderOfMouseEvent = dart.constFn(html$.EventStreamProvider$(html$.MouseEvent)))();
@@ -437,8 +441,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let EventStreamProviderOfDeviceOrientationEvent = () => (EventStreamProviderOfDeviceOrientationEvent = dart.constFn(html$.EventStreamProvider$(html$.DeviceOrientationEvent)))();
   let EventStreamProviderOfAnimationEvent = () => (EventStreamProviderOfAnimationEvent = dart.constFn(html$.EventStreamProvider$(html$.AnimationEvent)))();
   let StreamControllerOfBeforeUnloadEvent = () => (StreamControllerOfBeforeUnloadEvent = dart.constFn(async.StreamController$(html$.BeforeUnloadEvent)))();
-  let _ElementListEventStreamImplOfEvent = () => (_ElementListEventStreamImplOfEvent = dart.constFn(html$._ElementListEventStreamImpl$(html$.Event)))();
+  let _ElementEventStreamImplOfBeforeUnloadEvent = () => (_ElementEventStreamImplOfBeforeUnloadEvent = dart.constFn(html$._ElementEventStreamImpl$(html$.BeforeUnloadEvent)))();
+  let _ElementListEventStreamImplOfBeforeUnloadEvent = () => (_ElementListEventStreamImplOfBeforeUnloadEvent = dart.constFn(html$._ElementListEventStreamImpl$(html$.BeforeUnloadEvent)))();
   let EventStreamProviderOfBeforeUnloadEvent = () => (EventStreamProviderOfBeforeUnloadEvent = dart.constFn(html$.EventStreamProvider$(html$.BeforeUnloadEvent)))();
+  let PointOfdouble = () => (PointOfdouble = dart.constFn(math.Point$(core.double)))();
   let ListOfRectangleOfnum = () => (ListOfRectangleOfnum = dart.constFn(core.List$(RectangleOfnum())))();
   let ListOfCssRule = () => (ListOfCssRule = dart.constFn(core.List$(html$.CssRule)))();
   let ListOfGamepad = () => (ListOfGamepad = dart.constFn(core.List$(html$.Gamepad)))();
@@ -462,7 +468,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let _CustomEventStreamProvider = () => (_CustomEventStreamProvider = dart.constFn(html$._CustomEventStreamProvider$()))();
   let JSArrayOfKeyEvent = () => (JSArrayOfKeyEvent = dart.constFn(_interceptors.JSArray$(html$.KeyEvent)))();
   let JSArrayOfNodeValidator = () => (JSArrayOfNodeValidator = dart.constFn(_interceptors.JSArray$(html$.NodeValidator)))();
-  let _WrappedIteratorOfNode = () => (_WrappedIteratorOfNode = dart.constFn(html$._WrappedIterator$(html$.Node)))();
   let _WrappedList = () => (_WrappedList = dart.constFn(html$._WrappedList$()))();
   let _WrappedIterator = () => (_WrappedIterator = dart.constFn(html$._WrappedIterator$()))();
   let FixedSizeListIterator = () => (FixedSizeListIterator = dart.constFn(html$.FixedSizeListIterator$()))();
@@ -599,7 +604,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let IterableAndListTovoid = () => (IterableAndListTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.Iterable, core.List])))();
   let _SplayTreeMapNodeTobool = () => (_SplayTreeMapNodeTobool = dart.constFn(dart.definiteFunctionType(core.bool, [collection._SplayTreeMapNode])))();
   let dynamicAndFnTodynamic = () => (dynamicAndFnTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dynamicAnddynamicTodynamic()])))();
-  let EventSinkTo_ConverterStreamEventSink = () => (EventSinkTo_ConverterStreamEventSink = dart.constFn(dart.definiteFunctionType(convert._ConverterStreamEventSink, [async.EventSink])))();
   let Uint8ListAndintAndintTovoid = () => (Uint8ListAndintAndintTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [typed_data.Uint8List, core.int, core.int])))();
   let StringAndFnTodynamic = () => (StringAndFnTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.String, dynamicAnddynamicTodynamic()])))();
   let EventSinkOfStringTo_LineSplitterEventSink = () => (EventSinkOfStringTo_LineSplitterEventSink = dart.constFn(dart.definiteFunctionType(convert._LineSplitterEventSink, [EventSinkOfString()])))();
@@ -2553,7 +2557,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.lazyFn(_debugger.safeGetProperty, () => ObjectAndStringToObject());
   _debugger.safeProperties = function(object) {
-    return core.Map.fromIterable(_debugger.getOwnPropertyNames(object)[dartx.where](dart.fn(each => _debugger.safeGetProperty(object, each) != null, StringTobool())), {key: dart.fn(name => name, dynamicTodynamic$()), value: dart.fn(name => _debugger.safeGetProperty(object, core.String._check(name)), dynamicToObject())});
+    return MapOfdynamic$Object().fromIterable(_debugger.getOwnPropertyNames(object)[dartx.where](dart.fn(each => _debugger.safeGetProperty(object, each) != null, StringTobool())), {key: dart.fn(name => name, dynamicTodynamic$()), value: dart.fn(name => _debugger.safeGetProperty(object, core.String._check(name)), dynamicToObject())});
   };
   dart.fn(_debugger.safeProperties, dynamicTodynamic$());
   const _attributes = Symbol('_attributes');
@@ -25864,7 +25868,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get values() {
       if (dart.test(this[_isUpgraded])) return this[_upgradedMap][dartx.values];
-      return _internal.MappedIterable.new(this[_computeKeys$](), dart.fn(each => this.get(each), dynamicTodynamic$()));
+      return MappedIterableOfString$dynamic().new(this[_computeKeys$](), dart.fn(each => this.get(each), dynamicTodynamic$()));
     }
     set(key, value) {
       if (dart.test(this[_isUpgraded])) {
@@ -26398,9 +26402,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _subsetMask = Symbol('_subsetMask');
   convert.Converter$ = dart.generic((S, T) => {
     let StreamOfS = () => (StreamOfS = dart.constFn(async.Stream$(S)))();
+    let _ConverterStreamEventSinkOfS$dynamic = () => (_ConverterStreamEventSinkOfS$dynamic = dart.constFn(convert._ConverterStreamEventSink$(S, dart.dynamic)))();
     let StreamTransformerOfS$T = () => (StreamTransformerOfS$T = dart.constFn(async.StreamTransformer$(S, T)))();
     let SinkOfT = () => (SinkOfT = dart.constFn(core.Sink$(T)))();
     let StreamOfT = () => (StreamOfT = dart.constFn(async.Stream$(T)))();
+    let EventSinkTo_ConverterStreamEventSinkOfS$dynamic = () => (EventSinkTo_ConverterStreamEventSinkOfS$dynamic = dart.constFn(dart.definiteFunctionType(_ConverterStreamEventSinkOfS$dynamic(), [async.EventSink])))();
     class Converter extends core.Object {
       new() {
       }
@@ -26416,7 +26422,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       bind(stream) {
         StreamOfS()._check(stream);
-        return StreamOfT().eventTransformed(stream, dart.fn(sink => new convert._ConverterStreamEventSink(this, sink), EventSinkTo_ConverterStreamEventSink()));
+        return StreamOfT().eventTransformed(stream, dart.fn(sink => new (_ConverterStreamEventSinkOfS$dynamic())(this, sink), EventSinkTo_ConverterStreamEventSinkOfS$dynamic()));
       }
     }
     dart.addTypeTests(Converter);
@@ -36739,10 +36745,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.window[_getComputedStyle](this, pseudoElement);
     }
     get [dartx.client]() {
-      return new (RectangleOfnum())(this[dartx.clientLeft], this[dartx.clientTop], this[dartx.clientWidth], this[dartx.clientHeight]);
+      return new (RectangleOfint())(this[dartx.clientLeft], this[dartx.clientTop], this[dartx.clientWidth], this[dartx.clientHeight]);
     }
     get [dartx.offset]() {
-      return new (RectangleOfnum())(this[dartx.offsetLeft], this[dartx.offsetTop], this[dartx.offsetWidth], this[dartx.offsetHeight]);
+      return new (RectangleOfint())(this[dartx.offsetLeft], this[dartx.offsetTop], this[dartx.offsetWidth], this[dartx.offsetHeight]);
     }
     [dartx.appendText](text) {
       this[dartx.append](html$.Text.new(text));
@@ -36945,7 +36951,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let sameAsParent = core.identical(current, parent);
       let foundAsParent = sameAsParent || parent[dartx.tagName] == 'HTML';
       if (current == null || sameAsParent) {
-        if (foundAsParent) return new (PointOfnum())(0, 0);
+        if (foundAsParent) return new (PointOfint())(0, 0);
         dart.throw(new core.ArgumentError("Specified element is not a transitive offset " + "parent of this element."));
       }
       let parentOffset = current[dartx.offsetParent];
@@ -58105,33 +58111,33 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.initMouseEvent(type, bubbles, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
     }
     get [dartx.client]() {
-      return new (PointOfnum())(this[_clientX], this[_clientY]);
+      return new (PointOfint())(this[_clientX], this[_clientY]);
     }
     get [dartx.movement]() {
-      return new (PointOfnum())(this[_webkitMovementX], this[_webkitMovementY]);
+      return new (PointOfint())(this[_webkitMovementX], this[_webkitMovementY]);
     }
     get [dartx.offset]() {
       if (!!this.offsetX) {
         let x = this.offsetX;
         let y = this.offsetY;
-        return new (PointOfnum())(x, y);
+        return new (PointOfint())(x, y);
       } else {
         if (!html$.Element.is(this[dartx.target])) {
           dart.throw(new core.UnsupportedError('offsetX is only supported on elements'));
         }
         let target = html$.Element._check(this[dartx.target]);
         let point = this[dartx.client]['-'](target[dartx.getBoundingClientRect]()[dartx.topLeft]);
-        return new (PointOfnum())(point.x[dartx.toInt](), point.y[dartx.toInt]());
+        return new (PointOfint())(point.x[dartx.toInt](), point.y[dartx.toInt]());
       }
     }
     get [dartx.screen]() {
-      return new (PointOfnum())(this[_screenX], this[_screenY]);
+      return new (PointOfint())(this[_screenX], this[_screenY]);
     }
     get [dartx.layer]() {
-      return new (PointOfnum())(this[_layerX], this[_layerY]);
+      return new (PointOfint())(this[_layerX], this[_layerY]);
     }
     get [dartx.page]() {
-      return new (PointOfnum())(this[_pageX], this[_pageY]);
+      return new (PointOfint())(this[_pageX], this[_pageY]);
     }
   };
   dart.setSignature(html$.MouseEvent, {
@@ -62157,7 +62163,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   ]);
   html$.Screen = class Screen extends _interceptors.Interceptor {
     get [dartx.available]() {
-      return new (RectangleOfnum())(this[_availLeft], this[_availTop], this[_availWidth], this[_availHeight]);
+      return new (RectangleOfint())(this[_availLeft], this[_availTop], this[_availWidth], this[_availHeight]);
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -66026,13 +66032,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.radiusY[dartx.round]();
     }
     get [dartx.client]() {
-      return new (PointOfnum())(this[__clientX], this[__clientY]);
+      return new (PointOfint())(this[__clientX], this[__clientY]);
     }
     get [dartx.page]() {
-      return new (PointOfnum())(this[__pageX], this[__pageY]);
+      return new (PointOfint())(this[__pageX], this[__pageY]);
     }
     get [dartx.screen]() {
-      return new (PointOfnum())(this[__screenX], this[__screenY]);
+      return new (PointOfint())(this[__screenX], this[__screenY]);
     }
     get [dartx.radiusX]() {
       return this[__radiusX];
@@ -68721,11 +68727,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     forElement(e, opts) {
       let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-      return new (_ElementEventStreamImplOfEvent())(e, this[_eventType], useCapture);
+      return new (_ElementEventStreamImplOfBeforeUnloadEvent())(e, this[_eventType], useCapture);
     }
     [_forElementList](e, opts) {
       let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-      return new (_ElementListEventStreamImplOfEvent())(e, this[_eventType], useCapture);
+      return new (_ElementListEventStreamImplOfBeforeUnloadEvent())(e, this[_eventType], useCapture);
     }
   };
   html$._BeforeUnloadEventStreamProvider[dart.implements] = () => [EventStreamProviderOfBeforeUnloadEvent()];
@@ -69320,16 +69326,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.notNull(another.x) >= dart.notNull(this[dartx.left]) && dart.notNull(another.x) <= dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]) && dart.notNull(another.y) >= dart.notNull(this[dartx.top]) && dart.notNull(another.y) <= dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]);
     }
     get [dartx.topLeft]() {
-      return new (PointOfnum())(this[dartx.left], this[dartx.top]);
+      return new (PointOfdouble())(this[dartx.left], this[dartx.top]);
     }
     get [dartx.topRight]() {
-      return new (PointOfnum())(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), this[dartx.top]);
+      return new (PointOfdouble())(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), this[dartx.top]);
     }
     get [dartx.bottomRight]() {
-      return new (PointOfnum())(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]));
+      return new (PointOfdouble())(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]));
     }
     get [dartx.bottomLeft]() {
-      return new (PointOfnum())(this[dartx.left], dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]));
+      return new (PointOfdouble())(this[dartx.left], dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]));
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -71460,6 +71466,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.EventStreamProvider$ = dart.generic(T => {
     let _EventStreamOfT = () => (_EventStreamOfT = dart.constFn(html$._EventStream$(T)))();
     let _ElementEventStreamImplOfT = () => (_ElementEventStreamImplOfT = dart.constFn(html$._ElementEventStreamImpl$(T)))();
+    let _ElementListEventStreamImplOfT = () => (_ElementListEventStreamImplOfT = dart.constFn(html$._ElementListEventStreamImpl$(T)))();
     class EventStreamProvider extends core.Object {
       new(eventType) {
         this[_eventType] = eventType;
@@ -71474,7 +71481,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [_forElementList](e, opts) {
         let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-        return new (_ElementListEventStreamImplOfEvent())(e, this[_eventType], useCapture);
+        return new (_ElementListEventStreamImplOfT())(e, this[_eventType], useCapture);
       }
       getEventType(target) {
         return this[_eventType];
@@ -73186,13 +73193,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.ReadyState.COMPLETE = "complete";
   const _list$ = Symbol('_list');
   html$._WrappedList$ = dart.generic(E => {
+    let _WrappedIteratorOfE = () => (_WrappedIteratorOfE = dart.constFn(html$._WrappedIterator$(E)))();
     let IterableOfE = () => (IterableOfE = dart.constFn(core.Iterable$(E)))();
     class _WrappedList extends collection.ListBase$(E) {
       new(list) {
         this[_list$] = list;
       }
       get iterator() {
-        return new (_WrappedIteratorOfNode())(this[_list$][dartx.iterator]);
+        return new (_WrappedIteratorOfE())(this[_list$][dartx.iterator]);
       }
       get length() {
         return this[_list$][dartx.length];

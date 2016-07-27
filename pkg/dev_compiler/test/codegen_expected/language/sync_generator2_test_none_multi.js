@@ -10,6 +10,7 @@ dart_library.library('language/sync_generator2_test_none_multi', null, /* Import
   const dartx = dart_sdk.dartx;
   const expect$ = expect.expect;
   const sync_generator2_test_none_multi = Object.create(null);
+  let StreamOfint = () => (StreamOfint = dart.constFn(async.Stream$(core.int)))();
   let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   sync_generator2_test_none_multi.sync = "topLevelSync";
@@ -19,7 +20,7 @@ dart_library.library('language/sync_generator2_test_none_multi', null, /* Import
   sync_generator2_test_none_multi.test01 = function() {
     return dart.syncStar(function*() {
       let x1 = sync_generator2_test_none_multi.sync;
-      let stream = async.Stream.fromIterable(JSArrayOfint().of([1, 2, 3]));
+      let stream = StreamOfint().fromIterable(JSArrayOfint().of([1, 2, 3]));
     }, dart.dynamic);
   };
   dart.fn(sync_generator2_test_none_multi.test01, VoidTodynamic());

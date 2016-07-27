@@ -9,6 +9,7 @@ dart_library.library('corelib/collection_test', null, /* Imports */[
   const dartx = dart_sdk.dartx;
   const expect$ = expect.expect;
   const collection_test = Object.create(null);
+  let SetOfint = () => (SetOfint = dart.constFn(core.Set$(core.int)))();
   let dynamicAnddynamicTodynamic = () => (dynamicAnddynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   collection_test.CollectionTest = class CollectionTest extends core.Object {
@@ -34,7 +35,7 @@ dart_library.library('corelib/collection_test', null, /* Imports */[
     }
     new collection_test.CollectionTest(fixedList);
     new collection_test.CollectionTest(core.List.from(TEST_ELEMENTS));
-    new collection_test.CollectionTest(core.Set.from(TEST_ELEMENTS));
+    new collection_test.CollectionTest(SetOfint().from(TEST_ELEMENTS));
     new collection_test.CollectionTest(collection.Queue.from(TEST_ELEMENTS));
   };
   dart.fn(collection_test.main, VoidTodynamic());

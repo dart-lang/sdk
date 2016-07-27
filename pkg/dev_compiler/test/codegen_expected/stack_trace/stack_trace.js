@@ -6,11 +6,11 @@ dart_library.library('stack_trace', null, /* Imports */[
   const core = dart_sdk.core;
   const async = dart_sdk.async;
   const _interceptors = dart_sdk._interceptors;
-  const collection = dart_sdk.collection;
   const math = dart_sdk.math;
   const dart = dart_sdk.dart;
   const dartx = dart_sdk.dartx;
   const path$ = path.path;
+  const src__style = path.src__style;
   const src__chain = Object.create(null);
   const src__frame = Object.create(null);
   const src__lazy_trace = Object.create(null);
@@ -21,13 +21,14 @@ dart_library.library('stack_trace', null, /* Imports */[
   const src__vm_trace = Object.create(null);
   const stack_trace = Object.create(null);
   let JSArrayOfTrace = () => (JSArrayOfTrace = dart.constFn(_interceptors.JSArray$(src__trace.Trace)))();
-  let UnmodifiableListViewOfTrace = () => (UnmodifiableListViewOfTrace = dart.constFn(collection.UnmodifiableListView$(src__trace.Trace)))();
+  let ListOfTrace = () => (ListOfTrace = dart.constFn(core.List$(src__trace.Trace)))();
   let ListOfFrame = () => (ListOfFrame = dart.constFn(core.List$(src__frame.Frame)))();
   let dynamicAndChainTovoid = () => (dynamicAndChainTovoid = dart.constFn(dart.functionType(dart.void, [dart.dynamic, src__chain.Chain])))();
+  let ListOfString = () => (ListOfString = dart.constFn(core.List$(core.String)))();
   let ExpandoOf_Node = () => (ExpandoOf_Node = dart.constFn(core.Expando$(src__stack_zone_specification._Node)))();
   let JSArrayOfFrame = () => (JSArrayOfFrame = dart.constFn(_interceptors.JSArray$(src__frame.Frame)))();
-  let UnmodifiableListViewOfFrame = () => (UnmodifiableListViewOfFrame = dart.constFn(collection.UnmodifiableListView$(src__frame.Frame)))();
   let dynamicAnddynamicTodynamic = () => (dynamicAnddynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic])))();
+  let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   let StringToTrace = () => (StringToTrace = dart.constFn(dart.definiteFunctionType(src__trace.Trace, [core.String])))();
   let FrameTobool = () => (FrameTobool = dart.constFn(dart.definiteFunctionType(core.bool, [src__frame.Frame])))();
   let TraceToTrace = () => (TraceToTrace = dart.constFn(dart.definiteFunctionType(src__trace.Trace, [src__trace.Trace])))();
@@ -40,7 +41,6 @@ dart_library.library('stack_trace', null, /* Imports */[
   let VoidToFrame = () => (VoidToFrame = dart.constFn(dart.definiteFunctionType(src__frame.Frame, [])))();
   let VoidToTrace = () => (VoidToTrace = dart.constFn(dart.definiteFunctionType(src__trace.Trace, [])))();
   let ObjectAndStackTraceAndEventSinkTovoid = () => (ObjectAndStackTraceAndEventSinkTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.Object, core.StackTrace, async.EventSink])))();
-  let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   let dynamicTodynamic = () => (dynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic])))();
   let StringToFrame = () => (StringToFrame = dart.constFn(dart.definiteFunctionType(src__frame.Frame, [core.String])))();
   let StringTobool = () => (StringTobool = dart.constFn(dart.definiteFunctionType(core.bool, [core.String])))();
@@ -68,15 +68,15 @@ dart_library.library('stack_trace', null, /* Imports */[
           return async.runZoned(T)(callback, {onError: core.Function._check(newOnError)});
         }
         let spec = new src__stack_zone_specification.StackZoneSpecification(onError);
-        return async.runZoned(T)(dart.fn(() => {
+        return T.as(async.runZoned(dart.dynamic)(dart.fn(() => {
           try {
             return callback();
           } catch (error) {
             let stackTrace = dart.stackTrace(error);
-            return async.Zone.current.handleUncaughtError(T)(error, stackTrace);
+            return async.Zone.current.handleUncaughtError(dart.dynamic)(error, stackTrace);
           }
 
-        }, dart.definiteFunctionType(T, [])), {zoneSpecification: spec.toSpec(), zoneValues: dart.map([const$0 || (const$0 = dart.const(core.Symbol.new('stack_trace.stack_zone.spec'))), spec])});
+        }, VoidTodynamic()), {zoneSpecification: spec.toSpec(), zoneValues: dart.map([const$0 || (const$0 = dart.const(core.Symbol.new('stack_trace.stack_zone.spec'))), spec])}));
       };
     }
     static track(futureOrStream) {
@@ -98,7 +98,7 @@ dart_library.library('stack_trace', null, /* Imports */[
       return new src__chain.Chain(chain[dartx.split](src__utils.chainGap)[dartx.map](src__trace.Trace)(dart.fn(trace => new src__trace.Trace.parseFriendly(trace), StringToTrace())));
     }
     new(traces) {
-      this.traces = new (UnmodifiableListViewOfTrace())(traces[dartx.toList]());
+      this.traces = ListOfTrace().unmodifiable(traces);
     }
     get terse() {
       return this.foldFrames(dart.fn(_ => false, FrameTobool()), {terse: true});
@@ -261,7 +261,7 @@ dart_library.library('stack_trace', null, /* Imports */[
         let member = null;
         if (match.get(1) != null) {
           member = match.get(1);
-          member = dart.dsend(member, '+', core.List.filled('/'[dartx.allMatches](match.get(2))[dartx.length], ".<fn>")[dartx.join]());
+          member = dart.dsend(member, '+', ListOfString().filled('/'[dartx.allMatches](match.get(2))[dartx.length], ".<fn>")[dartx.join]());
           if (dart.equals(member, '')) member = '<fn>';
           member = dart.dsend(member, 'replaceFirst', src__frame._initialDot, '');
         } else {
@@ -578,7 +578,7 @@ dart_library.library('stack_trace', null, /* Imports */[
         dart.throw(new core.ArgumentError("Argument [level] must be greater than or equal " + "to 0."));
       }
       let trace = src__trace.Trace.from(core.StackTrace.current);
-      return new src__lazy_trace.LazyTrace(dart.fn(() => new src__trace.Trace(trace.frames[dartx.skip](dart.notNull(level) + 1)), VoidToTrace()));
+      return new src__lazy_trace.LazyTrace(dart.fn(() => new src__trace.Trace(trace.frames[dartx.skip](dart.notNull(level) + (dart.test(src__utils.inJS) ? 2 : 1))), VoidToTrace()));
     }
     static from(trace) {
       if (trace == null) {
@@ -645,7 +645,7 @@ dart_library.library('stack_trace', null, /* Imports */[
       Trace.prototype.new.call(this, dart.test(trace[dartx.isEmpty]) ? JSArrayOfFrame().of([]) : trace[dartx.trim]()[dartx.split]("\n")[dartx.where](dart.fn(line => !dart.test(line[dartx.startsWith]('=====')), StringTobool()))[dartx.map](src__frame.Frame)(dart.fn(line => src__frame.Frame.parseFriendly(line), StringToFrame())));
     }
     new(frames) {
-      this.frames = new (UnmodifiableListViewOfFrame())(frames[dartx.toList]());
+      this.frames = ListOfFrame().unmodifiable(frames);
     }
     get vmTrace() {
       return new src__vm_trace.VMTrace(this.frames);
@@ -744,6 +744,11 @@ dart_library.library('stack_trace', null, /* Imports */[
     constructors: () => ({new: dart.definiteFunctionType(src__unparsed_frame.UnparsedFrame, [core.String])})
   });
   src__utils.chainGap = '===== asynchronous gap ===========================\n';
+  dart.defineLazy(src__utils, {
+    get inJS() {
+      return dart.equals(path$.style, src__style.Style.url);
+    }
+  });
   src__utils.padRight = function(string, length) {
     if (dart.notNull(string[dartx.length]) >= dart.notNull(length)) return string;
     let result = new core.StringBuffer();

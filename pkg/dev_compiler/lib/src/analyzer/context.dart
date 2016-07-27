@@ -3,6 +3,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/file_system/file_system.dart' show ResourceUriResolver;
+import 'package:analyzer/file_system/physical_file_system.dart'
+    show PhysicalResourceProvider;
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/generated/engine.dart'
@@ -13,7 +16,6 @@ import 'package:analyzer/src/generated/source_io.dart'
     show
         CustomUriResolver,
         DartUriResolver,
-        FileUriResolver,
         PackageUriResolver,
         SourceFactory,
         UriResolver;
@@ -26,7 +28,6 @@ import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:path/path.dart' as path;
 
-import 'dart_sdk.dart' show MockDartSdk, mockSdkSources;
 import 'multi_package_resolver.dart' show MultiPackageResolver;
 
 /// Options used to set up Source URI resolution in the analysis context.
@@ -43,9 +44,6 @@ class AnalyzerOptions {
   /// List of paths used for the multi-package resolver.
   final List<String> packagePaths;
 
-  /// Whether to use a mock-sdk during compilation.
-  final bool useMockSdk;
-
   /// Path to the dart-sdk. Null if `useMockSdk` is true or if the path couldn't
   /// be determined
   final String dartSdkPath;
@@ -56,7 +54,6 @@ class AnalyzerOptions {
 
   AnalyzerOptions(
       {this.summaryPaths: const [],
-      this.useMockSdk: false,
       String dartSdkPath,
       this.dartSdkSummaryPath,
       this.customUrlMappings: const {},
@@ -66,7 +63,6 @@ class AnalyzerOptions {
 
   AnalyzerOptions.fromArguments(ArgResults args)
       : summaryPaths = args['summary'] as List<String>,
-        useMockSdk = false,
         dartSdkPath = args['dart-sdk'] ?? getSdkDir().path,
         dartSdkSummaryPath = args['dart-sdk-summary'],
         customUrlMappings = _parseUrlMappings(args['url-mapping']),
@@ -114,9 +110,8 @@ AnalysisContext createAnalysisContextWithSources(AnalyzerOptions options,
     {DartUriResolver sdkResolver, List<UriResolver> fileResolvers}) {
   AnalysisEngine.instance.processRequiredPlugins();
 
-  sdkResolver ??= options.useMockSdk
-      ? createMockSdkResolver(mockSdkSources)
-      : createSdkPathResolver(options.dartSdkSummaryPath, options.dartSdkPath);
+  sdkResolver ??=
+      createSdkPathResolver(options.dartSdkSummaryPath, options.dartSdkPath);
 
   // Read the summaries.
   SummaryDataStore summaryData;
@@ -175,16 +170,12 @@ SourceFactory _createSourceFactory(AnalyzerOptions options,
 
 List<UriResolver> createFileResolvers(AnalyzerOptions options) {
   return [
-    new FileUriResolver(),
+    new ResourceUriResolver(PhysicalResourceProvider.INSTANCE),
     options.useMultiPackage
         ? new MultiPackageResolver(options.packagePaths)
         : new PackageUriResolver([new JavaFile(options.packageRoot)])
   ];
 }
-
-/// Creates a [DartUriResolver] that uses a mock 'dart:' library contents.
-DartUriResolver createMockSdkResolver(Map<String, String> mockSources) =>
-    new MockDartSdk(mockSources, reportMissing: true).resolver;
 
 DirectoryBasedDartSdk _createDirectoryBasedDartSdk(String sdkPath) {
   var sdk = new DirectoryBasedDartSdk(

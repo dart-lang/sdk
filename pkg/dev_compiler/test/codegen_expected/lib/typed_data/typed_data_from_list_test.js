@@ -9,12 +9,12 @@ dart_library.library('lib/typed_data/typed_data_from_list_test', null, /* Import
   const dart = dart_sdk.dart;
   const dartx = dart_sdk.dartx;
   const typed_data_from_list_test = Object.create(null);
+  let UnmodifiableListViewOfint = () => (UnmodifiableListViewOfint = dart.constFn(collection.UnmodifiableListView$(core.int)))();
   let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
-  let ListOfint = () => (ListOfint = dart.constFn(core.List$(core.int)))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   typed_data_from_list_test.main = function() {
-    let list = new collection.UnmodifiableListView(JSArrayOfint().of([1, 2]));
-    let typed = typed_data.Uint8List.fromList(ListOfint()._check(list));
+    let list = new (UnmodifiableListViewOfint())(JSArrayOfint().of([1, 2]));
+    let typed = typed_data.Uint8List.fromList(list);
     if (typed[dartx.get](0) != 1 || typed[dartx.get](1) != 2 || typed[dartx.length] != 2) {
       dart.throw('Test failed');
     }

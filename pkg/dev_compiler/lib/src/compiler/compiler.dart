@@ -362,5 +362,5 @@ final missingPartErrorCode = const CompileTimeErrorCode(
     'MISSING_PART', 'The part was not supplied as an input to the compiler.');
 
 /// (Public for tests) the error code used when a part is unused.
-final unusedPartWarningCode = const StaticWarningCode(
-    'UNUSED_PART', 'The part was not used by any libraries being compiled.');
+final unusedPartWarningCode = const StaticWarningCode('UNUSED_PART',
+    'The part was not used by any libraries being compiled.', null, false);

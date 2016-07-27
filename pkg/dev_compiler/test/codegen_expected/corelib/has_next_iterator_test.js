@@ -10,6 +10,7 @@ dart_library.library('corelib/has_next_iterator_test', null, /* Imports */[
   const dartx = dart_sdk.dartx;
   const expect$ = expect.expect;
   const has_next_iterator_test = Object.create(null);
+  let HasNextIteratorOfint = () => (HasNextIteratorOfint = dart.constFn(collection.HasNextIterator$(core.int)))();
   let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
   let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();
   let dynamicTobool = () => (dynamicTobool = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic])))();
@@ -20,7 +21,7 @@ dart_library.library('corelib/has_next_iterator_test', null, /* Imports */[
     expect$.Expect.isFalse(it.hasNext);
     expect$.Expect.throws(dart.fn(() => it.next(), VoidTovoid()), dart.fn(e => core.StateError.is(e), dynamicTobool()));
     expect$.Expect.isFalse(it.hasNext);
-    it = new collection.HasNextIterator(JSArrayOfint().of([1])[dartx.iterator]);
+    it = new (HasNextIteratorOfint())(JSArrayOfint().of([1])[dartx.iterator]);
     expect$.Expect.isTrue(it.hasNext);
     expect$.Expect.isTrue(it.hasNext);
     expect$.Expect.equals(1, it.next());
@@ -28,7 +29,7 @@ dart_library.library('corelib/has_next_iterator_test', null, /* Imports */[
     expect$.Expect.isFalse(it.hasNext);
     expect$.Expect.throws(dart.fn(() => it.next(), VoidTovoid()), dart.fn(e => core.StateError.is(e), dynamicTobool()));
     expect$.Expect.isFalse(it.hasNext);
-    it = new collection.HasNextIterator(JSArrayOfint().of([1, 2])[dartx.iterator]);
+    it = new (HasNextIteratorOfint())(JSArrayOfint().of([1, 2])[dartx.iterator]);
     expect$.Expect.isTrue(it.hasNext);
     expect$.Expect.isTrue(it.hasNext);
     expect$.Expect.equals(1, it.next());

@@ -10,15 +10,16 @@ dart_library.library('corelib/linked_hash_map_from_iterables_test', null, /* Imp
   const dartx = dart_sdk.dartx;
   const expect$ = expect.expect;
   const linked_hash_map_from_iterables_test = Object.create(null);
+  let LinkedHashMapOfint$String = () => (LinkedHashMapOfint$String = dart.constFn(collection.LinkedHashMap$(core.int, core.String)))();
   let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
   let JSArrayOfString = () => (JSArrayOfString = dart.constFn(_interceptors.JSArray$(core.String)))();
-  let LinkedHashMapOfint$String = () => (LinkedHashMapOfint$String = dart.constFn(collection.LinkedHashMap$(core.int, core.String)))();
+  let LinkedHashMapOfint$int = () => (LinkedHashMapOfint$int = dart.constFn(collection.LinkedHashMap$(core.int, core.int)))();
   let MapOfint$String = () => (MapOfint$String = dart.constFn(core.Map$(core.int, core.String)))();
   let LinkedHashMapOfString$dynamic = () => (LinkedHashMapOfString$dynamic = dart.constFn(collection.LinkedHashMap$(core.String, dart.dynamic)))();
   let LinkedHashMapOfdynamic$int = () => (LinkedHashMapOfdynamic$int = dart.constFn(collection.LinkedHashMap$(dart.dynamic, core.int)))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();
-  let VoidToLinkedHashMap = () => (VoidToLinkedHashMap = dart.constFn(dart.definiteFunctionType(collection.LinkedHashMap, [])))();
+  let VoidToLinkedHashMapOfint$int = () => (VoidToLinkedHashMapOfint$int = dart.constFn(dart.definiteFunctionType(LinkedHashMapOfint$int(), [])))();
   linked_hash_map_from_iterables_test.main = function() {
     linked_hash_map_from_iterables_test.positiveTest();
     linked_hash_map_from_iterables_test.emptyMapTest();
@@ -29,7 +30,7 @@ dart_library.library('corelib/linked_hash_map_from_iterables_test', null, /* Imp
   };
   dart.fn(linked_hash_map_from_iterables_test.main, VoidTodynamic());
   linked_hash_map_from_iterables_test.positiveTest = function() {
-    let map = collection.LinkedHashMap.fromIterables(JSArrayOfint().of([1, 2, 3]), JSArrayOfString().of(["one", "two", "three"]));
+    let map = LinkedHashMapOfint$String().fromIterables(JSArrayOfint().of([1, 2, 3]), JSArrayOfString().of(["one", "two", "three"]));
     expect$.Expect.isTrue(core.Map.is(map));
     expect$.Expect.isTrue(collection.LinkedHashMap.is(map));
     expect$.Expect.equals(3, map.length);
@@ -50,15 +51,15 @@ dart_library.library('corelib/linked_hash_map_from_iterables_test', null, /* Imp
   };
   dart.fn(linked_hash_map_from_iterables_test.emptyMapTest, VoidTovoid());
   linked_hash_map_from_iterables_test.fewerValuesIterableTest = function() {
-    expect$.Expect.throws(dart.fn(() => collection.LinkedHashMap.fromIterables(JSArrayOfint().of([1, 2]), JSArrayOfint().of([0])), VoidToLinkedHashMap()));
+    expect$.Expect.throws(dart.fn(() => LinkedHashMapOfint$int().fromIterables(JSArrayOfint().of([1, 2]), JSArrayOfint().of([0])), VoidToLinkedHashMapOfint$int()));
   };
   dart.fn(linked_hash_map_from_iterables_test.fewerValuesIterableTest, VoidTovoid());
   linked_hash_map_from_iterables_test.fewerKeysIterableTest = function() {
-    expect$.Expect.throws(dart.fn(() => collection.LinkedHashMap.fromIterables(JSArrayOfint().of([1]), JSArrayOfint().of([0, 2])), VoidToLinkedHashMap()));
+    expect$.Expect.throws(dart.fn(() => LinkedHashMapOfint$int().fromIterables(JSArrayOfint().of([1]), JSArrayOfint().of([0, 2])), VoidToLinkedHashMapOfint$int()));
   };
   dart.fn(linked_hash_map_from_iterables_test.fewerKeysIterableTest, VoidTovoid());
   linked_hash_map_from_iterables_test.equalElementsTest = function() {
-    let map = collection.LinkedHashMap.fromIterables(JSArrayOfint().of([1, 2, 2]), JSArrayOfString().of(["one", "two", "three"]));
+    let map = LinkedHashMapOfint$String().fromIterables(JSArrayOfint().of([1, 2, 2]), JSArrayOfString().of(["one", "two", "three"]));
     expect$.Expect.isTrue(core.Map.is(map));
     expect$.Expect.isTrue(collection.LinkedHashMap.is(map));
     expect$.Expect.equals(2, map.length);

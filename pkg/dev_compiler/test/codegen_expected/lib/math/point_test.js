@@ -11,13 +11,13 @@ dart_library.library('lib/math/point_test', null, /* Imports */[
   const src__matcher__expect = unittest.src__matcher__expect;
   const src__matcher__core_matchers = unittest.src__matcher__core_matchers;
   const point_test = Object.create(null);
-  let PointOfnum = () => (PointOfnum = dart.constFn(math.Point$(core.num)))();
   let PointOfint = () => (PointOfint = dart.constFn(math.Point$(core.int)))();
   let PointOfdouble = () => (PointOfdouble = dart.constFn(math.Point$(core.double)))();
+  let PointOfnum = () => (PointOfnum = dart.constFn(math.Point$(core.num)))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   point_test.main = function() {
     unittest$.test('constructor', dart.fn(() => {
-      let point = new (PointOfnum())(0, 0);
+      let point = new (PointOfint())(0, 0);
       src__matcher__expect.expect(point.x, 0);
       src__matcher__expect.expect(point.y, 0);
       src__matcher__expect.expect(dart.str`${point}`, 'Point(0, 0)');
@@ -47,40 +47,40 @@ dart_library.library('lib/math/point_test', null, /* Imports */[
       src__matcher__expect.expect(dart.str`${point}`, 'Point(NaN, 1000)');
     }, VoidTodynamic()));
     unittest$.test('squaredDistanceTo', dart.fn(() => {
-      let a = new (PointOfnum())(7, 11);
-      let b = new (PointOfnum())(3, -1);
+      let a = new (PointOfint())(7, 11);
+      let b = new (PointOfint())(3, -1);
       src__matcher__expect.expect(a.squaredDistanceTo(b), 160);
       src__matcher__expect.expect(b.squaredDistanceTo(a), 160);
     }, VoidTodynamic()));
     unittest$.test('distanceTo', dart.fn(() => {
-      let a = new (PointOfnum())(-2, -3);
-      let b = new (PointOfnum())(2, 0);
+      let a = new (PointOfint())(-2, -3);
+      let b = new (PointOfint())(2, 0);
       src__matcher__expect.expect(a.distanceTo(b), 5);
       src__matcher__expect.expect(b.distanceTo(a), 5);
     }, VoidTodynamic()));
     unittest$.test('subtract', dart.fn(() => {
-      let a = new (PointOfnum())(5, 10);
-      let b = new (PointOfnum())(2, 50);
-      src__matcher__expect.expect(a['-'](b), new (PointOfnum())(3, -40));
+      let a = new (PointOfint())(5, 10);
+      let b = new (PointOfint())(2, 50);
+      src__matcher__expect.expect(a['-'](b), new (PointOfint())(3, -40));
     }, VoidTodynamic()));
     unittest$.test('add', dart.fn(() => {
-      let a = new (PointOfnum())(5, 10);
-      let b = new (PointOfnum())(2, 50);
-      src__matcher__expect.expect(a['+'](b), new (PointOfnum())(7, 60));
+      let a = new (PointOfint())(5, 10);
+      let b = new (PointOfint())(2, 50);
+      src__matcher__expect.expect(a['+'](b), new (PointOfint())(7, 60));
     }, VoidTodynamic()));
     unittest$.test('hashCode', dart.fn(() => {
-      let a = new (PointOfnum())(0, 1);
-      let b = new (PointOfnum())(0, 1);
+      let a = new (PointOfint())(0, 1);
+      let b = new (PointOfint())(0, 1);
       src__matcher__expect.expect(a.hashCode, b.hashCode);
-      let c = new (PointOfnum())(1, 0);
+      let c = new (PointOfint())(1, 0);
       src__matcher__expect.expect(a.hashCode == c.hashCode, src__matcher__core_matchers.isFalse);
     }, VoidTodynamic()));
     unittest$.test('magnitute', dart.fn(() => {
-      let a = new (PointOfnum())(5, 10);
-      let b = new (PointOfnum())(0, 0);
+      let a = new (PointOfint())(5, 10);
+      let b = new (PointOfint())(0, 0);
       src__matcher__expect.expect(a.magnitude, a.distanceTo(b));
       src__matcher__expect.expect(b.magnitude, 0);
-      let c = new (PointOfnum())(-5, -10);
+      let c = new (PointOfint())(-5, -10);
       src__matcher__expect.expect(c.magnitude, a.distanceTo(b));
     }, VoidTodynamic()));
   };

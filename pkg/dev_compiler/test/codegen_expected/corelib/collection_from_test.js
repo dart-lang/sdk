@@ -25,7 +25,7 @@ dart_library.library('corelib/collection_from_test', null, /* Imports */[
       collection_from_test.CollectionFromTest.check(set, QueueOfint().from(set));
       collection_from_test.CollectionFromTest.check(set, collection.Queue.from(set));
       collection_from_test.CollectionFromTest.check(set, SetOfint().from(set));
-      collection_from_test.CollectionFromTest.check(set, core.Set.from(set));
+      collection_from_test.CollectionFromTest.check(set, SetOfint().from(set));
     }
     static check(initial, other) {
       expect$.Expect.equals(3, initial[dartx.length]);

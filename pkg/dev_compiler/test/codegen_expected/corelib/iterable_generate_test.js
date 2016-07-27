@@ -11,9 +11,9 @@ dart_library.library('corelib/iterable_generate_test', null, /* Imports */[
   const iterable_generate_test = Object.create(null);
   let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
   let JSArrayOfString = () => (JSArrayOfString = dart.constFn(_interceptors.JSArray$(core.String)))();
+  let IterableOfString = () => (IterableOfString = dart.constFn(core.Iterable$(core.String)))();
   let IterableOfint = () => (IterableOfint = dart.constFn(core.Iterable$(core.int)))();
   let IteratorOfint = () => (IteratorOfint = dart.constFn(core.Iterator$(core.int)))();
-  let IterableOfString = () => (IterableOfString = dart.constFn(core.Iterable$(core.String)))();
   let IteratorOfString = () => (IteratorOfString = dart.constFn(core.Iterator$(core.String)))();
   let dynamicAnddynamicTovoid = () => (dynamicAnddynamicTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [dart.dynamic, dart.dynamic])))();
   let intToString = () => (intToString = dart.constFn(dart.definiteFunctionType(core.String, [core.int])))();
@@ -30,7 +30,7 @@ dart_library.library('corelib/iterable_generate_test', null, /* Imports */[
     test([], core.Iterable.generate(0));
     test(JSArrayOfint().of([0]), core.Iterable.generate(1));
     test(JSArrayOfint().of([0, 1, 2, 3, 4]), core.Iterable.generate(5));
-    test(JSArrayOfString().of(["0", "1", "2", "3", "4"]), core.Iterable.generate(5, dart.fn(x => dart.str`${x}`, intToString())));
+    test(JSArrayOfString().of(["0", "1", "2", "3", "4"]), IterableOfString().generate(5, dart.fn(x => dart.str`${x}`, intToString())));
     test(JSArrayOfint().of([2, 3, 4, 5, 6]), core.Iterable.generate(7)[dartx.skip](2));
     test(JSArrayOfint().of([0, 1, 2, 3, 4]), core.Iterable.generate(7)[dartx.take](5));
     test([], core.Iterable.generate(5)[dartx.skip](6));

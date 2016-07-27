@@ -7,10 +7,12 @@ dart_library.library('language/issue_23914_test', null, /* Imports */[
   const dart = dart_sdk.dart;
   const dartx = dart_sdk.dartx;
   const issue_23914_test = Object.create(null);
-  let LinkedListOfLinkedListEntry = () => (LinkedListOfLinkedListEntry = dart.constFn(collection.LinkedList$(collection.LinkedListEntry)))();
+  let LinkedListEntryOfE = () => (LinkedListEntryOfE = dart.constFn(collection.LinkedListEntry$(E)))();
+  let LinkedListEntryOfLinkedListEntryOfE = () => (LinkedListEntryOfLinkedListEntryOfE = dart.constFn(collection.LinkedListEntry$(LinkedListEntryOfE())))();
+  let LinkedListOfLinkedListEntryOfLinkedListEntryOfE = () => (LinkedListOfLinkedListEntryOfLinkedListEntryOfE = dart.constFn(collection.LinkedList$(LinkedListEntryOfLinkedListEntryOfE())))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   issue_23914_test.main = function() {
-    let a = core.List.unmodifiable(new (LinkedListOfLinkedListEntry())());
+    let a = core.List.unmodifiable(new (LinkedListOfLinkedListEntryOfLinkedListEntryOfE())());
   };
   dart.fn(issue_23914_test.main, VoidTodynamic());
   // Exports:

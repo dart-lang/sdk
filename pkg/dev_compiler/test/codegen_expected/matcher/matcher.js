@@ -1799,7 +1799,7 @@ dart_library.library('matcher', null, /* Imports */[
   };
   dart.fn(src__pretty_print.prettyPrint, dynamic__ToString());
   src__pretty_print._indent = function(length) {
-    return core.List.filled(length, ' ')[dartx.join]('');
+    return ListOfString().filled(length, ' ')[dartx.join]('');
   };
   dart.fn(src__pretty_print._indent, intToString());
   src__pretty_print._typeName = function(x) {

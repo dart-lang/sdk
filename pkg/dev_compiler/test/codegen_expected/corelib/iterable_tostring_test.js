@@ -9,6 +9,7 @@ dart_library.library('corelib/iterable_tostring_test', null, /* Imports */[
   const dartx = dart_sdk.dartx;
   const expect$ = expect.expect;
   const iterable_tostring_test = Object.create(null);
+  let ListOfint = () => (ListOfint = dart.constFn(core.List$(core.int)))();
   let intTodynamic = () => (intTodynamic = dart.constFn(dart.functionType(dart.dynamic, [core.int])))();
   let intToint = () => (intToint = dart.constFn(dart.definiteFunctionType(core.int, [core.int])))();
   let int__ToString = () => (int__ToString = dart.constFn(dart.definiteFunctionType(core.String, [core.int], [dart.dynamic])))();
@@ -18,7 +19,7 @@ dart_library.library('corelib/iterable_tostring_test', null, /* Imports */[
     if (func === void 0) func = null;
     let list = null;
     if (func == null) {
-      list = core.List.generate(len, dart.fn(x => x, intToint()));
+      list = ListOfint().generate(len, dart.fn(x => x, intToint()));
     } else {
       list = core.List.generate(len, intTodynamic()._check(func));
     }

@@ -133,14 +133,14 @@ dart_library.library('lib/convert/chunked_conversion_utf88_test', null, /* Impor
       if (i > 20 && dart.notNull(chunked_conversion_utf88_test._nextPowerOf2(i - 2)) - i > 10) continue;
       codeUnits[dartx.set](i, LEADING_SURROGATE);
       let str = core.String.fromCharCodes(IterableOfint()._check(codeUnits));
-      let bytes = core.List.filled(i + 3, CHAR_A);
+      let bytes = ListOfint().filled(i + 3, CHAR_A);
       bytes[dartx.set](i, UTF8_LEADING[dartx.get](0));
       bytes[dartx.set](i + 1, UTF8_LEADING[dartx.get](1));
       bytes[dartx.set](i + 2, UTF8_LEADING[dartx.get](2));
       chunked_conversion_utf88_test.runTest(JSArrayOfObject().of([bytes, str]));
       codeUnits[dartx.set](i, TRAILING_SURROGATE);
       str = core.String.fromCharCodes(IterableOfint()._check(codeUnits));
-      bytes = core.List.filled(i + 3, CHAR_A);
+      bytes = ListOfint().filled(i + 3, CHAR_A);
       bytes[dartx.set](i, UTF8_TRAILING[dartx.get](0));
       bytes[dartx.set](i + 1, UTF8_TRAILING[dartx.get](1));
       bytes[dartx.set](i + 2, UTF8_TRAILING[dartx.get](2));
@@ -149,7 +149,7 @@ dart_library.library('lib/convert/chunked_conversion_utf88_test', null, /* Impor
       codeUnits[dartx.set](i, LEADING_SURROGATE);
       codeUnits[dartx.set](i + 1, TRAILING_SURROGATE);
       str = core.String.fromCharCodes(IterableOfint()._check(codeUnits));
-      bytes = core.List.filled(i + 4, CHAR_A);
+      bytes = ListOfint().filled(i + 4, CHAR_A);
       bytes[dartx.set](i, UTF8_ENCODING[dartx.get](0));
       bytes[dartx.set](i + 1, UTF8_ENCODING[dartx.get](1));
       bytes[dartx.set](i + 2, UTF8_ENCODING[dartx.get](2));
@@ -158,7 +158,7 @@ dart_library.library('lib/convert/chunked_conversion_utf88_test', null, /* Impor
       codeUnits[dartx.set](i, TRAILING_SURROGATE);
       codeUnits[dartx.set](i + 1, TRAILING_SURROGATE);
       str = core.String.fromCharCodes(IterableOfint()._check(codeUnits));
-      bytes = core.List.filled(i + 6, CHAR_A);
+      bytes = ListOfint().filled(i + 6, CHAR_A);
       bytes[dartx.set](i, UTF8_TRAILING[dartx.get](0));
       bytes[dartx.set](i + 1, UTF8_TRAILING[dartx.get](1));
       bytes[dartx.set](i + 2, UTF8_TRAILING[dartx.get](2));
@@ -169,7 +169,7 @@ dart_library.library('lib/convert/chunked_conversion_utf88_test', null, /* Impor
       codeUnits[dartx.set](i, LEADING_SURROGATE);
       codeUnits[dartx.set](i + 1, LEADING_SURROGATE);
       str = core.String.fromCharCodes(IterableOfint()._check(codeUnits));
-      bytes = core.List.filled(i + 6, CHAR_A);
+      bytes = ListOfint().filled(i + 6, CHAR_A);
       bytes[dartx.set](i, UTF8_LEADING[dartx.get](0));
       bytes[dartx.set](i + 1, UTF8_LEADING[dartx.get](1));
       bytes[dartx.set](i + 2, UTF8_LEADING[dartx.get](2));
@@ -180,7 +180,7 @@ dart_library.library('lib/convert/chunked_conversion_utf88_test', null, /* Impor
       codeUnits[dartx.set](i, TRAILING_SURROGATE);
       codeUnits[dartx.set](i + 1, LEADING_SURROGATE);
       str = core.String.fromCharCodes(IterableOfint()._check(codeUnits));
-      bytes = core.List.filled(i + 6, CHAR_A);
+      bytes = ListOfint().filled(i + 6, CHAR_A);
       bytes[dartx.set](i, UTF8_TRAILING[dartx.get](0));
       bytes[dartx.set](i + 1, UTF8_TRAILING[dartx.get](1));
       bytes[dartx.set](i + 2, UTF8_TRAILING[dartx.get](2));
@@ -193,7 +193,7 @@ dart_library.library('lib/convert/chunked_conversion_utf88_test', null, /* Impor
       codeUnits[dartx.set](i + 1, TRAILING_SURROGATE);
       codeUnits[dartx.set](i + 2, CHAR_A);
       str = core.String.fromCharCodes(IterableOfint()._check(codeUnits));
-      bytes = core.List.filled(i + 5, CHAR_A);
+      bytes = ListOfint().filled(i + 5, CHAR_A);
       bytes[dartx.set](i, UTF8_ENCODING[dartx.get](0));
       bytes[dartx.set](i + 1, UTF8_ENCODING[dartx.get](1));
       bytes[dartx.set](i + 2, UTF8_ENCODING[dartx.get](2));
@@ -203,7 +203,7 @@ dart_library.library('lib/convert/chunked_conversion_utf88_test', null, /* Impor
       codeUnits[dartx.set](i + 1, TRAILING_SURROGATE);
       codeUnits[dartx.set](i + 2, CHAR_A);
       str = core.String.fromCharCodes(IterableOfint()._check(codeUnits));
-      bytes = core.List.filled(i + 7, CHAR_A);
+      bytes = ListOfint().filled(i + 7, CHAR_A);
       bytes[dartx.set](i, UTF8_TRAILING[dartx.get](0));
       bytes[dartx.set](i + 1, UTF8_TRAILING[dartx.get](1));
       bytes[dartx.set](i + 2, UTF8_TRAILING[dartx.get](2));
@@ -215,7 +215,7 @@ dart_library.library('lib/convert/chunked_conversion_utf88_test', null, /* Impor
       codeUnits[dartx.set](i + 1, LEADING_SURROGATE);
       codeUnits[dartx.set](i + 2, CHAR_A);
       str = core.String.fromCharCodes(IterableOfint()._check(codeUnits));
-      bytes = core.List.filled(i + 7, CHAR_A);
+      bytes = ListOfint().filled(i + 7, CHAR_A);
       bytes[dartx.set](i, UTF8_LEADING[dartx.get](0));
       bytes[dartx.set](i + 1, UTF8_LEADING[dartx.get](1));
       bytes[dartx.set](i + 2, UTF8_LEADING[dartx.get](2));
@@ -227,7 +227,7 @@ dart_library.library('lib/convert/chunked_conversion_utf88_test', null, /* Impor
       codeUnits[dartx.set](i + 1, LEADING_SURROGATE);
       codeUnits[dartx.set](i + 2, CHAR_A);
       str = core.String.fromCharCodes(IterableOfint()._check(codeUnits));
-      bytes = core.List.filled(i + 7, CHAR_A);
+      bytes = ListOfint().filled(i + 7, CHAR_A);
       bytes[dartx.set](i, UTF8_TRAILING[dartx.get](0));
       bytes[dartx.set](i + 1, UTF8_TRAILING[dartx.get](1));
       bytes[dartx.set](i + 2, UTF8_TRAILING[dartx.get](2));

@@ -9,6 +9,7 @@ dart_library.library('language/first_class_types_constants_test', null, /* Impor
   const expect$ = expect.expect;
   const first_class_types_constants_test = Object.create(null);
   let C = () => (C = dart.constFn(first_class_types_constants_test.C$()))();
+  let COfType = () => (COfType = dart.constFn(first_class_types_constants_test.C$(core.Type)))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   first_class_types_constants_test.C$ = dart.generic(T => {
     class C extends core.Object {
@@ -25,9 +26,9 @@ dart_library.library('language/first_class_types_constants_test', null, /* Impor
   first_class_types_constants_test.C = C();
   first_class_types_constants_test.Fun = dart.typedef('Fun', () => dart.functionType(core.int, [dart.dynamic, dart.dynamic]));
   first_class_types_constants_test.c0 = dart.wrapType(first_class_types_constants_test.C);
-  first_class_types_constants_test.c1 = dart.const(new first_class_types_constants_test.C(dart.wrapType(first_class_types_constants_test.C)));
+  first_class_types_constants_test.c1 = dart.const(new (COfType())(dart.wrapType(first_class_types_constants_test.C)));
   first_class_types_constants_test.c2 = dart.wrapType(first_class_types_constants_test.Fun);
-  first_class_types_constants_test.c3 = dart.const(new first_class_types_constants_test.C(dart.wrapType(first_class_types_constants_test.Fun)));
+  first_class_types_constants_test.c3 = dart.const(new (COfType())(dart.wrapType(first_class_types_constants_test.Fun)));
   first_class_types_constants_test.main = function() {
     expect$.Expect.identical(dart.wrapType(first_class_types_constants_test.C), dart.wrapType(first_class_types_constants_test.C));
     expect$.Expect.identical(dart.wrapType(first_class_types_constants_test.C), first_class_types_constants_test.c0);

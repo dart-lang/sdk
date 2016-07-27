@@ -80,13 +80,13 @@ dart_library.library('lib/typed_data/typed_data_list_test', null, /* Imports */[
       for (let i = 1; i < dart.notNull(core.num._check(dart.dsend(dart.dload(list, 'length'), '-', 1))); i++) {
         expect$.Expect.equals(2, dart.dindex(list, i));
       }
-      dart.dsend(list, 'setRange', 1, dart.dsend(dart.dload(list, 'length'), '-', 1), core.Iterable.generate(core.int._check(dart.dsend(dart.dload(list, 'length'), '-', 2)), dart.fn(x => dart.dcall(toElementType, dart.notNull(x) + 5), dart.definiteFunctionType(T, [core.int]))));
+      dart.dsend(list, 'setRange', 1, dart.dsend(dart.dload(list, 'length'), '-', 1), core.Iterable$(T).generate(core.int._check(dart.dsend(dart.dload(list, 'length'), '-', 2)), dart.fn(x => dart.dcall(toElementType, dart.notNull(x) + 5), dart.definiteFunctionType(T, [core.int]))));
       expect$.Expect.equals(first, dart.dload(list, 'first'));
       expect$.Expect.equals(last, dart.dload(list, 'last'));
       for (let i = 1; i < dart.notNull(core.num._check(dart.dsend(dart.dload(list, 'length'), '-', 1))); i++) {
         expect$.Expect.equals(4 + i, dart.dindex(list, i));
       }
-      dart.dsend(list, 'setRange', 1, dart.dsend(dart.dload(list, 'length'), '-', 1), core.Iterable.generate(core.int._check(dart.dsend(dart.dload(list, 'length'), '-', 1)), dart.fn(x => dart.dcall(toElementType, dart.notNull(x) + 5), dart.definiteFunctionType(T, [core.int]))), 1);
+      dart.dsend(list, 'setRange', 1, dart.dsend(dart.dload(list, 'length'), '-', 1), core.Iterable$(T).generate(core.int._check(dart.dsend(dart.dload(list, 'length'), '-', 1)), dart.fn(x => dart.dcall(toElementType, dart.notNull(x) + 5), dart.definiteFunctionType(T, [core.int]))), 1);
       expect$.Expect.equals(first, dart.dload(list, 'first'));
       expect$.Expect.equals(last, dart.dload(list, 'last'));
       for (let i = 1; i < dart.notNull(core.num._check(dart.dsend(dart.dload(list, 'length'), '-', 1))); i++) {

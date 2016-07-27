@@ -15,6 +15,7 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
   const async_star_test_04_multi = Object.create(null);
   let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
   let JSArrayOfObject = () => (JSArrayOfObject = dart.constFn(_interceptors.JSArray$(core.Object)))();
+  let StreamOfint = () => (StreamOfint = dart.constFn(async.Stream$(core.int)))();
   let FutureOfObject = () => (FutureOfObject = dart.constFn(async.Future$(core.Object)))();
   let StreamOfObject = () => (StreamOfObject = dart.constFn(async.Stream$(core.Object)))();
   let JSArrayOfString = () => (JSArrayOfString = dart.constFn(_interceptors.JSArray$(core.String)))();
@@ -128,7 +129,7 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
       unittest$.test("allows yield*", dart.fn(() => {
         function f() {
           return dart.asyncStar(function*(stream) {
-            if (stream.addStream(async.Stream.fromIterable(JSArrayOfint().of([1, 2, 3])))) return;
+            if (stream.addStream(StreamOfint().fromIterable(JSArrayOfint().of([1, 2, 3])))) return;
             yield;
           }, dart.dynamic);
         }
@@ -258,7 +259,7 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
       unittest$.test("await for-in-loop", dart.fn(() => {
         function f() {
           return dart.asyncStar(function*(stream) {
-            let it = async.StreamIterator.new(async.Stream.fromIterable(JSArrayOfint().of([0, 1, 2])));
+            let it = async.StreamIterator.new(StreamOfint().fromIterable(JSArrayOfint().of([0, 1, 2])));
             try {
               while (yield it.moveNext()) {
                 let i = it.current;

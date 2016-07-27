@@ -11,6 +11,8 @@ dart_library.library('corelib/hash_set_test_none_multi', null, /* Imports */[
   const dartx = dart_sdk.dartx;
   const expect$ = expect.expect;
   const hash_set_test_none_multi = Object.create(null);
+  let SetOfint = () => (SetOfint = dart.constFn(core.Set$(core.int)))();
+  let IterableOfint = () => (IterableOfint = dart.constFn(core.Iterable$(core.int)))();
   let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
   let VoidToSet = () => (VoidToSet = dart.constFn(dart.functionType(core.Set, [])))();
   let IterableToSet = () => (IterableToSet = dart.constFn(dart.functionType(core.Set, [core.Iterable])))();
@@ -33,7 +35,7 @@ dart_library.library('corelib/hash_set_test_none_multi', null, /* Imports */[
   let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();
   hash_set_test_none_multi.testSet = function(newSet, newSetFrom) {
     function gen(from, to) {
-      return core.Set.from(core.Iterable.generate(dart.notNull(to) - dart.notNull(from), dart.fn(n => dart.notNull(n) + dart.notNull(from), intToint())));
+      return SetOfint().from(IterableOfint().generate(dart.notNull(to) - dart.notNull(from), dart.fn(n => dart.notNull(n) + dart.notNull(from), intToint())));
     }
     dart.fn(gen, intAndintToSet());
     function odd(n) {

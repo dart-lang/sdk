@@ -12,6 +12,7 @@ dart_library.library('corelib/iterable_join_test', null, /* Imports */[
   let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
   let JSArrayOfString = () => (JSArrayOfString = dart.constFn(_interceptors.JSArray$(core.String)))();
   let JSArrayOfIC = () => (JSArrayOfIC = dart.constFn(_interceptors.JSArray$(iterable_join_test.IC)))();
+  let ListOfString = () => (ListOfString = dart.constFn(core.List$(core.String)))();
   let JSArrayOfStringable = () => (JSArrayOfStringable = dart.constFn(_interceptors.JSArray$(iterable_join_test.Stringable)))();
   let JSArrayOfObject = () => (JSArrayOfObject = dart.constFn(_interceptors.JSArray$(core.Object)))();
   let StringAndIterable__Todynamic = () => (StringAndIterable__Todynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.String, core.Iterable], [core.String])))();
@@ -123,11 +124,11 @@ dart_library.library('corelib/iterable_join_test', null, /* Imports */[
     iterable_join_test.testJoin("a b c  ", JSArrayOfString().of(["a", "b", "c", " "]), " ");
     iterable_join_test.testJoin("abc ", JSArrayOfString().of(["a", "b", "c", " "]), "");
     iterable_join_test.testJoin("abc ", JSArrayOfString().of(["a", "b", "c", " "]));
-    iterable_join_test.testJoin("ax"[dartx['*']](255) + "a", core.List.generate(256, dart.fn(_ => "a", intToString())), "x");
-    iterable_join_test.testJoin("a"[dartx['*']](256), core.List.generate(256, dart.fn(_ => "a", intToString())));
-    iterable_join_test.testJoin("a "[dartx['*']](255) + "a", core.List.generate(256, dart.fn(_ => "a", intToString())), " ");
-    iterable_join_test.testJoin(" "[dartx['*']](256), core.List.generate(256, dart.fn(_ => " ", intToString())));
-    iterable_join_test.testJoin(" x"[dartx['*']](255) + " ", core.List.generate(256, dart.fn(_ => " ", intToString())), "x");
+    iterable_join_test.testJoin("ax"[dartx['*']](255) + "a", ListOfString().generate(256, dart.fn(_ => "a", intToString())), "x");
+    iterable_join_test.testJoin("a"[dartx['*']](256), ListOfString().generate(256, dart.fn(_ => "a", intToString())));
+    iterable_join_test.testJoin("a "[dartx['*']](255) + "a", ListOfString().generate(256, dart.fn(_ => "a", intToString())), " ");
+    iterable_join_test.testJoin(" "[dartx['*']](256), ListOfString().generate(256, dart.fn(_ => " ", intToString())));
+    iterable_join_test.testJoin(" x"[dartx['*']](255) + " ", ListOfString().generate(256, dart.fn(_ => " ", intToString())), "x");
     let o1 = new iterable_join_test.Stringable("x");
     let o2 = new iterable_join_test.Stringable("﻿");
     iterable_join_test.testJoin("xa"[dartx['*']](3) + "x", JSArrayOfStringable().of([o1, o1, o1, o1]), "a");

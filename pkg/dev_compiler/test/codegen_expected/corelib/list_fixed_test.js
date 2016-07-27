@@ -8,6 +8,7 @@ dart_library.library('corelib/list_fixed_test', null, /* Imports */[
   const dartx = dart_sdk.dartx;
   const expect$ = expect.expect;
   const list_fixed_test = Object.create(null);
+  let ListOfint = () => (ListOfint = dart.constFn(core.List$(core.int)))();
   let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();
   let dynamicTobool = () => (dynamicTobool = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
@@ -22,7 +23,7 @@ dart_library.library('corelib/list_fixed_test', null, /* Imports */[
     }
     expect$.Expect.throws(dart.fn(() => dart.dsend(a, 'clear'), VoidTovoid()), dart.fn(e => core.UnsupportedError.is(e), dynamicTobool()));
     expect$.Expect.equals(42, dart.dload(a, 'length'));
-    a = core.List.filled(42, -2);
+    a = ListOfint().filled(42, -2);
     expect$.Expect.equals(42, dart.dload(a, 'length'));
     expect$.Expect.throws(dart.fn(() => dart.dsend(a, 'add', 499), VoidTovoid()), dart.fn(e => core.UnsupportedError.is(e), dynamicTobool()));
     expect$.Expect.equals(42, dart.dload(a, 'length'));

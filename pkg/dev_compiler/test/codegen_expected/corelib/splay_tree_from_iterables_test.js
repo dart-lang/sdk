@@ -10,15 +10,16 @@ dart_library.library('corelib/splay_tree_from_iterables_test', null, /* Imports 
   const dartx = dart_sdk.dartx;
   const expect$ = expect.expect;
   const splay_tree_from_iterables_test = Object.create(null);
+  let SplayTreeMapOfint$String = () => (SplayTreeMapOfint$String = dart.constFn(collection.SplayTreeMap$(core.int, core.String)))();
   let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
   let JSArrayOfString = () => (JSArrayOfString = dart.constFn(_interceptors.JSArray$(core.String)))();
-  let SplayTreeMapOfint$String = () => (SplayTreeMapOfint$String = dart.constFn(collection.SplayTreeMap$(core.int, core.String)))();
+  let SplayTreeMapOfint$int = () => (SplayTreeMapOfint$int = dart.constFn(collection.SplayTreeMap$(core.int, core.int)))();
   let MapOfint$String = () => (MapOfint$String = dart.constFn(core.Map$(core.int, core.String)))();
   let SplayTreeMapOfString$dynamic = () => (SplayTreeMapOfString$dynamic = dart.constFn(collection.SplayTreeMap$(core.String, dart.dynamic)))();
   let SplayTreeMapOfdynamic$int = () => (SplayTreeMapOfdynamic$int = dart.constFn(collection.SplayTreeMap$(dart.dynamic, core.int)))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();
-  let VoidToSplayTreeMap = () => (VoidToSplayTreeMap = dart.constFn(dart.definiteFunctionType(collection.SplayTreeMap, [])))();
+  let VoidToSplayTreeMapOfint$int = () => (VoidToSplayTreeMapOfint$int = dart.constFn(dart.definiteFunctionType(SplayTreeMapOfint$int(), [])))();
   splay_tree_from_iterables_test.main = function() {
     splay_tree_from_iterables_test.positiveTest();
     splay_tree_from_iterables_test.emptyMapTest();
@@ -29,7 +30,7 @@ dart_library.library('corelib/splay_tree_from_iterables_test', null, /* Imports 
   };
   dart.fn(splay_tree_from_iterables_test.main, VoidTodynamic());
   splay_tree_from_iterables_test.positiveTest = function() {
-    let map = collection.SplayTreeMap.fromIterables(JSArrayOfint().of([1, 2, 3]), JSArrayOfString().of(["one", "two", "three"]));
+    let map = SplayTreeMapOfint$String().fromIterables(JSArrayOfint().of([1, 2, 3]), JSArrayOfString().of(["one", "two", "three"]));
     expect$.Expect.isTrue(core.Map.is(map));
     expect$.Expect.isTrue(collection.SplayTreeMap.is(map));
     expect$.Expect.isFalse(collection.HashMap.is(map));
@@ -52,15 +53,15 @@ dart_library.library('corelib/splay_tree_from_iterables_test', null, /* Imports 
   };
   dart.fn(splay_tree_from_iterables_test.emptyMapTest, VoidTovoid());
   splay_tree_from_iterables_test.fewerValuesIterableTest = function() {
-    expect$.Expect.throws(dart.fn(() => collection.SplayTreeMap.fromIterables(JSArrayOfint().of([1, 2]), JSArrayOfint().of([0])), VoidToSplayTreeMap()));
+    expect$.Expect.throws(dart.fn(() => SplayTreeMapOfint$int().fromIterables(JSArrayOfint().of([1, 2]), JSArrayOfint().of([0])), VoidToSplayTreeMapOfint$int()));
   };
   dart.fn(splay_tree_from_iterables_test.fewerValuesIterableTest, VoidTovoid());
   splay_tree_from_iterables_test.fewerKeysIterableTest = function() {
-    expect$.Expect.throws(dart.fn(() => collection.SplayTreeMap.fromIterables(JSArrayOfint().of([1]), JSArrayOfint().of([0, 2])), VoidToSplayTreeMap()));
+    expect$.Expect.throws(dart.fn(() => SplayTreeMapOfint$int().fromIterables(JSArrayOfint().of([1]), JSArrayOfint().of([0, 2])), VoidToSplayTreeMapOfint$int()));
   };
   dart.fn(splay_tree_from_iterables_test.fewerKeysIterableTest, VoidTovoid());
   splay_tree_from_iterables_test.equalElementsTest = function() {
-    let map = collection.SplayTreeMap.fromIterables(JSArrayOfint().of([1, 2, 2]), JSArrayOfString().of(["one", "two", "three"]));
+    let map = SplayTreeMapOfint$String().fromIterables(JSArrayOfint().of([1, 2, 2]), JSArrayOfString().of(["one", "two", "three"]));
     expect$.Expect.isTrue(core.Map.is(map));
     expect$.Expect.isTrue(collection.SplayTreeMap.is(map));
     expect$.Expect.isFalse(collection.HashMap.is(map));

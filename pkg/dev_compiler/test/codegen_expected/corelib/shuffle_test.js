@@ -113,7 +113,7 @@ dart_library.library('corelib/shuffle_test', null, /* Imports */[
   dart.fn(shuffle_test.testShuffle, dynamicTovoid());
   shuffle_test.testRandom = function() {
     let randomNums = JSArrayOfint().of([37, 87, 42, 157, 252, 17]);
-    let numbers = core.List.generate(25, dart.fn(x => x, intToint()));
+    let numbers = ListOfint().generate(25, dart.fn(x => x, intToint()));
     let l1 = numbers[dartx.toList]();
     l1[dartx.shuffle](new shuffle_test.MockRandom(ListOfint()._check(randomNums)));
     for (let i = 0; i < 50; i++) {

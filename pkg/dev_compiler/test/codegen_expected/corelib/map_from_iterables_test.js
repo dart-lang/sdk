@@ -10,14 +10,15 @@ dart_library.library('corelib/map_from_iterables_test', null, /* Imports */[
   const dartx = dart_sdk.dartx;
   const expect$ = expect.expect;
   const map_from_iterables_test = Object.create(null);
+  let MapOfint$String = () => (MapOfint$String = dart.constFn(core.Map$(core.int, core.String)))();
   let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
   let JSArrayOfString = () => (JSArrayOfString = dart.constFn(_interceptors.JSArray$(core.String)))();
-  let MapOfint$String = () => (MapOfint$String = dart.constFn(core.Map$(core.int, core.String)))();
+  let MapOfint$int = () => (MapOfint$int = dart.constFn(core.Map$(core.int, core.int)))();
   let MapOfString$dynamic = () => (MapOfString$dynamic = dart.constFn(core.Map$(core.String, dart.dynamic)))();
   let MapOfdynamic$int = () => (MapOfdynamic$int = dart.constFn(core.Map$(dart.dynamic, core.int)))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();
-  let VoidToMap = () => (VoidToMap = dart.constFn(dart.definiteFunctionType(core.Map, [])))();
+  let VoidToMapOfint$int = () => (VoidToMapOfint$int = dart.constFn(dart.definiteFunctionType(MapOfint$int(), [])))();
   map_from_iterables_test.main = function() {
     map_from_iterables_test.positiveTest();
     map_from_iterables_test.emptyMapTest();
@@ -28,7 +29,7 @@ dart_library.library('corelib/map_from_iterables_test', null, /* Imports */[
   };
   dart.fn(map_from_iterables_test.main, VoidTodynamic());
   map_from_iterables_test.positiveTest = function() {
-    let map = core.Map.fromIterables(JSArrayOfint().of([1, 2, 3]), JSArrayOfString().of(["one", "two", "three"]));
+    let map = MapOfint$String().fromIterables(JSArrayOfint().of([1, 2, 3]), JSArrayOfString().of(["one", "two", "three"]));
     expect$.Expect.isTrue(core.Map.is(map));
     expect$.Expect.isTrue(collection.LinkedHashMap.is(map));
     expect$.Expect.equals(3, map[dartx.length]);
@@ -49,15 +50,15 @@ dart_library.library('corelib/map_from_iterables_test', null, /* Imports */[
   };
   dart.fn(map_from_iterables_test.emptyMapTest, VoidTovoid());
   map_from_iterables_test.fewerValuesIterableTest = function() {
-    expect$.Expect.throws(dart.fn(() => core.Map.fromIterables(JSArrayOfint().of([1, 2]), JSArrayOfint().of([0])), VoidToMap()));
+    expect$.Expect.throws(dart.fn(() => MapOfint$int().fromIterables(JSArrayOfint().of([1, 2]), JSArrayOfint().of([0])), VoidToMapOfint$int()));
   };
   dart.fn(map_from_iterables_test.fewerValuesIterableTest, VoidTovoid());
   map_from_iterables_test.fewerKeysIterableTest = function() {
-    expect$.Expect.throws(dart.fn(() => core.Map.fromIterables(JSArrayOfint().of([1]), JSArrayOfint().of([0, 2])), VoidToMap()));
+    expect$.Expect.throws(dart.fn(() => MapOfint$int().fromIterables(JSArrayOfint().of([1]), JSArrayOfint().of([0, 2])), VoidToMapOfint$int()));
   };
   dart.fn(map_from_iterables_test.fewerKeysIterableTest, VoidTovoid());
   map_from_iterables_test.equalElementsTest = function() {
-    let map = core.Map.fromIterables(JSArrayOfint().of([1, 2, 2]), JSArrayOfString().of(["one", "two", "three"]));
+    let map = MapOfint$String().fromIterables(JSArrayOfint().of([1, 2, 2]), JSArrayOfString().of(["one", "two", "three"]));
     expect$.Expect.isTrue(core.Map.is(map));
     expect$.Expect.isTrue(collection.LinkedHashMap.is(map));
     expect$.Expect.equals(2, map[dartx.length]);
