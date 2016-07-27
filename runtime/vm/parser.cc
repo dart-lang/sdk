@@ -9293,7 +9293,16 @@ SequenceNode* Parser::EnsureFinallyClause(
     LocalVariable* rethrow_stack_trace_var) {
   TRACE_PARSER("EnsureFinallyClause");
   ASSERT(parse || (is_async && (try_stack_ != NULL)));
-  OpenBlock();
+  // Increasing the loop level prevents the reuse of a parent context and forces
+  // the allocation of a local context to hold captured variables declared
+  // inside the finally clause. Otherwise, a captured variable gets allocated at
+  // different slots in the parent context each time the finally clause is
+  // reparsed, which is done to duplicate the ast. Since only one closure is
+  // kept due to canonicalization, it will access the correct slot in only one
+  // copy of the finally clause and the wrong slot in all others. By allocating
+  // a local context, all copies use the same slot in different local contexts.
+  // See issue #26948. This is a temporary fix until we eliminate reparsing.
+  OpenLoopBlock();
   if (parse) {
     ExpectToken(Token::kLBRACE);
   }
