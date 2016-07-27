@@ -12,6 +12,7 @@ dependencies:
   isolate: ^0.2.2
   linter: ^0.1.16
   logging: any
+  package_config: '>=0.1.5 <2.0.0'
   path: any
   plugin: ^0.2.0
   watcher: any
