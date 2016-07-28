@@ -314,10 +314,6 @@ class ArgumentsTypes<T> extends IterableMixin<T> {
 
   bool hasNoArguments() => positional.isEmpty && named.isEmpty;
 
-  bool hasOnePositionalArgumentThatMatches(bool f(T type)) {
-    return named.isEmpty && positional.length == 1 && f(positional[0]);
-  }
-
   void forEach(void f(T type)) {
     positional.forEach(f);
     named.values.forEach(f);
