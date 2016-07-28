@@ -1108,7 +1108,8 @@ CodeBreakpoint::CodeBreakpoint(const Code& code,
 #if !defined(TARGET_ARCH_DBC)
       saved_value_(Code::null())
 #else
-      saved_value_(Bytecode::kTrap)
+      saved_value_(Bytecode::kTrap),
+      saved_value_fastsmi_(Bytecode::kTrap)
 #endif
     {
   ASSERT(!code.IsNull());

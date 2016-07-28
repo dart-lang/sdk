@@ -55,10 +55,9 @@ get_source_report_test: RuntimeError # Coverage unimplemented.
 get_allocation_samples_test: RuntimeError # Profiling unimplemented.
 get_cpu_profile_timeline_rpc_test: RuntimeError # Profiling unimplemented.
 implicit_getter_setter_test: RuntimeError # Field guards unimplemented.
-get_stack_rpc_test: RuntimeError # Missing breakpoint at fast Smi op
-vm_restart_test: RuntimeError # Missing breakpoint at fast Smi op
-steal_breakpoint_test: Skip # Testee crashes / hangs
-debugging_test: Skip # Testee crashes / hangs
+get_stack_rpc_test: RuntimeError # Missing single stepping check at fast Smi op
+vm_restart_test: RuntimeError # Missing single stepping check at fast Smi op
+debugging_test: RuntimeError # Missing single stepping check at fast Smi op
 
 [ $hot_reload ]
 # Skip all service tests because random reloads interfere.

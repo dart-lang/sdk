@@ -754,6 +754,23 @@ BYTECODES_LIST(DECLARE_BYTECODE)
     }
   }
 
+  DART_FORCE_INLINE static bool IsFastSmiOpcode(Instr instr) {
+    switch (DecodeOpcode(instr)) {
+      case Bytecode::kAddTOS:
+      case Bytecode::kSubTOS:
+      case Bytecode::kMulTOS:
+      case Bytecode::kBitOrTOS:
+      case Bytecode::kBitAndTOS:
+      case Bytecode::kEqualTOS:
+      case Bytecode::kLessThanTOS:
+      case Bytecode::kGreaterThanTOS:
+        return true;
+
+      default:
+        return false;
+    }
+  }
+
   DART_FORCE_INLINE static uint8_t DecodeArgc(Instr call) {
     ASSERT(IsCallOpcode(call));
     return (call >> 8) & 0xFF;

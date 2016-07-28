@@ -170,15 +170,7 @@ cc/GuardFieldFinalListTest: Skip
 cc/GuardFieldFinalVariableLengthListTest: Skip
 cc/GuardFieldSimpleTest: Skip
 
-# TODO(vegorov) Not all bytecodes have appropriate debug breaks.
-cc/Debug_BreakpointStubPatching: Skip
-cc/Debug_ExprClosureBreakpoint: Skip
-cc/Debug_StackTraceDump1: Skip
-cc/Debug_StepInto: Skip
-
-# TODO(vegorov) These parser tests rely on debugger.
-cc/Parser_AllocateVariables_CapturedVar: Skip
-cc/Parser_AllocateVariables_MiddleChain: Skip
+cc/Debug_StepInto: Fail # Missing single stepping check at fast Smi op
 
 # This test is meaningless for DBC as allocation stubs are not used.
 cc/RegenerateAllocStubs: Skip
