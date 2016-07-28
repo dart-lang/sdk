@@ -2448,6 +2448,41 @@ void Profile::PrintHeaderJSON(JSONObject* obj) {
   obj->AddProperty("timeSpan", MicrosecondsToSeconds(GetTimeSpan()));
   obj->AddPropertyTimeMicros("timeOriginMicros", min_time());
   obj->AddPropertyTimeMicros("timeExtentMicros", GetTimeSpan());
+
+  ProfilerCounters counters = Profiler::counters();
+  {
+    JSONObject counts(obj, "counters");
+    counts.AddProperty64(
+        "bail_out_unknown_task",
+        counters.bail_out_unknown_task);
+    counts.AddProperty64(
+        "bail_out_jump_to_exception_handler",
+        counters.bail_out_jump_to_exception_handler);
+    counts.AddProperty64(
+        "bail_out_check_isolate",
+        counters.bail_out_check_isolate);
+    counts.AddProperty64(
+        "single_frame_sample_deoptimizing",
+        counters.single_frame_sample_deoptimizing);
+    counts.AddProperty64(
+        "single_frame_sample_register_check",
+        counters.single_frame_sample_register_check);
+    counts.AddProperty64(
+        "single_frame_sample_get_and_validate_stack_bounds",
+        counters.single_frame_sample_get_and_validate_stack_bounds);
+    counts.AddProperty64(
+        "stack_walker_native",
+        counters.stack_walker_native);
+    counts.AddProperty64(
+        "stack_walker_dart_exit",
+        counters.stack_walker_dart_exit);
+    counts.AddProperty64(
+        "stack_walker_dart",
+        counters.stack_walker_dart);
+    counts.AddProperty64(
+        "stack_walker_none",
+        counters.stack_walker_none);
+  }
 }
 
 
