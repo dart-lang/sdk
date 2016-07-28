@@ -686,9 +686,6 @@ class _UpdateElementOffsetsVisitor extends GeneralizingElementVisitor {
   _UpdateElementOffsetsVisitor(this.map);
 
   void visitElement(Element element) {
-    if (element is LibraryElement) {
-      return;
-    }
     if (element is ElementImpl) {
       // name offset
       {
@@ -702,6 +699,10 @@ class _UpdateElementOffsetsVisitor extends GeneralizingElementVisitor {
           return;
         }
         element.nameOffset = newOffset;
+      }
+      // stop here for LibraryElement
+      if (element is LibraryElementImpl) {
+        return;
       }
       // code range
       {
