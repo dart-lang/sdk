@@ -66,7 +66,8 @@ class RenderingQueue {
   Future _render() async {
     await _barrier.next;
     while (_queue.isNotEmpty) {
-      _queue.removeFirst().render();
+      _queue.first.render();
+      _queue.removeFirst();
     }
   }
 }
