@@ -1857,9 +1857,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         // TODO(scheglov) Incorrect implementation in general.
         entry.setState(TOKEN_STREAM, CacheState.FLUSHED);
         entry.setState(PARSED_UNIT, CacheState.FLUSHED);
-        List<Source> librarySources = getLibrariesContaining(source);
-        if (librarySources.length == 1) {
-          Source librarySource = librarySources[0];
+        SourceKind sourceKind = getKindOf(source);
+        List<Source> partSources = getResult(source, INCLUDED_PARTS);
+        if (sourceKind == SourceKind.LIBRARY && partSources.isEmpty) {
+          Source librarySource = source;
           // Try to find an old unit which has element model.
           CacheEntry unitEntry =
               getCacheEntry(new LibrarySpecificUnit(librarySource, source));

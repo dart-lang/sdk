@@ -4102,6 +4102,64 @@ class B {
     expect(context.getErrors(b).errors, hasLength(0));
   }
 
+  void test_sequence_parts_disableForPart() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+library my_lib;
+part 'b.dart';
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+part of my_lib;
+class A {}
+''');
+    _performPendingAnalysisTasks();
+    // Update b.dart - it is a part, which we don't support.
+    // So, invalidate everything.
+    context.setContents(
+        b,
+        r'''
+part of my_lib;
+class A {}
+class B {}
+''');
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalidUnits(a, RESOLVED_UNIT2);
+    _assertInvalidUnits(b, RESOLVED_UNIT1);
+  }
+
+  void test_sequence_parts_disableWithPart() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+library my_lib;
+part 'b.dart';
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+part of my_lib;
+class B {}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart - it is a library with a part, which we don't support.
+    // So, invalidate everything.
+    context.setContents(
+        a,
+        r'''
+library my_lib;
+part 'b.dart';
+class A {}
+''');
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalidUnits(a, RESOLVED_UNIT1);
+    _assertInvalidUnits(b, RESOLVED_UNIT1);
+  }
+
   void test_sequence_reorder_localFunctions() {
     Source a = addSource(
         '/a.dart',
