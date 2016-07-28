@@ -147,6 +147,7 @@ wheelevent_test: RuntimeError # Issue 23437
 text_event_test: RuntimeError # Issue 23437
 transition_event_test/functional: Skip # Times out. Issue 22167
 request_animation_frame_test: Skip # Times out. Issue 22167
+js_util_test/callConstructor: RuntimeError # Issue 26978
 
 [$runtime == ie10 ]
 # IE10 Feature support statuses-
@@ -170,6 +171,8 @@ input_element_test/supported_datetime-local: Fail
 input_element_test/supported_month: Fail
 input_element_test/supported_time: Fail
 input_element_test/supported_week: Fail
+js_util_test/hasProperty: RuntimeError # Issue 26978
+js_util_test/getProperty: RuntimeError # Issue 26978
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 media_stream_test/supported_media: Fail
