@@ -9054,13 +9054,6 @@ AstNode* Parser::ParseForInStatement(TokenPosition forin_pos,
       new(Z) StoreLocalNode(collection_pos, iterator_var, get_iterator);
   current_block_->statements->Add(iterator_init);
 
-  // Generate while loop condition.
-  AstNode* iterator_moveNext = new(Z) InstanceCallNode(
-      collection_pos,
-      new(Z) LoadLocalNode(collection_pos, iterator_var),
-      Symbols::MoveNext(),
-      no_args);
-
   // Parse the for loop body. Ideally, we would use ParseNestedStatement()
   // here, but that does not work well because we have to insert an implicit
   // variable assignment and potentially a variable declaration in the
@@ -9068,6 +9061,13 @@ AstNode* Parser::ParseForInStatement(TokenPosition forin_pos,
   OpenLoopBlock();
   current_block_->scope->AddLabel(label);
   const TokenPosition loop_var_assignment_pos = TokenPos();
+
+  // Generate while loop condition.
+  AstNode* iterator_moveNext = new(Z) InstanceCallNode(
+      loop_var_assignment_pos,
+      new(Z) LoadLocalNode(loop_var_assignment_pos, iterator_var),
+      Symbols::MoveNext(),
+      no_args);
 
   AstNode* iterator_current = new(Z) InstanceGetterNode(
       loop_var_assignment_pos,
