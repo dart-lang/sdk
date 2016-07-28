@@ -1328,6 +1328,69 @@ TEST_CASE(IsolateReload_TearOff_Equality) {
 }
 
 
+TEST_CASE(IsolateReload_TearOff_List_Set) {
+  const char* kScript =
+      "import 'test:isolate_reload_helper';\n"
+      "class C {\n"
+      "  foo() => 'old';\n"
+      "}\n"
+      "List list = new List(2);\n"
+      "Set set = new Set();\n"
+      "main() {\n"
+      "  var c = new C();\n"
+      "  list[0] = c.foo;\n"
+      "  list[1] = c#foo;\n"
+      "  set.add(c.foo);\n"
+      "  set.add(c#foo);\n"
+      "  int countBefore = set.length;\n"
+      "  reloadTest();\n"
+      "  list[1] = c.foo;\n"
+      "  set.add(c.foo);\n"
+      "  set.add(c#foo);\n"
+      "  int countAfter = set.length;\n"
+      "  return '${list[0]()} ${list[1]()} ${list[0] == list[1]} '\n"
+      "         '${countBefore == 1} ${countAfter == 1} ${(set.first)()} '\n"
+      "         '${set.first == c.foo} ${set.first == c#foo} '\n"
+      "         '${set.remove(c#foo)}';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+
+  const char* kReloadScript =
+      "import 'test:isolate_reload_helper';\n"
+      "class C {\n"
+      "  foo() => 'new';\n"
+      "}\n"
+      "List list = new List(2);\n"
+      "Set set = new Set();\n"
+      "main() {\n"
+      "  var c = new C();\n"
+      "  list[0] = c.foo;\n"
+      "  list[1] = c#foo;\n"
+      "  set.add(c.foo);\n"
+      "  set.add(c#foo);\n"
+      "  int countBefore = set.length;\n"
+      "  reloadTest();\n"
+      "  list[1] = c.foo;\n"
+      "  set.add(c.foo);\n"
+      "  set.add(c#foo);\n"
+      "  int countAfter = set.length;\n"
+      "  return '${list[0]()} ${list[1]()} ${list[0] == list[1]} '\n"
+      "         '${countBefore == 1} ${countAfter == 1} ${(set.first)()} '\n"
+      "         '${set.first == c.foo} ${set.first == c#foo} '\n"
+      "         '${set.remove(c#foo)}';\n"
+      "}\n";
+
+  TestCase::SetReloadTestScript(kReloadScript);
+
+  EXPECT_STREQ("new new true true true new true true true",
+               SimpleInvokeStr(lib, "main"));
+
+  lib = TestCase::GetReloadErrorOrRootLibrary();
+  EXPECT_VALID(lib);
+}
+
 
 TEST_CASE(IsolateReload_EnumEquality) {
   const char* kScript =
