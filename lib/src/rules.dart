@@ -53,7 +53,6 @@ import 'package:linter/src/rules/unnecessary_brace_in_string_interp.dart';
 import 'package:linter/src/rules/unnecessary_getters_setters.dart';
 import 'package:linter/src/rules/unrelated_type_equality_checks.dart';
 import 'package:linter/src/rules/valid_regexps.dart';
-import 'package:linter/src/rules/whitespace_around_ops.dart';
 
 final Registry ruleRegistry = new Registry()
   ..register(new AlwaysDeclareReturnTypes())
@@ -102,8 +101,7 @@ final Registry ruleRegistry = new Registry()
   //..register(new UnnecessaryGetters())
   ..register(new UnnecessaryGettersSetters())
   ..register(new UnrelatedTypeEqualityChecks())
-  ..register(new ValidRegExps())
-  ..register(new WhitespaceAroundOps());
+  ..register(new ValidRegExps());
 
 /// Registry of contributed lint rules.
 class Registry extends Object with IterableMixin<LintRule> {

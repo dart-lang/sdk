@@ -1,3 +1,8 @@
+# 0.1.23
+
+* Removed `whitespace_around_ops` pending re-name and re-design (#249).
+
+
 # 0.1.22
 
 * Grinder support (`rule:rule_name` and `docs:location`) for rule stub and doc generation (respectively).
