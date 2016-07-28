@@ -2164,58 +2164,6 @@ dynamic y1 = (<dynamic>[])[0];
     check(implicitDynamic: false);
   }
 
-  void test_constantGenericTypeArg_infer() {
-    // Regression test for https://github.com/dart-lang/sdk/issues/26141
-    checkFile('''
-abstract class Equality<Q> {}
-abstract class EqualityBase<R> implements Equality<R> {
-  final C<R> c = /*info:INFERRED_TYPE_ALLOCATION*/const C();
-  const EqualityBase();
-}
-class DefaultEquality<S> extends EqualityBase<S> {
-  const DefaultEquality();
-}
-class SetEquality<T> implements Equality<T> {
-  final Equality<T> field = const DefaultEquality();
-  const SetEquality([Equality<T> inner = const DefaultEquality()]);
-}
-class C<Q> {
-  final List<Q> list = /*info:INFERRED_TYPE_LITERAL*/const [];
-  final Map<Q, Iterable<Q>> m =  /*info:INFERRED_TYPE_LITERAL*/const {};
-  const C();
-}
-main() {
-  const SetEquality<String>();
-}
-    ''');
-  }
-
-  void test_constantGenericTypeArg_explict() {
-    // Regression test for https://github.com/dart-lang/sdk/issues/26141
-    checkFile('''
-abstract class Equality<R> {}
-abstract class EqualityBase<R> implements Equality<R> {
-  final C<R> c = const C<R>();
-  const EqualityBase();
-}
-class DefaultEquality<S> extends EqualityBase<S> {
-  const DefaultEquality();
-}
-class SetEquality<T> implements Equality<T> {
-  final Equality<T> field = const DefaultEquality<T>();
-  const SetEquality([Equality<T> inner = const DefaultEquality<T>()]);
-}
-class C<Q> {
-  final List<Q> list = const <Q>[];
-  final Map<Q, Iterable<Q>> m =  const <Q, Iterable<Q>>{};
-  const C();
-}
-main() {
-  const SetEquality<String>();
-}
-    ''');
-  }
-
   void test_invalidOverrides_baseClassOverrideToChildInterface() {
     checkFile('''
 class A {}

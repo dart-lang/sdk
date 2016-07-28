@@ -720,7 +720,10 @@ class DartObjectImpl implements DartObject {
   DartType toTypeValue() {
     InstanceState state = _state;
     if (state is TypeState) {
-      return state._type;
+      Element element = state._element;
+      if (element is TypeDefiningElement) {
+        return element.type;
+      }
     }
     return null;
   }
@@ -2768,29 +2771,29 @@ class TypeState extends InstanceState {
   /**
    * The element representing the type being modeled.
    */
-  final DartType _type;
+  final Element _element;
 
   /**
    * Initialize a newly created state to represent the given [value].
    */
-  TypeState(this._type);
+  TypeState(this._element);
 
   @override
-  int get hashCode => _type?.hashCode ?? 0;
+  int get hashCode => _element == null ? 0 : _element.hashCode;
 
   @override
   String get typeName => "Type";
 
   @override
   bool operator ==(Object object) =>
-      object is TypeState && (_type == object._type);
+      object is TypeState && (_element == object._element);
 
   @override
   StringState convertToString() {
-    if (_type == null) {
+    if (_element == null) {
       return StringState.UNKNOWN_VALUE;
     }
-    return new StringState(_type.displayName);
+    return new StringState(_element.name);
   }
 
   @override
@@ -2801,15 +2804,15 @@ class TypeState extends InstanceState {
 
   @override
   BoolState isIdentical(InstanceState rightOperand) {
-    if (_type == null) {
+    if (_element == null) {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is TypeState) {
-      DartType rightType = rightOperand._type;
-      if (rightType == null) {
+      Element rightElement = rightOperand._element;
+      if (rightElement == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(_type == rightType);
+      return BoolState.from(_element == rightElement);
     } else if (rightOperand is DynamicState) {
       return BoolState.UNKNOWN_VALUE;
     }
@@ -2817,5 +2820,5 @@ class TypeState extends InstanceState {
   }
 
   @override
-  String toString() => _type?.toString() ?? "-unknown-";
+  String toString() => _element == null ? "-unknown-" : _element.name;
 }
