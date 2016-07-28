@@ -63,6 +63,9 @@ class InstanceMorpher : public ZoneAllocated {
   // Dump the state of the morpher.
   void Dump() const;
 
+  // Append the morper info to JSON array.
+  void AppendTo(JSONArray* array);
+
   // Returns the list of objects that need to be morphed.
   ZoneGrowableArray<const Instance*>* before() const { return before_; }
   // Returns the list of morphed objects (matches order in before()).
@@ -100,6 +103,9 @@ class ReasonForCancelling : public ZoneAllocated {
   // Default implementation calls ToError.
   virtual RawString* ToString();
 
+  // Append the reason to JSON array.
+  virtual void AppendTo(JSONArray* array);
+
   // Concrete subclasses must override either ToError or ToString.
 };
 
@@ -109,6 +115,8 @@ class ClassReasonForCancelling : public ReasonForCancelling {
  public:
   ClassReasonForCancelling(const Class& from, const Class& to)
       : from_(from), to_(to) { }
+
+  void AppendTo(JSONArray* array);
 
  protected:
   const Class& from_;
@@ -163,8 +171,11 @@ class IsolateReloadContext {
   // Record problem for this reload.
   void AddReasonForCancelling(ReasonForCancelling* reason);
 
-  // Report all reasons for cancelling reload.
+  // Reports all reasons for cancelling reload.
   void ReportReasonsForCancelling();
+
+  // Reports the deails of a reload operation.
+  void ReportOnJSON(JSONStream* stream);
 
   // Store morphing operation.
   void AddInstanceMorpher(InstanceMorpher* morpher);
