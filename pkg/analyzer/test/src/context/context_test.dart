@@ -2850,6 +2850,28 @@ main() {
 ''');
   }
 
+  void test_class_constructor_named_parameters_change_usedSuper() {
+    // Update a.dart: change A.named().
+    //   b.dart is invalid, because it references A.named().
+    _verifyTwoLibrariesInvalidatesResolution(
+        r'''
+class A {
+  A.named(int a);
+}
+''',
+        r'''
+class A {
+  A.named(String a);
+}
+''',
+        r'''
+import 'a.dart';
+class B extends A {
+  B() : super.named(42);
+}
+''');
+  }
+
   void test_class_constructor_named_parameters_remove() {
     // Update a.dart: remove a new parameter of A.named().
     //   b.dart is invalid, because it references A.named().
@@ -2916,6 +2938,56 @@ main() {
 ''');
   }
 
+  void test_class_constructor_unnamed_parameters_change_notUsedSuper() {
+    // Update a.dart: change A().
+    //   Resolution of b.dart is valid, because it does not reference A().
+    //   Hints and verify errors are invalid, because it extends A.
+    // TODO(scheglov) we could keep valid hints and verify errors,
+    // because only constructor is changed - this cannot add/remove
+    // inherited unimplemented members.
+    _verifyTwoLibrariesInvalidHintsVerifyErrors(
+        r'''
+class A {
+  A(int a);
+  A.named(int a);
+}
+''',
+        r'''
+class A {
+  A(String a);
+  A.named(int a);
+}
+''',
+        r'''
+import 'a.dart';
+class B extends A {
+  B() : super.named(42);
+}
+''');
+  }
+
+  void test_class_constructor_unnamed_parameters_change_usedSuper() {
+    // Update a.dart: change A().
+    //   b.dart is invalid, because it references A().
+    _verifyTwoLibrariesInvalidatesResolution(
+        r'''
+class A {
+  A(int a);
+}
+''',
+        r'''
+class A {
+  A(String a);
+}
+''',
+        r'''
+import 'a.dart';
+class B extends A {
+  B() : super(42);
+}
+''');
+  }
+
   void test_class_constructor_unnamed_parameters_remove() {
     // Update a.dart: change A().
     //   b.dart is invalid, because it references A().
@@ -2962,8 +3034,8 @@ main() {
   }
 
   void test_class_constructor_unnamed_remove_used() {
-    // Update a.dart: remove A.named().
-    //   b.dart is invalid, because it references A.named().
+    // Update a.dart: remove A().
+    //   b.dart is invalid, because it references A().
     _verifyTwoLibrariesInvalidatesResolution(
         r'''
 class A {
@@ -4678,6 +4750,20 @@ class A {
     _assertValidForDependentLibrary(b);
     _assertInvalid(b, LIBRARY_ERRORS_READY);
     _assertInvalidUnits(b, RESOLVED_UNIT4);
+  }
+
+  void _verifyTwoLibrariesInvalidHintsVerifyErrors(
+      String firstCodeA, String secondCodeA, String codeB) {
+    Source a = addSource('/a.dart', firstCodeA);
+    Source b = addSource('/b.dart', codeB);
+    _performPendingAnalysisTasks();
+    context.setContents(a, secondCodeA);
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertValidAllResolution(b);
+    _assertUnitValid(b, RESOLVE_UNIT_ERRORS);
+    _assertInvalidHintsVerifyErrors(b);
   }
 }
 
