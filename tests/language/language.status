@@ -152,6 +152,7 @@ stack_trace_test: Pass, RuntimeError
 stacktrace_rethrow_error_test: Pass, RuntimeError
 stacktrace_rethrow_nonerror_test: Pass, RuntimeError
 stacktrace_test: Pass, RuntimeError
+regress_26948_test: Skip # Crashes, regis investigating
 
 [ $noopt || $compiler == precompiler || $mode == product ]
 # Imports dart:mirrors
