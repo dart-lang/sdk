@@ -5,7 +5,7 @@
 #ifndef PLATFORM_UTILS_FUCHSIA_H_
 #define PLATFORM_UTILS_FUCHSIA_H_
 
-#include "platform/assert.h"
+#include <endian.h>
 
 namespace dart {
 
@@ -32,38 +32,32 @@ inline int Utils::CountTrailingZeros(uword x) {
 
 
 inline uint16_t Utils::HostToBigEndian16(uint16_t value) {
-  UNIMPLEMENTED();
-  return 0;
+  return htobe16(value);
 }
 
 
 inline uint32_t Utils::HostToBigEndian32(uint32_t value) {
-  UNIMPLEMENTED();
-  return 0;
+  return htobe32(value);
 }
 
 
 inline uint64_t Utils::HostToBigEndian64(uint64_t value) {
-  UNIMPLEMENTED();
-  return 0;
+  return htobe64(value);
 }
 
 
 inline uint16_t Utils::HostToLittleEndian16(uint16_t value) {
-  UNIMPLEMENTED();
-  return 0;
+  return htole16(value);
 }
 
 
 inline uint32_t Utils::HostToLittleEndian32(uint32_t value) {
-  UNIMPLEMENTED();
-  return 0;
+  return htole32(value);
 }
 
 
 inline uint64_t Utils::HostToLittleEndian64(uint64_t value) {
-  UNIMPLEMENTED();
-  return 0;
+  return htole64(value);
 }
 
 

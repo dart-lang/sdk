@@ -32,8 +32,6 @@ const char* kSkip[] = {
   "ThreadPool_WorkerShutdown",
   "LargeMap",
   "CompileFunctionOnHelperThread",
-  // Kernel panic.
-  "ThreadBarrier",
   // The profiler is turned off.
   "Profiler_AllocationSampleTest",
   "Profiler_ArrayAllocation",
@@ -108,27 +106,10 @@ const char* kBugs[] = {
   "TimelinePauses_BeginEnd",
   // Crash.
   "FindCodeObject",
-  // Needs OS::Sleep.
-  "MessageHandler_Run",
-  "Sleep",
-  // Calls VirtualMemory::FreeSubSegment.
-  "GrowableObjectArray",
-  "PrintJSON",
-  "GenerateSource",
-  "FreeVirtualMemory",
-  // Several missing calls.
-  "OsFuncs",
-  // OS::AlignedAllocate.
-  "OSAlignedAllocate",
   // Needs NativeSymbolResolver
   "Service_PersistentHandles",
   // Need to investigate:
-  "ThreadPool_RunOne",
-  "ThreadPool_WorkerTimeout",
-  "Monitor",
   "ThreadIterator_AddFindRemove",
-  // Needs Utils::HostToBigEndian16
-  "Endianity",
 };
 
 
