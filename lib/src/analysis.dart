@@ -8,7 +8,8 @@ import 'dart:collection';
 import 'dart:io';
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/file_system/file_system.dart' show Folder;
+import 'package:analyzer/file_system/file_system.dart'
+    show Folder, ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
@@ -92,7 +93,7 @@ class AnalysisDriver {
 
     // File URI resolver must come last so that files inside "/lib" are
     // are analyzed via "package:" URI's.
-    resolvers.add(new FileUriResolver());
+    resolvers.add(new ResourceUriResolver(PhysicalResourceProvider.INSTANCE));
     return resolvers;
   }
 
