@@ -786,7 +786,7 @@ EMIT_NATIVE_CODE(NativeCall,
   ASSERT(!link_lazily());
   const ExternalLabel label(reinterpret_cast<uword>(native_c_function()));
   const intptr_t target_kidx =
-      __ object_pool_wrapper().FindImmediate(label.address());
+      __ object_pool_wrapper().FindNativeEntry(&label, kNotPatchable);
   const intptr_t argc_tag_kidx =
       __ object_pool_wrapper().FindImmediate(static_cast<uword>(argc_tag));
   __ PushConstant(target_kidx);

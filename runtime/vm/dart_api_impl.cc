@@ -6295,6 +6295,8 @@ DART_EXPORT Dart_Handle Dart_Precompile(
     bool reset_fields) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("Precompilation is not supported on IA32.");
+#elif defined(TARGET_ARCH_DBC)
+  return Api::NewError("Precompilation is not supported on DBC.");
 #else
   API_TIMELINE_BEGIN_END;
   DARTSCOPE(Thread::Current());
@@ -6324,7 +6326,9 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
     uint8_t** assembly_buffer,
     intptr_t* assembly_size) {
 #if defined(TARGET_ARCH_IA32)
-  return Api::NewError("Snapshots with code are not supported on IA32.");
+  return Api::NewError("Precompilation is not supported on IA32.");
+#elif defined(TARGET_ARCH_DBC)
+  return Api::NewError("Precompilation is not supported on DBC.");
 #else
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
@@ -6384,7 +6388,9 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotBlob(
     uint8_t** rodata_blob_buffer,
     intptr_t* rodata_blob_size) {
 #if defined(TARGET_ARCH_IA32)
-  return Api::NewError("Snapshots with code are not supported on IA32.");
+  return Api::NewError("Precompilation is not supported on IA32.");
+#elif defined(TARGET_ARCH_DBC)
+  return Api::NewError("Precompilation is not supported on DBC.");
 #else
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
@@ -6486,6 +6492,8 @@ DART_EXPORT Dart_Handle Dart_CreateAppJITSnapshot(
     intptr_t* rodata_blob_size) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("Snapshots with code are not supported on IA32.");
+#elif defined(TARGET_ARCH_DBC)
+  return Api::NewError("Snapshots with code are not supported on DBC.");
 #else
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
