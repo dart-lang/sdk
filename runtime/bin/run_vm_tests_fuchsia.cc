@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include <fcntl.h>
+#include <launchpad/launchpad.h>
 #include <magenta/syscalls.h>
 #include <mxio/util.h>
 #include <stdbool.h>
@@ -146,7 +147,7 @@ static int run_test(const char* test_name) {
   argv[0] = kRunVmTestsPath;
   argv[1] = test_name;
 
-  mx_handle_t p = mxio_start_process(argv[0], kArgc, argv);
+  mx_handle_t p = launchpad_launch(argv[0], kArgc, argv);
   if (p < 0) {
     printf("process failed to start\n");
     return -1;
@@ -233,4 +234,3 @@ int main(int argc, char** argv) {
   }
   return 0;
 }
-
