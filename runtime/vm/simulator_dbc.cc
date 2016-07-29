@@ -798,7 +798,9 @@ static DART_NOINLINE bool InvokeNativeWrapper(
     const intptr_t lhs = reinterpret_cast<intptr_t>(SP[-1]);                   \
     const intptr_t rhs = reinterpret_cast<intptr_t>(SP[-0]);                   \
     ResultT* slot = reinterpret_cast<ResultT*>(SP - 1);                        \
-    if (LIKELY(AreBothSmis(lhs, rhs) && !Func(lhs, rhs, slot))) {              \
+    if (LIKELY(!thread->isolate()->single_step()) &&                           \
+        LIKELY(AreBothSmis(lhs, rhs) &&                                        \
+        !Func(lhs, rhs, slot))) {                                              \
       SMI_FASTPATH_ICDATA_INC;                                                 \
       /* Fast path succeeded. Skip the generic call that follows. */           \
       pc++;                                                                    \

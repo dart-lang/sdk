@@ -154,8 +154,6 @@ cc/GuardFieldFinalListTest: Skip
 cc/GuardFieldFinalVariableLengthListTest: Skip
 cc/GuardFieldSimpleTest: Skip
 
-cc/Debug_StepInto: Fail # Missing single stepping check at fast Smi op
-
 # This test is meaningless for DBC as allocation stubs are not used.
 cc/RegenerateAllocStubs: Skip
 
