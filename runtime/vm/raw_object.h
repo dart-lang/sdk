@@ -998,6 +998,7 @@ class RawScript : public RawObject {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->url_); }
   RawString* url_;
+  RawString* resolved_url_;
   RawArray* compile_time_constants_;
   RawTokenStream* tokens_;
   RawString* source_;

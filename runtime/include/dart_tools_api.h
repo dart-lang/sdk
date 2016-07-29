@@ -898,6 +898,26 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
 
 /*
  * ========
+ * Reload support
+ * ========
+ *
+ * These functions are used to implement reloading in the Dart VM.
+ * This is an experimental feature, so embedders should be prepared
+ * for these functions to change.
+ */
+
+/**
+ * A callback which determines whether the file at some url has been
+ * modified since some time.  If the file cannot be found, true should
+ * be returned.
+ */
+typedef bool (*Dart_FileModifiedCallback)(const char* url, int64_t since);
+
+DART_EXPORT Dart_Handle Dart_SetFileModifiedCallback(
+    Dart_FileModifiedCallback file_modified_callback);
+
+/*
+ * ========
  * Timeline
  * ========
  */

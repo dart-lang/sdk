@@ -1043,6 +1043,22 @@ static void ServiceStreamCancelCallback(const char* stream_id) {
 }
 
 
+static bool FileModifiedCallback(const char* url, int64_t since) {
+  if (strncmp(url, "file:///", 8) == 0) {
+    // If it isn't a file on local disk, we don't know if it has been
+    // modified.
+    return true;
+  }
+  int64_t data[File::kStatSize];
+  File::Stat(url + 7, data);
+  if (data[File::kType] == File::kDoesNotExist) {
+    return true;
+  }
+  bool modified = data[File::kModifiedTime] > since;
+  return modified;
+}
+
+
 static void WriteSnapshotFile(const char* snapshot_directory,
                               const char* filename,
                               bool write_magic_number,
@@ -1708,6 +1724,7 @@ void main(int argc, char** argv) {
         "getIO", &ServiceGetIOHandler, NULL);
   Dart_SetServiceStreamCallbacks(&ServiceStreamListenCallback,
                                  &ServiceStreamCancelCallback);
+  Dart_SetFileModifiedCallback(&FileModifiedCallback);
 
   // Run the main isolate until we aren't told to restart.
   while (RunMainIsolate(script_name, &dart_options)) {

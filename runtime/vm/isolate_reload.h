@@ -5,6 +5,8 @@
 #ifndef VM_ISOLATE_RELOAD_H_
 #define VM_ISOLATE_RELOAD_H_
 
+#include "include/dart_tools_api.h"
+
 #include "vm/hash_map.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
@@ -33,16 +35,18 @@ DECLARE_FLAG(bool, trace_reload_verbose);
 
 namespace dart {
 
+class BitVector;
 class GrowableObjectArray;
 class Isolate;
 class Library;
+class ObjectPointerVisitor;
+class ObjectStore;
 class RawError;
 class RawGrowableObjectArray;
 class RawLibrary;
 class RawObject;
 class RawString;
-class ObjectPointerVisitor;
-class ObjectStore;
+class Script;
 class UpdateClassesVisitor;
 
 
@@ -129,7 +133,7 @@ class IsolateReloadContext {
   explicit IsolateReloadContext(Isolate* isolate);
   ~IsolateReloadContext();
 
-  void StartReload();
+  void StartReload(bool force_reload);
   void FinishReload();
   void AbortReload(const Error& error);
 
@@ -141,8 +145,12 @@ class IsolateReloadContext {
   void ReportError(const Error& error);
   void ReportSuccess();
 
+  bool reload_skipped() const { return reload_skipped_; }
+
   bool has_error() const { return HasReasonsForCancelling(); }
   RawError* error() const;
+
+  int64_t reload_timestamp() const { return reload_timestamp_; }
 
   static bool IsSameField(const Field& a, const Field& b);
   static bool IsSameLibrary(const Library& a_lib, const Library& b_lib);
@@ -185,6 +193,13 @@ class IsolateReloadContext {
     return !instance_morphers_.is_empty();
   }
 
+  static Dart_FileModifiedCallback file_modified_callback() {
+    return file_modified_callback_;
+  }
+  static void SetFileModifiedCallback(Dart_FileModifiedCallback callback) {
+    file_modified_callback_ = callback;
+  }
+
  private:
   void set_saved_root_library(const Library& value);
 
@@ -202,8 +217,9 @@ class IsolateReloadContext {
 
   void CheckpointClasses();
 
-  // Is |lib| a library whose sources have not changed?
-  bool IsCleanLibrary(const Library& lib);
+  bool ScriptModifiedSince(const Script& script, int64_t since);
+  BitVector* FindModifiedLibraries(bool force_reload);
+
   void CheckpointLibraries();
 
   // Transforms the heap based on instance_morphers_.
@@ -233,7 +249,9 @@ class IsolateReloadContext {
   void InvalidateWorld();
 
   int64_t start_time_micros_;
+  int64_t reload_timestamp_;
   Isolate* isolate_;
+  bool reload_skipped_;
 
   intptr_t saved_num_cids_;
   RawClass** saved_class_table_;
@@ -264,6 +282,9 @@ class IsolateReloadContext {
     bool dirty;
   };
   MallocGrowableArray<LibraryInfo> library_infos_;
+
+  // A bit vector indicating which of the original libraries were modified.
+  BitVector* modified_libs_;
 
   RawClass* OldClassOrNull(const Class& replacement_or_new);
 
@@ -302,6 +323,8 @@ class IsolateReloadContext {
   friend class Isolate;
   friend class Class;  // AddStaticFieldMapping, AddEnumBecomeMapping.
   friend class ObjectLocator;
+
+  static Dart_FileModifiedCallback file_modified_callback_;
 };
 
 }  // namespace dart

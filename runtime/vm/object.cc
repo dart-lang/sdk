@@ -8816,6 +8816,11 @@ void Script::set_url(const String& value) const {
 }
 
 
+void Script::set_resolved_url(const String& value) const {
+  StorePointer(&raw_ptr()->resolved_url_, value.raw());
+}
+
+
 void Script::set_source(const String& value) const {
   StorePointer(&raw_ptr()->source_, value.raw());
 }
@@ -9078,10 +9083,20 @@ RawScript* Script::New() {
 RawScript* Script::New(const String& url,
                        const String& source,
                        RawScript::Kind kind) {
+  return Script::New(url, url, source, kind);
+}
+
+
+RawScript* Script::New(const String& url,
+                       const String& resolved_url,
+                       const String& source,
+                       RawScript::Kind kind) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const Script& result = Script::Handle(zone, Script::New());
   result.set_url(String::Handle(zone, Symbols::New(thread, url)));
+  result.set_resolved_url(
+      String::Handle(zone, Symbols::New(thread, resolved_url)));
   result.set_source(source);
   result.set_kind(kind);
   result.set_load_timestamp(FLAG_remove_script_timestamps_for_test

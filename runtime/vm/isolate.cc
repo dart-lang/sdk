@@ -846,7 +846,8 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       has_attempted_reload_(false),
       no_reload_scope_depth_(0),
       reload_every_n_stack_overflow_checks_(FLAG_reload_every),
-      reload_context_(NULL) {
+      reload_context_(NULL),
+      last_reload_timestamp_(OS::GetCurrentTimeMillis()) {
   NOT_IN_PRODUCT(FlagsCopyFrom(api_flags));
   // TODO(asiva): A Thread is not available here, need to figure out
   // how the vm_tag (kEmbedderTagId) can be set, these tags need to
@@ -1095,12 +1096,13 @@ void Isolate::ReportReloadError(const Error& error) {
 }
 
 
-void Isolate::ReloadSources(bool dont_delete_reload_context) {
+void Isolate::ReloadSources(bool force_reload,
+                            bool dont_delete_reload_context) {
   // TODO(asiva): Add verification of canonical objects.
   ASSERT(!IsReloading());
   has_attempted_reload_ = true;
   reload_context_ = new IsolateReloadContext(this);
-  reload_context_->StartReload();
+  reload_context_->StartReload(force_reload);
   // TODO(asiva): Add verification of canonical objects.
   if (dont_delete_reload_context) {
     // Unit tests use the reload context later. Caller is responsible

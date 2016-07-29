@@ -317,21 +317,21 @@ Dart_Handle VmService::GetSource(const char* name) {
 Dart_Handle VmService::LoadScript(const char* name) {
   Dart_Handle uri = Dart_NewStringFromCString(kVMServiceIOLibraryUri);
   Dart_Handle source = GetSource(name);
-  return Dart_LoadScript(uri, source, 0, 0);
+  return Dart_LoadScript(uri, Dart_Null(), source, 0, 0);
 }
 
 
 Dart_Handle VmService::LoadLibrary(const char* name) {
   Dart_Handle uri = Dart_NewStringFromCString(kVMServiceIOLibraryUri);
   Dart_Handle source = GetSource(name);
-  return Dart_LoadLibrary(uri, source, 0, 0);
+  return Dart_LoadLibrary(uri, Dart_Null(), source, 0, 0);
 }
 
 
 Dart_Handle VmService::LoadSource(Dart_Handle library, const char* name) {
   Dart_Handle uri = Dart_NewStringFromCString(name);
   Dart_Handle source = GetSource(name);
-  return Dart_LoadSource(library, uri, source, 0, 0);
+  return Dart_LoadSource(library, uri, Dart_Null(), source, 0, 0);
 }
 
 
@@ -368,7 +368,7 @@ Dart_Handle VmService::LibraryTagHandler(Dart_LibraryTag tag,
   if (Dart_IsError(source)) {
     return source;
   }
-  return Dart_LoadSource(library, url, source, 0, 0);
+  return Dart_LoadSource(library, url, Dart_Null(), source, 0, 0);
 }
 
 

@@ -2223,6 +2223,168 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat7) {
   EXPECT_VALID(lib);
 }
 
+static bool NothingModifiedCallback(const char* url, int64_t since) {
+  return false;
+}
+
+
+TEST_CASE(IsolateReload_NoLibsModified) {
+  const char* kImportScript =
+      "importedFunc() => 'fancy';";
+  TestCase::SetImportableTestLibScript(kImportScript);
+
+  const char* kScript =
+      "import 'test:importable_lib';\n"
+      "main() {\n"
+      "  return importedFunc() + ' feast';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("fancy feast", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadImportScript =
+      "importedFunc() => 'bossy';";
+  TestCase::SetImportableTestLibScript(kReloadImportScript);
+
+  const char* kReloadScript =
+      "import 'test:importable_lib';\n"
+      "main() {\n"
+      "  return importedFunc() + ' pants';\n"
+      "}\n";
+
+  Dart_SetFileModifiedCallback(&NothingModifiedCallback);
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  Dart_SetFileModifiedCallback(NULL);
+
+  // No reload occurred because no files were "modified".
+  EXPECT_STREQ("fancy feast", SimpleInvokeStr(lib, "main"));
+}
+
+
+static bool MainModifiedCallback(const char* url, int64_t since) {
+  if (strcmp(url, "test-lib") == 0) {
+    return true;
+  }
+  return false;
+}
+
+
+TEST_CASE(IsolateReload_MainLibModified) {
+  const char* kImportScript =
+      "importedFunc() => 'fancy';";
+  TestCase::SetImportableTestLibScript(kImportScript);
+
+  const char* kScript =
+      "import 'test:importable_lib';\n"
+      "main() {\n"
+      "  return importedFunc() + ' feast';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("fancy feast", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadImportScript =
+      "importedFunc() => 'bossy';";
+  TestCase::SetImportableTestLibScript(kReloadImportScript);
+
+  const char* kReloadScript =
+      "import 'test:importable_lib';\n"
+      "main() {\n"
+      "  return importedFunc() + ' pants';\n"
+      "}\n";
+
+  Dart_SetFileModifiedCallback(&MainModifiedCallback);
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  Dart_SetFileModifiedCallback(NULL);
+
+  // Imported library is not reloaded.
+  EXPECT_STREQ("fancy pants", SimpleInvokeStr(lib, "main"));
+}
+
+
+static bool ImportModifiedCallback(const char* url, int64_t since) {
+  if (strcmp(url, "test:importable_lib") == 0) {
+    return true;
+  }
+  return false;
+}
+
+
+TEST_CASE(IsolateReload_ImportedLibModified) {
+  const char* kImportScript =
+      "importedFunc() => 'fancy';";
+  TestCase::SetImportableTestLibScript(kImportScript);
+
+  const char* kScript =
+      "import 'test:importable_lib';\n"
+      "main() {\n"
+      "  return importedFunc() + ' feast';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("fancy feast", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadImportScript =
+      "importedFunc() => 'bossy';";
+  TestCase::SetImportableTestLibScript(kReloadImportScript);
+
+  const char* kReloadScript =
+      "import 'test:importable_lib';\n"
+      "main() {\n"
+      "  return importedFunc() + ' pants';\n"
+      "}\n";
+
+  Dart_SetFileModifiedCallback(&ImportModifiedCallback);
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  Dart_SetFileModifiedCallback(NULL);
+
+  // Modification of an imported library propagates to the importing library.
+  EXPECT_STREQ("bossy pants", SimpleInvokeStr(lib, "main"));
+}
+
+
+TEST_CASE(IsolateReload_PrefixImportedLibModified) {
+  const char* kImportScript =
+      "importedFunc() => 'fancy';";
+  TestCase::SetImportableTestLibScript(kImportScript);
+
+  const char* kScript =
+      "import 'test:importable_lib' as cobra;\n"
+      "main() {\n"
+      "  return cobra.importedFunc() + ' feast';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("fancy feast", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadImportScript =
+      "importedFunc() => 'bossy';";
+  TestCase::SetImportableTestLibScript(kReloadImportScript);
+
+  const char* kReloadScript =
+      "import 'test:importable_lib' as cobra;\n"
+      "main() {\n"
+      "  return cobra.importedFunc() + ' pants';\n"
+      "}\n";
+
+  Dart_SetFileModifiedCallback(&ImportModifiedCallback);
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  Dart_SetFileModifiedCallback(NULL);
+
+  // Modification of an prefix-imported library propagates to the
+  // importing library.
+  EXPECT_STREQ("bossy pants", SimpleInvokeStr(lib, "main"));
+}
+
+
 #endif  // !PRODUCT
 
 }  // namespace dart

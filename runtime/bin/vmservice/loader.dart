@@ -319,10 +319,11 @@ var _httpClient;
 void _sendResourceResponse(SendPort sp,
                            int tag,
                            Uri uri,
+                           Uri resolvedUri,
                            String libraryUrl,
                            dynamic data) {
   assert((data is List<int>) || (data is String));
-  var msg = new List(4);
+  var msg = new List(5);
   if (data is String) {
     // We encountered an error, flip the sign of the tag to indicate that.
     tag = -tag;
@@ -334,8 +335,9 @@ void _sendResourceResponse(SendPort sp,
   }
   msg[0] = tag;
   msg[1] = uri.toString();
-  msg[2] = libraryUrl;
-  msg[3] = data;
+  msg[2] = resolvedUri.toString();
+  msg[3] = libraryUrl;
+  msg[4] = data;
   sp.send(msg);
 }
 
@@ -376,18 +378,20 @@ void _loadHttp(SendPort sp,
             if (response.statusCode != 200) {
               var msg = "Failure getting $resolvedUri:\n"
                         "  ${response.statusCode} ${response.reasonPhrase}";
-              _sendResourceResponse(sp, tag, uri, libraryUrl, msg);
+              _sendResourceResponse(sp, tag, uri, resolvedUri, libraryUrl, msg);
             } else {
-              _sendResourceResponse(sp, tag, uri, libraryUrl,
+              _sendResourceResponse(sp, tag, uri, resolvedUri, libraryUrl,
                                     builder.takeBytes());
             }
           },
           onError: (e) {
-            _sendResourceResponse(sp, tag, uri, libraryUrl, e.toString());
+            _sendResourceResponse(
+                sp, tag, uri, resolvedUri, libraryUrl, e.toString());
           });
     })
     .catchError((e) {
-      _sendResourceResponse(sp, tag, uri, libraryUrl, e.toString());
+      _sendResourceResponse(
+        sp, tag, uri, resolvedUri, libraryUrl, e.toString());
     });
   // It's just here to push an event on the event loop so that we invoke the
   // scheduled microtasks.
@@ -402,10 +406,10 @@ void _loadFile(SendPort sp,
   var path = resolvedUri.toFilePath();
   var sourceFile = new File(path);
   sourceFile.readAsBytes().then((data) {
-    _sendResourceResponse(sp, tag, uri, libraryUrl, data);
+    _sendResourceResponse(sp, tag, uri, resolvedUri, libraryUrl, data);
   },
   onError: (e) {
-    _sendResourceResponse(sp, tag, uri, libraryUrl, e.toString());
+    _sendResourceResponse(sp, tag, uri, resolvedUri, libraryUrl, e.toString());
   });
 }
 
@@ -426,9 +430,10 @@ void _loadDataUri(SendPort sp,
       // The C++ portion of the embedder assumes UTF-8.
       throw "Only utf-8 or US-ASCII encodings are supported: $charset given.";
     }
-    _sendResourceResponse(sp, tag, uri, libraryUrl, uri.data.contentAsBytes());
+    _sendResourceResponse(
+        sp, tag, uri, resolvedUri, libraryUrl, uri.data.contentAsBytes());
   } catch (e) {
-    _sendResourceResponse(sp, tag, uri, libraryUrl,
+    _sendResourceResponse(sp, tag, uri, resolvedUri, libraryUrl,
                           "Invalid data uri ($uri):\n  $e");
   }
 }
@@ -454,6 +459,7 @@ _loadPackage(IsolateLoaderState loaderState,
       _sendResourceResponse(sp,
                             tag,
                             uri,
+                            resolvedUri,
                             libraryUrl,
                             e.toString());
       return;
@@ -517,6 +523,7 @@ _handleResourceRequest(IsolateLoaderState loaderState,
   } else {
     _sendResourceResponse(sp, tag,
                           uri,
+                          resolvedUri,
                           libraryUrl,
                           'Unknown scheme (${resolvedUri.scheme}) for '
                           '$resolvedUri');

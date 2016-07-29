@@ -84,6 +84,8 @@ class BitVector : public ZoneAllocated {
 
   void Intersect(const BitVector* other);
 
+  bool IsEmpty() const;
+
   bool Contains(intptr_t i) const {
     ASSERT(i >= 0 && i < length());
     uword block = data_[i / kBitsPerWord];

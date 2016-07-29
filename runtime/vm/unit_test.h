@@ -314,6 +314,10 @@ class TestCase : TestCaseBase {
   // Helper function which reloads the current isolate using |script|.
   static Dart_Handle ReloadTestScript(const char* script);
 
+  // Changes the default importable test lib script.
+  static void SetImportableTestLibScript(const char* source);
+  static void RestoreImportableTestLibScript();
+
  private:
   static Dart_Isolate CreateIsolate(const uint8_t* buffer, const char* name);
 

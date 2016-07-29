@@ -119,7 +119,7 @@ Dart_Handle Builtin::LoadLibrary(Dart_Handle url, BuiltinLibraryId id) {
   ASSERT(static_cast<int>(id) >= 0);
   ASSERT(static_cast<int>(id) < num_libs_);
 
-  Dart_Handle library = Dart_LoadLibrary(url, Source(id), 0, 0);
+  Dart_Handle library = Dart_LoadLibrary(url, Dart_Null(), Source(id), 0, 0);
   if (!Dart_IsError(library) && (builtin_libraries_[id].has_natives_)) {
     // Setup the native resolver for built in library functions.
     DART_CHECK_VALID(
