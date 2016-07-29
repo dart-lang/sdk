@@ -2419,19 +2419,6 @@ ClosureNode* Parser::CreateImplicitClosureNode(const Function& func,
                                                AstNode* receiver) {
   Function& implicit_closure_function =
       Function::ZoneHandle(Z, func.ImplicitClosureFunction());
-  if (receiver != NULL) {
-    // If we create an implicit instance closure from inside a closure of a
-    // parameterized class, make sure that the receiver is captured as
-    // instantiator.
-    if (FunctionLevel() > 0) {
-      const Type& signature_type = Type::Handle(Z,
-          implicit_closure_function.SignatureType());
-      const Class& scope_class = Class::Handle(Z, signature_type.type_class());
-      if (scope_class.IsGeneric()) {
-        CaptureInstantiator();
-      }
-    }
-  }
   return new ClosureNode(token_pos, implicit_closure_function, receiver, NULL);
 }
 
