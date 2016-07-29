@@ -9015,12 +9015,17 @@ AstNode* Parser::ParseForInStatement(TokenPosition forin_pos,
     loop_var_name = ExpectIdentifier("variable name expected");
   }
   ExpectToken(Token::kIN);
+
+  // Ensure that the block token range contains the call to moveNext and it
+  // also starts the block at a different token position than the following
+  // loop block. Both blocks can allocate contexts and if they have a matching
+  // token position range, it can be an issue (cf. bug 26941).
+  OpenBlock();  // Implicit block around while loop.
+
   const TokenPosition collection_pos = TokenPos();
   AstNode* collection_expr =
       ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
   ExpectToken(Token::kRPAREN);
-
-  OpenBlock();  // Implicit block around while loop.
 
   // Generate implicit iterator variable and add to scope.
   // We could set the type of the implicit iterator variable to Iterator<T>
