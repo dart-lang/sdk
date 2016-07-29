@@ -6,6 +6,7 @@ library analyzer.test.generated.hint_code_test;
 
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:unittest/unittest.dart';
 
@@ -21,54 +22,6 @@ main() {
 
 @reflectiveTest
 class HintCodeTest extends ResolverTestCase {
-  void fail_isInt() {
-    Source source = addSource("var v = 1 is int;");
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.IS_INT]);
-    verify([source]);
-  }
-
-  void fail_isNotInt() {
-    Source source = addSource("var v = 1 is! int;");
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.IS_NOT_INT]);
-    verify([source]);
-  }
-
-  void fail_overrideEqualsButNotHashCode() {
-    Source source = addSource(r'''
-class A {
-  bool operator ==(x) {}
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE]);
-    verify([source]);
-  }
-
-  void fail_unusedImport_as_equalPrefixes() {
-    // See todo at ImportsVerifier.prefixElementMap.
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart' as one;
-import 'lib2.dart' as one;
-one.A a;''');
-    Source source2 = addNamedSource(
-        "/lib1.dart",
-        r'''
-library lib1;
-class A {}''');
-    Source source3 = addNamedSource(
-        "/lib2.dart",
-        r'''
-library lib2;
-class B {}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.UNUSED_IMPORT]);
-    assertNoErrors(source2);
-    assertNoErrors(source3);
-    verify([source, source2, source3]);
-  }
-
   @override
   void reset() {
     analysisContext2 = AnalysisContextFactory.contextWithCoreAndPackages({
@@ -1726,6 +1679,14 @@ main() {
     verify([source]);
   }
 
+  @failingTest
+  void test_isInt() {
+    Source source = addSource("var v = 1 is int;");
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.IS_INT]);
+    verify([source]);
+  }
+
   void test_isNotDouble() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.dart2jsHint = true;
@@ -1733,6 +1694,14 @@ main() {
     Source source = addSource("var v = 1 is! double;");
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.IS_NOT_DOUBLE]);
+    verify([source]);
+  }
+
+  @failingTest
+  void test_isNotInt() {
+    Source source = addSource("var v = 1 is! int;");
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.IS_NOT_INT]);
     verify([source]);
   }
 
@@ -1751,7 +1720,7 @@ class A { }
     verify([source]);
   }
 
-  void test_missing_js_lib_on_class_decl() {
+  void test_missingJsLibAnnotation_class() {
     Source source = addSource(r'''
 library foo;
 
@@ -1765,7 +1734,21 @@ class A { }
     verify([source]);
   }
 
-  void test_missing_js_lib_on_function() {
+  void test_missingJsLibAnnotation_externalField() {
+    // https://github.com/dart-lang/sdk/issues/26987
+    Source source = addSource(r'''
+import 'package:js/js.dart';
+
+@JS()
+external dynamic exports;
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source,
+        [ParserErrorCode.EXTERNAL_FIELD, HintCode.MISSING_JS_LIB_ANNOTATION]);
+    verify([source]);
+  }
+
+  void test_missingJsLibAnnotation_function() {
     Source source = addSource(r'''
 library foo;
 
@@ -1779,7 +1762,7 @@ set _currentZIndex(int value) { }
     verify([source]);
   }
 
-  void test_missing_js_lib_on_member() {
+  void test_missingJsLibAnnotation_method() {
     Source source = addSource(r'''
 library foo;
 
@@ -1789,6 +1772,18 @@ class A {
   @JS()
   void a() { }
 }
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.MISSING_JS_LIB_ANNOTATION]);
+    verify([source]);
+  }
+
+  void test_missingJsLibAnnotation_variable() {
+    Source source = addSource(r'''
+import 'package:js/js.dart';
+
+@JS()
+dynamic variable;
 ''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_JS_LIB_ANNOTATION]);
@@ -2044,6 +2039,17 @@ m(x) {
 ''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  @failingTest
+  void test_overrideEqualsButNotHashCode() {
+    Source source = addSource(r'''
+class A {
+  bool operator ==(x) {}
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE]);
     verify([source]);
   }
 
@@ -3509,6 +3515,31 @@ class A {}''');
     assertErrors(source, [HintCode.UNUSED_IMPORT]);
     assertNoErrors(source2);
     verify([source, source2]);
+  }
+
+  @failingTest
+  void test_unusedImport_as_equalPrefixes() {
+    // See todo at ImportsVerifier.prefixElementMap.
+    Source source = addSource(r'''
+library L;
+import 'lib1.dart' as one;
+import 'lib2.dart' as one;
+one.A a;''');
+    Source source2 = addNamedSource(
+        "/lib1.dart",
+        r'''
+library lib1;
+class A {}''');
+    Source source3 = addNamedSource(
+        "/lib2.dart",
+        r'''
+library lib2;
+class B {}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.UNUSED_IMPORT]);
+    assertNoErrors(source2);
+    assertNoErrors(source3);
+    verify([source, source2, source3]);
   }
 
   void test_unusedImport_hide() {
