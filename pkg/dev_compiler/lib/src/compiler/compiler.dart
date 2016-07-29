@@ -12,8 +12,12 @@ import 'package:analyzer/analyzer.dart'
         CompileTimeErrorCode,
         ErrorSeverity,
         StaticWarningCode;
+import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/generated/source_io.dart' show Source, SourceKind;
+import 'package:analyzer/src/generated/java_engine.dart' show AnalysisException;
+import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
+import 'package:analyzer/src/generated/source_io.dart'
+    show Source, SourceKind, UriResolver;
 import 'package:func/func.dart' show Func1;
 import 'package:path/path.dart' as path;
 
@@ -55,8 +59,14 @@ class ModuleCompiler {
     }
   }
 
-  ModuleCompiler(AnalyzerOptions analyzerOptions)
-      : this.withContext(createAnalysisContextWithSources(analyzerOptions));
+  ModuleCompiler(AnalyzerOptions analyzerOptions,
+      {DartUriResolver sdkResolver,
+      ResourceProvider resourceProvider,
+      List<UriResolver> fileResolvers})
+      : this.withContext(createAnalysisContextWithSources(analyzerOptions,
+            sdkResolver: sdkResolver,
+            fileResolvers: fileResolvers,
+            resourceProvider: resourceProvider));
 
   /// Compiles a single Dart build unit into a JavaScript module.
   ///

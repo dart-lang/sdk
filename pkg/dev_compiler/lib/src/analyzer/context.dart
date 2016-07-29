@@ -3,15 +3,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/file_system/file_system.dart' show ResourceUriResolver;
+import 'package:args/args.dart' show ArgParser, ArgResults;
+import 'package:analyzer/file_system/file_system.dart'
+    show ResourceProvider, ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
-import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart'
     show
         CustomUriResolver,
@@ -107,7 +109,9 @@ class AnalyzerOptions {
 /// Creates an [AnalysisContext] with dev_compiler type rules and inference,
 /// using [createSourceFactory] to set up its [SourceFactory].
 AnalysisContext createAnalysisContextWithSources(AnalyzerOptions options,
-    {DartUriResolver sdkResolver, List<UriResolver> fileResolvers}) {
+    {DartUriResolver sdkResolver,
+    List<UriResolver> fileResolvers,
+    ResourceProvider resourceProvider}) {
   AnalysisEngine.instance.processRequiredPlugins();
 
   sdkResolver ??=
@@ -122,7 +126,8 @@ AnalysisContext createAnalysisContextWithSources(AnalyzerOptions options,
   var srcFactory = _createSourceFactory(options,
       sdkResolver: sdkResolver,
       fileResolvers: fileResolvers,
-      summaryData: summaryData);
+      summaryData: summaryData,
+      resourceProvider: resourceProvider);
 
   var context = createAnalysisContext();
   context.sourceFactory = srcFactory;
@@ -153,7 +158,8 @@ AnalysisContextImpl createAnalysisContext() {
 SourceFactory _createSourceFactory(AnalyzerOptions options,
     {DartUriResolver sdkResolver,
     List<UriResolver> fileResolvers,
-    SummaryDataStore summaryData}) {
+    SummaryDataStore summaryData,
+    ResourceProvider resourceProvider}) {
   var resolvers = <UriResolver>[];
   if (options.customUrlMappings.isNotEmpty) {
     resolvers.add(new CustomUriResolver(options.customUrlMappings));
@@ -165,7 +171,7 @@ SourceFactory _createSourceFactory(AnalyzerOptions options,
 
   if (fileResolvers == null) fileResolvers = createFileResolvers(options);
   resolvers.addAll(fileResolvers);
-  return new SourceFactory(resolvers);
+  return new SourceFactory(resolvers, null, resourceProvider);
 }
 
 List<UriResolver> createFileResolvers(AnalyzerOptions options) {

@@ -11,6 +11,7 @@ dependencies:
   analyzer: ^0.27.4-alpha.19
   args: ^0.13.0
   bazel_worker: ^0.1.0
+  browser: ^0.10.0
   cli_util: ^0.0.1
   func: ^0.1.0
   html: ^0.12.0
