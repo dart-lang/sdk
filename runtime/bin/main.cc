@@ -1076,7 +1076,11 @@ static void WriteSnapshotFile(const char* snapshot_directory,
   }
 
   File* file = File::Open(qualified_filename, File::kWriteTruncate);
-  ASSERT(file != NULL);
+  if (file == NULL) {
+    ErrorExit(kErrorExitCode,
+              "Unable to open file %s for writing snapshot\n",
+              qualified_filename);
+  }
 
   if (write_magic_number) {
     // Write the magic number to indicate file is a script snapshot.
@@ -1085,7 +1089,7 @@ static void WriteSnapshotFile(const char* snapshot_directory,
 
   if (!file->WriteFully(buffer, size)) {
     ErrorExit(kErrorExitCode,
-              "Unable to open file %s for writing snapshot\n",
+              "Unable to write file %s for writing snapshot\n",
               qualified_filename);
   }
   file->Release();
