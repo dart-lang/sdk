@@ -856,10 +856,13 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   }
 
   /**
-   * We optimize certain operations on the [int] class because we know
-   * more about their return type than the actual Dart code. For
-   * example, we know int + int returns an int. The Dart code for
-   * [int.operator+] only says it returns a [num].
+   * We optimize certain operations on the [int] class because we know more
+   * about their return type than the actual Dart code. For example, we know int
+   * + int returns an int. The Dart library code for [int.operator+] only says
+   * it returns a [num].
+   *
+   * Returns the more precise TypeInformation, or `null` to defer to the library
+   * code.
    */
   TypeInformation handleIntrisifiedSelector(
       Selector selector, TypeMask mask, TypeGraphInferrerEngine inferrer) {
@@ -883,63 +886,78 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       return info.type
           .satisfies(classWorld.backend.positiveIntImplementation, classWorld);
     }
+    TypeInformation tryLater() => inferrer.types.nonNullEmptyType;
+
+    TypeInformation argument =
+        arguments.isEmpty ? null : arguments.positional.first;
 
     String name = selector.name;
-    // We are optimizing for the cases that are not expressed in the
-    // Dart code, for example:
-    // int + int -> int
-    // uint31 | uint31 -> uint31
-    if (name == '*' ||
-        name == '+' ||
-        name == '%' ||
-        name == 'remainder' ||
-        name == '~/') {
-      if (isPositiveInt(receiver) &&
-          arguments.hasOnePositionalArgumentThatMatches(isPositiveInt)) {
-        // uint31 + uint31 -> uint32
-        if (name == '+' &&
-            isUInt31(receiver) &&
-            arguments.hasOnePositionalArgumentThatMatches(isUInt31)) {
-          return inferrer.types.uint32Type;
-        } else {
+    // These are type inference rules only for useful cases that are not
+    // expressed in the library code, for example:
+    //
+    //     int + int        ->  int
+    //     uint31 | uint31  ->  uint31
+    //
+    switch (name) {
+      case '*':
+      case '+':
+      case '%':
+      case 'remainder':
+      case '~/':
+        if (isEmpty(argument)) return tryLater();
+        if (isPositiveInt(receiver) && isPositiveInt(argument)) {
+          // uint31 + uint31 -> uint32
+          if (name == '+' && isUInt31(receiver) && isUInt31(argument)) {
+            return inferrer.types.uint32Type;
+          }
           return inferrer.types.positiveIntType;
         }
-      } else if (arguments.hasOnePositionalArgumentThatMatches(isInt)) {
-        return inferrer.types.intType;
-      } else if (arguments.hasOnePositionalArgumentThatMatches(isEmpty)) {
-        return inferrer.types.nonNullEmptyType;
-      } else {
+        if (isInt(argument)) {
+          return inferrer.types.intType;
+        }
         return null;
-      }
-    } else if (name == '|' || name == '^') {
-      if (isUInt31(receiver) &&
-          arguments.hasOnePositionalArgumentThatMatches(isUInt31)) {
-        return inferrer.types.uint31Type;
-      }
-    } else if (name == '>>') {
-      if (isUInt31(receiver)) {
-        return inferrer.types.uint31Type;
-      }
-    } else if (name == '&') {
-      if (isUInt31(receiver) ||
-          arguments.hasOnePositionalArgumentThatMatches(isUInt31)) {
-        return inferrer.types.uint31Type;
-      }
-    } else if (name == 'unary-') {
-      // The receiver being an int, the return value will also be an
-      // int.
-      return inferrer.types.intType;
-    } else if (name == '-') {
-      if (arguments.hasOnePositionalArgumentThatMatches(isInt)) {
+
+      case '|':
+      case '^':
+        if (isEmpty(argument)) return tryLater();
+        if (isUInt31(receiver) && isUInt31(argument)) {
+          return inferrer.types.uint31Type;
+        }
+        return null;
+
+      case '>>':
+        if (isEmpty(argument)) return tryLater();
+        if (isUInt31(receiver)) {
+          return inferrer.types.uint31Type;
+        }
+        return null;
+
+      case '&':
+        if (isEmpty(argument)) return tryLater();
+        if (isUInt31(receiver) || isUInt31(argument)) {
+          return inferrer.types.uint31Type;
+        }
+        return null;
+
+      case '-':
+        if (isEmpty(argument)) return tryLater();
+        if (isInt(argument)) {
+          return inferrer.types.intType;
+        }
+        return null;
+
+      case 'unary-':
+        // The receiver being an int, the return value will also be an int.
         return inferrer.types.intType;
-      } else if (arguments.hasOnePositionalArgumentThatMatches(isEmpty)) {
-        return inferrer.types.nonNullEmptyType;
-      }
-      return null;
-    } else if (name == 'abs') {
-      return arguments.hasNoArguments() ? inferrer.types.positiveIntType : null;
+
+      case 'abs':
+        return arguments.hasNoArguments()
+            ? inferrer.types.positiveIntType
+            : null;
+
+      default:
+        return null;
     }
-    return null;
   }
 
   TypeMask computeType(TypeGraphInferrerEngine inferrer) {

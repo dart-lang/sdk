@@ -9,9 +9,11 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/shims/binding.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 
+@bindable
 class NavTopMenuElementWrapper extends HtmlElement {
-  static final binder = new Binder<NavTopMenuElementWrapper>(
-    const [const Binding('last')]);
+  static const binder = const Binder<NavTopMenuElementWrapper>(const {
+      'last': #last
+    });
 
   static const tag = const Tag<NavTopMenuElementWrapper>('top-nav-menu');
 

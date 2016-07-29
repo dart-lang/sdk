@@ -13,10 +13,12 @@ import 'package:observatory/src/elements/isolate_ref.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/shims/binding.dart';
 
+@bindable
 class IsolateRefElementWrapper extends HtmlElement {
 
-  static final binder = new Binder<IsolateRefElementWrapper>(
-    const [const Binding('ref')]);
+  static const binder = const Binder<IsolateRefElementWrapper>(const {
+      'ref': #ref
+    });
 
   static const tag = const Tag<IsolateRefElementWrapper>('isolate-ref');
 

@@ -21,4 +21,6 @@ part 'src/mocks/objects/source_location.dart';
 part 'src/mocks/objects/target.dart';
 part 'src/mocks/objects/vm.dart';
 
+part 'src/mocks/repositories/crash_dump.dart';
 part 'src/mocks/repositories/notification.dart';
+part 'src/mocks/repositories/target.dart';

@@ -53,7 +53,7 @@ DEFINE_FLAG(bool, profile_vm, false,
 
 bool Profiler::initialized_ = false;
 SampleBuffer* Profiler::sample_buffer_ = NULL;
-
+ProfilerCounters Profiler::counters_;
 
 void Profiler::InitOnce() {
   // Place some sane restrictions on user controlled flags.
@@ -68,6 +68,8 @@ void Profiler::InitOnce() {
   NativeSymbolResolver::InitOnce();
   ThreadInterrupter::SetInterruptPeriod(FLAG_profile_period);
   ThreadInterrupter::Startup();
+  // Zero counters.
+  memset(&counters_, 0, sizeof(counters_));
   initialized_ = true;
 }
 
@@ -769,7 +771,9 @@ static void CollectSample(Isolate* isolate,
                           ProfilerDartStackWalker* dart_stack_walker,
                           uword pc,
                           uword fp,
-                          uword sp) {
+                          uword sp,
+                          ProfilerCounters* counters) {
+  ASSERT(counters != NULL);
 #if defined(TARGET_OS_WINDOWS)
   // Use structured exception handling to trap guard page access on Windows.
   __try {
@@ -783,14 +787,18 @@ static void CollectSample(Isolate* isolate,
 
   if (FLAG_profile_vm) {
     // Always walk the native stack collecting both native and Dart frames.
+    counters->stack_walker_native++;
     native_stack_walker->walk();
   } else if (StubCode::HasBeenInitialized() && exited_dart_code) {
+    counters->stack_walker_dart_exit++;
     // We have a valid exit frame info, use the Dart stack walker.
     dart_exit_stack_walker->walk();
   } else if (StubCode::HasBeenInitialized() && in_dart_code) {
+    counters->stack_walker_dart++;
     // We are executing Dart code. We have frame pointers.
     dart_stack_walker->walk();
   } else {
+    counters->stack_walker_none++;
     sample->SetAt(0, pc);
   }
 
@@ -1119,6 +1127,7 @@ void Profiler::SampleThread(Thread* thread,
 
   // Thread is not doing VM work.
   if (thread->task_kind() == Thread::kUnknownTask) {
+    counters_.bail_out_unknown_task++;
     return;
   }
 
@@ -1127,6 +1136,7 @@ void Profiler::SampleThread(Thread* thread,
     // The JumpToExceptionHandler stub manually adjusts the stack pointer,
     // frame pointer, and some isolate state before jumping to a catch entry.
     // It is not safe to walk the stack when executing this stub.
+    counters_.bail_out_jump_to_exception_handler++;
     return;
   }
 
@@ -1157,15 +1167,18 @@ void Profiler::SampleThread(Thread* thread,
   }
 
   if (!CheckIsolate(isolate)) {
+    counters_.bail_out_check_isolate++;
     return;
   }
 
   if (thread->IsMutatorThread() && isolate->IsDeoptimizing()) {
+    counters_.single_frame_sample_deoptimizing++;
     SampleThreadSingleFrame(thread, pc);
     return;
   }
 
   if (!InitialRegisterCheck(pc, fp, sp)) {
+    counters_.single_frame_sample_register_check++;
     SampleThreadSingleFrame(thread, pc);
     return;
   }
@@ -1177,6 +1190,7 @@ void Profiler::SampleThread(Thread* thread,
                                         sp,
                                         &stack_lower,
                                         &stack_upper)) {
+    counters_.single_frame_sample_get_and_validate_stack_bounds++;
     // Could not get stack boundary.
     SampleThreadSingleFrame(thread, pc);
     return;
@@ -1234,7 +1248,8 @@ void Profiler::SampleThread(Thread* thread,
                 &dart_stack_walker,
                 pc,
                 fp,
-                sp);
+                sp,
+                &counters_);
 }
 
 

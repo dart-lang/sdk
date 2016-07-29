@@ -989,6 +989,12 @@ Isolate* Isolate::Init(const char* name_prefix,
 }
 
 
+Thread* Isolate::mutator_thread() const {
+  ASSERT(thread_registry() != NULL);
+  return thread_registry()->mutator_thread();
+}
+
+
 void Isolate::SetupInstructionsSnapshotPage(
     const uint8_t* instructions_snapshot_buffer) {
   InstructionsSnapshot snapshot(instructions_snapshot_buffer);
@@ -2584,6 +2590,11 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     // so we create a MonitorLocker object which does not do any
     // no_safepoint_scope_depth increments/decrements.
     MonitorLocker ml(threads_lock(), false);
+
+    // Check to make sure we don't already have a mutator thread.
+    if (is_mutator && mutator_thread_ != NULL) {
+      return NULL;
+    }
 
     // If a safepoint operation is in progress wait for it
     // to finish before scheduling this thread in.

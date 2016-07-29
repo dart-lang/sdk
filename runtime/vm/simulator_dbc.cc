@@ -122,6 +122,17 @@ class SimulatorHelpers {
     f->ptr()->usage_counter_++;
   }
 
+  DART_FORCE_INLINE static void IncrementICUsageCount(RawObject** entries,
+                                                      intptr_t offset,
+                                                      intptr_t args_tested) {
+    const intptr_t count_offset = ICData::CountIndexFor(args_tested);
+    const intptr_t raw_smi_old =
+        reinterpret_cast<intptr_t>(entries[offset + count_offset]);
+    const intptr_t raw_smi_new = raw_smi_old + Smi::RawValue(1);
+    *reinterpret_cast<intptr_t*>(&entries[offset + count_offset]) =
+        raw_smi_new;
+  }
+
   DART_FORCE_INLINE static bool IsStrictEqualWithNumberCheck(RawObject* lhs,
                                                              RawObject* rhs) {
     if (lhs == rhs) {
@@ -588,7 +599,8 @@ DART_FORCE_INLINE void Simulator::InstanceCall1(Thread* thread,
                                                 RawObjectPool** pp,
                                                 uint32_t** pc,
                                                 RawObject*** FP,
-                                                RawObject*** SP) {
+                                                RawObject*** SP,
+                                                bool optimized) {
   ASSERT(icdata->GetClassId() == kICDataCid);
 
   const intptr_t kCheckedArgs = 1;
@@ -599,7 +611,8 @@ DART_FORCE_INLINE void Simulator::InstanceCall1(Thread* thread,
 
   bool found = false;
   const intptr_t length = Smi::Value(cache->length_);
-  for (intptr_t i = 0;
+  intptr_t i;
+  for (i = 0;
        i < (length - (kCheckedArgs + 2)); i += (kCheckedArgs + 2)) {
     if (cache->data()[i + 0] == receiver_cid) {
       top[0] = cache->data()[i + kCheckedArgs];
@@ -608,7 +621,11 @@ DART_FORCE_INLINE void Simulator::InstanceCall1(Thread* thread,
     }
   }
 
-  if (!found) {
+  if (found) {
+    if (!optimized) {
+      SimulatorHelpers::IncrementICUsageCount(cache->data(), i, kCheckedArgs);
+    }
+  } else {
     InlineCacheMiss(
         kCheckedArgs, thread, icdata, call_base, top, *pc, *FP, *SP);
   }
@@ -626,7 +643,8 @@ DART_FORCE_INLINE void Simulator::InstanceCall2(Thread* thread,
                                                 RawObjectPool** pp,
                                                 uint32_t** pc,
                                                 RawObject*** FP,
-                                                RawObject*** SP) {
+                                                RawObject*** SP,
+                                                bool optimized) {
   ASSERT(icdata->GetClassId() == kICDataCid);
 
   const intptr_t kCheckedArgs = 2;
@@ -638,7 +656,8 @@ DART_FORCE_INLINE void Simulator::InstanceCall2(Thread* thread,
 
   bool found = false;
   const intptr_t length = Smi::Value(cache->length_);
-  for (intptr_t i = 0;
+  intptr_t i;
+  for (i = 0;
        i < (length - (kCheckedArgs + 2)); i += (kCheckedArgs + 2)) {
     if ((cache->data()[i + 0] == receiver_cid) &&
         (cache->data()[i + 1] == arg0_cid)) {
@@ -648,7 +667,11 @@ DART_FORCE_INLINE void Simulator::InstanceCall2(Thread* thread,
     }
   }
 
-  if (!found) {
+  if (found) {
+    if (!optimized) {
+      SimulatorHelpers::IncrementICUsageCount(cache->data(), i, kCheckedArgs);
+    }
+  } else {
     InlineCacheMiss(
         kCheckedArgs, thread, icdata, call_base, top, *pc, *FP, *SP);
   }
@@ -762,12 +785,8 @@ static DART_NOINLINE bool InvokeNativeWrapper(
     ASSERT(Bytecode::IsCallOpcode(*pc));                                       \
     const uint16_t kidx = Bytecode::DecodeD(*pc);                              \
     const RawICData* icdata = RAW_CAST(ICData, LOAD_CONSTANT(kidx));           \
-    RawObject** data = icdata->ptr()->ic_data_->ptr()->data();                 \
-    const intptr_t count_offset = ICData::CountIndexFor(2);                    \
-    const intptr_t raw_smi_old =                                               \
-        reinterpret_cast<intptr_t>(data[count_offset]);                        \
-    const intptr_t raw_smi_new = raw_smi_old + Smi::RawValue(1);               \
-    *reinterpret_cast<intptr_t*>(&data[count_offset]) = raw_smi_new;           \
+    RawObject** entries = icdata->ptr()->ic_data_->ptr()->data();              \
+    SimulatorHelpers::IncrementICUsageCount(entries, 0, 2);                    \
   } while (0);                                                                 \
 
 // Declare bytecode handler for a smi operation (e.g. AddTOS) with the
@@ -1389,8 +1408,9 @@ RawObject* Simulator::Call(const Code& code,
       // Lookup the funciton in the ICData.
       RawObject* ic_data_obj = SP[0];
       RawICData* ic_data = RAW_CAST(ICData, ic_data_obj);
-      RawArray* cache = ic_data->ptr()->ic_data_->ptr();
-      SP[0] = cache->data()[ICData::TargetIndexFor(
+      RawObject** data = ic_data->ptr()->ic_data_->ptr()->data();
+      SimulatorHelpers::IncrementICUsageCount(data, 0, 0);
+      SP[0] = data[ICData::TargetIndexFor(
           ic_data->ptr()->state_bits_ & 0x3)];
       RawObject** call_base = SP - argc;
       RawObject** call_top = SP;  // *SP contains function
@@ -1431,8 +1451,9 @@ RawObject* Simulator::Call(const Code& code,
       RawICData* icdata = RAW_CAST(ICData, LOAD_CONSTANT(kidx));
       SimulatorHelpers::IncrementUsageCounter(
           RAW_CAST(Function, icdata->ptr()->owner_));
-      InstanceCall1(
-          thread, icdata, call_base, call_top, &argdesc, &pp, &pc, &FP, &SP);
+      InstanceCall1(thread, icdata, call_base, call_top,
+                    &argdesc, &pp, &pc, &FP, &SP,
+                    false /* optimized */);
     }
 
     DISPATCH();
@@ -1456,8 +1477,9 @@ RawObject* Simulator::Call(const Code& code,
       RawICData* icdata = RAW_CAST(ICData, LOAD_CONSTANT(kidx));
       SimulatorHelpers::IncrementUsageCounter(
           RAW_CAST(Function, icdata->ptr()->owner_));
-      InstanceCall2(
-          thread, icdata, call_base, call_top, &argdesc, &pp, &pc, &FP, &SP);
+      InstanceCall2(thread, icdata, call_base, call_top,
+                    &argdesc, &pp, &pc, &FP, &SP,
+                    false /* optimized */);
     }
 
     DISPATCH();
@@ -1475,8 +1497,9 @@ RawObject* Simulator::Call(const Code& code,
 
       RawICData* icdata = RAW_CAST(ICData, LOAD_CONSTANT(kidx));
       SimulatorHelpers::IncrementUsageCounter(FrameFunction(FP));
-      InstanceCall1(
-          thread, icdata, call_base, call_top, &argdesc, &pp, &pc, &FP, &SP);
+      InstanceCall1(thread, icdata, call_base, call_top,
+                    &argdesc, &pp, &pc, &FP, &SP,
+                    true /* optimized */);
     }
 
     DISPATCH();
@@ -1494,8 +1517,9 @@ RawObject* Simulator::Call(const Code& code,
 
       RawICData* icdata = RAW_CAST(ICData, LOAD_CONSTANT(kidx));
       SimulatorHelpers::IncrementUsageCounter(FrameFunction(FP));
-      InstanceCall2(
-          thread, icdata, call_base, call_top, &argdesc, &pp, &pc, &FP, &SP);
+      InstanceCall2(thread, icdata, call_base, call_top,
+                    &argdesc, &pp, &pc, &FP, &SP,
+                    true /* optimized */);
     }
 
     DISPATCH();

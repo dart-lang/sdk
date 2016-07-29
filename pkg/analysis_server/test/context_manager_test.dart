@@ -9,7 +9,6 @@ import 'dart:collection';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/error_processor.dart';

@@ -14,9 +14,11 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/shims/binding.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 
+@bindable
 class NavVMMenuElementWrapper extends HtmlElement {
-  static final binder = new Binder<NavVMMenuElementWrapper>(
-    const [const Binding('last'), const Binding('vm')]);
+  static const binder = const Binder<NavVMMenuElementWrapper>(const {
+      'last': #last, 'vm': #vm
+    });
 
   static const tag = const Tag<NavVMMenuElementWrapper>('vm-nav-menu');
 

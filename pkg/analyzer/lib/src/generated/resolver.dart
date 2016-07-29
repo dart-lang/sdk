@@ -2855,10 +2855,12 @@ class DeclarationResolver extends RecursiveAstVisitor<Object>
  * The resulting AST must have everything resolved that would have been resolved
  * by a [DirectiveElementBuilder].
  */
-class DirectiveResolver extends SimpleAstVisitor with ExistingElementResolver {
+class DirectiveResolver extends SimpleAstVisitor {
+  LibraryElement _enclosingLibrary;
+
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    _enclosingUnit = node.element;
+    _enclosingLibrary = node.element.library;
     for (Directive directive in node.directives) {
       directive.accept(this);
     }
@@ -2866,124 +2868,31 @@ class DirectiveResolver extends SimpleAstVisitor with ExistingElementResolver {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    String uri = _getStringValue(node.uri);
-    if (uri != null) {
-      LibraryElement library = _enclosingUnit.library;
-      Source source = _enclosingUnit.context.sourceFactory
-          .resolveUri(_enclosingUnit.source, uri);
-      ExportElement exportElement = _findExport(node, library.exports, source);
-      node.element = exportElement;
-    } else {
-      node.element = null;
+    int nodeOffset = node.offset;
+    node.element = null;
+    for (ExportElement element in _enclosingLibrary.exports) {
+      if (element.nameOffset == nodeOffset) {
+        node.element = element;
+        break;
+      }
     }
   }
 
   @override
   void visitImportDirective(ImportDirective node) {
-    String uri = _getStringValue(node.uri);
-    if (uri != null) {
-      LibraryElement library = _enclosingUnit.library;
-      Source source = _enclosingUnit.context.sourceFactory
-          .resolveUri(_enclosingUnit.source, uri);
-      ImportElement importElement = _findImport(node, library.imports, source);
-      node.element = importElement;
-    } else {
-      node.element = null;
+    int nodeOffset = node.offset;
+    node.element = null;
+    for (ImportElement element in _enclosingLibrary.imports) {
+      if (element.nameOffset == nodeOffset) {
+        node.element = element;
+        break;
+      }
     }
   }
 
   @override
   void visitLibraryDirective(LibraryDirective node) {
-    node.element = _enclosingUnit.library;
-  }
-
-  /**
-   * Return the export element from the given list of [exports] whose library
-   * has the given [source]. Throw an [ElementMismatchException] if an element
-   * corresponding to the identifier cannot be found.
-   */
-  ExportElement _findExport(
-      ExportDirective node, List<ExportElement> exports, Source source) {
-    if (source == null) {
-      return null;
-    }
-    int length = exports.length;
-    for (int i = 0; i < length; i++) {
-      ExportElement export = exports[i];
-      if (export.exportedLibrary.source == source) {
-        // Must have the same offset.
-        if (export.nameOffset != node.offset) {
-          continue;
-        }
-        // In general we should also match combinators.
-        // But currently we invalidate element model on any directive change.
-        // So, either the combinators are the same, or we build new elements.
-        return export;
-      }
-    }
-    if (!_enclosingUnit.context.exists(source)) {
-      return null;
-    }
-    _mismatch("Could not find export element for '$source'", node);
-    return null; // Never reached
-  }
-
-  /**
-   * Return the import element from the given list of [imports] whose library
-   * has the given [source]. Throw an [ElementMismatchException] if an element
-   * corresponding to the [source] cannot be found.
-   */
-  ImportElement _findImport(
-      ImportDirective node, List<ImportElement> imports, Source source) {
-    if (source == null) {
-      return null;
-    }
-    SimpleIdentifier prefix = node.prefix;
-    bool foundSource = false;
-    int length = imports.length;
-    for (int i = 0; i < length; i++) {
-      ImportElement element = imports[i];
-      if (element.importedLibrary.source == source) {
-        foundSource = true;
-        // Must have the same offset.
-        if (element.nameOffset != node.offset) {
-          continue;
-        }
-        // Must have the same prefix.
-        if (element.prefix?.displayName != prefix?.name) {
-          continue;
-        }
-        // In general we should also match combinators.
-        // But currently we invalidate element model on any directive change.
-        // So, either the combinators are the same, or we build new elements.
-        return element;
-      }
-    }
-    if (!_enclosingUnit.context.exists(source)) {
-      return null;
-    }
-    if (foundSource) {
-      if (prefix == null) {
-        _mismatch(
-            "Could not find import element for '$source' with no prefix", node);
-      }
-      _mismatch(
-          "Could not find import element for '$source' with prefix ${prefix.name}",
-          node);
-    }
-    _mismatch("Could not find any import element for '$source'", node);
-    return null; // Never reached
-  }
-
-  /**
-   * Return the value of the given string [literal], or `null` if the string is
-   * not a constant string without any string interpolation.
-   */
-  String _getStringValue(StringLiteral literal) {
-    if (literal is StringInterpolation) {
-      return null;
-    }
-    return literal.stringValue;
+    node.element = _enclosingLibrary;
   }
 }
 

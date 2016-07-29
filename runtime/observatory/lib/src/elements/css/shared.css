@@ -302,6 +302,11 @@ body.busy, body.busy * {
               0 2px 5px 0 rgba(0, 0, 0, 0.26);
 }
 
+input.textbox {
+  width: 20em;
+  font: 400 16px 'Montserrat', sans-serif;
+}
+
 @-webkit-keyframes fadeIn {
   0%   { opacity: 0; }
   100% { opacity: 1; }
@@ -473,16 +478,14 @@ view-footer > a {
 }
 
 /* vm-connect-target */
-/* TODO(cbernaschina) fix vm-connect-target-wrapped to vm-connect-target
-+when wrapper removed */
 
-vm-connect-target-wrapped > button.delete-button {
+vm-connect-target > button.delete-button {
   margin-left: 0.28em;
   padding: 4px;
   background: transparent;
   border: none !important;
 }
 
-vm-connect-target-wrapped > button.delete-button:hover {
+vm-connect-target > button.delete-button:hover {
   background: #ff0000;
 }

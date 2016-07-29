@@ -10,9 +10,11 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/shims/binding.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 
+@bindable
 class NavRefreshElementWrapper extends HtmlElement {
-  static final binder = new Binder<NavRefreshElementWrapper>(
-    const [const Binding('callback'), const Binding('label')]);
+  static const binder = const Binder<NavRefreshElementWrapper>(const {
+      'callback': #callback, 'label': #label
+    });
 
   static const tag = const Tag<NavRefreshElementWrapper>('nav-refresh');
 

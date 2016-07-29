@@ -1344,11 +1344,10 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   CHECK_NO_ISOLATE(Isolate::Current());
   // TODO(16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
-  if (iso->HasMutatorThread()) {
-    FATAL("Multiple mutators within one isolate is not supported.");
-  }
   if (!Thread::EnterIsolate(iso)) {
-    FATAL("Unable to Enter Isolate as Dart VM is shutting down");
+    FATAL("Unable to Enter Isolate : "
+          "Multiple mutators entering an isolate / "
+          "Dart VM is shutting down");
   }
   // A Thread structure has been associated to the thread, we do the
   // safepoint transition explicity here instead of using the

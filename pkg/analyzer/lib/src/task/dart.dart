@@ -2656,6 +2656,15 @@ class DartDelta extends Delta {
         }
       }
     }
+    for (String name in references.extendedUsedUnnamedConstructorNames) {
+      for (ClassElementDelta classDelta in changedClasses.values) {
+        if (classDelta.name == name && classDelta.hasUnnamedConstructorChange) {
+          _log(() =>
+              '$refLibrary is affected by the default constructor of $name');
+          return true;
+        }
+      }
+    }
     return false;
   }
 
@@ -2717,6 +2726,12 @@ class DartDelta extends Delta {
   @override
   DeltaResult validate(InternalAnalysisContext context, AnalysisTarget target,
       ResultDescriptor descriptor, Object value) {
+    // Always invalidate compounding results.
+    if (descriptor == LIBRARY_ELEMENT4 ||
+        descriptor == READY_LIBRARY_ELEMENT6 ||
+        descriptor == READY_LIBRARY_ELEMENT7) {
+      return DeltaResult.INVALIDATE_KEEP_DEPENDENCIES;
+    }
     // Prepare target source.
     Source targetUnit = target.source;
     Source targetLibrary = target.librarySource;
@@ -2759,7 +2774,7 @@ class DartDelta extends Delta {
         return DeltaResult.INVALIDATE;
       }
       if (librariesWithAllValidResults.contains(targetLibrary)) {
-        return DeltaResult.STOP;
+        return DeltaResult.KEEP_CONTINUE;
       }
       // The library is almost, but not completely valid.
       // Some error results are invalid.
@@ -2784,7 +2799,7 @@ class DartDelta extends Delta {
         return DeltaResult.KEEP_CONTINUE;
       }
       librariesWithAllValidResults.add(targetLibrary);
-      return DeltaResult.STOP;
+      return DeltaResult.KEEP_CONTINUE;
     }
     // We don't know what to do with the given target, invalidate it.
     return DeltaResult.INVALIDATE;
@@ -4047,7 +4062,6 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     parser.parseFunctionBodies = options.analyzeFunctionBodiesPredicate(source);
     parser.parseGenericMethods = options.enableGenericMethods;
     parser.parseGenericMethodComments = options.strongMode;
-    parser.parseTrailingCommas = options.enableTrailingCommas;
     CompilationUnit unit = parser.parseCompilationUnit(tokenStream);
     unit.lineInfo = lineInfo;
 
@@ -4783,6 +4797,13 @@ class ReferencedNames {
   final Map<String, Set<String>> superToSubs = <String, Set<String>>{};
 
   /**
+   * The names of extended classes for which the unnamed constructor is
+   * invoked. Because we cannot use the name of the constructor to identify
+   * whether the unit is affected, we need to use the class name.
+   */
+  final Set<String> extendedUsedUnnamedConstructorNames = new Set<String>();
+
+  /**
    * The names of instantiated classes.
    *
    * If one of these classes changes its set of members, it might change
@@ -4818,6 +4839,7 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
   final Set<String> importPrefixNames = new Set<String>();
   final ReferencedNames names;
 
+  String enclosingSuperClassName;
   ReferencedNamesScope scope = new ReferencedNamesScope(null);
 
   int localLevel = 0;
@@ -4847,6 +4869,8 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
     try {
       scope = new ReferencedNamesScope.forClass(scope, node);
       dependsOn = new Set<String>();
+      enclosingSuperClassName =
+          _getSimpleName(node.extendsClause?.superclass?.name);
       super.visitClassDeclaration(node);
       String className = node.name.name;
       names.userToDependsOn[className] = dependsOn;
@@ -4854,9 +4878,20 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
       _addSuperNames(className, node.withClause?.mixinTypes);
       _addSuperNames(className, node.implementsClause?.interfaces);
     } finally {
+      enclosingSuperClassName = null;
       dependsOn = null;
       scope = outerScope;
     }
+  }
+
+  static String _getSimpleName(Identifier identifier) {
+    if (identifier is SimpleIdentifier) {
+      return identifier.name;
+    }
+    if (identifier is PrefixedIdentifier) {
+      return identifier.identifier.name;
+    }
+    return null;
   }
 
   @override
@@ -4885,6 +4920,14 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
     } finally {
       localLevel--;
     }
+  }
+
+  @override
+  visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    if (node.constructorName == null && enclosingSuperClassName != null) {
+      names.extendedUsedUnnamedConstructorNames.add(enclosingSuperClassName);
+    }
+    super.visitSuperConstructorInvocation(node);
   }
 
   @override

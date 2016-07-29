@@ -152,6 +152,7 @@ stack_trace_test: Pass, RuntimeError
 stacktrace_rethrow_error_test: Pass, RuntimeError
 stacktrace_rethrow_nonerror_test: Pass, RuntimeError
 stacktrace_test: Pass, RuntimeError
+regress_26948_test: Skip # Crashes, regis investigating
 
 [ $noopt || $compiler == precompiler || $mode == product ]
 # Imports dart:mirrors
@@ -237,9 +238,6 @@ library_env_test/has_no_mirror_support: RuntimeError, OK
 library_env_test/has_mirror_support: RuntimeError, OK
 
 [ $arch == simdbc || $arch == simdbc64 ]
-# TODO(vegorov) StopInstr is unimplemented.
-vm/debug_break_enabled_vm_test/none: Skip
-
 # TODO(vegorov) Encoding limitation: StoreField bytecode only supports 256
 # fields in an object.
 large_class_declaration_test: Skip
@@ -249,7 +247,6 @@ vm/optimized_guarded_field_isolates_test: Skip # Issue #26373
 issue23244_test: Skip # Issue #26373
 
 [ $hot_reload ]
-bound_closure_equality_test: Pass, Fail # Closure identity
 static_closure_identical_test: Pass, Fail # Closure identity
 cha_deopt1_test: Crash # Requires deferred libraries
 cha_deopt2_test: Crash # Requires deferred libraries

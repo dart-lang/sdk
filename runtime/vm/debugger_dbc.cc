@@ -25,6 +25,11 @@ static Instr* CallInstructionFromReturnAddress(uword pc) {
 }
 
 
+static Instr* FastSmiInstructionFromReturnAddress(uword pc) {
+  return reinterpret_cast<Instr*>(pc) - 2;
+}
+
+
 void CodeBreakpoint::PatchCode() {
   ASSERT(!is_enabled_);
   const Code& code = Code::Handle(code_);
@@ -54,6 +59,17 @@ void CodeBreakpoint::PatchCode() {
       default:
         UNREACHABLE();
     }
+
+    // If this call is the fall-through for a fast Smi op, also disable the fast
+    // Smi op.
+    if ((Bytecode::DecodeOpcode(saved_value_) == Bytecode::kInstanceCall2) &&
+        Bytecode::IsFastSmiOpcode(*FastSmiInstructionFromReturnAddress(pc_))) {
+      saved_value_fastsmi_ = *FastSmiInstructionFromReturnAddress(pc_);
+      *FastSmiInstructionFromReturnAddress(pc_) =
+          Bytecode::Encode(Bytecode::kNop, 0, 0, 0);
+    } else {
+      saved_value_fastsmi_ = Bytecode::kTrap;
+    }
   }
   is_enabled_ = true;
 }
@@ -74,6 +90,12 @@ void CodeBreakpoint::RestoreCode() {
       }
       default:
         UNREACHABLE();
+    }
+
+    if (saved_value_fastsmi_ != Bytecode::kTrap) {
+      Instr current_instr = *FastSmiInstructionFromReturnAddress(pc_);
+      ASSERT(Bytecode::DecodeOpcode(current_instr) == Bytecode::kNop);
+      *FastSmiInstructionFromReturnAddress(pc_) = saved_value_fastsmi_;
     }
   }
   is_enabled_ = false;

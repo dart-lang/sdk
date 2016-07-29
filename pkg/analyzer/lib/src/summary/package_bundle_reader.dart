@@ -9,9 +9,11 @@ import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:path/path.dart' as pathos;
@@ -182,6 +184,18 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
           return true;
         }
         return false;
+      } else if (result == CONTAINING_LIBRARIES) {
+        List<String> libraryUriStrings =
+            _dataStore.getContainingLibraryUris(uriString);
+        if (libraryUriStrings != null) {
+          List<Source> librarySources = libraryUriStrings
+              .map((libraryUriString) =>
+                  context.sourceFactory.resolveUri(target, libraryUriString))
+              .toList(growable: false);
+          entry.setValue(result, librarySources, TargetedResult.EMPTY_LIST);
+          return true;
+        }
+        return false;
       }
     } else if (target is LibrarySpecificUnit) {
       if (result == CREATED_RESOLVED_UNIT1 ||
@@ -292,6 +306,31 @@ class SummaryDataStore {
       String uri = bundle.linkedLibraryUris[i];
       linkedMap[uri] = bundle.linkedLibraries[i];
     }
+  }
+
+  /**
+   * Return a list of absolute URIs of the libraries that contain the unit with
+   * the given [unitUriString], or `null` if no such library is in the store.
+   */
+  List<String> getContainingLibraryUris(String unitUriString) {
+    // The unit is the defining unit of a library.
+    if (linkedMap.containsKey(unitUriString)) {
+      return <String>[unitUriString];
+    }
+    // Check every unlinked unit whether it uses [unitUri] as a part.
+    List<String> libraryUriStrings = <String>[];
+    unlinkedMap.forEach((unlinkedUnitUriString, unlinkedUnit) {
+      Uri libraryUri = FastUri.parse(unlinkedUnitUriString);
+      for (String partUriString in unlinkedUnit.publicNamespace.parts) {
+        Uri partUri = FastUri.parse(partUriString);
+        String partAbsoluteUriString =
+            resolveRelativeUri(libraryUri, partUri).toString();
+        if (partAbsoluteUriString == unitUriString) {
+          libraryUriStrings.add(unlinkedUnitUriString);
+        }
+      }
+    });
+    return libraryUriStrings.isNotEmpty ? libraryUriStrings : null;
   }
 
   void _fillMaps(String path) {

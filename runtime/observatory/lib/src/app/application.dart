@@ -9,6 +9,7 @@ part of app;
 class ObservatoryApplication extends Observable {
   static ObservatoryApplication app;
   final RenderingQueue queue = new RenderingQueue();
+  final TargetRepository targets = new TargetRepository();
   final NotificationRepository notifications = new NotificationRepository();
   final _pageRegistry = new List<Page>();
   LocationManager _locationManager;
@@ -17,7 +18,7 @@ class ObservatoryApplication extends Observable {
   VM _vm;
   VM get vm => _vm;
 
-  set vm(VM vm) {
+  _setVM(VM vm) {
     if (_vm == vm) {
       // Do nothing.
       return;
@@ -31,9 +32,6 @@ class ObservatoryApplication extends Observable {
       Logger.root.info('Registering new VM callbacks');
 
       vm.onConnect.then((_) {
-        if (vm is WebSocketVM) {
-          targets.add(vm.target);
-        }
         notifications.deleteDisconnectEvents();
       });
 
@@ -52,7 +50,6 @@ class ObservatoryApplication extends Observable {
     }
     _vm = vm;
   }
-  final TargetManager targets;
   @reflectable final ObservatoryApplicationElement rootElement;
 
   TraceViewElement _traceView = null;
@@ -194,15 +191,20 @@ class ObservatoryApplication extends Observable {
     currentPage = page;
   }
 
-  ObservatoryApplication(this.rootElement) :
-      targets = new TargetManager() {
+  ObservatoryApplication(this.rootElement) {
     _locationManager = new LocationManager(this);
-    vm = new WebSocketVM(targets.defaultTarget);
+    targets.onChange.listen((e) {
+      if (targets.current == null) return _setVM(null);
+      if ((_vm as WebSocketVM)?.target != targets.current) {
+        _setVM(new WebSocketVM(targets.current));
+      }
+    });
+    _setVM(new WebSocketVM(targets.current));
     _initOnce();
   }
 
   loadCrashDump(Map crashDump) {
-    this.vm = new FakeVM(crashDump['result']);
+    _setVM(new FakeVM(crashDump['result']));
     app.locationManager.go('#/vm');
   }
 

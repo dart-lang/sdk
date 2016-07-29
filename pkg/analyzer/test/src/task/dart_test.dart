@@ -3695,6 +3695,22 @@ class U {
     expect(info.userToDependsOn['U'], unorderedEquals(['A', 'B']));
   }
 
+  test_class_extendedUsedUnnamedConstructorNames() {
+    ReferencedNames info = _computeReferencedNames('''
+class U1 extends A {
+  U1() : super();
+}
+class U2 extends p.B {
+  U2() : super();
+}
+class U3 extends p.C {
+  U3() : super.named();
+}
+''');
+    expect(
+        info.extendedUsedUnnamedConstructorNames, unorderedEquals(['A', 'B']));
+  }
+
   test_class_field() {
     ReferencedNames info = _computeReferencedNames('''
 class U {

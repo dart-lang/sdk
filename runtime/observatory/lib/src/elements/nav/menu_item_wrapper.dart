@@ -9,9 +9,11 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/shims/binding.dart';
 import 'package:observatory/src/elements/nav/menu_item.dart';
 
+@bindable
 class NavMenuItemElementWrapper extends HtmlElement {
-  static final binder = new Binder<NavMenuItemElementWrapper>(
-    const [const Binding('anchor'), const Binding('link')]);
+  static const binder = const Binder<NavMenuItemElementWrapper>(const {
+      'anchor': #anchor, 'link': #link
+    });
 
   static const tag =
     const Tag<NavMenuItemElementWrapper>('nav-menu-item');

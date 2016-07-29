@@ -26,6 +26,7 @@ class ThreadRegistry {
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
   void PrepareForGC();
+  Thread* mutator_thread() const { return mutator_thread_; }
 
  private:
   Thread* active_list() const { return active_list_; }

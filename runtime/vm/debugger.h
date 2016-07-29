@@ -235,6 +235,7 @@ class CodeBreakpoint {
   // DebugBreak. This is an instruction that was replaced. DebugBreak
   // will execute it after the breakpoint.
   Instr saved_value_;
+  Instr saved_value_fastsmi_;
 #endif
 
   friend class Debugger;

@@ -13,9 +13,11 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/shims/binding.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 
+@bindable
 class NavIsolateMenuElementWrapper extends HtmlElement {
-  static final binder = new Binder<NavIsolateMenuElementWrapper>(
-    const [const Binding('last'), const Binding('isolate')]);
+  static const binder = const Binder<NavIsolateMenuElementWrapper>(const {
+      'last':  #last, 'isolate': #isolate
+    });
 
   static const tag =
     const Tag<NavIsolateMenuElementWrapper>('isolate-nav-menu');

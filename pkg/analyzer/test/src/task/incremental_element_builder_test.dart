@@ -1065,6 +1065,27 @@ class A {}
     }
   }
 
+  test_directives_library_updateOffset() {
+    _buildOldUnit(r'''
+#!/bin/sh
+library my_lib;
+class A {}
+''');
+    LibraryDirective libraryDirective = oldUnit.directives.single;
+    // Set the LibraryElement and check that its nameOffset is correct.
+    libraryDirective.element =
+        new LibraryElementImpl.forNode(context, libraryDirective.name);
+    expect(libraryDirective.element.nameOffset, libraryDirective.name.offset);
+    // Update and check again that the nameOffset is correct.
+    _buildNewUnit(r'''
+#!/bin/sh
+
+library my_lib;
+class A {}
+''');
+    expect(libraryDirective.element.nameOffset, libraryDirective.name.offset);
+  }
+
   test_directives_remove() {
     _buildOldUnit(r'''
 library test;

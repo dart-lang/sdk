@@ -191,8 +191,11 @@ class _ServiceTesteeLauncher {
   }
 
   Future<Process> _spawnCommon(String executable, List<String> arguments) {
-    print('** Launching $executable ${arguments.join(' ')}');
-    return Process.start(executable, arguments, environment: _TESTEE_SPAWN_ENV);
+    var environment = _TESTEE_SPAWN_ENV;
+    var bashEnvironment = new StringBuffer();
+    environment.forEach((k, v) => bashEnvironment.write("$k=$v "));
+    print('** Launching $bashEnvironment$executable ${arguments.join(' ')}');
+    return Process.start(executable, arguments, environment: environment);
   }
 
   Future<int> launch(bool pause_on_start,
@@ -327,7 +330,9 @@ class _ServiceTesterRunner {
                    pause_on_unhandled_exceptions,
                    trace_service, trace_compiler).then((port) async {
       if (mainArgs.contains("--gdb")) {
-        port = 8181;
+        var pid = process.process.pid;
+        var wait = new Duration(seconds: 10);
+        print("Testee has pid $pid, waiting $wait before continuing");
       }
       serviceWebsocketAddress = 'ws://localhost:$port/ws';
       serviceHttpAddress = 'http://localhost:$port';

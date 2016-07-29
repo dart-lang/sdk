@@ -412,6 +412,16 @@ class TypeParametersChanged : public ClassReasonForCancelling {
     return String::NewFormatted(
         "Limitation: type parameters have changed for %s", from_.ToCString());
   }
+
+  void AppendTo(JSONArray* array) {
+    JSONObject jsobj(array);
+    jsobj.AddProperty("type", "ReasonForCancellingReload");
+    jsobj.AddProperty("kind", "TypeParametersChanged");
+    jsobj.AddProperty("class", to_);
+    jsobj.AddProperty("message",
+                      "Limitation: changing type parameters "
+                      "does not work with hot reload.");
+  }
 };
 
 

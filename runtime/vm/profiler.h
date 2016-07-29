@@ -27,6 +27,23 @@ class Sample;
 class SampleBuffer;
 class ProfileTrieNode;
 
+struct ProfilerCounters {
+  // Count of bail out reasons:
+  int64_t bail_out_unknown_task;
+  int64_t bail_out_jump_to_exception_handler;
+  int64_t bail_out_check_isolate;
+  // Count of single frame sampling reasons:
+  int64_t single_frame_sample_deoptimizing;
+  int64_t single_frame_sample_register_check;
+  int64_t single_frame_sample_get_and_validate_stack_bounds;
+  // Count of stack walkers used:
+  int64_t stack_walker_native;
+  int64_t stack_walker_dart_exit;
+  int64_t stack_walker_dart;
+  int64_t stack_walker_none;
+};
+
+
 class Profiler : public AllStatic {
  public:
   static void InitOnce();
@@ -54,12 +71,19 @@ class Profiler : public AllStatic {
   static void SampleThread(Thread* thread,
                            const InterruptedThreadState& state);
 
+  static ProfilerCounters counters() {
+    // Copies the counter values.
+    return counters_;
+  }
+
  private:
   // Does not walk the thread's stack.
   static void SampleThreadSingleFrame(Thread* thread, uintptr_t pc);
   static bool initialized_;
 
   static SampleBuffer* sample_buffer_;
+
+  static ProfilerCounters counters_;
 
   friend class Thread;
 };

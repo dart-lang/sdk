@@ -127,7 +127,7 @@ class Simulator {
               RawObject** call_top,
               RawObjectPool** pp,
               uint32_t** pc,
-              RawObject*** B,
+              RawObject*** FP,
               RawObject*** SP);
 
   void InlineCacheMiss(int checked_args,
@@ -136,7 +136,7 @@ class Simulator {
                        RawObject** call_base,
                        RawObject** top,
                        uint32_t* pc,
-                       RawObject** B, RawObject** SP);
+                       RawObject** FP, RawObject** SP);
 
   void InstanceCall1(Thread* thread,
                      RawICData* icdata,
@@ -145,7 +145,8 @@ class Simulator {
                      RawArray** argdesc,
                      RawObjectPool** pp,
                      uint32_t** pc,
-                     RawObject*** B, RawObject*** SP);
+                     RawObject*** FP, RawObject*** SP,
+                     bool optimized);
 
   void InstanceCall2(Thread* thread,
                      RawICData* icdata,
@@ -154,7 +155,8 @@ class Simulator {
                      RawArray** argdesc,
                      RawObjectPool** pp,
                      uint32_t** pc,
-                     RawObject*** B, RawObject*** SP);
+                     RawObject*** FP, RawObject*** SP,
+                     bool optimized);
 
   // Longjmp support for exceptions.
   SimulatorSetjmpBuffer* last_setjmp_buffer() {

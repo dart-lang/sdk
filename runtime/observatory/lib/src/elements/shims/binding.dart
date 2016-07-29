@@ -5,57 +5,43 @@
 import 'dart:core';
 import 'dart:html';
 import 'dart:js';
+@MirrorsUsed(metaTargets: const [BindableAnnotation])
 import 'dart:mirrors';
 import 'package:js/js.dart';
 import 'package:js_util/js_util.dart';
 import 'package:polymer/polymer.dart';
 
-class Binding {
-  final String attribute;
-  final String property;
-  const Binding (attribute, [String property])
-      : attribute = attribute,
-        property = property == null ? attribute : property;
+const BindableAnnotation bindable = const BindableAnnotation();
+class BindableAnnotation {
+  const BindableAnnotation();
 }
+
 
 ///This is a temporary bridge between Polymer Bindings and the wrapper entities.
 class Binder<T extends HtmlElement> {
-  final List<Binding> attributes;
-  final callback;
+  final Map<String, Symbol> attributes;
 
-  Binder(List<Binding> attributes)
-      : attributes = attributes,
-        callback = _createCallback(T, attributes);
+  const Binder(Map<String, Symbol> attributes)
+      : attributes = attributes;
 
   registerCallback(T element) {
     assert(element != null);
-    setValue(element, 'bind', callback);
+    setValue(element, 'bind', allowInteropCaptureThis(_callback));
   }
 
-  static _createCallback(Type T, List<Binding> attributes){
-    final target = reflectClass(T);
-    final setters = <String, Symbol>{};
-    for (Binding binding in attributes){
-      var member = target.instanceMembers[new Symbol(binding.property + '=')];
-      if (!member.isSetter)
-        throw new ArgumentError(
-          '${binding.property} is not a Setter for class $T');
-      setters[binding.attribute] = new Symbol(binding.property);
+  void _callback(_this, name, value, [other]) {
+    final setter = attributes[name];
+    if (setter == null) return;
+    Bindable bindable;
+    if (identical(1, 1.0)) { // dart2js
+      bindable = getValue(getValue(value, '__dartBindable'), 'o') as Bindable;
+    } else { // vm
+      bindable = getValue(value, '__dartBindable');
     }
-    return allowInteropCaptureThis((_this, name, value, [other]) {
-      final setter = setters[name];
-      if (setter == null) return;
-      Bindable bindable;
-      if (identical(1, 1.0)) { // dart2js
-        bindable = getValue(getValue(value, '__dartBindable'), 'o') as Bindable;
-      } else { // vm
-        bindable = getValue(value, '__dartBindable');
-      }
-      var obj = reflect(_this);
-      obj.setField(setter, bindable.value);
-      bindable.open((value) {
-        obj.setField(setter, value);
-      });
+    var obj = reflect(_this);
+    obj.setField(setter, bindable.value);
+    bindable.open((value) {
+      obj.setField(setter, value);
     });
   }
 }

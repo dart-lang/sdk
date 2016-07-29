@@ -162,6 +162,20 @@ void InstanceMorpher::Dump() const {
 }
 
 
+void InstanceMorpher::AppendTo(JSONArray* array) {
+  JSONObject jsobj(array);
+  jsobj.AddProperty("type", "Morpher");
+  jsobj.AddProperty("class", to_);
+  jsobj.AddProperty("instances", before()->length());
+  JSONArray map(&jsobj, "mapping");
+  for (int i = 0; i < mapping_.length(); i += 2) {
+    JSONArray pair(&map);
+    pair.AddValue(mapping_.At(i));
+    pair.AddValue(mapping_.At(i+1));
+  }
+}
+
+
 void ReasonForCancelling::Report(IsolateReloadContext* context) {
   const Error& error = Error::Handle(ToError());
   context->ReportError(error);
@@ -181,6 +195,22 @@ RawString* ReasonForCancelling::ToString() {
 }
 
 
+void ReasonForCancelling::AppendTo(JSONArray* array) {
+  JSONObject jsobj(array);
+  jsobj.AddProperty("type", "ReasonForCancelling");
+  const String& message = String::Handle(ToString());
+  jsobj.AddProperty("message", message);
+}
+
+
+void ClassReasonForCancelling::AppendTo(JSONArray* array) {
+  JSONObject jsobj(array);
+  jsobj.AddProperty("type", "ReasonForCancelling");
+  jsobj.AddProperty("class", from_);
+  const String& message = String::Handle(ToString());
+  jsobj.AddProperty("message", message);
+}
+
 RawError* IsolateReloadContext::error() const {
   ASSERT(has_error());
   // Report the first error to the surroundings.
@@ -189,6 +219,7 @@ RawError* IsolateReloadContext::error() const {
   OS::Print("[[%s]]\n", error.ToCString());
   return error.raw();
 }
+
 
 class ScriptUrlSetTraits {
  public:
@@ -490,6 +521,31 @@ void IsolateReloadContext::FinishReload() {
   }
 
   BackgroundCompiler::Enable();
+
+  if (FLAG_trace_reload) {
+    JSONStream stream;
+    ReportOnJSON(&stream);
+    OS::Print("\nJSON report:\n  %s\n", stream.ToCString());
+  }
+}
+
+
+void IsolateReloadContext::ReportOnJSON(JSONStream* stream) {
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("type", "Reload");
+  jsobj.AddProperty("succeeded", !HasReasonsForCancelling());
+  if (HasReasonsForCancelling()) {
+    JSONArray array(&jsobj, "reasons");
+    for (intptr_t i = 0; i < reasons_to_cancel_reload_.length(); i++) {
+      ReasonForCancelling* reason = reasons_to_cancel_reload_.At(i);
+      reason->AppendTo(&array);
+    }
+  } else {
+    JSONArray array(&jsobj, "changes");
+    for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
+      instance_morphers_.At(i)->AppendTo(&array);
+    }
+  }
 }
 
 
