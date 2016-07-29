@@ -177,15 +177,7 @@ class Isolate : public BaseIsolate {
     message_notify_callback_ = value;
   }
 
-  // Limited public access to BaseIsolate::mutator_thread_ for code that
-  // must treat the mutator as the default or a special case. Prefer code
-  // that works uniformly across all threads.
-  bool HasMutatorThread() {
-    return mutator_thread_ != NULL;
-  }
-  Thread* mutator_thread() const {
-    return mutator_thread_;
-  }
+  Thread* mutator_thread() const;
 
   const char* name() const { return name_; }
   const char* debugger_name() const { return debugger_name_; }
@@ -466,8 +458,7 @@ class Isolate : public BaseIsolate {
 
   // Mutator thread is used to aggregate compiler stats.
   CompilerStats* aggregate_compiler_stats() {
-    ASSERT(HasMutatorThread());
-    return mutator_thread_->compiler_stats();
+    return mutator_thread()->compiler_stats();
   }
 
   VMTagCounters* vm_tag_counters() {
@@ -693,8 +684,8 @@ class Isolate : public BaseIsolate {
   // DEPRECATED: Use Thread's methods instead. During migration, these default
   // to using the mutator thread (which must also be the current thread).
   Zone* current_zone() const {
-    ASSERT(Thread::Current() == mutator_thread_);
-    return mutator_thread_->zone();
+    ASSERT(Thread::Current() == mutator_thread());
+    return mutator_thread()->zone();
   }
 
   // Accessed from generated code:

@@ -1874,10 +1874,7 @@ void BackgroundCompiler::Run() {
         ASSERT(error.IsNull());
 #ifndef PRODUCT
         Isolate* isolate = thread->isolate();
-        // We cannot aggregate stats if isolate is shutting down.
-        if (isolate->HasMutatorThread()) {
-          isolate->aggregate_compiler_stats()->Add(*thread->compiler_stats());
-        }
+        isolate->aggregate_compiler_stats()->Add(*thread->compiler_stats());
         thread->compiler_stats()->Clear();
 #endif  // PRODUCT
 
