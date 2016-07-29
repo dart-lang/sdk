@@ -30,8 +30,7 @@ const char* OS::Name() {
 
 
 intptr_t OS::ProcessId() {
-  UNIMPLEMENTED();
-  return 0;
+  return static_cast<intptr_t>(getpid());
 }
 
 
