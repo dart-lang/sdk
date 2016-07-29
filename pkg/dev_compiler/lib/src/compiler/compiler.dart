@@ -14,7 +14,6 @@ import 'package:analyzer/analyzer.dart'
         StaticWarningCode;
 import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/generated/java_engine.dart' show AnalysisException;
 import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
 import 'package:analyzer/src/generated/source_io.dart'
     show Source, SourceKind, UriResolver;
