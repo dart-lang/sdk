@@ -30,6 +30,7 @@ main() {
   initializeTestEnvironment();
   runReflectiveTests(ConstantValueComputerTest);
   runReflectiveTests(ConstantVisitorTest);
+  runReflectiveTests(StrongConstantValueComputerTest);
 }
 
 /**
@@ -1598,5 +1599,13 @@ const b = 3;''');
         lexicalEnvironment: lexicalEnvironment));
     errorListener.assertNoErrors();
     return result;
+  }
+}
+
+@reflectiveTest
+class StrongConstantValueComputerTest extends ConstantValueComputerTest {
+  void setUp() {
+    super.setUp();
+    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
   }
 }
