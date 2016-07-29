@@ -5232,7 +5232,7 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
   if (url_str.IsNull()) {
     RETURN_TYPE_ERROR(Z, url, String);
   }
-  if (Dart_IsNull(resolved_url)) {
+  if (::Dart_IsNull(resolved_url)) {
     resolved_url = url;
   }
   const String& resolved_url_str = Api::UnwrapStringHandle(Z, resolved_url);

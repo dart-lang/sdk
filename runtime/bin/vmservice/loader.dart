@@ -346,7 +346,7 @@ void _sendExtensionImportResponse(SendPort sp,
                                   Uri uri,
                                   String libraryUrl,
                                   String resolvedUri) {
-  var msg = new List(4);
+  var msg = new List(5);
   int tag = _Dart_kImportExtension;
   if (resolvedUri == null) {
     // We could not resolve the dart-ext: uri.
@@ -355,8 +355,9 @@ void _sendExtensionImportResponse(SendPort sp,
   }
   msg[0] = tag;
   msg[1] = uri.toString();
-  msg[2] = libraryUrl;
-  msg[3] = resolvedUri;
+  msg[2] = resolvedUri;
+  msg[3] = libraryUrl;
+  msg[4] = resolvedUri;
   sp.send(msg);
 }
 
