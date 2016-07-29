@@ -7193,7 +7193,12 @@ class ResolverVisitor extends ScopedVisitor {
     // return.
     DartType staticClosureType = closure.element?.type;
     if (staticClosureType != null &&
-        !expectedClosureType.isMoreSpecificThan(staticClosureType)) {
+        !FunctionTypeImpl.relate(
+            expectedClosureType,
+            staticClosureType,
+            (DartType t, DartType s) => (t as TypeImpl).isMoreSpecificThan(s),
+            new TypeSystemImpl().instantiateToBounds,
+            returnRelation: (s, t) => true)) {
       return;
     }
     // set propagated type for the closure
@@ -10087,20 +10092,6 @@ class TypeResolverVisitor extends ScopedVisitor {
     element.type = new FunctionTypeImpl(element);
     _inferSetterReturnType(element);
     return null;
-  }
-
-  @override
-  Object visitFunctionExpression(FunctionExpression node) {
-    // Clear the static element return type of closures.
-    // We need this to restore the state when closure parameter types can
-    // be propagated from invocation parameter types.
-    if (node is! FunctionDeclaration) {
-      ExecutableElement element = node.element;
-      if (element is FunctionElementImpl) {
-        element.returnType = null;
-      }
-    }
-    return super.visitFunctionExpression(node);
   }
 
   @override

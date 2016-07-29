@@ -3660,6 +3660,64 @@ f(c(int p)) {}
     expect(parameterName.propagatedType, context.typeProvider.intType);
   }
 
+  void test_sequence_closureParameterTypesPropagation2() {
+    var code = r'''
+import 'b.dart';
+main(x) {
+  x.toMap();
+  f((p) => 'z');
+}
+f(double c(int p)) {}
+''';
+    Source a = addSource('/a.dart', code);
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'c.dart';
+''');
+    addSource(
+        '/c.dart',
+        r'''
+import 'd.dart';
+''');
+    Source d = addSource(
+        '/d.dart',
+        r'''
+class D {}
+''');
+    _performPendingAnalysisTasks();
+    LibrarySpecificUnit targetA = new LibrarySpecificUnit(a, a);
+    // Update b.dart, resolution in a.dart is not affected.
+    context.setContents(
+        b,
+        r'''
+import 'c.dart';
+class B {}
+''');
+    _assertValidAllResolution(a);
+    _performPendingAnalysisTasks();
+    // Update d.dart, this should invalidate a.dart and type propagation
+    // performed for the closure parameter.
+    context.setContents(
+        d,
+        r'''
+class D {
+  toMap() {}
+}
+''');
+    _assertValidUnits(a, RESOLVED_UNIT6);
+    _assertInvalidUnits(a, RESOLVED_UNIT7);
+    _performPendingAnalysisTasks();
+    // Validate "(p) =>" types.
+    {
+      CompilationUnit unit = context.getResult(targetA, RESOLVED_UNIT2);
+      SimpleIdentifier parameterName =
+          EngineTestCase.findSimpleIdentifier(unit, code, 'p) =>');
+      expect(parameterName.staticType, context.typeProvider.dynamicType);
+      expect(parameterName.propagatedType, context.typeProvider.intType);
+    }
+  }
+
   void test_sequence_compoundingResults_exportNamespace() {
     Source a = addSource(
         '/a.dart',
