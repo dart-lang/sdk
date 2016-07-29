@@ -1832,6 +1832,21 @@ var B = 1;
 ''');
   }
 
+  test_update_parseError_diffPlus_removeOne() {
+    _buildOldUnit(r'''
+class C {
+  + /// comment
+  + String field;
+}
+''');
+    _buildNewUnit(r'''
+class C {
+  + /// comment
+   String field;
+}
+''');
+  }
+
   test_update_rewrittenConstructorName() {
     _buildOldUnit(r'''
 class A {

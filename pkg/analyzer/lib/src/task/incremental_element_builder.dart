@@ -655,6 +655,10 @@ class TokenUtils {
     Token token = getBeginTokenNotComment(node);
     Token endToken = node.endToken;
     while (true) {
+      // stop if past the end token
+      if (token.offset > endToken.end) {
+        break;
+      }
       // append comment tokens
       for (Token commentToken = token.precedingComments;
           commentToken != null;
