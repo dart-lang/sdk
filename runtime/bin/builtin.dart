@@ -346,11 +346,11 @@ _setupHooks() {
 // Handling of Resource class by dispatching to the load port.
 Future<List<int>> _resourceReadAsBytes(Uri uri) async {
   List response = await _makeLoaderRequest(_Dart_kResourceLoad, uri.toString());
-  if (response[3] is String) {
+  if (response[4] is String) {
     // Throw the error.
-    throw response[3];
+    throw response[4];
   } else {
-    return response[3];
+    return response[4];
   }
 }
 
