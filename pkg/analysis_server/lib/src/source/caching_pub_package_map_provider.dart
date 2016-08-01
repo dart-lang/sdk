@@ -106,7 +106,8 @@ class CachingPubPackageMapProvider extends PubPackageMapProvider {
     // Check for cached entry
     Map entry = _cache[folder.path];
     if (entry != null) {
-      Map<String, int> modificationStamps = entry[modificationStampsKey];
+      Map<String, int> modificationStamps =
+          entry[modificationStampsKey] as Map<String, int>;
       if (modificationStamps != null) {
         //
         // Check to see if any dependencies have changed
@@ -217,7 +218,7 @@ class CachingPubPackageMapProvider extends PubPackageMapProvider {
         TimestampedData<String> data = source.contents;
         Map map = JSON.decode(data.data);
         if (map[cacheVersionKey] == cacheVersion) {
-          _cache = map[cacheKey];
+          _cache = map[cacheKey] as Map<String, Map>;
           _cacheModificationTime = data.modificationTime;
         }
       } catch (exception, stackTrace) {

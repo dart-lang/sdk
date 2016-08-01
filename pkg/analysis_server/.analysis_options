@@ -1,3 +1,5 @@
+analyzer:
+  strong-mode: true
 linter:
   rules:
     - unnecessary_brace_in_string_interp
