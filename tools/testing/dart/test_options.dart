@@ -190,6 +190,11 @@ class TestOptionsParser {
           'hot_reload', 'Run hot reload stress tests', ['--hot-reload'], [],
           false, type: 'bool'),
       new _TestOptionSpecification(
+          'hot_reload_rollback',
+          'Run hot reload rollback stress tests', ['--hot-reload-rollback'],
+          [],
+          false, type: 'bool'),
+      new _TestOptionSpecification(
           'use_blobs',
           'Use mmap instead of shared libraries for precompilation',
           ['--use-blobs'], [], false, type: 'bool'),

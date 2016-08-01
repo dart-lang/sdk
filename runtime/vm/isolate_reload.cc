@@ -32,6 +32,8 @@ DEFINE_FLAG(int, reload_every, 0, "Reload every N stack overflow checks.");
 DEFINE_FLAG(bool, reload_every_optimized, true, "Only from optimized code.");
 DEFINE_FLAG(bool, reload_every_back_off, false,
             "Double the --reload-every value after each reload.");
+DEFINE_FLAG(bool, reload_force_rollback, false,
+            "Force all reloads to fail and rollback.");
 DEFINE_FLAG(bool, check_reloaded, false,
             "Assert that an isolate has reloaded at least once.")
 #ifndef PRODUCT
@@ -1105,7 +1107,7 @@ void IsolateReloadContext::AddInstanceMorpher(InstanceMorpher* morpher) {
 
 
 void IsolateReloadContext::ReportReasonsForCancelling() {
-  ASSERT(HasReasonsForCancelling());
+  ASSERT(FLAG_reload_force_rollback || HasReasonsForCancelling());
   for (int i = 0; i < reasons_to_cancel_reload_.length(); i++) {
     reasons_to_cancel_reload_.At(i)->Report(this);
   }
@@ -1232,7 +1234,7 @@ bool IsolateReloadContext::ValidateReload() {
     map.Release();
   }
 
-  return !HasReasonsForCancelling();
+  return !FLAG_reload_force_rollback && !HasReasonsForCancelling();
 }
 
 

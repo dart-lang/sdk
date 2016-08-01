@@ -452,6 +452,26 @@ static bool ProcessHotReloadTestModeOption(const char* arg,
 }
 
 
+static bool ProcessHotReloadRollbackTestModeOption(
+      const char* arg,
+      CommandLineOptions* vm_options) {
+  // Identity reload.
+  vm_options->AddArgument("--identity_reload");
+  // Start reloading quickly.
+  vm_options->AddArgument("--reload_every=4");
+  // Reload from optimized and unoptimized code.
+  vm_options->AddArgument("--reload_every_optimized=false");
+  // Reload less frequently as time goes on.
+  vm_options->AddArgument("--reload_every_back_off");
+  // Ensure that every isolate has reloaded once before exiting.
+  vm_options->AddArgument("--check_reloaded");
+  // Force all reloads to fail and execute the rollback code.
+  vm_options->AddArgument("--reload_force_rollback");
+
+  return true;
+}
+
+
 static struct {
   const char* option_name;
   bool (*process)(const char* option, CommandLineOptions* vm_options);
@@ -477,6 +497,7 @@ static struct {
   { "--use-blobs", ProcessUseBlobsOption },
   { "--trace-loading", ProcessTraceLoadingOption },
   { "--hot-reload-test-mode", ProcessHotReloadTestModeOption },
+  { "--hot-reload-rollback-test-mode", ProcessHotReloadRollbackTestModeOption },
   { NULL, NULL }
 };
 

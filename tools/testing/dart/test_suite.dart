@@ -300,7 +300,7 @@ abstract class TestSuite {
       return;
     }
 
-    if (configuration['hot_reload']) {
+    if (configuration['hot_reload'] || configuration['hot_reload_rollback']) {
       // Handle reload special cases.
       if (expectations.contains(Expectation.COMPILETIME_ERROR)) {
         // Running a test that expects a compilation error with hot reloading
@@ -850,7 +850,8 @@ class StandardTestSuite extends TestSuite {
                             buildDir,
                             suiteDir,
                             createTestCase,
-                            configuration['hot_reload']));
+                            (configuration['hot_reload'] ||
+                             configuration['hot_reload_rollback'])));
     } else {
       createTestCase(filePath, filePath, optionsFromFile['hasCompileError'],
           optionsFromFile['hasRuntimeError'],
