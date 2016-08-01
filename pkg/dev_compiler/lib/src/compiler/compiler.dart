@@ -292,8 +292,8 @@ class BuildUnit {
   /// The name of this module.
   final String name;
 
-  /// Build root.  All library names are relative to this path/prefix.
-  final String buildRoot;
+  /// Library root.  All library names are relative to this path/prefix.
+  final String libraryRoot;
 
   /// The list of sources in this module.
   ///
@@ -308,7 +308,7 @@ class BuildUnit {
   // build units.
   final Func1<Source, String> libraryToModule;
 
-  BuildUnit(this.name, this.buildRoot, this.sources, this.libraryToModule);
+  BuildUnit(this.name, this.libraryRoot, this.sources, this.libraryToModule);
 }
 
 /// The output of Dart->JS compilation.

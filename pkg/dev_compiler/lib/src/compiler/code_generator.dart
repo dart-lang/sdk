@@ -130,7 +130,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   BuildUnit _buildUnit;
 
-  String _buildRoot;
+  String _libraryRoot;
 
   bool _superAllowed = true;
 
@@ -168,9 +168,9 @@ class CodeGenerator extends GeneralizingAstVisitor
   JSModuleFile compile(BuildUnit unit, List<CompilationUnit> compilationUnits,
       List<String> errors) {
     _buildUnit = unit;
-    _buildRoot = _buildUnit.buildRoot;
-    if (!_buildRoot.endsWith(separator)) {
-      _buildRoot = '$_buildRoot${separator}';
+    _libraryRoot = _buildUnit.libraryRoot;
+    if (!_libraryRoot.endsWith(separator)) {
+      _libraryRoot = '$_libraryRoot${separator}';
     }
 
     var jsTree = _emitModule(compilationUnits);
@@ -231,7 +231,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
       var libraryTemp = _isDartRuntime(library)
           ? _runtimeLibVar
-          : new JS.TemporaryId(jsLibraryName(_buildRoot, library));
+          : new JS.TemporaryId(jsLibraryName(_libraryRoot, library));
       _libraries[library] = libraryTemp;
       items.add(new JS.ExportDeclaration(
           js.call('const # = Object.create(null)', [libraryTemp])));
@@ -5189,7 +5189,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     // It's either one of the libraries in this module, or it's an import.
     return _libraries[library] ??
         _imports.putIfAbsent(library,
-            () => new JS.TemporaryId(jsLibraryName(_buildRoot, library)));
+            () => new JS.TemporaryId(jsLibraryName(_libraryRoot, library)));
   }
 
   JS.Node/*=T*/ annotate/*<T extends JS.Node>*/(
@@ -5315,7 +5315,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 /// Choose a canonical name from the library element.
 /// This never uses the library's name (the identifier in the `library`
 /// declaration) as it doesn't have any meaningful rules enforced.
-String jsLibraryName(String buildRoot, LibraryElement library) {
+String jsLibraryName(String libraryRoot, LibraryElement library) {
   var uri = library.source.uri;
   if (uri.scheme == 'dart') {
     return uri.path;
@@ -5328,12 +5328,12 @@ String jsLibraryName(String buildRoot, LibraryElement library) {
     // TODO(vsm): This is not unique if an escaped '/'appears in a filename.
     // E.g., "foo/bar.dart" and "foo$47bar.dart" would collide.
     qualifiedPath = uri.pathSegments.skip(1).join(separator);
-  } else if (uri.toFilePath().startsWith(buildRoot)) {
+  } else if (uri.toFilePath().startsWith(libraryRoot)) {
     qualifiedPath =
-        uri.path.substring(buildRoot.length).replaceAll('/', separator);
+        uri.path.substring(libraryRoot.length).replaceAll('/', separator);
   } else {
     // We don't have a unique name.
-    throw 'Invalid build root. $buildRoot does not contain ${uri.toFilePath()}';
+    throw 'Invalid library root. $libraryRoot does not contain ${uri.toFilePath()}';
   }
   return pathToJSIdentifier(qualifiedPath);
 }

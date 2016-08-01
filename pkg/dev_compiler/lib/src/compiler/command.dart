@@ -26,9 +26,11 @@ class CompileCommand extends Command {
     argParser.addOption('module-root',
         help: 'Root module directory. '
             'Generated module paths are relative to this root.');
-    argParser.addOption('build-root',
+    argParser.addOption('library-root',
         help: 'Root of source files. '
             'Generated library names are relative to this root.');
+    argParser.addOption('build-root',
+        help: 'Deprecated in favor of --library-root');
     CompilerOptions.addArguments(argParser);
     AnalyzerOptions.addArguments(argParser);
   }
@@ -48,11 +50,12 @@ class CompileCommand extends Command {
           '    -o PATH/TO/OUTPUT_FILE.js');
     }
 
-    var buildRoot = argResults['build-root'] as String;
-    if (buildRoot != null) {
-      buildRoot = path.absolute(buildRoot);
+    var libraryRoot = argResults['library-root'] as String;
+    libraryRoot ??= argResults['build-root'] as String;
+    if (libraryRoot != null) {
+      libraryRoot = path.absolute(libraryRoot);
     } else {
-      buildRoot = Directory.current.path;
+      libraryRoot = Directory.current.path;
     }
     var moduleRoot = argResults['module-root'] as String;
     String modulePath;
@@ -73,7 +76,7 @@ class CompileCommand extends Command {
       usageException('Please pass at least one source file as an argument.');
     }
 
-    var unit = new BuildUnit(modulePath, buildRoot, argResults.rest,
+    var unit = new BuildUnit(modulePath, libraryRoot, argResults.rest,
         (source) => _moduleForLibrary(moduleRoot, source));
 
     JSModuleFile module = compiler.compile(unit, _compilerOptions);
