@@ -55,6 +55,8 @@ export 'package:observatory/src/elements/vm_view.dart';
 
 import 'dart:async';
 
+import 'package:observatory/src/elements/containers/virtual_collection.dart';
+import 'package:observatory/src/elements/containers/virtual_tree.dart';
 import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/curly_block_wrapper.dart';
 import 'package:observatory/src/elements/isolate_ref.dart';
@@ -90,6 +92,8 @@ import 'package:observatory/src/elements/vm_connect.dart';
 
 export 'package:observatory/src/elements/helpers/rendering_queue.dart';
 
+export 'package:observatory/src/elements/containers/virtual_collection.dart';
+export 'package:observatory/src/elements/containers/virtual_tree.dart';
 export 'package:observatory/src/elements/curly_block.dart';
 export 'package:observatory/src/elements/isolate_ref.dart';
 export 'package:observatory/src/elements/nav/bar.dart';
@@ -143,6 +147,8 @@ Future initElements() async {
   SourceLinkElement.tag.ensureRegistration();
   SourceLinkElementWrapper.tag.ensureRegistration();
   ViewFooterElement.tag.ensureRegistration();
+  VirtualCollectionElement.tag.ensureRegistration();
+  VirtualTreeElement.tag.ensureRegistration();
   VMConnectElement.tag.ensureRegistration();
   VMConnectTargetElement.tag.ensureRegistration();
 }

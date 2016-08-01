@@ -477,6 +477,34 @@ view-footer > a {
   display: block;
 }
 
+/* virtual-collection */
+
+virtual-collection {
+  display: block;
+  overflow-y: scroll;
+  width: 100%;
+  height: 100%;
+}
+
+virtual-collection .scroller {
+  position: relative;
+  overflow: hidden;
+  background: transparent;
+}
+
+virtual-collection .shifter {
+  background: transparent;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+virtual-collection .shifter > * {
+  position: relative;
+  top: -25%;
+}
+
 /* vm-connect-target */
 
 vm-connect-target > button.delete-button {

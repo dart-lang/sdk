@@ -46,6 +46,8 @@
     'lib/src/elements/context_ref.html',
     'lib/src/elements/context_view.dart',
     'lib/src/elements/context_view.html',
+    'lib/src/elements/containers/virtual_collection.dart',
+    'lib/src/elements/containers/virtual_tree.dart',
     'lib/src/elements/cpu_profile.dart',
     'lib/src/elements/cpu_profile.html',
     'lib/src/elements/css/shared.css',
