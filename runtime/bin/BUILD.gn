@@ -219,8 +219,6 @@ io_impl_sources_gypi =
                 "scope",
                 [ "io_impl_sources.gypi" ])
 
-if (!defined(is_fuchsia) || (current_toolchain == host_toolchain)) {
-
 executable("gen_snapshot") {
   configs += ["..:dart_config",
               "..:dart_product_config",
@@ -297,8 +295,6 @@ source_set("gen_snapshot_dart_io") {
     "//third_party"
   ]
 }
-
-}  # current_toolchain == host_toolchain
 
 source_set("libdart_embedder_noio") {
   configs += ["..:dart_config",
