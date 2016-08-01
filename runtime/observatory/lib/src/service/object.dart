@@ -426,7 +426,7 @@ abstract class Location  {
 
 /// A [SourceLocation] represents a location or range in the source code.
 class SourceLocation extends ServiceObject implements Location,
-                                                          M.SourceLocation {
+                                                      M.SourceLocation {
   Script script;
   int tokenPos;
   int endTokenPos;

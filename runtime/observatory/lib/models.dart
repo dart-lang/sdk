@@ -25,6 +25,8 @@ part 'src/models/objects/target.dart';
 part 'src/models/objects/timeline_event.dart';
 part 'src/models/objects/vm.dart';
 
+part 'src/models/repository.dart';
 part 'src/models/repositories/crash_dump.dart';
 part 'src/models/repositories/notification.dart';
+part 'src/models/repositories/script.dart';
 part 'src/models/repositories/target.dart';

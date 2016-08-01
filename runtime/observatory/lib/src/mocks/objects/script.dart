@@ -7,6 +7,7 @@ part of mocks;
 class ScriptRefMock implements M.ScriptRef {
   final String id;
   final String uri;
+
   const ScriptRefMock({this.id, this.uri});
 }
 
