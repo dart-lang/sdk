@@ -35,7 +35,7 @@ vars = {
   "buildtools_revision": "@565d04e8741429fb1b4f26d102f2c6c3b849edeb",
 
   # Revisions of /third_party/* dependencies.
-  "args_tag": "@0.13.4",
+  "args_tag": "@0.13.5",
   "async_tag": "@1.10.0",
   "barback-0.13.0_rev": "@34853",
   "barback-0.14.0_rev": "@36398",
@@ -88,7 +88,7 @@ vars = {
   "pool_tag": "@1.2.1",
   "protobuf_tag": "@0.5.1+1",
   "pub_cache_tag": "@v0.1.0",
-  "pub_rev": "@488ab539770512a234f0a01b74882dcbb3f1a4da",
+  "pub_rev": "@391b445dc6b28958794658b18caedb69d8cf8719",
   "pub_semver_tag": "@1.2.1",
   "quiver_tag": "@0.21.4",
   "resource_rev":"@a49101ba2deb29c728acba6fb86000a8f730f4b1",
