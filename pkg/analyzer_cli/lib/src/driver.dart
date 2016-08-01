@@ -772,15 +772,12 @@ class _BatchRunner {
         exitCode = batchResult.ordinal;
       }
       // Prepare arguments.
-      var args;
-      {
-        var lineArgs = line.split(new RegExp('\\s+'));
-        args = new List<String>();
-        args.addAll(sharedArgs);
-        args.addAll(lineArgs);
-        args.remove('-b');
-        args.remove('--batch');
-      }
+      var lineArgs = line.split(new RegExp('\\s+'));
+      var args = new List<String>();
+      args.addAll(sharedArgs);
+      args.addAll(lineArgs);
+      args.remove('-b');
+      args.remove('--batch');
       // Analyze single set of arguments.
       try {
         totalTests++;

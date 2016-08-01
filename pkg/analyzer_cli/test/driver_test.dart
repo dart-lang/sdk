@@ -518,7 +518,7 @@ class TestPlugin extends Plugin {
 }
 
 class TestProcessor extends OptionsProcessor {
-  Map<String, YamlNode> options;
+  Map<String, Object> options;
   Exception exception;
 
   @override
@@ -527,8 +527,7 @@ class TestProcessor extends OptionsProcessor {
   }
 
   @override
-  void optionsProcessed(
-      AnalysisContext context, Map<String, YamlNode> options) {
+  void optionsProcessed(AnalysisContext context, Map<String, Object> options) {
     this.options = options;
   }
 }

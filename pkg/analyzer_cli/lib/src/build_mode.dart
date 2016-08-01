@@ -69,7 +69,7 @@ class AnalyzerWorkerLoop extends SyncWorkerLoop {
     try {
       // Add in the dart-sdk argument if `dartSdkPath` is not null, otherwise it
       // will try to find the currently installed sdk.
-      var arguments = new List.from(request.arguments);
+      var arguments = new List<String>.from(request.arguments);
       if (dartSdkPath != null &&
           !arguments.any((arg) => arg.startsWith('--dart-sdk'))) {
         arguments.add('--dart-sdk=$dartSdkPath');
