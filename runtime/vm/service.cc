@@ -2457,6 +2457,7 @@ static bool GetSourceReport(Thread* thread, JSONStream* js) {
 
 static const MethodParameter* reload_sources_params[] = {
   RUNNABLE_ISOLATE_PARAMETER,
+  new BoolParameter("force", false),
   NULL,
 };
 
@@ -2489,8 +2490,10 @@ static bool ReloadSources(Thread* thread, JSONStream* js) {
                    "This isolate cannot reload sources right now.");
     return true;
   }
+  const bool force_reload =
+      BoolParameter::Parse(js->LookupParam("force"), false);
 
-  isolate->ReloadSources();
+  isolate->ReloadSources(force_reload);
 
   const Error& error = Error::Handle(isolate->sticky_reload_error());
 

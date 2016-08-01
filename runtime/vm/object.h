@@ -3396,6 +3396,9 @@ class TokenStream : public Object {
 class Script : public Object {
  public:
   RawString* url() const { return raw_ptr()->url_; }
+
+  // The actual url which was loaded from disk, if provided by the embedder.
+  RawString* resolved_url() const { return raw_ptr()->resolved_url_; }
   bool HasSource() const;
   RawString* Source() const;
   RawString* GenerateSource() const;  // Generates source code from Tokenstream.
@@ -3451,8 +3454,14 @@ class Script : public Object {
                         const String& source,
                         RawScript::Kind kind);
 
+  static RawScript* New(const String& url,
+                        const String& resolved_url,
+                        const String& source,
+                        RawScript::Kind kind);
+
  private:
   void set_url(const String& value) const;
+  void set_resolved_url(const String& value) const;
   void set_source(const String& value) const;
   void set_kind(RawScript::Kind value) const;
   void set_load_timestamp(int64_t value) const;

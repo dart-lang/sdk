@@ -21,6 +21,7 @@
 #include "vm/flags.h"
 #include "vm/growable_array.h"
 #include "vm/lockers.h"
+#include "vm/isolate_reload.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/native_entry.h"
@@ -5220,6 +5221,7 @@ static void CompileSource(Thread* thread,
 
 
 DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
+                                        Dart_Handle resolved_url,
                                         Dart_Handle source,
                                         intptr_t line_offset,
                                         intptr_t column_offset) {
@@ -5229,6 +5231,13 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
   const String& url_str = Api::UnwrapStringHandle(Z, url);
   if (url_str.IsNull()) {
     RETURN_TYPE_ERROR(Z, url, String);
+  }
+  if (::Dart_IsNull(resolved_url)) {
+    resolved_url = url;
+  }
+  const String& resolved_url_str = Api::UnwrapStringHandle(Z, resolved_url);
+  if (resolved_url_str.IsNull()) {
+    RETURN_TYPE_ERROR(Z, resolved_url, String);
   }
   const String& source_str = Api::UnwrapStringHandle(Z, source);
   if (source_str.IsNull()) {
@@ -5258,8 +5267,9 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
   library.Register(T);
   I->object_store()->set_root_library(library);
 
-  const Script& script = Script::Handle(Z,
-      Script::New(url_str, source_str, RawScript::kScriptTag));
+  const Script& script =
+      Script::Handle(Z, Script::New(url_str, resolved_url_str, source_str,
+                                    RawScript::kScriptTag));
   script.SetLocationOffset(line_offset, column_offset);
   Dart_Handle result;
   CompileSource(T, library, script, &result);
@@ -5497,6 +5507,7 @@ DART_EXPORT Dart_Handle Dart_LibraryHandleError(Dart_Handle library_in,
 
 
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
+                                         Dart_Handle resolved_url,
                                          Dart_Handle source,
                                          intptr_t line_offset,
                                          intptr_t column_offset) {
@@ -5506,6 +5517,13 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   const String& url_str = Api::UnwrapStringHandle(Z, url);
   if (url_str.IsNull()) {
     RETURN_TYPE_ERROR(Z, url, String);
+  }
+  if (::Dart_IsNull(resolved_url)) {
+    resolved_url = url;
+  }
+  const String& resolved_url_str = Api::UnwrapStringHandle(Z, resolved_url);
+  if (resolved_url_str.IsNull()) {
+    RETURN_TYPE_ERROR(Z, resolved_url, String);
   }
   const String& source_str = Api::UnwrapStringHandle(Z, source);
   if (source_str.IsNull()) {
@@ -5536,8 +5554,9 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
     return Api::NewError("%s: library '%s' has already been loaded.",
                          CURRENT_FUNC, url_str.ToCString());
   }
-  const Script& script = Script::Handle(Z,
-      Script::New(url_str, source_str, RawScript::kLibraryTag));
+  const Script& script =
+      Script::Handle(Z, Script::New(url_str, resolved_url_str, source_str,
+                                    RawScript::kLibraryTag));
   script.SetLocationOffset(line_offset, column_offset);
   Dart_Handle result;
   CompileSource(T, library, script, &result);
@@ -5603,6 +5622,7 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
 
 DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
                                         Dart_Handle url,
+                                        Dart_Handle resolved_url,
                                         Dart_Handle source,
                                         intptr_t line_offset,
                                         intptr_t column_offset) {
@@ -5616,6 +5636,13 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
   const String& url_str = Api::UnwrapStringHandle(Z, url);
   if (url_str.IsNull()) {
     RETURN_TYPE_ERROR(Z, url, String);
+  }
+  if (::Dart_IsNull(resolved_url)) {
+    resolved_url = url;
+  }
+  const String& resolved_url_str = Api::UnwrapStringHandle(Z, resolved_url);
+  if (resolved_url_str.IsNull()) {
+    RETURN_TYPE_ERROR(Z, resolved_url, String);
   }
   const String& source_str = Api::UnwrapStringHandle(Z, source);
   if (source_str.IsNull()) {
@@ -5634,8 +5661,9 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
 
   NoHeapGrowthControlScope no_growth_control;
 
-  const Script& script = Script::Handle(Z,
-      Script::New(url_str, source_str, RawScript::kSourceTag));
+  const Script& script =
+      Script::Handle(Z, Script::New(url_str, resolved_url_str, source_str,
+                                    RawScript::kSourceTag));
   script.SetLocationOffset(line_offset, column_offset);
   Dart_Handle result;
   CompileSource(T, lib, script, &result);
@@ -5666,8 +5694,9 @@ DART_EXPORT Dart_Handle Dart_LibraryLoadPatch(Dart_Handle library,
 
   NoHeapGrowthControlScope no_growth_control;
 
-  const Script& script = Script::Handle(Z,
-      Script::New(url_str, source_str, RawScript::kPatchTag));
+  const Script& script =
+      Script::Handle(Z, Script::New(url_str, url_str, source_str,
+                                    RawScript::kPatchTag));
   Dart_Handle result;
   CompileSource(T, lib, script, &result);
   return result;
@@ -5843,6 +5872,12 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
 }
 
 
+DART_EXPORT Dart_Handle Dart_SetFileModifiedCallback(
+    Dart_FileModifiedCallback file_mod_callback) {
+  return Api::Success();
+}
+
+
 DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
   return;
 }
@@ -5951,6 +5986,30 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
   }
   Service::SendEmbedderEvent(I, stream_id, event_kind,
                              bytes, bytes_length);
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_SetFileModifiedCallback(
+    Dart_FileModifiedCallback file_modified_callback) {
+  if (!FLAG_support_service) {
+    return Api::Success();
+  }
+  if (file_modified_callback != NULL) {
+    if (IsolateReloadContext::file_modified_callback() != NULL) {
+      return Api::NewError(
+          "%s permits only one callback to be registered, please "
+          "remove the existing callback and then add this callback",
+          CURRENT_FUNC);
+    }
+  } else {
+    if (IsolateReloadContext::file_modified_callback() == NULL) {
+      return Api::NewError(
+          "%s expects 'file_modified_callback' to be set before it is cleared.",
+          CURRENT_FUNC);
+    }
+  }
+  IsolateReloadContext::SetFileModifiedCallback(file_modified_callback);
   return Api::Success();
 }
 
@@ -6236,6 +6295,8 @@ DART_EXPORT Dart_Handle Dart_Precompile(
     bool reset_fields) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("Precompilation is not supported on IA32.");
+#elif defined(TARGET_ARCH_DBC)
+  return Api::NewError("Precompilation is not supported on DBC.");
 #else
   API_TIMELINE_BEGIN_END;
   DARTSCOPE(Thread::Current());
@@ -6265,7 +6326,9 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
     uint8_t** assembly_buffer,
     intptr_t* assembly_size) {
 #if defined(TARGET_ARCH_IA32)
-  return Api::NewError("Snapshots with code are not supported on IA32.");
+  return Api::NewError("Precompilation is not supported on IA32.");
+#elif defined(TARGET_ARCH_DBC)
+  return Api::NewError("Precompilation is not supported on DBC.");
 #else
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
@@ -6325,7 +6388,9 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotBlob(
     uint8_t** rodata_blob_buffer,
     intptr_t* rodata_blob_size) {
 #if defined(TARGET_ARCH_IA32)
-  return Api::NewError("Snapshots with code are not supported on IA32.");
+  return Api::NewError("Precompilation is not supported on IA32.");
+#elif defined(TARGET_ARCH_DBC)
+  return Api::NewError("Precompilation is not supported on DBC.");
 #else
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
@@ -6427,6 +6492,8 @@ DART_EXPORT Dart_Handle Dart_CreateAppJITSnapshot(
     intptr_t* rodata_blob_size) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("Snapshots with code are not supported on IA32.");
+#elif defined(TARGET_ARCH_DBC)
+  return Api::NewError("Snapshots with code are not supported on DBC.");
 #else
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());

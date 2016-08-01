@@ -10,6 +10,7 @@
 #include <errno.h>
 #include <magenta/syscalls.h>
 #include <magenta/types.h>
+#include <runtime/sysinfo.h>
 
 #include "platform/assert.h"
 #include "vm/zone.h"
@@ -29,8 +30,7 @@ const char* OS::Name() {
 
 
 intptr_t OS::ProcessId() {
-  UNIMPLEMENTED();
-  return 0;
+  return static_cast<intptr_t>(getpid());
 }
 
 
@@ -86,13 +86,19 @@ int64_t OS::GetCurrentThreadCPUMicros() {
 
 
 void* OS::AlignedAllocate(intptr_t size, intptr_t alignment) {
-  UNIMPLEMENTED();
-  return NULL;
+  const int kMinimumAlignment = 16;
+  ASSERT(Utils::IsPowerOfTwo(alignment));
+  ASSERT(alignment >= kMinimumAlignment);
+  void* p = memalign(alignment, size);
+  if (p == NULL) {
+    UNREACHABLE();
+  }
+  return p;
 }
 
 
 void OS::AlignedFree(void* ptr) {
-  UNIMPLEMENTED();
+  free(ptr);
 }
 
 
@@ -146,18 +152,19 @@ bool OS::AllowStackFrameIteratorFromAnotherThread() {
 
 
 int OS::NumberOfAvailableProcessors() {
-  UNIMPLEMENTED();
-  return 0;
+  return mxr_get_nprocs_conf();
 }
 
 
 void OS::Sleep(int64_t millis) {
-  UNIMPLEMENTED();
+  mx_nanosleep(
+      millis * kMicrosecondsPerMillisecond * kNanosecondsPerMicrosecond);
 }
 
 
 void OS::SleepMicros(int64_t micros) {
-  UNIMPLEMENTED();
+  mx_nanosleep(
+      micros * kNanosecondsPerMicrosecond);
 }
 
 

@@ -100,6 +100,16 @@ void BitVector::Intersect(const BitVector* other) {
 }
 
 
+bool BitVector::IsEmpty() const {
+  for (intptr_t i = 0; i < data_length_; i++) {
+    if (data_[i] != 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 void BitVector::Print() const {
   OS::Print("[");
   for (intptr_t i = 0; i < length_; i++) {

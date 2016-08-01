@@ -249,7 +249,8 @@ class Isolate : public BaseIsolate {
 
   // By default the reload context is deleted. This parameter allows
   // the caller to delete is separately if it is still needed.
-  void ReloadSources(bool dont_delete_reload_context = false);
+  void ReloadSources(bool force_reload,
+                     bool dont_delete_reload_context = false);
 
   bool MakeRunnable();
   void Run();
@@ -482,6 +483,13 @@ class Isolate : public BaseIsolate {
   bool CanReload() const;
 
   void ReportReloadError(const Error& error);
+
+  void set_last_reload_timestamp(int64_t value) {
+    last_reload_timestamp_ = value;
+  }
+  int64_t last_reload_timestamp() const {
+    return last_reload_timestamp_;
+  }
 
   uword user_tag() const {
     return user_tag_;
@@ -822,6 +830,7 @@ class Isolate : public BaseIsolate {
   // Per-isolate copy of FLAG_reload_every.
   intptr_t reload_every_n_stack_overflow_checks_;
   IsolateReloadContext* reload_context_;
+  int64_t last_reload_timestamp_;
 
 #define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
   type metric_##variable##_;

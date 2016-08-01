@@ -52,12 +52,8 @@ static void ComputeTimeSpecMicros(struct timespec* ts, int64_t micros) {
   int64_t secs = target / kNanosecondsPerSecond;
   int64_t nanos = target - (secs * kNanosecondsPerSecond);
 
-  ts->tv_sec += secs;
-  ts->tv_nsec += nanos;
-  if (ts->tv_nsec >= kNanosecondsPerSecond) {
-    ts->tv_sec += 1;
-    ts->tv_nsec -= kNanosecondsPerSecond;
-  }
+  ts->tv_sec = secs;
+  ts->tv_nsec = nanos;
 }
 
 

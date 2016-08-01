@@ -5,6 +5,7 @@
 #include "vm/isolate_reload.h"
 
 #include "vm/become.h"
+#include "vm/bit_vector.h"
 #include "vm/code_generator.h"
 #include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
@@ -356,13 +357,16 @@ bool IsolateReloadContext::IsSameLibrary(
 
 IsolateReloadContext::IsolateReloadContext(Isolate* isolate)
     : start_time_micros_(OS::GetCurrentMonotonicMicros()),
+      reload_timestamp_(OS::GetCurrentTimeMillis()),
       isolate_(isolate),
+      reload_skipped_(false),
       saved_num_cids_(-1),
       saved_class_table_(NULL),
       num_saved_libs_(-1),
       instance_morphers_(),
       reasons_to_cancel_reload_(),
       cid_mapper_(),
+      modified_libs_(NULL),
       script_uri_(String::null()),
       error_(Error::null()),
       old_classes_set_storage_(Array::null()),
@@ -414,7 +418,7 @@ class Aborted : public ReasonForCancelling {
 };
 
 
-void IsolateReloadContext::StartReload() {
+void IsolateReloadContext::StartReload(bool force_reload) {
   TIMELINE_SCOPE(Reload);
   Thread* thread = Thread::Current();
   ASSERT(isolate() == thread->isolate());
@@ -423,6 +427,15 @@ void IsolateReloadContext::StartReload() {
   const Library& root_lib = Library::Handle(object_store()->root_library());
   ASSERT(!root_lib.IsNull());
   const String& root_lib_url = String::Handle(root_lib.url());
+
+  // Check to see which libraries have been modified.
+  modified_libs_ = FindModifiedLibraries(force_reload);
+  if (!modified_libs_->Contains(root_lib.index())) {
+    ASSERT(modified_libs_->IsEmpty());
+    reload_skipped_ = true;
+    TIR_Print("Skipping reload.  No libraries were modified\n");
+    return;
+  }
 
   // Preallocate storage for maps.
   old_classes_set_storage_ =
@@ -501,11 +514,15 @@ void IsolateReloadContext::RegisterClass(const Class& new_cls) {
 
 
 void IsolateReloadContext::FinishReload() {
+  if (reload_skipped_) {
+    return;
+  }
   BuildLibraryMapping();
   TIR_Print("---- DONE FINALIZING\n");
   if (ValidateReload()) {
     Commit();
     PostCommit();
+    isolate()->set_last_reload_timestamp(reload_timestamp_);
   } else {
     ReportReasonsForCancelling();
     Rollback();
@@ -516,7 +533,7 @@ void IsolateReloadContext::FinishReload() {
   RebuildDirectSubclasses();
 
   if (FLAG_write_protect_code) {
-    // Disable code page write protection while we are reloading.
+    // Re-enable code page write protection.
     I->heap()->WriteProtectCode(true);
   }
 
@@ -649,8 +666,119 @@ void IsolateReloadContext::CheckpointClasses() {
 }
 
 
-bool IsolateReloadContext::IsCleanLibrary(const Library& lib) {
-  return lib.is_dart_scheme();
+Dart_FileModifiedCallback IsolateReloadContext::file_modified_callback_ = NULL;
+
+
+bool IsolateReloadContext::ScriptModifiedSince(const Script& script,
+                                               int64_t since) {
+  if (file_modified_callback_ == NULL) {
+    return true;
+  }
+  // We use the resolved url to determine if the script has been modified.
+  const String& url = String::Handle(script.resolved_url());
+  const char* url_chars = url.ToCString();
+  return (*file_modified_callback_)(url_chars, since);
+}
+
+
+static void PropagateLibraryModified(
+    const ZoneGrowableArray<ZoneGrowableArray<intptr_t>* >* imported_by,
+    intptr_t lib_index,
+    BitVector* modified_libs) {
+  ZoneGrowableArray<intptr_t>* dep_libs = (*imported_by)[lib_index];
+  for (intptr_t i = 0; i < dep_libs->length(); i++) {
+    intptr_t dep_lib_index = (*dep_libs)[i];
+    if (!modified_libs->Contains(dep_lib_index)) {
+      modified_libs->Add(dep_lib_index);
+      PropagateLibraryModified(imported_by, dep_lib_index, modified_libs);
+    }
+  }
+}
+
+
+BitVector* IsolateReloadContext::FindModifiedLibraries(bool force_reload) {
+  Thread* thread = Thread::Current();
+  int64_t last_reload = I->last_reload_timestamp();
+
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(object_store()->libraries());
+  Library& lib = Library::Handle();
+  Array& scripts = Array::Handle();
+  Script& script = Script::Handle();
+  intptr_t num_libs = libs.Length();
+
+  // Construct the imported-by graph.
+  ZoneGrowableArray<ZoneGrowableArray<intptr_t>* >* imported_by =
+      new ZoneGrowableArray<ZoneGrowableArray<intptr_t>* >(num_libs);
+  imported_by->SetLength(num_libs);
+  for (intptr_t i = 0; i < num_libs; i++) {
+    (*imported_by)[i] = new ZoneGrowableArray<intptr_t>();
+  }
+  Array& imports = Array::Handle();
+  Namespace& ns = Namespace::Handle();
+  Library& target = Library::Handle();
+
+  for (intptr_t lib_idx = 0; lib_idx < num_libs; lib_idx++) {
+    lib ^= libs.At(lib_idx);
+    ASSERT(lib_idx == lib.index());
+    if (lib.is_dart_scheme()) {
+      // We don't care about imports among dart scheme libraries.
+      continue;
+    }
+
+    // Add imports to the import-by graph.
+    imports = lib.imports();
+    for (intptr_t import_idx = 0; import_idx < imports.Length(); import_idx++) {
+      ns ^= imports.At(import_idx);
+      if (!ns.IsNull()) {
+        target = ns.library();
+        (*imported_by)[target.index()]->Add(lib.index());
+      }
+    }
+
+    // Add prefixed imports to the import-by graph.
+    DictionaryIterator entries(lib);
+    Object& entry = Object::Handle();
+    LibraryPrefix& prefix = LibraryPrefix::Handle();
+    while (entries.HasNext()) {
+      entry = entries.GetNext();
+      if (entry.IsLibraryPrefix()) {
+        prefix ^= entry.raw();
+        imports = prefix.imports();
+        for (intptr_t import_idx = 0; import_idx < imports.Length();
+             import_idx++) {
+          ns ^= imports.At(import_idx);
+          if (!ns.IsNull()) {
+            target = ns.library();
+            (*imported_by)[target.index()]->Add(lib.index());
+          }
+        }
+      }
+    }
+  }
+
+  BitVector* modified_libs = new(Z) BitVector(Z, num_libs);
+
+  for (intptr_t lib_idx = 0; lib_idx < num_libs; lib_idx++) {
+    lib ^= libs.At(lib_idx);
+    if (lib.is_dart_scheme() || modified_libs->Contains(lib_idx)) {
+      // We don't consider dart scheme libraries during reload.  If
+      // the modified libs set already contains this library, then we
+      // have already visited it.
+      continue;
+    }
+    scripts = lib.LoadedScripts();
+    for (intptr_t script_idx = 0; script_idx < scripts.Length(); script_idx++) {
+      script ^= scripts.At(script_idx);
+      if (force_reload || ScriptModifiedSince(script, last_reload)) {
+        modified_libs->Add(lib_idx);
+        PropagateLibraryModified(imported_by, lib_idx, modified_libs);
+        break;
+      }
+    }
+  }
+
+  return modified_libs;
 }
 
 
@@ -677,19 +805,20 @@ void IsolateReloadContext::CheckpointLibraries() {
   num_saved_libs_ = 0;
   for (intptr_t i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
-    if (IsCleanLibrary(lib)) {
+    if (modified_libs_->Contains(i)) {
+      // We are going to reload this library. Clear the index.
+      lib.set_index(-1);
+    } else {
       // We are preserving this library across the reload, assign its new index
       lib.set_index(new_libs.Length());
       new_libs.Add(lib, Heap::kOld);
       num_saved_libs_++;
-    } else {
-      // We are going to reload this library. Clear the index.
-      lib.set_index(-1);
     }
     // Add old library to old libraries set.
     bool already_present = old_libraries_set.Insert(lib);
     ASSERT(!already_present);
   }
+  modified_libs_ = NULL;  // Renumbering the libraries has invalidated this.
   old_libraries_set_storage_ = old_libraries_set.Release().raw();
 
   // Reset the registered libraries to the filtered array.
@@ -1342,11 +1471,8 @@ void IsolateReloadContext::BuildLibraryMapping() {
 
   Library& replacement_or_new = Library::Handle();
   Library& old = Library::Handle();
-  for (intptr_t i = 0; i < libs.Length(); i++) {
+  for (intptr_t i = num_saved_libs_; i < libs.Length(); i++) {
     replacement_or_new = Library::RawCast(libs.At(i));
-    if (IsCleanLibrary(replacement_or_new)) {
-      continue;
-    }
     old ^= OldLibraryOrNull(replacement_or_new);
     if (old.IsNull()) {
       if (FLAG_identity_reload) {

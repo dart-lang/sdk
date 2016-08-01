@@ -461,6 +461,34 @@ math.Random bar() => null;
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_ImportElement_withPrefix_forMultipleImports() async {
+    _indexTestUnit('''
+import 'dart:async' as p;
+import 'dart:math' as p;
+main() {
+  p.Random;
+  p.Future;
+}
+''');
+    Element mainElement = findElement('main');
+    var kind = MatchKind.REFERENCE;
+    var length = 'p.'.length;
+    {
+      ImportElement element = testLibraryElement.imports[0];
+      var expected = [
+        _expectId(mainElement, kind, 'p.Future;', length: length),
+      ];
+      await _verifyReferences(element, expected);
+    }
+    {
+      ImportElement element = testLibraryElement.imports[1];
+      var expected = [
+        _expectId(mainElement, kind, 'p.Random', length: length),
+      ];
+      await _verifyReferences(element, expected);
+    }
+  }
+
   test_searchReferences_LabelElement() async {
     _indexTestUnit('''
 main() {

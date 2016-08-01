@@ -434,7 +434,7 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
       Dart_Handle part_uri_obj = DartUtils::NewString(part_uri);
       free(part_uri);
       return Dart_LoadSource(library,
-                             part_uri_obj,
+                             part_uri_obj, Dart_Null(),
                              Builtin::PartSource(id, url_string), 0, 0);
     }
     // All cases should have been handled above.
@@ -570,7 +570,8 @@ void FUNCTION_NAME(Builtin_LoadSource)(Dart_NativeArguments args) {
         result = DartUtils::NewError("%s is not a valid UTF-8 script",
                                      resolved_script_uri);
       } else {
-        result = Dart_LoadScript(resolved_script_uri, source, 0, 0);
+        result = Dart_LoadScript(resolved_script_uri, Dart_Null(),
+                                 source, 0, 0);
       }
     }
   } else {
@@ -582,14 +583,16 @@ void FUNCTION_NAME(Builtin_LoadSource)(Dart_NativeArguments args) {
                                    resolved_script_uri);
     } else {
       if (tag == Dart_kImportTag) {
-        result = Dart_LoadLibrary(resolved_script_uri, source, 0, 0);
+        result = Dart_LoadLibrary(resolved_script_uri, Dart_Null(),
+                                  source, 0, 0);
       } else {
         ASSERT(tag == Dart_kSourceTag);
         Dart_Handle library = Dart_LookupLibrary(library_uri);
         if (Dart_IsError(library)) {
           Dart_PropagateError(library);
         }
-        result = Dart_LoadSource(library, resolved_script_uri, source, 0, 0);
+        result = Dart_LoadSource(library, resolved_script_uri, Dart_Null(),
+                                 source, 0, 0);
       }
     }
   }

@@ -72,7 +72,8 @@ static Dart_Handle PrepareBuiltinLibrary(const char* script) {
   DART_CHECK_VALID(builtin_script);
 
   Log::Print("Loading builtin library\n");
-  Dart_Handle status = Dart_LoadLibrary(builtin_uri, builtin_script, 0, 0);
+  Dart_Handle status =
+      Dart_LoadLibrary(builtin_uri, Dart_Null(), builtin_script, 0, 0);
   DART_CHECK_VALID(status);
 
   Log::Print("Looking up builtin library\n");
@@ -96,7 +97,8 @@ static Dart_Handle PrepareScriptLibrary(const char* script) {
   DART_CHECK_VALID(script_string);
 
   Log::Print("Loading script into new library\n");
-  Dart_Handle status = Dart_LoadLibrary(script_uri, script_string, 0, 0);
+  Dart_Handle status =
+      Dart_LoadLibrary(script_uri, Dart_Null(), script_string, 0, 0);
   DART_CHECK_VALID(status);
 
   Log::Print("Looking up script library\n");

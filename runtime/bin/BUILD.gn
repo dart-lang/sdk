@@ -587,5 +587,6 @@ if (defined(is_fuchsia) && is_fuchsia) {
     sources = [
       "run_vm_tests_fuchsia.cc"
     ]
+    libs = [ "launchpad" ]
   }
 }  # defined(is_fuchsia) && is_fuchsia

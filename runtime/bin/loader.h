@@ -61,6 +61,7 @@ class Loader {
     intptr_t payload_length;
     char* library_uri;
     char* uri;
+    char* resolved_uri;
     int8_t tag;
 
     void Setup(Dart_CObject* message);

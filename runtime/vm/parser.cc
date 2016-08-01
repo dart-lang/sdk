@@ -2419,19 +2419,6 @@ ClosureNode* Parser::CreateImplicitClosureNode(const Function& func,
                                                AstNode* receiver) {
   Function& implicit_closure_function =
       Function::ZoneHandle(Z, func.ImplicitClosureFunction());
-  if (receiver != NULL) {
-    // If we create an implicit instance closure from inside a closure of a
-    // parameterized class, make sure that the receiver is captured as
-    // instantiator.
-    if (FunctionLevel() > 0) {
-      const Type& signature_type = Type::Handle(Z,
-          implicit_closure_function.SignatureType());
-      const Class& scope_class = Class::Handle(Z, signature_type.type_class());
-      if (scope_class.IsGeneric()) {
-        CaptureInstantiator();
-      }
-    }
-  }
   return new ClosureNode(token_pos, implicit_closure_function, receiver, NULL);
 }
 
@@ -9028,12 +9015,17 @@ AstNode* Parser::ParseForInStatement(TokenPosition forin_pos,
     loop_var_name = ExpectIdentifier("variable name expected");
   }
   ExpectToken(Token::kIN);
+
+  // Ensure that the block token range contains the call to moveNext and it
+  // also starts the block at a different token position than the following
+  // loop block. Both blocks can allocate contexts and if they have a matching
+  // token position range, it can be an issue (cf. bug 26941).
+  OpenBlock();  // Implicit block around while loop.
+
   const TokenPosition collection_pos = TokenPos();
   AstNode* collection_expr =
       ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
   ExpectToken(Token::kRPAREN);
-
-  OpenBlock();  // Implicit block around while loop.
 
   // Generate implicit iterator variable and add to scope.
   // We could set the type of the implicit iterator variable to Iterator<T>

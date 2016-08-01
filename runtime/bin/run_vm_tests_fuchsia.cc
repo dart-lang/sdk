@@ -3,8 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include <fcntl.h>
+#include <launchpad/launchpad.h>
 #include <magenta/syscalls.h>
 #include <mxio/util.h>
+#include <pthread.h>
+#include <runtime/sysinfo.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,11 +32,8 @@ const char* kSkip[] = {
   // Hangs.
   "ArrayLengthMaxElements",
   "Int8ListLengthMaxElements",
-  "ThreadPool_WorkerShutdown",
   "LargeMap",
   "CompileFunctionOnHelperThread",
-  // Kernel panic.
-  "ThreadBarrier",
   // The profiler is turned off.
   "Profiler_AllocationSampleTest",
   "Profiler_ArrayAllocation",
@@ -84,13 +84,9 @@ const char* kExpectFail[] = {
 
 // Bugs to fix, or things that are not yet impelemnted.
 const char* kBugs[] = {
-  // pthreads not using specified stack size.
+  // pthreads not using specified stack size?
   "StackOverflowStacktraceInfo",
   // Needs OS::GetCurrentThreadCPUMicros.
-  "Timeline_Dart_TimelineDuration",
-  "Timeline_Dart_TimelineInstant"
-  "Timeline_Dart_TimelineAsyncDisabled",
-  "Timeline_Dart_TimelineAsync",
   "Timeline_Dart_TimelineGetTrace",
   "Timeline_Dart_TimelineGetTraceOnlyDartEvents",
   "Timeline_Dart_TimelineGetTraceWithDartEvents",
@@ -101,34 +97,17 @@ const char* kBugs[] = {
   "TimelineEventDurationPrintJSON",
   "TimelineEventArguments",
   "TimelineEventArgumentsPrintJSON",
-  "TimelineEventBufferPrintJSON",
   "TimelineEventCallbackRecorderBasic",
   "TimelineAnalysis_ThreadBlockCount",
   "TimelineRingRecorderJSONOrder",
   "TimelinePauses_BeginEnd",
-  // Crash.
-  "FindCodeObject",
-  // Needs OS::Sleep.
-  "MessageHandler_Run",
-  "Sleep",
-  // Calls VirtualMemory::FreeSubSegment.
-  "GrowableObjectArray",
-  "PrintJSON",
-  "GenerateSource",
-  "FreeVirtualMemory",
-  // Several missing calls.
-  "OsFuncs",
-  // OS::AlignedAllocate.
-  "OSAlignedAllocate",
   // Needs NativeSymbolResolver
   "Service_PersistentHandles",
   // Need to investigate:
-  "ThreadPool_RunOne",
-  "ThreadPool_WorkerTimeout",
-  "Monitor",
+  "FindCodeObject",
   "ThreadIterator_AddFindRemove",
-  // Needs Utils::HostToBigEndian16
-  "Endianity",
+  "PrintJSON",
+  "SourceReport_Coverage_AllFunctions_ForceCompile",
 };
 
 
@@ -165,9 +144,9 @@ static int run_test(const char* test_name) {
   argv[0] = kRunVmTestsPath;
   argv[1] = test_name;
 
-  mx_handle_t p = mxio_start_process(argv[0], kArgc, argv);
+  mx_handle_t p = launchpad_launch(argv[0], kArgc, argv);
   if (p < 0) {
-    printf("process failed to start\n");
+    fprintf(stderr, "process failed to start\n");
     return -1;
   }
 
@@ -175,7 +154,7 @@ static int run_test(const char* test_name) {
   mx_status_t r = mx_handle_wait_one(
       p, MX_SIGNAL_SIGNALED, MX_TIME_INFINITE, &state);
   if (r != NO_ERROR) {
-    printf("[process(%x): wait failed? %d]\n", p, r);
+    fprintf(stderr, "[process(%x): wait failed? %d]\n", p, r);
     return -1;
   }
 
@@ -183,25 +162,12 @@ static int run_test(const char* test_name) {
   mx_ssize_t ret = mx_handle_get_info(
       p, MX_INFO_PROCESS, &proc_info, sizeof(proc_info));
   if (ret != sizeof(proc_info)) {
-    printf("[process(%x): handle_get_info failed? %ld]\n", p, ret);
+    fprintf(stderr, "[process(%x): handle_get_info failed? %ld]\n", p, ret);
     return -1;
   }
 
   mx_handle_close(p);
   return proc_info.return_code;
-}
-
-
-static void trim(char* line) {
-  const intptr_t line_len = strlen(line);
-  if (line[line_len - 1] == '\n') {
-    line[line_len - 1] = '\0';
-  }
-}
-
-
-static bool should_run(const char* test) {
-  return !(test[0] == '#') && !isSkip(test);
 }
 
 
@@ -221,6 +187,84 @@ static void handle_result(intptr_t result, const char* test) {
 }
 
 
+typedef struct {
+  pthread_mutex_t* test_list_lock;
+  char** test_list;
+  intptr_t test_list_length;
+  intptr_t* test_list_index;
+} runner_args_t;
+
+
+static void* test_runner_thread(void* arg) {
+  runner_args_t* args = reinterpret_cast<runner_args_t*>(arg);
+
+  pthread_mutex_lock(args->test_list_lock);
+  while (*args->test_list_index < args->test_list_length) {
+    const intptr_t index = *args->test_list_index;
+    *args->test_list_index = index + 1;
+    pthread_mutex_unlock(args->test_list_lock);
+    const char* test = args->test_list[index];
+    handle_result(run_test(test), test);
+    pthread_mutex_lock(args->test_list_lock);
+  }
+  pthread_mutex_unlock(args->test_list_lock);
+
+  return NULL;
+}
+
+
+static void trim(char* line) {
+  const intptr_t line_len = strlen(line);
+  if (line[line_len - 1] == '\n') {
+    line[line_len - 1] = '\0';
+  }
+}
+
+
+static bool should_run(const char* test) {
+  return !(test[0] == '#') && !isSkip(test);
+}
+
+
+static intptr_t count_lines(FILE* fp) {
+  intptr_t lines = 0;
+
+  // Make sure we're at the beginning of the file.
+  rewind(fp);
+
+  intptr_t ch;
+  while ((ch = fgetc(fp)) != EOF) {
+    if (ch == '\n') {
+      lines++;
+    }
+  }
+
+  rewind(fp);
+  return lines;
+}
+
+
+static intptr_t read_lines(FILE* fp, char** lines, intptr_t lines_length) {
+  char* test = NULL;
+  size_t len = 0;
+  ssize_t read;
+  intptr_t i = 0;
+  while (((read = getline(&test, &len, fp)) != -1) && (i < lines_length)) {
+    trim(test);
+    if (!should_run(test)) {
+      continue;
+    }
+    lines[i] = strdup(test);
+    i++;
+  }
+
+  if (test != NULL) {
+    free(test);
+  }
+  return i;
+}
+
+
 int main(int argc, char** argv) {
   if (argc <= 1) {
     fprintf(stderr, "Pass the path to a file containing the list of tests\n");
@@ -234,22 +278,43 @@ int main(int argc, char** argv) {
     return -1;
   }
 
-  char* test = NULL;
-  size_t len = 0;
-  ssize_t read;
-  while ((read = getline(&test, &len, fp)) != -1) {
-    trim(test);
-    if (!should_run(test)) {
-      continue;
-    }
-    intptr_t result = run_test(test);
-    handle_result(result, test);
+  intptr_t lines_count = count_lines(fp);
+  char** test_list =
+      reinterpret_cast<char**>(malloc(sizeof(*test_list) * lines_count));
+  lines_count = read_lines(fp, test_list, lines_count);
+  fclose(fp);
+
+  pthread_mutex_t args_mutex;
+  pthread_mutex_init(&args_mutex, NULL);
+  intptr_t test_list_index = 0;
+  runner_args_t args;
+  args.test_list_lock = &args_mutex;
+  args.test_list = test_list;
+  args.test_list_length = lines_count;
+  args.test_list_index = &test_list_index;
+
+  const intptr_t num_cpus = mxr_get_nprocs_conf();
+  pthread_t* threads =
+    reinterpret_cast<pthread_t*>(malloc(num_cpus * sizeof(pthread_t)));
+  for (int i = 0; i < num_cpus; i++) {
+    pthread_create(&threads[i], NULL, test_runner_thread, &args);
   }
 
-  fclose(fp);
-  if (test != NULL) {
-    free(test);
+  for (int i = 0; i < num_cpus; i++) {
+    pthread_join(threads[i], NULL);
   }
+
+  free(threads);
+  for (int i = 0; i < lines_count; i++) {
+    free(test_list[i]);
+  }
+  free(test_list);
+  pthread_mutex_destroy(&args_mutex);
+
+  if (test_list_index != lines_count) {
+    fprintf(stderr, "Failed to attempt all the tests!\n");
+    return -1;
+  }
+
   return 0;
 }
-

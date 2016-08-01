@@ -1360,7 +1360,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     // Maybe adjust the rate of future reloads.
     isolate->MaybeIncreaseReloadEveryNStackOverflowChecks();
     // Issue a reload.
-    isolate->ReloadSources();
+    isolate->ReloadSources(true /* force_reload */);
     const Error& error = Error::Handle(isolate->sticky_reload_error());
     if (!error.IsNull()) {
       FATAL1("*** Isolate reload failed: %s\n", error.ToErrorCString());

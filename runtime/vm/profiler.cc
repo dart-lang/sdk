@@ -340,7 +340,7 @@ static void DumpStackFrame(intptr_t frame_index, uword pc) {
   } else {
     OS::Print("Frame[%" Pd "] = `%s` [0x%" Px "]\n",
               frame_index, native_symbol_name, pc);
-    free(native_symbol_name);
+    NativeSymbolResolver::FreeSymbolName(native_symbol_name);
   }
 }
 

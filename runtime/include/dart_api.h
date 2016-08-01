@@ -2653,7 +2653,6 @@ DART_EXPORT Dart_Handle Dart_SetNativeResolver(
  * Scripts and Libraries
  * =====================
  */
-/* TODO(turnidge): Finish documenting this section. */
 
 typedef enum {
   Dart_kCanonicalizeUrl = 0,
@@ -2662,7 +2661,43 @@ typedef enum {
   Dart_kImportTag,
 } Dart_LibraryTag;
 
-/* TODO(turnidge): Document. */
+/**
+ * The library tag handler is a multi-purpose callback provided by the
+ * embedder to the Dart VM. The embedder implements the tag handler to
+ * provide the ability to load Dart scripts and imports.
+ *
+ * -- TAGS --
+ *
+ * Dart_kCanonicalizeUrl
+ *
+ * This tag indicates that the embedder should canonicalize 'url' with
+ * respect to 'library'.  For most embedders, the
+ * Dart_DefaultCanonicalizeUrl function is a sufficient implementation
+ * of this tag.  The return value should be a string holding the
+ * canonicalized url.
+ *
+ * Dart_kScriptTag
+ *
+ * This tag indicates that the root script should be loaded from
+ * 'url'.  The 'library' parameter will always be null.  Once the root
+ * script is loaded, the embedder should call Dart_LoadScript to
+ * install the root script in the VM.  The return value should be an
+ * error or null.
+ *
+ * Dart_kSourceTag
+ *
+ * This tag is used to load a file referenced by Dart language "part
+ * of" directive.  Once the file's source is loaded, the embedder
+ * should call Dart_LoadSource to provide the file contents to the VM.
+ * The return value should be an error or null.
+ *
+ * Dart_kImportTag
+ *
+ * This tag is used to load a script referenced by Dart language
+ * "import" directive.  Once the script is loaded, the embedder should
+ * call Dart_LoadLibrary to provide the script source to the VM.  The
+ * return value should be an error or null.
+ */
 typedef Dart_Handle (*Dart_LibraryTagHandler)(Dart_LibraryTag tag,
                                               Dart_Handle library,
                                               Dart_Handle url);
@@ -2704,18 +2739,30 @@ DART_EXPORT Dart_Handle Dart_DefaultCanonicalizeUrl(Dart_Handle base_url,
                                                     Dart_Handle url);
 
 /**
- * Loads the root script for the current isolate. The script can be
- * embedded in another file, for example in an html file.
+ * Called by the embedder to provide the source for the root script to
+ * the VM.  This function should be called in response to a
+ * Dart_kScriptTag tag handler request (See Dart_LibraryTagHandler,
+ * above).
  *
- * TODO(turnidge): Document.
+ * \param url The original url requested for the script.
+ *
+ * \param resolved_url The actual url which was loaded.  This parameter
+ *   is optionally provided to support isolate reloading.  A value of
+ *   Dart_Null() indicates that the resolved url was the same as the
+ *   requested url.
+ *
+ * \param source The contents of the url.
  *
  * \param line_offset is the number of text lines before the
  *   first line of the Dart script in the containing file.
  *
  * \param col_offset is the number of characters before the first character
  *   in the first line of the Dart script.
+ *
+ * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
+                                        Dart_Handle resolved_url,
                                         Dart_Handle source,
                                         intptr_t line_offset,
                                         intptr_t col_offset);
@@ -2808,7 +2855,33 @@ DART_EXPORT Dart_Handle Dart_LibraryHandleError(Dart_Handle library,
                                                 Dart_Handle error);
 
 
+/**
+ * Called by the embedder to provide the source for an "import"
+ * directive.  This function should be called in response to a
+ * Dart_kImportTag tag handler request (See Dart_LibraryTagHandler,
+ * above).
+ *
+ * \param library The library where the "import" directive occurs.
+ *
+ * \param url The original url requested for the import.
+ *
+ * \param resolved_url The actual url which was loaded.  This parameter
+ *   is optionally provided to support isolate reloading.  A value of
+ *   Dart_Null() indicates that the resolved url was the same as the
+ *   requested url.
+ *
+ * \param source The contents of the url.
+ *
+ * \param line_offset is the number of text lines before the
+ *   first line of the Dart script in the containing file.
+ *
+ * \param col_offset is the number of characters before the first character
+ *   in the first line of the Dart script.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
+                                         Dart_Handle resolved_url,
                                          Dart_Handle source,
                                          intptr_t line_offset,
                                          intptr_t column_offset);
@@ -2829,16 +2902,33 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
                                                   Dart_Handle prefix);
 
 /**
- * Loads a source string into a library.
+ * Called by the embedder to provide the source for a "part of"
+ * directive.  This function should be called in response to a
+ * Dart_kSourceTag tag handler request (See Dart_LibraryTagHandler,
+ * above).
  *
- * \param library A library
- * \param url A url identifying the origin of the source
- * \param source A string of Dart source
+ * \param library The library where the "part of" directive occurs.
+ *
+ * \param url The original url requested for the part.
+ *
+ * \param resolved_url The actual url which was loaded.  This parameter
+ *   is optionally provided to support isolate reloading.  A value of
+ *   Dart_Null() indicates that the resolved url was the same as the
+ *   requested url.
+ *
+ * \param source The contents of the url.
+ *
+ * \param line_offset is the number of text lines before the
+ *   first line of the Dart script in the containing file.
+ *
+ * \param col_offset is the number of characters before the first character
+ *   in the first line of the Dart script.
  *
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
                                         Dart_Handle url,
+                                        Dart_Handle resolved_url,
                                         Dart_Handle source,
                                         intptr_t line_offset,
                                         intptr_t column_offset);

@@ -68,7 +68,8 @@ VirtualMemory::~VirtualMemory() {
 
 
 bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
-  UNIMPLEMENTED();
+  // TODO(zra): It should be possible to free a subsegment after
+  // Issue MG-162 is addressed.
   return false;
 }
 
