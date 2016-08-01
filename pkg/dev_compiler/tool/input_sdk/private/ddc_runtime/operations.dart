@@ -92,20 +92,28 @@ _checkApply(type, actuals) => JS('', '''(() => {
 Symbol _dartSymbol(name) =>
     JS('', '#(#.new(#.toString()))', const_, Symbol, name);
 
+/// Extracts the named argument array from a list of arguments, and returns it.
 // TODO(jmesserly): we need to handle named arguments better.
+extractNamedArgs(args) {
+  if (JS('bool', '#.length > 0', args)) {
+    var last = JS('', '#[#.length - 1]', args, args);
+    if (JS('bool', '# != null && #.__proto__ === Object.prototype',
+        last, last)) {
+      return JS('', '#.pop()', args);
+    }
+  }
+  return null;
+}
+
 _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
   $_trackCall($obj, $name);
 
   let originalTarget = obj === void 0 ? f : obj;
 
   function callNSM() {
-    let namedArgs = null;
-    if (args.length > 0 &&
-        args[args.length - 1].__proto__ == Object.prototype) {
-      namedArgs = args.pop();
-    }
     return $noSuchMethod(originalTarget, new $InvocationImpl(
-        $name, $args, {namedArguments: namedArgs, isMethod: true}));
+        $name, $args,
+        {namedArguments: $extractNamedArgs($args), isMethod: true}));
   }
   if (!($f instanceof Function)) {
     // We're not a function (and hence not a method either)

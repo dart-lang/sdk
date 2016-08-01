@@ -1383,15 +1383,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart._dartSymbol = function(name) {
     return dart.const(core.Symbol.new(name.toString()));
   };
+  dart.extractNamedArgs = function(args) {
+    if (args.length > 0) {
+      let last = args[args.length - 1];
+      if (last != null && last.__proto__ === Object.prototype) {
+        return args.pop();
+      }
+    }
+    return null;
+  };
   dart._checkAndCall = function(f, ftype, obj, typeArgs, args, name) {
     dart._trackCall(obj, name);
     let originalTarget = obj === void 0 ? f : obj;
     function callNSM() {
-      let namedArgs = null;
-      if (args.length > 0 && args[args.length - 1].__proto__ == Object.prototype) {
-        namedArgs = args.pop();
-      }
-      return dart.noSuchMethod(originalTarget, new dart.InvocationImpl(name, args, {namedArguments: namedArgs, isMethod: true}));
+      return dart.noSuchMethod(originalTarget, new dart.InvocationImpl(name, args, {namedArguments: dart.extractNamedArgs(args), isMethod: true}));
     }
     if (!(f instanceof Function)) {
       if (f != null) {

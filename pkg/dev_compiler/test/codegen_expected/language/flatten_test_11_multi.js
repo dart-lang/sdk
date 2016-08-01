@@ -18,37 +18,37 @@ dart_library.library('language/flatten_test_11_multi', null, /* Imports */[
         return super.noSuchMethod(invocation);
       }
       wait(T) {
-        return (futures, opts) => {
-          return async.Future$(core.List$(T))._check(this.noSuchMethod(new dart.InvocationImpl('wait', [futures], {namedArguments: opts, isMethod: true})));
+        return (...args) => {
+          return async.Future$(core.List$(T))._check(this.noSuchMethod(new dart.InvocationImpl('wait', args, {namedArguments: dart.extractNamedArgs(args), isMethod: true})));
         };
       }
       any(T) {
-        return futures => {
-          return async.Future$(T)._check(this.noSuchMethod(new dart.InvocationImpl('any', [futures], {isMethod: true})));
+        return (...args) => {
+          return async.Future$(T)._check(this.noSuchMethod(new dart.InvocationImpl('any', args, {isMethod: true})));
         };
       }
-      forEach(input, f) {
-        return async.Future._check(this.noSuchMethod(new dart.InvocationImpl('forEach', [input, f], {isMethod: true})));
+      forEach(...args) {
+        return async.Future._check(this.noSuchMethod(new dart.InvocationImpl('forEach', args, {isMethod: true})));
       }
-      doWhile(f) {
-        return async.Future._check(this.noSuchMethod(new dart.InvocationImpl('doWhile', [f], {isMethod: true})));
+      doWhile(...args) {
+        return async.Future._check(this.noSuchMethod(new dart.InvocationImpl('doWhile', args, {isMethod: true})));
       }
       then(S) {
-        return (onValue, opts) => {
-          return async.Future$(S)._check(this.noSuchMethod(new dart.InvocationImpl('then', [onValue], {namedArguments: opts, isMethod: true})));
+        return (...args) => {
+          return async.Future$(S)._check(this.noSuchMethod(new dart.InvocationImpl('then', args, {namedArguments: dart.extractNamedArgs(args), isMethod: true})));
         };
       }
-      catchError(onError, opts) {
-        return FutureOfT()._check(this.noSuchMethod(new dart.InvocationImpl('catchError', [onError], {namedArguments: opts, isMethod: true})));
+      catchError(...args) {
+        return FutureOfT()._check(this.noSuchMethod(new dart.InvocationImpl('catchError', args, {namedArguments: dart.extractNamedArgs(args), isMethod: true})));
       }
-      whenComplete(action) {
-        return FutureOfT()._check(this.noSuchMethod(new dart.InvocationImpl('whenComplete', [action], {isMethod: true})));
+      whenComplete(...args) {
+        return FutureOfT()._check(this.noSuchMethod(new dart.InvocationImpl('whenComplete', args, {isMethod: true})));
       }
-      asStream() {
-        return StreamOfT()._check(this.noSuchMethod(new dart.InvocationImpl('asStream', [], {isMethod: true})));
+      asStream(...args) {
+        return StreamOfT()._check(this.noSuchMethod(new dart.InvocationImpl('asStream', args, {isMethod: true})));
       }
-      timeout(timeLimit, opts) {
-        return FutureOfT()._check(this.noSuchMethod(new dart.InvocationImpl('timeout', [timeLimit], {namedArguments: opts, isMethod: true})));
+      timeout(...args) {
+        return FutureOfT()._check(this.noSuchMethod(new dart.InvocationImpl('timeout', args, {namedArguments: dart.extractNamedArgs(args), isMethod: true})));
       }
       get _nullFuture() {
         return async._Future._check(this.noSuchMethod(new dart.InvocationImpl('_nullFuture', [], {isGetter: true})));
@@ -68,37 +68,37 @@ dart_library.library('language/flatten_test_11_multi', null, /* Imports */[
         return super.noSuchMethod(invocation);
       }
       wait(T) {
-        return (futures, opts) => {
-          return async.Future$(core.List$(T))._check(this.noSuchMethod(new dart.InvocationImpl('wait', [futures], {namedArguments: opts, isMethod: true})));
+        return (...args) => {
+          return async.Future$(core.List$(T))._check(this.noSuchMethod(new dart.InvocationImpl('wait', args, {namedArguments: dart.extractNamedArgs(args), isMethod: true})));
         };
       }
       any(T) {
-        return futures => {
-          return async.Future$(T)._check(this.noSuchMethod(new dart.InvocationImpl('any', [futures], {isMethod: true})));
+        return (...args) => {
+          return async.Future$(T)._check(this.noSuchMethod(new dart.InvocationImpl('any', args, {isMethod: true})));
         };
       }
-      forEach(input, f) {
-        return async.Future._check(this.noSuchMethod(new dart.InvocationImpl('forEach', [input, f], {isMethod: true})));
+      forEach(...args) {
+        return async.Future._check(this.noSuchMethod(new dart.InvocationImpl('forEach', args, {isMethod: true})));
       }
-      doWhile(f) {
-        return async.Future._check(this.noSuchMethod(new dart.InvocationImpl('doWhile', [f], {isMethod: true})));
+      doWhile(...args) {
+        return async.Future._check(this.noSuchMethod(new dart.InvocationImpl('doWhile', args, {isMethod: true})));
       }
       then(S) {
-        return (onValue, opts) => {
-          return async.Future$(S)._check(this.noSuchMethod(new dart.InvocationImpl('then', [onValue], {namedArguments: opts, isMethod: true})));
+        return (...args) => {
+          return async.Future$(S)._check(this.noSuchMethod(new dart.InvocationImpl('then', args, {namedArguments: dart.extractNamedArgs(args), isMethod: true})));
         };
       }
-      catchError(onError, opts) {
-        return FutureOfFixedPointOfT()._check(this.noSuchMethod(new dart.InvocationImpl('catchError', [onError], {namedArguments: opts, isMethod: true})));
+      catchError(...args) {
+        return FutureOfFixedPointOfT()._check(this.noSuchMethod(new dart.InvocationImpl('catchError', args, {namedArguments: dart.extractNamedArgs(args), isMethod: true})));
       }
-      whenComplete(action) {
-        return FutureOfFixedPointOfT()._check(this.noSuchMethod(new dart.InvocationImpl('whenComplete', [action], {isMethod: true})));
+      whenComplete(...args) {
+        return FutureOfFixedPointOfT()._check(this.noSuchMethod(new dart.InvocationImpl('whenComplete', args, {isMethod: true})));
       }
-      asStream() {
-        return StreamOfFixedPointOfT()._check(this.noSuchMethod(new dart.InvocationImpl('asStream', [], {isMethod: true})));
+      asStream(...args) {
+        return StreamOfFixedPointOfT()._check(this.noSuchMethod(new dart.InvocationImpl('asStream', args, {isMethod: true})));
       }
-      timeout(timeLimit, opts) {
-        return FutureOfFixedPointOfT()._check(this.noSuchMethod(new dart.InvocationImpl('timeout', [timeLimit], {namedArguments: opts, isMethod: true})));
+      timeout(...args) {
+        return FutureOfFixedPointOfT()._check(this.noSuchMethod(new dart.InvocationImpl('timeout', args, {namedArguments: dart.extractNamedArgs(args), isMethod: true})));
       }
       get _nullFuture() {
         return async._Future._check(this.noSuchMethod(new dart.InvocationImpl('_nullFuture', [], {isGetter: true})));

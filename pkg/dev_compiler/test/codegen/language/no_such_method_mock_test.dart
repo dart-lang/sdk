@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 
 class Cat {
   bool eatFood(String food) => true;
-  int scratch(String furniture) => 100;
+  String scratch(String furniture) => 'purr';
 }
 
 class MockCat implements Cat {
@@ -24,9 +24,13 @@ class MockCat2 extends MockCat {
 
 class MockCat3 extends MockCat2 implements Cat {
   bool eatFood(String food, {double amount});
-  int scratch(String furniture, [String furniture2]);
+  String scratch(String furniture, [String furniture2]);
 
   dynamic noSuchMethod(Invocation invocation) {
+    if (invocation.memberName == #scratch) {
+      return invocation.positionalArguments.join(',');
+    }
+
     return (invocation.positionalArguments[0] as String).isNotEmpty &&
         invocation.namedArguments[#amount] > 0.5;
   }
@@ -39,6 +43,14 @@ class MockWithGenerics {
   noSuchMethod(i) => i.positionalArguments[0] + 100;
 }
 
+class MockWithGetterSetter {
+  get getter;
+  set setter(value);
+
+  Invocation invocation;
+  noSuchMethod(i) { invocation = i; }
+}
+
 
 void main() {
   MockCat mock = new MockCat();
@@ -46,8 +58,8 @@ void main() {
   Expect.isFalse(mock.eatFood(""));
 
   // In strong mode this will be a runtime type error:
-  // bool is not an int. VM will fail with noSuchMethod +.
-  Expect.throws(() => mock.scratch("couch") + 0);
+  // bool is not a String. VM will fail with noSuchMethod +.
+  Expect.throws(() => mock.scratch("couch") + '');
 
   var mock2 = new MockCat2();
   Expect.isTrue(mock2.eatFood("cat food"));
@@ -55,8 +67,24 @@ void main() {
   var mock3 = new MockCat3();
   Expect.isTrue(mock3.eatFood("cat food", amount: 0.9));
   Expect.isFalse(mock3.eatFood("cat food", amount: 0.3));
+  Expect.equals(mock3.scratch("chair"), "chair");
+  Expect.equals(mock3.scratch("chair", "couch"), "chair,couch");
+  Expect.equals(mock3.scratch("chair", null), "chair,null");
+  Expect.equals(mock3.scratch("chair", ""), "chair,");
 
   var g = new MockWithGenerics();
   Expect.equals(g.doStuff(42), 142);
   Expect.throws(() => g.doStuff('hi'));
+
+  var s = new MockWithGetterSetter();
+  s.getter;
+  Expect.equals(s.invocation.positionalArguments.length, 0);
+  Expect.equals(s.invocation.isGetter, true);
+  Expect.equals(s.invocation.isSetter, false);
+  Expect.equals(s.invocation.isMethod, false);
+  s.setter = 42;
+  Expect.equals(s.invocation.positionalArguments.single, 42);
+  Expect.equals(s.invocation.isGetter, false);
+  Expect.equals(s.invocation.isSetter, true);
+  Expect.equals(s.invocation.isMethod, false);
 }

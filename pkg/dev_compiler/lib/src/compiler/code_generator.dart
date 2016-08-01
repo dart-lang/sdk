@@ -1404,44 +1404,48 @@ class CodeGenerator extends GeneralizingAstVisitor
   ///
   /// It will generate an `eatFood` that looks like:
   ///
-  ///     eatFood(food) {
+  ///     eatFood(...args) {
   ///       return core.bool.as(this.noSuchMethod(
-  ///           new dart.InvocationImpl('eatFood', [food])));
+  ///           new dart.InvocationImpl('eatFood', args)));
   ///     }
   JS.Method _implementMockMethod(ExecutableElement method) {
-    var positionalArgs = <JS.Identifier>[]
-      ..addAll(
-          method.type.normalParameterNames.map((a) => new JS.Identifier(a)))
-      ..addAll(
-          method.type.optionalParameterNames.map((a) => new JS.Identifier(a)));
-
-    var fnArgs = positionalArgs.toList();
-
     var invocationProps = <JS.Property>[];
     addProperty(String name, JS.Expression value) {
       invocationProps.add(new JS.Property(js.string(name), value));
     }
 
+    var args = new JS.TemporaryId('args');
+    var fnArgs = <JS.Parameter>[];
+    JS.Expression positionalArgs;;
+
     if (method.type.namedParameterTypes.isNotEmpty) {
-      fnArgs.add(namedArgumentTemp);
-      addProperty('namedArguments', namedArgumentTemp);
+      addProperty(
+          'namedArguments', js.call('dart.extractNamedArgs(#)', [args]));
     }
 
     if (method is MethodElement) {
       addProperty('isMethod', js.boolean(true));
+
+      fnArgs.add(new JS.RestParameter(args));
+      positionalArgs = args;
     } else {
       var property = method as PropertyAccessorElement;
       if (property.isGetter) {
         addProperty('isGetter', js.boolean(true));
+
+        positionalArgs = new JS.ArrayInitializer([]);
       } else if (property.isSetter) {
         addProperty('isSetter', js.boolean(true));
+
+        fnArgs.add(args);
+        positionalArgs = new JS.ArrayInitializer([args]);
       }
     }
 
-    var fnBody =
-        js.call('this.noSuchMethod(new dart.InvocationImpl(#, #, #))', [
+    var fnBody = js.call(
+        'this.noSuchMethod(new dart.InvocationImpl(#, #, #))', [
       _elementMemberName(method),
-      new JS.ArrayInitializer(positionalArgs),
+      positionalArgs,
       new JS.ObjectInitializer(invocationProps)
     ]);
 

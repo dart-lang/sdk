@@ -14,8 +14,8 @@ dart_library.library('language/override_inheritance_no_such_method_test_04_multi
       if (__ === void 0) __ = null;
       return null;
     }
-    method4() {
-      return this.noSuchMethod(new dart.InvocationImpl('method4', [], {isMethod: true}));
+    method4(...args) {
+      return this.noSuchMethod(new dart.InvocationImpl('method4', args, {isMethod: true}));
     }
   };
   override_inheritance_no_such_method_test_04_multi.Class1[dart.implements] = () => [override_inheritance_no_such_method_test_04_multi.I];

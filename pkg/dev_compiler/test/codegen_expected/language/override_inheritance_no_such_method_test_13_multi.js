@@ -15,13 +15,13 @@ dart_library.library('language/override_inheritance_no_such_method_test_13_multi
     noSuchMethod(_) {
       return null;
     }
-    method13() {
-      return this.noSuchMethod(new dart.InvocationImpl('method13', [], {isMethod: true}));
+    method13(...args) {
+      return this.noSuchMethod(new dart.InvocationImpl('method13', args, {isMethod: true}));
     }
   };
   override_inheritance_no_such_method_test_13_multi.Class2 = class Class2 extends override_inheritance_no_such_method_test_13_multi.B {
-    method13() {
-      return this.noSuchMethod(new dart.InvocationImpl('method13', [], {isMethod: true}));
+    method13(...args) {
+      return this.noSuchMethod(new dart.InvocationImpl('method13', args, {isMethod: true}));
     }
   };
   override_inheritance_no_such_method_test_13_multi.main = function() {

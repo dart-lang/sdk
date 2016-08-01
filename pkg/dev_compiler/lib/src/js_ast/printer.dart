@@ -945,7 +945,8 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   visitArrowFun(ArrowFun fun) {
     localNamer.enterScope(fun);
     if (fun.params.length == 1 &&
-        (fun.params.single.type == null || !options.emitTypes)) {
+        fun.params[0] is Identifier &&
+        (!options.emitTypes || fun.params[0].type == null)) {
       visitNestedExpression(fun.params.single, SPREAD,
           newInForInit: false, newAtStatementBegin: false);
     } else {
