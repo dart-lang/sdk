@@ -3143,14 +3143,14 @@ class ElementHolder {
     _typeParameters.add(element);
   }
 
-  FieldElement getField(String fieldName) {
+  FieldElement getField(String fieldName, {bool synthetic: false}) {
     if (_fields == null) {
       return null;
     }
     int length = _fields.length;
     for (int i = 0; i < length; i++) {
       FieldElement field = _fields[i];
-      if (field.name == fieldName) {
+      if (field.name == fieldName && field.isSynthetic == synthetic) {
         return field;
       }
     }

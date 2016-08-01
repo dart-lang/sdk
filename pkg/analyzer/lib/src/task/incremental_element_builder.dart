@@ -214,9 +214,9 @@ class IncrementalCompilationUnitElementBuilder {
     ClassElementDelta classDelta =
         new ClassElementDelta(classElement, librarySource, classElement.name);
     // Prepare all old member elements.
-    var removedAccessors = new Set<PropertyAccessorElement>();
-    var removedConstructors = new Set<ConstructorElement>();
-    var removedMethods = new Set<MethodElement>();
+    var removedAccessors = new Set<PropertyAccessorElement>.identity();
+    var removedConstructors = new Set<ConstructorElement>.identity();
+    var removedMethods = new Set<MethodElement>.identity();
     removedAccessors.addAll(classElement.accessors);
     removedConstructors.addAll(classElement.constructors);
     removedMethods.addAll(classElement.methods);

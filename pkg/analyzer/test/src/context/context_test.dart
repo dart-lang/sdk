@@ -3927,6 +3927,40 @@ const A = 2;
     _assertInvalid(d, LIBRARY_ERRORS_READY);
   }
 
+  void test_sequence_duplicateField_syntheticAndNot_renameNotSynthetic() {
+    context.analysisOptions =
+        new AnalysisOptionsImpl.from(context.analysisOptions)
+          ..strongMode = true;
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {
+  int foo;
+  int get foo => 1;
+}
+class B extends A {
+  int get foo => 2;
+}
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(a).errors, hasLength(2));
+    // Update a.dart: rename "int foo" to "int bar".
+    // The strong mode "getter cannot override field" error is gone.
+    context.setContents(
+        a,
+        r'''
+class A {
+  int bar;
+  int get foo => 1;
+}
+class B extends A {
+  int get foo => 2;
+}
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(a).errors, isEmpty);
+  }
+
   void test_sequence_inBodyChange_addRef_deltaChange() {
     Source a = addSource(
         '/a.dart',
