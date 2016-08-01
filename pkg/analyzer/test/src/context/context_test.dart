@@ -2834,7 +2834,7 @@ class A {}
     _assertInvalid(a, LIBRARY_ERRORS_READY);
     _assertValidForDependentLibrary(b);
     _assertInvalid(b, LIBRARY_ERRORS_READY);
-    _assertInvalidUnits(b, RESOLVED_UNIT4);
+    _assertValidAllResolution(b);
     // Analysis is done successfully.
     _performPendingAnalysisTasks();
     _assertValid(a, LIBRARY_ERRORS_READY);
@@ -2872,7 +2872,7 @@ class A {}
     _assertInvalid(a, LIBRARY_ERRORS_READY);
     _assertValidForDependentLibrary(b);
     _assertInvalid(b, LIBRARY_ERRORS_READY);
-    _assertInvalidUnits(b, RESOLVED_UNIT4);
+    _assertValidAllResolution(b);
     // Analysis is done successfully.
     _performPendingAnalysisTasks();
     _assertValid(a, LIBRARY_ERRORS_READY);
