@@ -610,8 +610,13 @@ class MarkTask : public ThreadPool::Task {
         } while (true);
         // Wait for all markers to stop.
         barrier_->Sync();
+#if defined(DEBUG)
         ASSERT(AtomicOperations::LoadRelaxed(num_busy_) == 0);
-
+        // Caveat: must not allow any marker to continue past the barrier
+        // before we checked num_busy, otherwise one of them might rush
+        // ahead and increment it.
+        barrier_->Sync();
+#endif
         // Check if we have any pending properties with marked keys.
         // Those might have been marked by another marker.
         more_to_mark = visitor.ProcessPendingWeakProperties();
@@ -626,7 +631,7 @@ class MarkTask : public ThreadPool::Task {
         // between all markers and the main thread.
         barrier_->Sync();
         if (!more_to_mark && (AtomicOperations::LoadRelaxed(num_busy_) > 0)) {
-          // All markers continue to marker as long as any single marker has
+          // All markers continue to mark as long as any single marker has
           // some work to do.
           AtomicOperations::FetchAndIncrement(num_busy_);
           more_to_mark = true;
@@ -747,6 +752,13 @@ void GCMarker::MarkObjects(Isolate* isolate,
       do {
         // Wait for all markers to stop.
         barrier.Sync();
+#if defined(DEBUG)
+        ASSERT(AtomicOperations::LoadRelaxed(&num_busy) == 0);
+        // Caveat: must not allow any marker to continue past the barrier
+        // before we checked num_busy, otherwise one of them might rush
+        // ahead and increment it.
+        barrier.Sync();
+#endif
 
         // Wait for all markers to go through weak properties and verify
         // that there are no more objects to mark.
