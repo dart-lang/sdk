@@ -92,7 +92,9 @@ abstract class ListTaskInputMixin<E> implements ListTaskInput<E> {
   ListTaskInput/*<V>*/ toFlattenListOf/*<V>*/(
       ListResultDescriptor/*<V>*/ subListResult) {
     return new ListToFlattenListTaskInput<E, dynamic/*=V*/ >(
-        this, subListResult.of as dynamic);
+        this,
+        (E element) =>
+            subListResult.of(element as AnalysisTarget) as TaskInput/*<V>*/);
   }
 
   ListTaskInput/*<V>*/ toList/*<V>*/(UnaryFunction<E, dynamic/*=V*/ > mapper) {
@@ -370,7 +372,7 @@ class MapToFlattenListTaskInputBuilder<K, V, E>
       if (currentBuilder.moveNext()) {
         return true;
       }
-      baseMap = currentBuilder.inputValue;
+      baseMap = currentBuilder.inputValue as dynamic/*=Map<K, List<V>>*/;
       if (baseMap == null) {
         // No base map could be computed due to a circular dependency.  Use an
         // empty map so that no further results will be computed.
@@ -386,7 +388,7 @@ class MapToFlattenListTaskInputBuilder<K, V, E>
         return true;
       }
       // Add the result value for the current Map key/value.
-      E resultValue = currentBuilder.inputValue;
+      E resultValue = currentBuilder.inputValue as dynamic/*=E*/;
       if (resultValue != null) {
         inputValue.add(resultValue);
       }
@@ -444,20 +446,22 @@ class ObjectToListTaskInput<E> extends TaskInputImpl<List<E>>
   ListTaskInput/*<V>*/ toFlattenListOf/*<V>*/(
       ListResultDescriptor/*<V>*/ subListResult) {
     return new ListToFlattenListTaskInput<E, dynamic/*=V*/ >(
-        this, subListResult.of as dynamic);
+        this,
+        (E element) =>
+            subListResult.of(element as AnalysisTarget) as TaskInput/*<V>*/);
   }
 
   @override
   ListTaskInput/*<V>*/ toListOf/*<V>*/(ResultDescriptor/*<V>*/ valueResult) {
     return new ListToListTaskInput<E, dynamic/*=V*/ >(
-        this, valueResult.of as dynamic);
+        this, (E element) => valueResult.of(element as AnalysisTarget));
   }
 
   @override
   MapTaskInput<AnalysisTarget, dynamic/*=V*/ > toMapOf/*<V>*/(
       ResultDescriptor/*<V>*/ valueResult) {
     return new ListToMapTaskInput<AnalysisTarget, dynamic/*=V*/ >(
-        this as dynamic, valueResult.of);
+        this as dynamic/*=TaskInput<List<AnalysisTarget>>*/, valueResult.of);
   }
 }
 
@@ -696,7 +700,8 @@ class SimpleTaskInputBuilder<V> implements TaskInputBuilder<V> {
 abstract class TaskInputImpl<V> implements TaskInput<V> {
   @override
   ListTaskInput/*<E>*/ mappedToList/*<E>*/(List/*<E>*/ mapper(V value)) {
-    return new ObjectToListTaskInput(this, mapper);
+    return new ObjectToListTaskInput(
+        this, (Object element) => mapper(element as V));
   }
 }
 
@@ -967,7 +972,7 @@ abstract class _ListToCollectionTaskInputBuilder<B, E, C>
     if (_resultValue == null) {
       // We have finished computing the list of values from which the results
       // will be derived.
-      _baseList = currentBuilder.inputValue;
+      _baseList = currentBuilder.inputValue as dynamic/*=List<B>*/;
       if (_baseList == null) {
         // No base list could be computed due to a circular dependency.  Use an
         // empty list so that no further results will be computed.
@@ -978,7 +983,8 @@ abstract class _ListToCollectionTaskInputBuilder<B, E, C>
     } else {
       // We have finished computing one of the elements in the result list.
       if (currentBuilder.inputValue != null) {
-        _addResultElement(_baseListElement, currentBuilder.inputValue);
+        _addResultElement(
+            _baseListElement, currentBuilder.inputValue as dynamic/*=E*/);
       }
       _baseListIndex++;
     }

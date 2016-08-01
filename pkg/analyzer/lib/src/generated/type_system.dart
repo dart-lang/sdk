@@ -622,8 +622,9 @@ class StrongTypeSystemImpl extends TypeSystem {
   bool _isInterfaceSubtypeOf(
       InterfaceType i1, InterfaceType i2, Set<Element> visited) {
     // Guard recursive calls
-    _GuardedSubtypeChecker<InterfaceType> guardedInterfaceSubtype =
-        _guard(_isInterfaceSubtypeOf);
+    _GuardedSubtypeChecker<InterfaceType> guardedInterfaceSubtype = _guard(
+        (DartType i1, DartType i2, Set<Element> visited) =>
+            _isInterfaceSubtypeOf(i1, i2, visited));
 
     if (i1 == i2) {
       return true;

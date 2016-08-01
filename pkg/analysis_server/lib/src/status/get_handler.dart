@@ -1415,8 +1415,6 @@ class GetHandler {
       _writeOption(
           buffer, 'Enable strict call checks', options.enableStrictCallChecks);
       _writeOption(buffer, 'Enable super mixins', options.enableSuperMixins);
-      _writeOption(
-          buffer, 'Enable trailing commas', options.enableTrailingCommas);
       _writeOption(buffer, 'Generate dart2js hints', options.dart2jsHint);
       _writeOption(buffer, 'Generate errors in implicit files',
           options.generateImplicitErrors);

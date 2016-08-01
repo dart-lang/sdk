@@ -69,7 +69,7 @@ CompilationUnit check({bool implicitCasts: true, bool implicitDynamic: true}) {
   options.implicitCasts = implicitCasts;
   options.implicitDynamic = implicitDynamic;
   var mockSdk = new MockSdk();
-  mockSdk.context.analysisOptions.strongMode = true;
+  (mockSdk.context.analysisOptions as AnalysisOptionsImpl).strongMode = true;
   context.sourceFactory =
       new SourceFactory([new DartUriResolver(mockSdk), uriResolver]);
 

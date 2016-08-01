@@ -641,7 +641,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     bool isSemanticallyStatic = isTopLevel || isDeclaredStatic;
     if (formalParameters != null) {
       b.parameters = formalParameters.parameters
-          .map((FormalParameter p) => p.accept(this))
+          .map((FormalParameter p) => p.accept(this) as UnlinkedParamBuilder)
           .toList();
       if (!isSemanticallyStatic) {
         for (int i = 0; i < formalParameters.parameters.length; i++) {
@@ -751,7 +751,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       b.type = serializedReturnType;
     }
     b.parameters = parameters.parameters
-        .map((FormalParameter p) => p.accept(this))
+        .map((FormalParameter p) => p.accept(this) as UnlinkedParamBuilder)
         .toList();
   }
 
@@ -1042,7 +1042,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       b.nameOffset = node.returnType.offset;
     }
     b.parameters = node.parameters.parameters
-        .map((FormalParameter p) => p.accept(this))
+        .map((FormalParameter p) => p.accept(this) as UnlinkedParamBuilder)
         .toList();
     b.kind = UnlinkedExecutableKind.constructor;
     if (node.factoryKeyword != null) {
@@ -1235,7 +1235,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       b.returnType = serializedReturnType;
     }
     b.parameters = node.parameters.parameters
-        .map((FormalParameter p) => p.accept(this))
+        .map((FormalParameter p) => p.accept(this) as UnlinkedParamBuilder)
         .toList();
     b.documentationComment = serializeDocumentation(node.documentationComment);
     b.annotations = serializeAnnotations(node.metadata);

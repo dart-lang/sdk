@@ -679,7 +679,6 @@ analyzer:
     expect(actual.enableGenericMethods, expected.enableGenericMethods);
     expect(actual.enableSuperMixins, expected.enableSuperMixins);
     expect(actual.enableTiming, expected.enableTiming);
-    expect(actual.enableTrailingCommas, expected.enableTrailingCommas);
     expect(actual.generateImplicitErrors, expected.generateImplicitErrors);
     expect(actual.generateSdkErrors, expected.generateSdkErrors);
     expect(actual.hint, expected.hint);

@@ -338,7 +338,7 @@ export 'lib.dart';
     // initially: A
     {
       LibraryElement libraryElement =
-          context.getResult(exporterSource, LIBRARY_ELEMENT1) as LibraryElement;
+          context.getResult(exporterSource, LIBRARY_ELEMENT1);
       expect(libraryElement.exportNamespace.definedNames.keys,
           unorderedEquals(['A']));
     }
@@ -350,7 +350,7 @@ class B {}''');
     _performPendingAnalysisTasks();
     {
       LibraryElement libraryElement =
-          context.getResult(exporterSource, LIBRARY_ELEMENT1) as LibraryElement;
+          context.getResult(exporterSource, LIBRARY_ELEMENT1);
       expect(libraryElement.exportNamespace.definedNames.keys,
           unorderedEquals(['B']));
     }

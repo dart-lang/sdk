@@ -1234,9 +1234,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool enableTiming = false;
 
-  @override
-  bool enableTrailingCommas = true;
-
   /**
    * A flag indicating whether errors, warnings and hints should be generated
    * for sources that are implicitly being analyzed.
