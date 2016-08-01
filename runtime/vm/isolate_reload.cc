@@ -727,7 +727,7 @@ BitVector* IsolateReloadContext::FindModifiedLibraries(bool force_reload) {
   for (intptr_t i = 0; i < num_libs; i++) {
     (*imported_by)[i] = new ZoneGrowableArray<intptr_t>();
   }
-  Array& imports = Array::Handle();
+  Array& ports = Array::Handle();
   Namespace& ns = Namespace::Handle();
   Library& target = Library::Handle();
 
@@ -740,9 +740,19 @@ BitVector* IsolateReloadContext::FindModifiedLibraries(bool force_reload) {
     }
 
     // Add imports to the import-by graph.
-    imports = lib.imports();
-    for (intptr_t import_idx = 0; import_idx < imports.Length(); import_idx++) {
-      ns ^= imports.At(import_idx);
+    ports = lib.imports();
+    for (intptr_t import_idx = 0; import_idx < ports.Length(); import_idx++) {
+      ns ^= ports.At(import_idx);
+      if (!ns.IsNull()) {
+        target = ns.library();
+        (*imported_by)[target.index()]->Add(lib.index());
+      }
+    }
+
+    // Add exports to the import-by graph.
+    ports = lib.exports();
+    for (intptr_t export_idx = 0; export_idx < ports.Length(); export_idx++) {
+      ns ^= ports.At(export_idx);
       if (!ns.IsNull()) {
         target = ns.library();
         (*imported_by)[target.index()]->Add(lib.index());
@@ -757,10 +767,10 @@ BitVector* IsolateReloadContext::FindModifiedLibraries(bool force_reload) {
       entry = entries.GetNext();
       if (entry.IsLibraryPrefix()) {
         prefix ^= entry.raw();
-        imports = prefix.imports();
-        for (intptr_t import_idx = 0; import_idx < imports.Length();
+        ports = prefix.imports();
+        for (intptr_t import_idx = 0; import_idx < ports.Length();
              import_idx++) {
-          ns ^= imports.At(import_idx);
+          ns ^= ports.At(import_idx);
           if (!ns.IsNull()) {
             target = ns.library();
             (*imported_by)[target.index()]->Add(lib.index());

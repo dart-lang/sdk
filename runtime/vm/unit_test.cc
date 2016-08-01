@@ -74,36 +74,44 @@ static bool IsPackageSchemeURL(const char* url_name) {
 }
 
 
-static bool IsImportableTestLib(const char* url_name) {
-  const char* kImportTestLibUri = "test:importable_lib";
-  static const intptr_t kImportTestLibUriLen = strlen(kImportTestLibUri);
-  return (strncmp(url_name, kImportTestLibUri, kImportTestLibUriLen) == 0);
+struct TestLibEntry {
+  const char* url;
+  const char* source;
+};
+
+
+static MallocGrowableArray<TestLibEntry>* test_libs_ = NULL;
+
+
+void TestCase::AddTestLib(const char* url, const char* source) {
+  if (test_libs_ == NULL) {
+    test_libs_ = new MallocGrowableArray<TestLibEntry>();
+  }
+  // If the test lib is already added, replace the source.
+  for (intptr_t i = 0; i < test_libs_->length(); i++) {
+    if (strcmp(url, (*test_libs_)[i].url) == 0) {
+      (*test_libs_)[i].source = source;
+      return;
+    }
+  }
+  TestLibEntry entry;
+  entry.url = url;
+  entry.source = source;
+  test_libs_->Add(entry);
 }
 
 
-const char* kDefaultImportableTestLibScript =
-    "importedFunc() => 'a';\n"
-    "importedIntFunc() => 4;\n"
-    "class ImportedMixin {\n"
-    "  mixinFunc() => 'mixin';\n"
-    "}\n";
-const char* importable_test_lib_script = kDefaultImportableTestLibScript;
-
-
-void TestCase::SetImportableTestLibScript(const char* source) {
-  importable_test_lib_script = source;
+const char* TestCase::GetTestLib(const char* url) {
+  if (test_libs_ == NULL) {
+    return NULL;
+  }
+  for (intptr_t i = 0; i < test_libs_->length(); i++) {
+    if (strcmp(url, (*test_libs_)[i].url) == 0) {
+      return (*test_libs_)[i].source;
+    }
+  }
+  return NULL;
 }
-
-
-void TestCase::RestoreImportableTestLibScript() {
-  importable_test_lib_script = kDefaultImportableTestLibScript;
-}
-
-
-static Dart_Handle ImportableTestLibSource() {
-  return DartUtils::NewString(importable_test_lib_script);
-}
-
 
 #ifndef PRODUCT
 static bool IsIsolateReloadTestLib(const char* url_name) {
@@ -204,8 +212,10 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
       return DartUtils::NewError("Do not know how to load '%s'", url_chars);
     }
   }
-  if (IsImportableTestLib(url_chars)) {
-    return Dart_LoadLibrary(url, Dart_Null(), ImportableTestLibSource(), 0, 0);
+  const char* lib_source = TestCase::GetTestLib(url_chars);
+  if (lib_source != NULL) {
+    Dart_Handle source = Dart_NewStringFromCString(lib_source);
+    return Dart_LoadLibrary(url, Dart_Null(), source, 0, 0);
   }
   NOT_IN_PRODUCT(
   if (IsIsolateReloadTestLib(url_chars)) {

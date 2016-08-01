@@ -784,51 +784,57 @@ TEST_CASE(IsolateReload_LiveStack) {
 
 
 TEST_CASE(IsolateReload_LibraryLookup) {
+  const char* kImportScript =
+      "importedFunc() => 'a';\n";
+  TestCase::AddTestLib("test:lib1", kImportScript);
+
   const char* kScript =
       "main() {\n"
       "  return importedFunc();\n"
       "}\n";
-
   Dart_Handle result;
-
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
   EXPECT_ERROR(SimpleInvokeError(lib, "main"), "importedFunc");
 
-  // Fail to find 'test:importable_lib' in the isolate.
-  result = Dart_LookupLibrary(NewString("test:importable_lib"));
+  // Fail to find 'test:lib1' in the isolate.
+  result = Dart_LookupLibrary(NewString("test:lib1"));
   EXPECT(Dart_IsError(result));
 
   const char* kReloadScript =
-      "import 'test:importable_lib';\n"
+      "import 'test:lib1';\n"
       "main() {\n"
       "  return importedFunc();\n"
       "}\n";
 
-  // Reload and add 'test:importable_lib' to isolate.
+  // Reload and add 'test:lib1' to isolate.
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
   EXPECT_STREQ("a", SimpleInvokeStr(lib, "main"));
 
-  // Find 'test:importable_lib' in the isolate.
-  result = Dart_LookupLibrary(NewString("test:importable_lib"));
+  // Find 'test:lib1' in the isolate.
+  result = Dart_LookupLibrary(NewString("test:lib1"));
   EXPECT(Dart_IsLibrary(result));
 
   // Reload and remove 'dart:math' from isolate.
   lib = TestCase::ReloadTestScript(kScript);
   EXPECT_VALID(lib);
 
-  // Fail to find 'test:importable_lib' in the isolate.
-  result = Dart_LookupLibrary(NewString("test:importable_lib"));
+  // Fail to find 'test:lib1' in the isolate.
+  result = Dart_LookupLibrary(NewString("test:lib1"));
   EXPECT(Dart_IsError(result));
 }
 
 
 TEST_CASE(IsolateReload_LibraryHide) {
-  // Import 'test:importable_lib' with importedFunc hidden. Will result in an
+  const char* kImportScript =
+      "importedFunc() => 'a';\n";
+  TestCase::AddTestLib("test:lib1", kImportScript);
+
+  // Import 'test:lib1' with importedFunc hidden. Will result in an
   // error.
   const char* kScript =
-      "import 'test:importable_lib' hide importedFunc;\n"
+      "import 'test:lib1' hide importedFunc;\n"
       "main() {\n"
       "  return importedFunc();\n"
       "}\n";
@@ -839,9 +845,9 @@ TEST_CASE(IsolateReload_LibraryHide) {
   EXPECT_VALID(lib);
   EXPECT_ERROR(SimpleInvokeError(lib, "main"), "importedFunc");
 
-  // Import 'test:importable_lib'.
+  // Import 'test:lib1'.
   const char* kReloadScript =
-      "import 'test:importable_lib';\n"
+      "import 'test:lib1';\n"
       "main() {\n"
       "  return importedFunc();\n"
       "}\n";
@@ -853,10 +859,15 @@ TEST_CASE(IsolateReload_LibraryHide) {
 
 
 TEST_CASE(IsolateReload_LibraryShow) {
-  // Import 'test:importable_lib' with importedIntFunc visible. Will result in
+  const char* kImportScript =
+      "importedFunc() => 'a';\n"
+      "importedIntFunc() => 4;\n";
+  TestCase::AddTestLib("test:lib1", kImportScript);
+
+  // Import 'test:lib1' with importedIntFunc visible. Will result in
   // an error when 'main' is invoked.
   const char* kScript =
-      "import 'test:importable_lib' show importedIntFunc;\n"
+      "import 'test:lib1' show importedIntFunc;\n"
       "main() {\n"
       "  return importedFunc();\n"
       "}\n"
@@ -873,10 +884,10 @@ TEST_CASE(IsolateReload_LibraryShow) {
   // Results in an error.
   EXPECT_ERROR(SimpleInvokeError(lib, "main"), "importedFunc");
 
-  // Import 'test:importable_lib' with importedFunc visible. Will result in
+  // Import 'test:lib1' with importedFunc visible. Will result in
   // an error when 'mainInt' is invoked.
   const char* kReloadScript =
-      "import 'test:importable_lib' show importedFunc;\n"
+      "import 'test:lib1' show importedFunc;\n"
       "main() {\n"
       "  return importedFunc();\n"
       "}\n"
@@ -897,9 +908,13 @@ TEST_CASE(IsolateReload_LibraryShow) {
 // Verifies that we clear the ICs for the functions live on the stack in a way
 // that is compatible with the fast path smi stubs.
 TEST_CASE(IsolateReload_SmiFastPathStubs) {
+  const char* kImportScript =
+      "importedIntFunc() => 4;\n";
+  TestCase::AddTestLib("test:lib1", kImportScript);
+
   const char* kScript =
       "import 'test:isolate_reload_helper';\n"
-      "import 'test:importable_lib' show importedIntFunc;\n"
+      "import 'test:lib1' show importedIntFunc;\n"
       "main() {\n"
       "  var x = importedIntFunc();\n"
       "  var y = importedIntFunc();\n"
@@ -921,8 +936,14 @@ TEST_CASE(IsolateReload_SmiFastPathStubs) {
 // Verifies that we assign the correct patch classes for imported
 // mixins when we reload.
 TEST_CASE(IsolateReload_ImportedMixinFunction) {
+  const char* kImportScript =
+      "class ImportedMixin {\n"
+      "  mixinFunc() => 'mixin';\n"
+      "}\n";
+  TestCase::AddTestLib("test:lib1", kImportScript);
+
   const char* kScript =
-      "import 'test:importable_lib' show ImportedMixin;\n"
+      "import 'test:lib1' show ImportedMixin;\n"
       "class A extends Object with ImportedMixin {\n"
       "}"
       "var func = new A().mixinFunc;\n"
@@ -936,7 +957,7 @@ TEST_CASE(IsolateReload_ImportedMixinFunction) {
   EXPECT_STREQ("mixin", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
-      "import 'test:importable_lib' show ImportedMixin;\n"
+      "import 'test:lib1' show ImportedMixin;\n"
       "class A extends Object with ImportedMixin {\n"
       "}"
       "var func;\n"
@@ -2231,10 +2252,10 @@ static bool NothingModifiedCallback(const char* url, int64_t since) {
 TEST_CASE(IsolateReload_NoLibsModified) {
   const char* kImportScript =
       "importedFunc() => 'fancy';";
-  TestCase::SetImportableTestLibScript(kImportScript);
+  TestCase::AddTestLib("test:lib1", kImportScript);
 
   const char* kScript =
-      "import 'test:importable_lib';\n"
+      "import 'test:lib1';\n"
       "main() {\n"
       "  return importedFunc() + ' feast';\n"
       "}\n";
@@ -2245,10 +2266,10 @@ TEST_CASE(IsolateReload_NoLibsModified) {
 
   const char* kReloadImportScript =
       "importedFunc() => 'bossy';";
-  TestCase::SetImportableTestLibScript(kReloadImportScript);
+  TestCase::AddTestLib("test:lib1", kReloadImportScript);
 
   const char* kReloadScript =
-      "import 'test:importable_lib';\n"
+      "import 'test:lib1';\n"
       "main() {\n"
       "  return importedFunc() + ' pants';\n"
       "}\n";
@@ -2274,10 +2295,10 @@ static bool MainModifiedCallback(const char* url, int64_t since) {
 TEST_CASE(IsolateReload_MainLibModified) {
   const char* kImportScript =
       "importedFunc() => 'fancy';";
-  TestCase::SetImportableTestLibScript(kImportScript);
+  TestCase::AddTestLib("test:lib1", kImportScript);
 
   const char* kScript =
-      "import 'test:importable_lib';\n"
+      "import 'test:lib1';\n"
       "main() {\n"
       "  return importedFunc() + ' feast';\n"
       "}\n";
@@ -2288,10 +2309,10 @@ TEST_CASE(IsolateReload_MainLibModified) {
 
   const char* kReloadImportScript =
       "importedFunc() => 'bossy';";
-  TestCase::SetImportableTestLibScript(kReloadImportScript);
+  TestCase::AddTestLib("test:lib1", kReloadImportScript);
 
   const char* kReloadScript =
-      "import 'test:importable_lib';\n"
+      "import 'test:lib1';\n"
       "main() {\n"
       "  return importedFunc() + ' pants';\n"
       "}\n";
@@ -2307,7 +2328,7 @@ TEST_CASE(IsolateReload_MainLibModified) {
 
 
 static bool ImportModifiedCallback(const char* url, int64_t since) {
-  if (strcmp(url, "test:importable_lib") == 0) {
+  if (strcmp(url, "test:lib1") == 0) {
     return true;
   }
   return false;
@@ -2317,10 +2338,10 @@ static bool ImportModifiedCallback(const char* url, int64_t since) {
 TEST_CASE(IsolateReload_ImportedLibModified) {
   const char* kImportScript =
       "importedFunc() => 'fancy';";
-  TestCase::SetImportableTestLibScript(kImportScript);
+  TestCase::AddTestLib("test:lib1", kImportScript);
 
   const char* kScript =
-      "import 'test:importable_lib';\n"
+      "import 'test:lib1';\n"
       "main() {\n"
       "  return importedFunc() + ' feast';\n"
       "}\n";
@@ -2331,10 +2352,10 @@ TEST_CASE(IsolateReload_ImportedLibModified) {
 
   const char* kReloadImportScript =
       "importedFunc() => 'bossy';";
-  TestCase::SetImportableTestLibScript(kReloadImportScript);
+  TestCase::AddTestLib("test:lib1", kReloadImportScript);
 
   const char* kReloadScript =
-      "import 'test:importable_lib';\n"
+      "import 'test:lib1';\n"
       "main() {\n"
       "  return importedFunc() + ' pants';\n"
       "}\n";
@@ -2352,10 +2373,10 @@ TEST_CASE(IsolateReload_ImportedLibModified) {
 TEST_CASE(IsolateReload_PrefixImportedLibModified) {
   const char* kImportScript =
       "importedFunc() => 'fancy';";
-  TestCase::SetImportableTestLibScript(kImportScript);
+  TestCase::AddTestLib("test:lib1", kImportScript);
 
   const char* kScript =
-      "import 'test:importable_lib' as cobra;\n"
+      "import 'test:lib1' as cobra;\n"
       "main() {\n"
       "  return cobra.importedFunc() + ' feast';\n"
       "}\n";
@@ -2366,10 +2387,10 @@ TEST_CASE(IsolateReload_PrefixImportedLibModified) {
 
   const char* kReloadImportScript =
       "importedFunc() => 'bossy';";
-  TestCase::SetImportableTestLibScript(kReloadImportScript);
+  TestCase::AddTestLib("test:lib1", kReloadImportScript);
 
   const char* kReloadScript =
-      "import 'test:importable_lib' as cobra;\n"
+      "import 'test:lib1' as cobra;\n"
       "main() {\n"
       "  return cobra.importedFunc() + ' pants';\n"
       "}\n";
@@ -2384,6 +2405,52 @@ TEST_CASE(IsolateReload_PrefixImportedLibModified) {
   EXPECT_STREQ("bossy pants", SimpleInvokeStr(lib, "main"));
 }
 
+
+static bool ExportModifiedCallback(const char* url, int64_t since) {
+  if (strcmp(url, "test:exportlib") == 0) {
+    return true;
+  }
+  return false;
+}
+
+
+TEST_CASE(IsolateReload_ExportedLibModified) {
+  const char* kImportScript =
+      "export 'test:exportlib';";
+  TestCase::AddTestLib("test:importlib", kImportScript);
+
+  const char* kExportScript =
+      "exportedFunc() => 'fancy';";
+  TestCase::AddTestLib("test:exportlib", kExportScript);
+
+  const char* kScript =
+      "import 'test:importlib';\n"
+      "main() {\n"
+      "  return exportedFunc() + ' feast';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("fancy feast", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadExportScript =
+      "exportedFunc() => 'bossy';";
+  TestCase::AddTestLib("test:exportlib", kReloadExportScript);
+
+  const char* kReloadScript =
+      "import 'test:importlib';\n"
+      "main() {\n"
+      "  return exportedFunc() + ' pants';\n"
+      "}\n";
+
+  Dart_SetFileModifiedCallback(&ExportModifiedCallback);
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  Dart_SetFileModifiedCallback(NULL);
+
+  // Modification of an exported library propagates.
+  EXPECT_STREQ("bossy pants", SimpleInvokeStr(lib, "main"));
+}
 
 #endif  // !PRODUCT
 
