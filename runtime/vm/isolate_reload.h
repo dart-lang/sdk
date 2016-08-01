@@ -130,7 +130,7 @@ class ClassReasonForCancelling : public ReasonForCancelling {
 
 class IsolateReloadContext {
  public:
-  explicit IsolateReloadContext(Isolate* isolate);
+  explicit IsolateReloadContext(Isolate* isolate, JSONStream* js);
   ~IsolateReloadContext();
 
   void StartReload(bool force_reload);
@@ -252,6 +252,7 @@ class IsolateReloadContext {
   int64_t reload_timestamp_;
   Isolate* isolate_;
   bool reload_skipped_;
+  JSONStream* js_;
 
   intptr_t saved_num_cids_;
   RawClass** saved_class_table_;

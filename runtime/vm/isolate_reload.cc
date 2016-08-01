@@ -167,10 +167,10 @@ void InstanceMorpher::Dump() const {
 
 void InstanceMorpher::AppendTo(JSONArray* array) {
   JSONObject jsobj(array);
-  jsobj.AddProperty("type", "Morpher");
+  jsobj.AddProperty("type", "ShapeChangeMapping");
   jsobj.AddProperty("class", to_);
-  jsobj.AddProperty("instances", before()->length());
-  JSONArray map(&jsobj, "mapping");
+  jsobj.AddProperty("instanceCount", before()->length());
+  JSONArray map(&jsobj, "fieldOffsetMappings");
   for (int i = 0; i < mapping_.length(); i += 2) {
     JSONArray pair(&map);
     pair.AddValue(mapping_.At(i));
@@ -214,12 +214,12 @@ void ClassReasonForCancelling::AppendTo(JSONArray* array) {
   jsobj.AddProperty("message", message);
 }
 
+
 RawError* IsolateReloadContext::error() const {
   ASSERT(has_error());
   // Report the first error to the surroundings.
   const Error& error =
       Error::Handle(reasons_to_cancel_reload_.At(0)->ToError());
-  OS::Print("[[%s]]\n", error.ToCString());
   return error.raw();
 }
 
@@ -357,11 +357,13 @@ bool IsolateReloadContext::IsSameLibrary(
 }
 
 
-IsolateReloadContext::IsolateReloadContext(Isolate* isolate)
+IsolateReloadContext::IsolateReloadContext(Isolate* isolate,
+                                           JSONStream* js)
     : start_time_micros_(OS::GetCurrentMonotonicMicros()),
       reload_timestamp_(OS::GetCurrentTimeMillis()),
       isolate_(isolate),
       reload_skipped_(false),
+      js_(js),
       saved_num_cids_(-1),
       saved_class_table_(NULL),
       num_saved_libs_(-1),
@@ -541,28 +543,37 @@ void IsolateReloadContext::FinishReload() {
 
   BackgroundCompiler::Enable();
 
-  if (FLAG_trace_reload) {
-    JSONStream stream;
-    ReportOnJSON(&stream);
-    OS::Print("\nJSON report:\n  %s\n", stream.ToCString());
-  }
+  ReportOnJSON(js_);
 }
 
 
 void IsolateReloadContext::ReportOnJSON(JSONStream* stream) {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", "Reload");
-  jsobj.AddProperty("succeeded", !HasReasonsForCancelling());
-  if (HasReasonsForCancelling()) {
-    JSONArray array(&jsobj, "reasons");
-    for (intptr_t i = 0; i < reasons_to_cancel_reload_.length(); i++) {
-      ReasonForCancelling* reason = reasons_to_cancel_reload_.At(i);
-      reason->AppendTo(&array);
-    }
-  } else {
-    JSONArray array(&jsobj, "changes");
-    for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
-      instance_morphers_.At(i)->AppendTo(&array);
+  jsobj.AddProperty("type", "ReloadReport");
+  jsobj.AddProperty("success", !HasReasonsForCancelling());
+  {
+    JSONObject details(&jsobj, "details");
+    if (HasReasonsForCancelling()) {
+      // Reload was rejected.
+      JSONArray array(&jsobj, "notices");
+      for (intptr_t i = 0; i < reasons_to_cancel_reload_.length(); i++) {
+        ReasonForCancelling* reason = reasons_to_cancel_reload_.At(i);
+        reason->AppendTo(&array);
+      }
+    } else {
+      // Reload was successful.
+      const GrowableObjectArray& libs =
+          GrowableObjectArray::Handle(object_store()->libraries());
+      const intptr_t final_library_count = libs.Length();
+      const intptr_t loaded_library_count =
+          final_library_count - num_saved_libs_;
+      details.AddProperty("savedLibraryCount", num_saved_libs_);
+      details.AddProperty("loadedLibraryCount", loaded_library_count);
+      details.AddProperty("finalLibraryCount", final_library_count);
+      JSONArray array(&jsobj, "shapeChangeMappings");
+      for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
+        instance_morphers_.At(i)->AppendTo(&array);
+      }
     }
   }
 }

@@ -387,6 +387,10 @@ class EnsureFinalizedError : public ClassReasonForCancelling {
   const Error& error_;
 
   RawError* ToError() { return error_.raw(); }
+
+  RawString* ToString() {
+    return String::New(error_.ToErrorCString());
+  }
 };
 
 

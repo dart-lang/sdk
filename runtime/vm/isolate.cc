@@ -827,7 +827,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       tag_table_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
-      sticky_reload_error_(Error::null()),
       background_compiler_(NULL),
       background_compiler_disabled_depth_(0),
       pending_service_extension_calls_(GrowableObjectArray::null()),
@@ -1096,20 +1095,23 @@ void Isolate::ReportReloadError(const Error& error) {
 }
 
 
-void Isolate::ReloadSources(bool force_reload,
+bool Isolate::ReloadSources(JSONStream* js,
+                            bool force_reload,
                             bool dont_delete_reload_context) {
   // TODO(asiva): Add verification of canonical objects.
   ASSERT(!IsReloading());
   has_attempted_reload_ = true;
-  reload_context_ = new IsolateReloadContext(this);
+  reload_context_ = new IsolateReloadContext(this, js);
   reload_context_->StartReload(force_reload);
+  bool success = !reload_context_->has_error();
   // TODO(asiva): Add verification of canonical objects.
   if (dont_delete_reload_context) {
     // Unit tests use the reload context later. Caller is responsible
     // for deleting the context.
-    return;
+    return success;
   }
   DeleteReloadContext();
+  return success;
 }
 
 
@@ -1124,12 +1126,6 @@ void Isolate::DoneFinalizing() {
   NOT_IN_PRODUCT(
     if (IsReloading()) {
       reload_context_->FinishReload();
-      if (reload_context_->has_error()) {
-        // Remember the reload error.
-        sticky_reload_error_ = reload_context_->error();
-      } else {
-        reload_context_->ReportSuccess();
-      }
     }
   )
 }
@@ -1831,9 +1827,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(
         reinterpret_cast<RawObject**>(&sticky_error_));
 
-  visitor->VisitPointer(
-        reinterpret_cast<RawObject**>(&sticky_reload_error_));
-
   // Visit the pending service extension calls.
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&pending_service_extension_calls_));
@@ -2091,11 +2084,6 @@ void Isolate::TrackDeoptimizedCode(const Code& code) {
 
 void Isolate::clear_sticky_error() {
   sticky_error_ = Error::null();
-}
-
-
-void Isolate::clear_sticky_reload_error() {
-  sticky_reload_error_ = Error::null();
 }
 
 
