@@ -29,6 +29,8 @@ class ClassElementDelta {
 
   final Set<ClassElementDelta> superDeltas = new Set<ClassElementDelta>();
 
+  bool hasAnnotationChanges = false;
+
   final List<PropertyAccessorElement> addedAccessors =
       <PropertyAccessorElement>[];
   final List<PropertyAccessorElement> removedAccessors =
@@ -213,6 +215,15 @@ class IncrementalCompilationUnitElementBuilder {
     ElementHolder classElementHolder = new ElementHolder();
     ClassElementDelta classDelta =
         new ClassElementDelta(classElement, librarySource, classElement.name);
+    // Check for annotation changes.
+    {
+      String oldAnnotationsCode =
+          TokenUtils.getFullCodeOfList(oldClass.metadata);
+      String newAnnotationsCode =
+          TokenUtils.getFullCodeOfList(newClass.metadata);
+      classDelta.hasAnnotationChanges =
+          oldAnnotationsCode != newAnnotationsCode;
+    }
     // Prepare all old member elements.
     var removedAccessors = new Set<PropertyAccessorElement>.identity();
     var removedConstructors = new Set<ConstructorElement>.identity();
@@ -357,6 +368,7 @@ class IncrementalCompilationUnitElementBuilder {
       }
     }
     // Update ClassElement.
+    classElement.metadata = newElement.metadata;
     classElement.accessors = newAccessors;
     classElement.constructors = classElementHolder.constructors;
     classElement.fields = newFields.values.toList();
@@ -637,7 +649,7 @@ class TokenUtils {
   }
 
   /**
-   * Return the token string of all the [node] tokens.
+   * Return the token string of all the [node].
    */
   static String getFullCode(AstNode node) {
     if (node == null) {
@@ -645,6 +657,16 @@ class TokenUtils {
     }
     List<Token> tokens = getTokens(node);
     return joinTokens(tokens);
+  }
+
+  /**
+   * Return the token string of all the [nodes].
+   */
+  static String getFullCodeOfList(List<AstNode> nodes) {
+    if (nodes == null) {
+      return '';
+    }
+    return nodes.map(getFullCode).join(_SEPARATOR);
   }
 
   /**

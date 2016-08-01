@@ -2806,6 +2806,82 @@ class B extends A {
     _assertValid(b, LIBRARY_ERRORS_READY);
   }
 
+  void test_class_annotation_add_deprecated() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+List<A> foo() => [];
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(b).errors, hasLength(0));
+    // Add @deprecated annotation.
+    // b.dart could have valid resolution, because A is still A,
+    // but deprecated hints are reported in resolved. So, everything in b.dart
+    // is invalid.
+    context.setContents(
+        a,
+        r'''
+@deprecated
+class A {}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
+    // Analysis is done successfully.
+    _performPendingAnalysisTasks();
+    _assertValid(a, LIBRARY_ERRORS_READY);
+    _assertValid(a, READY_RESOLVED_UNIT);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+    _assertValid(b, READY_RESOLVED_UNIT);
+    expect(context.getErrors(b).errors, hasLength(1));
+  }
+
+  void test_class_annotation_remove_deprecated() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+@deprecated
+class A {}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+List<A> foo() => [];
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(b).errors, hasLength(1));
+    // Add @deprecated annotation.
+    // b.dart could have valid resolution, because A is still A,
+    // but deprecated hints are reported in resolved. So, everything in b.dart
+    // is invalid.
+    context.setContents(
+        a,
+        r'''
+class A {}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
+    // Analysis is done successfully.
+    _performPendingAnalysisTasks();
+    _assertValid(a, LIBRARY_ERRORS_READY);
+    _assertValid(a, READY_RESOLVED_UNIT);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+    _assertValid(b, READY_RESOLVED_UNIT);
+    expect(context.getErrors(b).errors, hasLength(0));
+  }
+
   void test_class_constructor_named_changeName() {
     // Update a.dart: change A.named() to A.named2().
     //   b.dart is invalid, because it references A.named().
@@ -3405,30 +3481,6 @@ int B = _A + 1;
     _assertInvalid(a, LIBRARY_ERRORS_READY);
     _assertValidForDependentLibrary(b);
     _assertInvalid(b, LIBRARY_ERRORS_READY);
-  }
-
-  void test_sequence_add_annotation() {
-    Source a = addSource(
-        '/a.dart',
-        r'''
-const myAnnotation = const Object();
-class A {}
-''');
-    _performPendingAnalysisTasks();
-    // Add a new annotation.
-    context.setContents(
-        a,
-        r'''
-const myAnnotation = const Object();
-@myAnnotation
-class A {}
-''');
-    _assertValidForChangedLibrary(a);
-    _assertInvalid(a, LIBRARY_ERRORS_READY);
-    // Analysis is done successfully.
-    _performPendingAnalysisTasks();
-    _assertValid(a, LIBRARY_ERRORS_READY);
-    _assertValid(a, READY_RESOLVED_UNIT);
   }
 
   void test_sequence_applyChanges_changedSource() {

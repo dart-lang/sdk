@@ -42,6 +42,38 @@ class IncrementalCompilationUnitElementBuilderTest extends AbstractContextTest {
     return newCode.substring(node.offset, node.end);
   }
 
+  test_classDelta_annotation_add() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+class A {}
+''');
+    helper.initOld(oldUnit);
+    expect(helper.element.metadata, isEmpty);
+    _buildNewUnit(r'''
+@deprecated
+class A {}
+''');
+    helper.initNew(newUnit, unitDelta);
+    expect(helper.delta.hasAnnotationChanges, isTrue);
+    expect(helper.element.metadata, hasLength(1));
+  }
+
+  test_classDelta_annotation_remove() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+@deprecated
+class A {}
+''');
+    helper.initOld(oldUnit);
+    expect(helper.element.metadata, hasLength(1));
+    _buildNewUnit(r'''
+class A {}
+''');
+    helper.initNew(newUnit, unitDelta);
+    expect(helper.delta.hasAnnotationChanges, isTrue);
+    expect(helper.element.metadata, isEmpty);
+  }
+
   test_classDelta_constructor_0to1() {
     var helper = new _ClassDeltaHelper('A');
     _buildOldUnit(r'''
@@ -438,6 +470,7 @@ class A {
     FieldElement newFieldElementB = newFieldsB[0].name.staticElement;
     expect(newFieldElementB.name, 'bbb');
     // verify delta
+    expect(helper.delta.hasAnnotationChanges, isFalse);
     expect(helper.delta.addedConstructors, isEmpty);
     expect(helper.delta.removedConstructors, isEmpty);
     expect(helper.delta.addedAccessors,

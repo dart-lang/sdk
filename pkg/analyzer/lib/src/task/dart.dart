@@ -2665,6 +2665,17 @@ class DartDelta extends Delta {
         }
       }
     }
+    // TODO(scheglov) We don't need to invalidate resolution.
+    // We could just invalidate errors if we moved reporting of
+    // HintCode.DEPRECATED_MEMBER_USE from resolver to verifier.
+    for (String name in references.names) {
+        ClassElementDelta classDelta = changedClasses[name];
+        if (classDelta != null && classDelta.hasAnnotationChanges) {
+            _log(() => '$refLibrary is affected because '
+                '$name has a class delta with annotation changes');
+            return true;
+        }
+    }
     return false;
   }
 
