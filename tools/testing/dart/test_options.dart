@@ -824,12 +824,15 @@ Note: currently only implemented for dart2js.''',
 
     // Adjust default timeout based on mode, compiler, and sometimes runtime.
     if (configuration['timeout'] == -1) {
+      var isReload = configuration['hot_reload'] ||
+                     configuration['hot_reload_rollback'];
       int compilerMulitiplier =
           new CompilerConfiguration(configuration).computeTimeoutMultiplier();
       int runtimeMultiplier = new RuntimeConfiguration(configuration)
           .computeTimeoutMultiplier(
               mode: configuration['mode'],
               isChecked: configuration['checked'],
+              isReload: isReload,
               arch: configuration['arch']);
       configuration['timeout'] = 60 * compilerMulitiplier * runtimeMultiplier;
     }
