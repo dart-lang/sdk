@@ -698,8 +698,12 @@ class _UpdateElementOffsetsVisitor extends GeneralizingElementVisitor {
         // Some synthetic elements have new offsets, e.g. synthetic accessors
         // of property inducing elements.  But some are purely synthetic, e.g.
         // synthetic enum fields and their accessors.
+        // PrefixElement(s) can be shared between import directives, so
+        // their name offsets are outside of the second and subsequent import
+        // directives. But we update the name offsets while visiting the first
+        // import directive.
         if (newOffset == null) {
-          assert(element.isSynthetic);
+          assert(element.isSynthetic || element is PrefixElement);
           return;
         }
         element.nameOffset = newOffset;

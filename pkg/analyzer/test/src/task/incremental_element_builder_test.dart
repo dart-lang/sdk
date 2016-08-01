@@ -1158,6 +1158,35 @@ import 'dart:math' as m;
     expect(unitDelta.hasDirectiveChange, isFalse);
   }
 
+  test_directives_sameImportPrefix_sameOrder() {
+    _buildOldUnit(r'''
+import 'test1.dart' as m;
+import 'test2.dart' as m;
+''');
+    List<Directive> oldDirectives = oldUnit.directives.toList();
+    ImportDirective import1 = oldDirectives[0];
+    ImportDirective import2 = oldDirectives[1];
+    ImportElementImpl importElement1 = new ImportElementImpl(import1.offset);
+    ImportElementImpl importElement2 = new ImportElementImpl(import2.offset);
+    PrefixElement prefixElement = new PrefixElementImpl.forNode(import1.prefix);
+    importElement1.prefix = prefixElement;
+    importElement2.prefix = prefixElement;
+    import1.element = importElement1;
+    import2.element = importElement2;
+    import1.prefix.staticElement = prefixElement;
+    import2.prefix.staticElement = prefixElement;
+    _buildNewUnit(r'''
+import 'test1.dart' as m;
+import 'test2.dart' as m;
+class A {}
+''');
+    int expectedPrefixOffset = 23;
+    expect(import1.prefix.staticElement.nameOffset, expectedPrefixOffset);
+    expect(import2.prefix.staticElement.nameOffset, expectedPrefixOffset);
+    expect(importElement1.prefix.nameOffset, expectedPrefixOffset);
+    expect(importElement2.prefix.nameOffset, expectedPrefixOffset);
+  }
+
   test_directives_sameOrder_insertSpaces() {
     _buildOldUnit(r'''
 library test;
