@@ -202,7 +202,7 @@ class DrtRuntimeConfiguration extends DartVmRuntimeConfiguration {
         // multiplier is relevant for JavaScript.
         *
         super.computeTimeoutMultiplier(
-            mode: mode, isChecked: isChecked, isRelease: isReload);
+            mode: mode, isChecked: isChecked, isReload: isReload);
   }
 }
 
