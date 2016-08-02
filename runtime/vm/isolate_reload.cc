@@ -202,7 +202,7 @@ void ReasonForCancelling::AppendTo(JSONArray* array) {
   JSONObject jsobj(array);
   jsobj.AddProperty("type", "ReasonForCancelling");
   const String& message = String::Handle(ToString());
-  jsobj.AddProperty("message", message);
+  jsobj.AddProperty("message", message.ToCString());
 }
 
 
@@ -211,7 +211,7 @@ void ClassReasonForCancelling::AppendTo(JSONArray* array) {
   jsobj.AddProperty("type", "ReasonForCancelling");
   jsobj.AddProperty("class", from_);
   const String& message = String::Handle(ToString());
-  jsobj.AddProperty("message", message);
+  jsobj.AddProperty("message", message.ToCString());
 }
 
 
@@ -486,6 +486,9 @@ void IsolateReloadContext::Reload(bool force_reload) {
   if (result.IsError()) {
     const Error& error = Error::Cast(result);
     AddReasonForCancelling(new Aborted(zone_, error));
+    // We call report on JSON here because we won't ever execute
+    // FinalizeLoading.
+    ReportOnJSON(js_);
   }
 }
 
@@ -537,9 +540,6 @@ void IsolateReloadContext::FinalizeLoading() {
   RebuildDirectSubclasses();
 
   BackgroundCompiler::Enable();
-
-  reload_aborted_ = HasReasonsForCancelling();
-  ReportOnJSON(js_);
 }
 
 
@@ -1113,6 +1113,7 @@ void IsolateReloadContext::PostCommit() {
 
 
 void IsolateReloadContext::AddReasonForCancelling(ReasonForCancelling* reason) {
+  reload_aborted_ = true;
   reasons_to_cancel_reload_.Add(reason);
 }
 

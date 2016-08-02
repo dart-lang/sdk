@@ -538,6 +538,7 @@ void Class::CheckReload(const Class& replacement,
               EnsureFinalizedError(context->zone(), *this, replacement, error));
       return;  // No reason to check other properties.
     }
+    ASSERT(replacement.is_finalized());
     TIR_Print("Finalized replacement class for %s\n", ToCString());
   }
 
