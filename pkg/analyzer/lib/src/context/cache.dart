@@ -673,7 +673,7 @@ class CacheEntry {
         deltaResult == DeltaResult.INVALIDATE_NO_DELTA) {
       _resultMap.remove(descriptor);
       // Stop depending on other results.
-      if (deltaResult != DeltaResult.KEEP_CONTINUE) {
+      {
         TargetedResult thisResult = new TargetedResult(target, descriptor);
         List<AnalysisCache> caches = _partition.containingCaches;
         int cacheLength = caches.length;
@@ -714,8 +714,10 @@ class CacheEntry {
       _partition._removeIfSource(target);
     }
     // Notify controller.
-    _partition.onResultInvalidated
-        .add(new InvalidatedResult(this, descriptor, thisData.value));
+    if (deltaResult != DeltaResult.KEEP_CONTINUE) {
+      _partition.onResultInvalidated
+          .add(new InvalidatedResult(this, descriptor, thisData.value));
+    }
   }
 
   /**
