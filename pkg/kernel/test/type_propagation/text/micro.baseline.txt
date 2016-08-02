@@ -1,0 +1,79 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method instanceMethod() → dynamic/core::int {
+    return 123;
+  }
+}
+abstract class ExternalValue extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+abstract class Bar extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method externalInstanceMethod() → self::ExternalValue/<missing type>;
+}
+class Box extends core::Object {
+  field dynamic/core::String field;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class FinalBox extends core::Object {
+  final field dynamic/core::String finalField;
+  constructor •(dynamic/core::String finalField) → void
+    : self::FinalBox::finalField = finalField, super core::Object::•();
+}
+class SubFinalBox extends self::FinalBox {
+  constructor •(dynamic/core::String value) → void
+    : super self::FinalBox::•(value);
+}
+class DynamicReceiver1 extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method dynamicallyCalled(dynamic/core::String x) → dynamic/bottom {}
+}
+class DynamicReceiver2 extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method dynamicallyCalled(dynamic/core::String x) → dynamic/bottom {}
+}
+static method staticMethod() → dynamic/core::String {
+  return "sdfg";
+}
+external static method externalStatic() → core::bool/core::bool;
+external static method createBar() → self::Bar/self::Bar;
+static method stringArgument(dynamic/core::String x) → dynamic/bottom {}
+static method intArgument(dynamic/core::int x) → dynamic/bottom {}
+static method makeDynamicCall(dynamic/core::Object receiver) → void/bottom {
+  receiver.dynamicallyCalled("sdfg");
+}
+static method main() → dynamic/bottom {
+  dynamic/core::String x = self::staticMethod();
+  dynamic/core::int y = new self::Foo::•().instanceMethod();
+  dynamic/core::bool z = self::externalStatic();
+  dynamic/self::ExternalValue w = self::createBar().externalInstanceMethod();
+  self::stringArgument("sdfg");
+  self::intArgument(42);
+  dynamic/self::Box box = new self::Box::•();
+  box.field = "sdfg";
+  dynamic/core::String a = box.field;
+  dynamic/self::FinalBox finalBox = new self::FinalBox::•("dfg");
+  dynamic/core::String b = finalBox.finalField;
+  dynamic/self::SubFinalBox subBox = new self::SubFinalBox::•("dfg");
+  dynamic/core::String c = subBox.finalField;
+  self::makeDynamicCall(new self::DynamicReceiver1::•());
+  self::makeDynamicCall(new self::DynamicReceiver2::•());
+  dynamic/core::List list = <dynamic>["string"];
+  dynamic/core::Object d = list.[](0);
+}

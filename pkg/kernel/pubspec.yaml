@@ -7,3 +7,4 @@ dependencies:
   logging: ^0.11.2
 dev_dependencies:
   test: ^0.12.13
+  stack_trace: ^1.6.6

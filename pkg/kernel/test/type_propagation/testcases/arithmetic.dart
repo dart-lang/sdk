@@ -6,7 +6,13 @@ int foo(int x, int y) {
   return z << 4;
 }
 
+void loop(List xs) {
+  int _ = xs.length;
+  for (int i = 0; i < xs.length; i++) {}
+}
+
 main() {
   foo(4, 5);
   foo(6, 7);
+  loop(['dfg']);
 }

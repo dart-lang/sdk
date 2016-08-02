@@ -2,11 +2,17 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static method foo(core::int/core::int x, core::int/core::int y) → core::int/core::Object {
-  dynamic/core::Object z = x.+(y);
+static method foo(core::int/core::int x, core::int/core::int y) → core::int/core::int {
+  dynamic/core::num z = x.+(y);
   return z.<<(4);
+}
+static method loop(core::List<dynamic>/core::List xs) → void/bottom {
+  core::int/core::int _ = xs.length;
+  for(core::int/core::num i = 0; i.<(xs.length); i = i.+(1)) {
+  }
 }
 static method main() → dynamic/bottom {
   self::foo(4, 5);
   self::foo(6, 7);
+  self::loop(<dynamic>["dfg"]);
 }

@@ -62,15 +62,17 @@ main(List<String> args) {
   if (printEscape) {
     for (int value = 0; value <= constraints.numberOfValues; ++value) {
       TreeNode node;
-      if (value < constraints.numberOfClasses) {
+      if (value < builder.hierarchy.classes.length) {
         node = builder.hierarchy.classes[value];
       } else {
         FunctionNode function = visualizer.getFunctionFromValue(value);
         if (function == null || function.parent is! Member) continue;
         node = function.parent;
       }
-      Class escape = solver.getEscapeContext(value);
-      String escapeString = escape == null ? 'no escape' : '$escape';
+      int escape = solver.getEscapeContext(value);
+      String escapeString = (escape == constraints.latticePointOfValue[value])
+          ? 'no escape'
+          : visualizer.getUnionName(escape);
       print('$node -> $escapeString');
     }
   }
@@ -113,12 +115,33 @@ main(List<String> args) {
     int numberOfTransfers = numberOfConstraints * solver.iterations;
     double transfersPerSecond =
         (numberOfConstraints * solver.iterations) / (solveTime / 1000);
+    Iterable<int> outputVariables = [
+      builder.global.fields.values,
+      builder.global.returns.values,
+      builder.global.parameters.values
+    ].expand((x) => x);
+    int outputCount = outputVariables.length;
+    int inferredUnknowns = 0;
+    int inferredBottoms = 0;
+    int inferredOther = 0;
+    for (int variable in outputVariables) {
+      int values = solver.getVariableValue(variable);
+      if (values == Solver.bottom) {
+        ++inferredBottoms;
+      } else if (values == Solver.rootClass) {
+        ++inferredUnknowns;
+      } else {
+        ++inferredOther;
+      }
+    }
     print("""
 Build time:  $buildTime ms
 Solve time:  $solveTime ms
 Iterations:  ${solver.iterations}
 
-Classes:     ${constraints.numberOfClasses}
+Classes:     ${builder.hierarchy.classes.length}
+Values:      ${constraints.numberOfValues}
+Unions:      ${constraints.numberOfLatticePoints}
 Variables:   ${constraints.numberOfVariables}
 Fields:      ${builder.fieldNames.length}
 Assignments: ${constraints.numberOfAssignments}
@@ -126,8 +149,18 @@ Loads:       ${constraints.numberOfLoads}
 Stores:      ${constraints.numberOfStores}
 
 Transfers:   $numberOfTransfers (${(transfersPerSecond / 1000000).toStringAsFixed(1)} M/s)
+
+Outputs:     $outputCount
+Tops:        $inferredUnknowns (${percent(inferredUnknowns, outputCount)})
+Bottoms:     $inferredBottoms (${percent(inferredBottoms, outputCount)})
+Other:       $inferredOther (${percent(inferredOther, outputCount)})
   """);
   }
+}
+
+String percent(int amount, int total) {
+  if (total == 0) return '0%';
+  return (amount / total * 100).toStringAsFixed(1) + '%';
 }
 
 String sanitizeFilename(String name) {

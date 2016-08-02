@@ -6,134 +6,144 @@ library kernel.type_propagation.solver;
 import 'constraints.dart';
 import 'builder.dart';
 import '../class_hierarchy.dart';
-import '../ast.dart';
+import 'visualizer.dart';
+import 'canonicalizer.dart';
 
+/// We adopt a Hungarian-like notation in this class to distinguish variables,
+/// values, and lattice points, since they are all integers.
+///
+/// The term "values" (plural) always refers to a lattice point.
 class Solver {
+  final Builder builder;
   final ConstraintSystem constraints;
   final FieldNames canonicalizer;
   final ClassHierarchy hierarchy;
 
-  /// Maps a variable index to the abstract value held in it.
-  final List<int> variableValue;
+  /// Maps a variable index to a lattice point containing all values that may
+  /// flow into the variable.
+  final List<int> valuesInVariable;
 
-  /// Maps a class and a field index to the values that may be stored in the
-  /// given field on the given receiver type.
-  ///
-  /// The entries for `Object` and `Function` are not used, they are handled
-  /// specially due to them having a huge number of subtypes (all functions
-  /// are subtypes of `Function`, even those that are never torn off).
-  final List<Map<int, int>> valuesStoredOnObject;
-
-  /// The join of all values stored into a given field on any object that
-  /// escapes into dynamic context (i.e. where the best known type is `Object`
-  /// or `Function`).
+  /// Maps a field index to a lattice point containing all values that may be
+  /// stored in the given field on any object that escaped into a mega union.
   final List<int> valuesStoredOnEscapingObject;
 
-  /// The join of all values stored into a given field where the receiver is
-  /// unknown (i.e. its best known type is `Object` or `Function`).
+  /// Maps a field index to a lattice point containing all values that may be
+  /// stored into the given field where the receiver is a mega union.
   ///
   /// This is a way to avoid propagating such stores into almost every entry
-  /// in [valuesStoredOnObject].
+  /// store location.
   final List<int> valuesStoredOnUnknownObject;
 
-  /// Maps a value index to a sorted list of its supertype indices.
+  /// Maps a lattice point to a sorted list of its ancestors in the lattice
+  /// (i.e. all lattice points that lie above it, and thus represent less
+  /// precise information).
   ///
-  /// For this purpose a value is considered a supertype of itself and occurs
-  /// as the end of its own supertype list.
+  /// For this purpose, a lattice point is considered an ancestor of itself and
+  /// occurs as the end of its own ancestor list.
   ///
-  /// We omit the root class from all the supertype lists.
-  final List<List<int>> supertypes;
+  /// We omit the entry for the lattice top (representing "any value") from all
+  /// the ancestor listss.
+  final List<List<int>> ancestorsOfLatticePoint;
 
-  /// Maps a value index to a sorted list of its subtypes, including the value
-  /// itself.  For function values the list contains only the value itself.
+  /// Maps a lattice point to the list of values it contains (i.e. whose leaves
+  /// lie below it in the lattice).
   ///
-  /// The entries for the `Object` and `Function` classes are empty.  They are
-  /// special-cased to avoid traversing a huge number of subtypes.
-  final List<List<int>> subtypes;
+  /// The entries for the `Object` and `Function` lattice points are empty.
+  /// They are special-cased to avoid traversing a huge number of values.
+  final List<List<int>> valuesBelowLatticePoint;
 
-  /// Maps a value to the lowest-indexed supertype into which it has "escaped"
+  /// Maps a value to the lowest-indexed lattice point into which it has escaped
   /// through a join operation.
   ///
-  /// As a value escapes further up the hierarchy, more and more stores and
-  /// loads will see it as a potential target.
-  final List<int> escapeIndex;
+  /// As a value escapes further up the lattice, more and more stores and loads
+  /// will see it as a potential target.
+  final List<int> valueEscape;
 
-  int iterations = 0;
-  bool _changed = false;
+  /// Maps a lattice point to its lowest-indexed ancestor (possibly itself) into
+  /// which all of its members must escape.
+  ///
+  /// Escaping into a lattice point is transitive in the following sense:
+  ///
+  ///    If a value `x` escapes into a lattice point `u`,
+  ///    and `u` escapes into an ancestor lattice point `w`,
+  ///    then `x` also escapes into `w`.
+  ///
+  /// The above rule also applies if the value `x` is replaced with a lattice
+  /// point.
+  ///
+  /// Note that some values below a given lattice point may escape further out
+  /// than the lattice point's own escape level.
+  final List<int> latticePointEscape;
 
   final int _numberOfClasses;
-  final int _functionClassIndex;
+
+  /// The lattice point containing all functions.
+  final int _functionLatticePoint;
 
   static const int bottom = -1;
   static const int rootClass = 0;
 
+  /// Lattice points with more than this number values below it are considered
+  /// "mega unions".
+  ///
+  /// Stores and loads are tracked less precisely on mega unions in order to
+  /// speed up the analysis.
+  ///
+  /// The `Object` and `Function` lattice points are always considered mega
+  /// unions.
+  static const int megaUnionLimit = 100;
+
+  int iterations = 0;
+  bool _changed = false;
+
   static List<int> _makeIntList(int _) => <int>[];
-  static Map<int, int> _makeIntIntMap(int _) => <int, int>{};
+
+  Visualizer get visualizer => builder.visualizer;
 
   Solver(Builder builder)
-      : this.constraints = builder.constraints,
+      : this.builder = builder,
+        this.constraints = builder.constraints,
         this.canonicalizer = builder.fieldNames,
         this.hierarchy = builder.hierarchy,
-        this.variableValue =
+        this.valuesInVariable =
             new List<int>.filled(builder.constraints.numberOfVariables, bottom),
-        this.valuesStoredOnObject = new List<Map<int, int>>.generate(
-            builder.constraints.numberOfValues, _makeIntIntMap),
-        this.supertypes = new List<List<int>>.generate(
-            builder.constraints.numberOfValues, _makeIntList),
-        this.subtypes = new List<List<int>>.generate(
-            builder.constraints.numberOfValues, _makeIntList),
-        this._numberOfClasses = builder.constraints.numberOfClasses,
-        this._functionClassIndex =
-            builder.hierarchy.getClassIndex(builder.coreTypes.functionClass),
+        this.ancestorsOfLatticePoint = new List<List<int>>.generate(
+            builder.constraints.numberOfLatticePoints, _makeIntList),
+        this.valuesBelowLatticePoint = new List<List<int>>.generate(
+            builder.constraints.numberOfLatticePoints, _makeIntList),
+        this._functionLatticePoint = builder.latticePointForAllFunctions,
         this.valuesStoredOnEscapingObject =
             new List<int>.filled(builder.fieldNames.length, bottom),
         this.valuesStoredOnUnknownObject =
             new List<int>.filled(builder.fieldNames.length, bottom),
-        this.escapeIndex =
-            new List<int>.filled(builder.constraints.numberOfValues, 0) {
-    // The first N variables are the N classes.  Fill in their values.
-    for (int i = 0; i < constraints.numberOfClasses; ++i) {
-      variableValue[i] = i;
+        this.latticePointEscape =
+            new List<int>.filled(builder.constraints.numberOfLatticePoints, 0),
+        this.valueEscape =
+            new List<int>.filled(builder.constraints.numberOfValues, 0),
+        this._numberOfClasses = builder.hierarchy.classes.length {
+    // Initialize the lattice and escape data.
+    for (int i = 1; i < constraints.numberOfLatticePoints; ++i) {
+      List<int> parents = constraints.parentsOfLatticePoint[i];
+      List<int> ancestors = ancestorsOfLatticePoint[i];
+      for (int j = 0; j < parents.length; ++j) {
+        ancestors.addAll(ancestorsOfLatticePoint[parents[j]]);
+      }
+      _sortAndRemoveDuplicates(ancestors);
+      ancestors.add(i);
+      latticePointEscape[i] = i;
     }
-
-    // Build the superclass lists for use in join computation.
-    // We exploit that the classes in ClassHierarchy.classes are topologically
-    // sorted.
-    // Note: we start from index 1 to omit the root class from all lists.
-    for (int i = 1; i < hierarchy.classes.length; ++i) {
-      Class class_ = hierarchy.classes[i];
-      List<int> superList = supertypes[i];
-      int superclass = hierarchy.getClassIndex(class_.superclass);
-      superList.addAll(supertypes[superclass]);
-      if (class_.mixedInType != null) {
-        int mixedInClass = hierarchy.getClassIndex(class_.mixedInClass);
-        superList.addAll(supertypes[mixedInClass]);
+    // Initialize the set of values below in a given lattice point.
+    for (int value = 0; value < constraints.numberOfValues; ++value) {
+      int latticePoint = constraints.latticePointOfValue[value];
+      List<int> ancestors = ancestorsOfLatticePoint[latticePoint];
+      for (int j = 0; j < ancestors.length; ++j) {
+        int ancestor = ancestors[j];
+        if (ancestor == rootClass || ancestor == _functionLatticePoint) {
+          continue;
+        }
+        valuesBelowLatticePoint[ancestor].add(value);
       }
-      for (int i = 0; i < class_.implementedTypes.length; ++i) {
-        int implementedClass =
-            hierarchy.getClassIndex(class_.implementedTypes[i].classNode);
-        superList.addAll(supertypes[implementedClass]);
-      }
-      _sortAndRemoveDuplicates(superList);
-      superList.add(i);
-      // Update the inverse list.
-      for (int j = 0; j < superList.length; ++j) {
-        subtypes[superList[j]].add(i);
-      }
-      // Mark all classes (not functions) as escaping to Object.
-      // This is currently necessary because we do not track the 'this' argument
-      // in methods call, but the intent is to change that.
-      // TODO(asgerf): Initialize to `i` when we have proper 'this' handling.
-      escapeIndex[i] = 0;
-    }
-
-    // Build the super types of the function values.  These consist of just
-    // the Function class and the function value itself.
-    int firstFunctionValue = constraints.numberOfClasses;
-    for (int i = firstFunctionValue; i < constraints.numberOfValues; ++i) {
-      supertypes[i]..add(_functionClassIndex)..add(i);
-      subtypes[i].add(i);
-      escapeIndex[i] = i;
+      valueEscape[value] = latticePoint;
     }
   }
 
@@ -152,127 +162,115 @@ class Solver {
     }
   }
 
-  /// Returns an upper bound of two abstract values.
+  /// Returns a lattice point lying above both of the given points, thus
+  /// guaranteed to over-approximate the set of values in both.
   ///
-  /// If the values are classes, the upper bound is a supertype that is
-  /// implemented by both, and for which no more specific supertype exists.
-  /// If multiple such classes exist, an arbitrary but fixed choice is made.
+  /// If the lattice point represent classes, the upper bound is a supertype
+  /// that is implemented by both, and for which no more specific supertype
+  /// exists. If multiple such classes exist, an arbitrary but fixed choice is
+  /// made.
   ///
   /// The ambiguity means the join operator is not associative, and the analysis
   /// result can therefore depend on iteration order.
   //
   // TODO(asgerf): I think we can fix this by introducing intersection types
-  //   for the class pairs that are ambiguous least upper bounds.
-  int join(int value1, int value2) {
-    if (value1 == value2) return value1;
-    // Check if either is the bottom value (-1).  Perform the check using "< 0"
-    // to eliminate the lower bounds check in the following list lookups.
-    if (value1 < 0) return value2;
-    if (value2 < 0) return value1;
-    List<int> superList1 = supertypes[value1];
-    List<int> superList2 = supertypes[value2];
+  //   for the class pairs that are ambiguous least upper bounds. This could be
+  //   done as a preprocessing of the constraint system.
+  int join(int point1, int point2) {
+    if (point1 == point2) return point1;
+    // Check if either is the bottom value (-1).
+    if (point1 < 0) return point2;
+    if (point2 < 0) return point1;
+    List<int> ancestorList1 = ancestorsOfLatticePoint[point1];
+    List<int> ancestorList2 = ancestorsOfLatticePoint[point2];
     // Classes are topologically and numerically sorted, so the more specific
     // supertypes always occur after the less specific ones.  Traverse both
     // lists from the right until a common supertype is found.  Starting from
     // the right ensures we can only find one of the most specific supertypes.
-    int i = superList1.length - 1, j = superList2.length - 1;
+    int i = ancestorList1.length - 1, j = ancestorList2.length - 1;
     while (i >= 0 && j >= 0) {
-      int super1 = superList1[i];
-      int super2 = superList2[j];
+      int super1 = ancestorList1[i];
+      int super2 = ancestorList2[j];
       if (super1 < super2) {
         --j;
       } else if (super1 > super2) {
         --i;
       } else {
         // Both types have "escaped" into their common super type.
-        _updateEscapeIndex(value1, super1);
-        _updateEscapeIndex(value2, super1);
+        _updateEscapeIndex(point1, super1);
+        _updateEscapeIndex(point2, super1);
         return super1;
       }
     }
     // Both types have escaped into a completely dynamic context.
-    _updateEscapeIndex(value1, rootClass);
-    _updateEscapeIndex(value2, rootClass);
+    _updateEscapeIndex(point1, rootClass);
+    _updateEscapeIndex(point2, rootClass);
     return rootClass;
   }
 
-  void _updateEscapeIndex(int value, int escapeValue) {
-    if (escapeIndex[value] > escapeValue) {
-      escapeIndex[value] = escapeValue;
+  void _updateEscapeIndex(int point, int escapeTarget) {
+    if (latticePointEscape[point] > escapeTarget) {
+      latticePointEscape[point] = escapeTarget;
       _changed = true;
     }
   }
 
-  void _initializeFunctionAllocations() {
-    List<int> functionAllocations = constraints.functionAllocations;
-    for (int i = 0; i < functionAllocations.length; i += 2) {
-      int destination = functionAllocations[i + 1];
-      int functionId = functionAllocations[i];
-      variableValue[destination] = join(variableValue[destination], functionId);
+  void _initializeAllocations() {
+    List<int> allocations = constraints.allocations;
+    for (int i = 0; i < allocations.length; i += 2) {
+      int destination = allocations[i + 1];
+      int valueId = allocations[i];
+      int point = constraints.latticePointOfValue[valueId];
+      valuesInVariable[destination] =
+          join(valuesInVariable[destination], point);
     }
   }
 
+  bool _isMegaUnion(int latticePoint) {
+    return latticePoint == rootClass ||
+        latticePoint == _functionLatticePoint ||
+        valuesBelowLatticePoint[latticePoint].length > megaUnionLimit;
+  }
+
   void solve() {
-    _initializeFunctionAllocations();
+    _initializeAllocations();
     List<int> assignments = constraints.assignments;
     List<int> loads = constraints.loads;
     List<int> stores = constraints.stores;
-    int functionClass = _functionClassIndex;
+    List<int> latticePointOfValue = constraints.latticePointOfValue;
+    Uint31PairMap storeLocations = constraints.storeLocations;
+    Uint31PairMap loadLocations = constraints.loadLocations;
     do {
       ++iterations;
       _changed = false;
       for (int i = 0; i < assignments.length; i += 2) {
         int destination = assignments[i + 1];
         int source = assignments[i];
-        int inputValue = variableValue[source];
-        int oldValue = variableValue[destination];
-        int newValue = join(inputValue, oldValue);
-        if (newValue != oldValue) {
-          variableValue[destination] = newValue;
-          _changed = true;
-        }
+        int inputValues = valuesInVariable[source];
+        _update(valuesInVariable, destination, inputValues);
       }
       for (int i = 0; i < stores.length; i += 3) {
         int sourceVariable = stores[i + 2];
         int field = stores[i + 1];
         int objectVariable = stores[i];
-        int inputValue = variableValue[sourceVariable];
-        int objectValue = variableValue[objectVariable];
-        if (objectValue == bottom) continue;
-        if (objectValue == rootClass || objectValue == functionClass) {
-          int oldValue = valuesStoredOnUnknownObject[field];
-          int newValue = join(inputValue, oldValue);
-          if (newValue != oldValue) {
-            valuesStoredOnUnknownObject[field] = newValue;
-            _changed = true;
-          }
+        int inputValues = valuesInVariable[sourceVariable];
+        int objectValues = valuesInVariable[objectVariable];
+        if (objectValues == bottom) continue;
+        if (_isMegaUnion(objectValues)) {
+          _update(valuesStoredOnUnknownObject, field, inputValues);
         } else {
           // Store the value on all subtypes that can escape into this
           // context or worse.
-          List<int> receivers = subtypes[objectValue];
+          List<int> receivers = valuesBelowLatticePoint[objectValues];
           for (int j = 0; j < receivers.length; ++j) {
             int receiver = receivers[j];
-            if (escapeIndex[receiver] > objectValue) {
+            int escape = valueEscape[receiver];
+            if (escape > objectValues) {
               continue; // Skip receivers that have not escaped this far.
             }
-            Map<int, int> fieldMap = valuesStoredOnObject[receiver];
-            int oldValue = fieldMap[field] ?? bottom;
-            int newValue = join(inputValue, oldValue);
-            if (newValue != oldValue) {
-              fieldMap[field] = newValue;
-              _changed = true;
-            }
-          }
-        }
-        int escape = escapeIndex[objectValue];
-        if (escape == rootClass || escape == functionClass) {
-          // The object escapes.  Throw the stored value into the tarpit so it
-          // can be seen when loading the same field from an unknown receiver.
-          int oldValue = valuesStoredOnEscapingObject[field];
-          int newValue = join(oldValue, inputValue);
-          if (newValue != oldValue) {
-            valuesStoredOnEscapingObject[field] = newValue;
-            _changed = true;
+            int location = storeLocations.lookup(receiver, field);
+            if (location == null) continue;
+            _update(valuesInVariable, location, inputValues);
           }
         }
       }
@@ -280,61 +278,122 @@ class Solver {
         int destination = loads[i + 2];
         int field = loads[i + 1];
         int objectVariable = loads[i];
-        int objectValue = variableValue[objectVariable];
-        int oldValue = variableValue[destination];
-        if (objectValue == bottom) continue;
-        if (objectValue == rootClass || objectValue == functionClass) {
+        int objectValues = valuesInVariable[objectVariable];
+        if (objectValues == bottom) continue;
+        if (_isMegaUnion(objectValues)) {
           // Receiver is unknown. Take the value out of the tarpit.
-          int inputValue = valuesStoredOnEscapingObject[field];
-          int newValue = join(inputValue, oldValue);
-          if (newValue != oldValue) {
-            variableValue[destination] = newValue;
-            _changed = true;
-          }
+          int inputValues = valuesStoredOnEscapingObject[field];
+          _update(valuesInVariable, destination, inputValues);
         } else {
-          int escape = escapeIndex[objectValue];
-          // If we load from an object that escapes, include all values stored
-          // on an unknown receiver.
-          int newValue = (escape == rootClass || escape == functionClass)
-              ? valuesStoredOnUnknownObject[field]
-              : bottom;
+          int oldValues = valuesInVariable[destination];
+          int newValues = oldValues;
           // Load the values stored on all the subtypes that can escape into
           // this context or worse.
-          List<int> receivers = subtypes[objectValue];
+          List<int> receivers = valuesBelowLatticePoint[objectValues];
           for (int j = 0; j < receivers.length; ++j) {
             int receiver = receivers[j];
-            if (escapeIndex[receiver] > objectValue) {
+            int escape = valueEscape[receiver];
+            if (escape > objectValues) {
               continue; // Skip receivers that have not escaped this far.
             }
-            int inputValue = valuesStoredOnObject[receiver][field] ?? bottom;
-            newValue = join(inputValue, newValue);
+            int location = loadLocations.lookup(receiver, field);
+            if (location == null) continue;
+            int inputValues = valuesInVariable[location];
+            newValues = join(inputValues, newValues);
           }
-          newValue = join(newValue, oldValue);
-          if (newValue != oldValue) {
-            variableValue[destination] = newValue;
+          if (newValues != oldValues) {
+            valuesInVariable[destination] = newValues;
             _changed = true;
           }
         }
       }
+      // Apply the transitive escape rule on the lattice.
+      for (int point = 0; point < latticePointEscape.length; ++point) {
+        int oldEscape = latticePointEscape[point];
+        if (oldEscape == point) continue;
+        List<int> ancestors = ancestorsOfLatticePoint[point];
+        int newEscape = oldEscape;
+        for (int j = 0; j < ancestors.length; ++j) {
+          int ancestor = ancestors[j];
+          if (ancestor < oldEscape) continue;
+          int superEscape = latticePointEscape[ancestor];
+          if (superEscape < newEscape) {
+            newEscape = superEscape;
+          }
+        }
+        if (oldEscape != newEscape) {
+          latticePointEscape[point] = newEscape;
+          _changed = true;
+        }
+      }
+      // Update the escape level of every value.
+      for (int i = 0; i < latticePointOfValue.length; ++i) {
+        int value = i;
+        int latticePoint = latticePointOfValue[value];
+        int oldEscape = valueEscape[value];
+        int newEscape = latticePointEscape[latticePoint];
+        if (newEscape < oldEscape) {
+          valueEscape[value] = newEscape;
+          _changed = true;
+        }
+      }
+      // Handle stores on escaping objects.
+      List<int> storeLocationList = constraints.storeLocationList;
+      for (int i = 0; i < storeLocationList.length; i += 3) {
+        int variable = storeLocationList[i + 2];
+        int field = storeLocationList[i + 1];
+        int objectValue = storeLocationList[i];
+        int escape = valueEscape[objectValue];
+        if (_isMegaUnion(escape)) {
+          int inputValue = valuesStoredOnUnknownObject[field];
+          _update(valuesInVariable, variable, inputValue);
+        }
+      }
+      // Handle loads from escaping objects.
+      List<int> loadLocationList = constraints.loadLocationList;
+      for (int i = 0; i < loadLocationList.length; i += 3) {
+        int variable = loadLocationList[i + 2];
+        int field = loadLocationList[i + 1];
+        int objectValue = loadLocationList[i];
+        int escape = valueEscape[objectValue];
+        if (_isMegaUnion(escape)) {
+          int inputValue = valuesInVariable[variable];
+          _update(valuesStoredOnEscapingObject, field, inputValue);
+        }
+      }
     } while (_changed);
-  }
 
-  /// Returns a class that is implemented by all possible values that may
-  /// flow into [variable], or `null` if nothing can flow into [variable].
-  Class getVariableValue(int variable) {
-    int value = variableValue[variable];
-    if (value < 0) return null;
-    if (value >= _numberOfClasses) {
-      return hierarchy.classes[_functionClassIndex];
+    // Propagate to sinks.
+    // This is done outside the fixed-point iteration so the sink-join does
+    // not cause values to be considered escaping.
+    List<int> sinks = constraints.sinks;
+    for (int i = 0; i < sinks.length; i += 2) {
+      int destination = sinks[i + 1];
+      int source = sinks[i];
+      int inputValues = valuesInVariable[source];
+      _update(valuesInVariable, destination, inputValues);
     }
-    return hierarchy.classes[value];
   }
 
-  /// Returns the least specific type into which the given value escapes,
-  /// or `null` if the value is a function value that does not escape.
-  Class getEscapeContext(int value) {
-    int index = escapeIndex[value];
-    if (index < _numberOfClasses) return hierarchy.classes[index];
-    return null;
+  void _update(List<int> values, int index, int inputValues) {
+    int oldValues = values[index];
+    int newValues = join(inputValues, oldValues);
+    if (newValues != oldValues) {
+      values[index] = newValues;
+      _changed = true;
+    }
+  }
+
+  /// Returns the index of a lattice point containing all values that can flow
+  /// into the given variable, or [bottom] if nothing can flow into the
+  /// variable.
+  int getVariableValue(int variable) {
+    return valuesInVariable[variable];
+  }
+
+  /// Returns the lowest-indexed lattice point into which the given value can
+  /// escape.
+  int getEscapeContext(int value) {
+    return valueEscape[value];
   }
 }

@@ -84,6 +84,8 @@ class Uint31PairMap<T> {
   ///
   /// This association can be changed using a subsequent call to [put].
   T lookup(int x, int y) {
+    assert(x >= 0 && x >> 31 == 0);
+    assert(y >= 0 && y >> 31 == 0);
     int key = (x << 31) + y;
     _key = key;
     return _table[key];

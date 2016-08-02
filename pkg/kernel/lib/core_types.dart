@@ -12,6 +12,7 @@ class CoreTypes {
   Class nullClass;
   Class boolClass;
   Class intClass;
+  Class numClass;
   Class doubleClass;
   Class stringClass;
   Class listClass;
@@ -31,6 +32,14 @@ class CoreTypes {
     return _dartLibraries[libraryUri].require(className);
   }
 
+  Procedure getCoreProcedure(String libraryUri, String topLevelMemberName) {
+    Library library = getCoreLibrary(libraryUri);
+    for (Procedure procedure in library.procedures) {
+      if (procedure.name.name == topLevelMemberName) return procedure;
+    }
+    throw 'Missing procedure ${topLevelMemberName} from $libraryUri';
+  }
+
   CoreTypes(Program program) {
     for (var library in program.libraries) {
       if (library.importUri.scheme == 'dart') {
@@ -44,6 +53,7 @@ class CoreTypes {
     nullClass = dartCore.require('Null');
     boolClass = dartCore.require('bool');
     intClass = dartCore.require('int');
+    numClass = dartCore.require('num');
     doubleClass = dartCore.require('double');
     stringClass = dartCore.require('String');
     listClass = dartCore.require('List');

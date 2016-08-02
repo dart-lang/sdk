@@ -473,6 +473,9 @@ abstract class Member extends TreeNode {
   /// True if this is a non-static field or procedure.
   bool get isInstanceMember;
 
+  /// The body of the procedure or constructor, or `null` if this is a field.
+  FunctionNode get function => null;
+
   /// Returns a possibly synthesized name for this member, consistent with
   /// the names used across all [toString] calls.
   String toString() => debugQualifiedMemberName(this);

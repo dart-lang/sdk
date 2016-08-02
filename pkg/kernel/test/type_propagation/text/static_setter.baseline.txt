@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  constructor •() → void/bottom
+  constructor •() → void
     : super core::Object::•()
     ;
 }

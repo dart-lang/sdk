@@ -4,16 +4,16 @@ import "dart:core" as core;
 
 class Foo extends core::Object {
   field dynamic/self::Bar _field = new self::Bar::•();
-  constructor •() → void/bottom
+  constructor •() → void
     : super core::Object::•()
     ;
 }
 class Bar extends core::Object {
-  constructor •() → void/bottom
+  constructor •() → void
     : super core::Object::•()
     ;
 }
-static method useCallback(dynamic/core::Function callback) → dynamic/bottom {
+static method useCallback(dynamic/function callback) → dynamic/bottom {
   dynamic/self::Foo _ = callback.call();
 }
 static method main() → dynamic/bottom {
