@@ -1101,15 +1101,14 @@ bool Isolate::ReloadSources(JSONStream* js,
   ASSERT(!IsReloading());
   has_attempted_reload_ = true;
   reload_context_ = new IsolateReloadContext(this, js);
-  reload_context_->StartReload(force_reload);
-  bool success = !reload_context_->has_error();
-  // Unit tests use the reload context later. Caller is responsible
-  // for deleting the context.
+  reload_context_->Reload(force_reload);
+  bool success = !reload_context_->reload_aborted();
   if (!dont_delete_reload_context) {
     DeleteReloadContext();
   }
 #if defined(DEBUG)
   if (success) {
+    return success;
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     isolate->heap()->CollectAllGarbage();
@@ -1131,7 +1130,7 @@ void Isolate::DeleteReloadContext() {
 void Isolate::DoneFinalizing() {
   NOT_IN_PRODUCT(
     if (IsReloading()) {
-      reload_context_->FinishReload();
+      reload_context_->FinalizeLoading();
     }
   )
 }

@@ -308,7 +308,7 @@ Dart_Handle TestCase::GetReloadErrorOrRootLibrary() {
   Isolate* isolate = Isolate::Current();
 
   if (isolate->reload_context() != NULL &&
-      isolate->reload_context()->has_error()) {
+      isolate->reload_context()->reload_aborted()) {
     // Return a handle to the error.
     return Api::NewHandle(Thread::Current(),
                           isolate->reload_context()->error());

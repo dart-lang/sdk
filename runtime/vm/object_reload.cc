@@ -391,8 +391,8 @@ void Class::MigrateImplicitStaticClosures(IsolateReloadContext* irc,
 
 class EnumClassConflict : public ClassReasonForCancelling {
  public:
-  EnumClassConflict(const Class& from, const Class& to)
-      : ClassReasonForCancelling(from, to) { }
+  EnumClassConflict(Zone* zone, const Class& from, const Class& to)
+      : ClassReasonForCancelling(zone, from, to) { }
 
   RawString* ToString() {
     return String::NewFormatted(
@@ -406,8 +406,11 @@ class EnumClassConflict : public ClassReasonForCancelling {
 
 class EnsureFinalizedError : public ClassReasonForCancelling {
  public:
-  EnsureFinalizedError(const Class& from, const Class& to, const Error& error)
-      : ClassReasonForCancelling(from, to), error_(error) { }
+  EnsureFinalizedError(Zone* zone,
+                       const Class& from,
+                       const Class& to,
+                       const Error& error)
+      : ClassReasonForCancelling(zone, from, to), error_(error) { }
 
  private:
   const Error& error_;
@@ -422,8 +425,8 @@ class EnsureFinalizedError : public ClassReasonForCancelling {
 
 class NativeFieldsConflict : public ClassReasonForCancelling {
  public:
-  NativeFieldsConflict(const Class& from, const Class& to)
-      : ClassReasonForCancelling(from, to) { }
+  NativeFieldsConflict(Zone* zone, const Class& from, const Class& to)
+      : ClassReasonForCancelling(zone, from, to) { }
 
  private:
   RawString* ToString() {
@@ -435,8 +438,8 @@ class NativeFieldsConflict : public ClassReasonForCancelling {
 
 class TypeParametersChanged : public ClassReasonForCancelling {
  public:
-  TypeParametersChanged(const Class& from, const Class& to)
-      : ClassReasonForCancelling(from, to) {}
+  TypeParametersChanged(Zone* zone, const Class& from, const Class& to)
+      : ClassReasonForCancelling(zone, from, to) {}
 
   RawString* ToString() {
     return String::NewFormatted(
@@ -457,8 +460,8 @@ class TypeParametersChanged : public ClassReasonForCancelling {
 
 class PreFinalizedConflict :  public ClassReasonForCancelling {
  public:
-  PreFinalizedConflict(const Class& from, const Class& to)
-      : ClassReasonForCancelling(from, to) {}
+  PreFinalizedConflict(Zone* zone, const Class& from, const Class& to)
+      : ClassReasonForCancelling(zone, from, to) {}
 
  private:
   RawString* ToString() {
@@ -472,8 +475,8 @@ class PreFinalizedConflict :  public ClassReasonForCancelling {
 
 class InstanceSizeConflict :  public ClassReasonForCancelling {
  public:
-  InstanceSizeConflict(const Class& from, const Class& to)
-      : ClassReasonForCancelling(from, to) {}
+  InstanceSizeConflict(Zone* zone, const Class& from, const Class& to)
+      : ClassReasonForCancelling(zone, from, to) {}
 
  private:
   RawString* ToString() {
@@ -490,10 +493,11 @@ class InstanceSizeConflict :  public ClassReasonForCancelling {
 
 class UnimplementedDeferredLibrary : public ReasonForCancelling {
  public:
-  UnimplementedDeferredLibrary(const Library& from,
+  UnimplementedDeferredLibrary(Zone* zone,
+                               const Library& from,
                                const Library& to,
                                const String& name)
-      : ReasonForCancelling(), from_(from), to_(to), name_(name) {}
+      : ReasonForCancelling(zone), from_(from), to_(to), name_(name) {}
 
  private:
   const Library& from_;
@@ -519,7 +523,8 @@ void Class::CheckReload(const Class& replacement,
   // Class cannot change enum property.
   if (is_enum_class() != replacement.is_enum_class()) {
     context->AddReasonForCancelling(
-        new EnumClassConflict(*this, replacement));
+        new(context->zone())
+            EnumClassConflict(context->zone(), *this, replacement));
     return;
   }
 
@@ -529,7 +534,8 @@ void Class::CheckReload(const Class& replacement,
         Error::Handle(replacement.EnsureIsFinalized(Thread::Current()));
     if (!error.IsNull()) {
       context->AddReasonForCancelling(
-          new EnsureFinalizedError(*this, replacement, error));
+          new(context->zone())
+              EnsureFinalizedError(context->zone(), *this, replacement, error));
       return;  // No reason to check other properties.
     }
     TIR_Print("Finalized replacement class for %s\n", ToCString());
@@ -538,7 +544,8 @@ void Class::CheckReload(const Class& replacement,
   // Native field count cannot change.
   if (num_native_fields() != replacement.num_native_fields()) {
       context->AddReasonForCancelling(
-          new NativeFieldsConflict(*this, replacement));
+          new(context->zone())
+              NativeFieldsConflict(context->zone(), *this, replacement));
       return;
   }
 
@@ -605,11 +612,14 @@ bool Class::CanReloadFinalized(const Class& replacement,
       AbstractType::Handle(replacement.DeclarationType());
   if (!dt.Equals(replacement_dt)) {
     context->AddReasonForCancelling(
-        new TypeParametersChanged(*this, replacement));
+        new(context->zone())
+            TypeParametersChanged(context->zone(), *this, replacement));
     return false;
   }
   if (RequiresInstanceMorphing(replacement)) {
-    context->AddInstanceMorpher(new InstanceMorpher(*this, replacement));
+    context->AddInstanceMorpher(
+        new(context->zone())
+            InstanceMorpher(context->zone(), *this, replacement));
   }
   return true;
 }
@@ -620,13 +630,15 @@ bool Class::CanReloadPreFinalized(const Class& replacement,
   // The replacement class must also prefinalized.
   if (!replacement.is_prefinalized()) {
       context->AddReasonForCancelling(
-          new PreFinalizedConflict(*this, replacement));
+          new(context->zone())
+              PreFinalizedConflict(context->zone(), *this, replacement));
       return false;
   }
   // Check the instance sizes are equal.
   if (instance_size() != replacement.instance_size()) {
       context->AddReasonForCancelling(
-          new InstanceSizeConflict(*this, replacement));
+          new(context->zone())
+              InstanceSizeConflict(context->zone(), *this, replacement));
       return false;
   }
   return true;
@@ -644,7 +656,9 @@ void Library::CheckReload(const Library& replacement,
     if (prefix.is_deferred_load()) {
       const String& prefix_name = String::Handle(prefix.name());
       context->AddReasonForCancelling(
-          new UnimplementedDeferredLibrary(*this, replacement, prefix_name));
+          new(context->zone())
+              UnimplementedDeferredLibrary(context->zone(),
+                                           *this, replacement, prefix_name));
       return;
     }
   }

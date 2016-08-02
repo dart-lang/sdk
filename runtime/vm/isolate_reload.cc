@@ -47,11 +47,11 @@ DEFINE_FLAG(bool, check_reloaded, false,
                                    #name)
 
 
-InstanceMorpher::InstanceMorpher(const Class& from, const Class& to)
+InstanceMorpher::InstanceMorpher(Zone* zone, const Class& from, const Class& to)
   : from_(from), to_(to), mapping_() {
   ComputeMapping();
-  before_ = new ZoneGrowableArray<const Instance*>();
-  after_ = new ZoneGrowableArray<const Instance*>();
+  before_ = new ZoneGrowableArray<const Instance*>(zone, 0);
+  after_ = new ZoneGrowableArray<const Instance*>(zone, 0);
   ASSERT(from_.id() == to_.id());
   cid_ = from_.id();
 }
@@ -216,7 +216,7 @@ void ClassReasonForCancelling::AppendTo(JSONArray* array) {
 
 
 RawError* IsolateReloadContext::error() const {
-  ASSERT(has_error());
+  ASSERT(reload_aborted());
   // Report the first error to the surroundings.
   const Error& error =
       Error::Handle(reasons_to_cancel_reload_.At(0)->ToError());
@@ -359,10 +359,12 @@ bool IsolateReloadContext::IsSameLibrary(
 
 IsolateReloadContext::IsolateReloadContext(Isolate* isolate,
                                            JSONStream* js)
-    : start_time_micros_(OS::GetCurrentMonotonicMicros()),
+    : zone_(Thread::Current()->zone()),
+      start_time_micros_(OS::GetCurrentMonotonicMicros()),
       reload_timestamp_(OS::GetCurrentTimeMillis()),
       isolate_(isolate),
       reload_skipped_(false),
+      reload_aborted_(false),
       js_(js),
       saved_num_cids_(-1),
       saved_class_table_(NULL),
@@ -384,6 +386,7 @@ IsolateReloadContext::IsolateReloadContext(Isolate* isolate,
   // NOTE: DO NOT ALLOCATE ANY RAW OBJECTS HERE. The IsolateReloadContext is not
   // associated with the isolate yet and if a GC is triggered here the raw
   // objects will not be properly accounted for.
+  ASSERT(zone_ != NULL);
 }
 
 
@@ -409,8 +412,8 @@ void IsolateReloadContext::ReportSuccess() {
 
 class Aborted : public ReasonForCancelling {
  public:
-  explicit Aborted(const Error& error)
-      : ReasonForCancelling(), error_(error) { }
+  explicit Aborted(Zone* zone, const Error& error)
+      : ReasonForCancelling(zone), error_(error) { }
 
  private:
   const Error& error_;
@@ -422,7 +425,8 @@ class Aborted : public ReasonForCancelling {
 };
 
 
-void IsolateReloadContext::StartReload(bool force_reload) {
+// NOTE: This function returns *after* FinalizeLoading is called.
+void IsolateReloadContext::Reload(bool force_reload) {
   TIMELINE_SCOPE(Reload);
   Thread* thread = Thread::Current();
   ASSERT(isolate() == thread->isolate());
@@ -486,7 +490,7 @@ void IsolateReloadContext::StartReload(bool force_reload) {
   }
   if (result.IsError()) {
     const Error& error = Error::Cast(result);
-    AddReasonForCancelling(new Aborted(error));
+    AddReasonForCancelling(new Aborted(zone_, error));
   }
 }
 
@@ -517,7 +521,8 @@ void IsolateReloadContext::RegisterClass(const Class& new_cls) {
 }
 
 
-void IsolateReloadContext::FinishReload() {
+// FinalizeLoading will be called *before* Reload() returns.
+void IsolateReloadContext::FinalizeLoading() {
   if (reload_skipped_) {
     return;
   }
@@ -543,6 +548,7 @@ void IsolateReloadContext::FinishReload() {
 
   BackgroundCompiler::Enable();
 
+  reload_aborted_ = HasReasonsForCancelling();
   ReportOnJSON(js_);
 }
 
@@ -580,7 +586,7 @@ void IsolateReloadContext::ReportOnJSON(JSONStream* stream) {
 
 
 void IsolateReloadContext::AbortReload(const Error& error) {
-  AddReasonForCancelling(new Aborted(error));
+  AddReasonForCancelling(new Aborted(zone_, error));
   ReportReasonsForCancelling();
   Rollback();
 }
@@ -722,10 +728,10 @@ BitVector* IsolateReloadContext::FindModifiedLibraries(bool force_reload) {
 
   // Construct the imported-by graph.
   ZoneGrowableArray<ZoneGrowableArray<intptr_t>* >* imported_by =
-      new ZoneGrowableArray<ZoneGrowableArray<intptr_t>* >(num_libs);
+      new ZoneGrowableArray<ZoneGrowableArray<intptr_t>* >(zone_, num_libs);
   imported_by->SetLength(num_libs);
   for (intptr_t i = 0; i < num_libs; i++) {
-    (*imported_by)[i] = new ZoneGrowableArray<intptr_t>();
+    (*imported_by)[i] = new ZoneGrowableArray<intptr_t>(zone_, 0);
   }
   Array& ports = Array::Handle();
   Namespace& ns = Namespace::Handle();
@@ -1217,7 +1223,7 @@ void IsolateReloadContext::MorphInstances() {
 
 bool IsolateReloadContext::ValidateReload() {
   TIMELINE_SCOPE(ValidateReload);
-  if (has_error()) return false;
+  if (reload_aborted()) return false;
 
   // Validate libraries.
   {
