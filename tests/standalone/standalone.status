@@ -322,7 +322,7 @@ out_of_memory_test: Skip # Issue #26377
 [ $runtime == vm || $runtime == dart_app || $runtime == dart_precompiled ]
 deferred_transitive_import_error_test: Skip # Contains intentional errors.
 
-[ $hot_reload ]
+[ $hot_reload || $hot_reload_rollback ]
 deferred_transitive_import_error_test: Crash # Uses deferred imports.
 package/*: SkipByDesign # Launches VMs in interesting ways.
 

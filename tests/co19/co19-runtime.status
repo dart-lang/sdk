@@ -193,7 +193,7 @@ Language/Expressions/Object_Identity/double_t02: RuntimeError # Issue #26374
 [ $compiler == precompiler && $runtime == dart_precompiled && $arch == simarm ]
 LibTest/typed_data/Float32x4/operator_division_A01_t02: RuntimeError # Issue #26675
 
-[ $hot_reload ]
+[ $hot_reload || $hot_reload_rollback ]
 Language/Expressions/Assignment/prefix_object_t02: Crash # Requires deferred libraries
 Language/Expressions/Constants/constant_constructor_t03: Crash # Requires deferred libraries
 Language/Expressions/Constants/identifier_denotes_a_constant_t06: Crash # Requires deferred libraries
