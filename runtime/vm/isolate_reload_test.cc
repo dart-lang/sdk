@@ -1310,7 +1310,7 @@ TEST_CASE(IsolateReload_PendingSuperCall) {
 }
 
 
-TEST_CASE(IsolateReload_TearOff_Equality) {
+TEST_CASE(IsolateReload_TearOff_Instance_Equality) {
   const char* kScript =
       "import 'test:isolate_reload_helper';\n"
       "class C {\n"
@@ -1343,6 +1343,80 @@ TEST_CASE(IsolateReload_TearOff_Equality) {
   TestCase::SetReloadTestScript(kReloadScript);
 
   EXPECT_STREQ("new new true false", SimpleInvokeStr(lib, "main"));
+
+  lib = TestCase::GetReloadErrorOrRootLibrary();
+  EXPECT_VALID(lib);
+}
+
+
+TEST_CASE(IsolateReload_TearOff_Class_Identity) {
+  const char* kScript =
+      "import 'test:isolate_reload_helper';\n"
+      "class C {\n"
+      "  static foo() => 'old';\n"
+      "}\n"
+      "getFoo() => C.foo;\n"
+      "main() {\n"
+      "  var f1 = getFoo();\n"
+      "  reloadTest();\n"
+      "  var f2 = getFoo();\n"
+      "  return '${f1()} ${f2()} ${f1 == f2} ${identical(f1, f2)}';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+
+  const char* kReloadScript =
+      "import 'test:isolate_reload_helper';\n"
+      "class C {\n"
+      "  static foo() => 'new';\n"
+      "}\n"
+      "getFoo() => C.foo;\n"
+      "main() {\n"
+      "  var f1 = getFoo();\n"
+      "  reloadTest();\n"
+      "  var f2 = getFoo();\n"
+      "  return '${f1()} ${f2()} ${f1 == f2} ${identical(f1, f2)}';\n"
+      "}\n";
+
+  TestCase::SetReloadTestScript(kReloadScript);
+
+  EXPECT_STREQ("new new true true", SimpleInvokeStr(lib, "main"));
+
+  lib = TestCase::GetReloadErrorOrRootLibrary();
+  EXPECT_VALID(lib);
+}
+
+
+TEST_CASE(IsolateReload_TearOff_Library_Identity) {
+  const char* kScript =
+      "import 'test:isolate_reload_helper';\n"
+      "foo() => 'old';\n"
+      "getFoo() => foo;\n"
+      "main() {\n"
+      "  var f1 = getFoo();\n"
+      "  reloadTest();\n"
+      "  var f2 = getFoo();\n"
+      "  return '${f1()} ${f2()} ${f1 == f2} ${identical(f1, f2)}';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+
+  const char* kReloadScript =
+      "import 'test:isolate_reload_helper';\n"
+      "foo() => 'new';\n"
+      "getFoo() => foo;\n"
+      "main() {\n"
+      "  var f1 = getFoo();\n"
+      "  reloadTest();\n"
+      "  var f2 = getFoo();\n"
+      "  return '${f1()} ${f2()} ${f1 == f2} ${identical(f1, f2)}';\n"
+      "}\n";
+
+  TestCase::SetReloadTestScript(kReloadScript);
+
+  EXPECT_STREQ("new new true true", SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);

@@ -970,9 +970,8 @@ void IsolateReloadContext::Commit() {
     // Copy static field values from the old classes to the new classes.
     // Patch fields and functions in the old classes so that they retain
     // the old script.
-    Class& cls = Class::Handle();
+    Class& old_cls = Class::Handle();
     Class& new_cls = Class::Handle();
-
     UnorderedHashMap<ClassMapTraits> class_map(class_map_storage_);
 
     {
@@ -980,15 +979,16 @@ void IsolateReloadContext::Commit() {
       while (it.MoveNext()) {
         const intptr_t entry = it.Current();
         new_cls = Class::RawCast(class_map.GetKey(entry));
-        cls = Class::RawCast(class_map.GetPayload(entry, 0));
-        if (new_cls.raw() != cls.raw()) {
-          ASSERT(new_cls.is_enum_class() == cls.is_enum_class());
+        old_cls = Class::RawCast(class_map.GetPayload(entry, 0));
+        if (new_cls.raw() != old_cls.raw()) {
+          ASSERT(new_cls.is_enum_class() == old_cls.is_enum_class());
           if (new_cls.is_enum_class() && new_cls.is_finalized()) {
-            new_cls.ReplaceEnum(cls);
+            new_cls.ReplaceEnum(old_cls);
           } else {
-            new_cls.CopyStaticFieldValues(cls);
+            new_cls.CopyStaticFieldValues(old_cls);
           }
-          cls.PatchFieldsAndFunctions();
+          old_cls.PatchFieldsAndFunctions();
+          old_cls.MigrateImplicitStaticClosures(this, new_cls);
         }
       }
     }

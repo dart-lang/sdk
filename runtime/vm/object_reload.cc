@@ -363,6 +363,32 @@ void Class::PatchFieldsAndFunctions() const {
 }
 
 
+void Class::MigrateImplicitStaticClosures(IsolateReloadContext* irc,
+                                          const Class& new_cls) const {
+  const Array& funcs = Array::Handle(functions());
+  Function& old_func = Function::Handle();
+  String& selector = String::Handle();
+  Function& new_func = Function::Handle();
+  Instance& old_closure = Instance::Handle();
+  Instance& new_closure = Instance::Handle();
+  for (intptr_t i = 0; i < funcs.Length(); i++) {
+    old_func ^= funcs.At(i);
+    if (old_func.is_static() &&
+      old_func.HasImplicitClosureFunction()) {
+      selector = old_func.name();
+      new_func = new_cls.LookupFunction(selector);
+      if (!new_func.IsNull() && new_func.is_static()) {
+        old_func = old_func.ImplicitClosureFunction();
+        old_closure = old_func.ImplicitStaticClosure();
+        new_func = new_func.ImplicitClosureFunction();
+        new_closure = new_func.ImplicitStaticClosure();
+        irc->AddBecomeMapping(old_closure, new_closure);
+      }
+    }
+  }
+}
+
+
 class EnumClassConflict : public ClassReasonForCancelling {
  public:
   EnumClassConflict(const Class& from, const Class& to)
