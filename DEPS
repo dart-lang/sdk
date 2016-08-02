@@ -54,7 +54,7 @@ vars = {
   "csslib_tag" : "@0.12.0",
   "dart2js_info_rev" : "@0a221eaf16aec3879c45719de656680ccb80d8a1",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
-  "dart_style_tag": "@0.2.4",
+  "dart_style_tag": "@0.2.9",
   "dartdoc_tag" : "@v0.9.6+2",
   "dev_compiler_rev": "@d39946fd7af11d02a8831dbd7a2b776c69099ff6",
   "fixnum_tag": "@0.10.5",

@@ -2,6 +2,11 @@
 
 ### Tool Changes
 
+* `dartfmt` - upgraded to v0.2.9
+  * Support trailing commas in argument and parameter lists.
+  * Gracefully handle read-only files.
+  * About a dozen other bug fixes.
+
 * Pub
   * Added the ability for packages to declare a constraint on the [Flutter][]
     SDK:
