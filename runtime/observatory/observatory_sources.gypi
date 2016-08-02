@@ -56,7 +56,7 @@
     'lib/src/elements/debugger.dart',
     'lib/src/elements/debugger.html',
     'lib/src/elements/error_ref.dart',
-    'lib/src/elements/error_ref.html',
+    'lib/src/elements/error_ref_wrapper.dart',
     'lib/src/elements/error_view.dart',
     'lib/src/elements/error_view.html',
     'lib/src/elements/eval_box.dart',

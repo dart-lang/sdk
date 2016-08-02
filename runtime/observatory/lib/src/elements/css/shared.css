@@ -376,6 +376,20 @@ code-ref-wrapped > a[href] {
   text-decoration: none;
 }
 
+/* error-ref */
+/* TODO(cbernaschina) fix error-ref-wrapped to error-ref when wrapper
+removed */
+
+error-ref-wrapped > pre {
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  padding: 10px;
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: pre;
+}
+
 /* function-ref */
 /* TODO(cbernaschina) fix function-ref-wrapped to function-ref when wrapper
 removed */
@@ -389,7 +403,7 @@ function-ref-wrapped > a[href] {
 }
 
 /* isolate-ref */
-/* TODO(cbernaschina) fix isolate-ref-ref-wrapped to isolate-ref when wrapper
+/* TODO(cbernaschina) fix isolate-ref-wrapped to isolate-ref when wrapper
 removed */
 
 isolate-ref-wrapped > a[href]:hover {
@@ -401,7 +415,7 @@ isolate-ref-wrapped > a[href] {
 }
 
 /* nav-notify */
-/* TODO(cbernaschina) fix nav-notify-ref-wrapped to nav-notify-ref when wrapper
+/* TODO(cbernaschina) fix nav-notify-wrapped to nav-notify when wrapper
 removed */
 nav-notify-wrapped > div {
   float: right;
