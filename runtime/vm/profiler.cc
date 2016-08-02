@@ -334,29 +334,14 @@ static void DumpStackFrame(intptr_t frame_index, uword pc) {
   uintptr_t start = 0;
   char* native_symbol_name =
       NativeSymbolResolver::LookupSymbolName(pc, &start);
-  if (native_symbol_name != NULL) {
-    OS::PrintErr("  %" Pp " [native] %s\n", pc, native_symbol_name);
+  if (native_symbol_name == NULL) {
+    OS::PrintErr("Frame[%" Pd "] = `unknown symbol` [0x%" Px "]\n",
+                 frame_index, pc);
+  } else {
+    OS::PrintErr("Frame[%" Pd "] = `%s` [0x%" Px "]\n",
+                 frame_index, native_symbol_name, pc);
     NativeSymbolResolver::FreeSymbolName(native_symbol_name);
-    return;
   }
-
-  Code& code = Code::Handle(Code::LookupCodeInVmIsolate(pc));
-  if (code.IsNull()) {
-    code = Code::LookupCode(pc);  // In current isolate.
-  }
-  if (code.IsNull()) {
-    OS::PrintErr("  %" Pp " [unknown]\n", pc);
-    return;
-  }
-
-  const Object& owner = Object::Handle(code.owner());
-  if (owner.IsFunction()) {
-    OS::PrintErr("  %" Pp " [dart] %s\n", pc,
-                 Function::Cast(owner).ToFullyQualifiedCString());
-    return;
-  }
-
-  OS::PrintErr("  %" Pp " [stub] %s\n", pc, code.ToCString());
 }
 
 
@@ -365,17 +350,10 @@ static void DumpStackFrame(intptr_t frame_index,
                            const Code& code) {
   if (code.IsNull()) {
     DumpStackFrame(frame_index, pc);
-    return;
+  } else {
+    OS::PrintErr("Frame[%" Pd "] = Dart:`%s` [0x%" Px "]\n",
+                 frame_index, code.ToCString(), pc);
   }
-
-  const Object& owner = Object::Handle(code.owner());
-  if (owner.IsFunction()) {
-    OS::PrintErr("  %" Pp " [dart] %s\n", pc,
-                 Function::Cast(owner).ToFullyQualifiedCString());
-    return;
-  }
-
-  OS::PrintErr("  %" Pp " [stub] %s\n", pc, code.ToCString());
 }
 
 
