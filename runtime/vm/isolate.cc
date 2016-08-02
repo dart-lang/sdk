@@ -660,12 +660,6 @@ static MessageHandler::MessageStatus StoreError(Thread* thread,
 
 MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     const Error& result) {
-  NOT_IN_PRODUCT(
-    if (I->IsReloading()) {
-      I->ReportReloadError(result);
-      return kOK;
-    }
-  )
   // Generate the error and stacktrace strings for the error message.
   String& exc_str = String::Handle(T->zone());
   String& stacktrace_str = String::Handle(T->zone());
@@ -1089,12 +1083,6 @@ bool Isolate::CanReload() const {
 
 
 #ifndef PRODUCT
-void Isolate::ReportReloadError(const Error& error) {
-  ASSERT(IsReloading());
-  reload_context_->AbortReload(error);
-}
-
-
 bool Isolate::ReloadSources(JSONStream* js,
                             bool force_reload,
                             bool dont_delete_reload_context) {

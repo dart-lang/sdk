@@ -48,10 +48,10 @@ DEFINE_FLAG(bool, check_reloaded, false,
 
 
 InstanceMorpher::InstanceMorpher(Zone* zone, const Class& from, const Class& to)
-  : from_(from), to_(to), mapping_() {
+  : from_(from), to_(to), mapping_(zone, 0) {
   ComputeMapping();
-  before_ = new ZoneGrowableArray<const Instance*>(zone, 0);
-  after_ = new ZoneGrowableArray<const Instance*>(zone, 0);
+  before_ = new(zone) ZoneGrowableArray<const Instance*>(zone, 0);
+  after_ = new(zone) ZoneGrowableArray<const Instance*>(zone, 0);
   ASSERT(from_.id() == to_.id());
   cid_ = from_.id();
 }
@@ -369,8 +369,8 @@ IsolateReloadContext::IsolateReloadContext(Isolate* isolate,
       saved_num_cids_(-1),
       saved_class_table_(NULL),
       num_saved_libs_(-1),
-      instance_morphers_(),
-      reasons_to_cancel_reload_(),
+      instance_morphers_(zone_, 0),
+      reasons_to_cancel_reload_(zone_, 0),
       cid_mapper_(),
       modified_libs_(NULL),
       script_uri_(String::null()),
@@ -483,12 +483,12 @@ void IsolateReloadContext::Reload(bool force_reload) {
                                    Api::NewHandle(thread, root_lib_url.raw()));
     result = Api::UnwrapHandle(retval);
   }
+  if (result.IsUnwindError()) {
+    // Ignore an unwind error because the isolate is dead.
+    return;
+  }
   if (result.IsError()) {
-    const Error& error = Error::Cast(result);
-    AddReasonForCancelling(new Aborted(zone_, error));
-    // We call report on JSON here because we won't ever execute
-    // FinalizeLoading.
-    ReportOnJSON(js_);
+    FinalizeFailedLoad(Error::Cast(result));
   }
 }
 
@@ -519,7 +519,8 @@ void IsolateReloadContext::RegisterClass(const Class& new_cls) {
 }
 
 
-// FinalizeLoading will be called *before* Reload() returns.
+// FinalizeLoading will be called *before* Reload() returns but will not be
+// called if the embedder fails to load sources.
 void IsolateReloadContext::FinalizeLoading() {
   if (reload_skipped_) {
     return;
@@ -539,9 +540,24 @@ void IsolateReloadContext::FinalizeLoading() {
   // information from scratch.
   RebuildDirectSubclasses();
 
-  BackgroundCompiler::Enable();
+  CommonFinalizeTail();
 }
 
+
+// FinalizeFailedLoad will be called *before* Reload() returns and will only
+// be called if the embedder fails to load sources.
+void IsolateReloadContext::FinalizeFailedLoad(const Error& error) {
+  AddReasonForCancelling(new Aborted(zone_, error));
+  ReportReasonsForCancelling();
+  Rollback();
+  CommonFinalizeTail();
+}
+
+
+void IsolateReloadContext::CommonFinalizeTail() {
+  BackgroundCompiler::Enable();
+  ReportOnJSON(js_);
+}
 
 void IsolateReloadContext::ReportOnJSON(JSONStream* stream) {
   JSONObject jsobj(stream);
@@ -572,13 +588,6 @@ void IsolateReloadContext::ReportOnJSON(JSONStream* stream) {
       }
     }
   }
-}
-
-
-void IsolateReloadContext::AbortReload(const Error& error) {
-  AddReasonForCancelling(new Aborted(zone_, error));
-  ReportReasonsForCancelling();
-  Rollback();
 }
 
 
@@ -718,10 +727,11 @@ BitVector* IsolateReloadContext::FindModifiedLibraries(bool force_reload) {
 
   // Construct the imported-by graph.
   ZoneGrowableArray<ZoneGrowableArray<intptr_t>* >* imported_by =
-      new ZoneGrowableArray<ZoneGrowableArray<intptr_t>* >(zone_, num_libs);
+      new(zone_) ZoneGrowableArray<ZoneGrowableArray<intptr_t>* >(
+          zone_, num_libs);
   imported_by->SetLength(num_libs);
   for (intptr_t i = 0; i < num_libs; i++) {
-    (*imported_by)[i] = new ZoneGrowableArray<intptr_t>(zone_, 0);
+    (*imported_by)[i] = new(zone_) ZoneGrowableArray<intptr_t>(zone_, 0);
   }
   Array& ports = Array::Handle();
   Namespace& ns = Namespace::Handle();

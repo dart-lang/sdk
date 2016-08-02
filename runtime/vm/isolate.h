@@ -483,8 +483,6 @@ class Isolate : public BaseIsolate {
 
   bool CanReload() const;
 
-  void ReportReloadError(const Error& error);
-
   void set_last_reload_timestamp(int64_t value) {
     last_reload_timestamp_ = value;
   }

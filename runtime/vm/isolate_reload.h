@@ -197,9 +197,17 @@ class IsolateReloadContext {
     return !instance_morphers_.is_empty();
   }
 
-  // NOTE: FinalizeLoading will be called *before* Reload() returns.
+  // NOTE: FinalizeLoading will be called *before* Reload() returns. This
+  // function will not be called if the embedder does not call
+  // Dart_FinalizeLoading.
   void FinalizeLoading();
-  void AbortReload(const Error& error);
+
+  // NOTE: FinalizeFailedLoad will be called *before* Reload returns. This
+  // function will not be called if the embedder calls Dart_FinalizeLoading.
+  void FinalizeFailedLoad(const Error& error);
+
+  // Called by both FinalizeLoading and FinalizeFailedLoad.
+  void CommonFinalizeTail();
 
   // Report back through the observatory channels.
   void ReportError(const Error& error);

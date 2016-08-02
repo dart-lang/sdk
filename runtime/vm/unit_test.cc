@@ -291,16 +291,20 @@ void TestCase::SetReloadTestScript(const char* script) {
 Dart_Handle TestCase::TriggerReload() {
   Isolate* isolate = Isolate::Current();
   JSONStream js;
-
+  bool success = false;
   {
     TransitionNativeToVM transition(Thread::Current());
-    isolate->ReloadSources(&js,
-                           false,  // force_reload
-                           true);  // dont_delete_reload_context
+    success = isolate->ReloadSources(&js,
+                                     false,  // force_reload
+                                     true);  // dont_delete_reload_context
     fprintf(stderr, "RELOAD REPORT:\n%s\n", js.ToCString());
   }
 
-  return Dart_FinalizeLoading(false);
+  if (success) {
+    return Dart_FinalizeLoading(false);
+  } else {
+    return Dart_Null();
+  }
 }
 
 
