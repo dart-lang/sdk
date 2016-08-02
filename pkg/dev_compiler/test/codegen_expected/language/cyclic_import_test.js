@@ -277,16 +277,20 @@ dart_library.library('language/cyclic_import_test', null, /* Imports */[
   const sub__sub$131 = Object.create(null);
   const cyclic_import_test$132 = Object.create(null);
   const sub__sub$132 = Object.create(null);
+  const cyclic_import_test$133 = Object.create(null);
+  const sub__sub$133 = Object.create(null);
+  const cyclic_import_test$134 = Object.create(null);
+  const sub__sub$134 = Object.create(null);
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
-  cyclic_import_test$132.value = 42;
-  cyclic_import_test$132.main = function() {
-    sub__sub$132.subMain();
+  cyclic_import_test$134.value = 42;
+  cyclic_import_test$134.main = function() {
+    sub__sub$134.subMain();
   };
-  dart.fn(cyclic_import_test$132.main, VoidTodynamic());
-  sub__sub$132.subMain = function() {
-    expect$.Expect.equals(42, cyclic_import_test$132.value);
+  dart.fn(cyclic_import_test$134.main, VoidTodynamic());
+  sub__sub$134.subMain = function() {
+    expect$.Expect.equals(42, cyclic_import_test$134.value);
   };
-  dart.fn(sub__sub$132.subMain, VoidTodynamic());
+  dart.fn(sub__sub$134.subMain, VoidTodynamic());
   // Exports:
   exports.cyclic_import_test = cyclic_import_test;
   exports.sub__sub = sub__sub;
@@ -558,4 +562,8 @@ dart_library.library('language/cyclic_import_test', null, /* Imports */[
   exports.sub__sub = sub__sub$131;
   exports.cyclic_import_test = cyclic_import_test$132;
   exports.sub__sub = sub__sub$132;
+  exports.cyclic_import_test = cyclic_import_test$133;
+  exports.sub__sub = sub__sub$133;
+  exports.cyclic_import_test = cyclic_import_test$134;
+  exports.sub__sub = sub__sub$134;
 });

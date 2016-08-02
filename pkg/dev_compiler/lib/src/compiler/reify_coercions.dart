@@ -137,7 +137,7 @@ class _TreeCloner extends analyzer.AstCloner {
   }
 
   @override
-  List/*<E>*/ cloneNodeList/*<E extends AstNode>*/(NodeList/*<E>*/ list) {
+  List/*<E>*/ cloneNodeList/*<E extends AstNode>*/(List/*<E>*/ list) {
     var clone = super.cloneNodeList(list);
     for (int i = 0, len = list.length; i < len; i++) {
       _cloneProperties(clone[i], list[i]);
