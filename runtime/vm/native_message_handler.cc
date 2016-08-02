@@ -15,8 +15,6 @@ NativeMessageHandler::NativeMessageHandler(const char* name,
                                            Dart_NativeMessageHandler func)
     : name_(strdup(name)),
       func_(func) {
-  // A NativeMessageHandler always has one live port.
-  increment_live_ports();
 }
 
 
