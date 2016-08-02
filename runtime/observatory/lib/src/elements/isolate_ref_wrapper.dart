@@ -72,7 +72,14 @@ class IsolateRefElementWrapper extends HtmlElement {
 
     shadowRoot.children = [
       new StyleElement()
-        ..text = '@import "packages/observatory/src/elements/css/shared.css";',
+        ..text = '''
+        isolate-ref-wrapped > a[href]:hover {
+            text-decoration: underline;
+        }
+        isolate-ref-wrapped > a[href] {
+            color: #0489c3;
+            text-decoration: none;
+        }''',
       new IsolateRefElement(_isolate, _updates,
                                  queue: ObservatoryApplication.app.queue)
     ];

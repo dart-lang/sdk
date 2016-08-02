@@ -3,27 +3,27 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
-import 'dart:async';
 
 import 'package:observatory/app.dart';
-import 'package:observatory/service_html.dart' show Script;
-import 'package:observatory/src/elements/script_ref.dart';
+import 'package:observatory/service_html.dart' show Code;
+import 'package:observatory/src/elements/code_ref.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/shims/binding.dart';
 
 @bindable
-class ScriptRefElementWrapper extends HtmlElement {
-  static const binder = const Binder<ScriptRefElementWrapper>(const {
+class CodeRefElementWrapper extends HtmlElement {
+
+  static const binder = const Binder<CodeRefElementWrapper>(const {
       'ref': #ref
     });
 
-  static const tag = const Tag<ScriptRefElementWrapper>('script-ref');
+  static const tag = const Tag<CodeRefElementWrapper>('code-ref');
 
-  Script _script;
-  Script get ref => _script;
-  set ref(Script script) { _script = script; render(); }
+  Code _code;
+  Code get ref => _code;
+  void set ref(Code ref) { _code = ref; render(); }
 
-  ScriptRefElementWrapper.created() : super.created() {
+  CodeRefElementWrapper.created() : super.created() {
     binder.registerCallback(this);
     createShadowRoot();
     render();
@@ -35,22 +35,22 @@ class ScriptRefElementWrapper extends HtmlElement {
     render();
   }
 
-  Future render() async {
+  void render() {
     shadowRoot.children = [];
-    if (_script == null) return;
+    if (ref == null) return;
 
     shadowRoot.children = [
       new StyleElement()
         ..text = '''
-        script-ref-wrapped > a[href]:hover {
+        code-ref-wrapped > a[href]:hover {
             text-decoration: underline;
         }
-        script-ref-wrapped > a[href] {
+        code-ref-wrapped > a[href] {
             color: #0489c3;
             text-decoration: none;
         }''',
-      new ScriptRefElement(_script.isolate, _script,
-                                 queue: ObservatoryApplication.app.queue)
+      new CodeRefElement(_code.isolate, _code,
+          queue: ObservatoryApplication.app.queue)
     ];
   }
 }

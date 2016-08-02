@@ -364,6 +364,42 @@ input.textbox {
   -webkit-animation: shake 0.5s;
 }
 
+/* code-ref */
+/* TODO(cbernaschina) fix code-ref-wrapped to code-ref when wrapper
+removed */
+
+code-ref-wrapped > a[href]:hover {
+  text-decoration: underline;
+}
+code-ref-wrapped > a[href] {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+/* function-ref */
+/* TODO(cbernaschina) fix function-ref-wrapped to function-ref when wrapper
+removed */
+
+function-ref-wrapped > a[href]:hover {
+  text-decoration: underline;
+}
+function-ref-wrapped > a[href] {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+/* isolate-ref */
+/* TODO(cbernaschina) fix isolate-ref-ref-wrapped to isolate-ref when wrapper
+removed */
+
+isolate-ref-wrapped > a[href]:hover {
+  text-decoration: underline;
+}
+isolate-ref-wrapped > a[href] {
+  color: #0489c3;
+  text-decoration: none;
+}
+
 /* nav-notify */
 /* TODO(cbernaschina) fix nav-notify-ref-wrapped to nav-notify-ref when wrapper
 removed */
@@ -459,6 +495,34 @@ nav-refresh-wrapped > li {
   float: right;
   margin: 0;
 }
+
+/* script-ref */
+/* TODO(cbernaschina) fix script-ref-wrapped to script-ref when wrapper
+removed */
+
+script-ref-wrapped > a[href]:hover {
+    text-decoration: underline;
+}
+
+script-ref-wrapped > a[href] {
+    color: #0489c3;
+    text-decoration: none;
+}
+
+/* source-link */
+/* TODO(cbernaschina) fix source-link-wrapped to source-link when wrapper
+removed */
+
+source-link-wrapped > a[href]:hover {
+    text-decoration: underline;
+}
+
+source-link-wrapped > a[href] {
+    color: #0489c3;
+    text-decoration: none;
+}
+
+
 
 /* view-footer */
 

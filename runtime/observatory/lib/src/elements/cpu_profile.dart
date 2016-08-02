@@ -7,6 +7,7 @@ library cpu_profile_element;
 import 'dart:async';
 import 'dart:html';
 import 'observatory_element.dart';
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart';
 import 'package:observatory/app.dart';
 import 'package:observatory/cpu_profile.dart';
@@ -347,7 +348,7 @@ class FunctionProfileTreeRow extends ProfileTreeRow<FunctionCallTreeNode> {
     makeInfoBox();
     functionRow.children.add(infoBox);
 
-    if (node.profileFunction.function.kind.hasDartCode()) {
+    if (M.hasDartCode(node.profileFunction.function.kind)) {
       infoBox.children.add(div('Code for current node'));
       infoBox.children.add(br());
       var totalTicks = node.totalCodesTicks;
@@ -393,7 +394,7 @@ class FunctionProfileTreeRow extends ProfileTreeRow<FunctionCallTreeNode> {
         'Call stack time' : node.profileFunction.formattedOnStackTime,
     });
 
-    if (node.profileFunction.function.kind.hasDartCode()) {
+    if (M.hasDartCode(node.profileFunction.function.kind)) {
       infoBox.children.add(div('Code containing function'));
       infoBox.children.add(br());
       var totalTicks = profile.sampleCount;
@@ -647,7 +648,7 @@ class FunctionCallTreeNodeRow extends VirtualTreeRow {
                           FunctionCallTreeNode node)
       : node = node,
         super(tree, depth) {
-    if ((node.profileFunction.function.kind == FunctionKind.kTag) &&
+    if ((node.profileFunction.function.kind == M.FunctionKind.tag) &&
         (node.profileFunction.normalizedExclusiveTicks == 0) &&
         (node.profileFunction.normalizedInclusiveTicks == 0)) {
     selfPercent = '';
@@ -735,7 +736,7 @@ class CodeCallTreeNodeRow extends VirtualTreeRow {
                       CodeCallTreeNode node)
       : node = node,
         super(tree, depth) {
-    if ((node.profileCode.code.kind == CodeKind.Tag) &&
+    if ((node.profileCode.code.kind == M.CodeKind.tag) &&
         (node.profileCode.normalizedExclusiveTicks == 0) &&
         (node.profileCode.normalizedInclusiveTicks == 0)) {
       selfPercent = '';

@@ -5,7 +5,6 @@ export 'package:observatory/src/elements/action_link.dart';
 export 'package:observatory/src/elements/class_ref.dart';
 export 'package:observatory/src/elements/class_tree.dart';
 export 'package:observatory/src/elements/class_view.dart';
-export 'package:observatory/src/elements/code_ref.dart';
 export 'package:observatory/src/elements/code_view.dart';
 export 'package:observatory/src/elements/context_ref.dart';
 export 'package:observatory/src/elements/context_view.dart';
@@ -17,7 +16,6 @@ export 'package:observatory/src/elements/eval_link.dart';
 export 'package:observatory/src/elements/field_ref.dart';
 export 'package:observatory/src/elements/field_view.dart';
 export 'package:observatory/src/elements/flag_list.dart';
-export 'package:observatory/src/elements/function_ref.dart';
 export 'package:observatory/src/elements/function_view.dart';
 export 'package:observatory/src/elements/general_error.dart';
 export 'package:observatory/src/elements/heap_map.dart';
@@ -55,6 +53,8 @@ export 'package:observatory/src/elements/vm_view.dart';
 
 import 'dart:async';
 
+import 'package:observatory/src/elements/code_ref.dart';
+import 'package:observatory/src/elements/code_ref_wrapper.dart';
 import 'package:observatory/src/elements/containers/virtual_collection.dart';
 import 'package:observatory/src/elements/containers/virtual_tree.dart';
 import 'package:observatory/src/elements/curly_block.dart';
@@ -64,6 +64,8 @@ import 'package:observatory/src/elements/isolate_ref_wrapper.dart';
 import 'package:observatory/src/elements/nav/bar.dart';
 import 'package:observatory/src/elements/nav/class_menu.dart';
 import 'package:observatory/src/elements/nav/class_menu_wrapper.dart';
+import 'package:observatory/src/elements/function_ref.dart';
+import 'package:observatory/src/elements/function_ref_wrapper.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/isolate_menu_wrapper.dart';
 import 'package:observatory/src/elements/nav/library_menu.dart';
@@ -92,12 +94,14 @@ import 'package:observatory/src/elements/vm_connect.dart';
 
 export 'package:observatory/src/elements/helpers/rendering_queue.dart';
 
+export 'package:observatory/src/elements/code_ref.dart';
 export 'package:observatory/src/elements/containers/virtual_collection.dart';
 export 'package:observatory/src/elements/containers/virtual_tree.dart';
 export 'package:observatory/src/elements/curly_block.dart';
 export 'package:observatory/src/elements/isolate_ref.dart';
 export 'package:observatory/src/elements/nav/bar.dart';
 export 'package:observatory/src/elements/nav/class_menu.dart';
+export 'package:observatory/src/elements/function_ref.dart';
 export 'package:observatory/src/elements/nav/isolate_menu.dart';
 export 'package:observatory/src/elements/nav/library_menu.dart';
 export 'package:observatory/src/elements/nav/menu.dart';
@@ -117,8 +121,12 @@ export 'package:observatory/src/elements/vm_connect.dart';
 // Even though this function does not invoke any asynchronous operation
 // it is marked as async to allow future backward compatible changes.
 Future initElements() async {
+  CodeRefElement.tag.ensureRegistration();
+  CodeRefElementWrapper.tag.ensureRegistration();
   CurlyBlockElement.tag.ensureRegistration();
   CurlyBlockElementWrapper.tag.ensureRegistration();
+  FunctionRefElement.tag.ensureRegistration();
+  FunctionRefElementWrapper.tag.ensureRegistration();
   IsolateRefElement.tag.ensureRegistration();
   IsolateRefElementWrapper.tag.ensureRegistration();
   NavBarElement.tag.ensureRegistration();

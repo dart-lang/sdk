@@ -44,7 +44,14 @@ class SourceLinkElementWrapper extends HtmlElement {
 
     shadowRoot.children = [
       new StyleElement()
-        ..text = '@import "packages/observatory/src/elements/css/shared.css";',
+        ..text = '''
+        source-link-wrapped > a[href]:hover {
+            text-decoration: underline;
+        }
+        source-link-wrapped > a[href] {
+            color: #0489c3;
+            text-decoration: none;
+        }''',
       new SourceLinkElement(_location.isolate, _location, repository,
                             queue: ObservatoryApplication.app.queue)
     ];

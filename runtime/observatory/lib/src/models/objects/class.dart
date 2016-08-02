@@ -9,7 +9,7 @@ abstract class ClassRef extends ObjectRef {
   String get name;
 }
 
-abstract class Class extends ObjectRef implements ClassRef {
+abstract class Class extends Object implements ClassRef {
   /// The error which occurred during class finalization, if it exists.
   /// [optional]
   ErrorRef get error;
