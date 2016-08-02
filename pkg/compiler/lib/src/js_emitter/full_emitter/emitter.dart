@@ -1067,9 +1067,28 @@ class Emitter implements js_emitter.Emitter {
           var cls = function () {};
           cls.prototype = {'p': {}};
           var object = new cls();
-          return object.__proto__ &&
-                 object.__proto__.p === cls.prototype.p;
-         })();
+          if (!(object.__proto__ && object.__proto__.p === cls.prototype.p))
+            return false;
+    
+          try {
+            // Are we running on a platform where the performance is good?
+            // (i.e. Chrome or d8).
+
+            // Chrome userAgent?
+            if (typeof navigator != "undefined" &&
+                typeof navigator.userAgent == "string" &&
+                navigator.userAgent.indexOf("Chrome/") >= 0) return true;
+
+            // d8 version() looks like "N.N.N.N", jsshell version() like "N".
+            if (typeof version == "function" &&
+                version.length == 0) {
+              var v = version();
+              if (/^\d+\.\d+\.\d+\.\d+$/.test(v)) return true;
+            }
+          } catch(_) {}
+          
+          return false;
+        })();
       ''');
     }
 

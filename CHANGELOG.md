@@ -1,3 +1,16 @@
+## 1.18.0 - 2016-08-02
+
+Patch release, resolves two issues:
+
+* Debugger: Fixes a bug that crashes the VM
+(SDK issue [26941](https://github.com/dart-lang/sdk/issues/26941))
+
+* VM: Fixes an optimizer bug involving closures, try, and await
+(SDK issue [26948](https://github.com/dart-lang/sdk/issues/26948))
+
+* Dart2js: Speeds up generated code on Firefox
+(https://codereview.chromium.org/2180533002)
+
 ## 1.18.0 - 2016-07-27
 
 ### Core library changes

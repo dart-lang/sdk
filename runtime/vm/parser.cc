@@ -9015,12 +9015,17 @@ AstNode* Parser::ParseForInStatement(TokenPosition forin_pos,
     loop_var_name = ExpectIdentifier("variable name expected");
   }
   ExpectToken(Token::kIN);
+
+  // Ensure that the block token range contains the call to moveNext and it
+  // also starts the block at a different token position than the following
+  // loop block. Both blocks can allocate contexts and if they have a matching
+  // token position range, it can be an issue (cf. bug 26941).
+  OpenBlock();  // Implicit block around while loop.
+
   const TokenPosition collection_pos = TokenPos();
   AstNode* collection_expr =
       ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
   ExpectToken(Token::kRPAREN);
-
-  OpenBlock();  // Implicit block around while loop.
 
   // Generate implicit iterator variable and add to scope.
   // We could set the type of the implicit iterator variable to Iterator<T>
@@ -9293,7 +9298,16 @@ SequenceNode* Parser::EnsureFinallyClause(
     LocalVariable* rethrow_stack_trace_var) {
   TRACE_PARSER("EnsureFinallyClause");
   ASSERT(parse || (is_async && (try_stack_ != NULL)));
-  OpenBlock();
+  // Increasing the loop level prevents the reuse of a parent context and forces
+  // the allocation of a local context to hold captured variables declared
+  // inside the finally clause. Otherwise, a captured variable gets allocated at
+  // different slots in the parent context each time the finally clause is
+  // reparsed, which is done to duplicate the ast. Since only one closure is
+  // kept due to canonicalization, it will access the correct slot in only one
+  // copy of the finally clause and the wrong slot in all others. By allocating
+  // a local context, all copies use the same slot in different local contexts.
+  // See issue #26948. This is a temporary fix until we eliminate reparsing.
+  OpenLoopBlock();
   if (parse) {
     ExpectToken(Token::kLBRACE);
   }
