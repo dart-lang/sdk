@@ -36,15 +36,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let MapOfSymbol$dynamic = () => (MapOfSymbol$dynamic = dart.constFn(core.Map$(core.Symbol, dart.dynamic)))();
   let MapOfString$int = () => (MapOfString$int = dart.constFn(core.Map$(core.String, core.int)))();
   let ListOfString = () => (ListOfString = dart.constFn(core.List$(core.String)))();
+  let SetOfNameValuePair = () => (SetOfNameValuePair = dart.constFn(core.Set$(_debugger.NameValuePair)))();
   let JSArrayOfNameValuePair = () => (JSArrayOfNameValuePair = dart.constFn(_interceptors.JSArray$(_debugger.NameValuePair)))();
-  let MapOfdynamic$Object = () => (MapOfdynamic$Object = dart.constFn(core.Map$(dart.dynamic, core.Object)))();
   let JSArrayOfFormatter = () => (JSArrayOfFormatter = dart.constFn(_interceptors.JSArray$(_debugger.Formatter)))();
   let LinkedHashSetOfNameValuePair = () => (LinkedHashSetOfNameValuePair = dart.constFn(collection.LinkedHashSet$(_debugger.NameValuePair)))();
   let SetOfString = () => (SetOfString = dart.constFn(core.Set$(core.String)))();
   let HashMapOfString$String = () => (HashMapOfString$String = dart.constFn(collection.HashMap$(core.String, core.String)))();
   let LinkedHashMapOfString$Object = () => (LinkedHashMapOfString$Object = dart.constFn(collection.LinkedHashMap$(core.String, core.Object)))();
-  let JSArrayOfString = () => (JSArrayOfString = dart.constFn(_interceptors.JSArray$(core.String)))();
   let ListOfNameValuePair = () => (ListOfNameValuePair = dart.constFn(core.List$(_debugger.NameValuePair)))();
+  let JSArrayOfString = () => (JSArrayOfString = dart.constFn(_interceptors.JSArray$(core.String)))();
   let JSArrayOfJsonMLFormatter = () => (JSArrayOfJsonMLFormatter = dart.constFn(_interceptors.JSArray$(_debugger.JsonMLFormatter)))();
   let JSArray = () => (JSArray = dart.constFn(_interceptors.JSArray$()))();
   let JSMutableArray = () => (JSMutableArray = dart.constFn(_interceptors.JSMutableArray$()))();
@@ -309,7 +309,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let _SplayTreeNodeIterator = () => (_SplayTreeNodeIterator = dart.constFn(collection._SplayTreeNodeIterator$()))();
   let SplayTreeSet = () => (SplayTreeSet = dart.constFn(collection.SplayTreeSet$()))();
   let dynamicAnddynamicTodynamic = () => (dynamicAnddynamicTodynamic = dart.constFn(dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])))();
-  let MappedIterableOfString$dynamic = () => (MappedIterableOfString$dynamic = dart.constFn(_internal.MappedIterable$(core.String, dart.dynamic)))();
   let Codec = () => (Codec = dart.constFn(convert.Codec$()))();
   let ComparableOfString = () => (ComparableOfString = dart.constFn(core.Comparable$(core.String)))();
   let List = () => (List = dart.constFn(core.List$()))();
@@ -367,8 +366,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let EventTovoid = () => (EventTovoid = dart.constFn(dart.functionType(dart.void, [html$.Event])))();
   let FutureOfint = () => (FutureOfint = dart.constFn(async.Future$(core.int)))();
   let CompleterOfDatabase = () => (CompleterOfDatabase = dart.constFn(async.Completer$(indexed_db.Database)))();
-  let RectangleOfint = () => (RectangleOfint = dart.constFn(math.Rectangle$(core.int)))();
-  let PointOfint = () => (PointOfint = dart.constFn(math.Point$(core.int)))();
   let _CustomEventStreamProviderOfWheelEvent = () => (_CustomEventStreamProviderOfWheelEvent = dart.constFn(html$._CustomEventStreamProvider$(html$.WheelEvent)))();
   let _CustomEventStreamProviderOfTransitionEvent = () => (_CustomEventStreamProviderOfTransitionEvent = dart.constFn(html$._CustomEventStreamProvider$(html$.TransitionEvent)))();
   let EventStreamProviderOfMouseEvent = () => (EventStreamProviderOfMouseEvent = dart.constFn(html$.EventStreamProvider$(html$.MouseEvent)))();
@@ -441,10 +438,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let EventStreamProviderOfDeviceOrientationEvent = () => (EventStreamProviderOfDeviceOrientationEvent = dart.constFn(html$.EventStreamProvider$(html$.DeviceOrientationEvent)))();
   let EventStreamProviderOfAnimationEvent = () => (EventStreamProviderOfAnimationEvent = dart.constFn(html$.EventStreamProvider$(html$.AnimationEvent)))();
   let StreamControllerOfBeforeUnloadEvent = () => (StreamControllerOfBeforeUnloadEvent = dart.constFn(async.StreamController$(html$.BeforeUnloadEvent)))();
-  let _ElementEventStreamImplOfBeforeUnloadEvent = () => (_ElementEventStreamImplOfBeforeUnloadEvent = dart.constFn(html$._ElementEventStreamImpl$(html$.BeforeUnloadEvent)))();
-  let _ElementListEventStreamImplOfBeforeUnloadEvent = () => (_ElementListEventStreamImplOfBeforeUnloadEvent = dart.constFn(html$._ElementListEventStreamImpl$(html$.BeforeUnloadEvent)))();
+  let _ElementListEventStreamImplOfEvent = () => (_ElementListEventStreamImplOfEvent = dart.constFn(html$._ElementListEventStreamImpl$(html$.Event)))();
   let EventStreamProviderOfBeforeUnloadEvent = () => (EventStreamProviderOfBeforeUnloadEvent = dart.constFn(html$.EventStreamProvider$(html$.BeforeUnloadEvent)))();
-  let PointOfdouble = () => (PointOfdouble = dart.constFn(math.Point$(core.double)))();
   let ListOfRectangleOfnum = () => (ListOfRectangleOfnum = dart.constFn(core.List$(RectangleOfnum())))();
   let ListOfCssRule = () => (ListOfCssRule = dart.constFn(core.List$(html$.CssRule)))();
   let ListOfGamepad = () => (ListOfGamepad = dart.constFn(core.List$(html$.Gamepad)))();
@@ -468,6 +463,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let _CustomEventStreamProvider = () => (_CustomEventStreamProvider = dart.constFn(html$._CustomEventStreamProvider$()))();
   let JSArrayOfKeyEvent = () => (JSArrayOfKeyEvent = dart.constFn(_interceptors.JSArray$(html$.KeyEvent)))();
   let JSArrayOfNodeValidator = () => (JSArrayOfNodeValidator = dart.constFn(_interceptors.JSArray$(html$.NodeValidator)))();
+  let _WrappedIteratorOfNode = () => (_WrappedIteratorOfNode = dart.constFn(html$._WrappedIterator$(html$.Node)))();
   let _WrappedList = () => (_WrappedList = dart.constFn(html$._WrappedList$()))();
   let _WrappedIterator = () => (_WrappedIterator = dart.constFn(html$._WrappedIterator$()))();
   let FixedSizeListIterator = () => (FixedSizeListIterator = dart.constFn(html$.FixedSizeListIterator$()))();
@@ -486,12 +482,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let dynamicToString = () => (dynamicToString = dart.constFn(dart.definiteFunctionType(core.String, [dart.dynamic])))();
   let dynamicToListOfString = () => (dynamicToListOfString = dart.constFn(dart.definiteFunctionType(ListOfString(), [dart.dynamic])))();
   let dynamicToList = () => (dynamicToList = dart.constFn(dart.definiteFunctionType(core.List, [dart.dynamic])))();
+  let dynamicAndSetOfNameValuePairTovoid = () => (dynamicAndSetOfNameValuePairTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [dart.dynamic, SetOfNameValuePair()])))();
   let TypeToString = () => (TypeToString = dart.constFn(dart.definiteFunctionType(core.String, [core.Type])))();
+  let dynamicToObject = () => (dynamicToObject = dart.constFn(dart.definiteFunctionType(core.Object, [dart.dynamic])))();
+  let dynamicAnddynamicToString = () => (dynamicAnddynamicToString = dart.constFn(dart.definiteFunctionType(core.String, [dart.dynamic, dart.dynamic])))();
   let dynamicAndStringTobool = () => (dynamicAndStringTobool = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic, core.String])))();
   let intAnddynamicTovoid = () => (intAnddynamicTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.int, dart.dynamic])))();
-  let ObjectAndStringToObject = () => (ObjectAndStringToObject = dart.constFn(dart.definiteFunctionType(core.Object, [core.Object, core.String])))();
+  let ObjectAndObjectToObject = () => (ObjectAndObjectToObject = dart.constFn(dart.definiteFunctionType(core.Object, [core.Object, core.Object])))();
   let StringTobool = () => (StringTobool = dart.constFn(dart.definiteFunctionType(core.bool, [core.String])))();
-  let dynamicToObject = () => (dynamicToObject = dart.constFn(dart.definiteFunctionType(core.Object, [dart.dynamic])))();
   let dynamicTobool$ = () => (dynamicTobool$ = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic])))();
   let dynamicAnddynamicTodynamic$ = () => (dynamicAnddynamicTodynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic])))();
   let StringAndObjectTovoid = () => (StringAndObjectTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.String, core.Object])))();
@@ -537,7 +535,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let JSSyntaxRegExpToint = () => (JSSyntaxRegExpToint = dart.constFn(dart.definiteFunctionType(core.int, [_js_helper.JSSyntaxRegExp])))();
   let JSSyntaxRegExpAndStringAndintToMatch = () => (JSSyntaxRegExpAndStringAndintToMatch = dart.constFn(dart.definiteFunctionType(core.Match, [_js_helper.JSSyntaxRegExp, core.String, core.int])))();
   let dynamicAnddynamicAnddynamicToint = () => (dynamicAnddynamicAnddynamicToint = dart.constFn(dart.definiteFunctionType(core.int, [dart.dynamic, dart.dynamic, dart.dynamic])))();
-  let dynamicAnddynamicToString = () => (dynamicAnddynamicToString = dart.constFn(dart.definiteFunctionType(core.String, [dart.dynamic, dart.dynamic])))();
   let dynamicAnddynamicAnddynamicToString = () => (dynamicAnddynamicAnddynamicToString = dart.constFn(dart.definiteFunctionType(core.String, [dart.dynamic, dart.dynamic, dart.dynamic])))();
   let dynamicAnddynamicAnddynamicTobool = () => (dynamicAnddynamicAnddynamicTobool = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic, dart.dynamic, dart.dynamic])))();
   let StringAndStringAndintToIterableOfMatch = () => (StringAndStringAndintToIterableOfMatch = dart.constFn(dart.definiteFunctionType(IterableOfMatch(), [core.String, core.String, core.int])))();
@@ -605,6 +602,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let IterableAndListTovoid = () => (IterableAndListTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.Iterable, core.List])))();
   let _SplayTreeMapNodeTobool = () => (_SplayTreeMapNodeTobool = dart.constFn(dart.definiteFunctionType(core.bool, [collection._SplayTreeMapNode])))();
   let dynamicAndFnTodynamic = () => (dynamicAndFnTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dynamicAnddynamicTodynamic()])))();
+  let EventSinkTo_ConverterStreamEventSink = () => (EventSinkTo_ConverterStreamEventSink = dart.constFn(dart.definiteFunctionType(convert._ConverterStreamEventSink, [async.EventSink])))();
   let Uint8ListAndintAndintTovoid = () => (Uint8ListAndintAndintTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [typed_data.Uint8List, core.int, core.int])))();
   let StringAndFnTodynamic = () => (StringAndFnTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.String, dynamicAnddynamicTodynamic()])))();
   let EventSinkOfStringTo_LineSplitterEventSink = () => (EventSinkOfStringTo_LineSplitterEventSink = dart.constFn(dart.definiteFunctionType(convert._LineSplitterEventSink, [EventSinkOfString()])))();
@@ -2355,6 +2353,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     },
     get keyToString() {
       return dart.const(new _debugger.JsonMLConfig("keyToString"));
+    },
+    get asClass() {
+      return dart.const(new _debugger.JsonMLConfig("asClass"));
     }
   });
   _debugger._maxSpanLength = 100;
@@ -2391,6 +2392,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }),
     names: ['getProperty', 'setProperty']
   });
+  _debugger.addMetadataChildren = function(object, ret) {
+    ret.add(new _debugger.NameValuePair({name: _debugger.getTypeName(core.Type._check(_debugger._getType(object))), value: object, config: _debugger.JsonMLConfig.asClass}));
+  };
+  dart.lazyFn(_debugger.addMetadataChildren, () => dynamicAndSetOfNameValuePairTovoid());
   _debugger.getObjectTypeName = function(object) {
     let reifiedType = dart.getReifiedType(object);
     if (reifiedType == null) {
@@ -2408,10 +2413,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return core.String._check(name);
   };
   dart.lazyFn(_debugger.getTypeName, () => TypeToString());
+  _debugger._getType = function(object) {
+    return core.Type.is(object) ? object : dart.getReifiedType(object);
+  };
+  dart.fn(_debugger._getType, dynamicToObject());
   const _simpleFormatter = Symbol('_simpleFormatter');
-  _debugger.safePreview = function(object) {
+  _debugger.safePreview = function(object, config) {
     try {
-      let preview = _debugger._devtoolsFormatter[_simpleFormatter].preview(object);
+      let preview = _debugger._devtoolsFormatter[_simpleFormatter].preview(object, config);
       if (preview != null) return preview;
       return dart.toString(object);
     } catch (e) {
@@ -2419,7 +2428,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
 
   };
-  dart.lazyFn(_debugger.safePreview, () => dynamicToString());
+  dart.lazyFn(_debugger.safePreview, () => dynamicAnddynamicToString());
   _debugger.symbolName = function(symbol) {
     let name = dart.toString(symbol);
     dart.assert(name[dartx.startsWith]('Symbol('));
@@ -2531,19 +2540,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(_debugger.NamedConstructor, {
     constructors: () => ({new: dart.definiteFunctionType(_debugger.NamedConstructor, [core.Object])})
   });
-  _debugger.ClassMetadata = class ClassMetadata extends core.Object {
-    new(object, opts) {
-      let name = opts && 'name' in opts ? opts.name : null;
-      this.object = object;
-      this.name = name;
-    }
-    get typeName() {
-      return this.name != null ? this.name : _debugger.getTypeName(core.Type._check(core.Type.is(this.object) ? this.object : dart.getReifiedType(this.object)));
-    }
-  };
-  dart.setSignature(_debugger.ClassMetadata, {
-    constructors: () => ({new: dart.definiteFunctionType(_debugger.ClassMetadata, [core.Object], {name: core.String})})
-  });
   _debugger.HeritageClause = class HeritageClause extends core.Object {
     new(name, types) {
       this.name = name;
@@ -2561,9 +2557,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
 
   };
-  dart.lazyFn(_debugger.safeGetProperty, () => ObjectAndStringToObject());
+  dart.fn(_debugger.safeGetProperty, ObjectAndObjectToObject());
   _debugger.safeProperties = function(object) {
-    return MapOfdynamic$Object().fromIterable(_debugger.getOwnPropertyNames(object)[dartx.where](dart.fn(each => _debugger.safeGetProperty(object, each) != null, StringTobool())), {key: dart.fn(name => name, dynamicTodynamic$()), value: dart.fn(name => _debugger.safeGetProperty(object, core.String._check(name)), dynamicToObject())});
+    return core.Map.fromIterable(_debugger.getOwnPropertyNames(object)[dartx.where](dart.fn(each => _debugger.safeGetProperty(object, each) != null, StringTobool())), {key: dart.fn(name => name, dynamicTodynamic$()), value: dart.fn(name => _debugger.safeGetProperty(object, name), dynamicToObject())});
   };
   dart.fn(_debugger.safeProperties, dynamicTodynamic$());
   const _attributes = Symbol('_attributes');
@@ -2642,7 +2638,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (dart.equals(config, _debugger.JsonMLConfig.skipDart) || dart.test(_debugger.isNativeJavaScriptObject(object))) {
         return null;
       }
-      let c = this[_simpleFormatter].preview(object);
+      let c = this[_simpleFormatter].preview(object, config);
       if (c == null) return null;
       if (dart.equals(config, _debugger.JsonMLConfig.keyToString)) {
         c = dart.toString(object);
@@ -2652,16 +2648,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       element.createTextChild(c);
       return element.toJsonML();
     }
-    hasBody(object) {
-      return this[_simpleFormatter].hasChildren(object);
+    hasBody(object, config) {
+      return this[_simpleFormatter].hasChildren(object, config);
     }
-    body(object) {
+    body(object, config) {
       let body = new _debugger.JsonMLElement('ol');
       body.setStyle('list-style-type: none;' + 'padding-left: 0px;' + 'margin-top: 0px;' + 'margin-bottom: 0px;' + 'margin-left: 12px;');
       if (core.StackTrace.is(object)) {
         body.addStyle('color: rgb(196, 26, 22);');
       }
-      let children = this[_simpleFormatter].children(object);
+      let children = this[_simpleFormatter].children(object, config);
       for (let child of children) {
         let li = body.createChild('li');
         let nameSpan = new _debugger.JsonMLElement('span');
@@ -2672,14 +2668,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
           li.appendChild(nameSpan);
           let objectTag = li.createObjectTag(child.value);
           objectTag.addAttribute('config', child.config);
-          if (!dart.test(this[_simpleFormatter].hasChildren(child.value))) {
+          if (!dart.test(this[_simpleFormatter].hasChildren(child.value, child.config))) {
             li.setStyle("padding-left: 13px;");
           }
         } else {
           li.setStyle("padding-left: 13px;");
           let _ = li.createChild('span');
           _.appendChild(nameSpan);
-          _.createTextChild(_debugger.safePreview(child.value));
+          _.createTextChild(_debugger.safePreview(child.value, child.config));
         }
       }
       return body.toJsonML();
@@ -2690,8 +2686,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     methods: () => ({
       setMaxSpanLengthForTestingOnly: dart.definiteFunctionType(dart.void, [core.int]),
       header: dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic]),
-      hasBody: dart.definiteFunctionType(core.bool, [dart.dynamic]),
-      body: dart.definiteFunctionType(dart.dynamic, [dart.dynamic])
+      hasBody: dart.definiteFunctionType(core.bool, [dart.dynamic, dart.dynamic]),
+      body: dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic])
     })
   });
   _debugger.Formatter = class Formatter extends core.Object {};
@@ -2699,15 +2695,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _debugger.DartFormatter = class DartFormatter extends core.Object {
     new() {
       this[_formatters] = null;
-      this[_formatters] = JSArrayOfFormatter().of([new _debugger.NamedConstructorFormatter(), new _debugger.FunctionFormatter(), new _debugger.MapFormatter(), new _debugger.IterableFormatter(), new _debugger.MapEntryFormatter(), new _debugger.IterableSpanFormatter(), new _debugger.StackTraceFormatter(), new _debugger.ClassMetadataFormatter(), new _debugger.HeritageClauseFormatter(), new _debugger.LibraryModuleFormatter(), new _debugger.LibraryFormatter(), new _debugger.ObjectFormatter()]);
+      this[_formatters] = JSArrayOfFormatter().of([new _debugger.ClassFormatter(), new _debugger.NamedConstructorFormatter(), new _debugger.MapFormatter(), new _debugger.IterableFormatter(), new _debugger.IterableSpanFormatter(), new _debugger.MapEntryFormatter(), new _debugger.StackTraceFormatter(), new _debugger.FunctionFormatter(), new _debugger.HeritageClauseFormatter(), new _debugger.LibraryModuleFormatter(), new _debugger.LibraryFormatter(), new _debugger.ObjectFormatter()]);
     }
-    preview(object) {
+    preview(object, config) {
       try {
         if (object == null || typeof object == 'number' || typeof object == 'string' || dart.test(_debugger.isNativeJavaScriptObject(object))) {
           return dart.toString(object);
         }
         for (let formatter of this[_formatters]) {
-          if (dart.test(formatter.accept(object))) return formatter.preview(object);
+          if (dart.test(formatter.accept(object, config))) return formatter.preview(object);
         }
       } catch (e) {
         let trace = dart.stackTrace(e);
@@ -2716,11 +2712,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
 
       return null;
     }
-    hasChildren(object) {
+    hasChildren(object, config) {
       if (object == null) return false;
       try {
         for (let formatter of this[_formatters]) {
-          if (dart.test(formatter.accept(object))) return formatter.hasChildren(object);
+          if (dart.test(formatter.accept(object, config))) return formatter.hasChildren(object);
         }
       } catch (e) {
         let trace = dart.stackTrace(e);
@@ -2729,11 +2725,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
 
       return false;
     }
-    children(object) {
+    children(object, config) {
       try {
         if (object != null) {
           for (let formatter of this[_formatters]) {
-            if (dart.test(formatter.accept(object))) return formatter.children(object);
+            if (dart.test(formatter.accept(object, config))) return formatter.children(object);
           }
         }
       } catch (e) {
@@ -2747,13 +2743,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(_debugger.DartFormatter, {
     constructors: () => ({new: dart.definiteFunctionType(_debugger.DartFormatter, [])}),
     methods: () => ({
-      preview: dart.definiteFunctionType(core.String, [dart.dynamic]),
-      hasChildren: dart.definiteFunctionType(core.bool, [dart.dynamic]),
-      children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
+      preview: dart.definiteFunctionType(core.String, [dart.dynamic, dart.dynamic]),
+      hasChildren: dart.definiteFunctionType(core.bool, [dart.dynamic, dart.dynamic]),
+      children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic, dart.dynamic])
     })
   });
   _debugger.ObjectFormatter = class ObjectFormatter extends _debugger.Formatter {
-    accept(object) {
+    accept(object, config) {
       return !dart.test(_debugger.isNativeJavaScriptObject(object));
     }
     preview(object) {
@@ -2764,7 +2760,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     children(object) {
       let properties = LinkedHashSetOfNameValuePair().new();
-      this.addMetadataChildren(object, properties);
+      _debugger.addMetadataChildren(object, properties);
       let current = object;
       let protoChain = JSArrayOfObject().of([]);
       while (current != null && !dart.test(_debugger.isNativeJavaScriptObject(current)) && current !== Object.prototype) {
@@ -2783,7 +2779,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           } else if (!dart.test(dartName[dartx.startsWith]('_'))) {
             continue;
           }
-          let value = _debugger.safeGetProperty(object, core.String._check(symbol));
+          let value = _debugger.safeGetProperty(object, symbol);
           properties.add(new _debugger.NameValuePair({name: dartName, value: value}));
         }
       }
@@ -2800,18 +2796,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       return properties.toList();
     }
-    addMetadataChildren(object, ret) {
-      let child = new _debugger.ClassMetadata(object);
-      ret.add(new _debugger.NameValuePair({name: child.typeName, value: child}));
-    }
   };
   dart.setSignature(_debugger.ObjectFormatter, {
     methods: () => ({
-      accept: dart.definiteFunctionType(core.bool, [dart.dynamic]),
+      accept: dart.definiteFunctionType(core.bool, [dart.dynamic, dart.dynamic]),
       preview: dart.definiteFunctionType(core.String, [dart.dynamic]),
       hasChildren: dart.definiteFunctionType(core.bool, [dart.dynamic]),
-      children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic]),
-      addMetadataChildren: dart.definiteFunctionType(dart.dynamic, [dart.dynamic, core.Set$(_debugger.NameValuePair)])
+      children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
     })
   });
   dart.defineLazy(_debugger.ObjectFormatter, {
@@ -2826,11 +2817,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     },
     set _customNames(_) {}
   });
-  _debugger.LibraryModuleFormatter = class LibraryModuleFormatter extends _debugger.ObjectFormatter {
+  _debugger.LibraryModuleFormatter = class LibraryModuleFormatter extends core.Object {
     new() {
       this.libraryName = null;
     }
-    accept(object) {
+    accept(object, config) {
       this.libraryName = core.String._check(dart.getDartLibraryName(object));
       return this.libraryName != null;
     }
@@ -2854,11 +2845,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return children.toList();
     }
   };
-  _debugger.LibraryFormatter = class LibraryFormatter extends _debugger.ObjectFormatter {
+  _debugger.LibraryModuleFormatter[dart.implements] = () => [_debugger.Formatter];
+  dart.setSignature(_debugger.LibraryModuleFormatter, {
+    methods: () => ({
+      accept: dart.definiteFunctionType(core.bool, [dart.dynamic, dart.dynamic]),
+      hasChildren: dart.definiteFunctionType(core.bool, [dart.dynamic]),
+      preview: dart.definiteFunctionType(core.String, [dart.dynamic]),
+      children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
+    })
+  });
+  _debugger.LibraryFormatter = class LibraryFormatter extends core.Object {
     new() {
       this.genericParameters = HashMapOfString$String().new();
     }
-    accept(object) {
+    accept(object, config) {
       return _debugger.Library.is(object);
     }
     hasChildren(object) {
@@ -2896,18 +2896,24 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let parameterName = dart.str`${name}\$`;
       if (dart.test(this.genericParameters.keys[dartx.contains](parameterName))) {
         typeName = dart.str`${typeName}<${this.genericParameters.get(parameterName)}>`;
+        _debugger.JSNative.setProperty(child, 'genericTypeName', typeName);
       }
-      return new _debugger.NameValuePair({name: typeName, value: new _debugger.ClassMetadata(child, {name: typeName})});
+      return new _debugger.NameValuePair({name: typeName, value: child});
     }
   };
+  _debugger.LibraryFormatter[dart.implements] = () => [_debugger.Formatter];
   dart.setSignature(_debugger.LibraryFormatter, {
     methods: () => ({
+      accept: dart.definiteFunctionType(core.bool, [dart.dynamic, dart.dynamic]),
+      hasChildren: dart.definiteFunctionType(core.bool, [dart.dynamic]),
+      preview: dart.definiteFunctionType(core.String, [dart.dynamic]),
+      children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic]),
       recordGenericParameters: dart.definiteFunctionType(dart.dynamic, [core.String, core.Object]),
       classChild: dart.definiteFunctionType(dart.dynamic, [core.String, core.Object])
     })
   });
-  _debugger.FunctionFormatter = class FunctionFormatter extends _debugger.Formatter {
-    accept(object) {
+  _debugger.FunctionFormatter = class FunctionFormatter extends core.Object {
+    accept(object, config) {
       if (_debugger._typeof(object) != 'function') return false;
       return dart.getReifiedType(object) != null;
     }
@@ -2921,16 +2927,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return JSArrayOfNameValuePair().of([new _debugger.NameValuePair({name: 'signature', value: this.preview(object)}), new _debugger.NameValuePair({name: 'JavaScript Function', value: object, config: _debugger.JsonMLConfig.skipDart})]);
     }
   };
+  _debugger.FunctionFormatter[dart.implements] = () => [_debugger.Formatter];
   dart.setSignature(_debugger.FunctionFormatter, {
     methods: () => ({
-      accept: dart.definiteFunctionType(core.bool, [dart.dynamic]),
+      accept: dart.definiteFunctionType(core.bool, [dart.dynamic, dart.dynamic]),
       hasChildren: dart.definiteFunctionType(core.bool, [dart.dynamic]),
       preview: dart.definiteFunctionType(core.String, [dart.dynamic]),
       children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
     })
   });
-  _debugger.MapFormatter = class MapFormatter extends _debugger.ObjectFormatter {
-    accept(object) {
+  _debugger.MapFormatter = class MapFormatter extends core.Object {
+    accept(object, config) {
       return core.Map.is(object);
     }
     hasChildren(object) {
@@ -2947,12 +2954,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let entryWrapper = new _debugger.MapEntry({key: key, value: value});
         entries.add(new _debugger.NameValuePair({name: dart.toString(entries.length), value: entryWrapper}));
       }, dynamicAnddynamicTovoid()));
-      this.addMetadataChildren(object, entries);
+      _debugger.addMetadataChildren(object, entries);
       return entries.toList();
     }
   };
-  _debugger.IterableFormatter = class IterableFormatter extends _debugger.ObjectFormatter {
-    accept(object) {
+  _debugger.MapFormatter[dart.implements] = () => [_debugger.Formatter];
+  dart.setSignature(_debugger.MapFormatter, {
+    methods: () => ({
+      accept: dart.definiteFunctionType(core.bool, [dart.dynamic, dart.dynamic]),
+      hasChildren: dart.definiteFunctionType(core.bool, [dart.dynamic]),
+      preview: dart.definiteFunctionType(core.String, [dart.dynamic]),
+      children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
+    })
+  });
+  _debugger.IterableFormatter = class IterableFormatter extends core.Object {
+    accept(object, config) {
       return core.Iterable.is(object);
     }
     preview(object) {
@@ -2971,54 +2987,182 @@ dart_library.library('dart_sdk', null, /* Imports */[
     children(object) {
       let children = LinkedHashSetOfNameValuePair().new();
       children.addAll(new _debugger.IterableSpan(0, core.int._check(dart.dload(object, 'length')), core.Iterable._check(object)).children());
-      this.addMetadataChildren(object, children);
+      _debugger.addMetadataChildren(object, children);
       return children.toList();
     }
   };
-  const _getType = Symbol('_getType');
-  _debugger.ClassMetadataFormatter = class ClassMetadataFormatter extends core.Object {
-    accept(object) {
-      return _debugger.ClassMetadata.is(object);
-    }
-    [_getType](object) {
-      if (core.Type.is(object)) return object;
-      return dart.getReifiedType(object);
+  _debugger.IterableFormatter[dart.implements] = () => [_debugger.Formatter];
+  dart.setSignature(_debugger.IterableFormatter, {
+    methods: () => ({
+      accept: dart.definiteFunctionType(core.bool, [dart.dynamic, dart.dynamic]),
+      preview: dart.definiteFunctionType(core.String, [dart.dynamic]),
+      hasChildren: dart.definiteFunctionType(core.bool, [dart.dynamic]),
+      children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
+    })
+  });
+  _debugger.NamedConstructorFormatter = class NamedConstructorFormatter extends core.Object {
+    accept(object, config) {
+      return _debugger.NamedConstructor.is(object);
     }
     preview(object) {
-      let entry = _debugger.ClassMetadata._check(object);
-      let type = core.Type.is(entry.object) ? entry.object : dart.getReifiedType(entry.object);
+      return 'Named Constructor';
+    }
+    hasChildren(object) {
+      return true;
+    }
+    children(object) {
+      return JSArrayOfNameValuePair().of([new _debugger.NameValuePair({name: 'JavaScript Function', value: object, config: _debugger.JsonMLConfig.skipDart})]);
+    }
+  };
+  _debugger.NamedConstructorFormatter[dart.implements] = () => [_debugger.Formatter];
+  dart.setSignature(_debugger.NamedConstructorFormatter, {
+    methods: () => ({
+      accept: dart.definiteFunctionType(core.bool, [dart.dynamic, dart.dynamic]),
+      preview: dart.definiteFunctionType(core.String, [dart.dynamic]),
+      hasChildren: dart.definiteFunctionType(core.bool, [dart.dynamic]),
+      children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
+    })
+  });
+  _debugger.MapEntryFormatter = class MapEntryFormatter extends core.Object {
+    accept(object, config) {
+      return _debugger.MapEntry.is(object);
+    }
+    preview(object) {
+      let entry = _debugger.MapEntry._check(object);
+      return dart.str`${_debugger.safePreview(entry.key, _debugger.JsonMLConfig.none)} => ${_debugger.safePreview(entry.value, _debugger.JsonMLConfig.none)}`;
+    }
+    hasChildren(object) {
+      return true;
+    }
+    children(object) {
+      return JSArrayOfNameValuePair().of([new _debugger.NameValuePair({name: 'key', value: dart.dload(object, 'key'), config: _debugger.JsonMLConfig.keyToString}), new _debugger.NameValuePair({name: 'value', value: dart.dload(object, 'value')})]);
+    }
+  };
+  _debugger.MapEntryFormatter[dart.implements] = () => [_debugger.Formatter];
+  dart.setSignature(_debugger.MapEntryFormatter, {
+    methods: () => ({
+      accept: dart.definiteFunctionType(core.bool, [dart.dynamic, dart.dynamic]),
+      preview: dart.definiteFunctionType(core.String, [dart.dynamic]),
+      hasChildren: dart.definiteFunctionType(core.bool, [dart.dynamic]),
+      children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
+    })
+  });
+  _debugger.HeritageClauseFormatter = class HeritageClauseFormatter extends core.Object {
+    accept(object, config) {
+      return _debugger.HeritageClause.is(object);
+    }
+    preview(object) {
+      let clause = _debugger.HeritageClause._check(object);
+      let typeNames = clause.types[dartx.map](core.String)(_debugger.getTypeName);
+      return dart.str`${clause.name} ${typeNames[dartx.join](", ")}`;
+    }
+    hasChildren(object) {
+      return true;
+    }
+    children(object) {
+      let clause = _debugger.HeritageClause._check(object);
+      let children = JSArrayOfNameValuePair().of([]);
+      for (let type of clause.types) {
+        children[dartx.add](new _debugger.NameValuePair({value: type, config: _debugger.JsonMLConfig.asClass}));
+      }
+      return children;
+    }
+  };
+  _debugger.HeritageClauseFormatter[dart.implements] = () => [_debugger.Formatter];
+  dart.setSignature(_debugger.HeritageClauseFormatter, {
+    methods: () => ({
+      accept: dart.definiteFunctionType(core.bool, [dart.dynamic, dart.dynamic]),
+      preview: dart.definiteFunctionType(core.String, [dart.dynamic]),
+      hasChildren: dart.definiteFunctionType(core.bool, [dart.dynamic]),
+      children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
+    })
+  });
+  _debugger.IterableSpanFormatter = class IterableSpanFormatter extends core.Object {
+    accept(object, config) {
+      return _debugger.IterableSpan.is(object);
+    }
+    preview(object) {
+      return dart.str`[${dart.dload(object, 'start')}...${dart.dsend(dart.dload(object, 'end'), '-', 1)}]`;
+    }
+    hasChildren(object) {
+      return true;
+    }
+    children(object) {
+      return ListOfNameValuePair()._check(dart.dsend(object, 'children'));
+    }
+  };
+  _debugger.IterableSpanFormatter[dart.implements] = () => [_debugger.Formatter];
+  dart.setSignature(_debugger.IterableSpanFormatter, {
+    methods: () => ({
+      accept: dart.definiteFunctionType(core.bool, [dart.dynamic, dart.dynamic]),
+      preview: dart.definiteFunctionType(core.String, [dart.dynamic]),
+      hasChildren: dart.definiteFunctionType(core.bool, [dart.dynamic]),
+      children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
+    })
+  });
+  _debugger.StackTraceFormatter = class StackTraceFormatter extends core.Object {
+    accept(object, config) {
+      return core.StackTrace.is(object);
+    }
+    preview(object) {
+      return 'StackTrace';
+    }
+    hasChildren(object) {
+      return true;
+    }
+    children(object) {
+      return dart.toString(object)[dartx.split]('\n')[dartx.map](_debugger.NameValuePair)(dart.fn(line => new _debugger.NameValuePair({value: line[dartx.replaceFirst](core.RegExp.new('^\\s+at\\s'), ''), hideName: true}), StringToNameValuePair()))[dartx.toList]();
+    }
+  };
+  _debugger.StackTraceFormatter[dart.implements] = () => [_debugger.Formatter];
+  dart.setSignature(_debugger.StackTraceFormatter, {
+    methods: () => ({
+      accept: dart.definiteFunctionType(core.bool, [dart.dynamic, dart.dynamic]),
+      preview: dart.definiteFunctionType(core.String, [dart.dynamic]),
+      hasChildren: dart.definiteFunctionType(core.bool, [dart.dynamic]),
+      children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
+    })
+  });
+  _debugger.ClassFormatter = class ClassFormatter extends core.Object {
+    accept(object, config) {
+      return core.Type.is(object) || dart.equals(config, _debugger.JsonMLConfig.asClass);
+    }
+    preview(object) {
+      let typeName = _debugger.safeGetProperty(object, 'genericTypeName');
+      if (typeName != null) return core.String._check(typeName);
+      let type = _debugger._getType(object);
       let implements$ = dart.getImplements(type);
+      typeName = _debugger.getTypeName(core.Type._check(type));
       if (implements$ != null) {
         let typeNames = dart.dsend(dart.dcall(implements$), 'map', _debugger.getTypeName);
-        return dart.str`${entry.typeName} implements ${dart.dsend(typeNames, 'join', ", ")}`;
+        return dart.str`${typeName} implements ${dart.dsend(typeNames, 'join', ", ")}`;
       } else {
-        return entry.typeName;
+        return core.String._check(typeName);
       }
     }
     hasChildren(object) {
       return true;
     }
     children(object) {
-      let entry = _debugger.ClassMetadata._check(object);
-      let classObject = entry.object;
-      let type = this[_getType](classObject);
+      let type = _debugger._getType(object);
       let children = JSArrayOfNameValuePair().of([]);
+      let typeName = _debugger.getTypeName(core.Type._check(_debugger._getType(object)));
       let mixins = dart.getMixins(type);
       if (mixins != null && dart.test(dart.dload(mixins, 'isNotEmpty'))) {
         children[dartx.add](new _debugger.NameValuePair({name: '[[Mixins]]', value: new _debugger.HeritageClause('mixins', core.List._check(mixins))}));
       }
-      let hiddenProperties = JSArrayOfString().of(['length', 'name', 'prototype']);
-      for (let name of _debugger.getOwnPropertyNames(classObject)) {
+      let hiddenProperties = JSArrayOfString().of(['length', 'name', 'prototype', 'genericTypeName']);
+      for (let name of _debugger.getOwnPropertyNames(object)) {
         if (dart.test(hiddenProperties[dartx.contains](name))) continue;
-        let value = _debugger.safeGetProperty(classObject, name);
+        let value = _debugger.safeGetProperty(object, name);
         if (value != null && dart.getIsNamedConstructor(value) != null) {
           value = new _debugger.NamedConstructor(value);
-          name = dart.str`${entry.typeName}.${name}`;
+          name = dart.str`${typeName}.${name}`;
         }
         children[dartx.add](new _debugger.NameValuePair({name: name, value: value}));
       }
       let hiddenPrototypeProperties = JSArrayOfString().of(['constructor', 'new', '$identityHash']);
-      let prototype = classObject.prototype;
+      let prototype = object.prototype;
       if (prototype != null) {
         for (let name of _debugger.getOwnPropertyNames(prototype)) {
           if (dart.test(hiddenPrototypeProperties[dartx.contains](name))) continue;
@@ -3037,134 +3181,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return children;
     }
   };
-  _debugger.ClassMetadataFormatter[dart.implements] = () => [_debugger.Formatter];
-  dart.setSignature(_debugger.ClassMetadataFormatter, {
+  _debugger.ClassFormatter[dart.implements] = () => [_debugger.Formatter];
+  dart.setSignature(_debugger.ClassFormatter, {
     methods: () => ({
-      accept: dart.definiteFunctionType(core.bool, [dart.dynamic]),
-      [_getType]: dart.definiteFunctionType(core.Object, [dart.dynamic]),
-      preview: dart.definiteFunctionType(core.String, [dart.dynamic]),
-      hasChildren: dart.definiteFunctionType(core.bool, [dart.dynamic]),
-      children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
-    })
-  });
-  _debugger.NamedConstructorFormatter = class NamedConstructorFormatter extends core.Object {
-    accept(object) {
-      return _debugger.NamedConstructor.is(object);
-    }
-    preview(object) {
-      return 'Named Constructor';
-    }
-    hasChildren(object) {
-      return true;
-    }
-    children(object) {
-      return JSArrayOfNameValuePair().of([new _debugger.NameValuePair({name: 'JavaScript Function', value: object, config: _debugger.JsonMLConfig.skipDart})]);
-    }
-  };
-  _debugger.NamedConstructorFormatter[dart.implements] = () => [_debugger.Formatter];
-  dart.setSignature(_debugger.NamedConstructorFormatter, {
-    methods: () => ({
-      accept: dart.definiteFunctionType(core.bool, [dart.dynamic]),
-      preview: dart.definiteFunctionType(core.String, [dart.dynamic]),
-      hasChildren: dart.definiteFunctionType(core.bool, [dart.dynamic]),
-      children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
-    })
-  });
-  _debugger.MapEntryFormatter = class MapEntryFormatter extends core.Object {
-    accept(object) {
-      return _debugger.MapEntry.is(object);
-    }
-    preview(object) {
-      let entry = _debugger.MapEntry._check(object);
-      return dart.str`${_debugger.safePreview(entry.key)} => ${_debugger.safePreview(entry.value)}`;
-    }
-    hasChildren(object) {
-      return true;
-    }
-    children(object) {
-      return JSArrayOfNameValuePair().of([new _debugger.NameValuePair({name: 'key', value: dart.dload(object, 'key'), config: _debugger.JsonMLConfig.keyToString}), new _debugger.NameValuePair({name: 'value', value: dart.dload(object, 'value')})]);
-    }
-  };
-  _debugger.MapEntryFormatter[dart.implements] = () => [_debugger.Formatter];
-  dart.setSignature(_debugger.MapEntryFormatter, {
-    methods: () => ({
-      accept: dart.definiteFunctionType(core.bool, [dart.dynamic]),
-      preview: dart.definiteFunctionType(core.String, [dart.dynamic]),
-      hasChildren: dart.definiteFunctionType(core.bool, [dart.dynamic]),
-      children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
-    })
-  });
-  _debugger.HeritageClauseFormatter = class HeritageClauseFormatter extends core.Object {
-    accept(object) {
-      return _debugger.HeritageClause.is(object);
-    }
-    preview(object) {
-      let clause = _debugger.HeritageClause._check(object);
-      let typeNames = clause.types[dartx.map](core.String)(_debugger.getTypeName);
-      return dart.str`${clause.name} ${typeNames[dartx.join](", ")}`;
-    }
-    hasChildren(object) {
-      return true;
-    }
-    children(object) {
-      let clause = _debugger.HeritageClause._check(object);
-      let children = JSArrayOfNameValuePair().of([]);
-      for (let type of clause.types) {
-        children[dartx.add](new _debugger.NameValuePair({value: new _debugger.ClassMetadata(type)}));
-      }
-      return children;
-    }
-  };
-  _debugger.HeritageClauseFormatter[dart.implements] = () => [_debugger.Formatter];
-  dart.setSignature(_debugger.HeritageClauseFormatter, {
-    methods: () => ({
-      accept: dart.definiteFunctionType(core.bool, [dart.dynamic]),
-      preview: dart.definiteFunctionType(core.String, [dart.dynamic]),
-      hasChildren: dart.definiteFunctionType(core.bool, [dart.dynamic]),
-      children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
-    })
-  });
-  _debugger.IterableSpanFormatter = class IterableSpanFormatter extends core.Object {
-    accept(object) {
-      return _debugger.IterableSpan.is(object);
-    }
-    preview(object) {
-      return dart.str`[${dart.dload(object, 'start')}...${dart.dsend(dart.dload(object, 'end'), '-', 1)}]`;
-    }
-    hasChildren(object) {
-      return true;
-    }
-    children(object) {
-      return ListOfNameValuePair()._check(dart.dsend(object, 'children'));
-    }
-  };
-  _debugger.IterableSpanFormatter[dart.implements] = () => [_debugger.Formatter];
-  dart.setSignature(_debugger.IterableSpanFormatter, {
-    methods: () => ({
-      accept: dart.definiteFunctionType(core.bool, [dart.dynamic]),
-      preview: dart.definiteFunctionType(core.String, [dart.dynamic]),
-      hasChildren: dart.definiteFunctionType(core.bool, [dart.dynamic]),
-      children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
-    })
-  });
-  _debugger.StackTraceFormatter = class StackTraceFormatter extends core.Object {
-    accept(object) {
-      return core.StackTrace.is(object);
-    }
-    preview(object) {
-      return 'StackTrace';
-    }
-    hasChildren(object) {
-      return true;
-    }
-    children(object) {
-      return dart.toString(object)[dartx.split]('\n')[dartx.map](_debugger.NameValuePair)(dart.fn(line => new _debugger.NameValuePair({value: line[dartx.replaceFirst](core.RegExp.new('^\\s+at\\s'), ''), hideName: true}), StringToNameValuePair()))[dartx.toList]();
-    }
-  };
-  _debugger.StackTraceFormatter[dart.implements] = () => [_debugger.Formatter];
-  dart.setSignature(_debugger.StackTraceFormatter, {
-    methods: () => ({
-      accept: dart.definiteFunctionType(core.bool, [dart.dynamic]),
+      accept: dart.definiteFunctionType(core.bool, [dart.dynamic, dart.dynamic]),
       preview: dart.definiteFunctionType(core.String, [dart.dynamic]),
       hasChildren: dart.definiteFunctionType(core.bool, [dart.dynamic]),
       children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
@@ -25900,7 +25920,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get values() {
       if (dart.test(this[_isUpgraded])) return this[_upgradedMap][dartx.values];
-      return MappedIterableOfString$dynamic().new(this[_computeKeys$](), dart.fn(each => this.get(each), dynamicTodynamic$()));
+      return _internal.MappedIterable.new(this[_computeKeys$](), dart.fn(each => this.get(each), dynamicTodynamic$()));
     }
     set(key, value) {
       if (dart.test(this[_isUpgraded])) {
@@ -26434,11 +26454,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _subsetMask = Symbol('_subsetMask');
   convert.Converter$ = dart.generic((S, T) => {
     let StreamOfS = () => (StreamOfS = dart.constFn(async.Stream$(S)))();
-    let _ConverterStreamEventSinkOfS$dynamic = () => (_ConverterStreamEventSinkOfS$dynamic = dart.constFn(convert._ConverterStreamEventSink$(S, dart.dynamic)))();
     let StreamTransformerOfS$T = () => (StreamTransformerOfS$T = dart.constFn(async.StreamTransformer$(S, T)))();
     let SinkOfT = () => (SinkOfT = dart.constFn(core.Sink$(T)))();
     let StreamOfT = () => (StreamOfT = dart.constFn(async.Stream$(T)))();
-    let EventSinkTo_ConverterStreamEventSinkOfS$dynamic = () => (EventSinkTo_ConverterStreamEventSinkOfS$dynamic = dart.constFn(dart.definiteFunctionType(_ConverterStreamEventSinkOfS$dynamic(), [async.EventSink])))();
     class Converter extends core.Object {
       new() {
       }
@@ -26454,7 +26472,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       bind(stream) {
         StreamOfS()._check(stream);
-        return StreamOfT().eventTransformed(stream, dart.fn(sink => new (_ConverterStreamEventSinkOfS$dynamic())(this, sink), EventSinkTo_ConverterStreamEventSinkOfS$dynamic()));
+        return StreamOfT().eventTransformed(stream, dart.fn(sink => new convert._ConverterStreamEventSink(this, sink), EventSinkTo_ConverterStreamEventSink()));
       }
     }
     dart.addTypeTests(Converter);
@@ -36777,10 +36795,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.window[_getComputedStyle](this, pseudoElement);
     }
     get [dartx.client]() {
-      return new (RectangleOfint())(this[dartx.clientLeft], this[dartx.clientTop], this[dartx.clientWidth], this[dartx.clientHeight]);
+      return new (RectangleOfnum())(this[dartx.clientLeft], this[dartx.clientTop], this[dartx.clientWidth], this[dartx.clientHeight]);
     }
     get [dartx.offset]() {
-      return new (RectangleOfint())(this[dartx.offsetLeft], this[dartx.offsetTop], this[dartx.offsetWidth], this[dartx.offsetHeight]);
+      return new (RectangleOfnum())(this[dartx.offsetLeft], this[dartx.offsetTop], this[dartx.offsetWidth], this[dartx.offsetHeight]);
     }
     [dartx.appendText](text) {
       this[dartx.append](html$.Text.new(text));
@@ -36983,7 +37001,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let sameAsParent = core.identical(current, parent);
       let foundAsParent = sameAsParent || parent[dartx.tagName] == 'HTML';
       if (current == null || sameAsParent) {
-        if (foundAsParent) return new (PointOfint())(0, 0);
+        if (foundAsParent) return new (PointOfnum())(0, 0);
         dart.throw(new core.ArgumentError("Specified element is not a transitive offset " + "parent of this element."));
       }
       let parentOffset = current[dartx.offsetParent];
@@ -58143,33 +58161,33 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.initMouseEvent(type, bubbles, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
     }
     get [dartx.client]() {
-      return new (PointOfint())(this[_clientX], this[_clientY]);
+      return new (PointOfnum())(this[_clientX], this[_clientY]);
     }
     get [dartx.movement]() {
-      return new (PointOfint())(this[_webkitMovementX], this[_webkitMovementY]);
+      return new (PointOfnum())(this[_webkitMovementX], this[_webkitMovementY]);
     }
     get [dartx.offset]() {
       if (!!this.offsetX) {
         let x = this.offsetX;
         let y = this.offsetY;
-        return new (PointOfint())(x, y);
+        return new (PointOfnum())(x, y);
       } else {
         if (!html$.Element.is(this[dartx.target])) {
           dart.throw(new core.UnsupportedError('offsetX is only supported on elements'));
         }
         let target = html$.Element._check(this[dartx.target]);
         let point = this[dartx.client]['-'](target[dartx.getBoundingClientRect]()[dartx.topLeft]);
-        return new (PointOfint())(point.x[dartx.toInt](), point.y[dartx.toInt]());
+        return new (PointOfnum())(point.x[dartx.toInt](), point.y[dartx.toInt]());
       }
     }
     get [dartx.screen]() {
-      return new (PointOfint())(this[_screenX], this[_screenY]);
+      return new (PointOfnum())(this[_screenX], this[_screenY]);
     }
     get [dartx.layer]() {
-      return new (PointOfint())(this[_layerX], this[_layerY]);
+      return new (PointOfnum())(this[_layerX], this[_layerY]);
     }
     get [dartx.page]() {
-      return new (PointOfint())(this[_pageX], this[_pageY]);
+      return new (PointOfnum())(this[_pageX], this[_pageY]);
     }
   };
   dart.setSignature(html$.MouseEvent, {
@@ -62195,7 +62213,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   ]);
   html$.Screen = class Screen extends _interceptors.Interceptor {
     get [dartx.available]() {
-      return new (RectangleOfint())(this[_availLeft], this[_availTop], this[_availWidth], this[_availHeight]);
+      return new (RectangleOfnum())(this[_availLeft], this[_availTop], this[_availWidth], this[_availHeight]);
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -66064,13 +66082,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.radiusY[dartx.round]();
     }
     get [dartx.client]() {
-      return new (PointOfint())(this[__clientX], this[__clientY]);
+      return new (PointOfnum())(this[__clientX], this[__clientY]);
     }
     get [dartx.page]() {
-      return new (PointOfint())(this[__pageX], this[__pageY]);
+      return new (PointOfnum())(this[__pageX], this[__pageY]);
     }
     get [dartx.screen]() {
-      return new (PointOfint())(this[__screenX], this[__screenY]);
+      return new (PointOfnum())(this[__screenX], this[__screenY]);
     }
     get [dartx.radiusX]() {
       return this[__radiusX];
@@ -68759,11 +68777,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     forElement(e, opts) {
       let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-      return new (_ElementEventStreamImplOfBeforeUnloadEvent())(e, this[_eventType], useCapture);
+      return new (_ElementEventStreamImplOfEvent())(e, this[_eventType], useCapture);
     }
     [_forElementList](e, opts) {
       let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-      return new (_ElementListEventStreamImplOfBeforeUnloadEvent())(e, this[_eventType], useCapture);
+      return new (_ElementListEventStreamImplOfEvent())(e, this[_eventType], useCapture);
     }
   };
   html$._BeforeUnloadEventStreamProvider[dart.implements] = () => [EventStreamProviderOfBeforeUnloadEvent()];
@@ -69358,16 +69376,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.notNull(another.x) >= dart.notNull(this[dartx.left]) && dart.notNull(another.x) <= dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]) && dart.notNull(another.y) >= dart.notNull(this[dartx.top]) && dart.notNull(another.y) <= dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]);
     }
     get [dartx.topLeft]() {
-      return new (PointOfdouble())(this[dartx.left], this[dartx.top]);
+      return new (PointOfnum())(this[dartx.left], this[dartx.top]);
     }
     get [dartx.topRight]() {
-      return new (PointOfdouble())(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), this[dartx.top]);
+      return new (PointOfnum())(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), this[dartx.top]);
     }
     get [dartx.bottomRight]() {
-      return new (PointOfdouble())(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]));
+      return new (PointOfnum())(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]));
     }
     get [dartx.bottomLeft]() {
-      return new (PointOfdouble())(this[dartx.left], dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]));
+      return new (PointOfnum())(this[dartx.left], dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]));
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -71498,7 +71516,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.EventStreamProvider$ = dart.generic(T => {
     let _EventStreamOfT = () => (_EventStreamOfT = dart.constFn(html$._EventStream$(T)))();
     let _ElementEventStreamImplOfT = () => (_ElementEventStreamImplOfT = dart.constFn(html$._ElementEventStreamImpl$(T)))();
-    let _ElementListEventStreamImplOfT = () => (_ElementListEventStreamImplOfT = dart.constFn(html$._ElementListEventStreamImpl$(T)))();
     class EventStreamProvider extends core.Object {
       new(eventType) {
         this[_eventType] = eventType;
@@ -71513,7 +71530,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [_forElementList](e, opts) {
         let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-        return new (_ElementListEventStreamImplOfT())(e, this[_eventType], useCapture);
+        return new (_ElementListEventStreamImplOfEvent())(e, this[_eventType], useCapture);
       }
       getEventType(target) {
         return this[_eventType];
@@ -73225,14 +73242,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.ReadyState.COMPLETE = "complete";
   const _list$ = Symbol('_list');
   html$._WrappedList$ = dart.generic(E => {
-    let _WrappedIteratorOfE = () => (_WrappedIteratorOfE = dart.constFn(html$._WrappedIterator$(E)))();
     let IterableOfE = () => (IterableOfE = dart.constFn(core.Iterable$(E)))();
     class _WrappedList extends collection.ListBase$(E) {
       new(list) {
         this[_list$] = list;
       }
       get iterator() {
-        return new (_WrappedIteratorOfE())(this[_list$][dartx.iterator]);
+        return new (_WrappedIteratorOfNode())(this[_list$][dartx.iterator]);
       }
       get length() {
         return this[_list$][dartx.length];
