@@ -15325,6 +15325,12 @@ bool Instance::CheckIsCanonical(Thread* thread) const {
   const Class& cls = Class::Handle(zone, this->clazz());
   SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
   result ^= cls.LookupCanonicalInstance(zone, *this);
+  // TODO(johnmccutchan) : Temporary workaround for issue (26988).
+  if ((result.raw() != raw()) &&
+      isolate->HasAttemptedReload() &&
+      (GetClassId() == kImmutableArrayCid)) {
+    return true;
+  }
   return (result.raw() == this->raw());
 }
 #endif  // DEBUG

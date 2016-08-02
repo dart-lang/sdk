@@ -1098,19 +1098,25 @@ void Isolate::ReportReloadError(const Error& error) {
 bool Isolate::ReloadSources(JSONStream* js,
                             bool force_reload,
                             bool dont_delete_reload_context) {
-  // TODO(asiva): Add verification of canonical objects.
   ASSERT(!IsReloading());
   has_attempted_reload_ = true;
   reload_context_ = new IsolateReloadContext(this, js);
   reload_context_->StartReload(force_reload);
   bool success = !reload_context_->has_error();
-  // TODO(asiva): Add verification of canonical objects.
-  if (dont_delete_reload_context) {
-    // Unit tests use the reload context later. Caller is responsible
-    // for deleting the context.
-    return success;
+  // Unit tests use the reload context later. Caller is responsible
+  // for deleting the context.
+  if (!dont_delete_reload_context) {
+    DeleteReloadContext();
   }
-  DeleteReloadContext();
+#if defined(DEBUG)
+  if (success) {
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    isolate->heap()->CollectAllGarbage();
+    VerifyCanonicalVisitor check_canonical(thread);
+    isolate->heap()->IterateObjects(&check_canonical);
+  }
+#endif  // DEBUG
   return success;
 }
 
