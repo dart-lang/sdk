@@ -26,14 +26,13 @@
 library dart2js_info.bin.code_deps;
 
 import 'dart:collection';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/graph.dart';
 import 'package:dart2js_info/src/util.dart';
 
-main(args) {
+main(args) async {
   if (args.length < 2) {
     print('usage: dart2js_info_code_deps path-to.info.json <query>');
     print('   where <query> can be:');
@@ -42,14 +41,7 @@ main(args) {
     exit(1);
   }
 
-  var json;
-  try {
-    json = JSON.decode(new File(args[0]).readAsStringSync());
-  } catch (e) {
-    print('error: could not read ${args[0]}');
-    exit(1);
-  }
-  var info = new AllInfoJsonCodec().decode(json);
+  var info = await infoFromFile(args.first);
   var graph = graphFromInfo(info);
 
   var queryName = args[1];

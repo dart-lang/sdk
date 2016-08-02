@@ -136,7 +136,7 @@ class _Server {
     }
 
     // Handle POST requests to record coverage data, and GET requests to display
-    // the currently coverage resutls.
+    // the currently coverage results.
     if (urlPath == _expectedPath('coverage')) {
       if (request.method == 'GET') {
         return new shelf.Response.ok(_serializedData, headers: TEXT_HEADERS);

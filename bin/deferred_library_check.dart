@@ -36,11 +36,10 @@
 library dart2js_info.bin.deferred_library_check;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/deferred_library_check.dart';
+import 'package:dart2js_info/src/util.dart';
 import 'package:yaml/yaml.dart';
 
 Future main(List<String> args) async {
@@ -54,11 +53,6 @@ Future main(List<String> args) async {
   var failures = checkDeferredLibraryManifest(info, manifest);
   failures.forEach(print);
   if (failures.isNotEmpty) exitCode = 1;
-}
-
-Future<AllInfo> infoFromFile(String fileName) async {
-  var file = await new File(fileName).readAsString();
-  return new AllInfoJsonCodec().decode(JSON.decode(file));
 }
 
 Future manifestFromFile(String fileName) async {

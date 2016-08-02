@@ -39,17 +39,17 @@ import 'dart:io';
 
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/util.dart';
+
 import 'function_size_analysis.dart';
 
-main(args) {
+main(args) async {
   if (args.length < 2) {
     print('usage: dart tool/live_code_size_analysis.dart path-to-info.json '
         'path-to-coverage.json [-v]');
     exit(1);
   }
 
-  var json = JSON.decode(new File(args[0]).readAsStringSync());
-  var info = new AllInfoJsonCodec().decode(json);
+  var info = await infoFromFile(args.first);
   var coverage = JSON.decode(new File(args[1]).readAsStringSync());
   var verbose = args.length > 2 && args[2] == '-v';
 

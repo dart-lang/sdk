@@ -6,17 +6,14 @@
 /// code.
 library compiler.tool.live_code_size_analysis;
 
-import 'dart:convert';
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/graph.dart';
 import 'package:dart2js_info/src/util.dart';
 
-main(args) {
-  var json = JSON.decode(new File(args[0]).readAsStringSync());
-  var info = new AllInfoJsonCodec().decode(json);
+main(args) async {
+  var info = await infoFromFile(args.first);
   showCodeDistribution(info);
 }
 

@@ -59,23 +59,21 @@
 /// This example is very similar to [defaultGrouping].
 library dart2js_info.bin.library_size_split;
 
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math' show max;
 
 import 'package:dart2js_info/info.dart';
+import 'package:dart2js_info/src/util.dart';
 import 'package:yaml/yaml.dart';
 
-main(args) {
+main(args) async {
   if (args.length < 1) {
     print('usage: dart tool/library_size_split.dart '
         'path-to-info.json [grouping.yaml]');
     exit(1);
   }
 
-  var filename = args[0];
-  var json = JSON.decode(new File(filename).readAsStringSync());
-  var info = new AllInfoJsonCodec().decode(json);
+  var info = await infoFromFile(args.first);
 
   var groupingText =
       args.length > 1 ? new File(args[1]).readAsStringSync() : defaultGrouping;

@@ -73,6 +73,10 @@ The following tools are a available today:
     was split into deferred parts as expected. This tool takes a specification
     of the expected layout of code into deferred parts, and checks that the
     output from `dart2js` meets the specification.
+    
+  * [`deferred_library_size`][deferred_size]: a tool that gives a breakdown of
+    the sizes of the deferred parts of the program. This can show how much of
+    your total code size can be loaded deferred.
 
   * [`function_size_analysis`][function_analysis]: a tool that shows how much
     code was attributed to each function. This tool also uses dependency
@@ -240,6 +244,32 @@ are the same as the name given to the deferred import in the dart file. For
 instance, if you have `import 'package:foo/bar.dart' deferred as baz;` in your
 dart file, then the corresponding name in the specification file is 'baz'.
 
+### Deferred library size tool
+
+This tool gives a breakdown of all of the deferred code in the program by size.
+It can show how much of the total code size is deferred. It can be run as
+follows:
+
+```bash
+pub global activate dart2js_info # only needed once
+dart2js_info_deferred_library_size out.js.info.json
+```
+
+The tool will output a table listing all of the deferred imports in the program
+as well as the "main" chunk, which is not deferred. The output looks like:
+
+```
+Size by library
+------------------------------------------------
+main                                    12345678
+foo                                      7654321
+bar                                      1234567
+------------------------------------------------
+Main chunk size                         12345678
+Deferred code size                       8888888
+Percent of code deferred                  41.86%
+```
+
 ### Function size analysis tool
 
 This command-line tool presents how much each function contributes to the total
@@ -321,6 +351,7 @@ bugs at the [issue tracker][tracker].
 [code_deps]: https://github.com/dart-lang/dart2js_info/blob/master/bin/code_deps.dart
 [lib_split]: https://github.com/dart-lang/dart2js_info/blob/master/bin/library_size_split.dart
 [deferred_lib]: https://github.com/dart-lang/dart2js_info/blob/master/bin/deferred_library_check.dart
+[deferred_size]: https://github.com/dart-lang/dart2js_info/blob/master/bin/deferred_library_size.dart
 [coverage]: https://github.com/dart-lang/dart2js_info/blob/master/bin/coverage_log_server.dart
 [live]: https://github.com/dart-lang/dart2js_info/blob/master/bin/live_code_size_analysis.dart
 [function_analysis]: https://github.com/dart-lang/dart2js_info/blob/master/bin/function_size_analysis.dart

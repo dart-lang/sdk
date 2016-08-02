@@ -6,23 +6,20 @@
 /// that it is consistent and that it covers all the data we expect it to cover.
 library dart2js_info.bin.debug_info;
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/graph.dart';
 import 'package:dart2js_info/src/util.dart';
 
-main(args) {
+main(args) async {
   if (args.length < 1) {
     print('usage: dart tool/debug_info.dart path-to-info.json '
         '[--show-library libname]');
     exit(1);
   }
 
-  var filename = args[0];
-  var json = JSON.decode(new File(filename).readAsStringSync());
-  var info = new AllInfoJsonCodec().decode(json);
+  var info = await infoFromFile(args.first);
   var debugLibName;
 
   if (args.length > 2 && args[1] == '--show-library') {
