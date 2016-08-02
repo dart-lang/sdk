@@ -31,7 +31,14 @@ class StrongTypeSystemImpl extends TypeSystem {
    */
   final bool implicitCasts;
 
-  StrongTypeSystemImpl({this.implicitCasts: true});
+  /**
+   * A list of non-nullable type names (e.g., 'int', 'bool', etc.).
+   */
+  final List<String> nonnullableTypes;
+
+  StrongTypeSystemImpl(
+      {this.implicitCasts: true,
+      this.nonnullableTypes: AnalysisOptionsImpl.NONNULLABLE_TYPES});
 
   bool anyParameterType(FunctionType ft, bool predicate(DartType t)) {
     return ft.parameters.any((p) => predicate(p.type));
@@ -1186,7 +1193,9 @@ abstract class TypeSystem {
   static TypeSystem create(AnalysisContext context) {
     var options = context.analysisOptions as AnalysisOptionsImpl;
     return options.strongMode
-        ? new StrongTypeSystemImpl(implicitCasts: options.implicitCasts)
+        ? new StrongTypeSystemImpl(
+            implicitCasts: options.implicitCasts,
+            nonnullableTypes: options.nonnullableTypes)
         : new TypeSystemImpl();
   }
 }

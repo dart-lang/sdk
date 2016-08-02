@@ -42,4 +42,16 @@ main() {
 }
 ''');
   }
+
+  void test_nullableTypes() {
+    // By default x can be set to null.
+    checkFile('''int x = null;''');
+  }
+
+  @failingTest
+  void test_nonnullableTypes() {
+    // If `int`s are non-nullable, then this code should throw an error.
+    addFile('''int x = /*error:INVALID_ASSIGNMENT*/null;''');
+    check(nonnullableTypes: <String>['dart:core,int']);
+  }
 }

@@ -1312,6 +1312,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   bool implicitCasts = true;
 
+  /**
+   * A list of non-nullable type names, prefixed by the library URI they belong
+   * to, e.g., 'dart:core,int', 'dart:core,bool', 'file:///foo.dart,bar', etc.
+   */
+  List<String> nonnullableTypes = NONNULLABLE_TYPES;
+
   @override
   bool finerGrainedInvalidation = false;
 
@@ -1326,6 +1332,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * This option is experimental and subject to change.
    */
   bool implicitDynamic = true;
+
+  /**
+   * The default list of non-nullable type names.
+   */
+  static const List<String> NONNULLABLE_TYPES = const <String>[];
 
   /**
    * Initialize a newly created set of analysis options to have their default
@@ -1359,6 +1370,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
       implicitCasts = options.implicitCasts;
+      nonnullableTypes = options.nonnullableTypes;
       implicitDynamic = options.implicitDynamic;
     }
     trackCacheDependencies = options.trackCacheDependencies;
