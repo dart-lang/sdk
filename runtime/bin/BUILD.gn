@@ -253,6 +253,13 @@ executable("gen_snapshot") {
   include_dirs = [
     "..",
   ]
+
+  if (is_mac) {
+    libs = [
+      "CoreFoundation.framework",
+      "CoreServices.framework"
+    ]
+  }
 }
 
 # A source set for the implementation of 'dart:io' library
