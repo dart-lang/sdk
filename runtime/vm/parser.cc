@@ -8724,15 +8724,19 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
 
   // Parse stream expression.
   ExpectToken(Token::kIN);
+
+  // Open a block for the iterator variable and the try-finally statement
+  // that contains the loop. Ensure that the block starts at a different
+  // token position than the following loop block. Both blocks can allocate
+  // contexts and if they have a matching token position range,
+  // it can be an issue (cf. bug 26941).
+  OpenBlock();
+  const Block* await_for_block = current_block_;
+
   const TokenPosition stream_expr_pos = TokenPos();
   AstNode* stream_expr =
       ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
   ExpectToken(Token::kRPAREN);
-
-  // Open a block for the iterator variable and the try-finally
-  // statement that contains the loop.
-  OpenBlock();
-  const Block* loop_block = current_block_;
 
   // Build creation of implicit StreamIterator.
   // var :for-in-iter = new StreamIterator(stream_expr).
@@ -8983,8 +8987,8 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
                          try_index,
                          finally_clause);
 
-  ASSERT(current_block_ == loop_block);
-  loop_block->statements->Add(try_catch_node);
+  ASSERT(current_block_ == await_for_block);
+  await_for_block->statements->Add(try_catch_node);
 
   return CloseBlock();  // Implicit block around while loop.
 }
