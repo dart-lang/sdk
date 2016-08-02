@@ -463,11 +463,6 @@ void IsolateReloadContext::Reload(bool force_reload) {
   // Disable the background compiler while we are performing the reload.
   BackgroundCompiler::Disable();
 
-  if (FLAG_write_protect_code) {
-    // Disable code page write protection while we are reloading.
-    I->heap()->WriteProtectCode(false);
-  }
-
   // Ensure all functions on the stack have unoptimized code.
   EnsuredUnoptimizedCodeForStack();
   // Deoptimize all code that had optimizing decisions that are dependent on
@@ -540,11 +535,6 @@ void IsolateReloadContext::FinalizeLoading() {
   // not remove dead subclasses.  Rebuild the direct subclass
   // information from scratch.
   RebuildDirectSubclasses();
-
-  if (FLAG_write_protect_code) {
-    // Re-enable code page write protection.
-    I->heap()->WriteProtectCode(true);
-  }
 
   BackgroundCompiler::Enable();
 

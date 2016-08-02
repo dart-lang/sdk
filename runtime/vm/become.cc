@@ -148,16 +148,45 @@ class ForwardHeapPointersHandleVisitor : public HandleVisitor {
 };
 
 
+// On IA32, object pointers are embedded directly in the instruction stream,
+// which is normally write-protected, so we need to make it temporarily writable
+// to forward the pointers. On all other architectures, object pointers are
+// accessed through ObjectPools.
+class WritableCodeLiteralsScope : public ValueObject {
+ public:
+  explicit WritableCodeLiteralsScope(Heap* heap) : heap_(heap) {
+#if defined(TARGET_ARCH_IA32)
+    if (FLAG_write_protect_code) {
+      heap_->WriteProtectCode(false);
+    }
+#endif
+  }
+
+  ~WritableCodeLiteralsScope() {
+#if defined(TARGET_ARCH_IA32)
+    if (FLAG_write_protect_code) {
+      heap_->WriteProtectCode(true);
+    }
+#endif
+  }
+
+ private:
+  Heap* heap_;
+};
+
+
 void Become::MakeDummyObject(const Instance& instance) {
   // Make the forward pointer point to itself.
   // This is needed to distinguish it from a real forward object.
   ForwardObjectTo(instance.raw(), instance.raw());
 }
 
+
 static bool IsDummyObject(RawObject* object) {
   if (!object->IsForwardingCorpse()) return false;
   return GetForwardedObject(object) == object;
 }
+
 
 void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
   Thread* thread = Thread::Current();
@@ -210,9 +239,12 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
     isolate->VisitWeakPersistentHandles(&handle_visitor);
 
     //   Heap pointers (may require updating the remembered set)
-    ForwardHeapPointersVisitor object_visitor(&pointer_visitor);
-    heap->VisitObjects(&object_visitor);
-    pointer_visitor.VisitingObject(NULL);
+    {
+      WritableCodeLiteralsScope writable_code(heap);
+      ForwardHeapPointersVisitor object_visitor(&pointer_visitor);
+      heap->VisitObjects(&object_visitor);
+      pointer_visitor.VisitingObject(NULL);
+    }
 
 #if !defined(PRODUCT)
     tds.SetNumArguments(2);
