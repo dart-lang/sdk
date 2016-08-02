@@ -131,8 +131,7 @@ class IterableContainsUnrelatedType extends LintRule {
       name: 'iterable_contains_unrelated_type',
       description: _desc,
       details: _details,
-      group: Group.errors,
-      maturity: Maturity.experimental) {
+      group: Group.errors) {
     _visitor = new _Visitor(this);
   }
 

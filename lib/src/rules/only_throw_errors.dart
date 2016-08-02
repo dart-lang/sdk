@@ -60,8 +60,7 @@ class OnlyThrowErrors extends LintRule {
             name: 'only_throw_errors',
             description: _desc,
             details: _details,
-            group: Group.style,
-            maturity: Maturity.experimental) {
+            group: Group.style) {
     _visitor = new _Visitor(this);
   }
 

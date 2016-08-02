@@ -87,8 +87,7 @@ class OverriddenFields extends LintRule {
             name: 'overridden_fields',
             description: desc,
             details: details,
-            group: Group.style,
-            maturity: Maturity.experimental) {
+            group: Group.style) {
     _visitor = new _Visitor(this);
   }
 
