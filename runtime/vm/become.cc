@@ -152,27 +152,31 @@ class ForwardHeapPointersHandleVisitor : public HandleVisitor {
 // which is normally write-protected, so we need to make it temporarily writable
 // to forward the pointers. On all other architectures, object pointers are
 // accessed through ObjectPools.
+#if defined(TARGET_ARCH_IA32)
 class WritableCodeLiteralsScope : public ValueObject {
  public:
   explicit WritableCodeLiteralsScope(Heap* heap) : heap_(heap) {
-#if defined(TARGET_ARCH_IA32)
     if (FLAG_write_protect_code) {
       heap_->WriteProtectCode(false);
     }
-#endif
   }
 
   ~WritableCodeLiteralsScope() {
-#if defined(TARGET_ARCH_IA32)
     if (FLAG_write_protect_code) {
       heap_->WriteProtectCode(true);
     }
-#endif
   }
 
  private:
   Heap* heap_;
 };
+#else
+class WritableCodeLiteralsScope : public ValueObject {
+ public:
+  explicit WritableCodeLiteralsScope(Heap* heap) { }
+  ~WritableCodeLiteralsScope() { }
+};
+#endif
 
 
 void Become::MakeDummyObject(const Instance& instance) {
