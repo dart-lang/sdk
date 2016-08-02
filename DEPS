@@ -36,7 +36,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "@0.13.5",
-  "async_tag": "@1.10.0",
+  "async_tag": "@1.11.0",
   "barback-0.13.0_rev": "@34853",
   "barback-0.14.0_rev": "@36398",
   "barback-0.14.1_rev": "@38525",
@@ -89,7 +89,7 @@ vars = {
   "protobuf_tag": "@0.5.1+1",
   "pub_cache_tag": "@v0.1.0",
   "pub_rev": "@391b445dc6b28958794658b18caedb69d8cf8719",
-  "pub_semver_tag": "@1.2.1",
+  "pub_semver_tag": "@1.3.0",
   "quiver_tag": "@0.21.4",
   "resource_rev":"@a49101ba2deb29c728acba6fb86000a8f730f4b1",
   "root_certificates_rev": "@aed07942ce98507d2be28cbd29e879525410c7fc",
@@ -103,7 +103,7 @@ vars = {
   "source_maps_tag": "@0.10.1",
   "source_span_tag": "@1.2.0",
   "stack_trace_tag": "@1.4.2",
-  "stream_channel_tag": "@1.3.1",
+  "stream_channel_tag": "@1.5.0",
   "string_scanner_tag": "@0.1.4",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
   "test_reflective_loader_tag": "@0.0.3",
