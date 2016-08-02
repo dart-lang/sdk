@@ -516,6 +516,70 @@ void Precompiler::Iterate() {
     if (!changed_) {
       TraceConstFunctions();
     }
+    CollectCallbackFields();
+  }
+}
+
+
+void Precompiler::CollectCallbackFields() {
+  Library& lib = Library::Handle(Z);
+  Class& cls = Class::Handle(Z);
+  Class& subcls = Class::Handle(Z);
+  Array& fields = Array::Handle(Z);
+  Field& field = Field::Handle(Z);
+  Function& function = Function::Handle(Z);
+  Function& dispatcher = Function::Handle(Z);
+  Array& args_desc = Array::Handle(Z);
+  AbstractType& field_type = AbstractType::Handle(Z);
+  String& field_name = String::Handle(Z);
+  GrowableArray<intptr_t> cids;
+
+  for (intptr_t i = 0; i < libraries_.Length(); i++) {
+    lib ^= libraries_.At(i);
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+
+      if (!cls.is_allocated()) continue;
+
+      fields = cls.fields();
+      for (intptr_t k = 0; k < fields.Length(); k++) {
+        field ^= fields.At(k);
+        if (field.is_static()) continue;
+        field_type = field.type();
+        if (!field_type.IsFunctionType()) continue;
+        field_name = field.name();
+        if (!IsSent(field_name)) continue;
+        // Create arguments descriptor with fixed parameters from
+        // signature of field_type.
+        function = Type::Cast(field_type).signature();
+        if (function.HasOptionalParameters()) continue;
+        if (FLAG_trace_precompiler) {
+          THR_Print("Found callback field %s\n", field_name.ToCString());
+        }
+        args_desc =
+            ArgumentsDescriptor::New(function.num_fixed_parameters());
+        cids.Clear();
+        if (T->cha()->ConcreteSubclasses(cls, &cids)) {
+          for (intptr_t j = 0; j < cids.length(); ++j) {
+            subcls ^= I->class_table()->At(cids[j]);
+            if (subcls.is_allocated()) {
+              // Add dispatcher to cls.
+              dispatcher = subcls.GetInvocationDispatcher(
+                  field_name,
+                  args_desc,
+                  RawFunction::kInvokeFieldDispatcher,
+                  /* create_if_absent = */ true);
+              if (FLAG_trace_precompiler) {
+                THR_Print("Added invoke-field-dispatcher for %s to %s\n",
+                          field_name.ToCString(), subcls.ToCString());
+              }
+              AddFunction(dispatcher);
+            }
+          }
+        }
+      }
+    }
   }
 }
 
