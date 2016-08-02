@@ -9,6 +9,7 @@ library analyzer.src.task.strong.checker;
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -20,6 +21,21 @@ import 'package:analyzer/src/generated/type_system.dart';
 
 import 'ast_properties.dart';
 
+bool isKnownFunction(Expression expression) {
+  Element element = null;
+  if (expression is FunctionExpression) {
+    return true;
+  } else if (expression is PropertyAccess) {
+    element = expression.propertyName.staticElement;
+  } else if (expression is Identifier) {
+    element = expression.staticElement;
+  }
+// First class functions and static methods, where we know the original
+// declaration, will have an exact type, so we know a downcast will fail.
+  return element is FunctionElement ||
+      element is MethodElement && element.isStatic;
+}
+
 DartType _elementType(Element e) {
   if (e == null) {
     // Malformed code - just return dynamic.
@@ -28,6 +44,8 @@ DartType _elementType(Element e) {
   return (e as dynamic).type;
 }
 
+// Return the field on type corresponding to member, or null if none
+// exists or the "field" is actually a getter/setter.
 PropertyInducingElement _getMemberField(
     InterfaceType type, PropertyAccessorElement member) {
   String memberName = member.name;
@@ -53,8 +71,6 @@ PropertyInducingElement _getMemberField(
   return field;
 }
 
-// Return the field on type corresponding to member, or null if none
-// exists or the "field" is actually a getter/setter.
 /// Looks up the declaration that matches [member] in [type] and returns it's
 /// declared type.
 FunctionType _getMemberType(InterfaceType type, ExecutableElement member) =>
@@ -176,13 +192,6 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   @override
-  void visitCompilationUnit(CompilationUnit node) {
-    _hasImplicitCasts = false;
-    node.visitChildren(this);
-    setHasImplicitCasts(node, _hasImplicitCasts);
-  }
-
-  @override
   void visitAsExpression(AsExpression node) {
     // We could do the same check as the IsExpression below, but that is
     // potentially too conservative.  Instead, at runtime, we must fail hard
@@ -192,11 +201,16 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    var token = node.operator;
-    if (token.type == TokenType.EQ ||
-        token.type == TokenType.QUESTION_QUESTION_EQ) {
+    Token operator = node.operator;
+    TokenType operatorType = operator.type;
+    if (operatorType == TokenType.EQ ||
+        operatorType == TokenType.QUESTION_QUESTION_EQ) {
       DartType staticType = _getStaticType(node.leftHandSide);
       checkAssignment(node.rightHandSide, staticType);
+    } else if (operatorType == TokenType.AMPERSAND_AMPERSAND_EQ ||
+        operatorType == TokenType.BAR_BAR_EQ) {
+      checkAssignment(node.leftHandSide, typeProvider.boolType);
+      checkAssignment(node.rightHandSide, typeProvider.boolType);
     } else {
       _checkCompoundAssignment(node);
     }
@@ -256,6 +270,13 @@ class CodeChecker extends RecursiveAstVisitor {
   void visitComment(Comment node) {
     // skip, no need to do typechecking inside comments (they may contain
     // comment references which would require resolution).
+  }
+
+  @override
+  void visitCompilationUnit(CompilationUnit node) {
+    _hasImplicitCasts = false;
+    node.visitChildren(this);
+    setHasImplicitCasts(node, _hasImplicitCasts);
   }
 
   @override
@@ -853,90 +874,6 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
-  /// Records an implicit cast for the [expression] from [fromType] to [toType].
-  ///
-  /// This will emit the appropriate error/warning/hint message as well as mark
-  /// the AST node.
-  void _recordImplicitCast(
-      Expression expression, DartType fromType, DartType toType) {
-    // toT <:_R fromT => to <: fromT
-    // NB: classes with call methods are subtypes of function
-    // types, but the function type is not assignable to the class
-    assert(toType.isSubtypeOf(fromType) || fromType.isAssignableTo(toType));
-
-    // Inference "casts":
-    if (expression is Literal || expression is FunctionExpression) {
-      // fromT should be an exact type - this will almost certainly fail at
-      // runtime.
-      _recordMessage(expression, StrongModeCode.STATIC_TYPE_ERROR,
-          [expression, fromType, toType]);
-      return;
-    }
-
-    if (expression is InstanceCreationExpression) {
-      ConstructorElement e = expression.staticElement;
-      if (e == null || !e.isFactory) {
-        // fromT should be an exact type - this will almost certainly fail at
-        // runtime.
-
-        _recordMessage(expression, StrongModeCode.STATIC_TYPE_ERROR,
-            [expression, fromType, toType]);
-        return;
-      }
-    }
-
-    if (isKnownFunction(expression)) {
-      _recordMessage(expression, StrongModeCode.STATIC_TYPE_ERROR,
-          [expression, fromType, toType]);
-      return;
-    }
-
-    // TODO(vsm): Change this to an assert when we have generic methods and
-    // fix TypeRules._coerceTo to disallow implicit sideways casts.
-    bool downCastComposite = false;
-    if (!rules.isSubtypeOf(toType, fromType)) {
-      assert(toType.isSubtypeOf(fromType) || fromType.isAssignableTo(toType));
-      downCastComposite = true;
-    }
-
-    // Composite cast: these are more likely to fail.
-    if (!rules.isGroundType(toType)) {
-      // This cast is (probably) due to our different treatment of dynamic.
-      // It may be more likely to fail at runtime.
-      if (fromType is InterfaceType) {
-        // For class types, we'd like to allow non-generic down casts, e.g.,
-        // Iterable<T> to List<T>.  The intuition here is that raw (generic)
-        // casts are problematic, and we should complain about those.
-        var typeArgs = fromType.typeArguments;
-        downCastComposite =
-            typeArgs.isEmpty || typeArgs.any((t) => t.isDynamic);
-      } else {
-        downCastComposite = true;
-      }
-    }
-
-    var parent = expression.parent;
-    ErrorCode errorCode;
-    if (downCastComposite) {
-      errorCode = StrongModeCode.DOWN_CAST_COMPOSITE;
-    } else if (fromType.isDynamic) {
-      errorCode = StrongModeCode.DYNAMIC_CAST;
-    } else if (parent is VariableDeclaration &&
-        parent.initializer == expression) {
-      errorCode = StrongModeCode.ASSIGNMENT_CAST;
-    } else {
-      errorCode = StrongModeCode.DOWN_CAST_IMPLICIT;
-    }
-
-    _recordMessage(expression, errorCode, [fromType, toType]);
-    setImplicitCast(expression, toType);
-    _hasImplicitCasts = true;
-  }
-
-  // Produce a coercion which coerces something of type fromT
-  // to something of type toT.
-  // Returns the error coercion if the types cannot be coerced
-  // according to our current criteria.
   /// Gets the expected return type of the given function [body], either from
   /// a normal return/yield, or from a yield*.
   DartType _getExpectedReturnType(FunctionBody body, {bool yieldStar: false}) {
@@ -991,6 +928,10 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
+  // Produce a coercion which coerces something of type fromT
+  // to something of type toT.
+  // Returns the error coercion if the types cannot be coerced
+  // according to our current criteria.
   DartType _getStaticType(Expression expr) {
     DartType t = expr.staticType ?? DynamicTypeImpl.instance;
 
@@ -1085,6 +1026,86 @@ class CodeChecker extends RecursiveAstVisitor {
     setIsDynamicInvoke(target, true);
   }
 
+  /// Records an implicit cast for the [expression] from [fromType] to [toType].
+  ///
+  /// This will emit the appropriate error/warning/hint message as well as mark
+  /// the AST node.
+  void _recordImplicitCast(
+      Expression expression, DartType fromType, DartType toType) {
+    // toT <:_R fromT => to <: fromT
+    // NB: classes with call methods are subtypes of function
+    // types, but the function type is not assignable to the class
+    assert(toType.isSubtypeOf(fromType) || fromType.isAssignableTo(toType));
+
+    // Inference "casts":
+    if (expression is Literal || expression is FunctionExpression) {
+      // fromT should be an exact type - this will almost certainly fail at
+      // runtime.
+      _recordMessage(expression, StrongModeCode.STATIC_TYPE_ERROR,
+          [expression, fromType, toType]);
+      return;
+    }
+
+    if (expression is InstanceCreationExpression) {
+      ConstructorElement e = expression.staticElement;
+      if (e == null || !e.isFactory) {
+        // fromT should be an exact type - this will almost certainly fail at
+        // runtime.
+
+        _recordMessage(expression, StrongModeCode.STATIC_TYPE_ERROR,
+            [expression, fromType, toType]);
+        return;
+      }
+    }
+
+    if (isKnownFunction(expression)) {
+      _recordMessage(expression, StrongModeCode.STATIC_TYPE_ERROR,
+          [expression, fromType, toType]);
+      return;
+    }
+
+    // TODO(vsm): Change this to an assert when we have generic methods and
+    // fix TypeRules._coerceTo to disallow implicit sideways casts.
+    bool downCastComposite = false;
+    if (!rules.isSubtypeOf(toType, fromType)) {
+      assert(toType.isSubtypeOf(fromType) || fromType.isAssignableTo(toType));
+      downCastComposite = true;
+    }
+
+    // Composite cast: these are more likely to fail.
+    if (!rules.isGroundType(toType)) {
+      // This cast is (probably) due to our different treatment of dynamic.
+      // It may be more likely to fail at runtime.
+      if (fromType is InterfaceType) {
+        // For class types, we'd like to allow non-generic down casts, e.g.,
+        // Iterable<T> to List<T>.  The intuition here is that raw (generic)
+        // casts are problematic, and we should complain about those.
+        var typeArgs = fromType.typeArguments;
+        downCastComposite =
+            typeArgs.isEmpty || typeArgs.any((t) => t.isDynamic);
+      } else {
+        downCastComposite = true;
+      }
+    }
+
+    var parent = expression.parent;
+    ErrorCode errorCode;
+    if (downCastComposite) {
+      errorCode = StrongModeCode.DOWN_CAST_COMPOSITE;
+    } else if (fromType.isDynamic) {
+      errorCode = StrongModeCode.DYNAMIC_CAST;
+    } else if (parent is VariableDeclaration &&
+        parent.initializer == expression) {
+      errorCode = StrongModeCode.ASSIGNMENT_CAST;
+    } else {
+      errorCode = StrongModeCode.DOWN_CAST_IMPLICIT;
+    }
+
+    _recordMessage(expression, errorCode, [fromType, toType]);
+    setImplicitCast(expression, toType);
+    _hasImplicitCasts = true;
+  }
+
   void _recordMessage(AstNode node, ErrorCode errorCode, List arguments) {
     var severity = errorCode.errorSeverity;
     if (severity == ErrorSeverity.ERROR) _failure = true;
@@ -1099,21 +1120,6 @@ class CodeChecker extends RecursiveAstVisitor {
       reporter.onError(error);
     }
   }
-}
-
-bool isKnownFunction(Expression expression) {
-  Element element = null;
-  if (expression is FunctionExpression) {
-    return true;
-  } else if (expression is PropertyAccess) {
-    element = expression.propertyName.staticElement;
-  } else if (expression is Identifier) {
-    element = expression.staticElement;
-  }
-// First class functions and static methods, where we know the original
-// declaration, will have an exact type, so we know a downcast will fail.
-  return element is FunctionElement ||
-      element is MethodElement && element.isStatic;
 }
 
 /// Checks for overriding declarations of fields and methods. This is used to

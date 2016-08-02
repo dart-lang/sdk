@@ -255,6 +255,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       // bound of the static types of the LHS and RHS.
       _analyzeLeastUpperBound(node, node.leftHandSide, node.rightHandSide);
       return null;
+    } else if (operator == TokenType.AMPERSAND_AMPERSAND_EQ ||
+        operator == TokenType.BAR_BAR_EQ) {
+      _recordStaticType(node, _typeProvider.boolType);
     } else {
       ExecutableElement staticMethodElement = node.staticElement;
       DartType staticType = _computeStaticReturnType(staticMethodElement);

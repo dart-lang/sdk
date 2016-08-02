@@ -3324,6 +3324,11 @@ class ExitDetectorTest extends ParserTestCase {
     _assertFalse("v = 1;");
   }
 
+  void test_assignmentExpression_compound_lazy() {
+    enableLazyAssignmentOperators = true;
+    _assertFalse("v ||= false;");
+  }
+
   void test_assignmentExpression_lhs_throw() {
     _assertTrue("a[throw ''] = 0;");
   }
@@ -3997,7 +4002,8 @@ on String catch (e, s) { return 1; }''');
   }
 
   void _assertHasReturn(bool expectedResult, String source) {
-    Statement statement = ParserTestCase.parseStatement(source);
+    Statement statement = ParserTestCase.parseStatement(
+        source, [], enableLazyAssignmentOperators);
     expect(ExitDetector.exits(statement), expectedResult);
   }
 

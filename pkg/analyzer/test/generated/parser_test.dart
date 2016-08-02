@@ -2786,6 +2786,12 @@ class ParserTestCase extends EngineTestCase {
   bool enableGenericMethodComments = false;
 
   /**
+   * A flag indicating whether lazy assignment operators should be enabled for
+   * the test.
+   */
+  bool enableLazyAssignmentOperators = false;
+
+  /**
    * Return a CommentAndMetadata object with the given values that can be used for testing.
    *
    * @param comment the comment to be wrapped in the object
@@ -2829,6 +2835,7 @@ class ParserTestCase extends EngineTestCase {
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
     scanner.scanGenericMethodComments = enableGenericMethodComments;
+    scanner.scanLazyAssignmentOperators = enableLazyAssignmentOperators;
     Token tokenStream = scanner.tokenize();
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     //
@@ -3040,19 +3047,18 @@ class ParserTestCase extends EngineTestCase {
   }
 
   /**
-   * Parse the given source as a statement.
-   *
-   * @param source the source to be parsed
-   * @param errorCodes the error codes of the errors that are expected to be found
-   * @return the statement that was parsed
-   * @throws Exception if the source could not be parsed, if the compilation errors in the source do
-   *           not match those that are expected, or if the result would have been `null`
+   * Parse the given [source] as a statement. The [errorCodes] are the error
+   * codes of the errors that are expected to be found. If
+   * [enableLazyAssignmentOperators] is `true`, then lazy assignment operators
+   * should be enabled.
    */
   static Statement parseStatement(String source,
-      [List<ErrorCode> errorCodes = ErrorCode.EMPTY_LIST]) {
+      [List<ErrorCode> errorCodes = ErrorCode.EMPTY_LIST,
+      bool enableLazyAssignmentOperators]) {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
+    scanner.scanLazyAssignmentOperators = enableLazyAssignmentOperators;
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Token token = scanner.tokenize();
     Parser parser = createParser(listener);
@@ -7449,6 +7455,15 @@ void''');
     expect(expression.leftHandSide, isNotNull);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.EQ);
+    expect(expression.rightHandSide, isNotNull);
+  }
+
+  void test_parseExpression_assign_compound() {
+    enableLazyAssignmentOperators = true;
+    AssignmentExpression expression = parse4("parseExpression", "x ||= y");
+    expect(expression.leftHandSide, isNotNull);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.BAR_BAR_EQ);
     expect(expression.rightHandSide, isNotNull);
   }
 

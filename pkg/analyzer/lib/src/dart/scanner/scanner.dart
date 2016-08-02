@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:charcode/ascii.dart';
 
 /**
  * A state in a state machine used to scan keywords.
@@ -57,7 +58,7 @@ class KeywordState {
    * [character], or `null` if there is no valid state reachable from this state
    * with such a transition.
    */
-  KeywordState next(int character) => _table[character - 0x61];
+  KeywordState next(int character) => _table[character - $a];
 
   /**
    * Create the next state in the state machine where we have already recognized
@@ -69,7 +70,7 @@ class KeywordState {
       int start, List<String> strings, int offset, int length) {
     List<KeywordState> result = new List<KeywordState>(26);
     assert(length != 0);
-    int chunk = 0x0;
+    int chunk = $nul;
     int chunkStart = -1;
     bool isLeaf = false;
     for (int i = offset; i < offset + length; i++) {
@@ -80,7 +81,7 @@ class KeywordState {
         int c = strings[i].codeUnitAt(start);
         if (chunk != c) {
           if (chunkStart != -1) {
-            result[chunk - 0x61] = _computeKeywordStateTable(
+            result[chunk - $a] = _computeKeywordStateTable(
                 start + 1, strings, chunkStart, i - chunkStart);
           }
           chunkStart = i;
@@ -89,8 +90,8 @@ class KeywordState {
       }
     }
     if (chunkStart != -1) {
-      assert(result[chunk - 0x61] == null);
-      result[chunk - 0x61] = _computeKeywordStateTable(
+      assert(result[chunk - $a] == null);
+      result[chunk - $a] = _computeKeywordStateTable(
           start + 1, strings, chunkStart, offset + length - chunkStart);
     } else {
       assert(length == 1);
@@ -207,6 +208,12 @@ class Scanner {
   bool scanGenericMethodComments = false;
 
   /**
+   * A flag indicating whether the lazy compound assignment operators '&&=' and
+   * '||=' are enabled.
+   */
+  bool scanLazyAssignmentOperators = false;
+
+  /**
    * Initialize a newly created scanner to scan characters from the given
    * [source]. The given character [_reader] will be used to read the characters
    * in the source. The given [_errorListener] will be informed of any errors
@@ -260,175 +267,175 @@ class Scanner {
 
   int bigSwitch(int next) {
     _beginToken();
-    if (next == 0xD) {
+    if (next == $cr) {
       // '\r'
       next = _reader.advance();
-      if (next == 0xA) {
+      if (next == $lf) {
         // '\n'
         next = _reader.advance();
       }
       recordStartOfLine();
       return next;
-    } else if (next == 0xA) {
+    } else if (next == $lf) {
       // '\n'
       next = _reader.advance();
       recordStartOfLine();
       return next;
-    } else if (next == 0x9 || next == 0x20) {
+    } else if (next == $tab || next == $space) {
       // '\t' || ' '
       return _reader.advance();
     }
-    if (next == 0x72) {
+    if (next == $r) {
       // 'r'
       int peek = _reader.peek();
-      if (peek == 0x22 || peek == 0x27) {
+      if (peek == $double_quote || peek == $single_quote) {
         // '"' || "'"
         int start = _reader.offset;
         return _tokenizeString(_reader.advance(), start, true);
       }
     }
-    if (0x61 <= next && next <= 0x7A) {
+    if ($a <= next && next <= $z) {
       // 'a'-'z'
       return _tokenizeKeywordOrIdentifier(next, true);
     }
-    if ((0x41 <= next && next <= 0x5A) || next == 0x5F || next == 0x24) {
+    if (($A <= next && next <= $Z) || next == $_ || next == $$) {
       // 'A'-'Z' || '_' || '$'
       return _tokenizeIdentifier(next, _reader.offset, true);
     }
-    if (next == 0x3C) {
+    if (next == $lt) {
       // '<'
       return _tokenizeLessThan(next);
     }
-    if (next == 0x3E) {
+    if (next == $gt) {
       // '>'
       return _tokenizeGreaterThan(next);
     }
-    if (next == 0x3D) {
+    if (next == $equal) {
       // '='
       return _tokenizeEquals(next);
     }
-    if (next == 0x21) {
+    if (next == $exclamation) {
       // '!'
       return _tokenizeExclamation(next);
     }
-    if (next == 0x2B) {
+    if (next == $plus) {
       // '+'
       return _tokenizePlus(next);
     }
-    if (next == 0x2D) {
+    if (next == $minus) {
       // '-'
       return _tokenizeMinus(next);
     }
-    if (next == 0x2A) {
+    if (next == $asterisk) {
       // '*'
       return _tokenizeMultiply(next);
     }
-    if (next == 0x25) {
+    if (next == $percent) {
       // '%'
       return _tokenizePercent(next);
     }
-    if (next == 0x26) {
+    if (next == $ampersand) {
       // '&'
       return _tokenizeAmpersand(next);
     }
-    if (next == 0x7C) {
+    if (next == $bar) {
       // '|'
       return _tokenizeBar(next);
     }
-    if (next == 0x5E) {
+    if (next == $caret) {
       // '^'
       return _tokenizeCaret(next);
     }
-    if (next == 0x5B) {
+    if (next == $open_bracket) {
       // '['
       return _tokenizeOpenSquareBracket(next);
     }
-    if (next == 0x7E) {
+    if (next == $tilde) {
       // '~'
       return _tokenizeTilde(next);
     }
-    if (next == 0x5C) {
+    if (next == $backslash) {
       // '\\'
       _appendTokenOfType(TokenType.BACKSLASH);
       return _reader.advance();
     }
-    if (next == 0x23) {
+    if (next == $hash) {
       // '#'
       return _tokenizeTag(next);
     }
-    if (next == 0x28) {
+    if (next == $open_paren) {
       // '('
       _appendBeginToken(TokenType.OPEN_PAREN);
       return _reader.advance();
     }
-    if (next == 0x29) {
+    if (next == $close_paren) {
       // ')'
       _appendEndToken(TokenType.CLOSE_PAREN, TokenType.OPEN_PAREN);
       return _reader.advance();
     }
-    if (next == 0x2C) {
+    if (next == $comma) {
       // ','
       _appendTokenOfType(TokenType.COMMA);
       return _reader.advance();
     }
-    if (next == 0x3A) {
+    if (next == $colon) {
       // ':'
       _appendTokenOfType(TokenType.COLON);
       return _reader.advance();
     }
-    if (next == 0x3B) {
+    if (next == $semicolon) {
       // ';'
       _appendTokenOfType(TokenType.SEMICOLON);
       return _reader.advance();
     }
-    if (next == 0x3F) {
+    if (next == $question) {
       // '?'
       return _tokenizeQuestion();
     }
-    if (next == 0x5D) {
+    if (next == $close_bracket) {
       // ']'
       _appendEndToken(
           TokenType.CLOSE_SQUARE_BRACKET, TokenType.OPEN_SQUARE_BRACKET);
       return _reader.advance();
     }
-    if (next == 0x60) {
+    if (next == $backquote) {
       // '`'
       _appendTokenOfType(TokenType.BACKPING);
       return _reader.advance();
     }
-    if (next == 0x7B) {
+    if (next == $lbrace) {
       // '{'
       _appendBeginToken(TokenType.OPEN_CURLY_BRACKET);
       return _reader.advance();
     }
-    if (next == 0x7D) {
+    if (next == $rbrace) {
       // '}'
       _appendEndToken(
           TokenType.CLOSE_CURLY_BRACKET, TokenType.OPEN_CURLY_BRACKET);
       return _reader.advance();
     }
-    if (next == 0x2F) {
+    if (next == $slash) {
       // '/'
       return _tokenizeSlashOrComment(next);
     }
-    if (next == 0x40) {
+    if (next == $at) {
       // '@'
       _appendTokenOfType(TokenType.AT);
       return _reader.advance();
     }
-    if (next == 0x22 || next == 0x27) {
+    if (next == $double_quote || next == $single_quote) {
       // '"' || "'"
       return _tokenizeString(next, _reader.offset, false);
     }
-    if (next == 0x2E) {
+    if (next == $dot) {
       // '.'
       return _tokenizeDotOrNumber(next);
     }
-    if (next == 0x30) {
+    if (next == $0) {
       // '0'
       return _tokenizeHexOrNumber(next);
     }
-    if (0x31 <= next && next <= 0x39) {
+    if ($1 <= next && next <= $9) {
       // '1'-'9'
       return _tokenizeNumber(next);
     }
@@ -648,12 +655,12 @@ class Scanner {
   TokenType _matchGenericMethodCommentType(String value) {
     if (scanGenericMethodComments) {
       // Match /*< and >*/
-      if (StringUtilities.startsWith3(value, 0, 0x2F, 0x2A, 0x3C) &&
-          StringUtilities.endsWith3(value, 0x3E, 0x2A, 0x2F)) {
+      if (StringUtilities.startsWith3(value, 0, $slash, $asterisk, $lt) &&
+          StringUtilities.endsWith3(value, $gt, $asterisk, $slash)) {
         return TokenType.GENERIC_METHOD_TYPE_LIST;
       }
       // Match /*=
-      if (StringUtilities.startsWith3(value, 0, 0x2F, 0x2A, 0x3D)) {
+      if (StringUtilities.startsWith3(value, 0, $slash, $asterisk, $equal)) {
         return TokenType.GENERIC_METHOD_TYPE_ASSIGN;
       }
     }
@@ -694,12 +701,17 @@ class Scanner {
   }
 
   int _tokenizeAmpersand(int next) {
-    // && &= &
+    // &&= && &= &
     next = _reader.advance();
-    if (next == 0x26) {
+    if (next == $ampersand) {
+      next = _reader.advance();
+      if (scanLazyAssignmentOperators && next == $equal) {
+        _appendTokenOfType(TokenType.AMPERSAND_AMPERSAND_EQ);
+        return _reader.advance();
+      }
       _appendTokenOfType(TokenType.AMPERSAND_AMPERSAND);
-      return _reader.advance();
-    } else if (next == 0x3D) {
+      return next;
+    } else if (next == $equal) {
       _appendTokenOfType(TokenType.AMPERSAND_EQ);
       return _reader.advance();
     } else {
@@ -709,12 +721,17 @@ class Scanner {
   }
 
   int _tokenizeBar(int next) {
-    // | || |=
+    // ||= || |= |
     next = _reader.advance();
-    if (next == 0x7C) {
+    if (next == $bar) {
+      next = _reader.advance();
+      if (scanLazyAssignmentOperators && next == $equal) {
+        _appendTokenOfType(TokenType.BAR_BAR_EQ);
+        return _reader.advance();
+      }
       _appendTokenOfType(TokenType.BAR_BAR);
-      return _reader.advance();
-    } else if (next == 0x3D) {
+      return next;
+    } else if (next == $equal) {
       _appendTokenOfType(TokenType.BAR_EQ);
       return _reader.advance();
     } else {
@@ -724,16 +741,16 @@ class Scanner {
   }
 
   int _tokenizeCaret(int next) =>
-      _select(0x3D, TokenType.CARET_EQ, TokenType.CARET);
+      _select($equal, TokenType.CARET_EQ, TokenType.CARET);
 
   int _tokenizeDotOrNumber(int next) {
     int start = _reader.offset;
     next = _reader.advance();
-    if (0x30 <= next && next <= 0x39) {
+    if ($0 <= next && next <= $9) {
       return _tokenizeFractionPart(next, start);
-    } else if (0x2E == next) {
+    } else if ($dot == next) {
       return _select(
-          0x2E, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD);
+          $dot, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD);
     } else {
       _appendTokenOfType(TokenType.PERIOD);
       return next;
@@ -743,10 +760,10 @@ class Scanner {
   int _tokenizeEquals(int next) {
     // = == =>
     next = _reader.advance();
-    if (next == 0x3D) {
+    if (next == $equal) {
       _appendTokenOfType(TokenType.EQ_EQ);
       return _reader.advance();
-    } else if (next == 0x3E) {
+    } else if (next == $gt) {
       _appendTokenOfType(TokenType.FUNCTION);
       return _reader.advance();
     }
@@ -757,7 +774,7 @@ class Scanner {
   int _tokenizeExclamation(int next) {
     // ! !=
     next = _reader.advance();
-    if (next == 0x3D) {
+    if (next == $equal) {
       _appendTokenOfType(TokenType.BANG_EQ);
       return _reader.advance();
     }
@@ -766,12 +783,12 @@ class Scanner {
   }
 
   int _tokenizeExponent(int next) {
-    if (next == 0x2B || next == 0x2D) {
+    if (next == $plus || next == $minus) {
       next = _reader.advance();
     }
     bool hasDigits = false;
     while (true) {
-      if (0x30 <= next && next <= 0x39) {
+      if ($0 <= next && next <= $9) {
         hasDigits = true;
       } else {
         if (!hasDigits) {
@@ -787,9 +804,9 @@ class Scanner {
     bool done = false;
     bool hasDigit = false;
     LOOP: while (!done) {
-      if (0x30 <= next && next <= 0x39) {
+      if ($0 <= next && next <= $9) {
         hasDigit = true;
-      } else if (0x65 == next || 0x45 == next) {
+      } else if ($e == next || $E == next) {
         hasDigit = true;
         next = _tokenizeExponent(_reader.advance());
         done = true;
@@ -802,8 +819,8 @@ class Scanner {
     }
     if (!hasDigit) {
       _appendStringToken(TokenType.INT, _reader.getString(start, -2));
-      if (0x2E == next) {
-        return _selectWithOffset(0x2E, TokenType.PERIOD_PERIOD_PERIOD,
+      if ($dot == next) {
+        return _selectWithOffset($dot, TokenType.PERIOD_PERIOD_PERIOD,
             TokenType.PERIOD_PERIOD, _reader.offset - 1);
       }
       _appendTokenOfTypeWithOffset(TokenType.PERIOD, _reader.offset - 1);
@@ -817,12 +834,12 @@ class Scanner {
   int _tokenizeGreaterThan(int next) {
     // > >= >> >>=
     next = _reader.advance();
-    if (0x3D == next) {
+    if ($equal == next) {
       _appendTokenOfType(TokenType.GT_EQ);
       return _reader.advance();
-    } else if (0x3E == next) {
+    } else if ($gt == next) {
       next = _reader.advance();
-      if (0x3D == next) {
+      if ($equal == next) {
         _appendTokenOfType(TokenType.GT_GT_EQ);
         return _reader.advance();
       } else {
@@ -840,9 +857,9 @@ class Scanner {
     bool hasDigits = false;
     while (true) {
       next = _reader.advance();
-      if ((0x30 <= next && next <= 0x39) ||
-          (0x41 <= next && next <= 0x46) ||
-          (0x61 <= next && next <= 0x66)) {
+      if (($0 <= next && next <= $9) ||
+          ($A <= next && next <= $F) ||
+          ($a <= next && next <= $f)) {
         hasDigits = true;
       } else {
         if (!hasDigits) {
@@ -857,7 +874,7 @@ class Scanner {
 
   int _tokenizeHexOrNumber(int next) {
     int x = _reader.peek();
-    if (x == 0x78 || x == 0x58) {
+    if (x == $x || x == $X) {
       _reader.advance();
       return _tokenizeHex(x);
     }
@@ -865,11 +882,11 @@ class Scanner {
   }
 
   int _tokenizeIdentifier(int next, int start, bool allowDollar) {
-    while ((0x61 <= next && next <= 0x7A) ||
-        (0x41 <= next && next <= 0x5A) ||
-        (0x30 <= next && next <= 0x39) ||
-        next == 0x5F ||
-        (next == 0x24 && allowDollar)) {
+    while (($a <= next && next <= $z) ||
+        ($A <= next && next <= $Z) ||
+        ($0 <= next && next <= $9) ||
+        next == $_ ||
+        (next == $$ && allowDollar)) {
       next = _reader.advance();
     }
     _appendStringToken(
@@ -881,7 +898,7 @@ class Scanner {
     _appendBeginToken(TokenType.STRING_INTERPOLATION_EXPRESSION);
     next = _reader.advance();
     while (next != -1) {
-      if (next == 0x7D) {
+      if (next == $rbrace) {
         BeginToken begin =
             _findTokenMatchingClosingBraceInInterpolationExpression();
         if (begin == null) {
@@ -914,9 +931,9 @@ class Scanner {
   int _tokenizeInterpolatedIdentifier(int next, int start) {
     _appendStringTokenWithOffset(
         TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 0);
-    if ((0x41 <= next && next <= 0x5A) ||
-        (0x61 <= next && next <= 0x7A) ||
-        next == 0x5F) {
+    if (($A <= next && next <= $Z) ||
+        ($a <= next && next <= $z) ||
+        next == $_) {
       _beginToken();
       next = _tokenizeKeywordOrIdentifier(next, false);
     }
@@ -927,17 +944,17 @@ class Scanner {
   int _tokenizeKeywordOrIdentifier(int next, bool allowDollar) {
     KeywordState state = KeywordState.KEYWORD_STATE;
     int start = _reader.offset;
-    while (state != null && 0x61 <= next && next <= 0x7A) {
+    while (state != null && $a <= next && next <= $z) {
       state = state.next(next);
       next = _reader.advance();
     }
     if (state == null || state.keyword() == null) {
       return _tokenizeIdentifier(next, start, allowDollar);
     }
-    if ((0x41 <= next && next <= 0x5A) ||
-        (0x30 <= next && next <= 0x39) ||
-        next == 0x5F ||
-        next == 0x24) {
+    if (($A <= next && next <= $Z) ||
+        ($0 <= next && next <= $9) ||
+        next == $_ ||
+        next == $$) {
       return _tokenizeIdentifier(next, start, allowDollar);
     } else if (next < 128) {
       _appendKeywordToken(state.keyword());
@@ -950,11 +967,11 @@ class Scanner {
   int _tokenizeLessThan(int next) {
     // < <= << <<=
     next = _reader.advance();
-    if (0x3D == next) {
+    if ($equal == next) {
       _appendTokenOfType(TokenType.LT_EQ);
       return _reader.advance();
-    } else if (0x3C == next) {
-      return _select(0x3D, TokenType.LT_LT_EQ, TokenType.LT_LT);
+    } else if ($lt == next) {
+      return _select($equal, TokenType.LT_LT_EQ, TokenType.LT_LT);
     } else {
       _appendTokenOfType(TokenType.LT);
       return next;
@@ -964,10 +981,10 @@ class Scanner {
   int _tokenizeMinus(int next) {
     // - -- -=
     next = _reader.advance();
-    if (next == 0x2D) {
+    if (next == $minus) {
       _appendTokenOfType(TokenType.MINUS_MINUS);
       return _reader.advance();
-    } else if (next == 0x3D) {
+    } else if (next == $equal) {
       _appendTokenOfType(TokenType.MINUS_EQ);
       return _reader.advance();
     } else {
@@ -985,9 +1002,9 @@ class Scanner {
         _appendCommentToken(
             TokenType.MULTI_LINE_COMMENT, _reader.getString(_tokenStart, 0));
         return next;
-      } else if (0x2A == next) {
+      } else if ($asterisk == next) {
         next = _reader.advance();
-        if (0x2F == next) {
+        if ($slash == next) {
           --nesting;
           if (0 == nesting) {
             _appendCommentToken(TokenType.MULTI_LINE_COMMENT,
@@ -997,19 +1014,19 @@ class Scanner {
             next = _reader.advance();
           }
         }
-      } else if (0x2F == next) {
+      } else if ($slash == next) {
         next = _reader.advance();
-        if (0x2A == next) {
+        if ($asterisk == next) {
           next = _reader.advance();
           ++nesting;
         }
-      } else if (next == 0xD) {
+      } else if (next == $cr) {
         next = _reader.advance();
-        if (next == 0xA) {
+        if (next == $lf) {
           next = _reader.advance();
         }
         recordStartOfLine();
-      } else if (next == 0xA) {
+      } else if (next == $lf) {
         next = _reader.advance();
         recordStartOfLine();
       } else {
@@ -1024,13 +1041,13 @@ class Scanner {
       while (next != quoteChar) {
         if (next == -1) {
           break outer;
-        } else if (next == 0xD) {
+        } else if (next == $cr) {
           next = _reader.advance();
-          if (next == 0xA) {
+          if (next == $lf) {
             next = _reader.advance();
           }
           recordStartOfLine();
-        } else if (next == 0xA) {
+        } else if (next == $lf) {
           next = _reader.advance();
           recordStartOfLine();
         } else {
@@ -1057,7 +1074,7 @@ class Scanner {
     }
     int next = _reader.advance();
     while (next != -1) {
-      if (next == 0x24) {
+      if (next == $$) {
         _appendStringToken(TokenType.STRING, _reader.getString(start, -1));
         next = _tokenizeStringInterpolation(start);
         _beginToken();
@@ -1075,30 +1092,30 @@ class Scanner {
         }
         continue;
       }
-      if (next == 0x5C) {
+      if (next == $backslash) {
         next = _reader.advance();
         if (next == -1) {
           break;
         }
-        if (next == 0xD) {
+        if (next == $cr) {
           next = _reader.advance();
-          if (next == 0xA) {
+          if (next == $lf) {
             next = _reader.advance();
           }
           recordStartOfLine();
-        } else if (next == 0xA) {
+        } else if (next == $lf) {
           recordStartOfLine();
           next = _reader.advance();
         } else {
           next = _reader.advance();
         }
-      } else if (next == 0xD) {
+      } else if (next == $cr) {
         next = _reader.advance();
-        if (next == 0xA) {
+        if (next == $lf) {
           next = _reader.advance();
         }
         recordStartOfLine();
-      } else if (next == 0xA) {
+      } else if (next == $lf) {
         recordStartOfLine();
         next = _reader.advance();
       } else {
@@ -1115,17 +1132,17 @@ class Scanner {
   }
 
   int _tokenizeMultiply(int next) =>
-      _select(0x3D, TokenType.STAR_EQ, TokenType.STAR);
+      _select($equal, TokenType.STAR_EQ, TokenType.STAR);
 
   int _tokenizeNumber(int next) {
     int start = _reader.offset;
     while (true) {
       next = _reader.advance();
-      if (0x30 <= next && next <= 0x39) {
+      if ($0 <= next && next <= $9) {
         continue;
-      } else if (next == 0x2E) {
+      } else if (next == $dot) {
         return _tokenizeFractionPart(_reader.advance(), start);
-      } else if (next == 0x65 || next == 0x45) {
+      } else if (next == $e || next == $E) {
         return _tokenizeFractionPart(next, start);
       } else {
         _appendStringToken(
@@ -1138,8 +1155,8 @@ class Scanner {
   int _tokenizeOpenSquareBracket(int next) {
     // [ []  []=
     next = _reader.advance();
-    if (next == 0x5D) {
-      return _select(0x3D, TokenType.INDEX_EQ, TokenType.INDEX);
+    if (next == $close_bracket) {
+      return _select($equal, TokenType.INDEX_EQ, TokenType.INDEX);
     } else {
       _appendBeginToken(TokenType.OPEN_SQUARE_BRACKET);
       return next;
@@ -1147,15 +1164,15 @@ class Scanner {
   }
 
   int _tokenizePercent(int next) =>
-      _select(0x3D, TokenType.PERCENT_EQ, TokenType.PERCENT);
+      _select($equal, TokenType.PERCENT_EQ, TokenType.PERCENT);
 
   int _tokenizePlus(int next) {
     // + ++ +=
     next = _reader.advance();
-    if (0x2B == next) {
+    if ($plus == next) {
       _appendTokenOfType(TokenType.PLUS_PLUS);
       return _reader.advance();
-    } else if (0x3D == next) {
+    } else if ($equal == next) {
       _appendTokenOfType(TokenType.PLUS_EQ);
       return _reader.advance();
     } else {
@@ -1167,14 +1184,14 @@ class Scanner {
   int _tokenizeQuestion() {
     // ? ?. ?? ??=
     int next = _reader.advance();
-    if (next == 0x2E) {
+    if (next == $dot) {
       // '.'
       _appendTokenOfType(TokenType.QUESTION_PERIOD);
       return _reader.advance();
-    } else if (next == 0x3F) {
+    } else if (next == $question) {
       // '?'
       next = _reader.advance();
-      if (next == 0x3D) {
+      if (next == $equal) {
         // '='
         _appendTokenOfType(TokenType.QUESTION_QUESTION_EQ);
         return _reader.advance();
@@ -1195,7 +1212,7 @@ class Scanner {
         _appendCommentToken(
             TokenType.SINGLE_LINE_COMMENT, _reader.getString(_tokenStart, 0));
         return next;
-      } else if (0xA == next || 0xD == next) {
+      } else if ($lf == next || $cr == next) {
         _appendCommentToken(
             TokenType.SINGLE_LINE_COMMENT, _reader.getString(_tokenStart, -1));
         return next;
@@ -1209,7 +1226,7 @@ class Scanner {
       if (next == quoteChar) {
         _appendStringToken(TokenType.STRING, _reader.getString(start, 0));
         return _reader.advance();
-      } else if (next == 0xD || next == 0xA) {
+      } else if (next == $cr || next == $lf) {
         _reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
         _appendStringToken(TokenType.STRING, _reader.getString(start, -1));
         return _reader.advance();
@@ -1223,16 +1240,16 @@ class Scanner {
 
   int _tokenizeSingleLineString(int next, int quoteChar, int start) {
     while (next != quoteChar) {
-      if (next == 0x5C) {
+      if (next == $backslash) {
         next = _reader.advance();
-      } else if (next == 0x24) {
+      } else if (next == $$) {
         _appendStringToken(TokenType.STRING, _reader.getString(start, -1));
         next = _tokenizeStringInterpolation(start);
         _beginToken();
         start = _reader.offset;
         continue;
       }
-      if (next <= 0xD && (next == 0xA || next == 0xD || next == -1)) {
+      if (next <= $cr && (next == $lf || next == $cr || next == -1)) {
         _reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
         if (start == _reader.offset) {
           _appendStringTokenWithOffset(TokenType.STRING, "", 1);
@@ -1251,11 +1268,11 @@ class Scanner {
 
   int _tokenizeSlashOrComment(int next) {
     next = _reader.advance();
-    if (0x2A == next) {
+    if ($asterisk == next) {
       return _tokenizeMultiLineComment(next);
-    } else if (0x2F == next) {
+    } else if ($slash == next) {
       return _tokenizeSingleLineComment(next);
-    } else if (0x3D == next) {
+    } else if ($equal == next) {
       _appendTokenOfType(TokenType.SLASH_EQ);
       return _reader.advance();
     } else {
@@ -1288,7 +1305,7 @@ class Scanner {
   int _tokenizeStringInterpolation(int start) {
     _beginToken();
     int next = _reader.advance();
-    if (next == 0x7B) {
+    if (next == $lbrace) {
       return _tokenizeInterpolatedExpression(next, start);
     } else {
       return _tokenizeInterpolatedIdentifier(next, start);
@@ -1298,10 +1315,10 @@ class Scanner {
   int _tokenizeTag(int next) {
     // # or #!.*[\n\r]
     if (_reader.offset == 0) {
-      if (_reader.peek() == 0x21) {
+      if (_reader.peek() == $exclamation) {
         do {
           next = _reader.advance();
-        } while (next != 0xA && next != 0xD && next > 0);
+        } while (next != $lf && next != $cr && next > 0);
         _appendStringToken(
             TokenType.SCRIPT_TAG, _reader.getString(_tokenStart, 0));
         return next;
@@ -1314,8 +1331,8 @@ class Scanner {
   int _tokenizeTilde(int next) {
     // ~ ~/ ~/=
     next = _reader.advance();
-    if (next == 0x2F) {
-      return _select(0x3D, TokenType.TILDE_SLASH_EQ, TokenType.TILDE_SLASH);
+    if (next == $slash) {
+      return _select($equal, TokenType.TILDE_SLASH_EQ, TokenType.TILDE_SLASH);
     } else {
       _appendTokenOfType(TokenType.TILDE);
       return next;
@@ -1326,8 +1343,8 @@ class Scanner {
    * Checks if [value] is a single-line or multi-line comment.
    */
   static bool _isDocumentationComment(String value) {
-    return StringUtilities.startsWith3(value, 0, 0x2F, 0x2F, 0x2F) ||
-        StringUtilities.startsWith3(value, 0, 0x2F, 0x2A, 0x2A);
+    return StringUtilities.startsWith3(value, 0, $slash, $slash, $slash) ||
+        StringUtilities.startsWith3(value, 0, $slash, $asterisk, $asterisk);
   }
 }
 

@@ -394,6 +394,19 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     validate(TokenType.TILDE_SLASH_EQ);
   }
 
+  void test_visitAssignmentExpression_compound_lazy() {
+    validate(TokenType operator) {
+      InterfaceType boolType = _typeProvider.boolType;
+      SimpleIdentifier identifier = _resolvedVariable(boolType, "b");
+      AssignmentExpression node = AstFactory.assignmentExpression(
+          identifier, operator, _resolvedBool(true));
+      expect(_analyze(node), same(boolType));
+      _listener.assertNoErrors();
+    }
+    validate(TokenType.AMPERSAND_AMPERSAND_EQ);
+    validate(TokenType.BAR_BAR_EQ);
+  }
+
   void test_visitAssignmentExpression_compound_plusID() {
     validate(TokenType operator) {
       InterfaceType numType = _typeProvider.numType;
@@ -1562,6 +1575,16 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     identifier.propagatedElement = element;
     identifier.propagatedType = type;
     return identifier;
+  }
+
+  /**
+   * Return a boolean literal with the given [value] that has been resolved to
+   * the correct type.
+   */
+  BooleanLiteral _resolvedBool(bool value) {
+    BooleanLiteral literal = AstFactory.booleanLiteral(value);
+    literal.staticType = _typeProvider.intType;
+    return literal;
   }
 
   /**

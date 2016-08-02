@@ -1070,6 +1070,12 @@ abstract class AnalysisOptions {
   bool get enableGenericMethods => null;
 
   /**
+   * Return `true` to enable the lazy compound assignment operators '&&=' and
+   * '||='.
+   */
+  bool get enableLazyAssignmentOperators;
+
+  /**
    * Return `true` to strictly follow the specification when generating
    * warnings on "call" methods (fixes dartbug.com/21938).
    */
@@ -1218,6 +1224,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * A flag indicating whether generic methods are to be supported (DEP 22).
    */
   bool enableGenericMethods = false;
+
+  @override
+  bool enableLazyAssignmentOperators = false;
 
   /**
    * A flag indicating whether analysis is to strictly follow the specification

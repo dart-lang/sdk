@@ -409,6 +409,9 @@ class TokenType {
   static const TokenType AMPERSAND_AMPERSAND = const TokenType._(
       'AMPERSAND_AMPERSAND', TokenClass.LOGICAL_AND_OPERATOR, '&&');
 
+  static const TokenType AMPERSAND_AMPERSAND_EQ = const TokenType._(
+      'AMPERSAND_AMPERSAND_EQ', TokenClass.ASSIGNMENT_OPERATOR, '&&=');
+
   static const TokenType AMPERSAND_EQ =
       const TokenType._('AMPERSAND_EQ', TokenClass.ASSIGNMENT_OPERATOR, '&=');
 
@@ -425,6 +428,9 @@ class TokenType {
 
   static const TokenType BAR_BAR =
       const TokenType._('BAR_BAR', TokenClass.LOGICAL_OR_OPERATOR, '||');
+
+  static const TokenType BAR_BAR_EQ =
+      const TokenType._('BAR_BAR_EQ', TokenClass.ASSIGNMENT_OPERATOR, '||=');
 
   static const TokenType BAR_EQ =
       const TokenType._('BAR_EQ', TokenClass.ASSIGNMENT_OPERATOR, '|=');
