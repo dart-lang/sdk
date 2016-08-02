@@ -72,10 +72,6 @@ class CompileCommand extends Command {
       modulePath = path.basenameWithoutExtension(outPath);
     }
 
-    if (argResults.rest.isEmpty) {
-      usageException('Please pass at least one source file as an argument.');
-    }
-
     var unit = new BuildUnit(modulePath, libraryRoot, argResults.rest,
         (source) => _moduleForLibrary(moduleRoot, source));
 
