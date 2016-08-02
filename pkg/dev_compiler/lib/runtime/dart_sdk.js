@@ -949,7 +949,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.callableClass = function(callableCtor, classExpr) {
     callableCtor.prototype = classExpr.prototype;
     callableCtor.prototype.constructor = callableCtor;
-    callableCtor.__proto__ = classExpr.__proto__;
+    callableCtor.__proto__ = classExpr;
     return callableCtor;
   };
   dart.defineNamedConstructorCallable = function(clazz, name, ctor) {

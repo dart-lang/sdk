@@ -13,9 +13,8 @@ dart_library.library('language/call_with_no_such_method_test', null, /* Imports 
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   let const$;
   call_with_no_such_method_test.F = dart.callableClass(function F(...args) {
-    const self = this;
     function call(...args) {
-      return self.call.apply(self, args);
+      return call.call.apply(call, args);
     }
     call.__proto__ = this.__proto__;
     call.new.apply(call, args);

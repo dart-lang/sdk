@@ -468,7 +468,7 @@ callableClass(callableCtor, classExpr) {
   // We're not going to use the original class, so we can safely replace it to
   // point at this constructor for the runtime type information.
   JS('', '#.prototype.constructor = #', callableCtor, callableCtor);
-  JS('', '#.__proto__ = #.__proto__', callableCtor, classExpr);
+  JS('', '#.__proto__ = #', callableCtor, classExpr);
   return callableCtor;
 }
 

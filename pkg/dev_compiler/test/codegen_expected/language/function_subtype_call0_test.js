@@ -14,9 +14,8 @@ dart_library.library('language/function_subtype_call0_test', null, /* Imports */
   function_subtype_call0_test.Baz = dart.typedef('Baz', () => dart.functionType(dart.void, [core.bool], {b: core.String}));
   function_subtype_call0_test.Boz = dart.typedef('Boz', () => dart.functionType(dart.void, [core.bool]));
   function_subtype_call0_test.C1 = dart.callableClass(function C1(...args) {
-    const self = this;
     function call(...args) {
-      return self.call.apply(self, args);
+      return call.call.apply(call, args);
     }
     call.__proto__ = this.__proto__;
     call.new.apply(call, args);
@@ -30,9 +29,8 @@ dart_library.library('language/function_subtype_call0_test', null, /* Imports */
     methods: () => ({call: dart.definiteFunctionType(dart.void, [core.bool], [core.String])})
   });
   function_subtype_call0_test.C2 = dart.callableClass(function C2(...args) {
-    const self = this;
     function call(...args) {
-      return self.call.apply(self, args);
+      return call.call.apply(call, args);
     }
     call.__proto__ = this.__proto__;
     call.new.apply(call, args);
@@ -46,9 +44,8 @@ dart_library.library('language/function_subtype_call0_test', null, /* Imports */
     methods: () => ({call: dart.definiteFunctionType(dart.void, [core.bool], {b: core.String})})
   });
   function_subtype_call0_test.C3 = dart.callableClass(function C3(...args) {
-    const self = this;
     function call(...args) {
-      return self.call.apply(self, args);
+      return call.call.apply(call, args);
     }
     call.__proto__ = this.__proto__;
     call.new.apply(call, args);

@@ -17,9 +17,8 @@ dart_library.library('language/function_subtype3_test', null, /* Imports */[
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   function_subtype3_test.FunctionLike$ = dart.generic(T => {
     const FunctionLike = dart.callableClass(function FunctionLike(...args) {
-      const self = this;
       function call(...args) {
-        return self.call.apply(self, args);
+        return call.call.apply(call, args);
       }
       call.__proto__ = this.__proto__;
       call.new.apply(call, args);

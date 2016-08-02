@@ -21,9 +21,8 @@ dart_library.library('language/function_subtype_call1_test', null, /* Imports */
   function_subtype_call1_test.Boz = dart.typedef('Boz', () => dart.functionType(dart.void, [core.bool]));
   function_subtype_call1_test.C1$ = dart.generic(T => {
     const C1 = dart.callableClass(function C1(...args) {
-      const self = this;
       function call(...args) {
-        return self.call.apply(self, args);
+        return call.call.apply(call, args);
       }
       call.__proto__ = this.__proto__;
       call.new.apply(call, args);
@@ -43,9 +42,8 @@ dart_library.library('language/function_subtype_call1_test', null, /* Imports */
   function_subtype_call1_test.C1 = C1();
   function_subtype_call1_test.C2$ = dart.generic(T => {
     const C2 = dart.callableClass(function C2(...args) {
-      const self = this;
       function call(...args) {
-        return self.call.apply(self, args);
+        return call.call.apply(call, args);
       }
       call.__proto__ = this.__proto__;
       call.new.apply(call, args);

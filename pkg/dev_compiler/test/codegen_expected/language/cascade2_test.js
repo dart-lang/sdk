@@ -12,9 +12,8 @@ dart_library.library('language/cascade2_test', null, /* Imports */[
   let dynamicTobool = () => (dynamicTobool = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   cascade2_test.A = dart.callableClass(function A(...args) {
-    const self = this;
     function call(...args) {
-      return self.call.apply(self, args);
+      return call.call.apply(call, args);
     }
     call.__proto__ = this.__proto__;
     call.new.apply(call, args);

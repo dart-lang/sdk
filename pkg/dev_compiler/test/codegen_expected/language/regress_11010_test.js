@@ -14,9 +14,8 @@ dart_library.library('language/regress_11010_test', null, /* Imports */[
     set caller(_) {}
   });
   regress_11010_test.Caller = dart.callableClass(function Caller(...args) {
-    const self = this;
     function call(...args) {
-      return self.call.apply(self, args);
+      return call.call.apply(call, args);
     }
     call.__proto__ = this.__proto__;
     call.new.apply(call, args);

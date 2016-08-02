@@ -10,9 +10,8 @@ dart_library.library('language/call_this_test', null, /* Imports */[
   const call_this_test = Object.create(null);
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   call_this_test.A = dart.callableClass(function A(...args) {
-    const self = this;
     function call(...args) {
-      return self.call.apply(self, args);
+      return call.call.apply(call, args);
     }
     call.__proto__ = this.__proto__;
     call.new.apply(call, args);

@@ -14,9 +14,8 @@ dart_library.library('corelib/apply3_test', null, /* Imports */[
   let MapOfSymbol$dynamic = () => (MapOfSymbol$dynamic = dart.constFn(core.Map$(core.Symbol, dart.dynamic)))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   apply3_test.F = dart.callableClass(function F(...args) {
-    const self = this;
     function call(...args) {
-      return self.call.apply(self, args);
+      return call.call.apply(call, args);
     }
     call.__proto__ = this.__proto__;
     call.new.apply(call, args);
@@ -34,9 +33,8 @@ dart_library.library('corelib/apply3_test', null, /* Imports */[
     methods: () => ({call: dart.definiteFunctionType(dart.dynamic, [], [dart.dynamic])})
   });
   apply3_test.G = dart.callableClass(function G(...args) {
-    const self = this;
     function call(...args) {
-      return self.call.apply(self, args);
+      return call.call.apply(call, args);
     }
     call.__proto__ = this.__proto__;
     call.new.apply(call, args);
@@ -53,9 +51,8 @@ dart_library.library('corelib/apply3_test', null, /* Imports */[
     methods: () => ({call: dart.definiteFunctionType(dart.dynamic, [])})
   });
   apply3_test.H = dart.callableClass(function H(...args) {
-    const self = this;
     function call(...args) {
-      return self.call.apply(self, args);
+      return call.call.apply(call, args);
     }
     call.__proto__ = this.__proto__;
     call.new.apply(call, args);

@@ -8,9 +8,8 @@ dart_library.library('language/regress_21793_test_none_multi', null, /* Imports 
   const regress_21793_test_none_multi = Object.create(null);
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   regress_21793_test_none_multi.A = dart.callableClass(function A(...args) {
-    const self = this;
     function call(...args) {
-      return self.call.apply(self, args);
+      return call.call.apply(call, args);
     }
     call.__proto__ = this.__proto__;
     call.new.apply(call, args);

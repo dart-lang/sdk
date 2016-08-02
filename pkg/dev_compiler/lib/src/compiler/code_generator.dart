@@ -808,9 +808,8 @@ class CodeGenerator extends GeneralizingAstVisitor
   JS.Fun _emitCallableClassConstructor(ConstructorElement ctor) {
     return js.call(
         r'''function (...args) {
-          const self = this;
           function call(...args) {
-            return self.call.apply(self, args);
+            return call.call.apply(call, args);
           }
           call.__proto__ = this.__proto__;
           call.#.apply(call, args);
@@ -1416,7 +1415,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     var args = new JS.TemporaryId('args');
     var fnArgs = <JS.Parameter>[];
-    JS.Expression positionalArgs;;
+    JS.Expression positionalArgs;
 
     if (method.type.namedParameterTypes.isNotEmpty) {
       addProperty(
@@ -1442,8 +1441,8 @@ class CodeGenerator extends GeneralizingAstVisitor
       }
     }
 
-    var fnBody = js.call(
-        'this.noSuchMethod(new dart.InvocationImpl(#, #, #))', [
+    var fnBody =
+        js.call('this.noSuchMethod(new dart.InvocationImpl(#, #, #))', [
       _elementMemberName(method),
       positionalArgs,
       new JS.ObjectInitializer(invocationProps)

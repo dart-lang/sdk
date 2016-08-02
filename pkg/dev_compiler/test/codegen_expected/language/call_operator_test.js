@@ -10,9 +10,8 @@ dart_library.library('language/call_operator_test', null, /* Imports */[
   const call_operator_test = Object.create(null);
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   call_operator_test.A1 = dart.callableClass(function A1(...args) {
-    const self = this;
     function call(...args) {
-      return self.call.apply(self, args);
+      return call.call.apply(call, args);
     }
     call.__proto__ = this.__proto__;
     call.new.apply(call, args);
@@ -26,9 +25,8 @@ dart_library.library('language/call_operator_test', null, /* Imports */[
     methods: () => ({call: dart.definiteFunctionType(dart.dynamic, [])})
   });
   call_operator_test.A2 = dart.callableClass(function A2(...args) {
-    const self = this;
     function call(...args) {
-      return self.call.apply(self, args);
+      return call.call.apply(call, args);
     }
     call.__proto__ = this.__proto__;
     call.new.apply(call, args);
@@ -42,9 +40,8 @@ dart_library.library('language/call_operator_test', null, /* Imports */[
     methods: () => ({call: dart.definiteFunctionType(core.int, [])})
   });
   call_operator_test.B = dart.callableClass(function B(...args) {
-    const self = this;
     function call(...args) {
-      return self.call.apply(self, args);
+      return call.call.apply(call, args);
     }
     call.__proto__ = this.__proto__;
     call.new.apply(call, args);
@@ -58,9 +55,8 @@ dart_library.library('language/call_operator_test', null, /* Imports */[
     methods: () => ({call: dart.definiteFunctionType(dart.dynamic, [])})
   });
   call_operator_test.C = dart.callableClass(function C(...args) {
-    const self = this;
     function call(...args) {
-      return self.call.apply(self, args);
+      return call.call.apply(call, args);
     }
     call.__proto__ = this.__proto__;
     call.new.apply(call, args);
@@ -74,9 +70,8 @@ dart_library.library('language/call_operator_test', null, /* Imports */[
     methods: () => ({call: dart.definiteFunctionType(dart.dynamic, [dart.dynamic])})
   });
   call_operator_test.D = dart.callableClass(function D(...args) {
-    const self = this;
     function call(...args) {
-      return self.call.apply(self, args);
+      return call.call.apply(call, args);
     }
     call.__proto__ = this.__proto__;
     call.new.apply(call, args);
@@ -91,9 +86,8 @@ dart_library.library('language/call_operator_test', null, /* Imports */[
     methods: () => ({call: dart.definiteFunctionType(dart.dynamic, [], [dart.dynamic])})
   });
   call_operator_test.E = dart.callableClass(function E(...args) {
-    const self = this;
     function call(...args) {
-      return self.call.apply(self, args);
+      return call.call.apply(call, args);
     }
     call.__proto__ = this.__proto__;
     call.new.apply(call, args);
