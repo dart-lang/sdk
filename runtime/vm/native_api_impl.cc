@@ -90,9 +90,6 @@ DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
 
   NativeMessageHandler* nmh = new NativeMessageHandler(name, handler);
   Dart_Port port_id = PortMap::CreatePort(nmh);
-  // Mark that the port is a live port so that PortMap::ClosePort decrements
-  // the live port count when it is closed.
-  PortMap::SetPortState(port_id, PortMap::kLivePort);
   nmh->Run(Dart::thread_pool(), NULL, NULL, 0);
   return port_id;
 }
