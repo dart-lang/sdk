@@ -376,7 +376,7 @@ mirrors/accessor_cache_overflow_test: Skip
 
 [ $hot_reload || $hot_reload_rollback ]
 async/multiple_timer_test: Pass, Fail # Timing related
-lib/math/double_pow_test: RuntimeError, Pass, Fail # Issue 26887
+math/double_pow_test: RuntimeError, Pass, Fail # Issue 26887
 async/stream_transformer_test: Pass, Fail # Closure identity
 mirrors/closurization_equivalence_test: SkipByDesign # Method equality
 mirrors/fake_function_with_call_test: SkipByDesign # Method equality
