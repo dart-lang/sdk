@@ -278,9 +278,6 @@ class Socket {
   // specified as the port component of the passed RawAddr structure.
   static intptr_t CreateBindConnect(const RawAddr& addr,
                                     const RawAddr& source_addr);
-  // Returns true if the given error-number is because the system was not able
-  // to bind the socket to a specific IP.
-  static bool IsBindError(intptr_t error_number);
   // Creates a datagram socket which is bound. The port to bind
   // to is specified as the port component of the RawAddr structure.
   static intptr_t CreateBindDatagram(const RawAddr& addr, bool reuseAddress);
