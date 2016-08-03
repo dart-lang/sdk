@@ -1191,6 +1191,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   static const int ENABLE_SUPER_MIXINS_FLAG = 0x40;
 
   /**
+   * The default list of non-nullable type names.
+   */
+  static const List<String> NONNULLABLE_TYPES = const <String>[];
+
+  /**
    * A predicate indicating whether analysis is to parse and analyze function
    * bodies.
    */
@@ -1332,11 +1337,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * This option is experimental and subject to change.
    */
   bool implicitDynamic = true;
-
-  /**
-   * The default list of non-nullable type names.
-   */
-  static const List<String> NONNULLABLE_TYPES = const <String>[];
 
   /**
    * Initialize a newly created set of analysis options to have their default
@@ -1560,18 +1560,26 @@ class ApplyChangesStatus {
  */
 class CacheConsistencyValidationStatistics {
   /**
-   * Number of sources which were modified, but the context was not notified
+   * Number of sources which were changed, but the context was not notified
    * about it, so this fact was detected only during cache consistency
    * validation.
    */
-  int numOfModified = 0;
+  int numOfChanged = 0;
 
   /**
-   * Number of sources which were deleted, but the context was not notified
+   * Number of sources which stopped existing, but the context was not notified
    * about it, so this fact was detected only during cache consistency
    * validation.
    */
-  int numOfDeleted = 0;
+  int numOfRemoved = 0;
+
+  /**
+   * Reset all counters.
+   */
+  void reset() {
+    numOfChanged = 0;
+    numOfRemoved = 0;
+  }
 }
 
 /**

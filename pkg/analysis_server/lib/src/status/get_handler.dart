@@ -827,17 +827,17 @@ class GetHandler {
                 '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
             _writeRow(buffer, ['Name', 'Count'], header: true);
             _writeRow(buffer, [
-              'Modified',
+              'Changed',
               PerformanceStatistics
-                  .cacheConsistencyValidationStatistics.numOfModified
+                  .cacheConsistencyValidationStatistics.numOfChanged
             ], classes: [
               null,
               "right"
             ]);
             _writeRow(buffer, [
-              'Deleted',
+              'Removed',
               PerformanceStatistics
-                  .cacheConsistencyValidationStatistics.numOfDeleted
+                  .cacheConsistencyValidationStatistics.numOfRemoved
             ], classes: [
               null,
               "right"

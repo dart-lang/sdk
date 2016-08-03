@@ -2072,9 +2072,9 @@ class CacheConsistencyValidatorImpl implements CacheConsistencyValidator {
 
   @override
   bool sourceModificationTimesComputed(List<Source> sources, List<int> times) {
-    int consistencyCheckStart = JavaSystem.nanoTime();
+    Stopwatch timer = new Stopwatch()..start();
     HashSet<Source> changedSources = new HashSet<Source>();
-    HashSet<Source> missingSources = new HashSet<Source>();
+    HashSet<Source> removedSources = new HashSet<Source>();
     for (int i = 0; i < sources.length; i++) {
       Source source = sources[i];
       // When a source is in the content cache,
@@ -2091,16 +2091,15 @@ class CacheConsistencyValidatorImpl implements CacheConsistencyValidator {
       // Compare with the modification time in the cache entry.
       CacheEntry entry = context._privatePartition.get(source);
       if (entry != null) {
-        if (sourceTime != entry.modificationTime) {
-          changedSources.add(source);
-          PerformanceStatistics
-              .cacheConsistencyValidationStatistics.numOfModified++;
-        }
-        if (entry.exception != null) {
+        if (entry.modificationTime != sourceTime) {
           if (sourceTime == -1) {
-            missingSources.add(source);
+            removedSources.add(source);
             PerformanceStatistics
-                .cacheConsistencyValidationStatistics.numOfModified++;
+                .cacheConsistencyValidationStatistics.numOfRemoved++;
+          } else {
+            changedSources.add(source);
+            PerformanceStatistics
+                .cacheConsistencyValidationStatistics.numOfChanged++;
           }
         }
       }
@@ -2108,35 +2107,23 @@ class CacheConsistencyValidatorImpl implements CacheConsistencyValidator {
     for (Source source in changedSources) {
       context._sourceChanged(source);
     }
-    int removalCount = 0;
-    for (Source source in missingSources) {
-      if (context.getLibrariesContaining(source).isEmpty &&
-          context.getLibrariesDependingOn(source).isEmpty) {
-        context._removeFromCache(source);
-        removalCount++;
-      }
+    for (Source source in removedSources) {
+      context._sourceRemoved(source);
     }
-    int consistencyCheckEnd = JavaSystem.nanoTime();
-    if (changedSources.length > 0 || missingSources.length > 0) {
+    if (changedSources.length > 0 || removedSources.length > 0) {
       StringBuffer buffer = new StringBuffer();
       buffer.write("Consistency check took ");
-      buffer.write((consistencyCheckEnd - consistencyCheckStart) / 1000000.0);
+      buffer.write(timer.elapsedMilliseconds);
       buffer.writeln(" ms and found");
       buffer.write("  ");
       buffer.write(changedSources.length);
-      buffer.writeln(" inconsistent entries");
+      buffer.writeln(" changed sources");
       buffer.write("  ");
-      buffer.write(missingSources.length);
-      buffer.write(" missing sources (");
-      buffer.write(removalCount);
-      buffer.writeln(" removed");
-      for (Source source in missingSources) {
-        buffer.write("    ");
-        buffer.writeln(source.fullName);
-      }
+      buffer.write(removedSources.length);
+      buffer.write(" removed sources.");
       context._logInformation(buffer.toString());
     }
-    return changedSources.length > 0;
+    return changedSources.isNotEmpty || removedSources.isNotEmpty;
   }
 }
 

@@ -697,10 +697,6 @@ class CacheEntry {
 //      if (deltaResult == null) {
 //        String indent = '  ' * level;
 //        print('[$id]$indent invalidate $descriptor for $target');
-//        if ('$descriptor for $target' ==
-//            'READY_LIBRARY_ELEMENT2 for /Users/scheglov/tmp/limited-invalidation/async/lib/async.dart') {
-//          print('interesting');
-//        }
 //      }
     }
     // Invalidate results that depend on this result.

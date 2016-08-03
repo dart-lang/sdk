@@ -455,8 +455,42 @@ import 'libB.dart';''';
     });
   }
 
-  void test_cacheConsistencyValidator_computed() {
+  void test_applyChanges_removeUsedLibrary_addAgain() {
+    String codeA = r'''
+import 'b.dart';
+B b = null;
+''';
+    String codeB = r'''
+class B {}
+''';
+    Source a = addSource('/a.dart', codeA);
+    Source b = addSource('/b.dart', codeB);
+    CacheState getErrorsState(Source source) =>
+        context.analysisCache.getState(source, LIBRARY_ERRORS_READY);
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(a).errors, hasLength(0));
+    // Remove b.dart - errors in a.dart are invalidated and recomputed.
+    // Now a.dart has an error.
+    _removeSource(b);
+    expect(getErrorsState(a), CacheState.INVALID);
+    _performPendingAnalysisTasks();
+    expect(getErrorsState(a), CacheState.VALID);
+    expect(context.getErrors(a).errors, hasLength(isPositive));
+    // Add b.dart - errors in a.dart are invalidated and recomputed.
+    // The reason is that a.dart adds dependencies on (not existing) b.dart
+    // results in cache.
+    // Now a.dart does not have errors.
+    addSource('/b.dart', codeB);
+    expect(getErrorsState(a), CacheState.INVALID);
+    _performPendingAnalysisTasks();
+    expect(getErrorsState(a), CacheState.VALID);
+    expect(context.getErrors(a).errors, hasLength(0));
+  }
+
+  void test_cacheConsistencyValidator_computed_deleted() {
     CacheConsistencyValidator validator = context.cacheConsistencyValidator;
+    var stat = PerformanceStatistics.cacheConsistencyValidationStatistics;
+    stat.reset();
     // Add sources.
     MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
     String path1 = '/test1.dart';
@@ -470,6 +504,45 @@ import 'libB.dart';''';
         validator.sourceModificationTimesComputed([source1, source2],
             [source1.modificationStamp, source2.modificationStamp]),
         isFalse);
+    expect(stat.numOfChanged, 0);
+    expect(stat.numOfRemoved, 0);
+    // Add overlay
+    context.setContents(source1, '// 1-2');
+    expect(
+        validator.sourceModificationTimesComputed(
+            [source1, source2], [-1, source2.modificationStamp]),
+        isFalse);
+    context.setContents(source1, null);
+    expect(stat.numOfChanged, 0);
+    expect(stat.numOfRemoved, 0);
+    // Different modification times.
+    expect(
+        validator.sourceModificationTimesComputed(
+            [source1, source2], [-1, source2.modificationStamp]),
+        isTrue);
+    expect(stat.numOfChanged, 0);
+    expect(stat.numOfRemoved, 1);
+  }
+
+  void test_cacheConsistencyValidator_computed_modified() {
+    CacheConsistencyValidator validator = context.cacheConsistencyValidator;
+    var stat = PerformanceStatistics.cacheConsistencyValidationStatistics;
+    stat.reset();
+    // Add sources.
+    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+    String path1 = '/test1.dart';
+    String path2 = '/test2.dart';
+    Source source1 = resourceProvider.newFile(path1, '// 1-1').createSource();
+    Source source2 = resourceProvider.newFile(path2, '// 2-1').createSource();
+    context.applyChanges(
+        new ChangeSet()..addedSource(source1)..addedSource(source2));
+    // Same modification times.
+    expect(
+        validator.sourceModificationTimesComputed([source1, source2],
+            [source1.modificationStamp, source2.modificationStamp]),
+        isFalse);
+    expect(stat.numOfChanged, 0);
+    expect(stat.numOfRemoved, 0);
     // Add overlay
     context.setContents(source1, '// 1-2');
     expect(
@@ -477,11 +550,15 @@ import 'libB.dart';''';
             [source1.modificationStamp + 1, source2.modificationStamp]),
         isFalse);
     context.setContents(source1, null);
+    expect(stat.numOfChanged, 0);
+    expect(stat.numOfRemoved, 0);
     // Different modification times.
     expect(
         validator.sourceModificationTimesComputed([source1, source2],
             [source1.modificationStamp + 1, source2.modificationStamp]),
         isTrue);
+    expect(stat.numOfChanged, 1);
+    expect(stat.numOfRemoved, 0);
   }
 
   void test_cacheConsistencyValidator_getSources() {
@@ -2821,9 +2898,8 @@ List<A> foo() => [];
     _performPendingAnalysisTasks();
     expect(context.getErrors(b).errors, hasLength(0));
     // Add @deprecated annotation.
-    // b.dart could have valid resolution, because A is still A,
-    // but deprecated hints are reported in resolved. So, everything in b.dart
-    // is invalid.
+    // b.dart has valid resolution, because A is still A, so only errors are
+    // invalidated.
     context.setContents(
         a,
         r'''
@@ -2860,9 +2936,8 @@ List<A> foo() => [];
     _performPendingAnalysisTasks();
     expect(context.getErrors(b).errors, hasLength(1));
     // Add @deprecated annotation.
-    // b.dart could have valid resolution, because A is still A,
-    // but deprecated hints are reported in resolved. So, everything in b.dart
-    // is invalid.
+    // b.dart has valid resolution, because A is still A, so only errors are
+    // invalidated.
     context.setContents(
         a,
         r'''
