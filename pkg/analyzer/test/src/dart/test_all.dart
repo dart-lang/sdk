@@ -10,6 +10,7 @@ import '../../utils.dart';
 import 'ast/test_all.dart' as ast;
 import 'constant/test_all.dart' as constant;
 import 'element/test_all.dart' as element;
+import 'sdk/test_all.dart' as sdk;
 
 /// Utility for manually running all tests.
 main() {
@@ -18,5 +19,6 @@ main() {
     ast.main();
     constant.main();
     element.main();
+    sdk.main();
   });
 }
