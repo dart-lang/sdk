@@ -618,7 +618,6 @@ void Precompiler::ProcessFunction(const Function& function) {
 
   ASSERT(function.HasCode());
   AddCalleesOf(function);
-  AddTypesOf(function);
 }
 
 
@@ -1384,7 +1383,7 @@ void Precompiler::TraceForRetainedFunctions() {
       functions = cls.functions();
       for (intptr_t j = 0; j < functions.Length(); j++) {
         function ^= functions.At(j);
-        bool retain = functions_to_retain_.Lookup(&function) != NULL;
+        bool retain = function.HasCode();
         if (!retain && function.HasImplicitClosureFunction()) {
           // It can happen that all uses of an implicit closure inline their
           // target function, leaving the target function uncompiled. Keep
@@ -1395,6 +1394,7 @@ void Precompiler::TraceForRetainedFunctions() {
         }
         if (retain) {
           function.DropUncompiledImplicitClosureFunction();
+          AddTypesOf(function);
         }
       }
     }
@@ -1403,8 +1403,10 @@ void Precompiler::TraceForRetainedFunctions() {
   closures = isolate()->object_store()->closure_functions();
   for (intptr_t j = 0; j < closures.Length(); j++) {
     function ^= closures.At(j);
-    bool retain = functions_to_retain_.Lookup(&function) != NULL;
+    bool retain = function.HasCode();
     if (retain) {
+      AddTypesOf(function);
+
       cls = function.Owner();
       AddTypesOf(cls);
 
