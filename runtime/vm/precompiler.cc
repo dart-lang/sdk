@@ -1383,7 +1383,7 @@ void Precompiler::TraceForRetainedFunctions() {
       functions = cls.functions();
       for (intptr_t j = 0; j < functions.Length(); j++) {
         function ^= functions.At(j);
-        bool retain = function.HasCode();
+        bool retain = enqueued_functions_.Lookup(&function) != NULL;
         if (!retain && function.HasImplicitClosureFunction()) {
           // It can happen that all uses of an implicit closure inline their
           // target function, leaving the target function uncompiled. Keep
@@ -1403,7 +1403,7 @@ void Precompiler::TraceForRetainedFunctions() {
   closures = isolate()->object_store()->closure_functions();
   for (intptr_t j = 0; j < closures.Length(); j++) {
     function ^= closures.At(j);
-    bool retain = function.HasCode();
+    bool retain = enqueued_functions_.Lookup(&function) != NULL;
     if (retain) {
       AddTypesOf(function);
 
