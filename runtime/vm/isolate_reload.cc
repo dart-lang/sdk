@@ -441,9 +441,11 @@ void IsolateReloadContext::Reload(bool force_reload) {
   if (!modified_libs_->Contains(root_lib.index())) {
     ASSERT(modified_libs_->IsEmpty());
     reload_skipped_ = true;
-    TIR_Print("Skipping reload.  No libraries were modified\n");
+    TIR_Print("---- SKIPPING RELOAD (No libraries were modified)\n");
     return;
   }
+
+  TIR_Print("---- STARTING RELOAD\n");
 
   // Preallocate storage for maps.
   old_classes_set_storage_ =
@@ -483,10 +485,14 @@ void IsolateReloadContext::Reload(bool force_reload) {
                                    Api::NewHandle(thread, root_lib_url.raw()));
     result = Api::UnwrapHandle(retval);
   }
+
+  BackgroundCompiler::Enable();
+
   if (result.IsUnwindError()) {
     // Ignore an unwind error because the isolate is dead.
     return;
   }
+
   if (result.IsError()) {
     FinalizeFailedLoad(Error::Cast(result));
   }
@@ -526,7 +532,7 @@ void IsolateReloadContext::FinalizeLoading() {
     return;
   }
   BuildLibraryMapping();
-  TIR_Print("---- DONE FINALIZING\n");
+  TIR_Print("---- LOAD SUCCEEDED\n");
   if (ValidateReload()) {
     Commit();
     PostCommit();
@@ -547,6 +553,7 @@ void IsolateReloadContext::FinalizeLoading() {
 // FinalizeFailedLoad will be called *before* Reload() returns and will only
 // be called if the embedder fails to load sources.
 void IsolateReloadContext::FinalizeFailedLoad(const Error& error) {
+  TIR_Print("---- LOAD FAILED, ABORTING RELOAD\n");
   AddReasonForCancelling(new Aborted(zone_, error));
   ReportReasonsForCancelling();
   Rollback();
@@ -555,9 +562,9 @@ void IsolateReloadContext::FinalizeFailedLoad(const Error& error) {
 
 
 void IsolateReloadContext::CommonFinalizeTail() {
-  BackgroundCompiler::Enable();
   ReportOnJSON(js_);
 }
+
 
 void IsolateReloadContext::ReportOnJSON(JSONStream* stream) {
   JSONObject jsobj(stream);
@@ -813,7 +820,7 @@ BitVector* IsolateReloadContext::FindModifiedLibraries(bool force_reload) {
 
 void IsolateReloadContext::CheckpointLibraries() {
   TIMELINE_SCOPE(CheckpointLibraries);
-
+  TIR_Print("---- CHECKPOINTING LIBRARIES\n");
   // Save the root library in case we abort the reload.
   const Library& root_lib =
       Library::Handle(object_store()->root_library());
@@ -913,6 +920,7 @@ void IsolateReloadContext::RollbackLibraries() {
 
 
 void IsolateReloadContext::Rollback() {
+  TIR_Print("---- ROLLING BACK");
   RollbackClasses();
   RollbackLibraries();
 }
@@ -956,7 +964,7 @@ void IsolateReloadContext::VerifyMaps() {
 
 void IsolateReloadContext::Commit() {
   TIMELINE_SCOPE(Commit);
-  TIR_Print("---- COMMITTING REVERSE MAP\n");
+  TIR_Print("---- COMMITTING RELOAD\n");
 
   // Note that the object heap contains before and after instances
   // used for morphing. It is therefore important that morphing takes
@@ -1225,6 +1233,8 @@ void IsolateReloadContext::MorphInstances() {
 bool IsolateReloadContext::ValidateReload() {
   TIMELINE_SCOPE(ValidateReload);
   if (reload_aborted()) return false;
+
+  TIR_Print("---- VALIDATING RELOAD\n");
 
   // Validate libraries.
   {
