@@ -250,12 +250,6 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
 }
 
 
-bool Socket::IsBindError(intptr_t error_number) {
-  return error_number == WSAEADDRINUSE || error_number == WSAEADDRNOTAVAIL ||
-      error_number == WSAEINVAL;
-}
-
-
 void Socket::GetError(intptr_t fd, OSError* os_error) {
   Handle* handle = reinterpret_cast<Handle*>(fd);
   os_error->SetCodeAndMessage(OSError::kSystem, handle->last_error());
