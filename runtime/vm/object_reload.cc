@@ -232,7 +232,10 @@ void Class::ReplaceEnum(const Class& old_enum) const {
   String& enum_ident = String::Handle();
   Instance& old_enum_value = Instance::Handle(zone);
   Instance& enum_value = Instance::Handle(zone);
-
+  // The E.values array.
+  Instance& old_enum_values = Instance::Handle(zone);
+  // The E.values array.
+  Instance& enum_values = Instance::Handle(zone);
   Array& enum_map_storage = Array::Handle(zone,
       HashTables::New<UnorderedHashMap<EnumMapTraits> >(4));
   ASSERT(!enum_map_storage.IsNull());
@@ -251,6 +254,7 @@ void Class::ReplaceEnum(const Class& old_enum) const {
         continue;
       }
       if (enum_ident.Equals(Symbols::Values())) {
+        old_enum_values = field.StaticValue();
         // Non-enum instance.
         continue;
       }
@@ -279,6 +283,7 @@ void Class::ReplaceEnum(const Class& old_enum) const {
         continue;
       }
       if (enum_ident.Equals(Symbols::Values())) {
+        enum_values = field.StaticValue();
         // Non-enum instance.
         continue;
       }
@@ -301,6 +306,11 @@ void Class::ReplaceEnum(const Class& old_enum) const {
     // address.
     enum_map_storage = enum_map.Release().raw();
   }
+
+  // Map the old E.values array to the new E.values array.
+  ASSERT(!old_enum_values.IsNull());
+  ASSERT(!enum_values.IsNull());
+  reload_context->AddEnumBecomeMapping(old_enum_values, enum_values);
 
   if (enums_deleted && FLAG_trace_reload_verbose) {
     // TODO(johnmccutchan): Add this to the reload 'notices' list.
