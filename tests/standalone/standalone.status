@@ -252,6 +252,7 @@ io/http_server_close_response_after_error_test: Skip # Platform.executable
 io/http_client_stays_alive_test: Skip # Platform.executable
 io/print_sync_test: Skip # Platform.executable
 io/signals_test: Skip # Platform.executable
+io/stdio_implicit_close_test: Skip # Platform.executable
 io/stdio_nonblocking_test: Skip # Platform.executable
 io/regress_7191_test: Skip # Platform.executable
 io/secure_unauthorized_test: Skip # Platform.executable
@@ -287,6 +288,7 @@ no_support_disassembler_test: SkipByDesign
 no_support_il_printer_test: SkipByDesign
 no_support_service_test: SkipByDesign
 no_support_timeline_test: SkipByDesign
+io/stdio_implicit_close_test: Skip # SkipByDesign
 
 # Following tests are skipped on dart_app as package mapping is not supported.
 [ $runtime == dart_precompiled || $runtime == dart_app ]
