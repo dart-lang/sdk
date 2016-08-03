@@ -490,10 +490,10 @@ void IsolateReloadContext::Reload(bool force_reload) {
   //   6) The tag handler returns and we move on.
   //
   // Even after a successful reload the Dart code invoked in (5) can result
-  // in an Unwind error or a StackOverflow error. This error will be returned
-  // by the tag handler. The tag handler can return other errors, for example,
-  // top level parse errors. We want to capture these errors while propagating
-  // the Unwind or StackOverflow errors.
+  // in an Unwind error or an UnhandledException error. This error will be
+  // returned by the tag handler. The tag handler can return other errors,
+  // for example, top level parse errors. We want to capture these errors while
+  // propagating the UnwindError or an UnhandledException error.
   Object& result = Object::Handle(thread->zone());
   {
     TransitionVMToNative transition(thread);
@@ -511,9 +511,9 @@ void IsolateReloadContext::Reload(bool force_reload) {
   BackgroundCompiler::Enable();
 
   if (result.IsUnwindError() ||
-      (result.raw() == isolate()->object_store()->stack_overflow())) {
-    // When returning from the tag handler with an Unwind error or a
-    // StackOverflow error, propagate it and give up.
+      result.IsUnhandledException()) {
+    // If the tag handler returns with an UnwindError or an UnhandledException
+    // error, propagate it and give up.
     Exceptions::PropagateError(Error::Cast(result));
     UNREACHABLE();
   }
