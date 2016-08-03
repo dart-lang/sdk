@@ -279,6 +279,12 @@ class InstanceMemberInferrer {
     List<FunctionType> overriddenTypes = new List<FunctionType>();
     for (ExecutableElement overriddenMethod in overriddenMethods) {
       FunctionType overriddenType = overriddenMethod.type;
+      if (overriddenType == null) {
+        // TODO(brianwilkerson) I think the overridden method should always have
+        // a type, but there appears to be a bug that causes it to sometimes be
+        // null, we guard against that case by not performing inference.
+        return;
+      }
       if (overriddenType.typeFormals.isNotEmpty) {
         if (overriddenType.typeFormals.length != typeFormals.length) {
           return;
@@ -466,6 +472,7 @@ class VariableGatherer extends RecursiveAstVisitor {
         }
         return element;
       }
+
       Element element = nonAccessor(node.staticElement);
       if (element is VariableElement && (filter == null || filter(element))) {
         results.add(element);
