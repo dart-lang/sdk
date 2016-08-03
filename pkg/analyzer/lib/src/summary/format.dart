@@ -2136,7 +2136,9 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
 
 class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.PackageIndex {
   List<idl.IndexSyntheticElementKind> _elementKinds;
-  List<int> _elementOffsets;
+  List<int> _elementNameClassMemberIds;
+  List<int> _elementNameParameterIds;
+  List<int> _elementNameUnitMemberIds;
   List<int> _elementUnits;
   List<String> _strings;
   List<int> _unitLibraryUris;
@@ -2155,17 +2157,47 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
   }
 
   @override
-  List<int> get elementOffsets => _elementOffsets ??= <int>[];
+  List<int> get elementNameClassMemberIds => _elementNameClassMemberIds ??= <int>[];
 
   /**
    * Each item of this list corresponds to a unique referenced element.  It is
-   * the offset of the element name relative to the beginning of the file.  The
-   * list is sorted in ascending order, so that the client can quickly check
-   * whether an element is referenced in this [PackageIndex].
+   * the identifier of the class member element name, or `null` if the element is
+   * a top-level element.  The list is sorted in ascending order, so that the
+   * client can quickly check whether an element is referenced in this
+   * [PackageIndex].
    */
-  void set elementOffsets(List<int> _value) {
+  void set elementNameClassMemberIds(List<int> _value) {
     assert(_value == null || _value.every((e) => e >= 0));
-    _elementOffsets = _value;
+    _elementNameClassMemberIds = _value;
+  }
+
+  @override
+  List<int> get elementNameParameterIds => _elementNameParameterIds ??= <int>[];
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the identifier of the named parameter name, or `null` if the element is not
+   * a named parameter.  The list is sorted in ascending order, so that the
+   * client can quickly check whether an element is referenced in this
+   * [PackageIndex].
+   */
+  void set elementNameParameterIds(List<int> _value) {
+    assert(_value == null || _value.every((e) => e >= 0));
+    _elementNameParameterIds = _value;
+  }
+
+  @override
+  List<int> get elementNameUnitMemberIds => _elementNameUnitMemberIds ??= <int>[];
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the identifier of the top-level element name, or `null` if the element is
+   * the unit.  The list is sorted in ascending order, so that the client can
+   * quickly check whether an element is referenced in this [PackageIndex].
+   */
+  void set elementNameUnitMemberIds(List<int> _value) {
+    assert(_value == null || _value.every((e) => e >= 0));
+    _elementNameUnitMemberIds = _value;
   }
 
   @override
@@ -2229,9 +2261,11 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
     _unitUnitUris = _value;
   }
 
-  PackageIndexBuilder({List<idl.IndexSyntheticElementKind> elementKinds, List<int> elementOffsets, List<int> elementUnits, List<String> strings, List<int> unitLibraryUris, List<UnitIndexBuilder> units, List<int> unitUnitUris})
+  PackageIndexBuilder({List<idl.IndexSyntheticElementKind> elementKinds, List<int> elementNameClassMemberIds, List<int> elementNameParameterIds, List<int> elementNameUnitMemberIds, List<int> elementUnits, List<String> strings, List<int> unitLibraryUris, List<UnitIndexBuilder> units, List<int> unitUnitUris})
     : _elementKinds = elementKinds,
-      _elementOffsets = elementOffsets,
+      _elementNameClassMemberIds = elementNameClassMemberIds,
+      _elementNameParameterIds = elementNameParameterIds,
+      _elementNameUnitMemberIds = elementNameUnitMemberIds,
       _elementUnits = elementUnits,
       _strings = strings,
       _unitLibraryUris = unitLibraryUris,
@@ -2252,7 +2286,9 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_elementKinds;
-    fb.Offset offset_elementOffsets;
+    fb.Offset offset_elementNameClassMemberIds;
+    fb.Offset offset_elementNameParameterIds;
+    fb.Offset offset_elementNameUnitMemberIds;
     fb.Offset offset_elementUnits;
     fb.Offset offset_strings;
     fb.Offset offset_unitLibraryUris;
@@ -2261,8 +2297,14 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
     if (!(_elementKinds == null || _elementKinds.isEmpty)) {
       offset_elementKinds = fbBuilder.writeListUint8(_elementKinds.map((b) => b.index).toList());
     }
-    if (!(_elementOffsets == null || _elementOffsets.isEmpty)) {
-      offset_elementOffsets = fbBuilder.writeListUint32(_elementOffsets);
+    if (!(_elementNameClassMemberIds == null || _elementNameClassMemberIds.isEmpty)) {
+      offset_elementNameClassMemberIds = fbBuilder.writeListUint32(_elementNameClassMemberIds);
+    }
+    if (!(_elementNameParameterIds == null || _elementNameParameterIds.isEmpty)) {
+      offset_elementNameParameterIds = fbBuilder.writeListUint32(_elementNameParameterIds);
+    }
+    if (!(_elementNameUnitMemberIds == null || _elementNameUnitMemberIds.isEmpty)) {
+      offset_elementNameUnitMemberIds = fbBuilder.writeListUint32(_elementNameUnitMemberIds);
     }
     if (!(_elementUnits == null || _elementUnits.isEmpty)) {
       offset_elementUnits = fbBuilder.writeListUint32(_elementUnits);
@@ -2283,8 +2325,14 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
     if (offset_elementKinds != null) {
       fbBuilder.addOffset(5, offset_elementKinds);
     }
-    if (offset_elementOffsets != null) {
-      fbBuilder.addOffset(1, offset_elementOffsets);
+    if (offset_elementNameClassMemberIds != null) {
+      fbBuilder.addOffset(7, offset_elementNameClassMemberIds);
+    }
+    if (offset_elementNameParameterIds != null) {
+      fbBuilder.addOffset(8, offset_elementNameParameterIds);
+    }
+    if (offset_elementNameUnitMemberIds != null) {
+      fbBuilder.addOffset(1, offset_elementNameUnitMemberIds);
     }
     if (offset_elementUnits != null) {
       fbBuilder.addOffset(0, offset_elementUnits);
@@ -2324,7 +2372,9 @@ class _PackageIndexImpl extends Object with _PackageIndexMixin implements idl.Pa
   _PackageIndexImpl(this._bc, this._bcOffset);
 
   List<idl.IndexSyntheticElementKind> _elementKinds;
-  List<int> _elementOffsets;
+  List<int> _elementNameClassMemberIds;
+  List<int> _elementNameParameterIds;
+  List<int> _elementNameUnitMemberIds;
   List<int> _elementUnits;
   List<String> _strings;
   List<int> _unitLibraryUris;
@@ -2338,9 +2388,21 @@ class _PackageIndexImpl extends Object with _PackageIndexMixin implements idl.Pa
   }
 
   @override
-  List<int> get elementOffsets {
-    _elementOffsets ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 1, const <int>[]);
-    return _elementOffsets;
+  List<int> get elementNameClassMemberIds {
+    _elementNameClassMemberIds ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 7, const <int>[]);
+    return _elementNameClassMemberIds;
+  }
+
+  @override
+  List<int> get elementNameParameterIds {
+    _elementNameParameterIds ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 8, const <int>[]);
+    return _elementNameParameterIds;
+  }
+
+  @override
+  List<int> get elementNameUnitMemberIds {
+    _elementNameUnitMemberIds ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 1, const <int>[]);
+    return _elementNameUnitMemberIds;
   }
 
   @override
@@ -2379,7 +2441,9 @@ abstract class _PackageIndexMixin implements idl.PackageIndex {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (elementKinds.isNotEmpty) _result["elementKinds"] = elementKinds.map((_value) => _value.toString().split('.')[1]).toList();
-    if (elementOffsets.isNotEmpty) _result["elementOffsets"] = elementOffsets;
+    if (elementNameClassMemberIds.isNotEmpty) _result["elementNameClassMemberIds"] = elementNameClassMemberIds;
+    if (elementNameParameterIds.isNotEmpty) _result["elementNameParameterIds"] = elementNameParameterIds;
+    if (elementNameUnitMemberIds.isNotEmpty) _result["elementNameUnitMemberIds"] = elementNameUnitMemberIds;
     if (elementUnits.isNotEmpty) _result["elementUnits"] = elementUnits;
     if (strings.isNotEmpty) _result["strings"] = strings;
     if (unitLibraryUris.isNotEmpty) _result["unitLibraryUris"] = unitLibraryUris;
@@ -2391,7 +2455,9 @@ abstract class _PackageIndexMixin implements idl.PackageIndex {
   @override
   Map<String, Object> toMap() => {
     "elementKinds": elementKinds,
-    "elementOffsets": elementOffsets,
+    "elementNameClassMemberIds": elementNameClassMemberIds,
+    "elementNameParameterIds": elementNameParameterIds,
+    "elementNameUnitMemberIds": elementNameUnitMemberIds,
     "elementUnits": elementUnits,
     "strings": strings,
     "unitLibraryUris": unitLibraryUris,

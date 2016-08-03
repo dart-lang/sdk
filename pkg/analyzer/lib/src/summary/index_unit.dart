@@ -13,198 +13,15 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 
 /**
- * Information about an element referenced in index.
+ * Information about an element that is actually put into index for some other
+ * related element. For example for a synthetic getter this is the corresponding
+ * non-synthetic field and [IndexSyntheticElementKind.getter] as the [kind].
  */
-class ElementInfo {
-  /**
-   * The identifier of the [CompilationUnitElement] containing this element.
-   */
-  final int unitId;
-
-  /**
-   * The name offset of the element.
-   */
-  final int offset;
-
-  /**
-   * The kind of the element.
-   */
+class IndexElementInfo {
+  final Element element;
   final IndexSyntheticElementKind kind;
 
-  /**
-   * The unique id of the element.  It is set after indexing of the whole
-   * package is done and we are assembling the full package index.
-   */
-  int id;
-
-  ElementInfo(this.unitId, this.offset, this.kind) {
-    assert(offset >= 0);
-  }
-}
-
-/**
- * Object that gathers information about the whole package index and then uses
- * it to assemble a new [PackageIndexBuilder].  Call [index] on each compilation
- * unit to be indexed, then call [assemble] to retrieve the complete index for
- * the package.
- */
-class PackageIndexAssembler {
-  /**
-   * Map associating referenced elements with their [ElementInfo]s.
-   */
-  final Map<Element, ElementInfo> _elementMap = <Element, ElementInfo>{};
-
-  /**
-   * Map associating [CompilationUnitElement]s with their identifiers, which
-   * are indices into [_unitLibraryUris] and [_unitUnitUris].
-   */
-  final Map<CompilationUnitElement, int> _unitMap =
-      <CompilationUnitElement, int>{};
-
-  /**
-   * Each item of this list corresponds to the library URI of a unique
-   * [CompilationUnitElement].
-   */
-  final List<_StringInfo> _unitLibraryUris = <_StringInfo>[];
-
-  /**
-   * Each item of this list corresponds to the unit URI of a unique
-   * [CompilationUnitElement].
-   */
-  final List<_StringInfo> _unitUnitUris = <_StringInfo>[];
-
-  /**
-   * Map associating strings with their [_StringInfo]s.
-   */
-  final Map<String, _StringInfo> _stringMap = <String, _StringInfo>{};
-
-  /**
-   * List of information about each unit indexed in this index.
-   */
-  final List<_UnitIndexAssembler> _units = <_UnitIndexAssembler>[];
-
-  /**
-   * Assemble a new [PackageIndexBuilder] using the information gathered by
-   * [indexDeclarations] or [indexUnit].
-   */
-  PackageIndexBuilder assemble() {
-    // sort strings end set IDs
-    List<_StringInfo> stringInfoList = _stringMap.values.toList();
-    stringInfoList.sort((a, b) {
-      return a.value.compareTo(b.value);
-    });
-    for (int i = 0; i < stringInfoList.length; i++) {
-      stringInfoList[i].id = i;
-    }
-    // sort elements and set IDs
-    List<ElementInfo> elementInfoList = _elementMap.values.toList();
-    elementInfoList.sort((a, b) {
-      return a.offset - b.offset;
-    });
-    for (int i = 0; i < elementInfoList.length; i++) {
-      elementInfoList[i].id = i;
-    }
-    return new PackageIndexBuilder(
-        unitLibraryUris: _unitLibraryUris.map((s) => s.id).toList(),
-        unitUnitUris: _unitUnitUris.map((s) => s.id).toList(),
-        elementUnits: elementInfoList.map((e) => e.unitId).toList(),
-        elementOffsets: elementInfoList.map((e) => e.offset).toList(),
-        elementKinds: elementInfoList.map((e) => e.kind).toList(),
-        strings: stringInfoList.map((s) => s.value).toList(),
-        units: _units.map((unit) => unit.assemble()).toList());
-  }
-
-  /**
-   * Index declarations in the given partially resolved [unit].
-   */
-  void indexDeclarations(CompilationUnit unit) {
-    int unitId = _getUnitId(unit.element);
-    _UnitIndexAssembler assembler = new _UnitIndexAssembler(this, unitId);
-    _units.add(assembler);
-    unit.accept(new _IndexDeclarationContributor(assembler));
-  }
-
-  /**
-   * Index the given fully resolved [unit].
-   */
-  void indexUnit(CompilationUnit unit) {
-    int unitId = _getUnitId(unit.element);
-    _UnitIndexAssembler assembler = new _UnitIndexAssembler(this, unitId);
-    _units.add(assembler);
-    unit.accept(new _IndexContributor(assembler));
-  }
-
-  /**
-   * Return the unique [ElementInfo] corresponding the [element].  The field
-   * [ElementInfo.id] is filled by [assemble] during final sorting.
-   */
-  ElementInfo _getElementInfo(Element element) {
-    if (element is Member) {
-      element = (element as Member).baseElement;
-    }
-    return _elementMap.putIfAbsent(element, () {
-      CompilationUnitElement unitElement = getUnitElement(element);
-      int unitId = _getUnitId(unitElement);
-      return newElementInfo(unitId, element);
-    });
-  }
-
-  /**
-   * Return the unique [_StringInfo] corresponding the [str].  The field
-   * [_StringInfo.id] is filled by [assemble] during final sorting.
-   */
-  _StringInfo _getStringInfo(String str) {
-    return _stringMap.putIfAbsent(str, () {
-      return new _StringInfo(str);
-    });
-  }
-
-  /**
-   * Add information about [unitElement] to [_unitUnitUris] and
-   * [_unitLibraryUris] if necessary, and return the location in those
-   * arrays representing [unitElement].
-   */
-  int _getUnitId(CompilationUnitElement unitElement) {
-    return _unitMap.putIfAbsent(unitElement, () {
-      assert(_unitLibraryUris.length == _unitUnitUris.length);
-      int id = _unitUnitUris.length;
-      _unitLibraryUris.add(_getUriInfo(unitElement.library.source.uri));
-      _unitUnitUris.add(_getUriInfo(unitElement.source.uri));
-      return id;
-    });
-  }
-
-  /**
-   * Return the unique [_StringInfo] corresponding [uri].  The field
-   * [_StringInfo.id] is filled by [assemble] during final sorting.
-   */
-  _StringInfo _getUriInfo(Uri uri) {
-    String str = uri.toString();
-    return _getStringInfo(str);
-  }
-
-  /**
-   * Return the [CompilationUnitElement] that should be used for [element].
-   * Throw [StateError] if the [element] is not linked into a unit.
-   */
-  static CompilationUnitElement getUnitElement(Element element) {
-    for (Element e = element; e != null; e = e.enclosingElement) {
-      if (e is CompilationUnitElement) {
-        return e;
-      }
-      if (e is LibraryElement) {
-        return e.definingCompilationUnit;
-      }
-    }
-    throw new StateError(element.toString());
-  }
-
-  /**
-   * Return a new [ElementInfo] for the given [element] in the given [unitId].
-   * This method is static, so it cannot add any information to the index.
-   */
-  static ElementInfo newElementInfo(int unitId, Element element) {
-    int offset = null;
+  factory IndexElementInfo(Element element) {
     IndexSyntheticElementKind kind = IndexSyntheticElementKind.notSynthetic;
     if (element.isSynthetic) {
       if (element is ConstructorElement) {
@@ -245,10 +62,222 @@ class PackageIndexAssembler {
       }
     } else if (element is LibraryElement || element is CompilationUnitElement) {
       kind = IndexSyntheticElementKind.unit;
-      offset = 0;
     }
-    offset ??= element.nameOffset;
-    return new ElementInfo(unitId, offset, kind);
+    return new IndexElementInfo._(element, kind);
+  }
+
+  IndexElementInfo._(this.element, this.kind);
+}
+
+/**
+ * Object that gathers information about the whole package index and then uses
+ * it to assemble a new [PackageIndexBuilder].  Call [indexUnit] on each
+ * compilation unit to be indexed, then call [assemble] to retrieve the
+ * complete index for the package.
+ */
+class PackageIndexAssembler {
+  /**
+   * The string to use place of the `null` string.
+   */
+  static const NULL_STRING = '--nullString--';
+
+  /**
+   * Map associating referenced elements with their [_ElementInfo]s.
+   */
+  final Map<Element, _ElementInfo> _elementMap = <Element, _ElementInfo>{};
+
+  /**
+   * Map associating [CompilationUnitElement]s with their identifiers, which
+   * are indices into [_unitLibraryUris] and [_unitUnitUris].
+   */
+  final Map<CompilationUnitElement, int> _unitMap =
+      <CompilationUnitElement, int>{};
+
+  /**
+   * Each item of this list corresponds to the library URI of a unique
+   * [CompilationUnitElement].
+   */
+  final List<_StringInfo> _unitLibraryUris = <_StringInfo>[];
+
+  /**
+   * Each item of this list corresponds to the unit URI of a unique
+   * [CompilationUnitElement].
+   */
+  final List<_StringInfo> _unitUnitUris = <_StringInfo>[];
+
+  /**
+   * Map associating strings with their [_StringInfo]s.
+   */
+  final Map<String, _StringInfo> _stringMap = <String, _StringInfo>{};
+
+  /**
+   * List of information about each unit indexed in this index.
+   */
+  final List<_UnitIndexAssembler> _units = <_UnitIndexAssembler>[];
+
+  /**
+   * The [_StringInfo] to use for `null` strings.
+   */
+  _StringInfo _nullString;
+
+  PackageIndexAssembler() {
+    _nullString = _getStringInfo(NULL_STRING);
+  }
+
+  /**
+   * Assemble a new [PackageIndexBuilder] using the information gathered by
+   * [indexDeclarations] or [indexUnit].
+   */
+  PackageIndexBuilder assemble() {
+    // sort strings end set IDs
+    List<_StringInfo> stringInfoList = _stringMap.values.toList();
+    stringInfoList.sort((a, b) {
+      return a.value.compareTo(b.value);
+    });
+    for (int i = 0; i < stringInfoList.length; i++) {
+      stringInfoList[i].id = i;
+    }
+    // sort elements and set IDs
+    List<_ElementInfo> elementInfoList = _elementMap.values.toList();
+    elementInfoList.sort((a, b) {
+      int delta;
+      delta = a.nameIdUnitMember.id - b.nameIdUnitMember.id;
+      if (delta != null) {
+        return delta;
+      }
+      delta = a.nameIdClassMember.id - b.nameIdClassMember.id;
+      if (delta != null) {
+        return delta;
+      }
+      return a.nameIdParameter.id - b.nameIdParameter.id;
+    });
+    for (int i = 0; i < elementInfoList.length; i++) {
+      elementInfoList[i].id = i;
+    }
+    return new PackageIndexBuilder(
+        unitLibraryUris: _unitLibraryUris.map((s) => s.id).toList(),
+        unitUnitUris: _unitUnitUris.map((s) => s.id).toList(),
+        elementUnits: elementInfoList.map((e) => e.unitId).toList(),
+        elementNameUnitMemberIds:
+            elementInfoList.map((e) => e.nameIdUnitMember.id).toList(),
+        elementNameClassMemberIds:
+            elementInfoList.map((e) => e.nameIdClassMember.id).toList(),
+        elementNameParameterIds:
+            elementInfoList.map((e) => e.nameIdParameter.id).toList(),
+        elementKinds: elementInfoList.map((e) => e.kind).toList(),
+        strings: stringInfoList.map((s) => s.value).toList(),
+        units: _units.map((unit) => unit.assemble()).toList());
+  }
+
+  /**
+   * Index declarations in the given partially resolved [unit].
+   */
+  void indexDeclarations(CompilationUnit unit) {
+    int unitId = _getUnitId(unit.element);
+    _UnitIndexAssembler assembler = new _UnitIndexAssembler(this, unitId);
+    _units.add(assembler);
+    unit.accept(new _IndexDeclarationContributor(assembler));
+  }
+
+  /**
+   * Index the given fully resolved [unit].
+   */
+  void indexUnit(CompilationUnit unit) {
+    int unitId = _getUnitId(unit.element);
+    _UnitIndexAssembler assembler = new _UnitIndexAssembler(this, unitId);
+    _units.add(assembler);
+    unit.accept(new _IndexContributor(assembler));
+  }
+
+  /**
+   * Return the unique [_ElementInfo] corresponding the [element].  The field
+   * [_ElementInfo.id] is filled by [assemble] during final sorting.
+   */
+  _ElementInfo _getElementInfo(Element element) {
+    if (element is Member) {
+      element = (element as Member).baseElement;
+    }
+    return _elementMap.putIfAbsent(element, () {
+      CompilationUnitElement unitElement = getUnitElement(element);
+      int unitId = _getUnitId(unitElement);
+      return _newElementInfo(unitId, element);
+    });
+  }
+
+  /**
+   * Return the unique [_StringInfo] corresponding the [str].  The field
+   * [_StringInfo.id] is filled by [assemble] during final sorting.
+   */
+  _StringInfo _getStringInfo(String str) {
+    return _stringMap.putIfAbsent(str, () {
+      return new _StringInfo(str);
+    });
+  }
+
+  /**
+   * Add information about [unitElement] to [_unitUnitUris] and
+   * [_unitLibraryUris] if necessary, and return the location in those
+   * arrays representing [unitElement].
+   */
+  int _getUnitId(CompilationUnitElement unitElement) {
+    return _unitMap.putIfAbsent(unitElement, () {
+      assert(_unitLibraryUris.length == _unitUnitUris.length);
+      int id = _unitUnitUris.length;
+      _unitLibraryUris.add(_getUriInfo(unitElement.library.source.uri));
+      _unitUnitUris.add(_getUriInfo(unitElement.source.uri));
+      return id;
+    });
+  }
+
+  /**
+   * Return the unique [_StringInfo] corresponding [uri].  The field
+   * [_StringInfo.id] is filled by [assemble] during final sorting.
+   */
+  _StringInfo _getUriInfo(Uri uri) {
+    String str = uri.toString();
+    return _getStringInfo(str);
+  }
+
+  /**
+   * Return a new [_ElementInfo] for the given [element] in the given [unitId].
+   * This method is static, so it cannot add any information to the index.
+   */
+  _ElementInfo _newElementInfo(int unitId, Element element) {
+    IndexElementInfo info = new IndexElementInfo(element);
+    element = info.element;
+    // Prepare name identifiers.
+    _StringInfo nameIdParameter = _nullString;
+    _StringInfo nameIdClassMember = _nullString;
+    _StringInfo nameIdUnitMember = _nullString;
+    if (element is ParameterElement) {
+      nameIdParameter = _getStringInfo(element.name);
+      element = element.enclosingElement;
+    }
+    if (element?.enclosingElement is ClassElement) {
+      nameIdClassMember = _getStringInfo(element.name);
+      element = element.enclosingElement;
+    }
+    if (element?.enclosingElement is CompilationUnitElement) {
+      nameIdUnitMember = _getStringInfo(element.name);
+    }
+    return new _ElementInfo(unitId, nameIdUnitMember, nameIdClassMember,
+        nameIdParameter, info.kind);
+  }
+
+  /**
+   * Return the [CompilationUnitElement] that should be used for [element].
+   * Throw [StateError] if the [element] is not linked into a unit.
+   */
+  static CompilationUnitElement getUnitElement(Element element) {
+    for (Element e = element; e != null; e = e.enclosingElement) {
+      if (e is CompilationUnitElement) {
+        return e;
+      }
+      if (e is LibraryElement) {
+        return e.definingCompilationUnit;
+      }
+    }
+    throw new StateError(element.toString());
   }
 }
 
@@ -278,13 +307,55 @@ class _DefinedNameInfo {
 }
 
 /**
+ * Information about an element referenced in index.
+ */
+class _ElementInfo {
+  /**
+   * The identifier of the [CompilationUnitElement] containing this element.
+   */
+  final int unitId;
+
+  /**
+   * The identifier of the top-level name, or `null` if the element is a
+   * reference to the unit.
+   */
+  final _StringInfo nameIdUnitMember;
+
+  /**
+   * The identifier of the class member name, or `null` if the element is not a
+   * class member or a named parameter of a class member.
+   */
+  final _StringInfo nameIdClassMember;
+
+  /**
+   * The identifier of the named parameter name, or `null` if the element is not
+   * a named parameter.
+   */
+  final _StringInfo nameIdParameter;
+
+  /**
+   * The kind of the element.
+   */
+  final IndexSyntheticElementKind kind;
+
+  /**
+   * The unique id of the element.  It is set after indexing of the whole
+   * package is done and we are assembling the full package index.
+   */
+  int id;
+
+  _ElementInfo(this.unitId, this.nameIdUnitMember, this.nameIdClassMember,
+      this.nameIdParameter, this.kind);
+}
+
+/**
  * Information about a single relation.  Any [_ElementRelationInfo] is always
  * part of a [_UnitIndexAssembler], so [offset] and [length] should be
  * understood within the context of the compilation unit pointed to by the
  * [_UnitIndexAssembler].
  */
 class _ElementRelationInfo {
-  final ElementInfo elementInfo;
+  final _ElementInfo elementInfo;
   final IndexRelationKind kind;
   final int offset;
   final int length;
@@ -770,7 +841,7 @@ class _StringInfo {
  *    compilation unit.
  *  - Call [addNameRelation] for each name relation found in the
  *    compilation unit.
- *  - Assign ids to all the [ElementInfo] objects reachable from
+ *  - Assign ids to all the [_ElementInfo] objects reachable from
  *    [elementRelations].
  *  - Call [assemble] to produce the final unit index.
  */
@@ -786,7 +857,7 @@ class _UnitIndexAssembler {
   void addElementRelation(Element element, IndexRelationKind kind, int offset,
       int length, bool isQualified) {
     try {
-      ElementInfo elementInfo = pkg._getElementInfo(element);
+      _ElementInfo elementInfo = pkg._getElementInfo(element);
       elementRelations.add(new _ElementRelationInfo(
           elementInfo, kind, offset, length, isQualified));
     } on StateError {}
