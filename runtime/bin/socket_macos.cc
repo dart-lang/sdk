@@ -103,12 +103,6 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
 }
 
 
-bool Socket::IsBindError(intptr_t error_number) {
-  return error_number == EADDRINUSE || error_number == EADDRNOTAVAIL ||
-      error_number == EINVAL;
-}
-
-
 intptr_t Socket::Available(intptr_t fd) {
   return FDUtils::AvailableBytes(fd);
 }

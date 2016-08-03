@@ -431,13 +431,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
             if (result is OSError) {
               // Keep first error, if present.
               if (error == null) {
-                int errorCode = result.errorCode;
-                if (errorCode != null && socket.isBindError(errorCode)) {
-                  error = createError(result, "Bind failed", sourceAddress);
-                } else {
-                  error =
-                      createError(result, "Connection failed", address, port);
-                }
+                error = createError(result, "Connection failed", address, port);
               }
               connectNext();
             } else {
@@ -1081,7 +1075,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   nativeCreateBindConnect(
       List<int> addr, int port, List<int> sourceAddr)
       native "Socket_CreateBindConnect";
-  bool isBindError(int errorNumber) native "Socket_IsBindError";
   nativeCreateBindListen(List<int> addr, int port, int backlog, bool v6Only,
                          bool shared)
       native "ServerSocket_CreateBindListen";
