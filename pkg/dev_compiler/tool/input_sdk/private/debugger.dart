@@ -507,17 +507,12 @@ class ObjectFormatter extends Formatter {
 
 /// Formatter for module Dart Library objects.
 class LibraryModuleFormatter implements Formatter {
-  String libraryName;
-
-  accept(object, config) {
-    libraryName = dart.getDartLibraryName(object);
-    return libraryName != null;
-  }
+  accept(object, config) => dart.getDartLibraryName(object) != null;
 
   bool hasChildren(object) => true;
 
   String preview(object) {
-    var libraryNames = libraryName.split('/');
+    var libraryNames = dart.getDartLibraryName(object).split('/');
     // Library names are received with a repeat directory name, so strip the
     // last directory entry here to make the path cleaner. For example, the
     // library "third_party/dart/utf/utf" shoud display as

@@ -2822,22 +2822,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
     set _customNames(_) {}
   });
   _debugger.LibraryModuleFormatter = class LibraryModuleFormatter extends core.Object {
-    new() {
-      this.libraryName = null;
-    }
     accept(object, config) {
-      this.libraryName = core.String._check(dart.getDartLibraryName(object));
-      return this.libraryName != null;
+      return dart.getDartLibraryName(object) != null;
     }
     hasChildren(object) {
       return true;
     }
     preview(object) {
-      let libraryNames = this.libraryName[dartx.split]('/');
-      if (dart.notNull(libraryNames[dartx.length]) > 1) {
-        libraryNames[dartx.set](dart.notNull(libraryNames[dartx.length]) - 1, '');
+      let libraryNames = dart.dsend(dart.getDartLibraryName(object), 'split', '/');
+      if (dart.test(dart.dsend(dart.dload(libraryNames, 'length'), '>', 1))) {
+        dart.dsetindex(libraryNames, dart.dsend(dart.dload(libraryNames, 'length'), '-', 1), '');
       }
-      return dart.str`Library Module: ${libraryNames[dartx.join]('/')}`;
+      return dart.str`Library Module: ${dart.dsend(libraryNames, 'join', '/')}`;
     }
     children(object) {
       let children = LinkedHashSetOfNameValuePair().new();

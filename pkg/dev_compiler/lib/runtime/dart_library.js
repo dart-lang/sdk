@@ -84,6 +84,7 @@ var dart_library =
     libraries.forEach(function (value, key, map) {
       debuggerLibraries.push(value.load());
     });
+    debuggerLibraries.__proto__ = null;
     return debuggerLibraries;
   };
 
