@@ -45,6 +45,12 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
 }
 
 
+bool Socket::IsBindError(intptr_t error_number) {
+  UNIMPLEMENTED();
+  return false;
+}
+
+
 intptr_t Socket::Available(intptr_t fd) {
   UNIMPLEMENTED();
   return -1;
