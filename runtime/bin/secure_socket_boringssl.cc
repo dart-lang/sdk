@@ -800,10 +800,14 @@ void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
   // PEM_read_bio_X509 reads PEM-encoded certificates from a bio (in our case,
   // backed by a memory buffer), and returns X509 objects, one by one.
   // When the end of the bio is reached, it returns null.
-  while ((root_cert = PEM_read_bio_X509(roots_bio, NULL, NULL, NULL))) {
+  while ((root_cert = PEM_read_bio_X509(roots_bio, NULL, NULL, NULL)) != NULL) {
     X509_STORE_add_cert(store, root_cert);
   }
   BIO_free(roots_bio);
+  // If there is an error here, it must be the error indicating that we are done
+  // reading PEM certificates.
+  ASSERT((ERR_peek_error() == 0) || NoPEMStartLine());
+  ERR_clear_error();
 #endif  // defined(TARGET_OS_ANDROID)
 }
 
