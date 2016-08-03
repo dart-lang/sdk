@@ -1494,7 +1494,8 @@ static void ShutdownIsolate(uword parameter) {
     ASSERT(thread->isolate() == isolate);
     StackZone zone(thread);
     HandleScope handle_scope(thread);
-#if defined(DEBUG)
+    // TODO(27003): Enable for precompiled.
+#if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
     if (!isolate->HasAttemptedReload()) {
       isolate->heap()->CollectAllGarbage();
       VerifyCanonicalVisitor check_canonical(thread);
