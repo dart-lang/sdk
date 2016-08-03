@@ -298,7 +298,6 @@ class ObjectPointerVisitor;
   V(BooleanExpression, "boolean expression")                                   \
   V(MegamorphicMiss, "megamorphic_miss")                                       \
   V(CommaSpace, ", ")                                                          \
-  V(ColonSpace, ": ")                                                          \
   V(RParenArrow, ") => ")                                                      \
   V(SpaceExtendsSpace, " extends ")                                            \
   V(SpaceWhereNewLine, " where\n")                                             \

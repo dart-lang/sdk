@@ -1799,12 +1799,6 @@ class ServiceMap extends ServiceObject implements ObservableMap {
   final ObservableMap _map = new ObservableMap();
   static String objectIdRingPrefix = 'objects/';
 
-  bool get canCache {
-    return (_type == 'Class' ||
-            _type == 'Function' ||
-            _type == 'Field') &&
-           !_id.startsWith(objectIdRingPrefix);
-  }
   bool get immutable => false;
 
   ServiceMap._empty(ServiceObjectOwner owner) : super._empty(owner);
@@ -2047,7 +2041,6 @@ class Breakpoint extends ServiceObject implements M.Breakpoint {
 
   // TODO(turnidge): Add state to track if a breakpoint has been
   // removed from the program.  Remove from the cache when deleted.
-  bool get canCache => true;
   bool get immutable => false;
 
   // A unique integer identifier for this breakpoint.
@@ -2146,7 +2139,6 @@ class Library extends HeapObject implements M.LibraryRef {
   @reflectable final variables = new ObservableList<Field>();
   @reflectable final functions = new ObservableList<ServiceFunction>();
 
-  bool get canCache => true;
   bool get immutable => false;
 
   bool isDart(String libraryName) {
@@ -2270,7 +2262,6 @@ class Class extends HeapObject implements M.ClassRef {
   @observable Instance superType;
   @observable Instance mixin;
 
-  bool get canCache => true;
   bool get immutable => false;
 
   Class._empty(ServiceObjectOwner owner) : super._empty(owner);
@@ -2405,10 +2396,10 @@ class Instance extends HeapObject {
   @observable Instance key;  // If a WeakProperty.
   @observable Instance value;  // If a WeakProperty.
   @observable Breakpoint activationBreakpoint;  // If a Closure.
-  @observable Function oneByteFunction;  // If a RegExp.
-  @observable Function twoByteFunction;  // If a RegExp.
-  @observable Function externalOneByteFunction;  // If a RegExp.
-  @observable Function externalTwoByteFunction;  // If a RegExp.
+  @observable ServiceFunction oneByteFunction;  // If a RegExp.
+  @observable ServiceFunction twoByteFunction;  // If a RegExp.
+  @observable ServiceFunction externalOneByteFunction;  // If a RegExp.
+  @observable ServiceFunction externalTwoByteFunction;  // If a RegExp.
   @observable Instance oneByteBytecode;  // If a RegExp.
   @observable Instance twoByteBytecode;  // If a RegExp.
   @observable bool isCaseSensitive;  // If a RegExp.
@@ -2498,10 +2489,11 @@ class Instance extends HeapObject {
 
     isCaseSensitive = map['isCaseSensitive'];
     isMultiLine = map['isMultiLine'];
-    oneByteFunction = map['_oneByteFunction'];
-    twoByteFunction = map['_twoByteFunction'];
-    externalOneByteFunction = map['_externalOneByteFunction'];
-    externalTwoByteFunction = map['_externalTwoByteFunction'];
+    bool isCompiled = map['_oneByteFunction'] is ServiceFunction;
+    oneByteFunction = isCompiled ? map['_oneByteFunction'] : null;
+    twoByteFunction = isCompiled ? map['_twoByteFunction'] : null;
+    externalOneByteFunction = isCompiled ? map['_externalOneByteFunction'] : null;
+    externalTwoByteFunction = isCompiled ? map['_externalTwoByteFunction'] : null;
     oneByteBytecode = map['_oneByteBytecode'];
     twoByteBytecode = map['_twoByteBytecode'];
 
@@ -2653,7 +2645,6 @@ class ServiceFunction extends HeapObject implements M.Function {
   @observable Instance icDataArray;
   @observable Field field;
 
-  bool get canCache => true;
   bool get immutable => false;
 
   ServiceFunction._empty(ServiceObject owner) : super._empty(owner);
@@ -3274,7 +3265,6 @@ class PcDescriptor extends Observable {
 class PcDescriptors extends ServiceObject {
   @observable Class clazz;
   @observable int size;
-  bool get canCache => false;
   bool get immutable => true;
   @reflectable final List<PcDescriptor> descriptors =
       new ObservableList<PcDescriptor>();
@@ -3317,7 +3307,6 @@ class LocalVarDescriptor extends Observable {
 class LocalVarDescriptors extends ServiceObject {
   @observable Class clazz;
   @observable int size;
-  bool get canCache => false;
   bool get immutable => true;
   @reflectable final List<LocalVarDescriptor> descriptors =
         new ObservableList<LocalVarDescriptor>();
@@ -3345,7 +3334,6 @@ class LocalVarDescriptors extends ServiceObject {
 }
 
 class ObjectPool extends HeapObject {
-  bool get canCache => false;
   bool get immutable => false;
 
   @observable int length;
@@ -3371,7 +3359,6 @@ class ICData extends HeapObject {
   @observable Instance argumentsDescriptor;
   @observable Instance entries;
 
-  bool get canCache => false;
   bool get immutable => false;
 
   ICData._empty(ServiceObjectOwner owner) : super._empty(owner);
@@ -3396,7 +3383,6 @@ class MegamorphicCache extends HeapObject {
   @observable String selector;
   @observable Instance argumentsDescriptor;
 
-  bool get canCache => false;
   bool get immutable => false;
 
   MegamorphicCache._empty(ServiceObjectOwner owner) : super._empty(owner);
@@ -3417,7 +3403,6 @@ class MegamorphicCache extends HeapObject {
 }
 
 class Instructions extends HeapObject {
-  bool get canCache => false;
   bool get immutable => true;
 
   @observable Code code;
@@ -3438,7 +3423,6 @@ class Instructions extends HeapObject {
 }
 
 class TokenStream extends HeapObject {
-  bool get canCache => false;
   bool get immutable => true;
 
   @observable String privateKey;
@@ -3809,8 +3793,6 @@ class SocketStats {
 class Socket extends ServiceObject {
   Socket._empty(ServiceObjectOwner owner) : super._empty(owner);
 
-  bool get canCache => true;
-
   ServiceObject socketOwner;
 
   @reflectable bool get isPipe => (kind == SocketKind.Pipe);
@@ -3878,7 +3860,6 @@ class ServiceMetric extends ServiceObject {
   ServiceMetric._empty(ServiceObjectOwner owner) : super._empty(owner) {
   }
 
-  bool get canCache => true;
   bool get immutable => false;
 
   @observable bool recording = false;
