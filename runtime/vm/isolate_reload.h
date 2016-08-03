@@ -268,6 +268,7 @@ class IsolateReloadContext {
   Isolate* isolate_;
   bool reload_skipped_;
   bool reload_aborted_;
+  bool reload_finalized_;
   JSONStream* js_;
 
   intptr_t saved_num_cids_;

@@ -365,6 +365,7 @@ IsolateReloadContext::IsolateReloadContext(Isolate* isolate,
       isolate_(isolate),
       reload_skipped_(false),
       reload_aborted_(false),
+      reload_finalized_(false),
       js_(js),
       saved_num_cids_(-1),
       saved_class_table_(NULL),
@@ -474,6 +475,25 @@ void IsolateReloadContext::Reload(bool force_reload) {
   DeoptimizeDependentCode();
   Checkpoint();
 
+  // WEIRD CONTROL FLOW BEGINS.
+  //
+  // The flow of execution until we return from the tag handler can be complex.
+  //
+  // On a successful load, the following will occur:
+  //   1) Tag Handler is invoked and the embedder is in control.
+  //   2) All sources and libraries are loaded.
+  //   3) Dart_FinalizeLoading is called by the embedder.
+  //   4) Dart_FinalizeLoading invokes IsolateReloadContext::FinalizeLoading
+  //      and we are temporarily back in control.
+  //      This is where we validate the reload and commit or reject.
+  //   5) Dart_FinalizeLoading invokes Dart code related to deferred libraries.
+  //   6) The tag handler returns and we move on.
+  //
+  // Even after a successful reload the Dart code invoked in (5) can result
+  // in an Unwind error or a StackOverflow error. This error will be returned
+  // by the tag handler. The tag handler can return other errors, for example,
+  // top level parse errors. We want to capture these errors while propagating
+  // the Unwind or StackOverflow errors.
   Object& result = Object::Handle(thread->zone());
   {
     TransitionVMToNative transition(thread);
@@ -485,14 +505,20 @@ void IsolateReloadContext::Reload(bool force_reload) {
                                    Api::NewHandle(thread, root_lib_url.raw()));
     result = Api::UnwrapHandle(retval);
   }
+  //
+  // WEIRD CONTROL FLOW ENDS.
 
   BackgroundCompiler::Enable();
 
-  if (result.IsUnwindError()) {
-    // Ignore an unwind error because the isolate is dead.
-    return;
+  if (result.IsUnwindError() ||
+      (result.raw() == isolate()->object_store()->stack_overflow())) {
+    // When returning from the tag handler with an Unwind error or a
+    // StackOverflow error, propagate it and give up.
+    Exceptions::PropagateError(Error::Cast(result));
+    UNREACHABLE();
   }
 
+  // Other errors (e.g. a parse error) are captured by the reload system.
   if (result.IsError()) {
     FinalizeFailedLoad(Error::Cast(result));
   }
@@ -531,6 +557,7 @@ void IsolateReloadContext::FinalizeLoading() {
   if (reload_skipped_) {
     return;
   }
+  ASSERT(!reload_finalized_);
   BuildLibraryMapping();
   TIR_Print("---- LOAD SUCCEEDED\n");
   if (ValidateReload()) {
@@ -545,7 +572,6 @@ void IsolateReloadContext::FinalizeLoading() {
   // not remove dead subclasses.  Rebuild the direct subclass
   // information from scratch.
   RebuildDirectSubclasses();
-
   CommonFinalizeTail();
 }
 
@@ -556,17 +582,22 @@ void IsolateReloadContext::FinalizeFailedLoad(const Error& error) {
   TIR_Print("---- LOAD FAILED, ABORTING RELOAD\n");
   AddReasonForCancelling(new Aborted(zone_, error));
   ReportReasonsForCancelling();
-  Rollback();
+  if (!reload_finalized_) {
+    Rollback();
+  }
   CommonFinalizeTail();
 }
 
 
 void IsolateReloadContext::CommonFinalizeTail() {
   ReportOnJSON(js_);
+  reload_finalized_ = true;
 }
 
 
 void IsolateReloadContext::ReportOnJSON(JSONStream* stream) {
+  // Clear the buffer.
+  stream->buffer()->Clear();
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", "ReloadReport");
   jsobj.AddProperty("success", !HasReasonsForCancelling());
