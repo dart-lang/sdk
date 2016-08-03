@@ -9,6 +9,7 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/embedder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
@@ -95,12 +96,6 @@ class FolderBasedDartSdkTest {
    */
   MemoryResourceProvider resourceProvider;
 
-//  void test_getDocFileFor() {
-//    FolderBasedDartSdk sdk = _createDartSdk();
-//    File docFile = sdk.getDocFileFor("html");
-//    expect(docFile, isNotNull);
-//  }
-
   void test_analysisOptions_afterContextCreation() {
     FolderBasedDartSdk sdk = _createDartSdk();
     sdk.context;
@@ -176,14 +171,6 @@ class FolderBasedDartSdkTest {
     expect(source.uri.toString(), "dart:core/num.dart");
   }
 
-//  void test_dart2JsExecutable() {
-//    FolderBasedDartSdk sdk = _createDartSdk();
-//    File executable = sdk.dart2JsExecutable;
-//    expect(executable, isNotNull);
-//    expect(executable.exists, isTrue);
-////    expect(executable.isExecutable(), isTrue);
-//  }
-
   void test_getDirectory() {
     FolderBasedDartSdk sdk = _createDartSdk();
     Folder directory = sdk.directory;
@@ -209,7 +196,6 @@ class FolderBasedDartSdkTest {
     File executable = sdk.pubExecutable;
     expect(executable, isNotNull);
     expect(executable.exists, isTrue);
-//    expect(executable.isExecutable(), isTrue);
   }
 
   void test_getSdkVersion() {
@@ -218,14 +204,6 @@ class FolderBasedDartSdkTest {
     expect(version, isNotNull);
     expect(version.length > 0, isTrue);
   }
-
-//  void test_vmExecutable() {
-//    FolderBasedDartSdk sdk = _createDartSdk();
-//    File executable = sdk.vmExecutable;
-//    expect(executable, isNotNull);
-//    expect(executable.exists, isTrue);
-////    expect(executable.isExecutable(), isTrue);
-//  }
 
   void test_useSummary_afterContextCreation() {
     FolderBasedDartSdk sdk = _createDartSdk();
@@ -256,6 +234,8 @@ class FolderBasedDartSdkTest {
     _createFile(sdkDirectory,
         ['lib', 'html', 'html_common', 'html_common_dart2js.dart']);
     _createFile(sdkDirectory, ['lib', 'html', 'dartium', 'html_dartium.dart']);
+    _createFile(
+        sdkDirectory, ['bin', (OSUtilities.isWindows() ? 'pub.bat' : 'pub')]);
     return new FolderBasedDartSdk(resourceProvider, sdkDirectory);
   }
 
