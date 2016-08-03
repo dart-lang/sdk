@@ -651,6 +651,23 @@ var x = /*info:INFERRED_TYPE_ALLOCATION*/const C(42);
     expect(unit.topLevelVariables[0].type.toString(), 'C<int>');
   }
 
+  void test_constructors_inferFromArguments_constWithUpperBound() {
+    // Regression for https://github.com/dart-lang/sdk/issues/26993
+    checkFile('''
+class C<T extends num> {
+  final T x;
+  const C(this.x);
+}
+class D<T extends num> {
+  const D();
+}
+void f() {
+  const c = /*info:INFERRED_TYPE_ALLOCATION*/const C(0);
+  const D<int> d = /*info:INFERRED_TYPE_ALLOCATION*/const D();
+}
+    ''');
+  }
+
   void test_constructors_inferFromArguments_factory() {
     var unit = checkFile('''
 class C<T> {
