@@ -1,5 +1,10 @@
 ## 1.19.0
 
+### Core library changes
+
+* `dart:io`
+  * Report a better error when a bind fails because of a bad source address.
+
 ### Tool Changes
 
 * `dartfmt` - upgraded to v0.2.9

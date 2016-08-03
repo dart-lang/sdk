@@ -35,6 +35,12 @@ void FUNCTION_NAME(Socket_CreateBindConnect)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(Socket_IsBindError)(Dart_NativeArguments args) {
+  Dart_ThrowException(DartUtils::NewDartArgumentError(
+      "Sockets unsupported on this platform"));
+}
+
+
 void FUNCTION_NAME(Socket_CreateBindDatagram)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewDartArgumentError(
       "Sockets unsupported on this platform"));
