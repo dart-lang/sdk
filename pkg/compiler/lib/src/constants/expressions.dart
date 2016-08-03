@@ -16,7 +16,7 @@ import '../elements/elements.dart'
         PrefixElement,
         VariableElement;
 import '../resolution/operators.dart';
-import '../tree/tree.dart' show DartString;
+import '../tree/dartstring.dart' show DartString;
 import '../universe/call_structure.dart' show CallStructure;
 import 'evaluation.dart';
 import 'values.dart';

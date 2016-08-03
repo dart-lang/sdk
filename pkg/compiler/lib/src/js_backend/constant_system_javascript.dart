@@ -11,7 +11,7 @@ import '../constant_system_dart.dart';
 import '../core_types.dart' show CoreTypes;
 import '../dart_types.dart';
 import '../elements/elements.dart' show ClassElement, FieldElement;
-import '../tree/tree.dart' show DartString, LiteralDartString;
+import '../tree/dartstring.dart' show DartString, LiteralDartString;
 import 'js_backend.dart';
 
 const JAVA_SCRIPT_CONSTANT_SYSTEM = const JavaScriptConstantSystem();

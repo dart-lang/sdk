@@ -8,7 +8,7 @@ import '../constants/values.dart';
 
 import '../dart_types.dart';
 import '../elements/elements.dart' show Element, Elements, FieldElement;
-import '../tree/tree.dart' show DartString;
+import '../tree/dartstring.dart' show DartString;
 import '../js_backend/js_backend.dart' show SyntheticConstantKind;
 
 /// A canonical but arbrary ordering of constants. The ordering is 'stable'
