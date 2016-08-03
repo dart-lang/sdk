@@ -163,7 +163,7 @@ class StrongTypeSystemImpl extends TypeSystem {
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
     var inferringTypeSystem =
-        new _StrongInferenceTypeSystem(typeProvider, fnType.typeFormals);
+        new _StrongInferenceTypeSystem(typeProvider, this, fnType.typeFormals);
 
     // Since we're trying to infer the instantiation, we want to ignore type
     // formals as we check the parameters and return type.
@@ -216,7 +216,7 @@ class StrongTypeSystemImpl extends TypeSystem {
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
     var inferringTypeSystem =
-        new _StrongInferenceTypeSystem(typeProvider, fnType.typeFormals);
+        new _StrongInferenceTypeSystem(typeProvider, this, fnType.typeFormals);
 
     // Special case inference for Future.then.
     //
@@ -1271,16 +1271,16 @@ class TypeSystemImpl extends TypeSystem {
 /// Tracks upper and lower type bounds for a set of type parameters.
 class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
   final TypeProvider _typeProvider;
+
+  /// The outer strong mode type system, used for GLB and LUB, so we don't
+  /// recurse into our constraint solving code.
+  final StrongTypeSystemImpl _typeSystem;
   final Map<TypeParameterType, _TypeParameterBound> _bounds;
 
-  _StrongInferenceTypeSystem(
-      this._typeProvider, Iterable<TypeParameterElement> typeFormals)
-      : _bounds =
-            new Map.fromIterable(typeFormals, key: (t) => t.type, value: (t) {
-          _TypeParameterBound bound = new _TypeParameterBound();
-          if (t.bound != null) bound.upper = t.bound;
-          return bound;
-        });
+  _StrongInferenceTypeSystem(this._typeProvider, this._typeSystem,
+      Iterable<TypeParameterElement> typeFormals)
+      : _bounds = new Map.fromIterable(typeFormals,
+            key: (t) => t.type, value: (t) => new _TypeParameterBound());
 
   /// Given the constraints that were given by calling [isSubtypeOf], find the
   /// instantiation of the generic function that satisfies these constraints.
@@ -1288,26 +1288,19 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
     List<TypeParameterType> fnTypeParams =
         TypeParameterTypeImpl.getTypes(fnType.typeFormals);
 
-    var inferredTypes = new List<DartType>.from(fnTypeParams, growable: false);
+    // Initialize the inferred type array.
+    //
+    // They all start as `dynamic` to offer reasonable degradation for f-bounded
+    // type parameters.
+    var inferredTypes = new List<DartType>.filled(
+        fnTypeParams.length, DynamicTypeImpl.instance,
+        growable: false);
+
     for (int i = 0; i < fnTypeParams.length; i++) {
       TypeParameterType typeParam = fnTypeParams[i];
-      _TypeParameterBound bound = _bounds[typeParam];
 
-      // Now we've computed lower and upper bounds for each type parameter.
+      // Apply the `extends` clause for the type parameter, if any.
       //
-      // To decide on which type to assign, we look at the return type and see
-      // if the type parameter occurs in covariant or contravariant positions.
-      //
-      // If the type is "passed in" at all, or if our lower bound was bottom,
-      // we choose the upper bound as being the most useful.
-      //
-      // Otherwise we choose the more precise lower bound.
-      _TypeParameterVariance variance =
-          new _TypeParameterVariance.from(typeParam, fnType.returnType);
-
-      inferredTypes[i] =
-          variance.passedIn || bound.lower.isBottom ? bound.upper : bound.lower;
-
       // Assumption: if the current type parameter has an "extends" clause
       // that refers to another type variable we are inferring, it will appear
       // before us or in this list position. For example:
@@ -1323,8 +1316,28 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
       // Or if the type parameter's bound depends on itself such as:
       //
       //     <T extends Clonable<T>>
+      DartType declaredUpperBound = typeParam.element.bound;
+      if (declaredUpperBound != null) {
+        // Assert that the type parameter is a subtype of its bound.
+        _inferTypeParameterSubtypeOf(typeParam,
+            declaredUpperBound.substitute2(inferredTypes, fnTypeParams), null);
+      }
+
+      // Now we've computed lower and upper bounds for each type parameter.
+      //
+      // To decide on which type to assign, we look at the return type and see
+      // if the type parameter occurs in covariant or contravariant positions.
+      //
+      // If the type is "passed in" at all, or if our lower bound was bottom,
+      // we choose the upper bound as being the most useful.
+      //
+      // Otherwise we choose the more precise lower bound.
+      _TypeParameterVariance variance =
+          new _TypeParameterVariance.from(typeParam, fnType.returnType);
+
+      _TypeParameterBound bound = _bounds[typeParam];
       inferredTypes[i] =
-          inferredTypes[i].substitute2(inferredTypes, fnTypeParams);
+          variance.passedIn || bound.lower.isBottom ? bound.upper : bound.lower;
 
       // See if the constraints on the type variable are satisfied.
       //
@@ -1358,7 +1371,8 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
         // We already know T1 <: U, for some U.
         // So update U to reflect the new constraint T1 <: GLB(U, T2)
         //
-        bound.upper = getGreatestLowerBound(_typeProvider, bound.upper, t2);
+        bound.upper =
+            _typeSystem.getGreatestLowerBound(_typeProvider, bound.upper, t2);
         // Optimistically assume we will be able to satisfy the constraint.
         return true;
       }
@@ -1372,7 +1386,8 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
         // We already know L <: T2, for some L.
         // So update L to reflect the new constraint LUB(L, T1) <: T2
         //
-        bound.lower = getLeastUpperBound(_typeProvider, bound.lower, t1);
+        bound.lower =
+            _typeSystem.getLeastUpperBound(_typeProvider, bound.lower, t1);
         // Optimistically assume we will be able to satisfy the constraint.
         return true;
       }

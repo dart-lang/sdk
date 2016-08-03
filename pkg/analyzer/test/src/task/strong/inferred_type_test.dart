@@ -588,6 +588,24 @@ class C2 implements A, B {
 ''');
   }
 
+  void test_constructors_inferenceFBounded() {
+    // Regression for https://github.com/dart-lang/sdk/issues/26990
+    var unit = checkFile('''
+class Clonable<T> {}
+
+class Pair<T extends Clonable<T>, U extends Clonable<U>> {
+  T t;
+  U u;
+  Pair(this.t, this.u);
+  Pair._();
+  Pair<U, T> get reversed => /*info:INFERRED_TYPE_ALLOCATION*/new Pair(u, t);
+}
+final x = /*info:INFERRED_TYPE_ALLOCATION*/new Pair._();
+    ''');
+    var x = unit.topLevelVariables[0];
+    expect(x.type.toString(), 'Pair<Clonable<dynamic>, Clonable<dynamic>>');
+  }
+
   void test_constructors_inferFromArguments() {
     var unit = checkFile('''
 class C<T> {
@@ -732,6 +750,18 @@ main() {
 }
 ''');
     expect(unit.topLevelVariables[0].type.toString(), 'C<int>');
+  }
+
+  void test_constructors_reverseTypeParameters() {
+    // Regression for https://github.com/dart-lang/sdk/issues/26990
+    checkFile('''
+class Pair<T, U> {
+  T t;
+  U u;
+  Pair(this.t, this.u);
+  Pair<U, T> get reversed => /*info:INFERRED_TYPE_ALLOCATION*/new Pair(u, t);
+}
+    ''');
   }
 
   void test_doNotInferOverriddenFieldsThatExplicitlySayDynamic_infer() {
