@@ -163,6 +163,7 @@ class CodeChecker extends RecursiveAstVisitor {
       checkAssignment(expr.expression, type);
     } else {
       _checkDowncast(expr, type);
+      _checkNonNullAssignment(expr, type);
     }
   }
 
@@ -613,11 +614,10 @@ class CodeChecker extends RecursiveAstVisitor {
       // typing rules may have inferred a more precise type for the variable
       // based on the initializer.
     } else {
-      var dartType = getType(type);
       for (VariableDeclaration variable in node.variables) {
         var initializer = variable.initializer;
         if (initializer != null) {
-          checkAssignment(initializer, dartType);
+          checkAssignment(initializer, type.type);
         }
       }
     }
@@ -837,6 +837,14 @@ class CodeChecker extends RecursiveAstVisitor {
     }
     _recordMessage(node, StrongModeCode.UNSAFE_BLOCK_CLOSURE_INFERENCE,
         [declElement.name]);
+  }
+
+  void _checkNonNullAssignment(Expression expression, DartType type) {
+    var exprType = expression.staticType;
+    if (rules.isNonNullableType(type) && !rules.isNonNullableType(exprType)) {
+      _recordMessage(expression, StaticTypeWarningCode.INVALID_ASSIGNMENT,
+          [exprType, type]);
+    }
   }
 
   void _checkReturnOrYield(Expression expression, AstNode node,

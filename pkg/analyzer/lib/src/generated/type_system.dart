@@ -763,6 +763,16 @@ class StrongTypeSystemImpl extends TypeSystem {
     return (t.isDynamic && !dynamicIsBottom) || t.isObject;
   }
 
+  bool isNonNullableType(DartType type) {
+    return nonnullableTypes.contains(_getTypeFullyQualifiedName(type));
+  }
+
+  /// Given a type return its name prepended with the URI to its containing
+  /// library and separated by a comma.
+  String _getTypeFullyQualifiedName(DartType type) {
+    return "${type?.element?.library?.source?.uri},$type";
+  }
+
   /**
    * This currently just implements a simple least upper bound to
    * handle some common cases.  It also avoids some termination issues
