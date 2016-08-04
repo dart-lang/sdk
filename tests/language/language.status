@@ -93,6 +93,14 @@ main_test/42: Fail # Issue 20028
 mirror_in_static_init_test: Fail # Issue 22071
 vm/debug_break_enabled_vm_test/*: Skip # Issue 14651.
 
+# These tests need the flag --initializing-formal-access to pass:
+initializing_formal_access: Skip
+initializing_formal_capture: Skip
+initializing_formal_final: Skip
+initializing_formal_promotion: Skip
+initializing_formal_scope: Skip
+initializing_formal_type: Skip
+
 # Experimental feature: Syntactic support for generic methods.
 generic_methods_test: RuntimeError # Issue 25869
 generic_functions_test: RuntimeError # Issue 25869
