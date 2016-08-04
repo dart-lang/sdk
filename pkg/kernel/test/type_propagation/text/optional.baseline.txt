@@ -6,7 +6,7 @@ class Foo extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  method method(dynamic/core::int* {int} x, [dynamic/core::int* {int} y, dynamic/core::int* {int} z]) → dynamic/core::String* {string} {
+  method method(dynamic/core::int* {int} x, [dynamic/core::int* {null,int} y, dynamic/core::int* {null,int} z]) → dynamic/core::String* {string} {
     return "string";
   }
 }
@@ -27,19 +27,19 @@ class TestListener extends self::Listener {
   constructor •() → void
     : super self::Listener::•()
     ;
-  method event(dynamic/core::String* {string} input, [dynamic/core::int* {int} x, dynamic/core::int* {int} y]) → void/Nothing {}
+  method event(dynamic/core::String* {string} input, [dynamic/core::int* {null,int} x, dynamic/core::int* {null,int} y]) → void/Nothing {}
 }
 class ExtendedListener extends self::Listener {
   constructor •() → void
     : super self::Listener::•()
     ;
-  method event(dynamic/core::String* {string} input, [dynamic/core::int* {int} x, dynamic/core::int* {int} y, dynamic/Nothing z]) → void/Nothing {}
+  method event(dynamic/core::String* {string} input, [dynamic/core::int* {null,int} x, dynamic/core::int* {null,int} y, dynamic/Null z]) → void/Nothing {}
 }
 class InvalidListener extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  method event(dynamic/core::String* {string} input, [dynamic/core::int* {int} x]) → void/Nothing {}
+  method event(dynamic/core::String* {string} input, [dynamic/core::int* {null,int} x]) → void/Nothing {}
 }
 external static method createExternal() → self::External/self::External* {other};
 static method main() → dynamic/Nothing {

@@ -839,6 +839,7 @@ class Builder {
   /// which currently do have function values).
   void buildFunctionNode(FunctionNode node, Environment environment,
       {int function, bool addTypeBasedSummary: false}) {
+    var expressionBuilder = new ExpressionBuilder(this, environment);
     int minArity = node.requiredParameterCount;
     int maxArity = node.positionalParameters.length;
     for (int i = 0; i < node.positionalParameters.length; ++i) {
@@ -854,6 +855,12 @@ class Builder {
               function, getPositionalParameterField(arity, i), variable);
           }
         }
+      }
+      if (i >= node.requiredParameterCount) {
+        int parameterDefault = parameter.initializer == null
+            ? nullNode
+            : expressionBuilder.build(parameter.initializer);
+        environment.addAssign(parameterDefault, variable);
       }
       if (addTypeBasedSummary) {
         buildContravariantType(parameter.type, environment, variable);
@@ -871,6 +878,10 @@ class Builder {
               getNamedParameterField(arity, parameter.name), variable);
         }
       }
+      int parameterDefault = parameter.initializer == null
+          ? nullNode
+          : expressionBuilder.build(parameter.initializer);
+      environment.addAssign(parameterDefault, variable);
       if (addTypeBasedSummary) {
         buildContravariantType(parameter.type, environment, variable);
       }
