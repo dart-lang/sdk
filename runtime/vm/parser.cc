@@ -1548,32 +1548,14 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
       &Object::dynamic_type());
 
   const Function& parent = Function::Handle(func.parent_function());
-  const String& target_name = String::Handle(parent.name());
-  const Class& owner = Class::Handle(parent.Owner());
-  Function& target = Function::ZoneHandle(owner.LookupFunction(target_name));
-  if (target.raw() != parent.raw()) {
-    ASSERT(Isolate::Current()->HasAttemptedReload());
-    if (target.IsNull() ||
-        (target.is_static() != parent.is_static()) ||
-        (target.kind() != parent.kind())) {
-      // TODO(26977): call noSuchMethod/throw NSME instead.
-      target = parent.raw();
-    }
-  }
-
-  if (target.IsImplicitSetterFunction()) {
+  if (parent.IsImplicitSetterFunction()) {
     const TokenPosition ident_pos = func.token_pos();
     ASSERT(IsIdentifier());
-    const String& field_name = *CurrentLiteral();
-    const Class& field_class = Class::ZoneHandle(Z, target.Owner());
-    const Field& field =
-        Field::ZoneHandle(Z, field_class.LookupInstanceField(field_name));
-    const AbstractType& field_type = AbstractType::ZoneHandle(Z, field.type());
     params.AddFinalParameter(ident_pos,
                              &Symbols::Value(),
-                             &field_type);
+                             &Object::dynamic_type());
     ASSERT(func.num_fixed_parameters() == 2);  // closure, value.
-  } else if (!target.IsGetterFunction() && !target.IsImplicitGetterFunction()) {
+  } else if (!parent.IsGetterFunction() && !parent.IsImplicitGetterFunction()) {
     const bool allow_explicit_default_values = true;
     SkipFunctionPreamble();
     ParseFormalParameterList(allow_explicit_default_values, false, &params);
@@ -1604,7 +1586,71 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
     }
     func_args->set_names(arg_names);
   }
-  StaticCallNode* call = new StaticCallNode(token_pos, target, func_args);
+
+  const String& func_name = String::ZoneHandle(parent.name());
+  const Class& owner = Class::Handle(parent.Owner());
+  Function& target = Function::ZoneHandle(owner.LookupFunction(func_name));
+  if (target.raw() != parent.raw()) {
+    ASSERT(Isolate::Current()->HasAttemptedReload());
+    if (target.IsNull() ||
+        (target.is_static() != parent.is_static()) ||
+        (target.kind() != parent.kind())) {
+      target = Function::null();
+    }
+  }
+
+  AstNode* call = NULL;
+  if (!target.IsNull()) {
+    call = new StaticCallNode(token_pos, target, func_args);
+  } else if (!parent.is_static()) {
+    ASSERT(Isolate::Current()->HasAttemptedReload());
+    // If a subsequent reload reintroduces the target in the middle of the
+    // Invocation object being constructed, we won't be able to successfully
+    // deopt because the generated AST will change.
+    current_function().SetIsOptimizable(false);
+
+    ArgumentListNode* arguments = BuildNoSuchMethodArguments(
+        token_pos, func_name, *func_args, NULL, false);
+    const intptr_t kNumArguments = 2;  // Receiver, InvocationMirror.
+    ArgumentsDescriptor args_desc(
+        Array::Handle(Z, ArgumentsDescriptor::New(kNumArguments)));
+    Function& no_such_method = Function::ZoneHandle(Z,
+    Resolver::ResolveDynamicForReceiverClass(owner,
+                                             Symbols::NoSuchMethod(),
+                                             args_desc));
+    if (no_such_method.IsNull()) {
+      // If noSuchMethod(i) is not found, call Object:noSuchMethod.
+      no_such_method ^= Resolver::ResolveDynamicForReceiverClass(
+          Class::Handle(Z, I->object_store()->object_class()),
+          Symbols::NoSuchMethod(),
+          args_desc);
+    }
+    call = new StaticCallNode(token_pos, no_such_method, arguments);
+  } else {
+    ASSERT(Isolate::Current()->HasAttemptedReload());
+    // If a subsequent reload reintroduces the target in the middle of the
+    // arguments array being constructed, we won't be able to successfully
+    // deopt because the generated AST will change.
+    current_function().SetIsOptimizable(false);
+
+    InvocationMirror::Type im_type;
+    if (parent.IsImplicitGetterFunction()) {
+      im_type = InvocationMirror::kGetter;
+    } else if (parent.IsImplicitSetterFunction()) {
+      im_type = InvocationMirror::kSetter;
+    } else {
+      im_type = InvocationMirror::kMethod;
+    }
+    call = ThrowNoSuchMethodError(TokenPos(),
+                                  owner,
+                                  func_name,
+                                  func_args,
+                                  InvocationMirror::kStatic,
+                                  im_type,
+                                  NULL);  // No existing function.
+  }
+
+  ASSERT(call != NULL);
   ReturnNode* return_node = new ReturnNode(token_pos, call);
   current_block_->statements->Add(return_node);
   return CloseBlock();
