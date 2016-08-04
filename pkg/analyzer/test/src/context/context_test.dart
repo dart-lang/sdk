@@ -487,6 +487,43 @@ class B {}
     expect(context.getErrors(a).errors, hasLength(0));
   }
 
+  void test_applyChanges_addNewImport_invalidateLibraryCycle() {
+    context.analysisOptions =
+        new AnalysisOptionsImpl.from(context.analysisOptions)
+          ..strongMode = true;
+    Source embedder = addSource(
+        '/a.dart',
+        r'''
+library a;
+import 'b.dart';
+//import 'c.dart';
+''');
+    addSource(
+        '/b.dart',
+        r'''
+library b;
+import 'a.dart';
+''');
+    addSource(
+        '/c.dart',
+        r'''
+library c;
+import 'b.dart';
+''');
+    _performPendingAnalysisTasks();
+    // Add a new import into a.dart, this should invalidate its library cycle.
+    // If it doesn't, we will get a task cycle exception.
+    context.setContents(
+        embedder,
+        r'''
+library a;
+import 'b.dart';
+import 'c.dart';
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getCacheEntry(embedder).exception, isNull);
+  }
+
   void test_cacheConsistencyValidator_computed_deleted() {
     CacheConsistencyValidator validator = context.cacheConsistencyValidator;
     var stat = PerformanceStatistics.cacheConsistencyValidationStatistics;

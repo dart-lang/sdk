@@ -5872,17 +5872,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * cached library cycles in the element model which may have been invalidated.
    */
   void invalidateLibraryCycles() {
-    if (_libraryCycle == null) {
-      // We have already invalidated this node, or we have never computed
-      // library cycle information for it.  In the former case, we're done. In
-      // the latter case, this node cannot be reachable from any node for which
-      // we have computed library cycle information.  Therefore, any edges added
-      // or deleted in the update causing this invalidation can only be edges to
-      // nodes which either have no library cycle information (and hence do not
-      // need invalidation), or which do not reach this node by any path.
-      // In either case, no further invalidation is needed.
-      return;
-    }
     // If we have pre-computed library cycle information, then we must
     // invalidate the information both on this element, and on certain
     // other elements.  Edges originating at this node may have been

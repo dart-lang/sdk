@@ -1556,113 +1556,143 @@ class ComputeLibraryCycleTaskTest extends _AbstractDartTaskTest {
 
   void test_library_cycle_incremental() {
     enableStrongMode();
-    Source lib1Source = newSource(
-        '/my_lib1.dart',
+    Source a = newSource(
+        '/a.dart',
         '''
-library my_lib1;
+library a;
 ''');
-    Source lib2Source = newSource(
-        '/my_lib2.dart',
+    Source b = newSource(
+        '/b.dart',
         '''
-library my_lib2;
-import 'my_lib1.dart';
+library b;
+import 'a.dart';
 ''');
-    Source lib3Source = newSource(
-        '/my_lib3.dart',
+    Source c = newSource(
+        '/c.dart',
         '''
-library my_lib3;
-import 'my_lib2.dart';
+library c;
+import 'b.dart';
 ''');
 
-    computeResult(lib1Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(1));
-    computeResult(lib2Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(1));
-    computeResult(lib3Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(1));
+    _assertLibraryCycle(a, [a]);
+    _assertLibraryCycle(b, [b]);
+    _assertLibraryCycle(c, [c]);
 
-    // create a cycle
+    // Create a cycle.
     context.setContents(
-        lib1Source,
+        a,
         '''
-library my_lib1;
-import 'my_lib3.dart';
+library a;
+import 'c.dart';
 ''');
-    _expectInvalid(lib1Source);
-    _expectInvalid(lib2Source);
-    _expectInvalid(lib3Source);
+    _expectInvalid(a);
+    _expectInvalid(b);
+    _expectInvalid(c);
 
-    computeResult(lib1Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(3));
-    computeResult(lib2Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(3));
-    computeResult(lib3Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(3));
+    _assertLibraryCycle(a, [a, b, c]);
+    _assertLibraryCycle(b, [a, b, c]);
+    _assertLibraryCycle(c, [a, b, c]);
 
-    // break the cycle again
+    // Break the cycle again.
     context.setContents(
-        lib1Source,
+        a,
         '''
-library my_lib1;
+library a;
 ''');
-    _expectInvalid(lib1Source);
-    _expectInvalid(lib2Source);
-    _expectInvalid(lib3Source);
+    _expectInvalid(a);
+    _expectInvalid(b);
+    _expectInvalid(c);
 
-    computeResult(lib1Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(1));
-    computeResult(lib2Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(1));
-    computeResult(lib3Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(1));
+    _assertLibraryCycle(a, [a]);
+    _assertLibraryCycle(b, [b]);
+    _assertLibraryCycle(c, [c]);
   }
 
   void test_library_cycle_incremental_partial() {
     enableStrongMode();
-    Source lib1Source = newSource(
-        '/my_lib1.dart',
-        '''
-library my_lib1;
+    Source a = newSource(
+        '/a.dart',
+        r'''
+library a;
 ''');
-    Source lib2Source = newSource(
-        '/my_lib2.dart',
-        '''
-library my_lib2;
-import 'my_lib1.dart';
+    Source b = newSource(
+        '/b.dart',
+        r'''
+library b;
+import 'a.dart';
 ''');
-    Source lib3Source = newSource(
-        '/my_lib3.dart',
-        '''
-library my_lib3;
-import 'my_lib2.dart';
+    Source c = newSource(
+        '/c.dart',
+        r'''
+library c;
+import 'b.dart';
 ''');
 
-    computeResult(lib1Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(1));
-    computeResult(lib2Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(1));
-    // lib3 is not reachable, so we have not yet computed its library
-    // cycles
+    _assertLibraryCycle(a, [a]);
+    _assertLibraryCycle(b, [b]);
+    // 'c' is not reachable, so we have not yet computed its library cycles.
 
-    // complete the cycle, via lib3
+    // Complete the cycle, via 'c'.
     context.setContents(
-        lib1Source,
-        '''
-library my_lib1;
-import 'my_lib3.dart';
+        a,
+        r'''
+library a;
+import 'c.dart';
 ''');
-    _expectInvalid(lib1Source);
-    _expectInvalid(lib2Source);
-    _expectInvalid(lib3Source);
+    _expectInvalid(a);
+    _expectInvalid(b);
+    _expectInvalid(c);
 
-    // Ensure that invalidation correctly invalidated everything reachable
-    // through lib3
-    computeResult(lib1Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(3));
-    computeResult(lib2Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(3));
-    computeResult(lib3Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(3));
+    // Ensure that everything reachable through 'c' was invalidated,
+    // and recomputed to include all three sources.
+    _assertLibraryCycle(a, [a, b, c]);
+    _assertLibraryCycle(b, [a, b, c]);
+    _assertLibraryCycle(c, [a, b, c]);
+  }
+
+  void test_library_cycle_incremental_partial2() {
+    enableStrongMode();
+    Source a = newSource(
+        '/a.dart',
+        r'''
+library a;
+import 'b.dart';
+''');
+    Source b = newSource(
+        '/b.dart',
+        r'''
+library b;
+import 'a.dart';
+''');
+    Source c = newSource(
+        '/c.dart',
+        r'''
+library c;
+import 'b.dart';
+''');
+
+    _assertLibraryCycle(a, [a, b]);
+    _assertLibraryCycle(b, [a, b]);
+    _assertLibraryCycle(c, [c]);
+
+    // Include 'c' into the cycle.
+    context.setContents(
+        a,
+        r'''
+library a;
+import 'b.dart';
+import 'c.dart';
+''');
+    _expectInvalid(a);
+    _expectInvalid(b);
+    _expectInvalid(c);
+
+    // Start processing with 'b', so that when we resolve 'b' directives,
+    // and invalidate library cycles, the 'a' directives are not resolved yet,
+    // so we don't know that the cycle must include 'c'.
+    _assertLibraryCycle(b, [a, b, c]);
+    _assertLibraryCycle(a, [a, b, c]);
+    _assertLibraryCycle(c, [a, b, c]);
   }
 
   void test_library_cycle_linear() {
@@ -1972,6 +2002,12 @@ import 'dart:core';
     expect(dep1, hasLength(1)); // dart:core
     expect(dep4, hasLength(5)); // dart:core, a.dart, aa.dart, ab.dart, b.dart
     expect(dep5, hasLength(5)); // dart:core, a.dart, aa.dart, ab.dart, b.dart
+  }
+
+  void _assertLibraryCycle(Source source, List<Source> expected) {
+    computeResult(source, LIBRARY_CYCLE);
+    List<LibraryElement> cycle = outputs[LIBRARY_CYCLE] as List<LibraryElement>;
+    expect(cycle.map((e) => e.source), unorderedEquals(expected));
   }
 
   void _expectInvalid(Source librarySource) {
