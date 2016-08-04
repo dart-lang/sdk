@@ -24,7 +24,7 @@ class BarValue extends core::Object {
     : super core::Object::•()
     ;
 }
-static method main() → dynamic/Nothing {
+static method main() → dynamic/Null {
   dynamic/self::Foo! {other} foo = new self::Foo::•();
   foo._field = new self::FooValue::•();
   dynamic/self::FooValue! {null,other} fooValue = foo._field;

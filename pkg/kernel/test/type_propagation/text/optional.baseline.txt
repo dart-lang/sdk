@@ -27,22 +27,22 @@ class TestListener extends self::Listener {
   constructor •() → void
     : super self::Listener::•()
     ;
-  method event(dynamic/core::String* {string} input, [dynamic/core::int* {null,int} x, dynamic/core::int* {null,int} y]) → void/Nothing {}
+  method event(dynamic/core::String* {string} input, [dynamic/core::int* {null,int} x, dynamic/core::int* {null,int} y]) → void/Null {}
 }
 class ExtendedListener extends self::Listener {
   constructor •() → void
     : super self::Listener::•()
     ;
-  method event(dynamic/core::String* {string} input, [dynamic/core::int* {null,int} x, dynamic/core::int* {null,int} y, dynamic/Null z]) → void/Nothing {}
+  method event(dynamic/core::String* {string} input, [dynamic/core::int* {null,int} x, dynamic/core::int* {null,int} y, dynamic/Null z]) → void/Null {}
 }
 class InvalidListener extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  method event(dynamic/core::String* {string} input, [dynamic/core::int* {null,int} x]) → void/Nothing {}
+  method event(dynamic/core::String* {string} input, [dynamic/core::int* {null,int} x]) → void/Null {}
 }
 external static method createExternal() → self::External/self::External* {other};
-static method main() → dynamic/Nothing {
+static method main() → dynamic/Null {
   dynamic/self::Foo! {other} foo = new self::Foo::•();
   dynamic/core::String* {string} string1 = foo.method(1);
   dynamic/core::String* {string} string2 = foo.method(1, 2);

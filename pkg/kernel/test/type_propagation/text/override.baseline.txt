@@ -28,7 +28,7 @@ class Sub extends self::Base {
     return new self::Bar::•();
   }
 }
-static method main(core::List<core::String>/Nothing args) → dynamic/Nothing {
+static method main(core::List<core::String>/Nothing args) → dynamic/Null {
   dynamic/self::Base* {other} object = args.length.==(0) ? new self::Base::•() : new self::Sub::•();
   dynamic/self::Foo* {other} a = object.method();
   core::print(a);

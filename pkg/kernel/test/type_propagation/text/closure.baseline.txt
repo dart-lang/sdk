@@ -13,10 +13,10 @@ class Bar extends core::Object {
     : super core::Object::•()
     ;
 }
-static method useCallback(dynamic/core::Function* {} callback) → dynamic/Nothing {
+static method useCallback(dynamic/core::Function* {} callback) → dynamic/Null {
   dynamic/self::Foo! {other} _ = callback.call();
 }
-static method main() → dynamic/Nothing {
+static method main() → dynamic/Null {
   function inner() → dynamic/self::Foo! {other} {
     return new self::Foo::•();
   }

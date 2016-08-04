@@ -40,25 +40,25 @@ class DynamicReceiver1 extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  method dynamicallyCalled(dynamic/core::String* {string} x) → dynamic/Nothing {}
+  method dynamicallyCalled(dynamic/core::String* {string} x) → dynamic/Null {}
 }
 class DynamicReceiver2 extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  method dynamicallyCalled(dynamic/core::String* {string} x) → dynamic/Nothing {}
+  method dynamicallyCalled(dynamic/core::String* {string} x) → dynamic/Null {}
 }
 static method staticMethod() → dynamic/core::String* {string} {
   return "sdfg";
 }
 external static method externalStatic() → core::bool/core::bool* {other};
 external static method createBar() → self::Bar/self::Bar* {other};
-static method stringArgument(dynamic/core::String* {string} x) → dynamic/Nothing {}
-static method intArgument(dynamic/core::int* {int} x) → dynamic/Nothing {}
-static method makeDynamicCall(dynamic/core::Object* {other} receiver) → void/Nothing {
+static method stringArgument(dynamic/core::String* {string} x) → dynamic/Null {}
+static method intArgument(dynamic/core::int* {int} x) → dynamic/Null {}
+static method makeDynamicCall(dynamic/core::Object* {other} receiver) → void/Null {
   receiver.dynamicallyCalled("sdfg");
 }
-static method main() → dynamic/Nothing {
+static method main() → dynamic/Null {
   dynamic/core::String* {string} x = self::staticMethod();
   dynamic/core::int* {int} y = new self::Foo::•().instanceMethod();
   dynamic/core::bool* {other} z = self::externalStatic();

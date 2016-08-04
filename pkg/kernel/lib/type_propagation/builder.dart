@@ -904,7 +904,12 @@ class Builder {
       environment.addAssign(returnFromType, environment.returnVariable);
     }
     if (node.body != null) {
-      new StatementBuilder(this, environment).build(node.body);
+      Completion completes =
+          new StatementBuilder(this, environment).build(node.body);
+      if (completes == Completion.Maybe) {
+        // Null is returned when control falls over the end.
+        environment.addAssign(nullNode, environment.returnVariable);
+      }
     }
   }
 
@@ -1391,7 +1396,46 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
   }
 }
 
-class StatementBuilder extends StatementVisitor {
+/// Indicates whether a statement can complete normally.
+enum Completion {
+  /// The statement might complete normally.
+  Maybe,
+
+  /// The statement never completes normally, because it throws, returns,
+  /// breaks, loops forever, etc.
+  Never,
+}
+
+Completion neverCompleteIf(bool condition) {
+  return condition ? Completion.Never : Completion.Maybe;
+}
+
+Completion completeIfBoth(Completion first, Completion second) {
+  return first == Completion.Maybe && second == Completion.Maybe
+      ? Completion.Maybe
+      : Completion.Never;
+}
+
+Completion completeIfEither(Completion first, Completion second) {
+  return first == Completion.Maybe || second == Completion.Maybe
+      ? Completion.Maybe
+      : Completion.Never;
+}
+
+bool _isTrueConstant(Expression node) {
+  return node is BoolLiteral && node.value == true;
+}
+
+bool _isThrowing(Expression node) {
+  return node is Throw || node is Rethrow;
+}
+
+/// Translates a statement to constraints.
+///
+/// The visit methods return a [Completion] indicating if the statement can
+/// complete normally.  This is used to check if null can be returned due to
+/// control falling over the end of the method.
+class StatementBuilder extends StatementVisitor<Completion> {
   final Builder builder;
   final Environment environment;
   ExpressionBuilder expressionBuilder;
@@ -1404,14 +1448,10 @@ class StatementBuilder extends StatementVisitor {
     expressionBuilder = new ExpressionBuilder(builder, environment);
   }
 
-  void build(Statement node) {
-    node.accept(this);
-  }
+  Completion build(Statement node) => node.accept(this);
 
-  void buildOptional(Statement node) {
-    if (node != null) {
-      node.accept(this);
-    }
+  Completion buildOptional(Statement node) {
+    return node != null ? node.accept(this) : Completion.Maybe;
   }
 
   int buildExpression(Expression node) {
@@ -1422,38 +1462,48 @@ class StatementBuilder extends StatementVisitor {
     builder.unsupported(node);
   }
 
-  visitInvalidStatement(InvalidStatement node) {}
+  Completion visitInvalidStatement(InvalidStatement node) => Completion.Never;
 
   visitExpressionStatement(ExpressionStatement node) {
     buildExpression(node.expression);
+    return neverCompleteIf(_isThrowing(node.expression));
   }
 
   visitBlock(Block node) {
     for (int i = 0; i < node.statements.length; ++i) {
-      build(node.statements[i]);
+      if (build(node.statements[i]) == Completion.Never) {
+        return Completion.Never;
+      }
     }
+    return Completion.Maybe;
   }
 
-  visitEmptyStatement(EmptyStatement node) {}
+  visitEmptyStatement(EmptyStatement node) => Completion.Maybe;
 
   visitAssertStatement(AssertStatement node) {
     unsupported(node);
+    return Completion.Maybe;
   }
 
   visitLabeledStatement(LabeledStatement node) {
     build(node.body);
+    // We don't track reachability of breaks in the body, so just assume we
+    // might hit a break.
+    return Completion.Maybe;
   }
 
-  visitBreakStatement(BreakStatement node) {}
+  visitBreakStatement(BreakStatement node) => Completion.Never;
 
   visitWhileStatement(WhileStatement node) {
     buildExpression(node.condition);
     build(node.body);
+    return neverCompleteIf(_isTrueConstant(node.condition));
   }
 
   visitDoStatement(DoStatement node) {
     build(node.body);
     buildExpression(node.condition);
+    return neverCompleteIf(_isTrueConstant(node.condition));
   }
 
   visitForStatement(ForStatement node) {
@@ -1467,6 +1517,7 @@ class StatementBuilder extends StatementVisitor {
       buildExpression(node.updates[i]);
     }
     build(node.body);
+    return neverCompleteIf(_isTrueConstant(node.condition));
   }
 
   visitForInStatement(ForInStatement node) {
@@ -1476,23 +1527,33 @@ class StatementBuilder extends StatementVisitor {
     int variable = environment.getVariable(node.variable);
     environment.addAssign(current, variable);
     build(node.body);
+    return Completion.Maybe;
   }
 
   visitSwitchStatement(SwitchStatement node) {
     buildExpression(node.expression);
+    Completion lastCanComplete = Completion.Maybe;
     for (int i = 0; i < node.cases.length; ++i) {
       // There is no need to visit the expression since constants cannot
       // have side effects.
-      build(node.cases[i].body);
+      // Note that only the last case can actually fall out of the switch,
+      // as the others will throw an exception if they fall through.
+      // Also note that breaks from the switch have been desugared to breaks
+      // to a [LabeledStatement].
+      lastCanComplete = build(node.cases[i].body);
     }
+    return lastCanComplete;
   }
 
-  visitContinueSwitchStatement(ContinueSwitchStatement node) {}
+  visitContinueSwitchStatement(ContinueSwitchStatement node) {
+    return Completion.Never;
+  }
 
   visitIfStatement(IfStatement node) {
     buildExpression(node.condition);
-    build(node.then);
-    buildOptional(node.otherwise);
+    Completion thenCompletes = build(node.then);
+    Completion elseCompletes = buildOptional(node.otherwise);
+    return completeIfEither(thenCompletes, elseCompletes);
   }
 
   visitReturnStatement(ReturnStatement node) {
@@ -1500,10 +1561,12 @@ class StatementBuilder extends StatementVisitor {
       int returned = buildExpression(node.expression);
       environment.addAssign(returned, environment.returnVariable);
     }
+    return Completion.Never;
   }
 
   visitTryCatch(TryCatch node) {
-    build(node.body);
+    Completion bodyCompletes = build(node.body);
+    Completion catchCompletes = Completion.Never;
     for (int i = 0; i < node.catches.length; ++i) {
       Catch catchNode = node.catches[i];
       if (catchNode.exception != null) {
@@ -1512,17 +1575,22 @@ class StatementBuilder extends StatementVisitor {
       if (catchNode.stackTrace != null) {
         environment.localVariables[catchNode.stackTrace] = builder.dynamicNode;
       }
-      build(catchNode.body);
+      if (build(catchNode.body) == Completion.Maybe) {
+        catchCompletes = Completion.Maybe;
+      }
     }
+    return completeIfEither(bodyCompletes, catchCompletes);
   }
 
   visitTryFinally(TryFinally node) {
-    build(node.body);
-    build(node.finalizer);
+    Completion bodyCompletes = build(node.body);
+    Completion finalizerCompletes = build(node.finalizer);
+    return completeIfBoth(bodyCompletes, finalizerCompletes);
   }
 
   visitYieldStatement(YieldStatement node) {
     unsupported(node);
+    return Completion.Maybe;
   }
 
   visitVariableDeclaration(VariableDeclaration node) {
@@ -1531,10 +1599,12 @@ class StatementBuilder extends StatementVisitor {
         : buildExpression(node.initializer);
     int variable = environment.getVariable(node);
     environment.addAssign(initializer, variable);
+    return neverCompleteIf(_isThrowing(node.initializer));
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
     expressionBuilder.buildInnerFunction(node.function, self: node.variable);
+    return Completion.Maybe;
   }
 }
 

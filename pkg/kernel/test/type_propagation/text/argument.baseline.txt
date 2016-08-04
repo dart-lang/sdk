@@ -22,14 +22,14 @@ class Baz extends self::Base {
     : super self::Base::•()
     ;
 }
-static method foo(dynamic/self::Foo! {other} x) → void/Nothing {}
-static method bar(dynamic/self::Bar! {other} x) → void/Nothing {}
-static method foo_escaped(dynamic/core::Object* {*} x) → void/Nothing {}
-static method bar_escaped(dynamic/core::Object* {*} x) → void/Nothing {}
-static method escape(dynamic/core::Function* {} fn) → void/Nothing {
+static method foo(dynamic/self::Foo! {other} x) → void/Null {}
+static method bar(dynamic/self::Bar! {other} x) → void/Null {}
+static method foo_escaped(dynamic/core::Object* {*} x) → void/Null {}
+static method bar_escaped(dynamic/core::Object* {*} x) → void/Null {}
+static method escape(dynamic/core::Function* {} fn) → void/Null {
   fn.call(new self::Baz::•());
 }
-static method main() → dynamic/Nothing {
+static method main() → dynamic/Null {
   self::foo(new self::Foo::•());
   self::bar(new self::Bar::•());
   self::escape(self::foo_escaped);

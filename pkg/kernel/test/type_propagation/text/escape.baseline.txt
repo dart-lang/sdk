@@ -27,21 +27,21 @@ class X extends core::Object implements self::A, self::B {
     : super core::Object::•()
     ;
 }
-static method useAsA(self::A/self::A* {other} object) → void/Nothing {
+static method useAsA(self::A/self::A* {other} object) → void/Null {
   dynamic/core::int* {null,int} _ = object.field;
 }
-static method useAsB(self::B/self::B* {other} object) → void/Nothing {
+static method useAsB(self::B/self::B* {other} object) → void/Null {
   dynamic/core::int* {null,int} _ = object.field;
   self::escape(object);
 }
-static method escape(dynamic/core::Object* {int,string,other} x) → void/Nothing {
+static method escape(dynamic/core::Object* {int,string,other} x) → void/Null {
   x.==(null) ? x = "" : null;
   x.==(null) ? x = 45 : null;
   if(!(x is core::int) && !(x is core::String)) {
     x.field = 45;
   }
 }
-static method main() → dynamic/Nothing {
+static method main() → dynamic/Null {
   dynamic/self::X! {other} object = new self::X::•();
   self::useAsA(new self::A::•());
   self::useAsA(object);
