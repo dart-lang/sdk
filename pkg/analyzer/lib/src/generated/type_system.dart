@@ -811,7 +811,7 @@ class StrongTypeSystemImpl extends TypeSystem {
   /// Given a type return its name prepended with the URI to its containing
   /// library and separated by a comma.
   String _getTypeFullyQualifiedName(DartType type) {
-    return "${type?.element?.library?.source?.uri},$type";
+    return "${type?.element?.library?.identifier},$type";
   }
 
   /**
