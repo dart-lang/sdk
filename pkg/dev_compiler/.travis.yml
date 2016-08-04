@@ -29,5 +29,4 @@ env:
 matrix:
   allow_failures:
     - env: ANALYZER=master
-    - env: ANALYZER=dev
     - env: TEST=node
