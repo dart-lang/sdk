@@ -492,25 +492,32 @@ class Builder {
     int latticePoint = newLatticePoint(<int>[baseLatticePoint],
         coreTypes.functionClass, BaseClassKind.Subtype);
     visualizer?.annotateLatticePoint(latticePoint, member, 'function');
-    int arity = node.positionalParameters.length;
+    int minArity = node.requiredParameterCount;
+    int maxArity = node.positionalParameters.length;
     int functionValue = constraints.newValue(latticePoint);
     for (int i = 0; i < node.positionalParameters.length; ++i) {
-      int field = fieldNames.getPositionalParameterField(arity, i);
       int variable = newVariable();
-      constraints.setStoreLocation(functionValue, field, variable);
-      constraints.setLoadLocation(functionValue, field, variable);
+      for (int arity = minArity; arity <= maxArity; ++arity) {
+        int field = fieldNames.getPositionalParameterField(arity, i);
+        constraints.setStoreLocation(functionValue, field, variable);
+        constraints.setLoadLocation(functionValue, field, variable);
+      }
     }
     for (int i = 0; i < node.namedParameters.length; ++i) {
-      int field = fieldNames.getNamedParameterField(
-          arity, node.namedParameters[i].name);
       int variable = newVariable();
-      constraints.setStoreLocation(functionValue, field, variable);
-      constraints.setLoadLocation(functionValue, field, variable);
+      for (int arity = minArity; arity <= maxArity; ++arity) {
+        int field = fieldNames.getNamedParameterField(
+          arity, node.namedParameters[i].name);
+          constraints.setStoreLocation(functionValue, field, variable);
+          constraints.setLoadLocation(functionValue, field, variable);
+      }
     }
     int returnVariable = newVariable();
-    int returnField = fieldNames.getReturnField(arity);
-    constraints.setStoreLocation(functionValue, returnField, returnVariable);
-    constraints.setLoadLocation(functionValue, returnField, returnVariable);
+    for (int arity = minArity; arity <= maxArity; ++arity) {
+      int returnField = fieldNames.getReturnField(arity);
+      constraints.setStoreLocation(functionValue, returnField, returnVariable);
+      constraints.setLoadLocation(functionValue, returnField, returnVariable);
+    }
     visualizer?.annotateFunction(functionValue, node);
     visualizer?.annotateValue(functionValue, member, 'function');
     return functionValue;
@@ -842,8 +849,10 @@ class Builder {
       environment.localVariables[parameter] = variable;
       if (function != null) {
         for (int arity = minArity; arity <= maxArity; ++arity) {
-          environment.addLoad(
+          if (i < arity) {
+            environment.addLoad(
               function, getPositionalParameterField(arity, i), variable);
+          }
         }
       }
       if (addTypeBasedSummary) {
@@ -1643,26 +1652,32 @@ class CovariantExternalTypeVisitor extends DartTypeVisitor<int> {
 
   /// Equivalent to visiting the FunctionType for the given function.
   int buildFunctionNode(FunctionNode node) {
-    // TODO: Handle arity range.
-    int arity = node.positionalParameters.length;
+    int minArity = node.requiredParameterCount;
+    int maxArity = node.positionalParameters.length;
     Member member = node.parent is Member ? node.parent : null;
     int functionValue = builder.newFunctionValue(node, member);
     int function = builder.newVariable(node);
     builder.constraints.addAllocation(functionValue, function);
-    for (int i = 0; i < node.positionalParameters.length; ++i) {
-      int field = fieldNames.getPositionalParameterField(arity, i);
-      int argument = environment.getLoad(function, field);
-      visitContravariant(node.positionalParameters[i].type, argument);
+    for (int arity = minArity; arity <= maxArity; ++arity) {
+      for (int i = 0; i < arity; ++i) {
+        int field = fieldNames.getPositionalParameterField(arity, i);
+        int argument = environment.getLoad(function, field);
+        visitContravariant(node.positionalParameters[i].type, argument);
+      }
     }
     for (int i = 0; i < node.namedParameters.length; ++i) {
       VariableDeclaration variable = node.namedParameters[i];
-      int field = fieldNames.getNamedParameterField(arity, variable.name);
-      int argument = environment.getLoad(function, field);
-      visitContravariant(variable.type, argument);
+      for (int arity = minArity; arity <= maxArity; ++arity) {
+        int field = fieldNames.getNamedParameterField(arity, variable.name);
+        int argument = environment.getLoad(function, field);
+        visitContravariant(variable.type, argument);
+      }
     }
     int returnVariable = visit(node.returnType);
-    environment.addStore(
-        function, fieldNames.getReturnField(arity), returnVariable);
+    for (int arity = minArity; arity <= maxArity; ++arity) {
+      environment.addStore(
+          function, fieldNames.getReturnField(arity), returnVariable);
+    }
     return function;
   }
 }
@@ -1715,40 +1730,52 @@ class ContravariantExternalTypeVisitor extends DartTypeVisitor<Null> {
   }
 
   visitFunctionType(FunctionType node) {
-    // TODO: Handle arity range.
-    int arity = node.positionalParameters.length;
+    int minArity = node.requiredParameterCount;
+    int maxArity = node.positionalParameters.length;
     for (int i = 0; i < node.positionalParameters.length; ++i) {
       int argument = visitCovariant(node.positionalParameters[i]);
-      int field = fieldNames.getPositionalParameterField(arity, i);
-      environment.addStore(input, field, argument);
+      for (int arity = minArity; arity <= maxArity; ++arity) {
+        int field = fieldNames.getPositionalParameterField(arity, i);
+        environment.addStore(input, field, argument);
+      }
     }
     node.namedParameters.forEach((String name, DartType type) {
       int argument = visitCovariant(type);
-      int field = fieldNames.getNamedParameterField(arity, name);
-      environment.addStore(input, field, argument);
+      for (int arity = minArity; arity <= maxArity; ++arity) {
+        int field = fieldNames.getNamedParameterField(arity, name);
+        environment.addStore(input, field, argument);
+      }
     });
-    int returnLocation =
-        environment.getLoad(input, fieldNames.getReturnField(arity));
-    visitContravariant(node.returnType, returnLocation);
+    for (int arity = minArity; arity <= maxArity; ++arity) {
+      int returnLocation =
+          environment.getLoad(input, fieldNames.getReturnField(arity));
+      visitContravariant(node.returnType, returnLocation);
+    }
   }
 
   /// Equivalent to visiting the FunctionType for the given function.
   void buildFunctionNode(FunctionNode node) {
-    // TODO: Handle arity range.
-    int arity = node.positionalParameters.length;
-    for (int i = 0; i < node.positionalParameters.length; ++i) {
-      int argument = visitCovariant(node.positionalParameters[i].type);
-      int field = fieldNames.getPositionalParameterField(arity, i);
-      environment.addStore(input, field, argument);
+    int minArity = node.requiredParameterCount;
+    int maxArity = node.positionalParameters.length;
+    for (int arity = minArity; arity <= maxArity; ++arity) {
+      for (int i = 0; i < arity; ++i) {
+        int argument = visitCovariant(node.positionalParameters[i].type);
+        int field = fieldNames.getPositionalParameterField(arity, i);
+        environment.addStore(input, field, argument);
+      }
     }
     for (int i = 0; i < node.namedParameters.length; ++i) {
       VariableDeclaration variable = node.namedParameters[i];
       int argument = visitCovariant(variable.type);
-      int field = fieldNames.getNamedParameterField(arity, variable.name);
-      environment.addStore(input, field, argument);
+      for (int arity = minArity; arity <= maxArity; ++arity) {
+        int field = fieldNames.getNamedParameterField(arity, variable.name);
+        environment.addStore(input, field, argument);
+      }
     }
-    int returnLocation =
-        environment.getLoad(input, fieldNames.getReturnField(arity));
-    visitContravariant(node.returnType, returnLocation);
+    for (int arity = minArity; arity <= maxArity; ++arity) {
+      int returnLocation =
+          environment.getLoad(input, fieldNames.getReturnField(arity));
+      visitContravariant(node.returnType, returnLocation);
+    }
   }
 }
