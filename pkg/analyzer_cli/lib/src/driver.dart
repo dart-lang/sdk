@@ -252,9 +252,11 @@ class Driver implements CommandLineStarter {
   ErrorSeverity _buildModeAnalyze(CommandLineOptions options) {
     return _analyzeAllTag.makeCurrentWhile(() {
       if (options.buildModePersistentWorker) {
-        new AnalyzerWorkerLoop.std(dartSdkPath: options.dartSdkPath).run();
+        new AnalyzerWorkerLoop.std(resourceProvider,
+                dartSdkPath: options.dartSdkPath)
+            .run();
       } else {
-        return new BuildMode(options, stats).analyze();
+        return new BuildMode(resourceProvider, options, stats).analyze();
       }
     });
   }
@@ -479,7 +481,7 @@ class Driver implements CommandLineStarter {
 
     AnalyzeFunctionBodiesPredicate dietParsingPolicy =
         _chooseDietParsingPolicy(options);
-    setAnalysisContextOptions(_context, options,
+    setAnalysisContextOptions(resourceProvider, _context, options,
         (AnalysisOptionsImpl contextOptions) {
       contextOptions.analyzeFunctionBodiesPredicate = dietParsingPolicy;
     });
@@ -655,6 +657,7 @@ class Driver implements CommandLineStarter {
   }
 
   static void setAnalysisContextOptions(
+      file_system.ResourceProvider resourceProvider,
       AnalysisContext context,
       CommandLineOptions options,
       void configureContextOptions(AnalysisOptionsImpl contextOptions)) {
@@ -679,7 +682,7 @@ class Driver implements CommandLineStarter {
     context.analysisOptions = contextOptions;
 
     // Process analysis options file (and notify all interested parties).
-    _processAnalysisOptions(context, options);
+    _processAnalysisOptions(resourceProvider, context, options);
   }
 
   /// Perform a deep comparison of two string maps.
@@ -695,21 +698,23 @@ class Driver implements CommandLineStarter {
     return true;
   }
 
-  static file_system.File _getOptionsFile(CommandLineOptions options) {
+  static file_system.File _getOptionsFile(
+      file_system.ResourceProvider resourceProvider,
+      CommandLineOptions options) {
     file_system.File file;
     String filePath = options.analysisOptionsFile;
     if (filePath != null) {
-      file = PhysicalResourceProvider.INSTANCE.getFile(filePath);
+      file = resourceProvider.getFile(filePath);
       if (!file.exists) {
         printAndFail('Options file not found: $filePath',
             exitCode: ErrorSeverity.ERROR.ordinal);
       }
     } else {
       filePath = AnalysisEngine.ANALYSIS_OPTIONS_FILE;
-      file = PhysicalResourceProvider.INSTANCE.getFile(filePath);
+      file = resourceProvider.getFile(filePath);
       if (!file.exists) {
         filePath = AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
-        file = PhysicalResourceProvider.INSTANCE.getFile(filePath);
+        file = resourceProvider.getFile(filePath);
       }
     }
     return file;
@@ -720,8 +725,10 @@ class Driver implements CommandLineStarter {
       path.normalize(new File(sourcePath).absolute.path);
 
   static void _processAnalysisOptions(
-      AnalysisContext context, CommandLineOptions options) {
-    file_system.File file = _getOptionsFile(options);
+      file_system.ResourceProvider resourceProvider,
+      AnalysisContext context,
+      CommandLineOptions options) {
+    file_system.File file = _getOptionsFile(resourceProvider, options);
     List<OptionsProcessor> optionsProcessors =
         AnalysisEngine.instance.optionsPlugin.optionsProcessors;
     try {
