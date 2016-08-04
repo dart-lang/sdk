@@ -1,7 +1,6 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--enable_asserts
 
 import "package:expect/expect.dart";
 
@@ -36,6 +35,16 @@ assertP(double d) {
   assert(d == d.p);
 }
 
+bool assertionsEnabled() {
+  try {
+    assert(false);
+    return false;
+  } on AssertionError catch (e) {
+    return true;
+  }
+  return false;
+}
+
 main() {
   // The getter p keeps only 20 (by default) bits after the decimal point.
   Expect.equals(0.0, 0.0.p);  // 0.0 has no 1-bit after the decimal point.
@@ -63,9 +72,11 @@ main() {
   Expect.isTrue(double.NEGATIVE_INFINITY.p.isNegative);
 
   // Check use of assert to verify precision.
-  assertP(1.5);
-  assertP(1.1.p);
-  Expect.throws(() => assertP(1.1), (e) => e is AssertionError);
-  assertP(1.23456789.p);
-  Expect.throws(() => assertP(1.23456789), (e) => e is AssertionError);
+  if (assertionsEnabled()) {
+    assertP(1.5);
+    assertP(1.1.p);
+    Expect.throws(() => assertP(1.1), (e) => e is AssertionError);
+    assertP(1.23456789.p);
+    Expect.throws(() => assertP(1.23456789), (e) => e is AssertionError);
+  }
 }
