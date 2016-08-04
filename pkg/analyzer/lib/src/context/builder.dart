@@ -12,9 +12,9 @@ import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
-import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/sdk_ext.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -210,6 +210,7 @@ class ContextBuilder {
     Folder folder() {
       return _folder ??= resourceProvider.getResource('.');
     }
+
     UriResolver fileResolver = fileResolverProvider == null
         ? new ResourceUriResolver(resourceProvider)
         : fileResolverProvider(folder());
@@ -264,7 +265,8 @@ class ContextBuilder {
       List<String> extFilePaths = extResolver.extensionFilePaths;
       EmbedderYamlLocator locator = new EmbedderYamlLocator(packageMap);
       Map<Folder, YamlMap> embedderYamls = locator.embedderYamls;
-      EmbedderSdk embedderSdk = new EmbedderSdk(embedderYamls);
+      EmbedderSdk embedderSdk =
+          new EmbedderSdk(resourceProvider, embedderYamls);
       if (embedderSdk.sdkLibraries.length > 0) {
         //
         // There is an embedder file that defines the content of the SDK and
@@ -355,5 +357,100 @@ class ContextBuilder {
       }
     }
     return null;
+  }
+}
+
+/**
+ * Given a package map, check in each package's lib directory for the existence
+ * of an `_embedder.yaml` file. If the file contains a top level YamlMap, it
+ * will be added to the [embedderYamls] map.
+ */
+class EmbedderYamlLocator {
+  /**
+   * The name of the embedder files being searched for.
+   */
+  static const String EMBEDDER_FILE_NAME = '_embedder.yaml';
+
+  /**
+   * A mapping from a package's library directory to the parsed YamlMap.
+   */
+  final Map<Folder, YamlMap> embedderYamls = new HashMap<Folder, YamlMap>();
+
+  /**
+   * Initialize a newly created locator by processing the packages in the given
+   * [packageMap].
+   */
+  EmbedderYamlLocator(Map<String, List<Folder>> packageMap) {
+    if (packageMap != null) {
+      _processPackageMap(packageMap);
+    }
+  }
+
+  /**
+   * Programatically add an `_embedder.yaml` mapping.
+   */
+  void addEmbedderYaml(Folder libDir, String embedderYaml) {
+    _processEmbedderYaml(libDir, embedderYaml);
+  }
+
+  /**
+   * Refresh the map of located files to those found by processing the given
+   * [packageMap].
+   */
+  void refresh(Map<String, List<Folder>> packageMap) {
+    // Clear existing.
+    embedderYamls.clear();
+    if (packageMap != null) {
+      _processPackageMap(packageMap);
+    }
+  }
+
+  /**
+   * Given the yaml for an embedder ([embedderYaml]) and a folder ([libDir]),
+   * setup the uri mapping.
+   */
+  void _processEmbedderYaml(Folder libDir, String embedderYaml) {
+    try {
+      YamlNode yaml = loadYaml(embedderYaml);
+      if (yaml is YamlMap) {
+        embedderYamls[libDir] = yaml;
+      }
+    } catch (_) {
+      // Ignored
+    }
+  }
+
+  /**
+   * Given a package [name] and a list of folders ([libDirs]), process any
+   * `_embedder.yaml` files that are found in any of the folders.
+   */
+  void _processPackage(String name, List<Folder> libDirs) {
+    for (Folder libDir in libDirs) {
+      String embedderYaml = _readEmbedderYaml(libDir);
+      if (embedderYaml != null) {
+        _processEmbedderYaml(libDir, embedderYaml);
+      }
+    }
+  }
+
+  /**
+   * Process each of the entries in the [packageMap].
+   */
+  void _processPackageMap(Map<String, List<Folder>> packageMap) {
+    packageMap.forEach(_processPackage);
+  }
+
+  /**
+   * Read and return the contents of [libDir]/[EMBEDDER_FILE_NAME], or `null` if
+   * the file doesn't exist.
+   */
+  String _readEmbedderYaml(Folder libDir) {
+    File file = libDir.getChild(EMBEDDER_FILE_NAME);
+    try {
+      return file.readAsStringSync();
+    } on FileSystemException {
+      // File can't be read.
+      return null;
+    }
   }
 }

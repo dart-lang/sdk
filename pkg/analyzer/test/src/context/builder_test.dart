@@ -22,6 +22,7 @@ import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
+import '../../source/embedder_test.dart';
 import '../../utils.dart';
 import 'mock_sdk.dart';
 
@@ -29,6 +30,7 @@ main() {
   initializeTestEnvironment();
   runReflectiveTests(ContextBuilderTest_WithDisk);
   runReflectiveTests(ContextBuilderTest_WithoutDisk);
+  runReflectiveTests(EmbedderYamlLocatorTest);
 }
 
 @reflectiveTest
@@ -693,5 +695,28 @@ analyzer:
     expect(actual.implicitDynamic, expected.implicitDynamic);
     expect(actual.trackCacheDependencies, expected.trackCacheDependencies);
     expect(actual.finerGrainedInvalidation, expected.finerGrainedInvalidation);
+  }
+}
+
+@reflectiveTest
+class EmbedderYamlLocatorTest extends EmbedderRelatedTest {
+  void test_empty() {
+    EmbedderYamlLocator locator = new EmbedderYamlLocator({
+      'fox': [pathTranslator.getResource('/empty')]
+    });
+    expect(locator.embedderYamls, hasLength(0));
+  }
+
+  void test_invalid() {
+    EmbedderYamlLocator locator = new EmbedderYamlLocator(null);
+    locator.addEmbedderYaml(null, r'''{{{,{{}}},}}''');
+    expect(locator.embedderYamls, hasLength(0));
+  }
+
+  void test_valid() {
+    EmbedderYamlLocator locator = new EmbedderYamlLocator({
+      'fox': [pathTranslator.getResource('/tmp')]
+    });
+    expect(locator.embedderYamls, hasLength(1));
   }
 }

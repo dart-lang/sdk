@@ -12,8 +12,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
-import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/cancelable_future.dart';
+import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -1456,6 +1456,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.write(optionName);
       needsSeparator = true;
     }
+
     if (encoding & ENABLE_ASSERT_FLAG > 0) {
       add('assert');
     }

@@ -13,8 +13,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/plugin/task.dart';
-import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/cancelable_future.dart';
+import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -1251,6 +1251,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       setValue(ResultDescriptor result, value) {
         entry.setValue(result, value, TargetedResult.EMPTY_LIST);
       }
+
       setValue(BUILD_DIRECTIVES_ERRORS, AnalysisError.NO_ERRORS);
       setValue(BUILD_LIBRARY_ERRORS, AnalysisError.NO_ERRORS);
       // CLASS_ELEMENTS
@@ -1767,6 +1768,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
       return false;
     }
+
     return _refHtml(librarySource);
   }
 
