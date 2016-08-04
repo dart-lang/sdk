@@ -2612,6 +2612,20 @@ class C {
 ''');
   }
 
+  void test_leastUpperBounds_fuzzyArrows() {
+    checkFile(r'''
+typedef String TakesA<T>(T item);
+
+void main() {
+  TakesA<int> f;
+  TakesA<dynamic> g;
+  TakesA<String> h;
+  g = h;
+  f = /*warning:DOWN_CAST_COMPOSITE*/f ?? g;
+}
+''');
+  }
+
   void test_loadLibrary() {
     addFile('''library lib1;''', name: '/lib1.dart');
     checkFile(r'''
@@ -3322,7 +3336,9 @@ class SplayTreeMap<K, V> {
                 bool isValidKey(potentialKey)])
     : _comparator = /*warning:DOWN_CAST_COMPOSITE*/(compare == null) ? Comparable.compare : compare,
       _validKey = (isValidKey != null) ? isValidKey : ((v) => true) {
-    _Predicate<Object> v = (isValidKey != null)
+
+    // NOTE: this is a down cast because isValidKey has fuzzy arrow type.
+    _Predicate<Object> v = /*warning:DOWN_CAST_COMPOSITE*/(isValidKey != null)
         ? isValidKey : (/*info:INFERRED_TYPE_CLOSURE*/(_) => true);
 
     v = (isValidKey != null)

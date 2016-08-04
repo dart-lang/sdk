@@ -91,24 +91,22 @@ class StrongTypeSystemImpl extends TypeSystem {
 
   /// Computes the greatest lower bound of [type1] and [type2].
   DartType getGreatestLowerBound(
-      TypeProvider provider, DartType type1, DartType type2) {
+      TypeProvider provider, DartType type1, DartType type2,
+      {dynamicIsBottom: false}) {
     // The greatest lower bound relation is reflexive.
     if (identical(type1, type2)) {
       return type1;
     }
 
-    // Treat dynamic as top. The GLB of dynamic and any type is just that type
-    // since dynamic permits all values.
-    if (type1.isDynamic) {
+    // The GLB of top and any type is just that type.
+    // Also GLB of bottom and any type is bottom.
+    if (_isTop(type1, dynamicIsBottom: dynamicIsBottom) ||
+        _isBottom(type2, dynamicIsBottom: dynamicIsBottom)) {
       return type2;
     }
-    if (type2.isDynamic) {
+    if (_isTop(type2, dynamicIsBottom: dynamicIsBottom) ||
+        _isBottom(type1, dynamicIsBottom: dynamicIsBottom)) {
       return type1;
-    }
-
-    // You can't get any lower than bottom.
-    if (type1.isBottom || type2.isBottom) {
-      return provider.bottomType;
     }
 
     // Treat void as top-like for GLB. This only comes into play with the
@@ -146,7 +144,8 @@ class StrongTypeSystemImpl extends TypeSystem {
    */
   @override
   DartType getLeastUpperBound(
-      TypeProvider typeProvider, DartType type1, DartType type2) {
+      TypeProvider typeProvider, DartType type1, DartType type2,
+      {bool dynamicIsBottom: false}) {
     if (isNullableType(type1) && isNonNullableType(type2)) {
       assert(type2 is InterfaceType);
       type2 = getLeastNullableSupertype(type2 as InterfaceType);
@@ -155,7 +154,8 @@ class StrongTypeSystemImpl extends TypeSystem {
       assert(type1 is InterfaceType);
       type1 = getLeastNullableSupertype(type1 as InterfaceType);
     }
-    return super.getLeastUpperBound(typeProvider, type1, type2);
+    return super.getLeastUpperBound(typeProvider, type1, type2,
+        dynamicIsBottom: dynamicIsBottom);
   }
 
   /**
@@ -476,7 +476,8 @@ class StrongTypeSystemImpl extends TypeSystem {
       DartType paramType;
       if (fType != null && gType != null) {
         // If both functions have this parameter, include both of their types.
-        paramType = getLeastUpperBound(provider, fType, gType);
+        paramType =
+            getLeastUpperBound(provider, fType, gType, dynamicIsBottom: true);
       } else {
         paramType = fType ?? gType;
       }
@@ -560,7 +561,7 @@ class StrongTypeSystemImpl extends TypeSystem {
   @override
   DartType _functionParameterBound(
           TypeProvider provider, DartType f, DartType g) =>
-      getGreatestLowerBound(provider, f, g);
+      getGreatestLowerBound(provider, f, g, dynamicIsBottom: true);
 
   /**
    * Guard against loops in the class hierarchy
@@ -637,10 +638,6 @@ class StrongTypeSystemImpl extends TypeSystem {
     }
     return InterfaceTypeImpl.computeLeastUpperBound(type1, type2) ??
         provider.dynamicType;
-  }
-
-  bool _isBottom(DartType t, {bool dynamicIsBottom: false}) {
-    return (t.isDynamic && dynamicIsBottom) || t.isBottom;
   }
 
   /**
@@ -791,11 +788,6 @@ class StrongTypeSystemImpl extends TypeSystem {
     return _isFunctionSubtypeOf(t1 as FunctionType, t2 as FunctionType);
   }
 
-  bool _isTop(DartType t, {bool dynamicIsBottom: false}) {
-    // TODO(leafp): Document the rules in play here
-    return (t.isDynamic && !dynamicIsBottom) || t.isObject;
-  }
-
   /// Check if [type] is in a set of preselected non-nullable types.
   /// [FunctionType]s are always nullable.
   bool isNonNullableType(DartType type) {
@@ -914,16 +906,20 @@ abstract class TypeSystem {
    * Compute the least upper bound of two types.
    */
   DartType getLeastUpperBound(
-      TypeProvider typeProvider, DartType type1, DartType type2) {
+      TypeProvider typeProvider, DartType type1, DartType type2,
+      {dynamicIsBottom: false}) {
     // The least upper bound relation is reflexive.
     if (identical(type1, type2)) {
       return type1;
     }
-    // The least upper bound of dynamic and any type T is dynamic.
-    if (type1.isDynamic) {
+    // The least upper bound of top and any type T is top.
+    // The least upper bound of bottom and any type T is T.
+    if (_isTop(type1, dynamicIsBottom: dynamicIsBottom) ||
+        _isBottom(type2, dynamicIsBottom: dynamicIsBottom)) {
       return type1;
     }
-    if (type2.isDynamic) {
+    if (_isTop(type2, dynamicIsBottom: dynamicIsBottom) ||
+        _isBottom(type1, dynamicIsBottom: dynamicIsBottom)) {
       return type2;
     }
     // The least upper bound of void and any type T != dynamic is void.
@@ -932,13 +928,6 @@ abstract class TypeSystem {
     }
     if (type2.isVoid) {
       return type2;
-    }
-    // The least upper bound of bottom and any type T is T.
-    if (type1.isBottom) {
-      return type2;
-    }
-    if (type2.isBottom) {
-      return type1;
     }
 
     if (type1 is TypeParameterType || type2 is TypeParameterType) {
@@ -1556,4 +1545,13 @@ class _TypeParameterVariance {
       _visitInterfaceType(typeParam, type, paramIn);
     }
   }
+}
+
+bool _isBottom(DartType t, {bool dynamicIsBottom: false}) {
+  return (t.isDynamic && dynamicIsBottom) || t.isBottom;
+}
+
+bool _isTop(DartType t, {bool dynamicIsBottom: false}) {
+  // TODO(leafp): Document the rules in play here
+  return (t.isDynamic && !dynamicIsBottom) || t.isObject;
 }

@@ -164,7 +164,6 @@ class LeastUpperBoundTest extends LeastUpperBoundTestBase {
     FunctionType expected = _functionType([objectType, numType, numType]);
     _checkLeastUpperBound(type1, type2, expected);
   }
-
   void test_nestedNestedFunctionsLubInnermostParamTypes() {
     FunctionType type1 = _functionType([
       _functionType([
@@ -1142,6 +1141,13 @@ class StrongGreatestLowerBoundTest extends BoundTestBase {
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
+  void test_functionsFuzzyArrows() {
+    FunctionType type1 = _functionType([dynamicType]);
+    FunctionType type2 = _functionType([intType]);
+    FunctionType expected = _functionType([intType]);
+    _checkGreatestLowerBound(type1, type2, expected);
+  }
+
   void test_functionsGlbReturnType() {
     FunctionType type1 = _functionType([], returns: intType);
     FunctionType type2 = _functionType([], returns: numType);
@@ -1309,6 +1315,13 @@ class StrongLeastUpperBoundTest extends LeastUpperBoundTestBase {
   void setUp() {
     typeSystem = new StrongTypeSystemImpl();
     super.setUp();
+  }
+
+  void test_functionsFuzzyArrows() {
+    FunctionType type1 = _functionType([dynamicType]);
+    FunctionType type2 = _functionType([intType]);
+    FunctionType expected = _functionType([dynamicType]);
+    _checkLeastUpperBound(type1, type2, expected);
   }
 
   void test_functionsGlbNamedParams() {
