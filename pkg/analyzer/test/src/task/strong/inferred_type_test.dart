@@ -3906,10 +3906,9 @@ class C {
   }
 
   void test_unsafeBlockClosureInference_closureCall() {
-    // Note: this is a DYNAMIC_INVOKE due to dartbug.com/26962.
+    // Regression test for https://github.com/dart-lang/sdk/issues/26962
     var mainUnit = checkFile('''
-var v = /*info:DYNAMIC_INVOKE*/((x) => 1.0)(
-  /*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
+var v = ((x) => 1.0)(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
 ''');
     var v = mainUnit.topLevelVariables[0];
     expect(v.name, 'v');
@@ -4075,11 +4074,9 @@ var v = f(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
   }
 
   void test_unsafeBlockClosureInference_functionCall_noTypeParam_viaExpr() {
-    // TODO(paulberry): why is the call to f() considered a DYNAMIC_INVOKE?
     var mainUnit = checkFile('''
 double f(x) => 1.0;
-var v = /*info:DYNAMIC_INVOKE*/(f)(
-  /*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
+var v = (f)(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
 ''');
     var v = mainUnit.topLevelVariables[0];
     expect(v.name, 'v');
