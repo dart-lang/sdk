@@ -142,6 +142,39 @@ class StrongTypeSystemImpl extends TypeSystem {
   }
 
   /**
+   * Compute the least upper bound of two types.
+   */
+  @override
+  DartType getLeastUpperBound(
+      TypeProvider typeProvider, DartType type1, DartType type2) {
+    if (isNullableType(type1) && isNonNullableType(type2)) {
+      assert(type2 is InterfaceType);
+      type2 = getLeastNullableSupertype(type2 as InterfaceType);
+    }
+    if (isNullableType(type2) && isNonNullableType(type1)) {
+      assert(type1 is InterfaceType);
+      type1 = getLeastNullableSupertype(type1 as InterfaceType);
+    }
+    return super.getLeastUpperBound(typeProvider, type1, type2);
+  }
+
+  /**
+   * Compute the least supertype of [type], which is known to be an interface
+   * type.
+   *
+   * In the event that the algorithm fails (which might occur due to a bug in
+   * the analyzer), `null` is returned.
+   */
+  DartType getLeastNullableSupertype(InterfaceType type) {
+    // compute set of supertypes
+    List<InterfaceType> s = InterfaceTypeImpl
+        .computeSuperinterfaceSet(type)
+        .where(isNullableType)
+        .toList();
+    return InterfaceTypeImpl.computeTypeAtMaxUniqueDepth(s);
+  }
+
+  /**
    * Given a generic function type `F<T0, T1, ... Tn>` and a context type C,
    * infer an instantiation of F, such that `F<S0, S1, ..., Sn>` <: C.
    *
@@ -763,8 +796,16 @@ class StrongTypeSystemImpl extends TypeSystem {
     return (t.isDynamic && !dynamicIsBottom) || t.isObject;
   }
 
+  /// Check if [type] is in a set of preselected non-nullable types.
+  /// [FunctionType]s are always nullable.
   bool isNonNullableType(DartType type) {
-    return nonnullableTypes.contains(_getTypeFullyQualifiedName(type));
+    return !isNullableType(type);
+  }
+
+  /// Opposite of [isNonNullableType].
+  bool isNullableType(DartType type) {
+    return type is FunctionType ||
+        !nonnullableTypes.contains(_getTypeFullyQualifiedName(type));
   }
 
   /// Given a type return its name prepended with the URI to its containing

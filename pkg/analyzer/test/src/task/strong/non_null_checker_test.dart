@@ -48,11 +48,23 @@ main() {
     checkFile('int x = null;');
   }
 
-  void test_nonnullableTypes() {
+  void test_uninitialized_nonnullable() {
     // If `int`s are non-nullable, then this code should throw an error.
     addFile('int x;');
+    check(nonnullableTypes: <String>['dart:core,int']);
+  }
+
+  void test_initialize_nonnullable_with_null() {
     addFile('int x = /*error:INVALID_ASSIGNMENT*/null;');
+    check(nonnullableTypes: <String>['dart:core,int']);
+  }
+
+  void test_initialize_nonnullable_with_valid_value() {
     addFile('int x = 0;');
+    check(nonnullableTypes: <String>['dart:core,int']);
+  }
+
+  void test_assign_null_to_nonnullable() {
     addFile('''
 int x = 0;
 
@@ -63,4 +75,75 @@ main() {
 ''');
     check(nonnullableTypes: <String>['dart:core,int']);
   }
+
+  // Default example from NNBD document.
+  final String defaultNnbdExample = '''
+class Point {
+  final int x, y;
+  Point(this.x, this.y);
+  Point operator +(Point other) => new Point(x + other.x, y + other.y);
+  String toString() => "x: \$x, y: \$y";
+}
+
+void main() {
+  Point p1 = new Point(0, 0);
+  Point p2 = new Point(10, 10);
+  print("p1 + p2 = \${p1 + p2}");
+}
+''';
+
+  final String defaultNnbdExampleMod1 = '''
+class Point {
+  final int x, y;
+  Point(this.x, this.y);
+  Point operator +(Point other) => new Point(x + other.x, y + other.y);
+  String toString() => "x: \$x, y: \$y";
+}
+
+void main() {
+  Point p1 = new Point(0, 0);
+  Point p2 = new Point(10, /*boom*/null); // Change here.
+  print("p1 + p2 = \${p1 + p2}");
+}
+''';
+
+  final String defaultNnbdExampleMod2 = '''
+class Point {
+  final int x, y;
+  Point(this.x, this.y);
+  Point operator +(Point other) => new Point(x + other.x, y + other.y);
+  String toString() => "x: \$x, y: \$y";
+}
+
+void main() {
+  bool f = false; // Necessary, because dead code is otherwise detected.
+  Point p1 = new Point(0, 0);
+  Point p2 = new Point(10, /*boom*/f ? 10 : null); // Change here.
+  print("p1 + p2 = \${p1 + p2}");
+}
+''';
+
+  void test_nullable_fields() {
+    addFile(defaultNnbdExample);
+    // `null` can be passed as an argument to `Point` in default mode.
+    addFile(defaultNnbdExampleMod1);
+    // A nullable expression can be passed as an argument to `Point` in default
+    // mode.
+    addFile(defaultNnbdExampleMod2);
+    check();
+  }
+
+  void test_nonnullable_fields() {
+    addFile(defaultNnbdExample);
+    // `null` can be passed as an argument to `Point` in default mode.
+    addFile(_withError(defaultNnbdExampleMod1, "error:INVALID_ASSIGNMENT"));
+    // A nullable expression can be passed as an argument to `Point` in default
+    // mode.
+    addFile(_withError(defaultNnbdExampleMod2, "error:INVALID_ASSIGNMENT"));
+    check(nonnullableTypes: <String>['dart:core,int']);
+  }
+}
+
+String _withError(String file, String error) {
+  return ("" + file).replaceFirst("boom", error);
 }

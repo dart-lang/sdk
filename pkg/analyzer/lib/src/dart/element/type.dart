@@ -1957,11 +1957,19 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     sj.add(j);
     // compute intersection, reference as set 's'
     List<InterfaceType> s = _intersection(si, sj);
+    return computeTypeAtMaxUniqueDepth(s);
+  }
+  
+  /**
+   * Return the type from the [types] list that has the longest inheritence path
+   * to Object of unique length.
+   */
+  static InterfaceType computeTypeAtMaxUniqueDepth(List<InterfaceType> types) {
     // for each element in Set s, compute the largest inheritance path to Object
-    List<int> depths = new List<int>.filled(s.length, 0);
+    List<int> depths = new List<int>.filled(types.length, 0);
     int maxDepth = 0;
-    for (int n = 0; n < s.length; n++) {
-      depths[n] = computeLongestInheritancePathToObject(s[n]);
+    for (int n = 0; n < types.length; n++) {
+      depths[n] = computeLongestInheritancePathToObject(types[n]);
       if (depths[n] > maxDepth) {
         maxDepth = depths[n];
       }
@@ -1978,7 +1986,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         }
       }
       if (numberOfTypesAtMaxDepth == 1) {
-        return s[indexOfLeastUpperBound];
+        return types[indexOfLeastUpperBound];
       }
     }
     // Should be impossible--there should always be exactly one type with the
