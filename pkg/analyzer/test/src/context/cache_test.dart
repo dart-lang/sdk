@@ -701,6 +701,12 @@ class CacheEntryTest extends AbstractCacheTest {
         unorderedEquals([new TargetedResult(target, result2)]));
     expect(entry.getResultData(result2).dependedOnResults,
         unorderedEquals([new TargetedResult(target, result1)]));
+    // record invalidated results
+    Set<TargetedResult> reportedInvalidatedResults = new Set<TargetedResult>();
+    cache.onResultInvalidated.listen((InvalidatedResult invalidatedResult) {
+      reportedInvalidatedResults.add(new TargetedResult(
+          invalidatedResult.entry.target, invalidatedResult.descriptor));
+    });
     // invalidate result2 with Delta: keep result2, invalidate result3
     entry.setState(result2, CacheState.INVALID,
         delta: new _KeepContinueDelta(target, result2));
@@ -712,6 +718,10 @@ class CacheEntryTest extends AbstractCacheTest {
         unorderedEquals([new TargetedResult(target, result2)]));
     expect(entry.getResultData(result2).dependedOnResults,
         unorderedEquals([new TargetedResult(target, result1)]));
+    // (target, result3) was reported as invalidated
+    // (target, result2) was NOT reported
+    expect(reportedInvalidatedResults,
+        unorderedEquals([new TargetedResult(target, result3)]));
   }
 
   test_setState_valid() {

@@ -13,6 +13,7 @@
     'crypto_fuchsia.cc',
     'crypto_linux.cc',
     'crypto_macos.cc',
+    'crypto_test.cc',
     'crypto_win.cc',
     'builtin_common.cc',
     'dartutils.cc',

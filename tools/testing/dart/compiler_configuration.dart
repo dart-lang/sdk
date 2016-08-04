@@ -54,6 +54,7 @@ abstract class CompilerConfiguration {
     bool useCps = configuration['cps_ir'];
     bool useBlobs = configuration['use_blobs'];
     bool hotReload = configuration['hot_reload'];
+    bool hotReloadRollback = configuration['hot_reload_rollback'];
 
     switch (compiler) {
       case 'dart2analyzer':
@@ -91,7 +92,8 @@ abstract class CompilerConfiguration {
             isChecked: isChecked,
             isHostChecked: isHostChecked,
             useSdk: useSdk,
-            hotReload: hotReload);
+            hotReload: hotReload,
+            hotReloadRollback: hotReloadRollback);
       default:
         throw "Unknown compiler '$compiler'";
     }
@@ -152,16 +154,19 @@ abstract class CompilerConfiguration {
 /// The "none" compiler.
 class NoneCompilerConfiguration extends CompilerConfiguration {
   final bool hotReload;
+  final bool hotReloadRollback;
 
   NoneCompilerConfiguration(
       {bool isDebug, bool isChecked, bool isHostChecked, bool useSdk,
-       bool hotReload})
+       bool hotReload,
+       bool hotReloadRollback})
       : super._subclass(
             isDebug: isDebug,
             isChecked: isChecked,
             isHostChecked: isHostChecked,
             useSdk: useSdk),
-        this.hotReload = hotReload;
+        this.hotReload = hotReload,
+        this.hotReloadRollback = hotReloadRollback;
 
   bool get hasCompiler => false;
 
@@ -180,6 +185,8 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
     }
     if (hotReload) {
       args.add('--hot-reload-test-mode');
+    } else if (hotReloadRollback) {
+      args.add('--hot-reload-rollback-test-mode');
     }
     return args
       ..addAll(vmOptions)

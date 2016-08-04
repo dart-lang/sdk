@@ -7,11 +7,18 @@ library service_ref_element;
 import 'dart:html';
 
 import 'package:logging/logging.dart';
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 
 import 'class_ref.dart';
+import 'class_ref_as_value.dart';
+import 'code_ref.dart';
+import 'error_ref.dart';
+import 'function_ref.dart';
 import 'library_ref.dart';
+import 'library_ref_as_value.dart';
+import 'script_ref.dart';
 import 'observatory_element.dart';
 
 class ServiceRefElement extends ObservatoryElement {
@@ -91,43 +98,49 @@ class AnyServiceRefElement extends ObservatoryElement {
     var type = ref.type;
     switch (type) {
      case 'Class':
-        ClassRefElement element = new Element.tag('class-ref');
-        element.ref = ref;
-        element.asValue = asValue;
-        return element;
+        if (asValue) {
+          ClassRefAsValueElement element =
+            new Element.tag('class-ref-as-element');
+          element.ref = ref;
+          return element;
+        }
+        return new ClassRefElement(ref.isolate,
+                                   ref as M.ClassRef,
+                                   queue: app.queue);
       case 'Code':
-        ServiceRefElement element = new Element.tag('code-ref');
-        element.ref = ref;
-        return element;
+        return new CodeRefElement(ref.isolate, ref as M.Code, queue: app.queue);
       case 'Context':
         ServiceRefElement element = new Element.tag('context-ref');
         element.ref = ref;
         return element;
       case 'Error':
-        ServiceRefElement element = new Element.tag('error-ref');
-        element.ref = ref;
-        return element;
+        return new ErrorRefElement(ref as M.ErrorRef, queue: app.queue);
       case 'Field':
         ServiceRefElement element = new Element.tag('field-ref');
         element.ref = ref;
         return element;
       case 'Function':
-        ServiceRefElement element = new Element.tag('function-ref');
-        element.ref = ref;
-        return element;
+        return new FunctionRefElement(ref.isolate,
+                                      ref as M.FunctionRef,
+                                      queue: app.queue);
       case 'Library':
-        LibraryRefElement element = new Element.tag('library-ref');
-        element.ref = ref;
-        element.asValue = asValue;
-        return element;
+        if (asValue) {
+          LibraryRefAsValueElement element =
+              new Element.tag('library-ref-as-value');
+          element.ref = ref;
+          return element;
+        }
+        return new LibraryRefElement(ref.isolate,
+                                     ref as M.LibraryRef,
+                                     queue: app.queue);
       case 'Object':
         ServiceRefElement element = new Element.tag('object-ref');
         element.ref = ref;
         return element;
       case 'Script':
-        ServiceRefElement element = new Element.tag('script-ref');
-        element.ref = ref;
-        return element;
+        return new ScriptRefElement(ref.isolate,
+                                    ref as M.ScriptRef,
+                                    queue: app.queue);
       case 'Instance':
       case 'Sentinel':
         ServiceRefElement element = new Element.tag('instance-ref');

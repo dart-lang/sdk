@@ -42,6 +42,38 @@ class IncrementalCompilationUnitElementBuilderTest extends AbstractContextTest {
     return newCode.substring(node.offset, node.end);
   }
 
+  test_classDelta_annotation_add() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+class A {}
+''');
+    helper.initOld(oldUnit);
+    expect(helper.element.metadata, isEmpty);
+    _buildNewUnit(r'''
+@deprecated
+class A {}
+''');
+    helper.initNew(newUnit, unitDelta);
+    expect(helper.delta.hasAnnotationChanges, isTrue);
+    expect(helper.element.metadata, hasLength(1));
+  }
+
+  test_classDelta_annotation_remove() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+@deprecated
+class A {}
+''');
+    helper.initOld(oldUnit);
+    expect(helper.element.metadata, hasLength(1));
+    _buildNewUnit(r'''
+class A {}
+''');
+    helper.initNew(newUnit, unitDelta);
+    expect(helper.delta.hasAnnotationChanges, isTrue);
+    expect(helper.element.metadata, isEmpty);
+  }
+
   test_classDelta_constructor_0to1() {
     var helper = new _ClassDeltaHelper('A');
     _buildOldUnit(r'''
@@ -438,6 +470,7 @@ class A {
     FieldElement newFieldElementB = newFieldsB[0].name.staticElement;
     expect(newFieldElementB.name, 'bbb');
     // verify delta
+    expect(helper.delta.hasAnnotationChanges, isFalse);
     expect(helper.delta.addedConstructors, isEmpty);
     expect(helper.delta.removedConstructors, isEmpty);
     expect(helper.delta.addedAccessors,
@@ -476,6 +509,56 @@ class A {
     expect(helper.delta.addedAccessors, isEmpty);
     expect(helper.delta.removedAccessors,
         unorderedEquals([oldFieldElementB.getter, oldFieldElementB.setter]));
+    expect(helper.delta.addedMethods, isEmpty);
+    expect(helper.delta.removedMethods, isEmpty);
+  }
+
+  test_classDelta_field_syntheticAndNot_renameNonSynthetic() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+class A {
+  int foo;
+  int get foo => 1;
+}
+''');
+    helper.initOld(oldUnit);
+    FieldDeclaration oldFieldDeclNode = helper.oldMembers[0];
+    VariableDeclaration oldFieldNode = oldFieldDeclNode.fields.variables.single;
+    FieldElement oldFieldElement = oldFieldNode.name.staticElement;
+    _buildNewUnit(r'''
+class A {
+  int _foo;
+  int get foo => 1;
+}
+''');
+    helper.initNew(newUnit, unitDelta);
+    // nodes
+    FieldDeclaration newFieldDeclNode = helper.newMembers[0];
+    VariableDeclaration newFieldNode = newFieldDeclNode.fields.variables.single;
+    MethodDeclaration getterNode = helper.newMembers[1];
+    expect(getterNode, same(helper.oldMembers[1]));
+    // elements
+    FieldElement newFieldElement = newFieldNode.name.staticElement;
+    PropertyAccessorElement getterElement = getterNode.element;
+    expect(newFieldElement.name, '_foo');
+    expect(
+        helper.element.fields,
+        unorderedMatches(
+            [same(newFieldElement), same(getterElement.variable)]));
+    expect(
+        helper.element.accessors,
+        unorderedMatches([
+          same(newFieldElement.getter),
+          same(newFieldElement.setter),
+          same(getterElement)
+        ]));
+    // verify delta
+    expect(helper.delta.addedConstructors, isEmpty);
+    expect(helper.delta.removedConstructors, isEmpty);
+    expect(helper.delta.addedAccessors,
+        unorderedEquals([newFieldElement.getter, newFieldElement.setter]));
+    expect(helper.delta.removedAccessors,
+        [oldFieldElement.getter, oldFieldElement.setter]);
     expect(helper.delta.addedMethods, isEmpty);
     expect(helper.delta.removedMethods, isEmpty);
   }
@@ -2051,6 +2134,7 @@ class _BuiltElementsValidator extends AstComparator {
     // Compare properties.
     _verifyEqual('$desc name', expected.name, actual.name);
     _verifyEqual('$desc nameOffset', expected.nameOffset, actual.nameOffset);
+    _verifyEqual('$desc isSynthetic', expected.isSynthetic, actual.isSynthetic);
     if (expected is ElementImpl && actual is ElementImpl) {
       _verifyEqual('$desc codeOffset', expected.codeOffset, actual.codeOffset);
       _verifyEqual('$desc codeLength', expected.codeLength, actual.codeLength);
@@ -2076,6 +2160,12 @@ class _BuiltElementsValidator extends AstComparator {
         !expected.isSynthetic) {
       _verifyElement(expected.getter, actual.getter, '$desc getter');
       _verifyElement(expected.setter, actual.setter, '$desc setter');
+    }
+    // Compare implicit properties.
+    if (expected is PropertyAccessorElement &&
+        actual is PropertyAccessorElement &&
+        !expected.isSynthetic) {
+      _verifyElement(expected.variable, actual.variable, '$desc variable');
     }
     // Compare parameters.
     if (expected is ExecutableElement && actual is ExecutableElement) {

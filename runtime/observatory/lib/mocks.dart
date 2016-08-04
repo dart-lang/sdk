@@ -11,8 +11,11 @@ import 'package:observatory/models.dart' as M;
 part 'src/mocks/exceptions/connection_exception.dart';
 
 part 'src/mocks/objects/error.dart';
+part 'src/mocks/objects/code.dart';
 part 'src/mocks/objects/event.dart';
 part 'src/mocks/objects/class.dart';
+part 'src/mocks/objects/flag.dart';
+part 'src/mocks/objects/function.dart';
 part 'src/mocks/objects/isolate.dart';
 part 'src/mocks/objects/library.dart';
 part 'src/mocks/objects/notification.dart';
@@ -22,5 +25,7 @@ part 'src/mocks/objects/target.dart';
 part 'src/mocks/objects/vm.dart';
 
 part 'src/mocks/repositories/crash_dump.dart';
+part 'src/mocks/repositories/flag.dart';
 part 'src/mocks/repositories/notification.dart';
+part 'src/mocks/repositories/script.dart';
 part 'src/mocks/repositories/target.dart';

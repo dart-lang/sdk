@@ -673,7 +673,7 @@ class CacheEntry {
         deltaResult == DeltaResult.INVALIDATE_NO_DELTA) {
       _resultMap.remove(descriptor);
       // Stop depending on other results.
-      if (deltaResult != DeltaResult.KEEP_CONTINUE) {
+      {
         TargetedResult thisResult = new TargetedResult(target, descriptor);
         List<AnalysisCache> caches = _partition.containingCaches;
         int cacheLength = caches.length;
@@ -697,10 +697,6 @@ class CacheEntry {
 //      if (deltaResult == null) {
 //        String indent = '  ' * level;
 //        print('[$id]$indent invalidate $descriptor for $target');
-//        if ('$descriptor for $target' ==
-//            'READY_LIBRARY_ELEMENT2 for /Users/scheglov/tmp/limited-invalidation/async/lib/async.dart') {
-//          print('interesting');
-//        }
 //      }
     }
     // Invalidate results that depend on this result.
@@ -714,8 +710,10 @@ class CacheEntry {
       _partition._removeIfSource(target);
     }
     // Notify controller.
-    _partition.onResultInvalidated
-        .add(new InvalidatedResult(this, descriptor, thisData.value));
+    if (deltaResult != DeltaResult.KEEP_CONTINUE) {
+      _partition.onResultInvalidated
+          .add(new InvalidatedResult(this, descriptor, thisData.value));
+    }
   }
 
   /**

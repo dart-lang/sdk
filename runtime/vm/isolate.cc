@@ -660,12 +660,6 @@ static MessageHandler::MessageStatus StoreError(Thread* thread,
 
 MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     const Error& result) {
-  NOT_IN_PRODUCT(
-    if (I->IsReloading()) {
-      I->ReportReloadError(result);
-      return kOK;
-    }
-  )
   // Generate the error and stacktrace strings for the error message.
   String& exc_str = String::Handle(T->zone());
   String& stacktrace_str = String::Handle(T->zone());
@@ -827,7 +821,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       tag_table_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
-      sticky_reload_error_(Error::null()),
       background_compiler_(NULL),
       background_compiler_disabled_depth_(0),
       pending_service_extension_calls_(GrowableObjectArray::null()),
@@ -1090,26 +1083,28 @@ bool Isolate::CanReload() const {
 
 
 #ifndef PRODUCT
-void Isolate::ReportReloadError(const Error& error) {
-  ASSERT(IsReloading());
-  reload_context_->AbortReload(error);
-}
-
-
-void Isolate::ReloadSources(bool force_reload,
+bool Isolate::ReloadSources(JSONStream* js,
+                            bool force_reload,
                             bool dont_delete_reload_context) {
-  // TODO(asiva): Add verification of canonical objects.
   ASSERT(!IsReloading());
   has_attempted_reload_ = true;
-  reload_context_ = new IsolateReloadContext(this);
-  reload_context_->StartReload(force_reload);
-  // TODO(asiva): Add verification of canonical objects.
-  if (dont_delete_reload_context) {
-    // Unit tests use the reload context later. Caller is responsible
-    // for deleting the context.
-    return;
+  reload_context_ = new IsolateReloadContext(this, js);
+  reload_context_->Reload(force_reload);
+  bool success = !reload_context_->reload_aborted();
+  if (!dont_delete_reload_context) {
+    DeleteReloadContext();
   }
-  DeleteReloadContext();
+#if defined(DEBUG)
+  if (success) {
+    return success;
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    isolate->heap()->CollectAllGarbage();
+    VerifyCanonicalVisitor check_canonical(thread);
+    isolate->heap()->IterateObjects(&check_canonical);
+  }
+#endif  // DEBUG
+  return success;
 }
 
 
@@ -1123,13 +1118,7 @@ void Isolate::DeleteReloadContext() {
 void Isolate::DoneFinalizing() {
   NOT_IN_PRODUCT(
     if (IsReloading()) {
-      reload_context_->FinishReload();
-      if (reload_context_->has_error()) {
-        // Remember the reload error.
-        sticky_reload_error_ = reload_context_->error();
-      } else {
-        reload_context_->ReportSuccess();
-      }
+      reload_context_->FinalizeLoading();
     }
   )
 }
@@ -1505,7 +1494,8 @@ static void ShutdownIsolate(uword parameter) {
     ASSERT(thread->isolate() == isolate);
     StackZone zone(thread);
     HandleScope handle_scope(thread);
-#if defined(DEBUG)
+    // TODO(27003): Enable for precompiled.
+#if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
     if (!isolate->HasAttemptedReload()) {
       isolate->heap()->CollectAllGarbage();
       VerifyCanonicalVisitor check_canonical(thread);
@@ -1831,9 +1821,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(
         reinterpret_cast<RawObject**>(&sticky_error_));
 
-  visitor->VisitPointer(
-        reinterpret_cast<RawObject**>(&sticky_reload_error_));
-
   // Visit the pending service extension calls.
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&pending_service_extension_calls_));
@@ -2091,11 +2078,6 @@ void Isolate::TrackDeoptimizedCode(const Code& code) {
 
 void Isolate::clear_sticky_error() {
   sticky_error_ = Error::null();
-}
-
-
-void Isolate::clear_sticky_reload_error() {
-  sticky_reload_error_ = Error::null();
 }
 
 

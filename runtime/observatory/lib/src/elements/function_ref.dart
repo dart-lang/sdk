@@ -5,45 +5,82 @@
 library function_ref_element;
 
 import 'dart:html';
-import 'package:polymer/polymer.dart';
-import 'package:observatory/service.dart';
-import 'service_ref.dart';
+import 'dart:async';
+import 'package:observatory/models.dart' as M
+  show IsolateRef, FunctionRef, isSyntheticFunction, ClassRef, ObjectRef;
+import 'package:observatory/src/elements/class_ref.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/uris.dart';
 
-@CustomTag('function-ref')
-class FunctionRefElement extends ServiceRefElement {
-  @published bool qualified = true;
+class FunctionRefElement extends HtmlElement implements Renderable {
+  static const tag = const Tag<FunctionRefElement>('function-ref-wrapped');
+
+  RenderingScheduler<FunctionRefElement> _r;
+
+  Stream<RenderedEvent<FunctionRefElement>> get onRendered => _r.onRendered;
+
+  M.IsolateRef _isolate;
+  M.FunctionRef _function;
+  bool _qualified;
+
+  M.IsolateRef get isolate => _isolate;
+  M.FunctionRef get function => _function;
+  bool get qualified => _qualified;
+
+  factory FunctionRefElement(M.IsolateRef isolate, M.FunctionRef function,
+      {bool qualified: true, RenderingQueue queue}) {
+    assert(isolate != null);
+    assert(function != null);
+    assert(qualified != null);
+    FunctionRefElement e = document.createElement(tag.name);
+    e._r = new RenderingScheduler(e, queue: queue);
+    e._isolate = isolate;
+    e._function = function;
+    e._qualified = qualified;
+    return e;
+  }
 
   FunctionRefElement.created() : super.created();
 
-  refChanged(oldValue) {
-    super.refChanged(oldValue);
-    _updateShadowDom();
+  @override
+  void attached() {
+    super.attached();
+    _r.enable();
   }
 
-  ServiceFunction get function => ref;
-  void _updateShadowDom() {
-    clearShadowRoot();
-    if (ref == null) {
-      return;
-    }
-    if (!function.kind.isDart()) {
-      insertTextSpanIntoShadowRoot(name);
-      return;
-    }
+  @override
+  void detached() {
+    super.detached();
+    _r.disable(notify: true);
+    children = [];
+  }
+
+  void render() {
+    var content = <Element>[
+      new AnchorElement(href: M.isSyntheticFunction(function.kind) ? null
+        : Uris.inspect(_isolate, object: _function))
+        ..text = _function.name
+    ];
     if (qualified) {
-      if (function.dartOwner is ServiceFunction) {
-        var functionRef = new Element.tag('function-ref');
-        functionRef.ref = function.dartOwner;
-        functionRef.qualified = true;
-        shadowRoot.children.add(functionRef);
-        insertTextSpanIntoShadowRoot('.');
-      } else if (function.dartOwner is Class) {
-        var classRef = new Element.tag('class-ref');
-        classRef.ref = function.dartOwner;
-        shadowRoot.children.add(classRef);
-        insertTextSpanIntoShadowRoot('.');
+      M.ObjectRef owner = _function.dartOwner;
+      while (owner is M.FunctionRef) {
+        M.FunctionRef function = (owner as M.FunctionRef);
+        content.addAll([
+          new SpanElement()..text = '.',
+          new AnchorElement(href: M.isSyntheticFunction(function.kind) ? null
+            : Uris.inspect(_isolate, object: function))
+            ..text = function.name
+        ]);
+        owner = function.dartOwner;
+      }
+      if (owner is M.ClassRef) {
+        content.addAll([
+          new SpanElement()..text = '.',
+          new ClassRefElement(_isolate, owner, queue: _r.queue)
+        ]);
       }
     }
-    insertLinkIntoShadowRoot(name, url, hoverText);
+    children = content.reversed.toList(growable: false);
   }
 }

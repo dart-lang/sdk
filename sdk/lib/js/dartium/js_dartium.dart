@@ -642,7 +642,8 @@ _generateLibraryCodegen(uri, library, staticCodegen) {
       if (isDom || isJsInterop) {
         // TODO(jacobr): verify class implements JavaScriptObject.
         var className = mirrors.MirrorSystem.getName(clazz.simpleName);
-        bool isPrivate = className.startsWith('_');
+        bool isPrivateUserDefinedClass =
+            className.startsWith('_') && !dartLibrary;
         var classNameImpl = '${className}Impl';
         var sbPatch = new StringBuffer();
         if (isJsInterop) {
@@ -715,7 +716,7 @@ _generateLibraryCodegen(uri, library, staticCodegen) {
           sbPatch.write(
               "  static Type get instanceRuntimeType => ${classNameImpl};\n");
         }
-        if (isPrivate) {
+        if (isPrivateUserDefinedClass) {
           sb.write("""
 class ${escapePrivateClassPrefix}${className} implements $className {}
 """);
@@ -810,6 +811,9 @@ List<String> _generateInteropPatchFiles(
 
   for (var typeMirror in jsInterfaceTypes) {
     mirrors.LibraryMirror libraryMirror = typeMirror.owner;
+    var location = libraryMirror.location;
+    var dartLibrary = location != null && location.sourceUri.scheme == 'dart';
+
     var prefixName;
     if (libraryPrefixes.containsKey(libraryMirror)) {
       prefixName = libraryPrefixes[libraryMirror];
@@ -831,8 +835,9 @@ List<String> _generateInteropPatchFiles(
     var isFunction = typeMirror.isSubtypeOf(functionMirror);
     var isJSObject = typeMirror.isSubtypeOf(jsObjectMirror);
     var className = mirrors.MirrorSystem.getName(typeMirror.simpleName);
-    var isPrivate = className.startsWith('_');
-    if (isPrivate) className = '${escapePrivateClassPrefix}${className}';
+    var isPrivateUserDefinedClass = className.startsWith('_') && !dartLibrary;
+    if (isPrivateUserDefinedClass)
+      className = '${escapePrivateClassPrefix}${className}';
     var fullName = '${prefixName}.${className}';
     (isArray ? implementsArray : implements).add(fullName);
     if (!isArray && !isFunction && !isJSObject) {

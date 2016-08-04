@@ -6,6 +6,7 @@ library heap_snapshot_element;
 
 import 'dart:async';
 import 'dart:html';
+import 'class_ref_wrapper.dart';
 import 'observatory_element.dart';
 import 'package:observatory/app.dart';
 import 'package:observatory/service.dart';
@@ -162,7 +163,7 @@ class MergedVertexRow extends TableTreeRow {
     gap.style.display = 'inline-block';
     firstColumn.children.add(gap);
 
-    ClassRefElement classRef = new Element.tag("class-ref");
+    ClassRefElementWrapper classRef = new Element.tag("class-ref");
     classRef.ref = isolate.getClassByCid(vertex.cid);
     classRef.style.alignSelf = 'center';
     firstColumn.children.add(classRef);
@@ -296,7 +297,7 @@ class MergedEdgeRow extends TableTreeRow {
       rootName.text = '<root>';
       firstColumn.children.add(rootName);
     } else {
-      ClassRefElement classRef = new Element.tag("class-ref");
+      ClassRefElementWrapper classRef = new Element.tag("class-ref");
       classRef.ref = isolate.getClassByCid(v.cid);
       classRef.style.alignSelf = 'center';
       firstColumn.children.add(classRef);

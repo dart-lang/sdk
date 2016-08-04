@@ -6,6 +6,7 @@ library heap_profile_element;
 
 import 'dart:async';
 import 'dart:html';
+import 'class_ref_wrapper.dart';
 import 'observatory_element.dart';
 import 'package:charted/charted.dart';
 import 'package:observatory/app.dart';
@@ -252,7 +253,7 @@ class HeapProfileElement extends ObservatoryElement {
 
     var row = classTable.rows[rowIndex];
     // Add class ref.
-    ClassRefElement classRef = tr.children[0].children[0];
+    ClassRefElementWrapper classRef = tr.children[0].children[0];
     classRef.ref = row.values[0];
 
     for (var i = 1; i < row.values.length; i++) {

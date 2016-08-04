@@ -28,7 +28,7 @@ bool Platform::Initialize() {
 
 
 int Platform::NumberOfProcessors() {
-  return mxr_get_nprocs();
+  return mxr_get_nprocs_conf();
 }
 
 

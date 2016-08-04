@@ -8,5 +8,6 @@ class SourceLocationMock implements M.SourceLocation {
   final M.ScriptRef script;
   final int tokenPos;
   final int endTokenPos;
+
   const SourceLocationMock({this.script, this.tokenPos, this.endTokenPos});
 }

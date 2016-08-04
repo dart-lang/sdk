@@ -5,6 +5,7 @@
 library debugger;
 
 import 'dart:async';
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart';
 
 part 'src/debugger/debugger.dart';

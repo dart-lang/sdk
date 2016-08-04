@@ -35,9 +35,13 @@ class RenderingScheduler<T extends Renderable> implements RenderingTask {
   final T element;
   /// Queue used for rendering operations.
   final RenderingQueue queue;
+  /// Does the element need a new rendering cycle.
+  bool get isDirty => _dirty;
+  /// Is the scheduler enabled.
+  bool get isEnabled => _enabled;
 
   final StreamController<RenderedEvent<T>> _onRendered =
-                            new StreamController<RenderedEvent<T>>.broadcast();
+      new StreamController<RenderedEvent<T>>.broadcast();
   Stream<RenderedEvent<T>> get onRendered => _onRendered.stream;
 
   /// Creates a new scheduler for an element.

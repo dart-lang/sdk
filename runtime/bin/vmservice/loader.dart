@@ -891,7 +891,7 @@ void shutdownLoaders() {
   isolateEmbedderData.values.toList().forEach((IsolateLoaderState ils) {
     ils.cleanup();
     assert(ils.sp != null);
-    _sendResourceResponse(ils.sp, 1, null, null, message);
+    _sendResourceResponse(ils.sp, 1, null, null, null, message);
   });
 }
 

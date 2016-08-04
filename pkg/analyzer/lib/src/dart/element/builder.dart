@@ -976,7 +976,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         SimpleIdentifier propertyNameNode = node.name;
         String propertyName = propertyNameNode.name;
         FieldElementImpl field =
-            _currentHolder.getField(propertyName) as FieldElementImpl;
+            _currentHolder.getField(propertyName, synthetic: true) as FieldElementImpl;
         if (field == null) {
           field = new FieldElementImpl(node.name.name, -1);
           field.final2 = true;

@@ -3143,14 +3143,14 @@ class ElementHolder {
     _typeParameters.add(element);
   }
 
-  FieldElement getField(String fieldName) {
+  FieldElement getField(String fieldName, {bool synthetic: false}) {
     if (_fields == null) {
       return null;
     }
     int length = _fields.length;
     for (int i = 0; i < length; i++) {
       FieldElement field = _fields[i];
-      if (field.name == fieldName) {
+      if (field.name == fieldName && field.isSynthetic == synthetic) {
         return field;
       }
     }
@@ -3434,7 +3434,10 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     if (_nodeExits(leftHandSide)) {
       return true;
     }
-    if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
+    TokenType operatorType = node.operator.type;
+    if (operatorType == TokenType.AMPERSAND_AMPERSAND_EQ ||
+        operatorType == TokenType.BAR_BAR_EQ ||
+        operatorType == TokenType.QUESTION_QUESTION_EQ) {
       return false;
     }
     if (leftHandSide is PropertyAccess &&

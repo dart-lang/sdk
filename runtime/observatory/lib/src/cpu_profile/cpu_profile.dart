@@ -133,7 +133,7 @@ class FunctionCallTreeNode extends CallTreeNode {
       if (!profileCode.code.isDartCode) {
         continue;
       }
-      if (profileCode.code.kind == CodeKind.Stub) {
+      if (profileCode.code.kind == M.CodeKind.stub) {
         continue;
       }
       if (!profileCode.code.isOptimized) {
@@ -150,7 +150,7 @@ class FunctionCallTreeNode extends CallTreeNode {
       if (!profileCode.code.isDartCode) {
         continue;
       }
-      if (profileCode.code.kind == CodeKind.Stub) {
+      if (profileCode.code.kind == M.CodeKind.stub) {
         continue;
       }
       // If the code's function isn't this function.
@@ -418,9 +418,9 @@ class ProfileCode {
 
     code.profile = this;
 
-    if (code.kind == CodeKind.Stub) {
+    if (code.kind == M.CodeKind.stub) {
       attributes.add('stub');
-    } else if (code.kind == CodeKind.Dart) {
+    } else if (code.kind == M.CodeKind.dart) {
       if (code.isNative) {
         attributes.add('ffi');  // Not to be confused with a C function.
       } else {
@@ -434,9 +434,9 @@ class ProfileCode {
       } else {
         attributes.add('unoptimized');
       }
-    } else if (code.kind == CodeKind.Tag) {
+    } else if (code.kind == M.CodeKind.tag) {
       attributes.add('tag');
-    } else if (code.kind == CodeKind.Native) {
+    } else if (code.kind == M.CodeKind.native) {
       attributes.add('native');
     }
     inclusiveTicks = int.parse(data['inclusiveTicks']);
@@ -537,7 +537,7 @@ class ProfileFunction {
   // Does this function have an unoptimized version of itself?
   bool hasUnoptimizedCode() {
     for (var profileCode in profileCodes) {
-      if (profileCode.code.kind == CodeKind.Stub) {
+      if (profileCode.code.kind == M.CodeKind.stub) {
         continue;
       }
       if (!profileCode.code.isDartCode) {
@@ -553,7 +553,7 @@ class ProfileFunction {
   // Has this function been inlined in another function?
   bool isInlined() {
     for (var profileCode in profileCodes) {
-      if (profileCode.code.kind == CodeKind.Stub) {
+      if (profileCode.code.kind == M.CodeKind.stub) {
         continue;
       }
       if (!profileCode.code.isDartCode) {
@@ -568,13 +568,13 @@ class ProfileFunction {
   }
 
   void _addKindBasedAttributes(Set<String> attribs) {
-    if (function.kind == FunctionKind.kTag) {
+    if (function.kind == M.FunctionKind.tag) {
       attribs.add('tag');
-    } else if (function.kind == FunctionKind.kStub) {
+    } else if (function.kind == M.FunctionKind.stub) {
       attribs.add('stub');
-    } else if (function.kind == FunctionKind.kNative) {
+    } else if (function.kind == M.FunctionKind.native) {
       attribs.add('native');
-    } else if (function.kind.isSynthetic()) {
+    } else if (M.isSyntheticFunction(function.kind)) {
       attribs.add('synthetic');
     } else if (function.isNative) {
       attribs.add('ffi');  // Not to be confused with a C function.

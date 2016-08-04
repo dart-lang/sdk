@@ -7,20 +7,23 @@
 
 #include "bin/crypto.h"
 
+#include <magenta/syscalls.h>
+
 namespace dart {
 namespace bin {
 
 bool Crypto::GetRandomBytes(intptr_t count, uint8_t* buffer) {
-  uint32_t num;
   intptr_t read = 0;
   while (read < count) {
-    if (rand_r(&num) != 0) {
+    const intptr_t remaining = count - read;
+    const intptr_t len =
+        (MX_CPRNG_DRAW_MAX_LEN < remaining) ? MX_CPRNG_DRAW_MAX_LEN
+                                            : remaining;
+    const mx_ssize_t res = mx_cprng_draw(buffer + read, len);
+    if (res == ERR_INVALID_ARGS) {
       return false;
     }
-    for (int i = 0; i < 4 && read < count; i++) {
-      buffer[read] = num >> (i * 8);
-      read++;
-    }
+    read += res;
   }
   return true;
 }

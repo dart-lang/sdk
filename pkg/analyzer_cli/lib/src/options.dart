@@ -166,7 +166,7 @@ class CommandLineOptions {
         buildMode = args['build-mode'],
         buildModePersistentWorker = args['persistent_worker'],
         buildSummaryFallback = args['build-summary-fallback'],
-        buildSummaryInputs = args['build-summary-input'],
+        buildSummaryInputs = args['build-summary-input'] as List<String>,
         buildSummaryOnly = args['build-summary-only'],
         buildSummaryOnlyAst = args['build-summary-only-ast'],
         buildSummaryOnlyDiet = args['build-summary-only-diet'],

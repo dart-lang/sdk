@@ -9,6 +9,7 @@ import 'dart:html';
 import 'dart:math';
 import 'observatory_element.dart';
 import 'service_ref.dart';
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart';
 import 'package:observatory/utils.dart';
 import 'package:polymer/polymer.dart';
@@ -929,8 +930,8 @@ class ScriptInsetElement extends ObservatoryElement {
     for (var func in script.library.functions) {
       if ((func.location != null) &&
           (func.location.script == script) &&
-          (func.kind != FunctionKind.kImplicitGetterFunction) &&
-          (func.kind != FunctionKind.kImplicitSetterFunction)) {
+          (func.kind != M.FunctionKind.implicitGetter) &&
+          (func.kind != M.FunctionKind.implicitSetter)) {
         // We annotate a field declaration with the field instead of the
         // implicit getter or setter.
         var a = new FunctionDeclarationAnnotation(func, inspectLink(func));
@@ -941,8 +942,8 @@ class ScriptInsetElement extends ObservatoryElement {
       for (var func in cls.functions) {
         if ((func.location != null) &&
             (func.location.script == script) &&
-            (func.kind != FunctionKind.kImplicitGetterFunction) &&
-            (func.kind != FunctionKind.kImplicitSetterFunction)) {
+            (func.kind != M.FunctionKind.implicitGetter) &&
+            (func.kind != M.FunctionKind.implicitSetter)) {
           // We annotate a field declaration with the field instead of the
           // implicit getter or setter.
           var a = new FunctionDeclarationAnnotation(func, inspectLink(func));

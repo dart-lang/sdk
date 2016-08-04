@@ -157,6 +157,12 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
+  void test_constructors_inferenceFBounded() {
+    super.test_constructors_inferenceFBounded();
+  }
+
+  @override
+  @failingTest
   void test_constructors_inferFromArguments() {
     // TODO(jmesserly): does this need to be implemented in AST summaries?
     // The test might need a change as well to not be based on local variable

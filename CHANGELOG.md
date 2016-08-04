@@ -1,3 +1,59 @@
+## 1.19.0
+
+### Tool Changes
+
+* `dartfmt` - upgraded to v0.2.9
+  * Support trailing commas in argument and parameter lists.
+  * Gracefully handle read-only files.
+  * About a dozen other bug fixes.
+
+* Pub
+  * Added the ability for packages to declare a constraint on the [Flutter][]
+    SDK:
+
+        environment:
+          flutter: ^0.1.2
+          sdk: >=1.19.0 <2.0.0
+
+    A Flutter constraint will only be satisfiable when pub is running in the
+    context of the `flutter` executable, and when the Flutter SDK version
+    matches the constraint.
+
+  * Added `sdk` as a new package source that fetches packages from a hard-coded
+    SDK. Currently only the `flutter` SDK is supported:
+
+        dependencies:
+          flutter_driver:
+            sdk: flutter
+            version: ^0.0.1
+
+    A Flutter `sdk` dependency will only be satisfiable when pub is running in
+    the context of the `flutter` executable, and when the Flutter SDK contains a
+    package with the given name whose version matches the constraint.
+
+  * Fixed a bug where packages from a hosted HTTP URL were considered the same
+    as packages from an otherwise-identical HTTPS URL.
+
+  * Fixed timer formatting for timers that lasted longer than a minute.
+
+  * Eliminate some false negatives when determining whether global executables
+    are on the user's executable path.
+
+[Flutter]: https://flutter.io/
+
+## 1.18.1 - 2016-08-02
+
+Patch release, resolves two issues and improves performance:
+
+* Debugger: Fixes a bug that crashes the VM
+(SDK issue [26941](https://github.com/dart-lang/sdk/issues/26941))
+
+* VM: Fixes an optimizer bug involving closures, try, and await
+(SDK issue [26948](https://github.com/dart-lang/sdk/issues/26948))
+
+* Dart2js: Speeds up generated code on Firefox
+(https://codereview.chromium.org/2180533002)
+
 ## 1.18.0 - 2016-07-27
 
 ### Core library changes

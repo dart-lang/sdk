@@ -261,12 +261,10 @@ class SearchEngineImpl implements SearchEngine {
       ParameterElement parameter) async {
     List<SearchMatch> matches = <SearchMatch>[];
     matches.addAll(await _searchReferences(parameter));
-    matches.addAll(await _searchReferences_Local(
-        parameter,
-        (n) =>
-            n is ConstructorDeclaration ||
-            n is MethodDeclaration ||
-            n is FunctionExpression));
+    matches.addAll(await _searchReferences_Local(parameter, (AstNode node) {
+      AstNode parent = node.parent;
+      return parent is ClassDeclaration || parent is CompilationUnit;
+    }));
     return matches;
   }
 
@@ -408,7 +406,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor {
   }
 
   void _addMatch(AstNode node, MatchKind kind) {
-    bool isQualified = node is SimpleIdentifier && node.isQualified;
+    bool isQualified = node.parent is Label;
     matches.add(new SearchMatch(context, libraryUri, unitUri, kind,
         rangeNode(node), true, isQualified));
   }

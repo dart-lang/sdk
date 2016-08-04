@@ -1070,6 +1070,12 @@ abstract class AnalysisOptions {
   bool get enableGenericMethods => null;
 
   /**
+   * Return `true` to enable the lazy compound assignment operators '&&=' and
+   * '||='.
+   */
+  bool get enableLazyAssignmentOperators;
+
+  /**
    * Return `true` to strictly follow the specification when generating
    * warnings on "call" methods (fixes dartbug.com/21938).
    */
@@ -1185,6 +1191,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   static const int ENABLE_SUPER_MIXINS_FLAG = 0x40;
 
   /**
+   * The default list of non-nullable type names.
+   */
+  static const List<String> NONNULLABLE_TYPES = const <String>[];
+
+  /**
    * A predicate indicating whether analysis is to parse and analyze function
    * bodies.
    */
@@ -1219,6 +1230,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   bool enableGenericMethods = false;
 
+  @override
+  bool enableLazyAssignmentOperators = false;
+
   /**
    * A flag indicating whether analysis is to strictly follow the specification
    * when generating warnings on "call" methods (fixes dartbug.com/21938).
@@ -1233,9 +1247,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   bool enableTiming = false;
-
-  @override
-  bool enableTrailingCommas = true;
 
   /**
    * A flag indicating whether errors, warnings and hints should be generated
@@ -1306,6 +1317,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   bool implicitCasts = true;
 
+  /**
+   * A list of non-nullable type names, prefixed by the library URI they belong
+   * to, e.g., 'dart:core,int', 'dart:core,bool', 'file:///foo.dart,bar', etc.
+   */
+  List<String> nonnullableTypes = NONNULLABLE_TYPES;
+
   @override
   bool finerGrainedInvalidation = false;
 
@@ -1353,6 +1370,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
       implicitCasts = options.implicitCasts;
+      nonnullableTypes = options.nonnullableTypes;
       implicitDynamic = options.implicitDynamic;
     }
     trackCacheDependencies = options.trackCacheDependencies;
@@ -1542,18 +1560,26 @@ class ApplyChangesStatus {
  */
 class CacheConsistencyValidationStatistics {
   /**
-   * Number of sources which were modified, but the context was not notified
+   * Number of sources which were changed, but the context was not notified
    * about it, so this fact was detected only during cache consistency
    * validation.
    */
-  int numOfModified = 0;
+  int numOfChanged = 0;
 
   /**
-   * Number of sources which were deleted, but the context was not notified
+   * Number of sources which stopped existing, but the context was not notified
    * about it, so this fact was detected only during cache consistency
    * validation.
    */
-  int numOfDeleted = 0;
+  int numOfRemoved = 0;
+
+  /**
+   * Reset all counters.
+   */
+  void reset() {
+    numOfChanged = 0;
+    numOfRemoved = 0;
+  }
 }
 
 /**

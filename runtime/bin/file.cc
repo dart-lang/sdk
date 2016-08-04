@@ -113,6 +113,7 @@ void FUNCTION_NAME(File_Exists)(Dart_NativeArguments args) {
 void FUNCTION_NAME(File_Close)(Dart_NativeArguments args) {
   File* file = GetFile(args);
   ASSERT(file != NULL);
+  file->Close();
   file->DeleteWeakHandle(Dart_CurrentIsolate());
   file->Release();
 

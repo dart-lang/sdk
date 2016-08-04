@@ -84,7 +84,7 @@ class ErrorPage extends Page {
   void onInstall() {
     if (element == null) {
       // Lazily create page.
-      element = new Element.tag('general-error');
+      element = new GeneralErrorElement(app.notifications, queue: app.queue);
     }
   }
 
@@ -92,17 +92,7 @@ class ErrorPage extends Page {
     assert(element != null);
     assert(canVisit(uri));
 
-    /*
-    if (uri.path == '') {
-      // Nothing requested.
-      return;
-    }
-    */
-
-    if (element != null) {
-      GeneralErrorElement serviceElement = element;
-      serviceElement.message = "Path '${uri.path}' not found";
-    }
+    (element as GeneralErrorElement).message = "Path '${uri.path}' not found";
   }
 
   /// Catch all.
@@ -111,14 +101,14 @@ class ErrorPage extends Page {
 
 /// Top-level vm info page.
 class VMPage extends SimplePage {
-  VMPage(app) : super('vm', 'service-view', app);
+  VMPage(app) : super('vm', 'vm-view', app);
 
   void _visit(Uri uri) {
     super._visit(uri);
     app.vm.reload().then((vm) {
       if (element != null) {
-        ServiceObjectViewElement serviceElement = element;
-        serviceElement.object = vm;
+        VMViewElement serviceElement = element;
+        serviceElement.vm = vm;
       }
     }).catchError((e, stack) {
       Logger.root.severe('VMPage visit error: $e');
@@ -131,16 +121,16 @@ class VMPage extends SimplePage {
 class FlagsPage extends SimplePage {
   FlagsPage(app) : super('flags', 'flag-list', app);
 
+  @override
+  onInstall() {
+    element = new FlagListElement(app.vm,
+        app.vm.changes.map((_) => new VMUpdateEventMock(vm: app.vm)),
+        new FlagsRepository(),
+        app.notifications);
+  }
+
   void _visit(Uri uri) {
     super._visit(uri);
-    app.vm.getFlagList().then((flags) {
-      if (element != null) {
-        FlagListElement serviceElement = element;
-        serviceElement.flagList = flags;
-      }
-    }).catchError((e, stack) {
-      Logger.root.severe('FlagsPage visit error: $e\n$stack');
-    });
   }
 }
 

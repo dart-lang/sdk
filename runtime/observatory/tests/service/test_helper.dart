@@ -333,6 +333,7 @@ class _ServiceTesterRunner {
         var pid = process.process.pid;
         var wait = new Duration(seconds: 10);
         print("Testee has pid $pid, waiting $wait before continuing");
+        sleep(wait);
       }
       serviceWebsocketAddress = 'ws://localhost:$port/ws';
       serviceHttpAddress = 'http://localhost:$port';

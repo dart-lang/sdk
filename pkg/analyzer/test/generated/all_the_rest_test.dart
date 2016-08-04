@@ -1591,6 +1591,43 @@ class C {
     expect(method.isSynthetic, isFalse);
   }
 
+  void test_visitMethodDeclaration_duplicateField_synthetic() {
+    buildElementsForText(r'''
+class A {
+  int f;
+  int get f => 42;
+}
+''');
+    ClassDeclaration classNode = compilationUnit.declarations.single;
+    // ClassElement
+    ClassElement classElement = classNode.element;
+    expect(classElement.fields, hasLength(2));
+    expect(classElement.accessors, hasLength(3));
+    FieldElement notSyntheticFieldElement = classElement.fields
+        .singleWhere((f) => f.displayName == 'f' && !f.isSynthetic);
+    FieldElement syntheticFieldElement = classElement.fields
+        .singleWhere((f) => f.displayName == 'f' && f.isSynthetic);
+    PropertyAccessorElement syntheticGetterElement = classElement.accessors
+        .singleWhere(
+            (a) => a.displayName == 'f' && a.isGetter && a.isSynthetic);
+    PropertyAccessorElement syntheticSetterElement = classElement.accessors
+        .singleWhere(
+            (a) => a.displayName == 'f' && a.isSetter && a.isSynthetic);
+    PropertyAccessorElement notSyntheticGetterElement = classElement.accessors
+        .singleWhere(
+            (a) => a.displayName == 'f' && a.isGetter && !a.isSynthetic);
+    expect(notSyntheticFieldElement.getter, same(syntheticGetterElement));
+    expect(notSyntheticFieldElement.setter, same(syntheticSetterElement));
+    expect(syntheticFieldElement.getter, same(notSyntheticGetterElement));
+    expect(syntheticFieldElement.setter, isNull);
+    // class members nodes and their elements
+    FieldDeclaration fieldDeclNode = classNode.members[0];
+    VariableDeclaration fieldNode = fieldDeclNode.fields.variables.single;
+    MethodDeclaration getterNode = classNode.members[1];
+    expect(fieldNode.element, notSyntheticFieldElement);
+    expect(getterNode.element, notSyntheticGetterElement);
+  }
+
   void test_visitMethodDeclaration_external() {
     // external m();
     ElementHolder holder = new ElementHolder();
@@ -2565,20 +2602,6 @@ class C {
 
 @reflectiveTest
 class ElementLocatorTest extends ResolverTestCase {
-  void test_locate_ExportDirective() {
-    AstNode id = _findNodeIn("export", "export 'dart:core';");
-    Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ExportElement, ExportElement, element);
-  }
-
-  void test_locate_Identifier_libraryDirective() {
-    AstNode id = _findNodeIn("foo", "library foo.bar;");
-    Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is LibraryElement, LibraryElement, element);
-  }
-
   void fail_locate_Identifier_partOfDirective() {
     // Can't resolve the library element without the library declaration.
     //    AstNode id = findNodeIn("foo", "part of foo.bar;");
@@ -2641,6 +2664,13 @@ class A {
     Element element = ElementLocator.locate(declaration);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ConstructorElement, ConstructorElement, element);
+  }
+
+  void test_locate_ExportDirective() {
+    AstNode id = _findNodeIn("export", "export 'dart:core';");
+    Element element = ElementLocator.locate(id);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is ExportElement, ExportElement, element);
   }
 
   void test_locate_FunctionDeclaration() {
@@ -2722,6 +2752,13 @@ class A {
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is FieldElement, FieldElement, element);
+  }
+
+  void test_locate_Identifier_libraryDirective() {
+    AstNode id = _findNodeIn("foo", "library foo.bar;");
+    Element element = ElementLocator.locate(id);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is LibraryElement, LibraryElement, element);
   }
 
   void test_locate_Identifier_propertyAccess() {
@@ -3287,6 +3324,11 @@ class ExitDetectorTest extends ParserTestCase {
     _assertFalse("v = 1;");
   }
 
+  void test_assignmentExpression_compound_lazy() {
+    enableLazyAssignmentOperators = true;
+    _assertFalse("v ||= false;");
+  }
+
   void test_assignmentExpression_lhs_throw() {
     _assertTrue("a[throw ''] = 0;");
   }
@@ -3467,33 +3509,12 @@ class ExitDetectorTest extends ParserTestCase {
     expect(new ExitDetector(), isNotNull);
   }
 
-  void test_doStatement_return() {
-    _assertTrue("{ do { return null; } while (1 == 2); }");
-  }
-
-  void test_doStatement_throwCondition() {
-    _assertTrue("{ do {} while (throw ''); }");
-  }
-
   void test_doStatement_break_and_throw() {
     _assertFalse("{ do { if (1==1) break; throw 'T'; } while (0==1); }");
   }
 
   void test_doStatement_continue_and_throw() {
     _assertFalse("{ do { if (1==1) continue; throw 'T'; } while (0==1); }");
-  }
-
-  void test_doStatement_continueInSwitch_and_throw() {
-    _assertFalse('''
-{
-  do {
-    switch (1) {
-      L: case 0: continue;
-      M: case 1: break;
-    }
-    throw 'T';
-  } while (0 == 1);
-}''');
   }
 
   void test_doStatement_continueDoInSwitch_and_throw() {
@@ -3509,6 +3530,27 @@ class ExitDetectorTest extends ParserTestCase {
 }''');
   }
 
+  void test_doStatement_continueInSwitch_and_throw() {
+    _assertFalse('''
+{
+  do {
+    switch (1) {
+      L: case 0: continue;
+      M: case 1: break;
+    }
+    throw 'T';
+  } while (0 == 1);
+}''');
+  }
+
+  void test_doStatement_return() {
+    _assertTrue("{ do { return null; } while (1 == 2); }");
+  }
+
+  void test_doStatement_throwCondition() {
+    _assertTrue("{ do {} while (throw ''); }");
+  }
+
   void test_doStatement_true_break() {
     _assertFalse("{ do { break; } while (true); }");
   }
@@ -3520,7 +3562,6 @@ class ExitDetectorTest extends ParserTestCase {
   void test_doStatement_true_continueWithLabel() {
     _assertTrue("{ x: do { continue x; } while (true); }");
   }
-
 
   void test_doStatement_true_if_return() {
     _assertTrue("{ do { if (true) {return null;} } while (true); }");
@@ -3924,6 +3965,10 @@ on String catch (e, s) { return 1; }''');
     _assertFalse("{ while (true) { break; } }");
   }
 
+  void test_whileStatement_true_break_and_throw() {
+    _assertFalse("{ while (true) { if (1==1) break; throw 'T'; } }");
+  }
+
   void test_whileStatement_true_continue() {
     _assertTrue("{ while (true) { continue; } }");
   }
@@ -3952,16 +3997,13 @@ on String catch (e, s) { return 1; }''');
     _assertTrue("{ while (true) { throw ''; } }");
   }
 
-  void test_whileStatement_true_break_and_throw() {
-    _assertFalse("{ while (true) { if (1==1) break; throw 'T'; } }");
-  }
-
   void _assertFalse(String source) {
     _assertHasReturn(false, source);
   }
 
   void _assertHasReturn(bool expectedResult, String source) {
-    Statement statement = ParserTestCase.parseStatement(source);
+    Statement statement = ParserTestCase.parseStatement(
+        source, [], enableLazyAssignmentOperators);
     expect(ExitDetector.exits(statement), expectedResult);
   }
 
@@ -4085,20 +4127,6 @@ void f() {
     _assertNthStatementDoesNotExit(source, 0);
   }
 
-  void test_whileStatement_switchWithBreakWithLabel() {
-    Source source = addSource(r'''
-void f() {
-  x: while (true) {
-    switch (true) {
-      case false: break;
-      case true: break x;
-    }
-  }
-}
-''');
-    _assertNthStatementDoesNotExit(source, 0);
-  }
-
   void test_whileStatement_breakWithLabel_afterExting() {
     Source source = addSource(r'''
 void f() {
@@ -4111,6 +4139,20 @@ void f() {
 }
 ''');
     _assertNthStatementExits(source, 0);
+  }
+
+  void test_whileStatement_switchWithBreakWithLabel() {
+    Source source = addSource(r'''
+void f() {
+  x: while (true) {
+    switch (true) {
+      case false: break;
+      case true: break x;
+    }
+  }
+}
+''');
+    _assertNthStatementDoesNotExit(source, 0);
   }
 
   void test_yieldStatement_plain() {

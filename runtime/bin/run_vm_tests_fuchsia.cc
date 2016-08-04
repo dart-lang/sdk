@@ -21,7 +21,11 @@
 // command line argument which is the path to a file containing a list of tests
 // to run, one per line.
 
+// TODO(zra): Make this a command line argument
 const char* kRunVmTestsPath = "/boot/bin/dart_vm_tests";
+
+// The simulator only has 512MB;
+const intptr_t kOldGenHeapSizeMB = 256;
 
 // Tests that are invalid, wedge, or cause panics.
 const char* kSkip[] = {
@@ -63,6 +67,8 @@ const char* kSkip[] = {
   // No realpath.
   "Dart2JSCompilerStats",
   "Dart2JSCompileAll",
+  // Uses too much memory.
+  "PrintJSON",
 };
 
 // Expected to fail/crash.
@@ -103,11 +109,11 @@ const char* kBugs[] = {
   "TimelinePauses_BeginEnd",
   // Needs NativeSymbolResolver
   "Service_PersistentHandles",
-  // Need to investigate:
+  // Crashes in realloc:
   "FindCodeObject",
-  "ThreadIterator_AddFindRemove",
-  "PrintJSON",
   "SourceReport_Coverage_AllFunctions_ForceCompile",
+  // pthread TLS destructors are not run.
+  "ThreadIterator_AddFindRemove",
 };
 
 
@@ -139,10 +145,16 @@ static bool isBug(const char* test) {
 
 
 static int run_test(const char* test_name) {
-  const intptr_t kArgc = 2;
-  const char* argv[3];
+  const intptr_t kArgc = 3;
+  const char* argv[kArgc];
+
+  char old_gen_arg[64];
+  snprintf(old_gen_arg, sizeof(old_gen_arg), "--old_gen_heap_size=%ld",
+      kOldGenHeapSizeMB);
+
   argv[0] = kRunVmTestsPath;
-  argv[1] = test_name;
+  argv[1] = old_gen_arg;
+  argv[2] = test_name;
 
   mx_handle_t p = launchpad_launch(argv[0], kArgc, argv);
   if (p < 0) {

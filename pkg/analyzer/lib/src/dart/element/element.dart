@@ -7336,7 +7336,7 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
   DartType get type => setter.variable.type;
 
   @override
-  void set type(FunctionType type) {
+  void set type(DartType type) {
     assert(false); // Should never be called.
   }
 }
@@ -7656,7 +7656,7 @@ class PropertyAccessorElementImpl_ImplicitGetter
   }
 
   @override
-  DartType get type {
+  FunctionType get type {
     return _type ??= new FunctionTypeImpl(this);
   }
 
@@ -7699,7 +7699,7 @@ class PropertyAccessorElementImpl_ImplicitSetter
   }
 
   @override
-  DartType get type {
+  FunctionType get type {
     return _type ??= new FunctionTypeImpl(this);
   }
 
@@ -8260,20 +8260,20 @@ class UnitExplicitTopLevelVariables {
 abstract class UriReferencedElementImpl extends ElementImpl
     implements UriReferencedElement {
   /**
-   * The offset of the URI in the file, may be `-1` if synthetic.
+   * The offset of the URI in the file, or `-1` if this node is synthetic.
    */
-  int uriOffset = -1;
+  int _uriOffset = -1;
 
   /**
    * The offset of the character immediately following the last character of
-   * this node's URI, may be `-1` if synthetic.
+   * this node's URI, or `-1` if this node is synthetic.
    */
-  int uriEnd = -1;
+  int _uriEnd = -1;
 
   /**
    * The URI that is specified by this directive.
    */
-  String uri;
+  String _uri;
 
   /**
    * Initialize a newly created import element to have the given [name] and
@@ -8286,6 +8286,44 @@ abstract class UriReferencedElementImpl extends ElementImpl
    */
   UriReferencedElementImpl.forSerialized(ElementImpl enclosingElement)
       : super.forSerialized(enclosingElement);
+
+  /**
+   * Return the URI that is specified by this directive.
+   */
+  String get uri => _uri;
+
+  /**
+   * Set the URI that is specified by this directive to be the given [uri].
+   */
+  void set uri(String uri) {
+    _uri = uri;
+  }
+
+  /**
+   * Return the offset of the character immediately following the last character
+   * of this node's URI, or `-1` if this node is synthetic.
+   */
+  int get uriEnd => _uriEnd;
+
+  /**
+   * Set the offset of the character immediately following the last character of
+   * this node's URI to the given [offset].
+   */
+  void set uriEnd(int offset) {
+    _uriEnd = offset;
+  }
+
+  /**
+   * Return the offset of the URI in the file, or `-1` if this node is synthetic.
+   */
+  int get uriOffset => _uriOffset;
+
+  /**
+   * Set the offset of the URI in the file to the given [offset].
+   */
+  void set uriOffset(int offset) {
+    _uriOffset = offset;
+  }
 }
 
 /**

@@ -249,7 +249,8 @@ class Isolate : public BaseIsolate {
 
   // By default the reload context is deleted. This parameter allows
   // the caller to delete is separately if it is still needed.
-  void ReloadSources(bool force_reload,
+  bool ReloadSources(JSONStream* js,
+                     bool force_reload,
                      bool dont_delete_reload_context = false);
 
   bool MakeRunnable();
@@ -482,8 +483,6 @@ class Isolate : public BaseIsolate {
 
   bool CanReload() const;
 
-  void ReportReloadError(const Error& error);
-
   void set_last_reload_timestamp(int64_t value) {
     last_reload_timestamp_ = value;
   }
@@ -538,9 +537,6 @@ class Isolate : public BaseIsolate {
 
   RawError* sticky_error() const { return sticky_error_; }
   void clear_sticky_error();
-
-  RawError* sticky_reload_error() const { return sticky_reload_error_; }
-  void clear_sticky_reload_error();
 
   bool compilation_allowed() const { return compilation_allowed_; }
   void set_compilation_allowed(bool allowed) {
@@ -770,8 +766,6 @@ class Isolate : public BaseIsolate {
   RawGrowableObjectArray* deoptimized_code_array_;
 
   RawError* sticky_error_;
-
-  RawError* sticky_reload_error_;
 
   // Background compilation.
   BackgroundCompiler* background_compiler_;

@@ -255,6 +255,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       // bound of the static types of the LHS and RHS.
       _analyzeLeastUpperBound(node, node.leftHandSide, node.rightHandSide);
       return null;
+    } else if (operator == TokenType.AMPERSAND_AMPERSAND_EQ ||
+        operator == TokenType.BAR_BAR_EQ) {
+      _recordStaticType(node, _typeProvider.boolType);
     } else {
       ExecutableElement staticMethodElement = node.staticElement;
       DartType staticType = _computeStaticReturnType(staticMethodElement);
@@ -2008,7 +2011,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       arguments.correspondingStaticParameters = ResolverVisitor
           .resolveArgumentsToParameters(arguments, inferred.parameters, null);
       inferConstructorName(constructor, inferred.returnType);
-      // TODO(jmesserly): should we fix up the staticElement as well?
+      // Update the static element as well. This is used in some cases, such as
+      // computing constant values. It is stored in two places.
+      constructor.staticElement =
+          ConstructorMember.from(rawElement, inferred.returnType);
+      node.staticElement = constructor.staticElement;
     }
   }
 

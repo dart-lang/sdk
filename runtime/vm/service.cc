@@ -2493,18 +2493,8 @@ static bool ReloadSources(Thread* thread, JSONStream* js) {
   const bool force_reload =
       BoolParameter::Parse(js->LookupParam("force"), false);
 
-  isolate->ReloadSources(force_reload);
+  isolate->ReloadSources(js, force_reload);
 
-  const Error& error = Error::Handle(isolate->sticky_reload_error());
-
-  if (error.IsNull()) {
-    PrintSuccess(js);
-  } else {
-    // Clear the sticky error.
-    isolate->clear_sticky_reload_error();
-    js->PrintError(kIsolateReloadFailed,
-                   "Isolate reload failed: %s", error.ToErrorCString());
-  }
   return true;
 }
 

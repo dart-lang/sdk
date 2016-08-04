@@ -55,6 +55,9 @@ get_allocation_samples_test: RuntimeError # Profiling unimplemented.
 get_cpu_profile_timeline_rpc_test: RuntimeError # Profiling unimplemented.
 implicit_getter_setter_test: RuntimeError # Field guards unimplemented.
 
-[ $hot_reload ]
+[ $hot_reload || $hot_reload_rollback ]
 # Skip all service tests because random reloads interfere.
 *: SkipByDesign # The service tests should run without being reloaded.
+
+[ $system == windows ]
+dev_fs_weird_char_test: Skip # Windows disallows question mark in paths

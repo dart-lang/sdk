@@ -246,7 +246,7 @@ large_class_declaration_test: Skip
 vm/optimized_guarded_field_isolates_test: Skip # Issue #26373
 issue23244_test: Skip # Issue #26373
 
-[ $hot_reload ]
+[ $hot_reload || $hot_reload_rollback ]
 static_closure_identical_test: Pass, Fail # Closure identity
 cha_deopt1_test: Crash # Requires deferred libraries
 cha_deopt2_test: Crash # Requires deferred libraries

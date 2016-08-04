@@ -36,7 +36,6 @@ import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'resolution/resolution.dart' show AnalyzableElementX;
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'tree/tree.dart' as ast;
-import 'tree/tree.dart' show Import, Node;
 import 'universe/use.dart' show StaticUse, TypeUse, TypeUseKind;
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
@@ -93,8 +92,7 @@ class DeferredLoadTask extends CompilerTask {
   /// DeferredLibrary from dart:async
   ClassElement get deferredLibraryClass => compiler.deferredLibraryClass;
 
-  /// A synthetic [Import] representing the loading of the main
-  /// program.
+  /// A synthetic import representing the loading of the main program.
   final _DeferredImport _fakeMainImport = const _DeferredImport();
 
   /// The OutputUnit that will be loaded when the program starts.
@@ -235,7 +233,7 @@ class DeferredLoadTask extends CompilerTask {
     return imports.every((ImportElement import) => import.isDeferred);
   }
 
-  /// Returns a [Link] of every [Import] that imports [element] into [library].
+  /// Returns every [ImportElement] that imports [element] into [library].
   Iterable<ImportElement> _getImports(Element element, LibraryElement library) {
     if (element.isClassMember) {
       element = element.enclosingClass;
@@ -347,8 +345,8 @@ class DeferredLoadTask extends CompilerTask {
         // implicit constant expression are seen that we should be able to add
         // (like primitive constant literals like `true`, `"foo"` and `0`).
         // See dartbug.com/26406 for context.
-        treeElements
-            .forEachConstantNode((Node node, ConstantExpression expression) {
+        treeElements.forEachConstantNode(
+            (ast.Node node, ConstantExpression expression) {
           if (compiler.serialization.isDeserialized(analyzableElement)) {
             if (!expression.isImplicit && !expression.isPotential) {
               // Enforce evaluation of [expression].

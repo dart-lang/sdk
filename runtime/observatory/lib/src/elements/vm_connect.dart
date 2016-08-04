@@ -16,7 +16,7 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 import 'package:observatory/src/elements/vm_connect_target.dart';
 
-class VMConnectElement extends HtmlElement implements Renderable{
+class VMConnectElement extends HtmlElement implements Renderable {
   static const tag = const Tag<VMConnectElement>('vm-connect',
                      dependencies: const [NavBarElement.tag,
                                           NavTopMenuElement.tag,
@@ -67,6 +67,8 @@ class VMConnectElement extends HtmlElement implements Renderable{
   }
 
   void render() {
+    final host = window.location.hostname;
+    final port = window.location.port;
     children = [
       new NavBarElement(queue: _r.queue)
         ..children = [
@@ -125,7 +127,7 @@ class VMConnectElement extends HtmlElement implements Renderable{
                   new PreElement()
                     ..classes = ['well']
                     ..text = 'Request a crash dump with:\n'
-                      '\'curl localhost:8181/_getCrashDump > dump.json\'',
+                      '\'curl $host:$port/_getCrashDump > dump.json\'',
                   new HRElement()
                 ]
             ],

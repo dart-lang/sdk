@@ -9,7 +9,7 @@ abstract class ClassRef extends ObjectRef {
   String get name;
 }
 
-abstract class Class extends ObjectRef implements ClassRef {
+abstract class Class extends Object implements ClassRef {
   /// The error which occurred during class finalization, if it exists.
   /// [optional]
   ErrorRef get error;
@@ -42,7 +42,7 @@ abstract class Class extends ObjectRef implements ClassRef {
   /// The mixin type for this class, if any.
   ///
   /// The value will be of the kind: Type. [optional]
-  Iterable<InstanceRef> get mixin;
+  InstanceRef get mixin;
 
   /// A list of fields in this class. Does not include fields from
   /// superclasses.

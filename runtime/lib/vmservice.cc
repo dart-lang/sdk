@@ -416,8 +416,8 @@ DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 1) {
 
   intptr_t archive_size = archive.Length();
 
-  const Array& result_list = Array::Handle(thread->zone(),
-    Array::New(2 * archive_size));
+  Dart_Handle result_list = Dart_NewList(2 * archive_size);
+  ASSERT(!Dart_IsError(result_list));
 
   intptr_t idx = 0;
   while (archive.HasMore()) {
@@ -438,14 +438,11 @@ DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 1) {
     Dart_NewWeakPersistentHandle(
         dart_contents, contents, contents_length, ContentsFinalizer);
 
-    result_list.SetAt(idx, Api::UnwrapStringHandle(
-        thread->zone(), dart_filename));
-    result_list.SetAt(idx + 1, Api::UnwrapExternalTypedDataHandle(
-        thread->zone(), dart_contents));
+    Dart_ListSetAt(result_list, idx, dart_filename);
+    Dart_ListSetAt(result_list, (idx + 1), dart_contents);
     idx += 2;
   }
-
-  return result_list.raw();
+  return Api::UnwrapArrayHandle(thread->zone(), result_list).raw();
 #else
   return Object::null();
 #endif

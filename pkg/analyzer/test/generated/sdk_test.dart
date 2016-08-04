@@ -66,7 +66,7 @@ class DartSdkManagerTest extends EngineTestCase {
     return null;
   }
 
-  DartSdk _failIfCreated(_) {
+  DartSdk _failIfCreated(AnalysisOptions _) {
     fail('Use of sdkCreator');
     return null;
   }

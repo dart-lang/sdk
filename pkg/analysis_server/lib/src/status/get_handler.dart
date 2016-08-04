@@ -827,17 +827,17 @@ class GetHandler {
                 '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
             _writeRow(buffer, ['Name', 'Count'], header: true);
             _writeRow(buffer, [
-              'Modified',
+              'Changed',
               PerformanceStatistics
-                  .cacheConsistencyValidationStatistics.numOfModified
+                  .cacheConsistencyValidationStatistics.numOfChanged
             ], classes: [
               null,
               "right"
             ]);
             _writeRow(buffer, [
-              'Deleted',
+              'Removed',
               PerformanceStatistics
-                  .cacheConsistencyValidationStatistics.numOfDeleted
+                  .cacheConsistencyValidationStatistics.numOfRemoved
             ], classes: [
               null,
               "right"
@@ -1415,8 +1415,6 @@ class GetHandler {
       _writeOption(
           buffer, 'Enable strict call checks', options.enableStrictCallChecks);
       _writeOption(buffer, 'Enable super mixins', options.enableSuperMixins);
-      _writeOption(
-          buffer, 'Enable trailing commas', options.enableTrailingCommas);
       _writeOption(buffer, 'Generate dart2js hints', options.dart2jsHint);
       _writeOption(buffer, 'Generate errors in implicit files',
           options.generateImplicitErrors);

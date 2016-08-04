@@ -13,8 +13,12 @@ abstract class Uris {
     return '#' + new Uri(path: path, queryParameters: parameters).toString();
   }
 
-  static String inspect(M.IsolateRef isolate, {M.ObjectRef object})
-      => _isolatePage('/inspect', isolate, object: object);
+  static String inspect(M.IsolateRef isolate, {M.ObjectRef object, int pos}) {
+    if (pos == null) {
+      return _isolatePage('/inspect', isolate, object: object);
+    }
+    return _isolatePage('/inspect', isolate, object: object) + '---pos=${pos}';
+  }
   static String debugger(M.IsolateRef isolate)
       => _isolatePage('/debugger', isolate);
   static String classTree(M.IsolateRef isolate)
@@ -39,4 +43,5 @@ abstract class Uris {
       => _isolatePage('/logging', isolate);
   static String vm() => '#/vm';
   static String vmConnect() => '#/vm-connect';
+  static String flags() => '#/flags';
 }

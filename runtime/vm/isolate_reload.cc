@@ -32,6 +32,8 @@ DEFINE_FLAG(int, reload_every, 0, "Reload every N stack overflow checks.");
 DEFINE_FLAG(bool, reload_every_optimized, true, "Only from optimized code.");
 DEFINE_FLAG(bool, reload_every_back_off, false,
             "Double the --reload-every value after each reload.");
+DEFINE_FLAG(bool, reload_force_rollback, false,
+            "Force all reloads to fail and rollback.");
 DEFINE_FLAG(bool, check_reloaded, false,
             "Assert that an isolate has reloaded at least once.")
 #ifndef PRODUCT
@@ -45,11 +47,11 @@ DEFINE_FLAG(bool, check_reloaded, false,
                                    #name)
 
 
-InstanceMorpher::InstanceMorpher(const Class& from, const Class& to)
-  : from_(from), to_(to), mapping_() {
+InstanceMorpher::InstanceMorpher(Zone* zone, const Class& from, const Class& to)
+  : from_(from), to_(to), mapping_(zone, 0) {
   ComputeMapping();
-  before_ = new ZoneGrowableArray<const Instance*>();
-  after_ = new ZoneGrowableArray<const Instance*>();
+  before_ = new(zone) ZoneGrowableArray<const Instance*>(zone, 0);
+  after_ = new(zone) ZoneGrowableArray<const Instance*>(zone, 0);
   ASSERT(from_.id() == to_.id());
   cid_ = from_.id();
 }
@@ -165,10 +167,10 @@ void InstanceMorpher::Dump() const {
 
 void InstanceMorpher::AppendTo(JSONArray* array) {
   JSONObject jsobj(array);
-  jsobj.AddProperty("type", "Morpher");
+  jsobj.AddProperty("type", "ShapeChangeMapping");
   jsobj.AddProperty("class", to_);
-  jsobj.AddProperty("instances", before()->length());
-  JSONArray map(&jsobj, "mapping");
+  jsobj.AddProperty("instanceCount", before()->length());
+  JSONArray map(&jsobj, "fieldOffsetMappings");
   for (int i = 0; i < mapping_.length(); i += 2) {
     JSONArray pair(&map);
     pair.AddValue(mapping_.At(i));
@@ -200,7 +202,7 @@ void ReasonForCancelling::AppendTo(JSONArray* array) {
   JSONObject jsobj(array);
   jsobj.AddProperty("type", "ReasonForCancelling");
   const String& message = String::Handle(ToString());
-  jsobj.AddProperty("message", message);
+  jsobj.AddProperty("message", message.ToCString());
 }
 
 
@@ -209,15 +211,15 @@ void ClassReasonForCancelling::AppendTo(JSONArray* array) {
   jsobj.AddProperty("type", "ReasonForCancelling");
   jsobj.AddProperty("class", from_);
   const String& message = String::Handle(ToString());
-  jsobj.AddProperty("message", message);
+  jsobj.AddProperty("message", message.ToCString());
 }
 
+
 RawError* IsolateReloadContext::error() const {
-  ASSERT(has_error());
+  ASSERT(reload_aborted());
   // Report the first error to the surroundings.
   const Error& error =
       Error::Handle(reasons_to_cancel_reload_.At(0)->ToError());
-  OS::Print("[[%s]]\n", error.ToCString());
   return error.raw();
 }
 
@@ -355,16 +357,21 @@ bool IsolateReloadContext::IsSameLibrary(
 }
 
 
-IsolateReloadContext::IsolateReloadContext(Isolate* isolate)
-    : start_time_micros_(OS::GetCurrentMonotonicMicros()),
+IsolateReloadContext::IsolateReloadContext(Isolate* isolate,
+                                           JSONStream* js)
+    : zone_(Thread::Current()->zone()),
+      start_time_micros_(OS::GetCurrentMonotonicMicros()),
       reload_timestamp_(OS::GetCurrentTimeMillis()),
       isolate_(isolate),
       reload_skipped_(false),
+      reload_aborted_(false),
+      reload_finalized_(false),
+      js_(js),
       saved_num_cids_(-1),
       saved_class_table_(NULL),
       num_saved_libs_(-1),
-      instance_morphers_(),
-      reasons_to_cancel_reload_(),
+      instance_morphers_(zone_, 0),
+      reasons_to_cancel_reload_(zone_, 0),
       cid_mapper_(),
       modified_libs_(NULL),
       script_uri_(String::null()),
@@ -380,6 +387,7 @@ IsolateReloadContext::IsolateReloadContext(Isolate* isolate)
   // NOTE: DO NOT ALLOCATE ANY RAW OBJECTS HERE. The IsolateReloadContext is not
   // associated with the isolate yet and if a GC is triggered here the raw
   // objects will not be properly accounted for.
+  ASSERT(zone_ != NULL);
 }
 
 
@@ -405,8 +413,8 @@ void IsolateReloadContext::ReportSuccess() {
 
 class Aborted : public ReasonForCancelling {
  public:
-  explicit Aborted(const Error& error)
-      : ReasonForCancelling(), error_(error) { }
+  explicit Aborted(Zone* zone, const Error& error)
+      : ReasonForCancelling(zone), error_(error) { }
 
  private:
   const Error& error_;
@@ -418,7 +426,8 @@ class Aborted : public ReasonForCancelling {
 };
 
 
-void IsolateReloadContext::StartReload(bool force_reload) {
+// NOTE: This function returns *after* FinalizeLoading is called.
+void IsolateReloadContext::Reload(bool force_reload) {
   TIMELINE_SCOPE(Reload);
   Thread* thread = Thread::Current();
   ASSERT(isolate() == thread->isolate());
@@ -433,9 +442,11 @@ void IsolateReloadContext::StartReload(bool force_reload) {
   if (!modified_libs_->Contains(root_lib.index())) {
     ASSERT(modified_libs_->IsEmpty());
     reload_skipped_ = true;
-    TIR_Print("Skipping reload.  No libraries were modified\n");
+    TIR_Print("---- SKIPPING RELOAD (No libraries were modified)\n");
     return;
   }
+
+  TIR_Print("---- STARTING RELOAD\n");
 
   // Preallocate storage for maps.
   old_classes_set_storage_ =
@@ -455,11 +466,6 @@ void IsolateReloadContext::StartReload(bool force_reload) {
   // Disable the background compiler while we are performing the reload.
   BackgroundCompiler::Disable();
 
-  if (FLAG_write_protect_code) {
-    // Disable code page write protection while we are reloading.
-    I->heap()->WriteProtectCode(false);
-  }
-
   // Ensure all functions on the stack have unoptimized code.
   EnsuredUnoptimizedCodeForStack();
   // Deoptimize all code that had optimizing decisions that are dependent on
@@ -469,6 +475,25 @@ void IsolateReloadContext::StartReload(bool force_reload) {
   DeoptimizeDependentCode();
   Checkpoint();
 
+  // WEIRD CONTROL FLOW BEGINS.
+  //
+  // The flow of execution until we return from the tag handler can be complex.
+  //
+  // On a successful load, the following will occur:
+  //   1) Tag Handler is invoked and the embedder is in control.
+  //   2) All sources and libraries are loaded.
+  //   3) Dart_FinalizeLoading is called by the embedder.
+  //   4) Dart_FinalizeLoading invokes IsolateReloadContext::FinalizeLoading
+  //      and we are temporarily back in control.
+  //      This is where we validate the reload and commit or reject.
+  //   5) Dart_FinalizeLoading invokes Dart code related to deferred libraries.
+  //   6) The tag handler returns and we move on.
+  //
+  // Even after a successful reload the Dart code invoked in (5) can result
+  // in an Unwind error or an UnhandledException error. This error will be
+  // returned by the tag handler. The tag handler can return other errors,
+  // for example, top level parse errors. We want to capture these errors while
+  // propagating the UnwindError or an UnhandledException error.
   Object& result = Object::Handle(thread->zone());
   {
     TransitionVMToNative transition(thread);
@@ -480,9 +505,22 @@ void IsolateReloadContext::StartReload(bool force_reload) {
                                    Api::NewHandle(thread, root_lib_url.raw()));
     result = Api::UnwrapHandle(retval);
   }
+  //
+  // WEIRD CONTROL FLOW ENDS.
+
+  BackgroundCompiler::Enable();
+
+  if (result.IsUnwindError() ||
+      result.IsUnhandledException()) {
+    // If the tag handler returns with an UnwindError or an UnhandledException
+    // error, propagate it and give up.
+    Exceptions::PropagateError(Error::Cast(result));
+    UNREACHABLE();
+  }
+
+  // Other errors (e.g. a parse error) are captured by the reload system.
   if (result.IsError()) {
-    const Error& error = Error::Cast(result);
-    AddReasonForCancelling(new Aborted(error));
+    FinalizeFailedLoad(Error::Cast(result));
   }
 }
 
@@ -513,12 +551,15 @@ void IsolateReloadContext::RegisterClass(const Class& new_cls) {
 }
 
 
-void IsolateReloadContext::FinishReload() {
+// FinalizeLoading will be called *before* Reload() returns but will not be
+// called if the embedder fails to load sources.
+void IsolateReloadContext::FinalizeLoading() {
   if (reload_skipped_) {
     return;
   }
+  ASSERT(!reload_finalized_);
   BuildLibraryMapping();
-  TIR_Print("---- DONE FINALIZING\n");
+  TIR_Print("---- LOAD SUCCEEDED\n");
   if (ValidateReload()) {
     Commit();
     PostCommit();
@@ -531,45 +572,60 @@ void IsolateReloadContext::FinishReload() {
   // not remove dead subclasses.  Rebuild the direct subclass
   // information from scratch.
   RebuildDirectSubclasses();
+  CommonFinalizeTail();
+}
 
-  if (FLAG_write_protect_code) {
-    // Re-enable code page write protection.
-    I->heap()->WriteProtectCode(true);
+
+// FinalizeFailedLoad will be called *before* Reload() returns and will only
+// be called if the embedder fails to load sources.
+void IsolateReloadContext::FinalizeFailedLoad(const Error& error) {
+  TIR_Print("---- LOAD FAILED, ABORTING RELOAD\n");
+  AddReasonForCancelling(new Aborted(zone_, error));
+  ReportReasonsForCancelling();
+  if (!reload_finalized_) {
+    Rollback();
   }
+  CommonFinalizeTail();
+}
 
-  BackgroundCompiler::Enable();
 
-  if (FLAG_trace_reload) {
-    JSONStream stream;
-    ReportOnJSON(&stream);
-    OS::Print("\nJSON report:\n  %s\n", stream.ToCString());
-  }
+void IsolateReloadContext::CommonFinalizeTail() {
+  ReportOnJSON(js_);
+  reload_finalized_ = true;
 }
 
 
 void IsolateReloadContext::ReportOnJSON(JSONStream* stream) {
+  // Clear the buffer.
+  stream->buffer()->Clear();
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", "Reload");
-  jsobj.AddProperty("succeeded", !HasReasonsForCancelling());
-  if (HasReasonsForCancelling()) {
-    JSONArray array(&jsobj, "reasons");
-    for (intptr_t i = 0; i < reasons_to_cancel_reload_.length(); i++) {
-      ReasonForCancelling* reason = reasons_to_cancel_reload_.At(i);
-      reason->AppendTo(&array);
-    }
-  } else {
-    JSONArray array(&jsobj, "changes");
-    for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
-      instance_morphers_.At(i)->AppendTo(&array);
+  jsobj.AddProperty("type", "ReloadReport");
+  jsobj.AddProperty("success", !HasReasonsForCancelling());
+  {
+    JSONObject details(&jsobj, "details");
+    if (HasReasonsForCancelling()) {
+      // Reload was rejected.
+      JSONArray array(&jsobj, "notices");
+      for (intptr_t i = 0; i < reasons_to_cancel_reload_.length(); i++) {
+        ReasonForCancelling* reason = reasons_to_cancel_reload_.At(i);
+        reason->AppendTo(&array);
+      }
+    } else {
+      // Reload was successful.
+      const GrowableObjectArray& libs =
+          GrowableObjectArray::Handle(object_store()->libraries());
+      const intptr_t final_library_count = libs.Length();
+      const intptr_t loaded_library_count =
+          final_library_count - num_saved_libs_;
+      details.AddProperty("savedLibraryCount", num_saved_libs_);
+      details.AddProperty("loadedLibraryCount", loaded_library_count);
+      details.AddProperty("finalLibraryCount", final_library_count);
+      JSONArray array(&jsobj, "shapeChangeMappings");
+      for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
+        instance_morphers_.At(i)->AppendTo(&array);
+      }
     }
   }
-}
-
-
-void IsolateReloadContext::AbortReload(const Error& error) {
-  AddReasonForCancelling(new Aborted(error));
-  ReportReasonsForCancelling();
-  Rollback();
 }
 
 
@@ -709,12 +765,13 @@ BitVector* IsolateReloadContext::FindModifiedLibraries(bool force_reload) {
 
   // Construct the imported-by graph.
   ZoneGrowableArray<ZoneGrowableArray<intptr_t>* >* imported_by =
-      new ZoneGrowableArray<ZoneGrowableArray<intptr_t>* >(num_libs);
+      new(zone_) ZoneGrowableArray<ZoneGrowableArray<intptr_t>* >(
+          zone_, num_libs);
   imported_by->SetLength(num_libs);
   for (intptr_t i = 0; i < num_libs; i++) {
-    (*imported_by)[i] = new ZoneGrowableArray<intptr_t>();
+    (*imported_by)[i] = new(zone_) ZoneGrowableArray<intptr_t>(zone_, 0);
   }
-  Array& imports = Array::Handle();
+  Array& ports = Array::Handle();
   Namespace& ns = Namespace::Handle();
   Library& target = Library::Handle();
 
@@ -727,9 +784,19 @@ BitVector* IsolateReloadContext::FindModifiedLibraries(bool force_reload) {
     }
 
     // Add imports to the import-by graph.
-    imports = lib.imports();
-    for (intptr_t import_idx = 0; import_idx < imports.Length(); import_idx++) {
-      ns ^= imports.At(import_idx);
+    ports = lib.imports();
+    for (intptr_t import_idx = 0; import_idx < ports.Length(); import_idx++) {
+      ns ^= ports.At(import_idx);
+      if (!ns.IsNull()) {
+        target = ns.library();
+        (*imported_by)[target.index()]->Add(lib.index());
+      }
+    }
+
+    // Add exports to the import-by graph.
+    ports = lib.exports();
+    for (intptr_t export_idx = 0; export_idx < ports.Length(); export_idx++) {
+      ns ^= ports.At(export_idx);
       if (!ns.IsNull()) {
         target = ns.library();
         (*imported_by)[target.index()]->Add(lib.index());
@@ -744,10 +811,10 @@ BitVector* IsolateReloadContext::FindModifiedLibraries(bool force_reload) {
       entry = entries.GetNext();
       if (entry.IsLibraryPrefix()) {
         prefix ^= entry.raw();
-        imports = prefix.imports();
-        for (intptr_t import_idx = 0; import_idx < imports.Length();
+        ports = prefix.imports();
+        for (intptr_t import_idx = 0; import_idx < ports.Length();
              import_idx++) {
-          ns ^= imports.At(import_idx);
+          ns ^= ports.At(import_idx);
           if (!ns.IsNull()) {
             target = ns.library();
             (*imported_by)[target.index()]->Add(lib.index());
@@ -784,7 +851,7 @@ BitVector* IsolateReloadContext::FindModifiedLibraries(bool force_reload) {
 
 void IsolateReloadContext::CheckpointLibraries() {
   TIMELINE_SCOPE(CheckpointLibraries);
-
+  TIR_Print("---- CHECKPOINTING LIBRARIES\n");
   // Save the root library in case we abort the reload.
   const Library& root_lib =
       Library::Handle(object_store()->root_library());
@@ -884,6 +951,7 @@ void IsolateReloadContext::RollbackLibraries() {
 
 
 void IsolateReloadContext::Rollback() {
+  TIR_Print("---- ROLLING BACK");
   RollbackClasses();
   RollbackLibraries();
 }
@@ -927,7 +995,7 @@ void IsolateReloadContext::VerifyMaps() {
 
 void IsolateReloadContext::Commit() {
   TIMELINE_SCOPE(Commit);
-  TIR_Print("---- COMMITTING REVERSE MAP\n");
+  TIR_Print("---- COMMITTING RELOAD\n");
 
   // Note that the object heap contains before and after instances
   // used for morphing. It is therefore important that morphing takes
@@ -947,9 +1015,8 @@ void IsolateReloadContext::Commit() {
     // Copy static field values from the old classes to the new classes.
     // Patch fields and functions in the old classes so that they retain
     // the old script.
-    Class& cls = Class::Handle();
+    Class& old_cls = Class::Handle();
     Class& new_cls = Class::Handle();
-
     UnorderedHashMap<ClassMapTraits> class_map(class_map_storage_);
 
     {
@@ -957,15 +1024,16 @@ void IsolateReloadContext::Commit() {
       while (it.MoveNext()) {
         const intptr_t entry = it.Current();
         new_cls = Class::RawCast(class_map.GetKey(entry));
-        cls = Class::RawCast(class_map.GetPayload(entry, 0));
-        if (new_cls.raw() != cls.raw()) {
-          ASSERT(new_cls.is_enum_class() == cls.is_enum_class());
+        old_cls = Class::RawCast(class_map.GetPayload(entry, 0));
+        if (new_cls.raw() != old_cls.raw()) {
+          ASSERT(new_cls.is_enum_class() == old_cls.is_enum_class());
           if (new_cls.is_enum_class() && new_cls.is_finalized()) {
-            new_cls.ReplaceEnum(cls);
+            new_cls.ReplaceEnum(old_cls);
           } else {
-            new_cls.CopyStaticFieldValues(cls);
+            new_cls.CopyStaticFieldValues(old_cls);
           }
-          cls.PatchFieldsAndFunctions();
+          old_cls.PatchFieldsAndFunctions();
+          old_cls.MigrateImplicitStaticClosures(this, new_cls);
         }
       }
     }
@@ -1094,6 +1162,7 @@ void IsolateReloadContext::PostCommit() {
 
 
 void IsolateReloadContext::AddReasonForCancelling(ReasonForCancelling* reason) {
+  reload_aborted_ = true;
   reasons_to_cancel_reload_.Add(reason);
 }
 
@@ -1105,7 +1174,7 @@ void IsolateReloadContext::AddInstanceMorpher(InstanceMorpher* morpher) {
 
 
 void IsolateReloadContext::ReportReasonsForCancelling() {
-  ASSERT(HasReasonsForCancelling());
+  ASSERT(FLAG_reload_force_rollback || HasReasonsForCancelling());
   for (int i = 0; i < reasons_to_cancel_reload_.length(); i++) {
     reasons_to_cancel_reload_.At(i)->Report(this);
   }
@@ -1194,7 +1263,9 @@ void IsolateReloadContext::MorphInstances() {
 
 bool IsolateReloadContext::ValidateReload() {
   TIMELINE_SCOPE(ValidateReload);
-  if (has_error()) return false;
+  if (reload_aborted()) return false;
+
+  TIR_Print("---- VALIDATING RELOAD\n");
 
   // Validate libraries.
   {
@@ -1232,7 +1303,7 @@ bool IsolateReloadContext::ValidateReload() {
     map.Release();
   }
 
-  return !HasReasonsForCancelling();
+  return !FLAG_reload_force_rollback && !HasReasonsForCancelling();
 }
 
 

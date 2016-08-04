@@ -1344,6 +1344,7 @@ class BuildEnumMemberElementsTask extends SourceBasedAnalysisTask {
       }
       return null;
     }
+
     EnumDeclaration firstEnum = findFirstEnum();
     if (firstEnum != null && firstEnum.element.accessors.isEmpty) {
       EnumMemberBuilder builder = new EnumMemberBuilder(typeProvider);
@@ -2228,6 +2229,7 @@ class ComputeLibraryCycleTask extends SourceBasedAnalysisTask {
           deps.addAll(l.units);
         }
       }
+
       int length = component.length;
       for (int i = 0; i < length; i++) {
         LibraryElement library = component[i];
@@ -2630,6 +2632,14 @@ class DartDelta extends Delta {
       if (isChangedOrClass(refLibrary, superName)) {
         _log(() => '$refLibrary hints/verify errors are affected because '
             '${references.superToSubs[superName]} subclasses $superName');
+        return true;
+      }
+    }
+    for (String name in references.names) {
+      ClassElementDelta classDelta = changedClasses[name];
+      if (classDelta != null && classDelta.hasAnnotationChanges) {
+        _log(() => '$refLibrary hints/verify errors are  affected because '
+            '$name has a class delta with annotation changes');
         return true;
       }
     }
@@ -4884,16 +4894,6 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
     }
   }
 
-  static String _getSimpleName(Identifier identifier) {
-    if (identifier is SimpleIdentifier) {
-      return identifier.name;
-    }
-    if (identifier is PrefixedIdentifier) {
-      return identifier.identifier.name;
-    }
-    return null;
-  }
-
   @override
   visitClassTypeAlias(ClassTypeAlias node) {
     ReferencedNamesScope outerScope = scope;
@@ -4920,14 +4920,6 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
     } finally {
       localLevel--;
     }
-  }
-
-  @override
-  visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    if (node.constructorName == null && enclosingSuperClassName != null) {
-      names.extendedUsedUnnamedConstructorNames.add(enclosingSuperClassName);
-    }
-    super.visitSuperConstructorInvocation(node);
   }
 
   @override
@@ -5050,6 +5042,14 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
   }
 
   @override
+  visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    if (node.constructorName == null && enclosingSuperClassName != null) {
+      names.extendedUsedUnnamedConstructorNames.add(enclosingSuperClassName);
+    }
+    super.visitSuperConstructorInvocation(node);
+  }
+
+  @override
   visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     VariableDeclarationList variableList = node.variables;
     // Prepare type dependencies.
@@ -5080,6 +5080,16 @@ class ReferencedNamesBuilder extends GeneralizingAstVisitor {
 
   void _addSuperNames(String className, List<TypeName> types) {
     types?.forEach((type) => _addSuperName(className, type));
+  }
+
+  static String _getSimpleName(Identifier identifier) {
+    if (identifier is SimpleIdentifier) {
+      return identifier.name;
+    }
+    if (identifier is PrefixedIdentifier) {
+      return identifier.identifier.name;
+    }
+    return null;
   }
 }
 
@@ -6134,6 +6144,8 @@ class ScanDartTask extends SourceBasedAnalysisTask {
       scanner.setSourceStart(fragment.line, fragment.column);
       scanner.preserveComments = context.analysisOptions.preserveComments;
       scanner.scanGenericMethodComments = context.analysisOptions.strongMode;
+      scanner.scanLazyAssignmentOperators =
+          context.analysisOptions.enableLazyAssignmentOperators;
 
       LineInfo lineInfo = new LineInfo(scanner.lineStarts);
 
@@ -6149,6 +6161,8 @@ class ScanDartTask extends SourceBasedAnalysisTask {
           new Scanner(source, new CharSequenceReader(content), errorListener);
       scanner.preserveComments = context.analysisOptions.preserveComments;
       scanner.scanGenericMethodComments = context.analysisOptions.strongMode;
+      scanner.scanLazyAssignmentOperators =
+          context.analysisOptions.enableLazyAssignmentOperators;
 
       LineInfo lineInfo = new LineInfo(scanner.lineStarts);
 
@@ -6255,7 +6269,9 @@ class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
     if (options.strongMode) {
       CodeChecker checker = new CodeChecker(
           typeProvider,
-          new StrongTypeSystemImpl(implicitCasts: options.implicitCasts),
+          new StrongTypeSystemImpl(
+              implicitCasts: options.implicitCasts,
+              nonnullableTypes: options.nonnullableTypes),
           errorListener,
           options);
       checker.visitCompilationUnit(unit);

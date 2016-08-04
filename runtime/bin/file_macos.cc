@@ -41,7 +41,8 @@ class FileHandle {
 
 
 File::~File() {
-  if (!IsClosed()) {
+  if (!IsClosed() &&
+      handle_->fd() != STDOUT_FILENO && handle_->fd() != STDERR_FILENO) {
     Close();
   }
   delete handle_;

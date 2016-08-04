@@ -9,7 +9,7 @@ import '../core_types.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart'
     show FieldElement, FunctionElement, PrefixElement;
-import '../tree/tree.dart' hide unparse;
+import '../tree/dartstring.dart';
 import '../util/util.dart' show Hashing;
 
 abstract class ConstantValueVisitor<R, A> {

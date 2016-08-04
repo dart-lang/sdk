@@ -54,7 +54,10 @@ void addFile(String content, {String name: '/main.dart'}) {
 /// the file text.
 ///
 /// Returns the main resolved library. This can be used for further checks.
-CompilationUnit check({bool implicitCasts: true, bool implicitDynamic: true}) {
+CompilationUnit check(
+    {bool implicitCasts: true,
+    bool implicitDynamic: true,
+    List<String> nonnullableTypes: AnalysisOptionsImpl.NONNULLABLE_TYPES}) {
   _checkCalled = true;
 
   expect(files.getFile('/main.dart').exists, true,
@@ -68,8 +71,9 @@ CompilationUnit check({bool implicitCasts: true, bool implicitDynamic: true}) {
   options.strongModeHints = true;
   options.implicitCasts = implicitCasts;
   options.implicitDynamic = implicitDynamic;
+  options.nonnullableTypes = nonnullableTypes;
   var mockSdk = new MockSdk();
-  mockSdk.context.analysisOptions.strongMode = true;
+  (mockSdk.context.analysisOptions as AnalysisOptionsImpl).strongMode = true;
   context.sourceFactory =
       new SourceFactory([new DartUriResolver(mockSdk), uriResolver]);
 

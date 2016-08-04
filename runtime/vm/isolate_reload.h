@@ -52,7 +52,7 @@ class UpdateClassesVisitor;
 
 class InstanceMorpher : public ZoneAllocated {
  public:
-  InstanceMorpher(const Class& from, const Class& to);
+  InstanceMorpher(Zone* zone, const Class& from, const Class& to);
   virtual ~InstanceMorpher() {}
 
   // Called on each instance that needs to be morphed.
@@ -93,7 +93,7 @@ class InstanceMorpher : public ZoneAllocated {
 
 class ReasonForCancelling : public ZoneAllocated {
  public:
-  ReasonForCancelling() {}
+  explicit ReasonForCancelling(Zone* zone) {}
   virtual ~ReasonForCancelling() {}
 
   // Reports a reason for cancelling reload.
@@ -117,8 +117,8 @@ class ReasonForCancelling : public ZoneAllocated {
 // Abstract class for also capturing the from_ and to_ class.
 class ClassReasonForCancelling : public ReasonForCancelling {
  public:
-  ClassReasonForCancelling(const Class& from, const Class& to)
-      : from_(from), to_(to) { }
+  ClassReasonForCancelling(Zone* zone, const Class& from, const Class& to)
+      : ReasonForCancelling(zone), from_(from), to_(to) { }
 
   void AppendTo(JSONArray* array);
 
@@ -130,31 +130,35 @@ class ClassReasonForCancelling : public ReasonForCancelling {
 
 class IsolateReloadContext {
  public:
-  explicit IsolateReloadContext(Isolate* isolate);
+  explicit IsolateReloadContext(Isolate* isolate,
+                                JSONStream* js);
   ~IsolateReloadContext();
 
-  void StartReload(bool force_reload);
-  void FinishReload();
-  void AbortReload(const Error& error);
+  void Reload(bool force_reload);
 
-  RawLibrary* saved_root_library() const;
-
-  RawGrowableObjectArray* saved_libraries() const;
-
-  // Report back through the observatory channels.
-  void ReportError(const Error& error);
-  void ReportSuccess();
+  // All zone allocated objects must be allocated from this zone.
+  Zone* zone() const { return zone_; }
 
   bool reload_skipped() const { return reload_skipped_; }
-
-  bool has_error() const { return HasReasonsForCancelling(); }
+  bool reload_aborted() const { return reload_aborted_; }
   RawError* error() const;
-
   int64_t reload_timestamp() const { return reload_timestamp_; }
+
+  static Dart_FileModifiedCallback file_modified_callback() {
+    return file_modified_callback_;
+  }
+  static void SetFileModifiedCallback(Dart_FileModifiedCallback callback) {
+    file_modified_callback_ = callback;
+  }
 
   static bool IsSameField(const Field& a, const Field& b);
   static bool IsSameLibrary(const Library& a_lib, const Library& b_lib);
   static bool IsSameClass(const Class& a, const Class& b);
+
+ private:
+  RawLibrary* saved_root_library() const;
+
+  RawGrowableObjectArray* saved_libraries() const;
 
   RawClass* FindOriginalClass(const Class& cls);
 
@@ -193,14 +197,22 @@ class IsolateReloadContext {
     return !instance_morphers_.is_empty();
   }
 
-  static Dart_FileModifiedCallback file_modified_callback() {
-    return file_modified_callback_;
-  }
-  static void SetFileModifiedCallback(Dart_FileModifiedCallback callback) {
-    file_modified_callback_ = callback;
-  }
+  // NOTE: FinalizeLoading will be called *before* Reload() returns. This
+  // function will not be called if the embedder does not call
+  // Dart_FinalizeLoading.
+  void FinalizeLoading();
 
- private:
+  // NOTE: FinalizeFailedLoad will be called *before* Reload returns. This
+  // function will not be called if the embedder calls Dart_FinalizeLoading.
+  void FinalizeFailedLoad(const Error& error);
+
+  // Called by both FinalizeLoading and FinalizeFailedLoad.
+  void CommonFinalizeTail();
+
+  // Report back through the observatory channels.
+  void ReportError(const Error& error);
+  void ReportSuccess();
+
   void set_saved_root_library(const Library& value);
 
   void set_saved_libraries(const GrowableObjectArray& value);
@@ -248,10 +260,16 @@ class IsolateReloadContext {
   void ResetMegamorphicCaches();
   void InvalidateWorld();
 
+  // The zone used for all reload related allocations.
+  Zone* zone_;
+
   int64_t start_time_micros_;
   int64_t reload_timestamp_;
   Isolate* isolate_;
   bool reload_skipped_;
+  bool reload_aborted_;
+  bool reload_finalized_;
+  JSONStream* js_;
 
   intptr_t saved_num_cids_;
   RawClass** saved_class_table_;
@@ -322,7 +340,10 @@ class IsolateReloadContext {
 
   friend class Isolate;
   friend class Class;  // AddStaticFieldMapping, AddEnumBecomeMapping.
+  friend class Library;
   friend class ObjectLocator;
+  friend class MarkFunctionsForRecompilation;  // IsDirty.
+  friend class ReasonForCancelling;
 
   static Dart_FileModifiedCallback file_modified_callback_;
 };

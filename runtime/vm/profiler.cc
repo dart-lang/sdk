@@ -335,11 +335,11 @@ static void DumpStackFrame(intptr_t frame_index, uword pc) {
   char* native_symbol_name =
       NativeSymbolResolver::LookupSymbolName(pc, &start);
   if (native_symbol_name == NULL) {
-    OS::Print("Frame[%" Pd "] = `unknown symbol` [0x%" Px "]\n",
-              frame_index, pc);
+    OS::PrintErr("Frame[%" Pd "] = `unknown symbol` [0x%" Px "]\n",
+                 frame_index, pc);
   } else {
-    OS::Print("Frame[%" Pd "] = `%s` [0x%" Px "]\n",
-              frame_index, native_symbol_name, pc);
+    OS::PrintErr("Frame[%" Pd "] = `%s` [0x%" Px "]\n",
+                 frame_index, native_symbol_name, pc);
     NativeSymbolResolver::FreeSymbolName(native_symbol_name);
   }
 }
@@ -351,8 +351,8 @@ static void DumpStackFrame(intptr_t frame_index,
   if (code.IsNull()) {
     DumpStackFrame(frame_index, pc);
   } else {
-    OS::Print("Frame[%" Pd "] = Dart:`%s` [0x%" Px "]\n",
-              frame_index, code.ToCString(), pc);
+    OS::PrintErr("Frame[%" Pd "] = Dart:`%s` [0x%" Px "]\n",
+                 frame_index, code.ToCString(), pc);
   }
 }
 
@@ -959,9 +959,9 @@ void Profiler::DumpStackTrace(bool native_stack_trace) {
 
   const bool exited_dart_code = thread->HasExitedDartCode();
 
-  OS::Print("Dumping %s stack trace for thread %" Px "\n",
-            native_stack_trace ? "native" : "dart-only",
-            OSThread::ThreadIdToIntPtr(os_thread->trace_id()));
+  OS::PrintErr("Dumping %s stack trace for thread %" Px "\n",
+               native_stack_trace ? "native" : "dart-only",
+               OSThread::ThreadIdToIntPtr(os_thread->trace_id()));
 
   uintptr_t sp = Thread::GetCurrentStackPointer();
   uintptr_t fp = 0;
@@ -973,7 +973,7 @@ void Profiler::DumpStackTrace(bool native_stack_trace) {
   uword stack_upper = 0;
 
   if (!InitialRegisterCheck(pc, fp, sp)) {
-    OS::Print(
+    OS::PrintErr(
         "Stack dump aborted because InitialRegisterCheck.\n");
     return;
   }
@@ -983,7 +983,7 @@ void Profiler::DumpStackTrace(bool native_stack_trace) {
                                         sp,
                                         &stack_lower,
                                         &stack_upper)) {
-    OS::Print(
+    OS::PrintErr(
         "Stack dump aborted because GetAndValidateIsolateStackBounds.\n");
     return;
   }
@@ -1014,7 +1014,7 @@ void Profiler::DumpStackTrace(bool native_stack_trace) {
                                               fp,
                                               sp);
   }
-  OS::Print("-- End of DumpStackTrace");
+  OS::PrintErr("-- End of DumpStackTrace");
 }
 
 
