@@ -33,8 +33,39 @@ namespace bin {
 extern const unsigned char* root_certificates_pem;
 extern unsigned int root_certificates_pem_length;
 
+class SSLContext {
+ public:
+  explicit SSLContext(SSL_CTX* context) :
+      context_(context),
+      alpn_protocol_string_(NULL) {
+  }
+
+  ~SSLContext() {
+    SSL_CTX_free(context_);
+    if (alpn_protocol_string_ != NULL) {
+      free(alpn_protocol_string_);
+    }
+  }
+
+  SSL_CTX* context() const { return context_; }
+
+  uint8_t* alpn_protocol_string() const { return alpn_protocol_string_; }
+  void set_alpn_protocol_string(uint8_t* protocol_string) {
+    if (alpn_protocol_string_ != NULL) {
+      free(alpn_protocol_string_);
+    }
+    alpn_protocol_string_ = protocol_string;
+  }
+
+ private:
+  SSL_CTX* context_;
+  uint8_t* alpn_protocol_string_;
+
+  DISALLOW_COPY_AND_ASSIGN(SSLContext);
+};
+
 /*
- * SSLFilter encapsulates the NSS SSL(TLS) code in a filter, that communicates
+ * SSLFilter encapsulates the SSL(TLS) code in a filter, that communicates
  * with the containing _SecureFilterImpl Dart object through four shared
  * ExternalByteArray buffers, for reading and writing plaintext, and
  * reading and writing encrypted text.  The filter handles handshaking
