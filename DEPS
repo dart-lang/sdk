@@ -79,7 +79,7 @@ vars = {
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
   "mustache4dart_rev" : "@5724cfd85151e5b6b53ddcd3380daf188fe47f92",
   "oauth2_tag": "@1.0.0",
-  "observatory_pub_packages_rev": "@e5e1e543bea10d4bed95b22ad3e7aa2b20a23584",
+  "observatory_pub_packages_rev": "@a01235b5b71df27b602dae4676d0bf771cbe7fa2",
   "observe_rev": "@eee2b8ec34236fa46982575fbccff84f61202ac6",
   "package_config_rev": "@1.0.0",
   "path_tag": "@1.3.6",
