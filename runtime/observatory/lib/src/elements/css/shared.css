@@ -402,6 +402,25 @@ error-ref-wrapped > pre {
   white-space: pre;
 }
 
+/* flag-list */
+
+flag-list .comment {
+  color: #aaa;
+}
+
+flag-list .flag {
+  padding: 3px 0;
+}
+
+flag-list .name {
+  font-weight: bold;
+  margin-right: 0.7em;
+}
+
+flag-list .value {
+  margin-left: 0.7em;
+}
+
 /* function-ref */
 /* TODO(cbernaschina) fix function-ref-wrapped to function-ref when wrapper
 removed */

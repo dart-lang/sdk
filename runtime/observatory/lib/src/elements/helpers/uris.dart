@@ -43,4 +43,5 @@ abstract class Uris {
       => _isolatePage('/logging', isolate);
   static String vm() => '#/vm';
   static String vmConnect() => '#/vm-connect';
+  static String flags() => '#/flags';
 }

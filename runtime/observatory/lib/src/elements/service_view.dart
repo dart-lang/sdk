@@ -46,10 +46,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
         FieldViewElement element = new Element.tag('field-view');
         element.field = object;
         return element;
-      case 'FlagList':
-        FlagListElement element = new Element.tag('flag-list');
-        element.flagList = object;
-        return element;
       case 'Function':
         FunctionViewElement element = new Element.tag('function-view');
         element.function = object;
