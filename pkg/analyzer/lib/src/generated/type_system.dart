@@ -907,7 +907,7 @@ abstract class TypeSystem {
    */
   DartType getLeastUpperBound(
       TypeProvider typeProvider, DartType type1, DartType type2,
-      {dynamicIsBottom: false}) {
+      {bool dynamicIsBottom: false}) {
     // The least upper bound relation is reflexive.
     if (identical(type1, type2)) {
       return type1;
