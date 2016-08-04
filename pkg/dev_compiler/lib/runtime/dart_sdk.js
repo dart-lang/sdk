@@ -369,7 +369,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let FutureOfint = () => (FutureOfint = dart.constFn(async.Future$(core.int)))();
   let CompleterOfDatabase = () => (CompleterOfDatabase = dart.constFn(async.Completer$(indexed_db.Database)))();
   let RectangleOfint = () => (RectangleOfint = dart.constFn(math.Rectangle$(core.int)))();
-  let PointOfint = () => (PointOfint = dart.constFn(math.Point$(core.int)))();
   let _CustomEventStreamProviderOfWheelEvent = () => (_CustomEventStreamProviderOfWheelEvent = dart.constFn(html$._CustomEventStreamProvider$(html$.WheelEvent)))();
   let _CustomEventStreamProviderOfTransitionEvent = () => (_CustomEventStreamProviderOfTransitionEvent = dart.constFn(html$._CustomEventStreamProvider$(html$.TransitionEvent)))();
   let EventStreamProviderOfMouseEvent = () => (EventStreamProviderOfMouseEvent = dart.constFn(html$.EventStreamProvider$(html$.MouseEvent)))();
@@ -445,7 +444,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let _ElementEventStreamImplOfBeforeUnloadEvent = () => (_ElementEventStreamImplOfBeforeUnloadEvent = dart.constFn(html$._ElementEventStreamImpl$(html$.BeforeUnloadEvent)))();
   let _ElementListEventStreamImplOfBeforeUnloadEvent = () => (_ElementListEventStreamImplOfBeforeUnloadEvent = dart.constFn(html$._ElementListEventStreamImpl$(html$.BeforeUnloadEvent)))();
   let EventStreamProviderOfBeforeUnloadEvent = () => (EventStreamProviderOfBeforeUnloadEvent = dart.constFn(html$.EventStreamProvider$(html$.BeforeUnloadEvent)))();
-  let PointOfdouble = () => (PointOfdouble = dart.constFn(math.Point$(core.double)))();
   let ListOfRectangleOfnum = () => (ListOfRectangleOfnum = dart.constFn(core.List$(RectangleOfnum())))();
   let ListOfCssRule = () => (ListOfCssRule = dart.constFn(core.List$(html$.CssRule)))();
   let ListOfGamepad = () => (ListOfGamepad = dart.constFn(core.List$(html$.Gamepad)))();
@@ -37003,7 +37001,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let sameAsParent = core.identical(current, parent);
       let foundAsParent = sameAsParent || parent[dartx.tagName] == 'HTML';
       if (current == null || sameAsParent) {
-        if (foundAsParent) return new (PointOfint())(0, 0);
+        if (foundAsParent) return new (PointOfnum())(0, 0);
         dart.throw(new core.ArgumentError("Specified element is not a transitive offset " + "parent of this element."));
       }
       let parentOffset = current[dartx.offsetParent];
@@ -58163,33 +58161,33 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.initMouseEvent(type, bubbles, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
     }
     get [dartx.client]() {
-      return new (PointOfint())(this[_clientX], this[_clientY]);
+      return new (PointOfnum())(this[_clientX], this[_clientY]);
     }
     get [dartx.movement]() {
-      return new (PointOfint())(this[_webkitMovementX], this[_webkitMovementY]);
+      return new (PointOfnum())(this[_webkitMovementX], this[_webkitMovementY]);
     }
     get [dartx.offset]() {
       if (!!this.offsetX) {
         let x = this.offsetX;
         let y = this.offsetY;
-        return new (PointOfint())(x, y);
+        return new (PointOfnum())(x, y);
       } else {
         if (!html$.Element.is(this[dartx.target])) {
           dart.throw(new core.UnsupportedError('offsetX is only supported on elements'));
         }
         let target = html$.Element._check(this[dartx.target]);
         let point = this[dartx.client]['-'](target[dartx.getBoundingClientRect]()[dartx.topLeft]);
-        return new (PointOfint())(point.x[dartx.toInt](), point.y[dartx.toInt]());
+        return new (PointOfnum())(point.x[dartx.toInt](), point.y[dartx.toInt]());
       }
     }
     get [dartx.screen]() {
-      return new (PointOfint())(this[_screenX], this[_screenY]);
+      return new (PointOfnum())(this[_screenX], this[_screenY]);
     }
     get [dartx.layer]() {
-      return new (PointOfint())(this[_layerX], this[_layerY]);
+      return new (PointOfnum())(this[_layerX], this[_layerY]);
     }
     get [dartx.page]() {
-      return new (PointOfint())(this[_pageX], this[_pageY]);
+      return new (PointOfnum())(this[_pageX], this[_pageY]);
     }
   };
   dart.setSignature(html$.MouseEvent, {
@@ -66084,13 +66082,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.radiusY[dartx.round]();
     }
     get [dartx.client]() {
-      return new (PointOfint())(this[__clientX], this[__clientY]);
+      return new (PointOfnum())(this[__clientX], this[__clientY]);
     }
     get [dartx.page]() {
-      return new (PointOfint())(this[__pageX], this[__pageY]);
+      return new (PointOfnum())(this[__pageX], this[__pageY]);
     }
     get [dartx.screen]() {
-      return new (PointOfint())(this[__screenX], this[__screenY]);
+      return new (PointOfnum())(this[__screenX], this[__screenY]);
     }
     get [dartx.radiusX]() {
       return this[__radiusX];
@@ -69378,16 +69376,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.notNull(another.x) >= dart.notNull(this[dartx.left]) && dart.notNull(another.x) <= dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]) && dart.notNull(another.y) >= dart.notNull(this[dartx.top]) && dart.notNull(another.y) <= dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]);
     }
     get [dartx.topLeft]() {
-      return new (PointOfdouble())(this[dartx.left], this[dartx.top]);
+      return new (PointOfnum())(this[dartx.left], this[dartx.top]);
     }
     get [dartx.topRight]() {
-      return new (PointOfdouble())(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), this[dartx.top]);
+      return new (PointOfnum())(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), this[dartx.top]);
     }
     get [dartx.bottomRight]() {
-      return new (PointOfdouble())(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]));
+      return new (PointOfnum())(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]));
     }
     get [dartx.bottomLeft]() {
-      return new (PointOfdouble())(this[dartx.left], dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]));
+      return new (PointOfnum())(this[dartx.left], dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]));
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
