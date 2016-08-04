@@ -669,6 +669,8 @@ const char* Dart::FeaturesString(Snapshot::Kind kind) {
 void Dart::RunShutdownCallback() {
   Isolate* isolate = Isolate::Current();
   void* callback_data = isolate->init_callback_data();
+  // Clear the data from the isolate so future accesses will see NULL.
+  isolate->set_init_callback_data(NULL);
   Dart_IsolateShutdownCallback callback = Isolate::ShutdownCallback();
   if (callback != NULL) {
     (callback)(callback_data);
