@@ -45,9 +45,11 @@ class FunctionRefElementWrapper extends HtmlElement {
     shadowRoot.children = [
       new StyleElement()
         ..text = '''
+        class-ref-wrapped > a[href]:hover,
         function-ref-wrapped > a[href]:hover {
             text-decoration: underline;
         }
+        class-ref-wrapped > a[href],
         function-ref-wrapped > a[href] {
             color: #0489c3;
             text-decoration: none;

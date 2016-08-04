@@ -55,9 +55,8 @@ class CodeRefElement extends HtmlElement implements Renderable {
     final name = (_code.isOptimized ? '*' : '') + _code.name;
     children = [
       new AnchorElement(href: M.isSyntheticCode(_code.kind) ? null
-          : Uris.inspect(isolate, object: _code))
+          : Uris.inspect(_isolate, object: _code))
         ..text = name
-        ..classes = ['isolate-ref']
     ];
   }
 }

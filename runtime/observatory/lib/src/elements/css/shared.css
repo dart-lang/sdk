@@ -364,6 +364,18 @@ input.textbox {
   -webkit-animation: shake 0.5s;
 }
 
+/* class-ref */
+/* TODO(cbernaschina) fix class-ref-wrapped to class-ref when wrapper
+removed */
+
+class-ref-wrapped > a[href]:hover {
+    text-decoration: underline;
+}
+class-ref-wrapped > a[href] {
+    color: #0489c3;
+    text-decoration: none;
+}
+
 /* code-ref */
 /* TODO(cbernaschina) fix code-ref-wrapped to code-ref when wrapper
 removed */
@@ -410,6 +422,18 @@ isolate-ref-wrapped > a[href]:hover {
   text-decoration: underline;
 }
 isolate-ref-wrapped > a[href] {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+/* library-ref */
+/* TODO(cbernaschina) fix library-ref-wrapped to library-ref when wrapper
+removed */
+
+library-ref-wrapped > a[href]:hover {
+  text-decoration: underline;
+}
+library-ref-wrapped > a[href] {
   color: #0489c3;
   text-decoration: none;
 }

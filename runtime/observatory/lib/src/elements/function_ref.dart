@@ -8,6 +8,7 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M
   show IsolateRef, FunctionRef, isSyntheticFunction, ClassRef, ObjectRef;
+import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
@@ -76,8 +77,7 @@ class FunctionRefElement extends HtmlElement implements Renderable {
       if (owner is M.ClassRef) {
         content.addAll([
           new SpanElement()..text = '.',
-          new AnchorElement(href: Uris.inspect(_isolate, object: owner))
-            ..text = owner.name
+          new ClassRefElement(_isolate, owner, queue: _r.queue)
         ]);
       }
     }

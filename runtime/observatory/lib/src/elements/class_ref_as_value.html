@@ -1,8 +1,7 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
-
 <link rel="import" href="service_ref.html">
 
-<polymer-element name="class-ref">
+<polymer-element name="class-ref-as-value">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <style>
@@ -12,9 +11,8 @@
         line-height: 150%;
       }
     </style><!--
-    --><a on-click="{{ goto }}" _href="{{ url }}">{{ ref.name }}</a><!--
-    --><template if="{{ asValue }}">
-      <curly-block callback="{{ expander() }}" expandKey="{{ expandKey }}">
+    --><class-ref ref="{{ ref }}"></class-ref><!--
+    --><curly-block callback="{{ expander() }}" expandKey="{{ expandKey }}">
         <div class="indented">
           <template repeat="{{ field in ref.fields }}">
             <template if="{{ field.isStatic }}">
@@ -25,9 +23,8 @@
             </template>
           </template>
         </div>
-      </curly-block>
-    </template><!--
+      </curly-block><!--
   --></template>
 </polymer-element>
 
-<script type="application/dart" src="class_ref.dart"></script>
+<script type="application/dart" src="class_ref_as_value.dart"></script>
