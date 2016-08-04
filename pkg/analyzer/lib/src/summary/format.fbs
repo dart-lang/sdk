@@ -1181,6 +1181,13 @@ table LinkedUnit {
  */
 table PackageBundle {
   /**
+   * MD5 hash of the non-informative fields of the [PackageBundle] (not
+   * including this one).  This can be used to identify when the API of a
+   * package may have changed.
+   */
+  apiSignature:string (id: 7);
+
+  /**
    * Linked libraries.
    */
   linkedLibraries:[LinkedLibrary] (id: 0);

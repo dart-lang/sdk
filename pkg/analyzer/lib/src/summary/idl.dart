@@ -650,6 +650,14 @@ abstract class PackageBundle extends base.SummaryClass {
       generated.readPackageBundle(buffer);
 
   /**
+   * MD5 hash of the non-informative fields of the [PackageBundle] (not
+   * including this one).  This can be used to identify when the API of a
+   * package may have changed.
+   */
+  @Id(7)
+  String get apiSignature;
+
+  /**
    * Linked libraries.
    */
   @Id(0)
