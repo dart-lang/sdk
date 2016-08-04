@@ -588,6 +588,16 @@ class C2 implements A, B {
 ''');
   }
 
+  void test_constructors_downwardsWithConstraint() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26431
+    checkFile(r'''
+class Foo<T extends Iterable> {}
+void main() {
+  Foo<List> foo = /*info:INFERRED_TYPE_ALLOCATION*/new Foo();
+}
+    ''');
+  }
+
   void test_constructors_inferenceFBounded() {
     // Regression for https://github.com/dart-lang/sdk/issues/26990
     var unit = checkFile('''
