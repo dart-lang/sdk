@@ -193,7 +193,7 @@
     'lib/src/mocks/objects/target.dart',
     'lib/src/mocks/objects/vm.dart',
     'lib/src/mocks/repositories/crash_dump.dart',
-    'lib/src/mocks/repositories/flags.dart',
+    'lib/src/mocks/repositories/flag.dart',
     'lib/src/mocks/repositories/script.dart',
     'lib/src/mocks/repositories/notification.dart',
     'lib/src/mocks/repositories/target.dart',
