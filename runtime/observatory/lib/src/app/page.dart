@@ -84,7 +84,7 @@ class ErrorPage extends Page {
   void onInstall() {
     if (element == null) {
       // Lazily create page.
-      element = new Element.tag('general-error');
+      element = new GeneralErrorElement(app.notifications, queue: app.queue);
     }
   }
 
@@ -92,17 +92,7 @@ class ErrorPage extends Page {
     assert(element != null);
     assert(canVisit(uri));
 
-    /*
-    if (uri.path == '') {
-      // Nothing requested.
-      return;
-    }
-    */
-
-    if (element != null) {
-      GeneralErrorElement serviceElement = element;
-      serviceElement.message = "Path '${uri.path}' not found";
-    }
+    (element as GeneralErrorElement).message = "Path '${uri.path}' not found";
   }
 
   /// Catch all.
