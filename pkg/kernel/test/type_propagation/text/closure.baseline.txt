@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  field dynamic/self::Bar _field = new self::Bar::•();
+  field dynamic/self::Bar! {other} _field = new self::Bar::•();
   constructor •() → void
     : super core::Object::•()
     ;
@@ -13,13 +13,13 @@ class Bar extends core::Object {
     : super core::Object::•()
     ;
 }
-static method useCallback(dynamic/function callback) → dynamic/bottom {
-  dynamic/self::Foo _ = callback.call();
+static method useCallback(dynamic/core::Function* {} callback) → dynamic/Nothing {
+  dynamic/self::Foo! {other} _ = callback.call();
 }
-static method main() → dynamic/bottom {
-  function inner() → dynamic/self::Foo {
+static method main() → dynamic/Nothing {
+  function inner() → dynamic/self::Foo! {other} {
     return new self::Foo::•();
   }
   self::useCallback(inner);
-  dynamic/self::Bar _ = inner.call()._field;
+  dynamic/self::Bar! {other} _ = inner.call()._field;
 }

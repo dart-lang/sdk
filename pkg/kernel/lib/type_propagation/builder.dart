@@ -5,10 +5,11 @@ library kernel.type_propagation.builder;
 
 import '../ast.dart';
 import '../class_hierarchy.dart';
-import 'constraints.dart';
-import 'canonicalizer.dart';
-import 'visualizer.dart';
 import '../core_types.dart';
+import 'canonicalizer.dart';
+import 'constraints.dart';
+import 'type_propagation.dart';
+import 'visualizer.dart';
 
 /// Maps AST nodes to constraint variables at the level of function boundaries.
 ///
@@ -89,6 +90,7 @@ class Builder {
 
   final Uint31PairMap<int> _stores = new Uint31PairMap<int>();
   final Uint31PairMap<int> _loads = new Uint31PairMap<int>();
+  final List<InferredValue> _baseTypeOfLatticePoint = <InferredValue>[];
 
   int bottomNode;
   int dynamicNode;
@@ -161,8 +163,9 @@ class Builder {
       for (InterfaceType supertype in class_.implementedTypes) {
         supers.add(getLatticePointForSubtypesOfClass(supertype.classNode));
       }
-      int subtypePoint = constraints.newLatticePoint(supers);
-      int concretePoint = constraints.newLatticePoint(<int>[subtypePoint]);
+      int subtypePoint = newLatticePoint(supers, class_, BaseClassKind.Subtype);
+      int concretePoint =
+          newLatticePoint(<int>[subtypePoint], class_, BaseClassKind.Exact);
       lattice.subtypesOfClass[i] = subtypePoint;
       int value = constraints.newValue(concretePoint);
       int variable = constraints.newVariable();
@@ -175,6 +178,7 @@ class Builder {
       visualizer?.annotateVariable(variable, class_);
       visualizer?.annotateValue(value, class_);
       constraints.addAllocation(value, variable);
+      constraints.addBitmaskInput(ValueBit.other, variable);
     }
 
     bottomNode = newVariable(null, 'bottom');
@@ -191,7 +195,7 @@ class Builder {
     futureNode = getExternalInstanceVariable(coreTypes.futureClass);
     streamNode = getExternalInstanceVariable(coreTypes.streamClass);
     functionValueNode = getExternalInstanceVariable(coreTypes.functionClass);
-    nullNode = bottomNode; // Assume anything might be null so don't propagate.
+    nullNode = newVariable(null, 'Null');
 
     iteratorField = getPropertyField(Names.iterator);
     currentField = getPropertyField(Names.current);
@@ -200,6 +204,10 @@ class Builder {
         getLatticePointForSubtypesOfClass(coreTypes.functionClass);
 
     identicalFunction = coreTypes.getCoreProcedure('dart:core', 'identical');
+
+    // Seed bitmasks for built-in values.
+    constraints.addBitmaskInput(ValueBit.null_, nullNode);
+    constraints.addBitmaskInput(ValueBit.all, dynamicNode);
 
     for (Library library in program.libraries) {
       for (Procedure procedure in library.procedures) {
@@ -243,6 +251,19 @@ class Builder {
     }
   }
 
+  int newLatticePoint(
+      List<int> parentLatticePoints, Class baseClass, BaseClassKind kind) {
+    _baseTypeOfLatticePoint.add(new InferredValue(baseClass, kind, 0));
+    return constraints.newLatticePoint(parentLatticePoints);
+  }
+
+  /// Returns an [InferredValue] with the base type relation for the given
+  /// lattice point but whose bitmask is 0.  The bitmask must be filled in
+  /// before this value is exposed to analysis clients.
+  InferredValue getBaseTypeOfLatticePoint(int latticePoint) {
+    return _baseTypeOfLatticePoint[latticePoint];
+  }
+
   /// Returns the lattice point containing all subtypes of the given class.
   int getLatticePointForSubtypesOfClass(Class classNode) {
     int index = hierarchy.getClassIndex(classNode);
@@ -271,7 +292,8 @@ class Builder {
     } else {
       super_ = getLatticePointForFunctionsWithName(node.name);
     }
-    int point = constraints.newLatticePoint(<int>[super_]);
+    int point = newLatticePoint(
+        <int>[super_], coreTypes.functionClass, BaseClassKind.Subtype);
     visualizer?.annotateLatticePoint(point, node, 'overriders');
     return point;
   }
@@ -448,7 +470,8 @@ class Builder {
   }
 
   int _makeLatticePointForFunctionsWithName(Name name) {
-    int point = constraints.newLatticePoint(<int>[latticePointForAllFunctions]);
+    int point = newLatticePoint(<int>[latticePointForAllFunctions],
+        coreTypes.functionClass, BaseClassKind.Subtype);
     visualizer?.annotateLatticePoint(point, null, 'Methods of name $name');
     return point;
   }
@@ -466,7 +489,8 @@ class Builder {
     int baseLatticePoint = member == null
         ? latticePointForAllFunctions
         : getLatticePointForFunctionsOverridingMethod(member);
-    int latticePoint = constraints.newLatticePoint(<int>[baseLatticePoint]);
+    int latticePoint = newLatticePoint(<int>[baseLatticePoint],
+        coreTypes.functionClass, BaseClassKind.Subtype);
     visualizer?.annotateLatticePoint(latticePoint, member, 'function');
     int arity = node.positionalParameters.length;
     int functionValue = constraints.newValue(latticePoint);
@@ -524,6 +548,18 @@ class Builder {
         _makeExternalInstanceVariable(node, classIndex);
   }
 
+  int getValueBitForExternalClass(Class node) {
+    if (node == coreTypes.intClass) {
+      return ValueBit.integer;
+    } else if (node == coreTypes.doubleClass) {
+      return ValueBit.double_;
+    } else if (node == coreTypes.stringClass) {
+      return ValueBit.string;
+    } else {
+      return ValueBit.other;
+    }
+  }
+
   int _makeExternalInstanceVariable(Class node, int classIndex) {
     if (node == coreTypes.numClass) {
       // Don't build an interface based on the "num" class, instead treat it
@@ -534,11 +570,15 @@ class Builder {
       return variable;
     }
     int baseLatticePoint = getLatticePointForSubtypesOfClass(node);
-    int latticePoint = constraints.newLatticePoint(<int>[baseLatticePoint]);
+    // TODO(asgerf): Use more fine-grained handling of externals, based on
+    //   metadata or on a specification read from a separate file (issue #22).
+    int latticePoint =
+        newLatticePoint(<int>[baseLatticePoint], node, BaseClassKind.Subtype);
     visualizer?.annotateLatticePoint(latticePoint, node, 'external');
     int value = constraints.newValue(latticePoint);
     int variable = newVariable(node, 'external');
     constraints.addAllocation(value, variable);
+    constraints.addBitmaskInput(getValueBitForExternalClass(node), variable);
     externalClassValues[classIndex] = value;
     externalClassWorklist.add(classIndex);
     return variable;
@@ -567,6 +607,7 @@ class Builder {
   void _buildExternalInterfaceMember(
       Class host, Member member, int object, int variable,
       {bool isSetter}) {
+    // TODO(asgerf): Handle nullability of return values.
     TypeEnvironment environment =
         new TypeEnvironment(this, host, member, thisVariable: variable);
     int propertyField = fieldNames.getPropertyField(member.name);

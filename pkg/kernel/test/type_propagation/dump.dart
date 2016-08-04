@@ -1,9 +1,15 @@
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+library kernel.type_propagation.dump;
+
 import 'package:kernel/kernel.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/type_propagation/builder.dart';
 import 'package:kernel/type_propagation/solver.dart';
 import 'package:kernel/type_propagation/visualizer.dart';
 import 'package:kernel/type_propagation/constraints.dart';
+import 'package:kernel/type_propagation/type_propagation.dart';
 import 'package:args/args.dart';
 import 'dart:io';
 
@@ -72,7 +78,7 @@ main(List<String> args) {
       int escape = solver.getEscapeContext(value);
       String escapeString = (escape == constraints.latticePointOfValue[value])
           ? 'no escape'
-          : visualizer.getUnionName(escape);
+          : visualizer.getLatticePointName(escape);
       print('$node -> $escapeString');
     }
   }
@@ -121,17 +127,24 @@ main(List<String> args) {
       builder.global.parameters.values
     ].expand((x) => x);
     int outputCount = outputVariables.length;
-    int inferredUnknowns = 0;
-    int inferredBottoms = 0;
-    int inferredOther = 0;
+    int inferredUnknown = 0;
+    int inferredNothing = 0;
+    int inferredNullable = 0;
+    int inferredNonNullable = 0;
+    int inferredOnlyNull = 0;
     for (int variable in outputVariables) {
       int values = solver.getVariableValue(variable);
-      if (values == Solver.bottom) {
-        ++inferredBottoms;
-      } else if (values == Solver.rootClass) {
-        ++inferredUnknowns;
+      int bitmask = solver.getVariableBitmask(variable);
+      if (values == Solver.bottom && bitmask == 0) {
+        ++inferredNothing;
+      } else if (values == Solver.bottom && bitmask == ValueBit.null_) {
+        ++inferredOnlyNull;
+      } else if (values == Solver.rootClass && bitmask == ValueBit.all) {
+        ++inferredUnknown;
+      } else if (bitmask & ValueBit.null_ != 0) {
+        ++inferredNullable;
       } else {
-        ++inferredOther;
+        ++inferredNonNullable;
       }
     }
     print("""
@@ -150,10 +163,12 @@ Stores:      ${constraints.numberOfStores}
 
 Transfers:   $numberOfTransfers (${(transfersPerSecond / 1000000).toStringAsFixed(1)} M/s)
 
-Outputs:     $outputCount
-Tops:        $inferredUnknowns (${percent(inferredUnknowns, outputCount)})
-Bottoms:     $inferredBottoms (${percent(inferredBottoms, outputCount)})
-Other:       $inferredOther (${percent(inferredOther, outputCount)})
+Outputs:      $outputCount
+Unknown:      $inferredUnknown (${percent(inferredUnknown, outputCount)})
+Nullable:     $inferredNullable (${percent(inferredNullable, outputCount)})
+Non-nullable: $inferredNonNullable (${percent(inferredNonNullable, outputCount)})
+Only null:    $inferredOnlyNull (${percent(inferredOnlyNull, outputCount)})
+Nothing:      $inferredNothing (${percent(inferredNothing, outputCount)})
   """);
   }
 }

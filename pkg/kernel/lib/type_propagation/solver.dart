@@ -8,6 +8,16 @@ import 'builder.dart';
 import '../class_hierarchy.dart';
 import 'visualizer.dart';
 import 'canonicalizer.dart';
+import 'type_propagation.dart';
+
+class ValueVector {
+  List<int> values;
+  List<int> bitmasks;
+
+  ValueVector(int length)
+      : values = new List<int>.filled(length, Solver.bottom),
+        bitmasks = new List<int>.filled(length, 0);
+}
 
 /// We adopt a Hungarian-like notation in this class to distinguish variables,
 /// values, and lattice points, since they are all integers.
@@ -19,20 +29,19 @@ class Solver {
   final FieldNames canonicalizer;
   final ClassHierarchy hierarchy;
 
-  /// Maps a variable index to a lattice point containing all values that may
-  /// flow into the variable.
-  final List<int> valuesInVariable;
+  /// Maps a variable index to a values that may flow into it.
+  final ValueVector valuesInVariable;
 
-  /// Maps a field index to a lattice point containing all values that may be
-  /// stored in the given field on any object that escaped into a mega union.
-  final List<int> valuesStoredOnEscapingObject;
+  /// Maps a field index to the values that may be stored in the given field on
+  /// any object that escaped into a mega union.
+  final ValueVector valuesStoredOnEscapingObject;
 
   /// Maps a field index to a lattice point containing all values that may be
   /// stored into the given field where the receiver is a mega union.
   ///
   /// This is a way to avoid propagating such stores into almost every entry
   /// store location.
-  final List<int> valuesStoredOnUnknownObject;
+  final ValueVector valuesStoredOnUnknownObject;
 
   /// Maps a lattice point to a sorted list of its ancestors in the lattice
   /// (i.e. all lattice points that lie above it, and thus represent less
@@ -106,16 +115,16 @@ class Solver {
         this.canonicalizer = builder.fieldNames,
         this.hierarchy = builder.hierarchy,
         this.valuesInVariable =
-            new List<int>.filled(builder.constraints.numberOfVariables, bottom),
+            new ValueVector(builder.constraints.numberOfVariables),
         this.ancestorsOfLatticePoint = new List<List<int>>.generate(
             builder.constraints.numberOfLatticePoints, _makeIntList),
         this.valuesBelowLatticePoint = new List<List<int>>.generate(
             builder.constraints.numberOfLatticePoints, _makeIntList),
         this._functionLatticePoint = builder.latticePointForAllFunctions,
         this.valuesStoredOnEscapingObject =
-            new List<int>.filled(builder.fieldNames.length, bottom),
+            new ValueVector(builder.fieldNames.length),
         this.valuesStoredOnUnknownObject =
-            new List<int>.filled(builder.fieldNames.length, bottom),
+            new ValueVector(builder.fieldNames.length),
         this.latticePointEscape =
             new List<int>.filled(builder.constraints.numberOfLatticePoints, 0),
         this.valueEscape =
@@ -221,8 +230,14 @@ class Solver {
       int destination = allocations[i + 1];
       int valueId = allocations[i];
       int point = constraints.latticePointOfValue[valueId];
-      valuesInVariable[destination] =
-          join(valuesInVariable[destination], point);
+      valuesInVariable.values[destination] =
+          join(valuesInVariable.values[destination], point);
+    }
+    List<int> bitmaskInputs = constraints.bitmaskInputs;
+    for (int i = 0; i < bitmaskInputs.length; i += 2) {
+      int destination = bitmaskInputs[i + 1];
+      int bitmask = bitmaskInputs[i];
+      valuesInVariable.bitmasks[destination] |= bitmask;
     }
   }
 
@@ -246,18 +261,17 @@ class Solver {
       for (int i = 0; i < assignments.length; i += 2) {
         int destination = assignments[i + 1];
         int source = assignments[i];
-        int inputValues = valuesInVariable[source];
-        _update(valuesInVariable, destination, inputValues);
+        _update(valuesInVariable, destination, valuesInVariable, source);
       }
       for (int i = 0; i < stores.length; i += 3) {
         int sourceVariable = stores[i + 2];
         int field = stores[i + 1];
         int objectVariable = stores[i];
-        int inputValues = valuesInVariable[sourceVariable];
-        int objectValues = valuesInVariable[objectVariable];
+        int objectValues = valuesInVariable.values[objectVariable];
         if (objectValues == bottom) continue;
         if (_isMegaUnion(objectValues)) {
-          _update(valuesStoredOnUnknownObject, field, inputValues);
+          _update(valuesStoredOnUnknownObject, field, valuesInVariable,
+              sourceVariable);
         } else {
           // Store the value on all subtypes that can escape into this
           // context or worse.
@@ -270,7 +284,8 @@ class Solver {
             }
             int location = storeLocations.lookup(receiver, field);
             if (location == null) continue;
-            _update(valuesInVariable, location, inputValues);
+            _update(
+                valuesInVariable, location, valuesInVariable, sourceVariable);
           }
         }
       }
@@ -278,15 +293,13 @@ class Solver {
         int destination = loads[i + 2];
         int field = loads[i + 1];
         int objectVariable = loads[i];
-        int objectValues = valuesInVariable[objectVariable];
+        int objectValues = valuesInVariable.values[objectVariable];
         if (objectValues == bottom) continue;
         if (_isMegaUnion(objectValues)) {
           // Receiver is unknown. Take the value out of the tarpit.
-          int inputValues = valuesStoredOnEscapingObject[field];
-          _update(valuesInVariable, destination, inputValues);
+          _update(valuesInVariable, destination, valuesStoredOnEscapingObject,
+              field);
         } else {
-          int oldValues = valuesInVariable[destination];
-          int newValues = oldValues;
           // Load the values stored on all the subtypes that can escape into
           // this context or worse.
           List<int> receivers = valuesBelowLatticePoint[objectValues];
@@ -298,12 +311,7 @@ class Solver {
             }
             int location = loadLocations.lookup(receiver, field);
             if (location == null) continue;
-            int inputValues = valuesInVariable[location];
-            newValues = join(inputValues, newValues);
-          }
-          if (newValues != oldValues) {
-            valuesInVariable[destination] = newValues;
-            _changed = true;
+            _update(valuesInVariable, destination, valuesInVariable, location);
           }
         }
       }
@@ -345,8 +353,8 @@ class Solver {
         int objectValue = storeLocationList[i];
         int escape = valueEscape[objectValue];
         if (_isMegaUnion(escape)) {
-          int inputValue = valuesStoredOnUnknownObject[field];
-          _update(valuesInVariable, variable, inputValue);
+          _update(
+              valuesInVariable, variable, valuesStoredOnUnknownObject, field);
         }
       }
       // Handle loads from escaping objects.
@@ -357,8 +365,8 @@ class Solver {
         int objectValue = loadLocationList[i];
         int escape = valueEscape[objectValue];
         if (_isMegaUnion(escape)) {
-          int inputValue = valuesInVariable[variable];
-          _update(valuesStoredOnEscapingObject, field, inputValue);
+          _update(
+              valuesStoredOnEscapingObject, field, valuesInVariable, variable);
         }
       }
     } while (_changed);
@@ -370,16 +378,24 @@ class Solver {
     for (int i = 0; i < sinks.length; i += 2) {
       int destination = sinks[i + 1];
       int source = sinks[i];
-      int inputValues = valuesInVariable[source];
-      _update(valuesInVariable, destination, inputValues);
+      _update(valuesInVariable, destination, valuesInVariable, source);
     }
   }
 
-  void _update(List<int> values, int index, int inputValues) {
-    int oldValues = values[index];
+  void _update(ValueVector destinationVector, int destinationIndex,
+      ValueVector sourceVector, int sourceIndex) {
+    int oldValues = destinationVector.values[destinationIndex];
+    int inputValues = sourceVector.values[sourceIndex];
     int newValues = join(inputValues, oldValues);
     if (newValues != oldValues) {
-      values[index] = newValues;
+      destinationVector.values[destinationIndex] = newValues;
+      _changed = true;
+    }
+    int oldBits = destinationVector.bitmasks[destinationIndex];
+    int inputBits = sourceVector.bitmasks[sourceIndex];
+    int newBits = inputBits | oldBits;
+    if (newBits != oldBits) {
+      destinationVector.bitmasks[destinationIndex] = newBits;
       _changed = true;
     }
   }
@@ -388,12 +404,27 @@ class Solver {
   /// into the given variable, or [bottom] if nothing can flow into the
   /// variable.
   int getVariableValue(int variable) {
-    return valuesInVariable[variable];
+    return valuesInVariable.values[variable];
+  }
+
+  int getVariableBitmask(int variable) {
+    return valuesInVariable.bitmasks[variable];
   }
 
   /// Returns the lowest-indexed lattice point into which the given value can
   /// escape.
   int getEscapeContext(int value) {
     return valueEscape[value];
+  }
+
+  InferredValue getValueInferredForVariable(int variable) {
+    assert(variable != null);
+    int latticePoint = valuesInVariable.values[variable];
+    int bitmask = valuesInVariable.bitmasks[variable];
+    if (latticePoint == bottom) {
+      return new InferredValue(null, BaseClassKind.None, bitmask);
+    }
+    InferredValue value = builder.getBaseTypeOfLatticePoint(latticePoint);
+    return value.withBitmask(bitmask);
   }
 }

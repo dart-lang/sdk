@@ -52,8 +52,8 @@ class ConstraintSystem {
 
   /// The same as [loadLocations], for traversal instead of fast lookup.
   final List<int> loadLocationList = <int>[];
-
   final List<List<int>> parentsOfLatticePoint = <List<int>>[];
+  final List<int> bitmaskInputs = <int>[];
 
   int get numberOfVariables => _numberOfVariables;
   int get numberOfValues => latticePointOfValue.length;
@@ -131,6 +131,10 @@ class ConstraintSystem {
     assert(destination >= 0);
     value = -value;
     allocations..add(value)..add(destination);
+  }
+
+  void addBitmaskInput(int bitmask, int destination) {
+    bitmaskInputs..add(bitmask)..add(destination);
   }
 
   void addAssign(int source, int destination) {

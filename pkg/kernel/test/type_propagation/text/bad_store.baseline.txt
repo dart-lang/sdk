@@ -3,22 +3,22 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  field dynamic/core::String field;
+  field dynamic/core::String* {null,string} field;
   constructor •() → void
     : super core::Object::•()
     ;
 }
-static method identity(dynamic/self::Foo x) → dynamic/self::Foo
+static method identity(dynamic/self::Foo! {other} x) → dynamic/self::Foo! {other}
   return x;
-static method use(dynamic/core::String x) → void/bottom {}
-static method main(core::List<core::String>/bottom args) → dynamic/bottom {
-  dynamic/self::Foo foo = self::identity(new self::Foo::•());
+static method use(dynamic/core::String* {null,string} x) → void/Nothing {}
+static method main(core::List<core::String>/Nothing args) → dynamic/Nothing {
+  dynamic/self::Foo! {other} foo = self::identity(new self::Foo::•());
   if(args.length.>(1)) {
     foo.field = "string";
-    dynamic/core::String first = foo.field;
+    dynamic/core::String* {null,string} first = foo.field;
     self::use(first);
     foo.noField = "string";
-    dynamic/bottom second = foo.noField;
+    dynamic/Nothing second = foo.noField;
     self::use(second);
   }
 }

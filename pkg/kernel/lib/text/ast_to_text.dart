@@ -5,6 +5,7 @@ library kernel.ast_to_text;
 
 import '../ast.dart';
 import '../import_table.dart';
+import '../type_propagation/type_propagation.dart';
 
 class Namer<T> {
   int index = 0;
@@ -190,6 +191,16 @@ class Printer extends Visitor<Null> {
     String name = getClassName(node);
     String library = getLibraryReference(node.enclosingLibrary);
     return '$library::$name';
+  }
+
+  String getInferredValueString(InferredValue value) {
+    if (value.isNothing) return 'Nothing';
+    if (value.isAlwaysNull) return 'Null';
+    assert(value.baseClass != null);
+    String baseName = getClassReference(value.baseClass);
+    String baseSuffix = value.isSubclass ? '+' : value.isSubtype ? '*' : '!';
+    String bitSuffix = ValueBit.format(value.valueBits);
+    return '$baseName$baseSuffix $bitSuffix';
   }
 
   static final String emptyNameString = '•';

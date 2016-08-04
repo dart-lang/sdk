@@ -1,3 +1,6 @@
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 library kernel.type_propagation.visualizer;
 
 import 'constraints.dart';
@@ -15,7 +18,7 @@ class Visualizer {
   final Map<int, GraphNode> variableNodes = <int, GraphNode>{};
   final Map<int, FunctionNode> value2function = <int, FunctionNode>{};
   final Map<FunctionNode, int> function2value = <FunctionNode, int>{};
-  final Map<int, Annotation> unionAnnotation = <int, Annotation>{};
+  final Map<int, Annotation> latticePointAnnotation = <int, Annotation>{};
   final Map<int, Annotation> valueAnnotation = <int, Annotation>{};
   FieldNames fieldNames;
   ConstraintSystem constraints;
@@ -88,17 +91,17 @@ class Visualizer {
     addEdge(source, object, member, 'Store![$fieldName]');
   }
 
-  void annotateLatticePoint(int union, TreeNode node, [String info]) {
-    unionAnnotation[union] = new Annotation(node, info);
+  void annotateLatticePoint(int point, TreeNode node, [String info]) {
+    latticePointAnnotation[point] = new Annotation(node, info);
   }
 
   void annotateValue(int value, TreeNode node, [String info]) {
     valueAnnotation[value] = new Annotation(node, info);
   }
 
-  String getUnionName(int union) {
-    if (union < 0) return 'bottom';
-    return unionAnnotation[union].toLabel();
+  String getLatticePointName(int latticePoint) {
+    if (latticePoint < 0) return 'bottom';
+    return latticePointAnnotation[latticePoint].toLabel();
   }
 
   String getValueName(int value) {
@@ -148,9 +151,9 @@ class Visualizer {
   }
 
   String _getValueLabel(GraphNode node) {
-    int union = solver.valuesInVariable[node.variable];
-    if (union < 0) return 'bottom';
-    return escapeLabel(shorten(getUnionName(union)));
+    int latticePoint = solver.getVariableValue(node.variable);
+    if (latticePoint < 0) return 'bottom';
+    return escapeLabel(shorten(getLatticePointName(latticePoint)));
   }
 
   /// Returns the Graphviz Dot code a the subgraph relevant for [member].
@@ -353,12 +356,8 @@ class TextAnnotator extends Annotator {
     if (variable == null) {
       return '<missing type>';
     }
-    int union = visualizer.solver.getVariableValue(variable);
-    if (union == Solver.bottom) return 'bottom';
-    Annotation annotation = visualizer.unionAnnotation[union];
-    if (annotation == null) return '<unannotated union>';
-    if (annotation.node == null) return annotation.info;
-    return getReference(annotation.node, printer);
+    var value = visualizer.solver.getValueInferredForVariable(variable);
+    return printer.getInferredValueString(value);
   }
 
   TextAnnotator(this.visualizer) {
