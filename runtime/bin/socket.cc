@@ -234,6 +234,12 @@ void FUNCTION_NAME(Socket_CreateBindConnect)(Dart_NativeArguments args) {
   }
 }
 
+void FUNCTION_NAME(Socket_IsBindError)(Dart_NativeArguments args) {
+  intptr_t error_number =
+      DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 1));
+  bool is_bind_error = Socket::IsBindError(error_number);
+  Dart_SetReturnValue(args, is_bind_error ? Dart_True() : Dart_False());
+}
 
 void FUNCTION_NAME(Socket_CreateBindDatagram)(Dart_NativeArguments args) {
   RawAddr addr;
