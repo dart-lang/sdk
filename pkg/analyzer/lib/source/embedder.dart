@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@deprecated
 library analyzer.source.embedder;
 
 import 'dart:collection' show HashMap;
@@ -25,9 +26,11 @@ const String _DART_COLON_PREFIX = 'dart:';
 const String _EMBEDDED_LIB_MAP_KEY = 'embedded_libs';
 
 /// Check if this map defines embedded libraries.
+@deprecated
 bool definesEmbeddedLibs(Map map) => map[_EMBEDDED_LIB_MAP_KEY] != null;
 
 /// An SDK backed by URI mappings derived from an `_embedder.yaml` file.
+@deprecated
 class EmbedderSdk extends AbstractDartSdk {
   final Map<String, String> _urlMappings = new HashMap<String, String>();
 

@@ -13,11 +13,12 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
-import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
+import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -93,6 +94,12 @@ class Driver implements CommandLineStarter {
 
   /// SDK instance.
   DartSdk sdk;
+
+  /**
+   * The resource provider used to access the file system.
+   */
+  file_system.ResourceProvider resourceProvider =
+      PhysicalResourceProvider.INSTANCE;
 
   /// Collected analysis statistics.
   final AnalysisStats stats = new AnalysisStats();
@@ -338,8 +345,7 @@ class Driver implements CommandLineStarter {
       Map<file_system.Folder, YamlMap> embedderMap, _PackageInfo packageInfo) {
     // Create a custom package resolver if one has been specified.
     if (packageResolverProvider != null) {
-      file_system.Folder folder =
-          PhysicalResourceProvider.INSTANCE.getResource('.');
+      file_system.Folder folder = resourceProvider.getResource('.');
       UriResolver resolver = packageResolverProvider(folder);
       if (resolver != null) {
         UriResolver sdkResolver = new DartUriResolver(sdk);
@@ -348,7 +354,7 @@ class Driver implements CommandLineStarter {
         List<UriResolver> resolvers = <UriResolver>[
           sdkResolver,
           resolver,
-          new file_system.ResourceUriResolver(PhysicalResourceProvider.INSTANCE)
+          new file_system.ResourceUriResolver(resourceProvider)
         ];
         return new SourceFactory(resolvers);
       }
@@ -364,9 +370,8 @@ class Driver implements CommandLineStarter {
       if (packageInfo.packageMap == null) {
         // Fall back to pub list-package-dirs.
         PubPackageMapProvider pubPackageMapProvider =
-            new PubPackageMapProvider(PhysicalResourceProvider.INSTANCE, sdk);
-        file_system.Resource cwd =
-            PhysicalResourceProvider.INSTANCE.getResource('.');
+            new PubPackageMapProvider(resourceProvider, sdk);
+        file_system.Resource cwd = resourceProvider.getResource('.');
         PackageMapInfo packageMapInfo =
             pubPackageMapProvider.computePackageMap(cwd);
         Map<String, List<file_system.Folder>> packageMap =
@@ -376,8 +381,8 @@ class Driver implements CommandLineStarter {
         // If it failed, that's not a problem; it simply means we have no way
         // to resolve packages.
         if (packageMapInfo.packageMap != null) {
-          packageUriResolver = new PackageMapUriResolver(
-              PhysicalResourceProvider.INSTANCE, packageMap);
+          packageUriResolver =
+              new PackageMapUriResolver(resourceProvider, packageMap);
         }
       }
     }
@@ -388,7 +393,7 @@ class Driver implements CommandLineStarter {
     // 'dart:' URIs come first.
 
     // Setup embedding.
-    EmbedderSdk embedderSdk = new EmbedderSdk(embedderMap);
+    EmbedderSdk embedderSdk = new EmbedderSdk(resourceProvider, embedderMap);
     if (embedderSdk.libraryMap.size() == 0) {
       // The embedder uri resolver has no mappings. Use the default Dart SDK
       // uri resolver.
@@ -410,8 +415,7 @@ class Driver implements CommandLineStarter {
     }
 
     // Finally files.
-    resolvers.add(
-        new file_system.ResourceUriResolver(PhysicalResourceProvider.INSTANCE));
+    resolvers.add(new file_system.ResourceUriResolver(resourceProvider));
 
     return new SourceFactory(resolvers, packageInfo.packages);
   }
@@ -546,8 +550,7 @@ class Driver implements CommandLineStarter {
       packageMap = _PackageRootPackageMapBuilder
           .buildPackageMap(options.packageRootPath);
     } else {
-      file_system.Resource cwd =
-          PhysicalResourceProvider.INSTANCE.getResource('.');
+      file_system.Resource cwd = resourceProvider.getResource('.');
       // Look for .packages.
       packages = _discoverPackagespec(new Uri.directory(cwd.path));
       packageMap = _getPackageMap(packages);
@@ -564,9 +567,7 @@ class Driver implements CommandLineStarter {
     Map<String, List<file_system.Folder>> folderMap =
         new Map<String, List<file_system.Folder>>();
     packages.asMap().forEach((String packagePath, Uri uri) {
-      folderMap[packagePath] = [
-        PhysicalResourceProvider.INSTANCE.getFolder(path.fromUri(uri))
-      ];
+      folderMap[packagePath] = [resourceProvider.getFolder(path.fromUri(uri))];
     });
     return folderMap;
   }
