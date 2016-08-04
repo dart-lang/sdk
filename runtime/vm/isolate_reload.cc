@@ -442,6 +442,7 @@ void IsolateReloadContext::Reload(bool force_reload) {
   if (!modified_libs_->Contains(root_lib.index())) {
     ASSERT(modified_libs_->IsEmpty());
     reload_skipped_ = true;
+    ReportOnJSON(js_);
     TIR_Print("---- SKIPPING RELOAD (No libraries were modified)\n");
     return;
   }
@@ -596,14 +597,20 @@ void IsolateReloadContext::CommonFinalizeTail() {
 
 
 void IsolateReloadContext::ReportOnJSON(JSONStream* stream) {
-  // Clear the buffer.
-  stream->buffer()->Clear();
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", "ReloadReport");
-  jsobj.AddProperty("success", !HasReasonsForCancelling());
+  jsobj.AddProperty("success", reload_skipped_ || !HasReasonsForCancelling());
   {
     JSONObject details(&jsobj, "details");
-    if (HasReasonsForCancelling()) {
+    if (reload_skipped_) {
+      // Reload was skipped.
+      const GrowableObjectArray& libs =
+          GrowableObjectArray::Handle(object_store()->libraries());
+      const intptr_t final_library_count = libs.Length();
+      details.AddProperty("savedLibraryCount", final_library_count);
+      details.AddProperty("loadedLibraryCount", static_cast<intptr_t>(0));
+      details.AddProperty("finalLibraryCount", final_library_count);
+    } else if (HasReasonsForCancelling()) {
       // Reload was rejected.
       JSONArray array(&jsobj, "notices");
       for (intptr_t i = 0; i < reasons_to_cancel_reload_.length(); i++) {
