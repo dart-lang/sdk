@@ -64,6 +64,7 @@ MessageHandler::MessageHandler()
       should_pause_on_exit_(false),
       is_paused_on_start_(false),
       is_paused_on_exit_(false),
+      delete_me_(false),
       paused_timestamp_(-1),
       pool_(NULL),
       task_(NULL),
@@ -78,6 +79,10 @@ MessageHandler::MessageHandler()
 MessageHandler::~MessageHandler() {
   delete queue_;
   delete oob_queue_;
+  queue_ = NULL;
+  oob_queue_ = NULL;
+  pool_ = NULL;
+  task_ = NULL;
 }
 
 
@@ -110,6 +115,7 @@ void MessageHandler::Run(ThreadPool* pool,
               name());
   }
   ASSERT(pool_ == NULL);
+  ASSERT(!delete_me_);
   pool_ = pool;
   start_callback_ = start_callback;
   end_callback_ = end_callback;
@@ -148,6 +154,7 @@ void MessageHandler::PostMessage(Message* message, bool before_events) {
     message = NULL;  // Do not access message.  May have been deleted.
 
     if ((pool_ != NULL) && (task_ == NULL)) {
+      ASSERT(!delete_me_);
       task_ = new MessageHandlerTask(this);
       task_running = pool_->Run(task_);
     }
@@ -251,6 +258,7 @@ MessageHandler::MessageStatus MessageHandler::HandleNextMessage() {
   // assigned to a thread pool.
   MonitorLocker ml(&monitor_);
   ASSERT(pool_ == NULL);
+  ASSERT(!delete_me_);
 #if defined(DEBUG)
   CheckAccess();
 #endif
@@ -263,6 +271,7 @@ MessageHandler::MessageStatus MessageHandler::HandleAllMessages() {
   // assigned to a thread pool.
   MonitorLocker ml(&monitor_);
   ASSERT(pool_ == NULL);
+  ASSERT(!delete_me_);
 #if defined(DEBUG)
   CheckAccess();
 #endif
@@ -275,6 +284,7 @@ MessageHandler::MessageStatus MessageHandler::HandleOOBMessages() {
     return kOK;
   }
   MonitorLocker ml(&monitor_);
+  ASSERT(!delete_me_);
 #if defined(DEBUG)
   CheckAccess();
 #endif
@@ -316,6 +326,7 @@ void MessageHandler::TaskCallback() {
   ASSERT(Isolate::Current() == NULL);
   MessageStatus status = kOK;
   bool run_end_callback = false;
+  bool delete_me = false;
   {
     // We will occasionally release and reacquire this monitor in this
     // function. Whenever we reacquire the monitor we *must* process
@@ -395,6 +406,7 @@ void MessageHandler::TaskCallback() {
       }
       pool_ = NULL;
       run_end_callback = true;
+      delete_me = delete_me_;
     }
 
     // Clear the task_ last.  This allows other tasks to potentially start
@@ -402,9 +414,16 @@ void MessageHandler::TaskCallback() {
     ASSERT(oob_queue_->IsEmpty());
     task_ = NULL;
   }
+
+  // Message handlers either use delete_me or end_callback but not both.
+  ASSERT(!delete_me || end_callback_ == NULL);
+
   if (run_end_callback && end_callback_ != NULL) {
     end_callback_(callback_data_);
     // The handler may have been deleted after this point.
+  }
+  if (delete_me) {
+    delete this;
   }
 }
 
@@ -430,6 +449,22 @@ void MessageHandler::CloseAllPorts() {
   }
   queue_->Clear();
   oob_queue_->Clear();
+}
+
+
+void MessageHandler::RequestDeletion() {
+  ASSERT(OwnedByPortMap());
+  {
+    MonitorLocker ml(&monitor_);
+    if (task_ != NULL) {
+      // This message handler currently has a task running on the thread pool.
+      delete_me_ = true;
+      return;
+    }
+  }
+
+  // This message handler has no current task.  Delete it.
+  delete this;
 }
 
 
