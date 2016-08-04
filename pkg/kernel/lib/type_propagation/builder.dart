@@ -79,6 +79,10 @@ class Builder {
 
   final Map<TypeParameter, int> functionTypeParameters = <TypeParameter, int>{};
 
+  /// Variable holding the result of the declaration-site field initializer
+  /// for the given field.
+  final Map<Field, int> declarationSiteFieldInitializer = <Field, int>{};
+
   /// Maps a class index to the result of [getInterfaceEscapeVariable].
   final List<int> interfaceEscapeVariables;
 
@@ -773,11 +777,6 @@ class Builder {
           value, getPropertyField(target.name), getMemberSetter(host, target));
     }
     for (Class node = host; node != null; node = node.superclass) {
-      for (Field field in node.mixin.fields) {
-        if (!field.isStatic) {
-          buildInstanceFieldInitializer(host, field);
-        }
-      }
       for (Procedure procedure in node.mixin.procedures) {
         if (!procedure.isStatic) {
           buildProcedure(host, procedure);
@@ -808,13 +807,15 @@ class Builder {
         addTypeBasedSummary: node.isExternal, function: function);
   }
 
-  void buildInstanceFieldInitializer(Class hostClass, Field node) {
-    var environment = new Environment(this, hostClass, node);
-    int initializer = node.initializer == null
-        ? nullNode
-        : new ExpressionBuilder(this, environment).build(node.initializer);
-    int variable = getFieldVariable(hostClass, node);
-    environment.addAssign(initializer, variable);
+  int getDeclarationSiteFieldInitializer(Field field) {
+    if (field.initializer == null) return nullNode;
+    return declarationSiteFieldInitializer[field] ??=
+        _makeDeclarationSiteFieldInitializer(field);
+  }
+
+  int _makeDeclarationSiteFieldInitializer(Field field) {
+    return new ExpressionBuilder(this, new Environment(this, null, field))
+        .build(field.initializer);
   }
 
   void buildConstructor(Class hostClass, Constructor node) {
@@ -823,8 +824,22 @@ class Builder {
         new Environment(this, hostClass, node, thisVariable: host);
     buildFunctionNode(node.function, environment);
     InitializerBuilder builder = new InitializerBuilder(this, environment);
+    Set<Field> initializedFields = new Set<Field>();
     for (Initializer initializer in node.initializers) {
       builder.build(initializer);
+      if (initializer is FieldInitializer) {
+        initializedFields.add(initializer.field);
+      }
+    }
+    for (Field field in node.enclosingClass.mixin.fields) {
+      if (field.isInstanceMember) {
+        // Note: ensure the initializer is built even if it is not used.
+        int initializer = getDeclarationSiteFieldInitializer(field);
+        if (!initializedFields.contains(field)) {
+          int variable = getFieldVariable(hostClass, field);
+          environment.addAssign(initializer, variable);
+        }
+      }
     }
   }
 

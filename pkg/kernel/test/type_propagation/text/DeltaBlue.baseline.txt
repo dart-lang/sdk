@@ -12,19 +12,19 @@ class DeltaBlue extends core::Object {
   }
 }
 class Strength extends core::Object {
-  final field core::int/core::int* {null,int} value;
-  final field core::String/core::String* {null,string} name;
+  final field core::int/core::int* {int} value;
+  final field core::String/core::String* {string} name;
   const constructor •(core::int/core::int* {int} value, core::String/core::String* {string} name) → void
     : self::Strength::value = value, self::Strength::name = name, super core::Object::•();
   method nextWeaker() → self::Strength/core::Object* {*}
     return const <self::Strength>[self::STRONG_PREFERRED, self::PREFERRED, self::STRONG_DEFAULT, self::NORMAL, self::WEAK_DEFAULT, self::WEAKEST].[](this.value);
-  static method stronger(self::Strength/self::Strength! {null,other} s1, self::Strength/self::Strength! {null,other} s2) → core::bool/core::bool* {other} {
+  static method stronger(self::Strength/self::Strength! {other} s1, self::Strength/self::Strength! {other} s2) → core::bool/core::bool* {other} {
     return s1.value.<(s2.value);
   }
-  static method weaker(self::Strength/self::Strength! {null,other} s1, self::Strength/self::Strength! {null,other} s2) → core::bool/core::bool* {other} {
+  static method weaker(self::Strength/self::Strength! {other} s1, self::Strength/self::Strength! {other} s2) → core::bool/core::bool* {other} {
     return s1.value.>(s2.value);
   }
-  static method weakest(self::Strength/self::Strength! {null,other} s1, self::Strength/self::Strength! {null,other} s2) → self::Strength/self::Strength! {null,other} {
+  static method weakest(self::Strength/self::Strength! {other} s1, self::Strength/self::Strength! {other} s2) → self::Strength/self::Strength! {other} {
     return self::Strength::weaker(s1, s2) ? s1 : s2;
   }
   static method strongest(self::Strength/Nothing s1, self::Strength/Nothing s2) → self::Strength/Nothing {
@@ -32,7 +32,7 @@ class Strength extends core::Object {
   }
 }
 abstract class Constraint extends core::Object {
-  final field self::Strength/self::Strength! {null,other} strength;
+  final field self::Strength/self::Strength! {other} strength;
   const constructor •(self::Strength/self::Strength! {other} strength) → void
     : self::Constraint::strength = strength, super core::Object::•();
   abstract method isSatisfied() → core::bool/<missing type>;
@@ -184,8 +184,8 @@ abstract class BinaryConstraint extends self::Constraint {
   }
 }
 class ScaleConstraint extends self::BinaryConstraint {
-  final field self::Variable/self::Variable! {null,other} scale;
-  final field self::Variable/self::Variable! {null,other} offset;
+  final field self::Variable/self::Variable! {other} scale;
+  final field self::Variable/self::Variable! {other} offset;
   constructor •(self::Variable/self::Variable! {null,other} src, self::Variable/self::Variable! {other} scale, self::Variable/self::Variable! {other} offset, self::Variable/self::Variable! {null,other} dest, self::Strength/self::Strength! {other} strength) → void
     : self::ScaleConstraint::scale = scale, self::ScaleConstraint::offset = offset, super self::BinaryConstraint::•(src, dest, strength);
   method addToGraph() → void/Null {
@@ -232,10 +232,10 @@ class Variable extends core::Object {
   field core::List<self::Constraint>/core::List* {other} constraints = <self::Constraint>[];
   field self::Constraint/self::Constraint* {null,other} determinedBy;
   field core::int/core::num* {int,double} mark = 0;
-  field self::Strength/self::Strength! {null,other} walkStrength = self::WEAKEST;
+  field self::Strength/self::Strength! {other} walkStrength = self::WEAKEST;
   field core::bool/core::bool* {other} stay = true;
-  field core::int/core::num* {null,int,double} value;
-  final field core::String/core::String* {null,string} name;
+  field core::int/core::num* {int,double} value;
+  final field core::String/core::String* {string} name;
   constructor •(core::String/core::String* {string} name, core::int/core::num* {int,double} value) → void
     : self::Variable::name = name, self::Variable::value = value, super core::Object::•();
   method addConstraint(self::Constraint/self::Constraint* {other} c) → void/Null {
