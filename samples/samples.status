@@ -18,10 +18,6 @@ sample_extension: Crash # Unable to compile UnsupportedError.message.
 [ $compiler == dart2analyzer ]
 build_dart: Skip
 
-[ $compiler == dart2dart ]
-# Skip until we stabilize language tests.
-*: Skip
-
 [ $arch == arm ]
 sample_extension/test/sample_extension_test: Skip # Issue 14705
 

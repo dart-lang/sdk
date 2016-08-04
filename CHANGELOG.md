@@ -46,6 +46,9 @@
   * Eliminate some false negatives when determining whether global executables
     are on the user's executable path.
 
+* dart2dart (aka `dart2js --output-type=dart`) has been removed (this was
+  deprecated in Dart 1.11)
+
 [Flutter]: https://flutter.io/
 
 ## 1.18.1 - 2016-08-02

@@ -23,9 +23,6 @@ const Map<String, List<String>> WHITE_LIST = const {
       "The method 'asAssert' is never called.",
       "The method 'asLiteralBool' is never called."],
 
-  // Some things in dart_printer are not yet used
-  "lib/src/dart_backend/backend_ast_nodes.dart": const [" is never "],
-
   // Uncalled methods in SemanticSendVisitor and subclasses.
   "lib/src/resolution/semantic_visitor.dart": const [
       "The method 'error"],
@@ -54,10 +51,6 @@ const Map<String, List<String>> WHITE_LIST = const {
 
   "lib/src/cps_ir/": const [
     "accept", "CreateFunction",
-  ],
-
-  "lib/src/dart_backend/backend_ast_to_frontend_ast.dart": const [
-    " is never "
   ],
 
   // Useful utility functions that are not currently used.

@@ -26,7 +26,6 @@
             '<!@(["python", "tools/list_files.py",'
                 '"dart$",'
                 '"sdk/lib"])',
-            'sdk/lib/dart2dart.platform',
             'sdk/lib/dart_client.platform',
             'sdk/lib/dart_server.platform',
             'sdk/lib/dart_shared.platform',

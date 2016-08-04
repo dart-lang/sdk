@@ -44,7 +44,6 @@
 # ......dart_client.platform
 # ......dart_server.platform
 # ......dart_shared.platform
-# ......dart2dart.platform
 # ......_internal/
 #.........spec.sum
 #.........strong.sum
@@ -267,8 +266,7 @@ def Main():
   # Copy the platform descriptors.
   for file_name in ["dart_client.platform",
                     "dart_server.platform",
-                    "dart_shared.platform",
-                    "dart2dart.platform"]:
+                    "dart_shared.platform"]:
     copyfile(join(HOME, 'sdk', 'lib', file_name), join(LIB, file_name));
 
   # Copy libraries.dart to lib/_internal/libraries.dart for backwards
