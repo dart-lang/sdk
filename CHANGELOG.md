@@ -3,6 +3,8 @@
 ### Core library changes
 
 * `dart:io`
+  * `Socket.connect` with source-address argument is now non-blocking
+    on Mac. Was already non-blocking on all other platforms.
   * Report a better error when a bind fails because of a bad source address.
 
 ### Tool Changes

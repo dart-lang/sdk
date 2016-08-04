@@ -58,6 +58,7 @@ static intptr_t Create(const RawAddr& addr) {
     return -1;
   }
   FDUtils::SetCloseOnExec(fd);
+  FDUtils::SetNonBlocking(fd);
   return fd;
 }
 
@@ -78,8 +79,6 @@ intptr_t Socket::CreateConnect(const RawAddr& addr) {
   if (fd < 0) {
     return fd;
   }
-
-  FDUtils::SetNonBlocking(fd);
 
   return Connect(fd, addr);
 }
