@@ -2,15 +2,25 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-import 'batch_util.dart';
+
 import 'dart:async';
 import 'dart:io';
+
+import 'batch_util.dart';
+
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:args/args.dart';
 import 'package:kernel/analyzer/loader.dart';
 import 'package:kernel/checks.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/log.dart';
+import 'package:path/path.dart' as path;
+
+// Returns the path to the current sdk based on `Platform.resolvedExecutable`.
+String currentSdk() {
+  // The dart executable should be inside dart-sdk/bin/dart.
+  return path.dirname(path.dirname(path.absolute(Platform.resolvedExecutable)));
+}
 
 ArgParser parser = new ArgParser(allowTrailingOptions: true)
   ..addOption('format',
@@ -23,7 +33,7 @@ ArgParser parser = new ArgParser(allowTrailingOptions: true)
       help: 'Output file.\n'
           '(defaults to "out.dill" if format is "bin", otherwise stdout)')
   ..addOption('sdk',
-      defaultsTo: '/usr/lib/dart', // TODO: Locate the SDK more intelligently.
+      defaultsTo: currentSdk(),
       help: 'Path to the Dart SDK.')
   ..addOption('package-root',
       abbr: 'p',
