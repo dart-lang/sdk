@@ -298,8 +298,7 @@ class EmbedderSdk extends AbstractDartSdk {
       srcPath = library.path;
     } else {
       String libraryPath = library.path;
-      int index =
-          libraryPath.lastIndexOf(resourceProvider.pathContext.separator);
+      int index = libraryPath.lastIndexOf(separator);
       if (index == -1) {
         index = libraryPath.lastIndexOf('/');
         if (index == -1) {
@@ -309,8 +308,7 @@ class EmbedderSdk extends AbstractDartSdk {
       String prefix = libraryPath.substring(0, index + 1);
       srcPath = '$prefix$relativePath';
     }
-    String filePath =
-        srcPath.replaceAll('/', resourceProvider.pathContext.separator);
+    String filePath = srcPath.replaceAll('/', separator);
     try {
       File file = resourceProvider.getFile(filePath);
       return file.createSource(parseUriWithException(dartUri));
@@ -536,8 +534,7 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   String getRelativePathFromFile(File file) {
     String filePath = file.path;
     String libPath = libraryDirectory.path;
-    if (!filePath
-        .startsWith("$libPath${resourceProvider.pathContext.separator}")) {
+    if (!filePath.startsWith("$libPath$separator")) {
       return null;
     }
     return filePath.substring(libPath.length + 1);
