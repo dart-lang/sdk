@@ -18,6 +18,11 @@ ArgParser parser = new ArgParser()
       abbr: 'o',
       help: 'Output file.',
       defaultsTo: null)
+  ..addFlag('verbose',
+      abbr: 'v',
+      negatable: false,
+      help: 'Be verbose (e.g. prints transformed main library).',
+      defaultsTo: false)
   ..addOption('transformation',
       abbr: 't',
       help: 'The transformation to apply.',
@@ -33,6 +38,7 @@ main(List<String> args) {
   var input = result.rest.first;
   var output = result['out'];
   var format = result['format'];
+  var verbose = result['verbose'];
 
   if (output == null) {
     output = '${input.substring(0, input.lastIndexOf('.'))}.transformed.dill';
@@ -55,6 +61,7 @@ main(List<String> args) {
     writeProgramToBinary(program, output);
   }
 
-  // We always dump the main library to stdout.
-  writeLibraryToText(program.mainMethod.parent as Library, null);
+  if (verbose) {
+    writeLibraryToText(program.mainMethod.parent as Library, null);
+  }
 }
