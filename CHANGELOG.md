@@ -55,6 +55,12 @@
     }
     ```
 
+### Dart VM
+
+*   The dependency on BoringSSL has been rolled forward. Going forward, builds
+    of the Dart VM including secure sockets will require a compiler with C11
+    support, and to link against glib 2.16 or newer.
+
 ### Tool Changes
 
 * `dartfmt` - upgraded to v0.2.9
