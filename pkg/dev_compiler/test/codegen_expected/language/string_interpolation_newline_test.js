@@ -11,9 +11,9 @@ dart_library.library('language/string_interpolation_newline_test', null, /* Impo
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   string_interpolation_newline_test.main = function() {
     let expected = '[[{{}: {}}]]';
-    let a = dart.str`${JSArrayOfString().of([dart.str`${JSArrayOfString().of([dart.str`${dart.map({[dart.str`${dart.map()}`]: dart.map()})}`])}`])}`;
-    let b = dart.str`${JSArrayOfString().of([dart.str`${JSArrayOfString().of([dart.str`${dart.map({[dart.str`${dart.map()}`]: dart.map()})}`])}`])}`;
-    let c = dart.str`${JSArrayOfString().of([dart.str`${JSArrayOfString().of([dart.str`${dart.map({[dart.str`${dart.map()}`]: dart.map()})}`])}`])}`;
+    let a = dart.str`${JSArrayOfString().of([dart.str`${JSArrayOfString().of([dart.str`${dart.map({[dart.str`${dart.map()}`]: dart.map()}, core.String, core.Map)}`])}`])}`;
+    let b = dart.str`${JSArrayOfString().of([dart.str`${JSArrayOfString().of([dart.str`${dart.map({[dart.str`${dart.map()}`]: dart.map()}, core.String, core.Map)}`])}`])}`;
+    let c = dart.str`${JSArrayOfString().of([dart.str`${JSArrayOfString().of([dart.str`${dart.map({[dart.str`${dart.map()}`]: dart.map()}, core.String, core.Map)}`])}`])}`;
     if (expected != a) dart.throw(dart.str`expecteda: ${expected} != ${a}`);
     if (a != b) dart.throw(dart.str`ab: ${a} != ${b}`);
     if (b != c) dart.throw(dart.str`bc: ${b} != ${c}`);

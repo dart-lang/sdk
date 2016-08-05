@@ -4944,8 +4944,10 @@ class CodeGenerator extends GeneralizingAstVisitor
     JS.Expression emitMap() {
       var entries = node.entries;
       var mapArguments = null;
-      var typeArgs = node.typeArguments;
-      if (entries.isEmpty && typeArgs == null) {
+      var type = node.staticType as InterfaceType;
+      var typeArgs = type.typeArguments;
+      var reifyTypeArgs = typeArgs.any((t) => !t.isDynamic);
+      if (entries.isEmpty && !reifyTypeArgs) {
         mapArguments = [];
       } else if (entries.every((e) => e.key is StringLiteral)) {
         // Use JS object literal notation if possible, otherwise use an array.
@@ -4965,8 +4967,8 @@ class CodeGenerator extends GeneralizingAstVisitor
         mapArguments = new JS.ArrayInitializer(values);
       }
       var types = <JS.Expression>[];
-      if (typeArgs != null) {
-        types.addAll(typeArgs.arguments.map((e) => _emitType(e.type)));
+      if (reifyTypeArgs) {
+        types.addAll(typeArgs.map((e) => _emitType(e)));
       }
       return js.call('dart.map(#, #)', [mapArguments, types]);
     }

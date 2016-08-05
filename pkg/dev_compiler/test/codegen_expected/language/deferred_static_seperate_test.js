@@ -27,11 +27,11 @@ dart_library.library('language/deferred_static_seperate_test', null, /* Imports 
         core.print("HERE");
         expect$.Expect.equals(1, new deferred_static_seperate_lib1.C().bar());
         let x = new deferred_static_seperate_lib1.C2();
-        expect$.Expect.mapEquals(dart.map([1, 2]), x.bar);
-        x.bar = dart.map([2, 3]);
-        expect$.Expect.mapEquals(dart.map([2, 3]), x.bar);
+        expect$.Expect.mapEquals(dart.map([1, 2], core.int, core.int), x.bar);
+        x.bar = dart.map([2, 3], core.int, core.int);
+        expect$.Expect.mapEquals(dart.map([2, 3], core.int, core.int), x.bar);
         expect$.Expect.equals(deferred_static_seperate_lib1.x, new deferred_static_seperate_lib1.C3().bar);
-        expect$.Expect.mapEquals(dart.map([deferred_static_seperate_lib1.x, deferred_static_seperate_lib1.x]), new deferred_static_seperate_lib1.C4().bar);
+        expect$.Expect.mapEquals(dart.map([deferred_static_seperate_lib1.x, deferred_static_seperate_lib1.x], deferred_static_seperate_lib1.ConstClass, deferred_static_seperate_lib1.ConstClass), new deferred_static_seperate_lib1.C4().bar);
         expect$.Expect.equals(1, new deferred_static_seperate_lib1.C5().bar());
         deferred_static_seperate_lib2.foo();
         async_helper$.asyncEnd();
@@ -73,12 +73,12 @@ dart_library.library('language/deferred_static_seperate_test', null, /* Imports 
   deferred_static_seperate_lib1.C1.foo = dart.const(dart.map());
   deferred_static_seperate_lib1.C2 = class C2 extends core.Object {
     new() {
-      this.bar = core.Map.from(dart.map([1, 2]));
+      this.bar = core.Map.from(dart.map([1, 2], core.int, core.int));
     }
   };
   dart.defineLazy(deferred_static_seperate_lib1.C2, {
     get foo() {
-      return core.Map.from(dart.map([1, 2]));
+      return core.Map.from(dart.map([1, 2], core.int, core.int));
     },
     set foo(_) {}
   });
@@ -90,12 +90,12 @@ dart_library.library('language/deferred_static_seperate_test', null, /* Imports 
   deferred_static_seperate_lib1.C3.foo = dart.const(new deferred_static_seperate_lib1.ConstClass(dart.const(new deferred_static_seperate_lib1.ConstClass(1))));
   deferred_static_seperate_lib1.C4 = class C4 extends core.Object {
     new() {
-      this.bar = core.Map.from(dart.map([deferred_static_seperate_lib1.x, deferred_static_seperate_lib1.x]));
+      this.bar = core.Map.from(dart.map([deferred_static_seperate_lib1.x, deferred_static_seperate_lib1.x], deferred_static_seperate_lib1.ConstClass, deferred_static_seperate_lib1.ConstClass));
     }
   };
   dart.defineLazy(deferred_static_seperate_lib1.C4, {
     get foo() {
-      return core.Map.from(dart.map([deferred_static_seperate_lib1.x, deferred_static_seperate_lib1.x]));
+      return core.Map.from(dart.map([deferred_static_seperate_lib1.x, deferred_static_seperate_lib1.x], deferred_static_seperate_lib1.ConstClass, deferred_static_seperate_lib1.ConstClass));
     }
   });
   deferred_static_seperate_lib1.C5 = class C5 extends core.Object {
@@ -108,17 +108,17 @@ dart_library.library('language/deferred_static_seperate_test', null, /* Imports 
   dart.setSignature(deferred_static_seperate_lib1.C5, {
     methods: () => ({bar: dart.definiteFunctionType(dart.dynamic, [])})
   });
-  deferred_static_seperate_lib1.C5.foo = dart.constList([dart.const(dart.map([1, 3]))], MapOfint$int());
+  deferred_static_seperate_lib1.C5.foo = dart.constList([dart.const(dart.map([1, 3], core.int, core.int))], MapOfint$int());
   let const$;
   deferred_static_seperate_lib2.foo = function() {
     expect$.Expect.equals(1, deferred_static_seperate_lib1.C.foo());
     expect$.Expect.mapEquals(dart.map(), deferred_static_seperate_lib1.C1.foo);
-    expect$.Expect.mapEquals(dart.map([1, 2]), deferred_static_seperate_lib1.C2.foo);
-    deferred_static_seperate_lib1.C2.foo = dart.map([1, 2]);
-    expect$.Expect.mapEquals(dart.map([1, 2]), deferred_static_seperate_lib1.C2.foo);
+    expect$.Expect.mapEquals(dart.map([1, 2], core.int, core.int), deferred_static_seperate_lib1.C2.foo);
+    deferred_static_seperate_lib1.C2.foo = dart.map([1, 2], core.int, core.int);
+    expect$.Expect.mapEquals(dart.map([1, 2], core.int, core.int), deferred_static_seperate_lib1.C2.foo);
     expect$.Expect.equals(deferred_static_seperate_lib1.x, deferred_static_seperate_lib1.C3.foo);
-    expect$.Expect.mapEquals(dart.map([deferred_static_seperate_lib1.x, deferred_static_seperate_lib1.x]), deferred_static_seperate_lib1.C4.foo);
-    expect$.Expect.listEquals(JSArrayOfMapOfint$int().of([const$ || (const$ = dart.const(dart.map([1, 3])))]), deferred_static_seperate_lib1.C5.foo);
+    expect$.Expect.mapEquals(dart.map([deferred_static_seperate_lib1.x, deferred_static_seperate_lib1.x], deferred_static_seperate_lib1.ConstClass, deferred_static_seperate_lib1.ConstClass), deferred_static_seperate_lib1.C4.foo);
+    expect$.Expect.listEquals(JSArrayOfMapOfint$int().of([const$ || (const$ = dart.const(dart.map([1, 3], core.int, core.int)))]), deferred_static_seperate_lib1.C5.foo);
   };
   dart.fn(deferred_static_seperate_lib2.foo, VoidTodynamic());
   // Exports:

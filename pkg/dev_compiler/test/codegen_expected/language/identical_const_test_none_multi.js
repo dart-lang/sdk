@@ -16,8 +16,8 @@ dart_library.library('language/identical_const_test_none_multi', null, /* Import
   identical_const_test_none_multi.identical_fg = core.identical(identical_const_test_none_multi.f, identical_const_test_none_multi.g);
   identical_const_test_none_multi.identical_gf = core.identical(identical_const_test_none_multi.g, identical_const_test_none_multi.f);
   identical_const_test_none_multi.identical_gg = core.identical(identical_const_test_none_multi.g, identical_const_test_none_multi.g);
-  identical_const_test_none_multi.a = dart.const(dart.map([true, 0]));
-  identical_const_test_none_multi.b = dart.const(dart.map([false, 0]));
+  identical_const_test_none_multi.a = dart.const(dart.map([true, 0], core.bool, core.int));
+  identical_const_test_none_multi.b = dart.const(dart.map([false, 0], core.bool, core.int));
   identical_const_test_none_multi.use = function(x) {
     return x;
   };

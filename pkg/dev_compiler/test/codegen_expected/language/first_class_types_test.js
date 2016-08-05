@@ -46,7 +46,7 @@ dart_library.library('language/first_class_types_test', null, /* Imports */[
     first_class_types_test.sameType(1.2, d);
     first_class_types_test.sameType(false, b);
     let l = JSArrayOfint().of([1, 2, 3]);
-    let m = dart.map({a: 1, b: 2});
+    let m = dart.map({a: 1, b: 2}, core.String, core.int);
     first_class_types_test.sameType([], l);
     first_class_types_test.sameType(dart.map(), m);
     first_class_types_test.sameType(ListOfint().new(), ListOfint().new());

@@ -340,10 +340,10 @@ dart_library.library('language/function_syntax_test_none_multi', null, /* Import
       this.fn = JSArrayOfVoidToint().of([dart.fn(() => 47, VoidToint$())])[dartx.get](0);
     }
     cb3() {
-      this.fn = dart.map({x: dart.fn(() => 48, VoidToint$())})[dartx.get]('x');
+      this.fn = dart.map({x: dart.fn(() => 48, VoidToint$())}, core.String, VoidToint())[dartx.get]('x');
     }
     ca3() {
-      this.fn = dart.map({x: dart.fn(() => 49, VoidToint$())})[dartx.get]('x');
+      this.fn = dart.map({x: dart.fn(() => 49, VoidToint$())}, core.String, VoidToint())[dartx.get]('x');
     }
     nb0() {
       this.fn = dart.fn(() => 52, VoidToint$());
@@ -364,10 +364,10 @@ dart_library.library('language/function_syntax_test_none_multi', null, /* Import
       this.fn = JSArrayOfVoidToint().of([dart.fn(() => 57, VoidToint$())])[dartx.get](0);
     }
     nb3() {
-      this.fn = dart.map({x: dart.fn(() => 58, VoidToint$())})[dartx.get]('x');
+      this.fn = dart.map({x: dart.fn(() => 58, VoidToint$())}, core.String, VoidToint())[dartx.get]('x');
     }
     na3() {
-      this.fn = dart.map({x: dart.fn(() => 59, VoidToint$())})[dartx.get]('x');
+      this.fn = dart.map({x: dart.fn(() => 59, VoidToint$())}, core.String, VoidToint())[dartx.get]('x');
     }
     rb0() {
       this.fn = dart.fn(() => 62, VoidToint$());
@@ -388,10 +388,10 @@ dart_library.library('language/function_syntax_test_none_multi', null, /* Import
       this.fn = JSArrayOfVoidToint().of([dart.fn(() => 67, VoidToint$())])[dartx.get](0);
     }
     rb3() {
-      this.fn = dart.map({x: dart.fn(() => 68, VoidToint$())})[dartx.get]('x');
+      this.fn = dart.map({x: dart.fn(() => 68, VoidToint$())}, core.String, VoidToint())[dartx.get]('x');
     }
     ra3() {
-      this.fn = dart.map({x: dart.fn(() => 69, VoidToint$())})[dartx.get]('x');
+      this.fn = dart.map({x: dart.fn(() => 69, VoidToint$())}, core.String, VoidToint())[dartx.get]('x');
     }
     static wrap(fn) {
       return fn;

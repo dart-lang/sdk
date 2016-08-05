@@ -11,7 +11,7 @@ dart_library.library('language/lazy_map_test', null, /* Imports */[
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   dart.defineLazy(lazy_map_test, {
     get data() {
-      return dart.map({a: 'a'});
+      return dart.map({a: 'a'}, core.String, core.String);
     },
     set data(_) {}
   });

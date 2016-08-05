@@ -30,7 +30,7 @@ dart_library.library('lib/html/element_animate_test', null, /* Imports */[
       unittest$.test('simple timing', dart.fn(() => {
         let body = html.document[dartx.body];
         let opacity = core.num.parse(body[dartx.getComputedStyle]()[dartx.opacity]);
-        body[dartx.animate](JSArrayOfMapOfString$dynamic().of([dart.map({opacity: 100}), dart.map({opacity: 0})]), 100);
+        body[dartx.animate](JSArrayOfMapOfString$dynamic().of([dart.map({opacity: 100}, core.String, dart.dynamic), dart.map({opacity: 0}, core.String, dart.dynamic)]), 100);
         let newOpacity = core.num.parse(body[dartx.getComputedStyle]()[dartx.opacity]);
         src__matcher__expect.expect(newOpacity == opacity, src__matcher__core_matchers.isTrue);
       }, VoidTodynamic()));
@@ -39,7 +39,7 @@ dart_library.library('lib/html/element_animate_test', null, /* Imports */[
       unittest$.test('timing dict', dart.fn(() => {
         let body = html.document[dartx.body];
         let fontSize = body[dartx.getComputedStyle]()[dartx.fontSize];
-        let player = body[dartx.animate](JSArrayOfMapOfString$dynamic().of([dart.map({"font-size": "500px"}), dart.map({"font-size": fontSize})]), dart.map({duration: 100}));
+        let player = body[dartx.animate](JSArrayOfMapOfString$dynamic().of([dart.map({"font-size": "500px"}, core.String, dart.dynamic), dart.map({"font-size": fontSize}, core.String, dart.dynamic)]), dart.map({duration: 100}, core.String, core.int));
         let newFontSize = body[dartx.getComputedStyle]()[dartx.fontSize];
         src__matcher__expect.expect(newFontSize == fontSize, src__matcher__core_matchers.isFalse);
         player[dartx.on].get('finish').listen(dynamicTovoid()._check(unittest$.expectAsync(dart.fn(_ => 'done', dynamicToString()))));
@@ -48,7 +48,7 @@ dart_library.library('lib/html/element_animate_test', null, /* Imports */[
     unittest$.group('omit_timing', dart.fn(() => {
       unittest$.test('omit timing', dart.fn(() => {
         let body = html.document[dartx.body];
-        let player = body[dartx.animate](JSArrayOfMapOfString$dynamic().of([dart.map({transform: "translate(100px, -100%)"}), dart.map({transform: "translate(400px, 500px)"})]));
+        let player = body[dartx.animate](JSArrayOfMapOfString$dynamic().of([dart.map({transform: "translate(100px, -100%)"}, core.String, dart.dynamic), dart.map({transform: "translate(400px, 500px)"}, core.String, dart.dynamic)]));
         player[dartx.on].get('finish').listen(dynamicTovoid()._check(unittest$.expectAsync(dart.fn(_ => 'done', dynamicToString()))));
       }, VoidTodynamic()));
     }, VoidTovoid()));

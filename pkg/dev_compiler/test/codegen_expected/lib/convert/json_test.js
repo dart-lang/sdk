@@ -14,6 +14,8 @@ dart_library.library('lib/convert/json_test', null, /* Imports */[
   let JSArrayOfdynamicAnddynamicTodynamic = () => (JSArrayOfdynamicAnddynamicTodynamic = dart.constFn(_interceptors.JSArray$(dynamicAnddynamicTodynamic())))();
   let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
   let JSArrayOfString = () => (JSArrayOfString = dart.constFn(_interceptors.JSArray$(core.String)))();
+  let MapOfString$int = () => (MapOfString$int = dart.constFn(core.Map$(core.String, core.int)))();
+  let MapOfString$MapOfString$int = () => (MapOfString$MapOfString$int = dart.constFn(core.Map$(core.String, MapOfString$int())))();
   let JSArrayOfObject = () => (JSArrayOfObject = dart.constFn(_interceptors.JSArray$(core.Object)))();
   let JSArrayOfList = () => (JSArrayOfList = dart.constFn(_interceptors.JSArray$(core.List)))();
   let ListOfList = () => (ListOfList = dart.constFn(core.List$(core.List)))();
@@ -205,7 +207,7 @@ dart_library.library('lib/convert/json_test', null, /* Imports */[
     let expected = " ￿\n\r\f\t\b/\\\" �￿";
     json_test.testJson(input, expected);
     json_test.testJson('""', "");
-    let escapes = dart.map({f: "\f", b: "\b", n: "\n", r: "\r", t: "\t", "\\": "\\", '"': '"', "/": "/"});
+    let escapes = dart.map({f: "\f", b: "\b", n: "\n", r: "\r", t: "\t", "\\": "\\", '"': '"', "/": "/"}, core.String, core.String);
     escapes[dartx.forEach](dart.fn((esc, lit) => {
       json_test.testJson(dart.str`"\\${esc}........"`, dart.str`${lit}........`);
       json_test.testJson(dart.str`"........\\${esc}"`, dart.str`........${lit}`);
@@ -238,10 +240,10 @@ dart_library.library('lib/convert/json_test', null, /* Imports */[
   dart.fn(json_test.testStrings, VoidTodynamic());
   json_test.testObjects = function() {
     json_test.testJson('{}', dart.map());
-    json_test.testJson('{"x":42}', dart.map({x: 42}));
-    json_test.testJson('{"x":{"x":{"x":42}}}', dart.map({x: dart.map({x: dart.map({x: 42})})}));
-    json_test.testJson('{"x":10,"x":42}', dart.map({x: 42}));
-    json_test.testJson('{"":42}', dart.map({"": 42}));
+    json_test.testJson('{"x":42}', dart.map({x: 42}, core.String, core.int));
+    json_test.testJson('{"x":{"x":{"x":42}}}', dart.map({x: dart.map({x: dart.map({x: 42}, core.String, core.int)}, core.String, MapOfString$int())}, core.String, MapOfString$MapOfString$int()));
+    json_test.testJson('{"x":10,"x":42}', dart.map({x: 42}, core.String, core.int));
+    json_test.testJson('{"":42}', dart.map({"": 42}, core.String, core.int));
     json_test.testThrows('{x:10}');
     json_test.testThrows('{true:10}');
     json_test.testThrows('{false:10}');
@@ -257,7 +259,7 @@ dart_library.library('lib/convert/json_test', null, /* Imports */[
     json_test.testJson('[]', []);
     json_test.testJson('[1.1e1,"string",true,false,null,{}]', JSArrayOfObject().of([11.0, "string", true, false, null, dart.map()]));
     json_test.testJson('[[[[[[]]]],[[[]]],[[]]]]', JSArrayOfListOfListOfList().of([JSArrayOfListOfList().of([JSArrayOfListOfListOfList().of([JSArrayOfListOfList().of([JSArrayOfList().of([[]])])]), JSArrayOfListOfList().of([JSArrayOfList().of([[]])]), JSArrayOfList().of([[]])])]));
-    json_test.testJson('[{},[{}],{"x":[]}]', JSArrayOfObject().of([dart.map(), JSArrayOfMap().of([dart.map()]), dart.map({x: []})]));
+    json_test.testJson('[{},[{}],{"x":[]}]', JSArrayOfObject().of([dart.map(), JSArrayOfMap().of([dart.map()]), dart.map({x: []}, core.String, core.List)]));
     json_test.testThrows('[1,,2]');
     json_test.testThrows('[1,2,]');
     json_test.testThrows('[,2]');
@@ -268,7 +270,7 @@ dart_library.library('lib/convert/json_test', null, /* Imports */[
     json_test.testJson('false', false);
     json_test.testJson('null', null);
     json_test.testJson('[true]', JSArrayOfbool().of([true]));
-    json_test.testJson('{"true":true}', dart.map({true: true}));
+    json_test.testJson('{"true":true}', dart.map({true: true}, core.String, core.bool));
     json_test.testThrows('truefalse');
     json_test.testThrows('trues');
     json_test.testThrows('nulll');
@@ -284,7 +286,7 @@ dart_library.library('lib/convert/json_test', null, /* Imports */[
   json_test.testWhitespace = function() {
     let v = '\t\r\n ';
     let invalids = JSArrayOfString().of([' ', '\f', '\b', '\\', ' ', '\u2028', '\u2029']);
-    json_test.testJson(dart.str`${v}[${v}-2.2e2${v},${v}{${v}"key"${v}:${v}true${v}}${v},${v}"ab"${v}]${v}`, JSArrayOfObject().of([-220.0, dart.map({key: true}), "ab"]));
+    json_test.testJson(dart.str`${v}[${v}-2.2e2${v},${v}{${v}"key"${v}:${v}true${v}}${v},${v}"ab"${v}]${v}`, JSArrayOfObject().of([-220.0, dart.map({key: true}, core.String, core.bool), "ab"]));
     for (let i of invalids) {
       json_test.testThrows(dart.str`${i}"s"`);
       json_test.testThrows(dart.str`42${i}`);

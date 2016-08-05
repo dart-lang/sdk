@@ -13,8 +13,8 @@ dart_library.library('language/ordered_maps_test', null, /* Imports */[
   let const$0;
   ordered_maps_test.OrderedMapsTest = class OrderedMapsTest extends core.Object {
     static testMain() {
-      ordered_maps_test.OrderedMapsTest.testMaps(const$ || (const$ = dart.const(dart.map({a: 1, c: 2}))), const$0 || (const$0 = dart.const(dart.map({c: 2, a: 1}))), true);
-      ordered_maps_test.OrderedMapsTest.testMaps(dart.map({a: 1, c: 2}), dart.map({c: 2, a: 1}), false);
+      ordered_maps_test.OrderedMapsTest.testMaps(const$ || (const$ = dart.const(dart.map({a: 1, c: 2}, core.String, core.int))), const$0 || (const$0 = dart.const(dart.map({c: 2, a: 1}, core.String, core.int))), true);
+      ordered_maps_test.OrderedMapsTest.testMaps(dart.map({a: 1, c: 2}, core.String, core.int), dart.map({c: 2, a: 1}, core.String, core.int), false);
     }
     static testMaps(map1, map2, isConst) {
       expect$.Expect.isFalse(core.identical(map1, map2));

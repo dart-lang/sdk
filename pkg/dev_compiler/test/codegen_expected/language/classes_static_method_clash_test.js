@@ -31,7 +31,7 @@ dart_library.library('language/classes_static_method_clash_test', null, /* Impor
   dart.fn(classes_static_method_clash_test.confuse, dynamicToint());
   let const$;
   classes_static_method_clash_test.main = function() {
-    expect$.Expect.equals(42, core.Function.apply(classes_static_method_clash_test.foo, [], dart.map([const$ || (const$ = dart.const(core.Symbol.new('a'))), 42])));
+    expect$.Expect.equals(42, core.Function.apply(classes_static_method_clash_test.foo, [], dart.map([const$ || (const$ = dart.const(core.Symbol.new('a'))), 42], core.Symbol, dart.dynamic)));
     expect$.Expect.equals(499, core.Function.apply(classes_static_method_clash_test.foo, [], null));
     core.print(classes_static_method_clash_test.objects[dartx.get](classes_static_method_clash_test.confuse(0)));
   };

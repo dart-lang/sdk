@@ -14,7 +14,7 @@ dart_library.library('language/ct_const2_test', null, /* Imports */[
   ct_const2_test.h = 15;
   ct_const2_test.n = null;
   ct_const2_test.aList = dart.constList([1, 2, 3], core.int);
-  ct_const2_test.aMap = dart.const(dart.map({"1": "one", "2": "banana"}));
+  ct_const2_test.aMap = dart.const(dart.map({"1": "one", "2": "banana"}, core.String, core.String));
   ct_const2_test.INT_LIT = 5;
   ct_const2_test.INT_LIT_REF = ct_const2_test.INT_LIT;
   ct_const2_test.DOUBLE_LIT = 1.5;

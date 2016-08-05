@@ -17,7 +17,7 @@ dart_library.library('language/const_map_test', null, /* Imports */[
   dart.fn(const_map_test.confuse, dynamicTodynamic());
   let const$;
   const_map_test.main = function() {
-    let m = const$ || (const$ = dart.const(dart.map([1, 42, "foo", 499])));
+    let m = const$ || (const$ = dart.const(dart.map([1, 42, "foo", 499], core.Object, core.int)));
     expect$.Expect.equals(42, m[dartx.get](const_map_test.confuse(1.0)));
     expect$.Expect.equals(499, m[dartx.get](const_map_test.confuse(core.String.fromCharCodes("foo"[dartx.runes]))));
   };

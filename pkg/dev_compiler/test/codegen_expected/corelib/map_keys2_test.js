@@ -16,9 +16,9 @@ dart_library.library('corelib/map_keys2_test', null, /* Imports */[
   let const$;
   let const$0;
   map_keys2_test.main = function() {
-    let map1 = dart.map({foo: 42, bar: 499});
+    let map1 = dart.map({foo: 42, bar: 499}, core.String, core.int);
     let map2 = dart.map();
-    let map3 = const$ || (const$ = dart.const(dart.map({foo: 42, bar: 499})));
+    let map3 = const$ || (const$ = dart.const(dart.map({foo: 42, bar: 499}, core.String, core.int)));
     let map4 = const$0 || (const$0 = dart.const(dart.map()));
     let map5 = MapOfString$int().new();
     map5[dartx.set]("foo", 43);

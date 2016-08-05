@@ -13,7 +13,7 @@ dart_library.library('language/mixin_prefix_test', null, /* Imports */[
   let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();
   mixin_prefix_lib.MixinClass = class MixinClass extends core.Object {
     bar() {
-      return convert.JSON.encode(dart.map({a: 1}));
+      return convert.JSON.encode(dart.map({a: 1}, core.String, core.int));
     }
   };
   dart.setSignature(mixin_prefix_lib.MixinClass, {

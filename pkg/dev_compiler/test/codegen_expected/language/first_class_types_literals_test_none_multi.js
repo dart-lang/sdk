@@ -34,9 +34,9 @@ dart_library.library('language/first_class_types_literals_test_none_multi', null
     JSArrayOfType().of([dart.wrapType(core.int)]);
     foo(JSArrayOfType().of([dart.wrapType(core.int)]));
     JSArrayOfType().of([dart.wrapType(core.int)])[dartx.length];
-    dart.map([1, dart.wrapType(core.int)]);
-    foo(dart.map([1, dart.wrapType(core.int)]));
-    dart.map([1, dart.wrapType(core.int)])[dartx.keys];
+    dart.map([1, dart.wrapType(core.int)], core.int, core.Type);
+    foo(dart.map([1, dart.wrapType(core.int)], core.int, core.Type));
+    dart.map([1, dart.wrapType(core.int)], core.int, core.Type)[dartx.keys];
     expect$.Expect.equals(dart.wrapType(core.int), dart.wrapType(core.int));
     expect$.Expect.notEquals(dart.wrapType(core.int), dart.wrapType(core.num));
     expect$.Expect.equals(dart.wrapType(first_class_types_literals_test_none_multi.Foo), dart.wrapType(first_class_types_literals_test_none_multi.Foo));

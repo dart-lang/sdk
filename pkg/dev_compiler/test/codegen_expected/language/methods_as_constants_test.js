@@ -8,11 +8,12 @@ dart_library.library('language/methods_as_constants_test', null, /* Imports */[
   const dartx = dart_sdk.dartx;
   const expect$ = expect.expect;
   const methods_as_constants_test = Object.create(null);
-  let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
+  let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.functionType(dart.dynamic, [])))();
+  let VoidTodynamic$ = () => (VoidTodynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   methods_as_constants_test.topLevelMethod = function() {
     return 't';
   };
-  dart.fn(methods_as_constants_test.topLevelMethod, VoidTodynamic());
+  dart.fn(methods_as_constants_test.topLevelMethod, VoidTodynamic$());
   methods_as_constants_test.topLevelFieldForTopLevelMethod = methods_as_constants_test.topLevelMethod;
   methods_as_constants_test.A = class A extends core.Object {
     new(closure) {
@@ -77,11 +78,11 @@ dart_library.library('language/methods_as_constants_test', null, /* Imports */[
     expect$.Expect.equals('s', methods_as_constants_test.topLevelFieldForStaticMethod());
     expect$.Expect.equals('t', methods_as_constants_test.A.staticFieldForTopLevelMethod());
     expect$.Expect.equals('s', methods_as_constants_test.A.staticFieldForStaticMethod());
-    let map = const$4 || (const$4 = dart.const(dart.map({t: methods_as_constants_test.topLevelMethod, s: methods_as_constants_test.A.staticMethod})));
+    let map = const$4 || (const$4 = dart.const(dart.map({t: methods_as_constants_test.topLevelMethod, s: methods_as_constants_test.A.staticMethod}, core.String, VoidTodynamic())));
     expect$.Expect.equals('t', map[dartx.get]('t')());
     expect$.Expect.equals('s', map[dartx.get]('s')());
   };
-  dart.fn(methods_as_constants_test.main, VoidTodynamic());
+  dart.fn(methods_as_constants_test.main, VoidTodynamic$());
   // Exports:
   exports.methods_as_constants_test = methods_as_constants_test;
 });

@@ -11,7 +11,7 @@ dart_library.library('language/regress_23046_test', null, /* Imports */[
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   regress_23046_test.y = 'foo';
   regress_23046_test.x = dart.str`${regress_23046_test.y}"`;
-  regress_23046_test.m = dart.const(dart.map([regress_23046_test.x, 0, regress_23046_test.y, 1]));
+  regress_23046_test.m = dart.const(dart.map([regress_23046_test.x, 0, regress_23046_test.y, 1], core.String, core.int));
   regress_23046_test.main = function() {
     expect$.Expect.equals(regress_23046_test.x, 'foo"');
     expect$.Expect.equals(regress_23046_test.m[dartx.length], 2);

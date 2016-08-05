@@ -44,8 +44,8 @@ dart_library.library('lib/html/history_test', null, /* Imports */[
       }, VoidTodynamic()));
       unittest$.test('pushState with data', dart.fn(() => {
         src__matcher__expect.expect(dart.fn(() => {
-          html.window[dartx.history][dartx.pushState](dart.map({one: 1}), html.document[dartx.title], '?dummy');
-          src__matcher__expect.expect(html.window[dartx.history][dartx.state], src__matcher__core_matchers.equals(dart.map({one: 1})));
+          html.window[dartx.history][dartx.pushState](dart.map({one: 1}, core.String, core.int), html.document[dartx.title], '?dummy');
+          src__matcher__expect.expect(html.window[dartx.history][dartx.state], src__matcher__core_matchers.equals(dart.map({one: 1}, core.String, core.int)));
           html.window[dartx.history][dartx.pushState](null, html.document[dartx.title], '?foo=bar');
           src__matcher__expect.expect(html.window[dartx.location][dartx.href][dartx.endsWith]('foo=bar'), src__matcher__core_matchers.isTrue);
         }, VoidTodynamic()), expectation);

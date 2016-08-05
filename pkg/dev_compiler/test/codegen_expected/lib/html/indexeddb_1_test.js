@@ -147,7 +147,7 @@ dart_library.library('lib/html/indexeddb_1_test', null, /* Imports */[
     unittest$.test('bool', unittest$.TestFunction._check(dart.dcall(testFunction, 123, JSArrayOfbool().of([true, false]), src__matcher__core_matchers.equals(JSArrayOfbool().of([true, false])))));
     unittest$.test('largeInt', unittest$.TestFunction._check(dart.dcall(testFunction, 123, 1371854424211, src__matcher__core_matchers.equals("1371854424211"), null, indexeddb_1_test.STORE_NAME, indexeddb_1_test.VERSION, true)));
     unittest$.test('largeDoubleConvertedToInt', unittest$.TestFunction._check(dart.dcall(testFunction, 123, 1371854424211.0, src__matcher__core_matchers.equals("1371854424211"), null, indexeddb_1_test.STORE_NAME, indexeddb_1_test.VERSION, true)));
-    unittest$.test('largeIntInMap', unittest$.TestFunction._check(dart.dcall(testFunction, 123, dart.map({time: 4503599627370492}), src__matcher__core_matchers.equals("{time: 4503599627370492}"), null, indexeddb_1_test.STORE_NAME, indexeddb_1_test.VERSION, true)));
+    unittest$.test('largeIntInMap', unittest$.TestFunction._check(dart.dcall(testFunction, 123, dart.map({time: 4503599627370492}, core.String, core.int), src__matcher__core_matchers.equals("{time: 4503599627370492}"), null, indexeddb_1_test.STORE_NAME, indexeddb_1_test.VERSION, true)));
     let now = new core.DateTime.now();
     unittest$.test('DateTime', unittest$.TestFunction._check(dart.dcall(testFunction, 123, now, src__matcher__core_matchers.predicate(dart.fn(date => dart.equals(dart.dload(date, 'millisecondsSinceEpoch'), now.millisecondsSinceEpoch), dynamicTobool())))));
   };

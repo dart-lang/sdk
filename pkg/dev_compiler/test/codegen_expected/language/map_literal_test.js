@@ -26,8 +26,8 @@ dart_library.library('language/map_literal_test', null, /* Imports */[
       testClass.test();
     }
     testLocalInit() {
-      let map1 = dart.map({a: 1, b: 2});
-      let map2 = dart.map({"1": 1, "2": 2});
+      let map1 = dart.map({a: 1, b: 2}, core.String, core.int);
+      let map2 = dart.map({"1": 1, "2": 2}, core.String, core.int);
       expect$.Expect.equals(1, map1[dartx.get]("a"));
       expect$.Expect.equals(2, map1[dartx.get]("b"));
       expect$.Expect.equals(1, map2[dartx.get]("1"));
@@ -58,12 +58,12 @@ dart_library.library('language/map_literal_test', null, /* Imports */[
     constructors: () => ({new: dart.definiteFunctionType(map_literal_test.StaticInit, [])}),
     methods: () => ({test: dart.definiteFunctionType(dart.dynamic, [])})
   });
-  map_literal_test.StaticInit.map1 = dart.const(dart.map({a: 1, b: 2}));
-  map_literal_test.StaticInit.map2 = dart.const(dart.map({"1": 1, "2": 2}));
+  map_literal_test.StaticInit.map1 = dart.const(dart.map({a: 1, b: 2}, core.String, core.int));
+  map_literal_test.StaticInit.map2 = dart.const(dart.map({"1": 1, "2": 2}, core.String, core.int));
   map_literal_test.ConstInit = class ConstInit extends core.Object {
     new() {
-      this.map1 = dart.map({a: 1, b: 2});
-      this.map2 = dart.map({"1": 1, "2": 2});
+      this.map1 = dart.map({a: 1, b: 2}, core.String, core.int);
+      this.map2 = dart.map({"1": 1, "2": 2}, core.String, core.int);
     }
     test() {
       expect$.Expect.equals(1, dart.dindex(this.map1, "a"));

@@ -415,6 +415,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let ListOfPlugin = () => (ListOfPlugin = dart.constFn(core.List$(html$.Plugin)))();
   let EventStreamProviderOfRtcDtmfToneChangeEvent = () => (EventStreamProviderOfRtcDtmfToneChangeEvent = dart.constFn(html$.EventStreamProvider$(html$.RtcDtmfToneChangeEvent)))();
   let JSArrayOfMapOfString$String = () => (JSArrayOfMapOfString$String = dart.constFn(_interceptors.JSArray$(MapOfString$String())))();
+  let ListOfMapOfString$String = () => (ListOfMapOfString$String = dart.constFn(core.List$(MapOfString$String())))();
   let CompleterOfRtcSessionDescription = () => (CompleterOfRtcSessionDescription = dart.constFn(async.Completer$(html$.RtcSessionDescription)))();
   let CompleterOfRtcStatsResponse = () => (CompleterOfRtcStatsResponse = dart.constFn(async.Completer$(html$.RtcStatsResponse)))();
   let EventStreamProviderOfMediaStreamEvent = () => (EventStreamProviderOfMediaStreamEvent = dart.constFn(html$.EventStreamProvider$(html$.MediaStreamEvent)))();
@@ -2293,7 +2294,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this.namedArguments = dart.InvocationImpl._namedArgsToSymbols(namedArguments);
     }
     static _namedArgsToSymbols(namedArgs) {
-      if (namedArgs == null) return dart.map();
+      if (namedArgs == null) return dart.map({}, core.Symbol, dart.dynamic);
       return MapOfSymbol$dynamic().fromIterable(dart.getOwnPropertyNames(namedArgs), {key: dart._dartSymbol, value: dart.fn(k => namedArgs[k], dynamicTodynamic$())});
     }
   };
@@ -8230,11 +8231,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       })(_isolate_helper._Manager._serializePrintMessage);
     }
     static _serializePrintMessage(object) {
-      return _isolate_helper._serializeMessage(dart.map({command: "print", msg: object}));
+      return _isolate_helper._serializeMessage(dart.map({command: "print", msg: object}, core.String, dart.dynamic));
     }
     maybeCloseWorker() {
       if (dart.test(this.isWorker) && dart.test(this.isolates[dartx.isEmpty]) && this.topEventLoop[_activeJsAsyncCount] == 0) {
-        this.mainManager.postMessage(_isolate_helper._serializeMessage(dart.map({command: 'close'})));
+        this.mainManager.postMessage(_isolate_helper._serializeMessage(dart.map({command: 'close'}, core.String, core.String)));
       }
     }
   };
@@ -8583,7 +8584,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           this[_runHelper]();
         } catch (e) {
           let trace = dart.stackTrace(e);
-          _isolate_helper._globalState.mainManager.postMessage(_isolate_helper._serializeMessage(dart.map({command: 'error', msg: dart.str`${e}\n${trace}`})));
+          _isolate_helper._globalState.mainManager.postMessage(_isolate_helper._serializeMessage(dart.map({command: 'error', msg: dart.str`${e}\n${trace}`}, core.String, core.String)));
         }
 
       }
@@ -8746,7 +8747,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         case 'print':
         {
           if (dart.test(_isolate_helper._globalState.isWorker)) {
-            _isolate_helper._globalState.mainManager.postMessage(_isolate_helper._serializeMessage(dart.map({command: 'print', msg: msg})));
+            _isolate_helper._globalState.mainManager.postMessage(_isolate_helper._serializeMessage(dart.map({command: 'print', msg: msg}, core.String, dart.dynamic)));
           } else {
             core.print(dart.dindex(msg, 'msg'));
           }
@@ -8768,7 +8769,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static _log(msg) {
       if (dart.test(_isolate_helper._globalState.isWorker)) {
-        _isolate_helper._globalState.mainManager.postMessage(_isolate_helper._serializeMessage(dart.map({command: 'log', msg: msg})));
+        _isolate_helper._globalState.mainManager.postMessage(_isolate_helper._serializeMessage(dart.map({command: 'log', msg: msg}, core.String, dart.dynamic)));
       } else {
         try {
           _isolate_helper.IsolateNatives._consoleLog(msg);
@@ -8833,7 +8834,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _startWorker(functionName, uri, args, message, isSpawnUri, startPaused, replyPort, onError) {
       if (args != null) args = ListOfString().from(args);
       if (dart.test(_isolate_helper._globalState.isWorker)) {
-        _isolate_helper._globalState.mainManager.postMessage(_isolate_helper._serializeMessage(dart.map({command: 'spawn-worker', functionName: functionName, args: args, msg: message, uri: uri, isSpawnUri: isSpawnUri, startPaused: startPaused, replyPort: replyPort})));
+        _isolate_helper._globalState.mainManager.postMessage(_isolate_helper._serializeMessage(dart.map({command: 'spawn-worker', functionName: functionName, args: args, msg: message, uri: uri, isSpawnUri: isSpawnUri, startPaused: startPaused, replyPort: replyPort}, core.String, dart.dynamic)));
       } else {
         _isolate_helper.IsolateNatives._spawnWorker(functionName, uri, args, message, isSpawnUri, startPaused, replyPort, onError);
       }
@@ -8898,7 +8899,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       o.nextManagerId = dart.notNull(workerId) + 1;
       _isolate_helper.IsolateNatives.workerIds.set(worker, workerId);
       _isolate_helper._globalState.managers[dartx.set](workerId, worker);
-      worker.postMessage(_isolate_helper._serializeMessage(dart.map({command: 'start', id: workerId, replyTo: _isolate_helper._serializeMessage(replyPort), args: args, msg: _isolate_helper._serializeMessage(message), isSpawnUri: isSpawnUri, startPaused: startPaused, functionName: functionName})));
+      worker.postMessage(_isolate_helper._serializeMessage(dart.map({command: 'start', id: workerId, replyTo: _isolate_helper._serializeMessage(replyPort), args: args, msg: _isolate_helper._serializeMessage(message), isSpawnUri: isSpawnUri, startPaused: startPaused, functionName: functionName}, core.String, dart.dynamic)));
     }
     static workerOnError(event, uri, onError) {
       event.preventDefault();
@@ -9008,7 +9009,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.new(isolateId);
     }
     send(message) {
-      let workerMessage = _isolate_helper._serializeMessage(dart.map({command: 'message', port: this, msg: message}));
+      let workerMessage = _isolate_helper._serializeMessage(dart.map({command: 'message', port: this, msg: message}, core.String, dart.dynamic));
       if (dart.test(_isolate_helper._globalState.isWorker)) {
         _isolate_helper._globalState.mainManager.postMessage(workerMessage);
       } else {
@@ -30680,7 +30681,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.dcall.apply(null, [f].concat(positionalArguments));
     }
     static _toMangledNames(namedArguments) {
-      let result = dart.map();
+      let result = dart.map({}, core.String, dart.dynamic);
       namedArguments[dartx.forEach](dart.fn((symbol, value) => {
         result[dartx.set](core._symbolToString(symbol), value);
       }, SymbolAnddynamicTovoid()));
@@ -32408,7 +32409,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static splitQueryString(query, opts) {
       let encoding = opts && 'encoding' in opts ? opts.encoding : convert.UTF8;
-      return query[dartx.split]("&")[dartx.fold](MapOfString$String())(dart.map(), dart.fn((map, element) => {
+      return query[dartx.split]("&")[dartx.fold](MapOfString$String())(dart.map({}, core.String, core.String), dart.fn((map, element) => {
         let index = element[dartx.indexOf]("=");
         if (index == -1) {
           if (element != "") {
@@ -33470,7 +33471,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (args != null) args = core.List.from(args[dartx.map](dart.dynamic)(js._convertToJS));
       let fn = this[_jsObject][method];
       if (!(fn instanceof Function)) {
-        dart.throw(new core.NoSuchMethodError(this[_jsObject], core.Symbol.new(core.String._check(method)), args, dart.map()));
+        dart.throw(new core.NoSuchMethodError(this[_jsObject], core.Symbol.new(core.String._check(method)), args, dart.map({}, core.Symbol, dart.dynamic)));
       }
       return js._convertToDart(fn.apply(this[_jsObject], args));
     }
@@ -40224,7 +40225,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let antialias = opts && 'antialias' in opts ? opts.antialias : true;
       let premultipliedAlpha = opts && 'premultipliedAlpha' in opts ? opts.premultipliedAlpha : true;
       let preserveDrawingBuffer = opts && 'preserveDrawingBuffer' in opts ? opts.preserveDrawingBuffer : false;
-      let options = dart.map({alpha: alpha, depth: depth, stencil: stencil, antialias: antialias, premultipliedAlpha: premultipliedAlpha, preserveDrawingBuffer: preserveDrawingBuffer});
+      let options = dart.map({alpha: alpha, depth: depth, stencil: stencil, antialias: antialias, premultipliedAlpha: premultipliedAlpha, preserveDrawingBuffer: preserveDrawingBuffer}, core.String, dart.dynamic);
       let context = this[dartx.getContext]('webgl', options);
       if (context == null) {
         context = this[dartx.getContext]('experimental-webgl', options);
@@ -48733,14 +48734,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.DirectoryEntry = class DirectoryEntry extends html$.Entry {
     [dartx.createDirectory](path, opts) {
       let exclusive = opts && 'exclusive' in opts ? opts.exclusive : false;
-      return this[_getDirectory](path, {options: dart.map({create: true, exclusive: exclusive})});
+      return this[_getDirectory](path, {options: dart.map({create: true, exclusive: exclusive}, core.String, core.bool)});
     }
     [dartx.getDirectory](path) {
       return this[_getDirectory](path);
     }
     [dartx.createFile](path, opts) {
       let exclusive = opts && 'exclusive' in opts ? opts.exclusive : false;
-      return this[_getFile](path, {options: dart.map({create: true, exclusive: exclusive})});
+      return this[_getFile](path, {options: dart.map({create: true, exclusive: exclusive}, core.String, core.bool)});
     }
     [dartx.getFile](path) {
       return this[_getFile](path);
@@ -51505,7 +51506,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.EventSource = class EventSource extends html$.EventTarget {
     static new(url, opts) {
       let withCredentials = opts && 'withCredentials' in opts ? opts.withCredentials : false;
-      let parsedOptions = dart.map({withCredentials: withCredentials});
+      let parsedOptions = dart.map({withCredentials: withCredentials}, core.String, dart.dynamic);
       return html$.EventSource._factoryEventSource(url, parsedOptions);
     }
     static _() {
@@ -51606,7 +51607,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   dart.defineLazy(html$.ElementEvents, {
     get webkitEvents() {
-      return dart.map({animationend: 'webkitAnimationEnd', animationiteration: 'webkitAnimationIteration', animationstart: 'webkitAnimationStart', fullscreenchange: 'webkitfullscreenchange', fullscreenerror: 'webkitfullscreenerror', keyadded: 'webkitkeyadded', keyerror: 'webkitkeyerror', keymessage: 'webkitkeymessage', needkey: 'webkitneedkey', pointerlockchange: 'webkitpointerlockchange', pointerlockerror: 'webkitpointerlockerror', resourcetimingbufferfull: 'webkitresourcetimingbufferfull', transitionend: 'webkitTransitionEnd', speechchange: 'webkitSpeechChange'});
+      return dart.map({animationend: 'webkitAnimationEnd', animationiteration: 'webkitAnimationIteration', animationstart: 'webkitAnimationStart', fullscreenchange: 'webkitfullscreenchange', fullscreenerror: 'webkitfullscreenerror', keyadded: 'webkitkeyadded', keyerror: 'webkitkeyerror', keymessage: 'webkitkeymessage', needkey: 'webkitneedkey', pointerlockchange: 'webkitpointerlockchange', pointerlockerror: 'webkitpointerlockerror', resourcetimingbufferfull: 'webkitresourcetimingbufferfull', transitionend: 'webkitTransitionEnd', speechchange: 'webkitSpeechChange'}, core.String, core.String);
     }
   });
   dart.defineExtensionNames([
@@ -53463,7 +53464,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let cancelable = opts && 'cancelable' in opts ? opts.cancelable : true;
       let oldUrl = opts && 'oldUrl' in opts ? opts.oldUrl : null;
       let newUrl = opts && 'newUrl' in opts ? opts.newUrl : null;
-      let options = dart.map({canBubble: canBubble, cancelable: cancelable, oldURL: oldUrl, newURL: newUrl});
+      let options = dart.map({canBubble: canBubble, cancelable: cancelable, oldURL: oldUrl, newURL: newUrl}, core.String, core.Object);
       return new HashChangeEvent(type, html_common.convertDartToNative_Dictionary(options));
     }
     static _(type, eventInitDict) {
@@ -58291,7 +58292,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }),
     names: ['_createDict', '_add', '_fixupList']
   });
-  html$.MutationObserver._boolKeys = dart.const(dart.map({childList: true, attributes: true, characterData: true, subtree: true, attributeOldValue: true, characterDataOldValue: true}));
+  html$.MutationObserver._boolKeys = dart.const(dart.map({childList: true, attributes: true, characterData: true, subtree: true, attributeOldValue: true, characterDataOldValue: true}, core.String, core.bool));
   dart.registerExtension(dart.global.MutationObserver, html$.MutationObserver);
   dart.defineExtensionNames([
     'addedNodes',
@@ -58393,7 +58394,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let audio = opts && 'audio' in opts ? opts.audio : false;
       let video = opts && 'video' in opts ? opts.video : false;
       let completer = CompleterOfMediaStream().new();
-      let options = dart.map({audio: audio, video: video});
+      let options = dart.map({audio: audio, video: video}, core.String, dart.dynamic);
       this[_ensureGetUserMedia]();
       this[_getUserMedia](html_common.convertDartToNative_SerializedScriptValue(options), dart.fn(stream => {
         completer.complete(stream);
@@ -61829,7 +61830,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static get supported() {
       try {
-        html$.RtcPeerConnection.new(dart.map({iceServers: JSArrayOfMapOfString$String().of([dart.map({url: "stun:localhost"})])}));
+        html$.RtcPeerConnection.new(dart.map({iceServers: JSArrayOfMapOfString$String().of([dart.map({url: "stun:localhost"}, core.String, core.String)])}, core.String, ListOfMapOfString$String()));
         return true;
       } catch (_) {
         return false;
@@ -67526,7 +67527,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let shiftKey = opts && 'shiftKey' in opts ? opts.shiftKey : false;
       let metaKey = opts && 'metaKey' in opts ? opts.metaKey : false;
       let relatedTarget = opts && 'relatedTarget' in opts ? opts.relatedTarget : null;
-      let options = dart.map({view: view, deltaMode: deltaMode, deltaX: deltaX, deltaY: deltaY, deltaZ: deltaZ, detail: detail, screenX: screenX, screenY: screenY, clientX: clientX, clientY: clientY, button: button, bubbles: canBubble, cancelable: cancelable, ctrlKey: ctrlKey, altKey: altKey, shiftKey: shiftKey, metaKey: metaKey, relatedTarget: relatedTarget});
+      let options = dart.map({view: view, deltaMode: deltaMode, deltaX: deltaX, deltaY: deltaY, deltaZ: deltaZ, detail: detail, screenX: screenX, screenY: screenY, clientX: clientX, clientY: clientY, button: button, bubbles: canBubble, cancelable: cancelable, ctrlKey: ctrlKey, altKey: altKey, shiftKey: shiftKey, metaKey: metaKey, relatedTarget: relatedTarget}, core.String, core.Object);
       if (view == null) {
         view = html$.window;
       }
@@ -72214,7 +72215,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return SetOfString().from(JSArrayOfString().of(['A', 'ABBR', 'ACRONYM', 'ADDRESS', 'AREA', 'ARTICLE', 'ASIDE', 'AUDIO', 'B', 'BDI', 'BDO', 'BIG', 'BLOCKQUOTE', 'BR', 'BUTTON', 'CANVAS', 'CAPTION', 'CENTER', 'CITE', 'CODE', 'COL', 'COLGROUP', 'COMMAND', 'DATA', 'DATALIST', 'DD', 'DEL', 'DETAILS', 'DFN', 'DIR', 'DIV', 'DL', 'DT', 'EM', 'FIELDSET', 'FIGCAPTION', 'FIGURE', 'FONT', 'FOOTER', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER', 'HGROUP', 'HR', 'I', 'IFRAME', 'IMG', 'INPUT', 'INS', 'KBD', 'LABEL', 'LEGEND', 'LI', 'MAP', 'MARK', 'MENU', 'METER', 'NAV', 'NOBR', 'OL', 'OPTGROUP', 'OPTION', 'OUTPUT', 'P', 'PRE', 'PROGRESS', 'Q', 'S', 'SAMP', 'SECTION', 'SELECT', 'SMALL', 'SOURCE', 'SPAN', 'STRIKE', 'STRONG', 'SUB', 'SUMMARY', 'SUP', 'TABLE', 'TBODY', 'TD', 'TEXTAREA', 'TFOOT', 'TH', 'THEAD', 'TIME', 'TR', 'TRACK', 'TT', 'U', 'UL', 'VAR', 'VIDEO', 'WBR']));
     },
     get _attributeValidators() {
-      return dart.map();
+      return dart.map({}, core.String, core.Function);
     }
   });
   html$.KeyCode = class KeyCode extends core.Object {
@@ -72953,7 +72954,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     })
   });
   html$._KeyboardEventHandler._EVENT_TYPE = 'KeyEvent';
-  html$._KeyboardEventHandler._keyIdentifier = dart.const(dart.map({Up: html$.KeyCode.UP, Down: html$.KeyCode.DOWN, Left: html$.KeyCode.LEFT, Right: html$.KeyCode.RIGHT, Enter: html$.KeyCode.ENTER, F1: html$.KeyCode.F1, F2: html$.KeyCode.F2, F3: html$.KeyCode.F3, F4: html$.KeyCode.F4, F5: html$.KeyCode.F5, F6: html$.KeyCode.F6, F7: html$.KeyCode.F7, F8: html$.KeyCode.F8, F9: html$.KeyCode.F9, F10: html$.KeyCode.F10, F11: html$.KeyCode.F11, F12: html$.KeyCode.F12, 'U+007F': html$.KeyCode.DELETE, Home: html$.KeyCode.HOME, End: html$.KeyCode.END, PageUp: html$.KeyCode.PAGE_UP, PageDown: html$.KeyCode.PAGE_DOWN, Insert: html$.KeyCode.INSERT}));
+  html$._KeyboardEventHandler._keyIdentifier = dart.const(dart.map({Up: html$.KeyCode.UP, Down: html$.KeyCode.DOWN, Left: html$.KeyCode.LEFT, Right: html$.KeyCode.RIGHT, Enter: html$.KeyCode.ENTER, F1: html$.KeyCode.F1, F2: html$.KeyCode.F2, F3: html$.KeyCode.F3, F4: html$.KeyCode.F4, F5: html$.KeyCode.F5, F6: html$.KeyCode.F6, F7: html$.KeyCode.F7, F8: html$.KeyCode.F8, F9: html$.KeyCode.F9, F10: html$.KeyCode.F10, F11: html$.KeyCode.F11, F12: html$.KeyCode.F12, 'U+007F': html$.KeyCode.DELETE, Home: html$.KeyCode.HOME, End: html$.KeyCode.END, PageUp: html$.KeyCode.PAGE_UP, PageDown: html$.KeyCode.PAGE_DOWN, Insert: html$.KeyCode.INSERT}, core.String, core.int));
   dart.defineLazy(html$._KeyboardEventHandler, {
     get _ROMAN_ALPHABET_OFFSET() {
       return dart.notNull("a"[dartx.codeUnits][dartx.get](0)) - dart.notNull("A"[dartx.codeUnits][dartx.get](0));

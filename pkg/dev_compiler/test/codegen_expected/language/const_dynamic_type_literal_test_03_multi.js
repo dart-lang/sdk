@@ -13,7 +13,7 @@ dart_library.library('language/const_dynamic_type_literal_test_03_multi', null, 
   const_dynamic_type_literal_test_03_multi.i = dart.wrapType(core.int);
   let const$;
   const_dynamic_type_literal_test_03_multi.main = function() {
-    expect$.Expect.equals(2, (const$ || (const$ = dart.const(dart.map([const_dynamic_type_literal_test_03_multi.d, 1, const_dynamic_type_literal_test_03_multi.i, 2]))))[dartx.length]);
+    expect$.Expect.equals(2, (const$ || (const$ = dart.const(dart.map([const_dynamic_type_literal_test_03_multi.d, 1, const_dynamic_type_literal_test_03_multi.i, 2], core.Type, core.int))))[dartx.length]);
   };
   dart.fn(const_dynamic_type_literal_test_03_multi.main, VoidTovoid());
   // Exports:

@@ -49,8 +49,8 @@ dart_library.library('language/canonical_const_test', null, /* Imports */[
       expect$.Expect.identical(const$11 || (const$11 = dart.constList([1, 2], core.int)), const$12 || (const$12 = dart.constList([1, 2], core.int)));
       expect$.Expect.identical(const$13 || (const$13 = dart.constList([1, 2], core.Object)), const$14 || (const$14 = dart.constList([1, 2], core.Object)));
       expect$.Expect.isFalse(core.identical(const$15 || (const$15 = dart.constList([1, 2], core.int)), const$16 || (const$16 = dart.constList([1.0, 2.0], core.double))));
-      expect$.Expect.identical(const$17 || (const$17 = dart.const(dart.map({a: 1, b: 2}))), const$18 || (const$18 = dart.const(dart.map({a: 1, b: 2}))));
-      expect$.Expect.isFalse(core.identical(const$19 || (const$19 = dart.const(dart.map({a: 1, b: 2}))), const$20 || (const$20 = dart.const(dart.map({a: 2, b: 2})))));
+      expect$.Expect.identical(const$17 || (const$17 = dart.const(dart.map({a: 1, b: 2}, core.String, core.int))), const$18 || (const$18 = dart.const(dart.map({a: 1, b: 2}, core.String, core.int))));
+      expect$.Expect.isFalse(core.identical(const$19 || (const$19 = dart.const(dart.map({a: 1, b: 2}, core.String, core.int))), const$20 || (const$20 = dart.const(dart.map({a: 2, b: 2}, core.String, core.int)))));
     }
   };
   dart.setSignature(canonical_const_test.CanonicalConstTest, {

@@ -23,7 +23,7 @@ dart_library.library('language/call_nonexistent_static_test_none_multi', null, /
   dart.fn(call_nonexistent_static_test_none_multi.expectNsme, __Todynamic());
   let const$;
   call_nonexistent_static_test_none_multi.alwaysThrows = function() {
-    dart.throw(new core.NoSuchMethodError(null, const$ || (const$ = dart.const(core.Symbol.new('foo'))), [], dart.map()));
+    dart.throw(new core.NoSuchMethodError(null, const$ || (const$ = dart.const(core.Symbol.new('foo'))), [], dart.map({}, core.Symbol, dart.dynamic)));
   };
   dart.fn(call_nonexistent_static_test_none_multi.alwaysThrows, VoidTodynamic());
   call_nonexistent_static_test_none_multi.test01 = function() {

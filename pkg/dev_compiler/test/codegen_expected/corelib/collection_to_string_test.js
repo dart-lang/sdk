@@ -15,6 +15,7 @@ dart_library.library('corelib/collection_to_string_test', null, /* Imports */[
   let JSArrayOfString = () => (JSArrayOfString = dart.constFn(_interceptors.JSArray$(core.String)))();
   let ListOfint = () => (ListOfint = dart.constFn(core.List$(core.int)))();
   let JSArrayOfListOfint = () => (JSArrayOfListOfint = dart.constFn(_interceptors.JSArray$(ListOfint())))();
+  let MapOfString$int = () => (MapOfString$int = dart.constFn(core.Map$(core.String, core.int)))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();
   let intAndStringBuffer__ToObject = () => (intAndStringBuffer__ToObject = dart.constFn(dart.definiteFunctionType(core.Object, [core.int, core.StringBuffer], {exact: core.bool})))();
@@ -73,15 +74,15 @@ dart_library.library('corelib/collection_to_string_test', null, /* Imports */[
     expect$.Expect.equals(dart.toString(const$4 || (const$4 = dart.constList(['I', 'II'], core.String))), '[I, II]');
     expect$.Expect.equals(dart.toString(const$8 || (const$8 = dart.constList([const$5 || (const$5 = dart.constList([1, 2], core.int)), const$6 || (const$6 = dart.constList([3, 4], core.int)), const$7 || (const$7 = dart.constList([5, 6], core.int))], ListOfint()))), '[[1, 2], [3, 4], [5, 6]]');
     expect$.Expect.equals(dart.toString(dart.map()), '{}');
-    expect$.Expect.equals(dart.toString(dart.map({Elvis: 'King'})), '{Elvis: King}');
-    expect$.Expect.equals(dart.toString(dart.map({Elvis: null})), '{Elvis: null}');
-    expect$.Expect.equals(dart.toString(dart.map({I: 1, II: 2})), '{I: 1, II: 2}');
-    expect$.Expect.equals(dart.toString(dart.map({X: dart.map({I: 1, II: 2}), Y: dart.map({III: 3, IV: 4}), Z: dart.map({V: 5, VI: 6})})), '{X: {I: 1, II: 2}, Y: {III: 3, IV: 4}, Z: {V: 5, VI: 6}}');
+    expect$.Expect.equals(dart.toString(dart.map({Elvis: 'King'}, core.String, core.String)), '{Elvis: King}');
+    expect$.Expect.equals(dart.toString(dart.map({Elvis: null}, core.String, dart.dynamic)), '{Elvis: null}');
+    expect$.Expect.equals(dart.toString(dart.map({I: 1, II: 2}, core.String, core.int)), '{I: 1, II: 2}');
+    expect$.Expect.equals(dart.toString(dart.map({X: dart.map({I: 1, II: 2}, core.String, core.int), Y: dart.map({III: 3, IV: 4}, core.String, core.int), Z: dart.map({V: 5, VI: 6}, core.String, core.int)}, core.String, MapOfString$int())), '{X: {I: 1, II: 2}, Y: {III: 3, IV: 4}, Z: {V: 5, VI: 6}}');
     expect$.Expect.equals(dart.toString(const$9 || (const$9 = dart.const(dart.map()))), '{}');
-    expect$.Expect.equals(dart.toString(const$10 || (const$10 = dart.const(dart.map({Elvis: 'King'})))), '{Elvis: King}');
-    expect$.Expect.equals(dart.toString(dart.map({Elvis: null})), '{Elvis: null}');
-    expect$.Expect.equals(dart.toString(const$11 || (const$11 = dart.const(dart.map({I: 1, II: 2})))), '{I: 1, II: 2}');
-    expect$.Expect.equals(dart.toString(const$15 || (const$15 = dart.const(dart.map({X: const$12 || (const$12 = dart.const(dart.map({I: 1, II: 2}))), Y: const$13 || (const$13 = dart.const(dart.map({III: 3, IV: 4}))), Z: const$14 || (const$14 = dart.const(dart.map({V: 5, VI: 6})))})))), '{X: {I: 1, II: 2}, Y: {III: 3, IV: 4}, Z: {V: 5, VI: 6}}');
+    expect$.Expect.equals(dart.toString(const$10 || (const$10 = dart.const(dart.map({Elvis: 'King'}, core.String, core.String)))), '{Elvis: King}');
+    expect$.Expect.equals(dart.toString(dart.map({Elvis: null}, core.String, dart.dynamic)), '{Elvis: null}');
+    expect$.Expect.equals(dart.toString(const$11 || (const$11 = dart.const(dart.map({I: 1, II: 2}, core.String, core.int)))), '{I: 1, II: 2}');
+    expect$.Expect.equals(dart.toString(const$15 || (const$15 = dart.const(dart.map({X: const$12 || (const$12 = dart.const(dart.map({I: 1, II: 2}, core.String, core.int))), Y: const$13 || (const$13 = dart.const(dart.map({III: 3, IV: 4}, core.String, core.int))), Z: const$14 || (const$14 = dart.const(dart.map({V: 5, VI: 6}, core.String, core.int)))}, core.String, MapOfString$int())))), '{X: {I: 1, II: 2}, Y: {III: 3, IV: 4}, Z: {V: 5, VI: 6}}');
   };
   dart.fn(collection_to_string_test.smokeTest, VoidTovoid());
   collection_to_string_test.exactTest = function() {

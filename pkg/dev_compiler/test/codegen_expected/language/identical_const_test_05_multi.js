@@ -18,8 +18,8 @@ dart_library.library('language/identical_const_test_05_multi', null, /* Imports 
   identical_const_test_05_multi.identical_fg = core.identical(identical_const_test_05_multi.f, identical_const_test_05_multi.g);
   identical_const_test_05_multi.identical_gf = core.identical(identical_const_test_05_multi.g, identical_const_test_05_multi.f);
   identical_const_test_05_multi.identical_gg = core.identical(identical_const_test_05_multi.g, identical_const_test_05_multi.g);
-  identical_const_test_05_multi.a = dart.const(dart.map([true, 0]));
-  identical_const_test_05_multi.b = dart.const(dart.map([false, 0]));
+  identical_const_test_05_multi.a = dart.const(dart.map([true, 0], core.bool, core.int));
+  identical_const_test_05_multi.b = dart.const(dart.map([false, 0], core.bool, core.int));
   identical_const_test_05_multi.use = function(x) {
     return x;
   };

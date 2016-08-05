@@ -16,9 +16,9 @@ dart_library.library('language/compile_time_constant_b_test', null, /* Imports *
   let VoidToint = () => (VoidToint = dart.constFn(dart.definiteFunctionType(core.int, [])))();
   let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
-  compile_time_constant_b_test.m1 = dart.const(dart.map({__proto__: 400 + 99}));
-  compile_time_constant_b_test.m2 = dart.const(dart.map({a: 499, b: 42}));
-  compile_time_constant_b_test.m3 = dart.const(dart.map({__proto__: 499}));
+  compile_time_constant_b_test.m1 = dart.const(dart.map({__proto__: 400 + 99}, core.String, core.int));
+  compile_time_constant_b_test.m2 = dart.const(dart.map({a: 499, b: 42}, core.String, core.int));
+  compile_time_constant_b_test.m3 = dart.const(dart.map({__proto__: 499}, core.String, core.int));
   compile_time_constant_b_test.isUnsupportedError = function(o) {
     return core.UnsupportedError.is(o);
   };

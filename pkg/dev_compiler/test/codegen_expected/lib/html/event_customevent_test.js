@@ -36,9 +36,9 @@ dart_library.library('lib/html/event_customevent_test', null, /* Imports */[
       let fired = false;
       provider.forTarget(el).listen(dart.fn(ev => {
         fired = true;
-        src__matcher__expect.expect(ev[dartx.detail], dart.map({type: 'detail'}));
+        src__matcher__expect.expect(ev[dartx.detail], dart.map({type: 'detail'}, core.String, core.String));
       }, CustomEventTovoid()));
-      let ev = html.CustomEvent.new('foo', {canBubble: false, cancelable: false, detail: dart.map({type: 'detail'})});
+      let ev = html.CustomEvent.new('foo', {canBubble: false, cancelable: false, detail: dart.map({type: 'detail'}, core.String, core.String)});
       el[dartx.dispatchEvent](ev);
       src__matcher__expect.expect(fired, src__matcher__core_matchers.isTrue);
     }, VoidTodynamic()));
@@ -47,7 +47,7 @@ dart_library.library('lib/html/event_customevent_test', null, /* Imports */[
       let fired = false;
       html.window[dartx.on].get('js_custom_event').listen(dart.fn(ev => {
         fired = true;
-        src__matcher__expect.expect(dart.dload(ev, 'detail'), dart.map({type: 'detail'}));
+        src__matcher__expect.expect(dart.dload(ev, 'detail'), dart.map({type: 'detail'}, core.String, core.String));
       }, dynamicTovoid()));
       let script = html.ScriptElement.new();
       script[dartx.text] = scriptContents;

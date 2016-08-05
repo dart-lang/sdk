@@ -145,7 +145,7 @@ dart_library.library('lib/html/xhr_test', null, /* Imports */[
       }, VoidTodynamic()));
       unittest$.test('XHR.request responseType arraybuffer', dart.fn(() => {
         if (dart.test(html.Platform.supportsTypedData)) {
-          html.HttpRequest.request(url, {responseType: 'arraybuffer', requestHeaders: dart.map({'Content-Type': 'text/xml'})}).then(dart.dynamic)(HttpRequestTodynamic()._check(unittest$.expectAsync(dart.fn(xhr => {
+          html.HttpRequest.request(url, {responseType: 'arraybuffer', requestHeaders: dart.map({'Content-Type': 'text/xml'}, core.String, core.String)}).then(dart.dynamic)(HttpRequestTodynamic()._check(unittest$.expectAsync(dart.fn(xhr => {
             src__matcher__expect.expect(dart.dload(xhr, 'status'), src__matcher__core_matchers.equals(200));
             let byteBuffer = dart.dload(xhr, 'response');
             src__matcher__expect.expect(byteBuffer, new (isInstanceOfOfByteBuffer())());
@@ -178,7 +178,7 @@ dart_library.library('lib/html/xhr_test', null, /* Imports */[
         }, VoidToFuture()));
       }
       unittest$.test('xhr postFormData', dart.fn(() => {
-        let data = dart.map({name: 'John', time: '2 pm'});
+        let data = dart.map({name: 'John', time: '2 pm'}, core.String, core.String);
         let parts = [];
         for (let key of data[dartx.keys]) {
           parts[dartx.add](dart.str`${core.Uri.encodeQueryComponent(key)}=` + dart.str`${core.Uri.encodeQueryComponent(data[dartx.get](key))}`);
@@ -204,7 +204,7 @@ dart_library.library('lib/html/xhr_test', null, /* Imports */[
     unittest$.group('json', dart.fn(() => {
       unittest$.test('xhr responseType json', dart.fn(() => {
         let url = dart.str`${html.window[dartx.location][dartx.protocol]}//${html.window[dartx.location][dartx.host]}/echo`;
-        let data = dart.map({key: 'value', a: 'b', one: 2});
+        let data = dart.map({key: 'value', a: 'b', one: 2}, core.String, core.Object);
         html.HttpRequest.request(url, {method: 'POST', sendData: convert.JSON.encode(data), responseType: 'json'}).then(dart.dynamic)(HttpRequestTodynamic()._check(unittest$.expectAsync(dart.fn(xhr => {
           src__matcher__expect.expect(dart.dload(xhr, 'status'), src__matcher__core_matchers.equals(200));
           let json = dart.dload(xhr, 'response');

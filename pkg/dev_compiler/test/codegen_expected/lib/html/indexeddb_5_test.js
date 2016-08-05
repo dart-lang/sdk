@@ -46,7 +46,7 @@ dart_library.library('lib/html/indexeddb_5_test', null, /* Imports */[
         src__matcher__expect.expect(names[dartx.contains](dbName), src__matcher__core_matchers.isTrue);
       }, ListOfStringTodynamic())), VoidToFuture()));
     }
-    let value = dart.map({name_index: 'one', value: 'add_value'});
+    let value = dart.map({name_index: 'one', value: 'add_value'}, core.String, core.String);
     unittest$.test('add/delete', dart.fn(() => {
       let transaction = dart.dsend(db, 'transaction', storeName, 'readwrite');
       let key = null;
@@ -127,9 +127,9 @@ dart_library.library('lib/html/indexeddb_5_test', null, /* Imports */[
         return dart.dload(transaction, 'completed');
       }, dynamicTodynamic()));
     }, VoidTodynamic()));
-    let deleteValue = dart.map({name_index: 'two', value: 'delete_value'});
-    let updateValue = dart.map({name_index: 'three', value: 'update_value'});
-    let updatedValue = dart.map({name_index: 'three', value: 'updated_value'});
+    let deleteValue = dart.map({name_index: 'two', value: 'delete_value'}, core.String, core.String);
+    let updateValue = dart.map({name_index: 'three', value: 'update_value'}, core.String, core.String);
+    let updatedValue = dart.map({name_index: 'three', value: 'updated_value'}, core.String, core.String);
     unittest$.test('cursor', dart.fn(() => {
       let transaction = dart.dsend(db, 'transaction', storeName, 'readwrite');
       dart.dsend(dart.dsend(transaction, 'objectStore', storeName), 'add', value);

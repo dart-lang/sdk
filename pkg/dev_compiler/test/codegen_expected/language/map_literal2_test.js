@@ -19,7 +19,7 @@ dart_library.library('language/map_literal2_test', null, /* Imports */[
   });
   map_literal2_test.main = function() {
     map_literal2_test.nextValCtr = 0;
-    let map = dart.map({[dart.str`a${map_literal2_test.nextVal}`]: "Grey", [dart.str`a${map_literal2_test.nextVal}`]: "Poupon"});
+    let map = dart.map({[dart.str`a${map_literal2_test.nextVal}`]: "Grey", [dart.str`a${map_literal2_test.nextVal}`]: "Poupon"}, core.String, core.String);
     expect$.Expect.equals(true, map[dartx.containsKey]("a0"));
     expect$.Expect.equals(true, map[dartx.containsKey]("a1"));
     expect$.Expect.equals("Grey", map[dartx.get]("a0"));

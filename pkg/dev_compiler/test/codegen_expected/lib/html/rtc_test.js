@@ -15,6 +15,7 @@ dart_library.library('lib/html/rtc_test', null, /* Imports */[
   const rtc_test = Object.create(null);
   let MapOfString$String = () => (MapOfString$String = dart.constFn(core.Map$(core.String, core.String)))();
   let JSArrayOfMapOfString$String = () => (JSArrayOfMapOfString$String = dart.constFn(_interceptors.JSArray$(MapOfString$String())))();
+  let ListOfMapOfString$String = () => (ListOfMapOfString$String = dart.constFn(core.List$(MapOfString$String())))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();
   rtc_test.main = function() {
@@ -27,15 +28,15 @@ dart_library.library('lib/html/rtc_test', null, /* Imports */[
     unittest$.group('functionality', dart.fn(() => {
       if (dart.test(html.RtcPeerConnection[dartx.supported])) {
         unittest$.test('peer connection', dart.fn(() => {
-          let pc = html.RtcPeerConnection.new(dart.map({iceServers: JSArrayOfMapOfString$String().of([dart.map({url: 'stun:216.93.246.18:3478'})])}));
+          let pc = html.RtcPeerConnection.new(dart.map({iceServers: JSArrayOfMapOfString$String().of([dart.map({url: 'stun:216.93.246.18:3478'}, core.String, core.String)])}, core.String, ListOfMapOfString$String()));
           src__matcher__expect.expect(html.RtcPeerConnection.is(pc), src__matcher__core_matchers.isTrue);
         }, VoidTodynamic()));
         unittest$.test('ice candidate', dart.fn(() => {
-          let candidate = html.RtcIceCandidate.new(dart.map({sdpMLineIndex: 1, candidate: 'hello'}));
+          let candidate = html.RtcIceCandidate.new(dart.map({sdpMLineIndex: 1, candidate: 'hello'}, core.String, core.Object));
           src__matcher__expect.expect(html.RtcIceCandidate.is(candidate), src__matcher__core_matchers.isTrue);
         }, VoidTodynamic()));
         unittest$.test('session description', dart.fn(() => {
-          let description = html.RtcSessionDescription.new(dart.map({sdp: 'foo', type: 'offer'}));
+          let description = html.RtcSessionDescription.new(dart.map({sdp: 'foo', type: 'offer'}, core.String, core.String));
           src__matcher__expect.expect(html.RtcSessionDescription.is(description), src__matcher__core_matchers.isTrue);
         }, VoidTodynamic()));
       }

@@ -103,11 +103,11 @@ dart_library.library('corelib/apply_test', null, /* Imports */[
     dart.fn(test, dynamicAnddynamicAnddynamic__Todynamic());
     testList(42, apply_test.test0, null);
     testList(42, apply_test.test0, []);
-    testMap(42, apply_test.test0a, dart.map({a: 5}));
+    testMap(42, apply_test.test0a, dart.map({a: 5}, core.String, core.int));
     testList(42, apply_test.test1, JSArrayOfint().of([41]));
-    test(42, apply_test.test1a, JSArrayOfint().of([20]), dart.map({a: 22}));
+    test(42, apply_test.test1a, JSArrayOfint().of([20]), dart.map({a: 22}, core.String, core.int));
     testList(42, apply_test.test2, JSArrayOfint().of([20, 22]));
-    test(42, apply_test.test2a, JSArrayOfint().of([10, 15]), dart.map({a: 17}));
+    test(42, apply_test.test2a, JSArrayOfint().of([10, 15]), dart.map({a: 17}, core.String, core.int));
     let cfoo = dart.bind(new apply_test.C(), 'foo');
     testList(42, cfoo, JSArrayOfint().of([32]));
     let app = apply_test.confuse(core.Function.apply);

@@ -25,7 +25,7 @@ dart_library.library('lib/convert/json_toEncodable_reviver_test', null, /* Impor
     constructors: () => ({new: dart.definiteFunctionType(json_toEncodable_reviver_test.A, [dart.dynamic])})
   });
   json_toEncodable_reviver_test.toEncodable = function(a) {
-    return dart.map({A: a.x});
+    return dart.map({A: a.x}, core.String, dart.dynamic);
   };
   dart.fn(json_toEncodable_reviver_test.toEncodable, ATodynamic());
   json_toEncodable_reviver_test.reviver = function(key, value) {
@@ -37,7 +37,7 @@ dart_library.library('lib/convert/json_toEncodable_reviver_test', null, /* Impor
   dart.fn(json_toEncodable_reviver_test.reviver, dynamicAnddynamicTodynamic());
   json_toEncodable_reviver_test.extendedJson = dart.const(new convert.JsonCodec({toEncodable: json_toEncodable_reviver_test.toEncodable, reviver: json_toEncodable_reviver_test.reviver}));
   json_toEncodable_reviver_test.main = function() {
-    let encoded = json_toEncodable_reviver_test.extendedJson.encode(JSArrayOfObject().of([new json_toEncodable_reviver_test.A(0), dart.map({"2": new json_toEncodable_reviver_test.A(1)})]));
+    let encoded = json_toEncodable_reviver_test.extendedJson.encode(JSArrayOfObject().of([new json_toEncodable_reviver_test.A(0), dart.map({"2": new json_toEncodable_reviver_test.A(1)}, core.String, json_toEncodable_reviver_test.A)]));
     expect$.Expect.equals('[{"A":0},{"2":{"A":1}}]', encoded);
     let decoded = json_toEncodable_reviver_test.extendedJson.decode(encoded);
     expect$.Expect.isTrue(core.List.is(decoded));
@@ -55,7 +55,7 @@ dart_library.library('lib/convert/json_toEncodable_reviver_test', null, /* Impor
   };
   dart.fn(json_toEncodable_reviver_test.main, VoidTodynamic());
   json_toEncodable_reviver_test.testInvalidMap = function() {
-    let map = dart.map(["a", 42, "b", 42, 37, 42]);
+    let map = dart.map(["a", 42, "b", 42, 37, 42], core.Object, core.int);
     let enc = new convert.JsonEncoder(dart.fn(_ => "fixed", dynamicToString()));
     let res = enc.convert(map);
     expect$.Expect.equals('"fixed"', res);

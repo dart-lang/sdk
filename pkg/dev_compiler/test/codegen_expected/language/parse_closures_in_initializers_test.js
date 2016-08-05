@@ -26,7 +26,7 @@ dart_library.library('language/parse_closures_in_initializers_test', null, /* Im
       this.x = JSArrayOfVoidTodynamic().of([dart.fn(() => y, VoidTodynamic$())]);
     }
     mapLiteral(y) {
-      this.x = dart.map({fun: dart.fn(() => y, VoidTodynamic$())});
+      this.x = dart.map({fun: dart.fn(() => y, VoidTodynamic$())}, core.String, VoidTodynamic());
     }
     arg(y) {
       this.x = parse_closures_in_initializers_test.A.foo(dart.fn(() => y, VoidTodynamic$()));

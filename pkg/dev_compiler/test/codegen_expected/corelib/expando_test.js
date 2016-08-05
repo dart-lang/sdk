@@ -20,7 +20,7 @@ dart_library.library('corelib/expando_test', null, /* Imports */[
   expando_test.ExpandoTest = class ExpandoTest extends core.Object {
     static testMain() {
       expando_test.ExpandoTest.visits = new (ExpandoOfint())('visits');
-      let legal = JSArrayOfObject().of([new core.Object(), core.List.new(), JSArrayOfint().of([1, 2, 3]), const$ || (const$ = dart.constList([1, 2, 3], core.int)), core.Map.new(), dart.map({x: 1, y: 2}), const$0 || (const$0 = dart.const(dart.map({x: 1, y: 2}))), new core.Expando(), new core.Expando('horse')]);
+      let legal = JSArrayOfObject().of([new core.Object(), core.List.new(), JSArrayOfint().of([1, 2, 3]), const$ || (const$ = dart.constList([1, 2, 3], core.int)), core.Map.new(), dart.map({x: 1, y: 2}, core.String, core.int), const$0 || (const$0 = dart.const(dart.map({x: 1, y: 2}, core.String, core.int))), new core.Expando(), new core.Expando('horse')]);
       for (let object of legal) {
         expando_test.ExpandoTest.testNamedExpando(object);
         expando_test.ExpandoTest.testUnnamedExpando(object);

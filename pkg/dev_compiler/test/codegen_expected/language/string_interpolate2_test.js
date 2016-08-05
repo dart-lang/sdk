@@ -29,7 +29,7 @@ dart_library.library('language/string_interpolate2_test', null, /* Imports */[
       expect$.Expect.equals("8", dart.str`${fib[dartx.length]}`);
       expect$.Expect.equals("8", dart.str`${fib[dartx.length]}`);
       expect$.Expect.equals("8", dart.str`${fib[dartx.length]}`);
-      let map = dart.map({red: 1, green: 2, blue: 3});
+      let map = dart.map({red: 1, green: 2, blue: 3}, core.String, core.int);
       s = dart.str`green has value ${map[dartx.get]("green")}`;
       expect$.Expect.equals("green has value 2", s);
       i = 0;

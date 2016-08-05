@@ -8,6 +8,7 @@ dart_library.library('language/list_tracer_in_map_test', null, /* Imports */[
   const dartx = dart_sdk.dartx;
   const list_tracer_in_map_test = Object.create(null);
   let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
+  let ListOfint = () => (ListOfint = dart.constFn(core.List$(core.int)))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   dart.defineLazy(list_tracer_in_map_test, {
     get b() {
@@ -17,7 +18,7 @@ dart_library.library('language/list_tracer_in_map_test', null, /* Imports */[
   });
   dart.defineLazy(list_tracer_in_map_test, {
     get a() {
-      return dart.map({foo: list_tracer_in_map_test.b});
+      return dart.map({foo: list_tracer_in_map_test.b}, core.String, ListOfint());
     },
     set a(_) {}
   });

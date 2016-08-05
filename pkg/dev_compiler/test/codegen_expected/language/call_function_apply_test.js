@@ -27,7 +27,7 @@ dart_library.library('language/call_function_apply_test', null, /* Imports */[
   });
   let const$;
   call_function_apply_test.main = function() {
-    expect$.Expect.equals(497, core.Function.apply(new call_function_apply_test.A(), [], dart.map([const$ || (const$ = dart.const(core.Symbol.new('a'))), -2])));
+    expect$.Expect.equals(497, core.Function.apply(new call_function_apply_test.A(), [], dart.map([const$ || (const$ = dart.const(core.Symbol.new('a'))), -2], core.Symbol, dart.dynamic)));
   };
   dart.fn(call_function_apply_test.main, VoidTodynamic());
   // Exports:

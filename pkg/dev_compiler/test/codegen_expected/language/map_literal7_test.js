@@ -15,7 +15,7 @@ dart_library.library('language/map_literal7_test', null, /* Imports */[
   let const$;
   let const$0;
   map_literal7_test.main = function() {
-    let m1 = const$ || (const$ = dart.const(dart.map({"0": 0, "1": 1})));
+    let m1 = const$ || (const$ = dart.const(dart.map({"0": 0, "1": 1}, core.String, core.int)));
     expect$.Expect.isTrue(core.Map.is(m1));
     expect$.Expect.isTrue(MapOfString$int().is(m1));
     expect$.Expect.isTrue(MapOfint$dynamic().is(m1));

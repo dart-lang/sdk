@@ -417,7 +417,7 @@ dart_library.library('unittest', null, /* Imports */[
   dart.fn(unittest._requireNotRunning, VoidTovoid$());
   let const$;
   unittest.withTestEnvironment = function(callback) {
-    return async.runZoned(dart.dynamic)(callback, {zoneValues: dart.map([const$ || (const$ = dart.const(core.Symbol.new('unittest.environment'))), new src__test_environment.TestEnvironment()])});
+    return async.runZoned(dart.dynamic)(callback, {zoneValues: dart.map([const$ || (const$ = dart.const(core.Symbol.new('unittest.environment'))), new src__test_environment.TestEnvironment()], core.Symbol, src__test_environment.TestEnvironment)});
   };
   dart.fn(unittest.withTestEnvironment, FnTodynamic());
   let const$0;
@@ -540,7 +540,7 @@ dart_library.library('unittest', null, /* Imports */[
     matches(item, matchState) {
       let f = this.featureValueOf(item);
       if (dart.test(this[_matcher].matches(f, matchState))) return true;
-      src__matcher__util.addStateInfo(matchState, dart.map({feature: f}));
+      src__matcher__util.addStateInfo(matchState, dart.map({feature: f}, core.String, dart.dynamic));
       return false;
     }
     describe(description) {
@@ -761,7 +761,7 @@ dart_library.library('unittest', null, /* Imports */[
         if (this[_matcher$] == null || dart.test(this[_matcher$].matches(e, matchState))) {
           return true;
         } else {
-          src__matcher__util.addStateInfo(matchState, dart.map({exception: e, stack: s}));
+          src__matcher__util.addStateInfo(matchState, dart.map({exception: e, stack: s}, core.String, dart.dynamic));
           return false;
         }
       }
@@ -943,7 +943,7 @@ dart_library.library('unittest', null, /* Imports */[
         return true;
       } catch (e) {
         let s = dart.stackTrace(e);
-        src__matcher__util.addStateInfo(matchState, dart.map({exception: e, stack: s}));
+        src__matcher__util.addStateInfo(matchState, dart.map({exception: e, stack: s}, core.String, dart.dynamic));
         return false;
       }
 
@@ -1908,7 +1908,7 @@ dart_library.library('unittest', null, /* Imports */[
       } else {
         reason = '';
       }
-      src__matcher__util.addStateInfo(matchState, dart.map({reason: reason}));
+      src__matcher__util.addStateInfo(matchState, dart.map({reason: reason}, core.String, dart.dynamic));
       return core.String._check(reason);
     }
     matches(item, matchState) {
@@ -2216,7 +2216,7 @@ dart_library.library('unittest', null, /* Imports */[
   };
   dart.fn(src__matcher__pretty_print._escapeString, StringToString());
   src__matcher__util._Predicate = dart.typedef('_Predicate', () => dart.functionType(core.bool, [dart.dynamic]));
-  src__matcher__util._escapeMap = dart.const(dart.map({'\n': '\\n', '\r': '\\r', '\f': '\\f', '\b': '\\b', '\t': '\\t', '\v': '\\v', '': '\\x7F'}));
+  src__matcher__util._escapeMap = dart.const(dart.map({'\n': '\\n', '\r': '\\r', '\f': '\\f', '\b': '\\b', '\t': '\\t', '\v': '\\v', '': '\\x7F'}, core.String, core.String));
   dart.defineLazy(src__matcher__util, {
     get _escapeRegExp() {
       return core.RegExp.new(dart.str`[\\x00-\\x07\\x0E-\\x1F${src__matcher__util._escapeMap[dartx.keys][dartx.map](core.String)(src__matcher__util._getHexLiteral)[dartx.join]()}]`);
@@ -2272,7 +2272,7 @@ dart_library.library('unittest', null, /* Imports */[
       let i = 0;
       for (let element of core.Iterable._check(item)) {
         if (!dart.test(this[_matcher$1].matches(element, matchState))) {
-          src__matcher__util.addStateInfo(matchState, dart.map({index: i, element: element}));
+          src__matcher__util.addStateInfo(matchState, dart.map({index: i, element: element}, core.String, dart.dynamic));
           return false;
         }
         ++i;
@@ -2440,7 +2440,7 @@ dart_library.library('unittest', null, /* Imports */[
       for (let e of this[_expected$]) {
         dart.dsend(iterator, 'moveNext');
         if (!dart.test(dart.dcall(this[_comparator], e, dart.dload(iterator, 'current')))) {
-          src__matcher__util.addStateInfo(matchState, dart.map({index: i, expected: e, actual: dart.dload(iterator, 'current')}));
+          src__matcher__util.addStateInfo(matchState, dart.map({index: i, expected: e, actual: dart.dload(iterator, 'current')}, core.String, dart.dynamic));
           return false;
         }
         i++;
@@ -2631,7 +2631,7 @@ dart_library.library('unittest', null, /* Imports */[
     matches(item, matchState) {
       for (let matcher of this[_matchers]) {
         if (!dart.test(matcher.matches(item, matchState))) {
-          src__matcher__util.addStateInfo(matchState, dart.map({matcher: matcher}));
+          src__matcher__util.addStateInfo(matchState, dart.map({matcher: matcher}, core.String, src__matcher__interfaces.Matcher));
           return false;
         }
       }

@@ -9,6 +9,7 @@ dart_library.library('language/compile_time_constant_a_test', null, /* Imports *
   const dartx = dart_sdk.dartx;
   const expect$ = expect.expect;
   const compile_time_constant_a_test = Object.create(null);
+  let MapOfString$int = () => (MapOfString$int = dart.constFn(core.Map$(core.String, core.int)))();
   let JSArrayOfString = () => (JSArrayOfString = dart.constFn(_interceptors.JSArray$(core.String)))();
   let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
   let dynamicTobool = () => (dynamicTobool = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic])))();
@@ -17,12 +18,12 @@ dart_library.library('language/compile_time_constant_a_test', null, /* Imports *
   let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();
   let dynamicAnddynamicTovoid = () => (dynamicAnddynamicTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [dart.dynamic, dart.dynamic])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
-  compile_time_constant_a_test.m1 = dart.const(dart.map({a: 400 + 99}));
-  compile_time_constant_a_test.m2 = dart.const(dart.map({a: 499, b: 42}));
-  compile_time_constant_a_test.m3 = dart.const(dart.map({m1: compile_time_constant_a_test.m1, m2: compile_time_constant_a_test.m2}));
-  compile_time_constant_a_test.m4 = dart.const(dart.map({z: 9, a: 8, m: 7}));
-  compile_time_constant_a_test.m5 = dart.const(dart.map({'': 499}));
-  compile_time_constant_a_test.m6 = dart.const(dart.map({a: 499}));
+  compile_time_constant_a_test.m1 = dart.const(dart.map({a: 400 + 99}, core.String, core.int));
+  compile_time_constant_a_test.m2 = dart.const(dart.map({a: 499, b: 42}, core.String, core.int));
+  compile_time_constant_a_test.m3 = dart.const(dart.map({m1: compile_time_constant_a_test.m1, m2: compile_time_constant_a_test.m2}, core.String, MapOfString$int()));
+  compile_time_constant_a_test.m4 = dart.const(dart.map({z: 9, a: 8, m: 7}, core.String, core.int));
+  compile_time_constant_a_test.m5 = dart.const(dart.map({'': 499}, core.String, core.int));
+  compile_time_constant_a_test.m6 = dart.const(dart.map({a: 499}, core.String, core.int));
   compile_time_constant_a_test.m7 = dart.const(dart.map());
   compile_time_constant_a_test.isUnsupportedError = function(o) {
     return core.UnsupportedError.is(o);

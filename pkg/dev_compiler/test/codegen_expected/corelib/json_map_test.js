@@ -19,6 +19,7 @@ dart_library.library('corelib/json_map_test', null, /* Imports */[
   let HashMapOfint$dynamic = () => (HashMapOfint$dynamic = dart.constFn(collection.HashMap$(core.int, dart.dynamic)))();
   let LinkedHashMapOfint$dynamic = () => (LinkedHashMapOfint$dynamic = dart.constFn(collection.LinkedHashMap$(core.int, dart.dynamic)))();
   let JSArrayOfObject = () => (JSArrayOfObject = dart.constFn(_interceptors.JSArray$(core.Object)))();
+  let ListOfObject = () => (ListOfObject = dart.constFn(core.List$(core.Object)))();
   let dynamicAnddynamicTodynamic = () => (dynamicAnddynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic])))();
   let MapToMap = () => (MapToMap = dart.constFn(dart.definiteFunctionType(core.Map, [core.Map])))();
   let StringAnddynamicTovoid = () => (StringAnddynamicTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.String, dart.dynamic])))();
@@ -58,7 +59,7 @@ dart_library.library('corelib/json_map_test', null, /* Imports */[
   json_map_test.test = function(revive) {
     json_map_test.useReviver = revive;
     json_map_test.testEmpty(json_map_test.jsonify(dart.map()));
-    json_map_test.testAtoB(json_map_test.jsonify(dart.map({a: 'b'})));
+    json_map_test.testAtoB(json_map_test.jsonify(dart.map({a: 'b'}, core.String, core.String)));
     let map = json_map_test.jsonify(dart.map());
     map[dartx.set]('a', 'b');
     json_map_test.testAtoB(map);
@@ -66,7 +67,7 @@ dart_library.library('corelib/json_map_test', null, /* Imports */[
     expect$.Expect.equals('b', map[dartx.putIfAbsent]('a', dart.fn(() => 'b', VoidToString())));
     json_map_test.testAtoB(map);
     map = json_map_test.jsonify(dart.map());
-    map[dartx.addAll](dart.map({a: 'b'}));
+    map[dartx.addAll](dart.map({a: 'b'}, core.String, core.String));
     json_map_test.testAtoB(map);
     json_map_test.testOrder(JSArrayOfString().of(['a', 'b', 'c', 'd', 'e', 'f']));
     json_map_test.testProto();
@@ -152,14 +153,14 @@ dart_library.library('corelib/json_map_test', null, /* Imports */[
   };
   dart.fn(json_map_test.testOrder, ListTovoid());
   json_map_test.testProto = function() {
-    let map = json_map_test.jsonify(dart.map({__proto__: 0}));
+    let map = json_map_test.jsonify(dart.map({__proto__: 0}, core.String, core.int));
     expect$.Expect.equals(1, map[dartx.length]);
     expect$.Expect.isTrue(map[dartx.containsKey]('__proto__'));
     expect$.Expect.listEquals(JSArrayOfString().of(['__proto__']), map[dartx.keys][dartx.toList]());
     expect$.Expect.equals(0, map[dartx.get]('__proto__'));
     expect$.Expect.equals(0, map[dartx.remove]('__proto__'));
     json_map_test.testEmpty(map);
-    map = json_map_test.jsonify(dart.map({__proto__: null}));
+    map = json_map_test.jsonify(dart.map({__proto__: null}, core.String, dart.dynamic));
     expect$.Expect.equals(1, map[dartx.length]);
     expect$.Expect.isTrue(map[dartx.containsKey]('__proto__'));
     expect$.Expect.listEquals(JSArrayOfString().of(['__proto__']), map[dartx.keys][dartx.toList]());
@@ -170,7 +171,7 @@ dart_library.library('corelib/json_map_test', null, /* Imports */[
   dart.fn(json_map_test.testProto, VoidTovoid());
   json_map_test.testToString = function() {
     expect$.Expect.equals("{}", dart.toString(json_map_test.jsonify(dart.map())));
-    expect$.Expect.equals("{a: 0}", dart.toString(json_map_test.jsonify(dart.map({a: 0}))));
+    expect$.Expect.equals("{a: 0}", dart.toString(json_map_test.jsonify(dart.map({a: 0}, core.String, core.int))));
   };
   dart.fn(json_map_test.testToString, VoidTovoid());
   json_map_test.testConcurrentModifications = function() {
@@ -226,10 +227,10 @@ dart_library.library('corelib/json_map_test', null, /* Imports */[
     expect$.Expect.isFalse(throwsCME(dart.fn(() => testKeys(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map()), dynamicTodynamic())), VoidTovoid())));
     expect$.Expect.isFalse(throwsCME(dart.fn(() => testValues(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map()), dynamicTodynamic())), VoidTovoid())));
     expect$.Expect.isFalse(throwsCME(dart.fn(() => testForEach(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map()), dynamicTodynamic())), VoidTovoid())));
-    expect$.Expect.isTrue(throwsCME(dart.fn(() => testKeys(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map({a: 0})), dynamicTodynamic())), VoidTovoid())));
-    expect$.Expect.isTrue(throwsCME(dart.fn(() => testValues(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map({a: 0})), dynamicTodynamic())), VoidTovoid())));
-    expect$.Expect.isFalse(throwsCME(dart.fn(() => testForEach(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map({a: 0})), dynamicTodynamic())), VoidTovoid())));
-    map = dart.map({a: 1});
+    expect$.Expect.isTrue(throwsCME(dart.fn(() => testKeys(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map({a: 0}, core.String, core.int)), dynamicTodynamic())), VoidTovoid())));
+    expect$.Expect.isTrue(throwsCME(dart.fn(() => testValues(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map({a: 0}, core.String, core.int)), dynamicTodynamic())), VoidTovoid())));
+    expect$.Expect.isFalse(throwsCME(dart.fn(() => testForEach(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map({a: 0}, core.String, core.int)), dynamicTodynamic())), VoidTovoid())));
+    map = dart.map({a: 1}, core.String, core.int);
     expect$.Expect.isFalse(throwsCME(dart.fn(() => testKeys(json_map_test.jsonify(map), dart.fn(map => dart.dsetindex(map, 'a', 0), dynamicToint())), VoidTovoid())));
     expect$.Expect.isFalse(throwsCME(dart.fn(() => testValues(json_map_test.jsonify(map), dart.fn(map => dart.dsetindex(map, 'a', 0), dynamicToint())), VoidTovoid())));
     expect$.Expect.isFalse(throwsCME(dart.fn(() => testForEach(json_map_test.jsonify(map), dart.fn(map => dart.dsetindex(map, 'a', 0), dynamicToint())), VoidTovoid())));
@@ -254,12 +255,12 @@ dart_library.library('corelib/json_map_test', null, /* Imports */[
     expect$.Expect.isFalse(throwsCME(dart.fn(() => testKeys(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map()), dynamicTodynamic())), VoidTovoid())));
     expect$.Expect.isFalse(throwsCME(dart.fn(() => testValues(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map()), dynamicTodynamic())), VoidTovoid())));
     expect$.Expect.isFalse(throwsCME(dart.fn(() => testForEach(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map()), dynamicTodynamic())), VoidTovoid())));
-    expect$.Expect.isFalse(throwsCME(dart.fn(() => testKeys(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map({a: 0})), dynamicTodynamic())), VoidTovoid())));
-    expect$.Expect.isFalse(throwsCME(dart.fn(() => testValues(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map({a: 0})), dynamicTodynamic())), VoidTovoid())));
-    expect$.Expect.isFalse(throwsCME(dart.fn(() => testForEach(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map({a: 0})), dynamicTodynamic())), VoidTovoid())));
-    expect$.Expect.isTrue(throwsCME(dart.fn(() => testKeys(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map({b: 0})), dynamicTodynamic())), VoidTovoid())));
-    expect$.Expect.isTrue(throwsCME(dart.fn(() => testValues(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map({b: 0})), dynamicTodynamic())), VoidTovoid())));
-    expect$.Expect.isTrue(throwsCME(dart.fn(() => testForEach(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map({b: 0})), dynamicTodynamic())), VoidTovoid())));
+    expect$.Expect.isFalse(throwsCME(dart.fn(() => testKeys(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map({a: 0}, core.String, core.int)), dynamicTodynamic())), VoidTovoid())));
+    expect$.Expect.isFalse(throwsCME(dart.fn(() => testValues(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map({a: 0}, core.String, core.int)), dynamicTodynamic())), VoidTovoid())));
+    expect$.Expect.isFalse(throwsCME(dart.fn(() => testForEach(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map({a: 0}, core.String, core.int)), dynamicTodynamic())), VoidTovoid())));
+    expect$.Expect.isTrue(throwsCME(dart.fn(() => testKeys(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map({b: 0}, core.String, core.int)), dynamicTodynamic())), VoidTovoid())));
+    expect$.Expect.isTrue(throwsCME(dart.fn(() => testValues(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map({b: 0}, core.String, core.int)), dynamicTodynamic())), VoidTovoid())));
+    expect$.Expect.isTrue(throwsCME(dart.fn(() => testForEach(json_map_test.jsonify(map), dart.fn(map => dart.dsend(map, 'addAll', dart.map({b: 0}, core.String, core.int)), dynamicTodynamic())), VoidTovoid())));
   };
   dart.fn(json_map_test.testConcurrentModifications, VoidTovoid());
   json_map_test.testType = function() {
@@ -282,13 +283,13 @@ dart_library.library('corelib/json_map_test', null, /* Imports */[
   };
   dart.fn(json_map_test.testNonStringKeys, VoidTovoid());
   json_map_test.testClear = function() {
-    let map = json_map_test.jsonify(dart.map({a: 0}));
+    let map = json_map_test.jsonify(dart.map({a: 0}, core.String, core.int));
     map[dartx.clear]();
     expect$.Expect.equals(0, map[dartx.length]);
   };
   dart.fn(json_map_test.testClear, VoidTovoid());
   json_map_test.testListEntry = function() {
-    let map = json_map_test.jsonify(dart.map({a: JSArrayOfObject().of([7, 8, dart.map({b: 9})])}));
+    let map = json_map_test.jsonify(dart.map({a: JSArrayOfObject().of([7, 8, dart.map({b: 9}, core.String, core.int)])}, core.String, ListOfObject()));
     let list = core.List._check(map[dartx.get]('a'));
     expect$.Expect.equals(3, list[dartx.length]);
     expect$.Expect.equals(7, list[dartx.get](0));
@@ -297,7 +298,7 @@ dart_library.library('corelib/json_map_test', null, /* Imports */[
   };
   dart.fn(json_map_test.testListEntry, VoidTovoid());
   json_map_test.testMutation = function() {
-    let map = json_map_test.jsonify(dart.map({a: 0}));
+    let map = json_map_test.jsonify(dart.map({a: 0}, core.String, core.int));
     expect$.Expect.listEquals(JSArrayOfObject().of(['a', 0]), json_map_test.listEach(map));
     map[dartx.set]('a', 1);
     expect$.Expect.listEquals(JSArrayOfObject().of(['a', 1]), json_map_test.listEach(map));

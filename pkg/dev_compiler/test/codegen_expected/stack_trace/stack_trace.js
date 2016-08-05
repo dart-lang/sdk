@@ -76,7 +76,7 @@ dart_library.library('stack_trace', null, /* Imports */[
             return async.Zone.current.handleUncaughtError(dart.dynamic)(error, stackTrace);
           }
 
-        }, VoidTodynamic()), {zoneSpecification: spec.toSpec(), zoneValues: dart.map([const$0 || (const$0 = dart.const(core.Symbol.new('stack_trace.stack_zone.spec'))), spec])}));
+        }, VoidTodynamic()), {zoneSpecification: spec.toSpec(), zoneValues: dart.map([const$0 || (const$0 = dart.const(core.Symbol.new('stack_trace.stack_zone.spec'))), spec], core.Symbol, src__stack_zone_specification.StackZoneSpecification)}));
       };
     }
     static track(futureOrStream) {

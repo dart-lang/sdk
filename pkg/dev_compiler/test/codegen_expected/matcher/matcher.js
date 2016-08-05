@@ -146,7 +146,7 @@ dart_library.library('matcher', null, /* Imports */[
     matches(item, matchState) {
       let f = this.featureValueOf(item);
       if (dart.test(this[_matcher].matches(f, matchState))) return true;
-      src__util.addStateInfo(matchState, dart.map({feature: f}));
+      src__util.addStateInfo(matchState, dart.map({feature: f}, core.String, dart.dynamic));
       return false;
     }
     describe(description) {
@@ -285,7 +285,7 @@ dart_library.library('matcher', null, /* Imports */[
         return true;
       } catch (e) {
         let s = dart.stackTrace(e);
-        src__util.addStateInfo(matchState, dart.map({exception: e, stack: s}));
+        src__util.addStateInfo(matchState, dart.map({exception: e, stack: s}, core.String, dart.dynamic));
         return false;
       }
 
@@ -893,20 +893,20 @@ dart_library.library('matcher', null, /* Imports */[
       let symbol = core.Symbol.new(this[_name$]);
       let candidate = classMirror.declarations[dartx.get](symbol);
       if (candidate == null) {
-        src__util.addStateInfo(matchState, dart.map({reason: dart.str`has no property named "${this[_name$]}"`}));
+        src__util.addStateInfo(matchState, dart.map({reason: dart.str`has no property named "${this[_name$]}"`}, core.String, core.String));
         return false;
       }
       let isInstanceField = mirrors.VariableMirror.is(candidate) && !dart.test(candidate.isStatic);
       let isInstanceGetter = mirrors.MethodMirror.is(candidate) && dart.test(candidate.isGetter) && !dart.test(candidate.isStatic);
       if (!(isInstanceField || isInstanceGetter)) {
-        src__util.addStateInfo(matchState, dart.map({reason: dart.str`has a member named "${this[_name$]}", but it is not an instance property`}));
+        src__util.addStateInfo(matchState, dart.map({reason: dart.str`has a member named "${this[_name$]}", but it is not an instance property`}, core.String, core.String));
         return false;
       }
       if (this[_matcher$] == null) return true;
       let result = mirror.getField(symbol);
       let resultMatches = this[_matcher$].matches(result.reflectee, matchState);
       if (!dart.test(resultMatches)) {
-        src__util.addStateInfo(matchState, dart.map({value: result.reflectee}));
+        src__util.addStateInfo(matchState, dart.map({value: result.reflectee}, core.String, dart.dynamic));
       }
       return resultMatches;
     }
@@ -1064,7 +1064,7 @@ dart_library.library('matcher', null, /* Imports */[
       } else {
         reason = '';
       }
-      src__util.addStateInfo(matchState, dart.map({reason: reason}));
+      src__util.addStateInfo(matchState, dart.map({reason: reason}, core.String, dart.dynamic));
       return core.String._check(reason);
     }
     matches(item, matchState) {
@@ -1326,7 +1326,7 @@ dart_library.library('matcher', null, /* Imports */[
       let i = 0;
       for (let element of core.Iterable._check(item)) {
         if (!dart.test(this[_matcher$0].matches(element, matchState))) {
-          src__util.addStateInfo(matchState, dart.map({index: i, element: element}));
+          src__util.addStateInfo(matchState, dart.map({index: i, element: element}, core.String, dart.dynamic));
           return false;
         }
         ++i;
@@ -1494,7 +1494,7 @@ dart_library.library('matcher', null, /* Imports */[
       for (let e of this[_expected$]) {
         dart.dsend(iterator, 'moveNext');
         if (!dart.test(dart.dcall(this[_comparator], e, dart.dload(iterator, 'current')))) {
-          src__util.addStateInfo(matchState, dart.map({index: i, expected: e, actual: dart.dload(iterator, 'current')}));
+          src__util.addStateInfo(matchState, dart.map({index: i, expected: e, actual: dart.dload(iterator, 'current')}, core.String, dart.dynamic));
           return false;
         }
         i++;
@@ -1685,7 +1685,7 @@ dart_library.library('matcher', null, /* Imports */[
     matches(item, matchState) {
       for (let matcher of this[_matchers]) {
         if (!dart.test(matcher.matches(item, matchState))) {
-          src__util.addStateInfo(matchState, dart.map({matcher: matcher}));
+          src__util.addStateInfo(matchState, dart.map({matcher: matcher}, core.String, src__interfaces.Matcher));
           return false;
         }
       }
@@ -1981,7 +1981,7 @@ dart_library.library('matcher', null, /* Imports */[
   };
   dart.fn(src__string_matchers._isWhitespace, StringTobool());
   src__util._Predicate = dart.typedef('_Predicate', () => dart.functionType(core.bool, [dart.dynamic]));
-  src__util._escapeMap = dart.const(dart.map({'\n': '\\n', '\r': '\\r', '\f': '\\f', '\b': '\\b', '\t': '\\t', '\v': '\\v', '': '\\x7F'}));
+  src__util._escapeMap = dart.const(dart.map({'\n': '\\n', '\r': '\\r', '\f': '\\f', '\b': '\\b', '\t': '\\t', '\v': '\\v', '': '\\x7F'}, core.String, core.String));
   dart.defineLazy(src__util, {
     get _escapeRegExp() {
       return core.RegExp.new(dart.str`[\\x00-\\x07\\x0E-\\x1F${src__util._escapeMap[dartx.keys][dartx.map](core.String)(src__util._getHexLiteral)[dartx.join]()}]`);

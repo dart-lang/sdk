@@ -28,7 +28,7 @@ dart_library.library('language/issue10204_test', null, /* Imports */[
   });
   issue10204_test.Node = class Node extends core.Object {
     new() {
-      this.inputs = dart.map({a: dart.const(new issue10204_test.Tupe()), b: dart.const(new issue10204_test.Tupe())});
+      this.inputs = dart.map({a: dart.const(new issue10204_test.Tupe()), b: dart.const(new issue10204_test.Tupe())}, core.String, issue10204_test.Tupe);
       this.selector = null;
       this.isCallOnInterceptor = false;
     }

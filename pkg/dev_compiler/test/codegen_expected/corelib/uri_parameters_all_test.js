@@ -10,6 +10,7 @@ dart_library.library('corelib/uri_parameters_all_test', null, /* Imports */[
   const expect$ = expect.expect;
   const uri_parameters_all_test = Object.create(null);
   let JSArrayOfString = () => (JSArrayOfString = dart.constFn(_interceptors.JSArray$(core.String)))();
+  let ListOfString = () => (ListOfString = dart.constFn(core.List$(core.String)))();
   let MapOfString$dynamic = () => (MapOfString$dynamic = dart.constFn(core.Map$(core.String, dart.dynamic)))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   let ListTodynamic = () => (ListTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.List])))();
@@ -20,14 +21,14 @@ dart_library.library('corelib/uri_parameters_all_test', null, /* Imports */[
     uri_parameters_all_test.testAll(JSArrayOfString().of(["a"]));
     uri_parameters_all_test.testAll(JSArrayOfString().of(["", ""]));
     uri_parameters_all_test.testAll(JSArrayOfString().of(["baz"]));
-    uri_parameters_all_test.testParse("z&y&w&z", dart.map({z: JSArrayOfString().of(["", ""]), y: JSArrayOfString().of([""]), w: JSArrayOfString().of([""])}));
-    uri_parameters_all_test.testParse("x=42&y=42&x=37&y=37", dart.map({x: JSArrayOfString().of(["42", "37"]), y: JSArrayOfString().of(["42", "37"])}));
-    uri_parameters_all_test.testParse("x&x&x&x&x", dart.map({x: JSArrayOfString().of(["", "", "", "", ""])}));
-    uri_parameters_all_test.testParse("x=&&y", dart.map({x: JSArrayOfString().of([""]), y: JSArrayOfString().of([""])}));
+    uri_parameters_all_test.testParse("z&y&w&z", dart.map({z: JSArrayOfString().of(["", ""]), y: JSArrayOfString().of([""]), w: JSArrayOfString().of([""])}, core.String, ListOfString()));
+    uri_parameters_all_test.testParse("x=42&y=42&x=37&y=37", dart.map({x: JSArrayOfString().of(["42", "37"]), y: JSArrayOfString().of(["42", "37"])}, core.String, ListOfString()));
+    uri_parameters_all_test.testParse("x&x&x&x&x", dart.map({x: JSArrayOfString().of(["", "", "", "", ""])}, core.String, ListOfString()));
+    uri_parameters_all_test.testParse("x=&&y", dart.map({x: JSArrayOfString().of([""]), y: JSArrayOfString().of([""])}, core.String, ListOfString()));
   };
   dart.fn(uri_parameters_all_test.main, VoidTodynamic());
   uri_parameters_all_test.testAll = function(values) {
-    let uri = core.Uri.new({scheme: "foo", path: "bar", queryParameters: dart.map({baz: values})});
+    let uri = core.Uri.new({scheme: "foo", path: "bar", queryParameters: dart.map({baz: values}, core.String, dart.dynamic)});
     let list = uri.queryParametersAll[dartx.get]("baz");
     expect$.Expect.listEquals(values, list);
   };

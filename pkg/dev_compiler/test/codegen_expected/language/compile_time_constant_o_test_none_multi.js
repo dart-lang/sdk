@@ -10,15 +10,15 @@ dart_library.library('language/compile_time_constant_o_test_none_multi', null, /
   const compile_time_constant_o_test_none_multi = Object.create(null);
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   compile_time_constant_o_test_none_multi.str = "foo";
-  compile_time_constant_o_test_none_multi.m1 = dart.const(dart.map({foo: 499}));
-  compile_time_constant_o_test_none_multi.m2 = dart.const(dart.map({[dart.str`${compile_time_constant_o_test_none_multi.str}`]: 499}));
-  compile_time_constant_o_test_none_multi.m3 = dart.const(dart.map({foo: 499}));
-  compile_time_constant_o_test_none_multi.m4 = dart.const(dart.map({[dart.str`${compile_time_constant_o_test_none_multi.str}`]: 499}));
-  compile_time_constant_o_test_none_multi.m5 = dart.const(dart.map({["f" + "o" + "o"]: 499}));
-  compile_time_constant_o_test_none_multi.mm1 = dart.const(dart.map({"afoo#foo": 499}));
-  compile_time_constant_o_test_none_multi.mm2 = dart.const(dart.map({[dart.str`a${compile_time_constant_o_test_none_multi.str}#${compile_time_constant_o_test_none_multi.str}`]: 499}));
-  compile_time_constant_o_test_none_multi.mm3 = dart.const(dart.map({["a" + dart.str`${compile_time_constant_o_test_none_multi.str}` + "#" + "foo"]: 499}));
-  compile_time_constant_o_test_none_multi.mm4 = dart.const(dart.map({[dart.str`a${compile_time_constant_o_test_none_multi.str}` + dart.str`#${compile_time_constant_o_test_none_multi.str}`]: 499}));
+  compile_time_constant_o_test_none_multi.m1 = dart.const(dart.map({foo: 499}, core.String, core.int));
+  compile_time_constant_o_test_none_multi.m2 = dart.const(dart.map({[dart.str`${compile_time_constant_o_test_none_multi.str}`]: 499}, core.String, core.int));
+  compile_time_constant_o_test_none_multi.m3 = dart.const(dart.map({foo: 499}, core.String, core.int));
+  compile_time_constant_o_test_none_multi.m4 = dart.const(dart.map({[dart.str`${compile_time_constant_o_test_none_multi.str}`]: 499}, core.String, core.int));
+  compile_time_constant_o_test_none_multi.m5 = dart.const(dart.map({["f" + "o" + "o"]: 499}, core.String, core.int));
+  compile_time_constant_o_test_none_multi.mm1 = dart.const(dart.map({"afoo#foo": 499}, core.String, core.int));
+  compile_time_constant_o_test_none_multi.mm2 = dart.const(dart.map({[dart.str`a${compile_time_constant_o_test_none_multi.str}#${compile_time_constant_o_test_none_multi.str}`]: 499}, core.String, core.int));
+  compile_time_constant_o_test_none_multi.mm3 = dart.const(dart.map({["a" + dart.str`${compile_time_constant_o_test_none_multi.str}` + "#" + "foo"]: 499}, core.String, core.int));
+  compile_time_constant_o_test_none_multi.mm4 = dart.const(dart.map({[dart.str`a${compile_time_constant_o_test_none_multi.str}` + dart.str`#${compile_time_constant_o_test_none_multi.str}`]: 499}, core.String, core.int));
   compile_time_constant_o_test_none_multi.main = function() {
     expect$.Expect.equals(1, compile_time_constant_o_test_none_multi.m1[dartx.length]);
     expect$.Expect.equals(499, compile_time_constant_o_test_none_multi.m1[dartx.get]("foo"));

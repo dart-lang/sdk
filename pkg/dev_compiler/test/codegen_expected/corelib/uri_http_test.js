@@ -34,8 +34,8 @@ dart_library.library('corelib/uri_http_test', null, /* Imports */[
     check(core.Uri.http("host", "/a b/"), "http://host/a%20b/");
     check(core.Uri.http("host", "/a%2F"), "http://host/a%252F");
     check(core.Uri.http("host", "/a%2F/"), "http://host/a%252F/");
-    check(core.Uri.http("host", "/a/b", dart.map({c: "d"})), "http://host/a/b?c=d");
-    check(core.Uri.http("host", "/a/b", dart.map({"c=": "&d"})), "http://host/a/b?c%3D=%26d");
+    check(core.Uri.http("host", "/a/b", dart.map({c: "d"}, core.String, core.String)), "http://host/a/b?c=d");
+    check(core.Uri.http("host", "/a/b", dart.map({"c=": "&d"}, core.String, core.String)), "http://host/a/b?c%3D=%26d");
     check(core.Uri.http("[::]", "a"), "http://[::]/a");
     check(core.Uri.http("[::127.0.0.1]", "a"), "http://[::127.0.0.1]/a");
   };
@@ -64,8 +64,8 @@ dart_library.library('corelib/uri_http_test', null, /* Imports */[
     check(core.Uri.https("host", "/a b/"), "https://host/a%20b/");
     check(core.Uri.https("host", "/a%2F"), "https://host/a%252F");
     check(core.Uri.https("host", "/a%2F/"), "https://host/a%252F/");
-    check(core.Uri.https("host", "/a/b", dart.map({c: "d"})), "https://host/a/b?c=d");
-    check(core.Uri.https("host", "/a/b", dart.map({"c=": "&d"})), "https://host/a/b?c%3D=%26d");
+    check(core.Uri.https("host", "/a/b", dart.map({c: "d"}, core.String, core.String)), "https://host/a/b?c=d");
+    check(core.Uri.https("host", "/a/b", dart.map({"c=": "&d"}, core.String, core.String)), "https://host/a/b?c%3D=%26d");
     check(core.Uri.https("[::]", "a"), "https://[::]/a");
     check(core.Uri.https("[::127.0.0.1]", "a"), "https://[::127.0.0.1]/a");
   };

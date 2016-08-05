@@ -9,7 +9,7 @@ dart_library.library('language/map_literal1_test_none_multi', null, /* Imports *
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   let const$;
   map_literal1_test_none_multi.main = function() {
-    let m = const$ || (const$ = dart.const(dart.map({a: 0})));
+    let m = const$ || (const$ = dart.const(dart.map({a: 0}, core.String, core.int)));
   };
   dart.fn(map_literal1_test_none_multi.main, VoidTodynamic());
   // Exports:

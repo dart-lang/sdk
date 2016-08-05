@@ -317,7 +317,7 @@ dart_library.library('corelib/uri_test', null, /* Imports */[
         let fragment = dart.test(uri1.hasFragment) ? uri1.fragment : null;
         let tmp1 = uri1;
         function test() {
-          let tmp2 = core.Uri.new({scheme: scheme, userInfo: userInfo, host: host, port: port, path: path, query: query == "" ? null : query, queryParameters: query == "" ? dart.map() : null, fragment: fragment});
+          let tmp2 = core.Uri.new({scheme: scheme, userInfo: userInfo, host: host, port: port, path: path, query: query == "" ? null : query, queryParameters: query == "" ? dart.map({}, core.String, dart.dynamic) : null, fragment: fragment});
           expect$.Expect.equals(tmp1, tmp2);
         }
         dart.fn(test, VoidTovoid());
@@ -351,7 +351,7 @@ dart_library.library('corelib/uri_test', null, /* Imports */[
     uri = uri.replace({fragment: "fragment"});
     expect$.Expect.isFalse(uri.hasAuthority);
     uri = core.Uri.new({scheme: "foo", path: "bar"});
-    uri = uri.replace({queryParameters: dart.map({x: JSArrayOfString().of(["42", "37"]), y: JSArrayOfString().of(["43", "38"])})});
+    uri = uri.replace({queryParameters: dart.map({x: JSArrayOfString().of(["42", "37"]), y: JSArrayOfString().of(["43", "38"])}, core.String, dart.dynamic)});
     let params = uri.queryParametersAll;
     expect$.Expect.equals(2, params[dartx.length]);
     expect$.Expect.listEquals(JSArrayOfString().of(["42", "37"]), params[dartx.get]("x"));

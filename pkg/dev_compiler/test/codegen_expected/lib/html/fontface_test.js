@@ -16,7 +16,7 @@ dart_library.library('lib/html/fontface_test', null, /* Imports */[
   fontface_test.main = function() {
     html_config.useHtmlConfiguration();
     unittest$.test("Creation with parameters", dart.fn(() => {
-      let font = html.FontFace.new('Ahem', 'url(Ahem.ttf)', dart.map({variant: 'small-caps'}));
+      let font = html.FontFace.new('Ahem', 'url(Ahem.ttf)', dart.map({variant: 'small-caps'}, core.String, core.String));
       src__matcher__expect.expect(html.FontFace.is(font), src__matcher__core_matchers.isTrue);
       src__matcher__expect.expect(font[dartx.family], 'Ahem');
       src__matcher__expect.expect(font[dartx.variant], 'small-caps');

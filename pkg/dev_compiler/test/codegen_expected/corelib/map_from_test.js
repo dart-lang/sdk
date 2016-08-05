@@ -21,7 +21,7 @@ dart_library.library('corelib/map_from_test', null, /* Imports */[
   dart.fn(map_from_test.main, VoidTodynamic());
   let const$;
   map_from_test.testWithConstMap = function() {
-    let map = const$ || (const$ = dart.const(dart.map({b: 42, a: 43})));
+    let map = const$ || (const$ = dart.const(dart.map({b: 42, a: 43}, core.String, core.int)));
     let otherMap = core.Map.from(map);
     expect$.Expect.isTrue(core.Map.is(otherMap));
     expect$.Expect.isTrue(collection.HashMap.is(otherMap));
@@ -41,7 +41,7 @@ dart_library.library('corelib/map_from_test', null, /* Imports */[
   };
   dart.fn(map_from_test.testWithConstMap, VoidTodynamic());
   map_from_test.testWithNonConstMap = function() {
-    let map = dart.map({b: 42, a: 43});
+    let map = dart.map({b: 42, a: 43}, core.String, core.int);
     let otherMap = core.Map.from(map);
     expect$.Expect.isTrue(core.Map.is(otherMap));
     expect$.Expect.isTrue(collection.HashMap.is(otherMap));
@@ -74,7 +74,7 @@ dart_library.library('corelib/map_from_test', null, /* Imports */[
   dart.fn(map_from_test.testWithNonConstMap, VoidTodynamic());
   let const$0;
   map_from_test.testWithHashMap = function() {
-    let map = const$0 || (const$0 = dart.const(dart.map({b: 1, a: 2, c: 3})));
+    let map = const$0 || (const$0 = dart.const(dart.map({b: 1, a: 2, c: 3}, core.String, core.int)));
     let otherMap = collection.HashMap.from(map);
     expect$.Expect.isTrue(core.Map.is(otherMap));
     expect$.Expect.isTrue(collection.HashMap.is(otherMap));
@@ -87,7 +87,7 @@ dart_library.library('corelib/map_from_test', null, /* Imports */[
   dart.fn(map_from_test.testWithHashMap, VoidTodynamic());
   let const$1;
   map_from_test.testWithLinkedMap = function() {
-    let map = const$1 || (const$1 = dart.const(dart.map({b: 1, a: 2, c: 3})));
+    let map = const$1 || (const$1 = dart.const(dart.map({b: 1, a: 2, c: 3}, core.String, core.int)));
     let otherMap = collection.LinkedHashMap.from(map);
     expect$.Expect.isTrue(core.Map.is(otherMap));
     expect$.Expect.isTrue(collection.HashMap.is(otherMap));

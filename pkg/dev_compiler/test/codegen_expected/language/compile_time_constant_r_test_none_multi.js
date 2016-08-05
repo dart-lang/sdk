@@ -8,7 +8,7 @@ dart_library.library('language/compile_time_constant_r_test_none_multi', null, /
   const compile_time_constant_r_test_none_multi = Object.create(null);
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   compile_time_constant_r_test_none_multi.x = "x";
-  compile_time_constant_r_test_none_multi.y = dart.const(dart.map([0, "y"]));
+  compile_time_constant_r_test_none_multi.y = dart.const(dart.map([0, "y"], core.int, core.String));
   compile_time_constant_r_test_none_multi.main = function() {
     core.print(compile_time_constant_r_test_none_multi.x);
     core.print(compile_time_constant_r_test_none_multi.y);

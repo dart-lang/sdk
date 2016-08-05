@@ -12,12 +12,12 @@ dart_library.library('language/map_literal9_test', null, /* Imports */[
   let const$;
   let const$0;
   map_literal9_test.main = function() {
-    let m1 = const$ || (const$ = dart.const(dart.map({"[object Object]": 0, "1": 1})));
+    let m1 = const$ || (const$ = dart.const(dart.map({"[object Object]": 0, "1": 1}, core.String, core.int)));
     expect$.Expect.isFalse(m1[dartx.containsKey](new core.Object()));
     expect$.Expect.isNull(m1[dartx.get](new core.Object()));
     expect$.Expect.isFalse(m1[dartx.containsKey](1));
     expect$.Expect.isNull(m1[dartx.get](1));
-    let m2 = const$0 || (const$0 = dart.const(dart.map({"[object Object]": 0, "1": 1, __proto__: 2})));
+    let m2 = const$0 || (const$0 = dart.const(dart.map({"[object Object]": 0, "1": 1, __proto__: 2}, core.String, core.int)));
     expect$.Expect.isFalse(m2[dartx.containsKey](new core.Object()));
     expect$.Expect.isNull(m2[dartx.get](new core.Object()));
     expect$.Expect.isFalse(m2[dartx.containsKey](1));

@@ -33,7 +33,7 @@ dart_library.library('language/static_const_field_test', null, /* Imports */[
   static_const_field_test.A.artist2 = static_const_field_test.Switzerland.AG;
   static_const_field_test.A.architect1 = static_const_field_test.Spain.AG;
   static_const_field_test.A.array1 = dart.constList([1, 2], core.int);
-  static_const_field_test.A.map1 = dart.const(dart.map({Monday: 1, Tuesday: 2}));
+  static_const_field_test.A.map1 = dart.const(dart.map({Monday: 1, Tuesday: 2}, core.String, core.int));
   dart.defineLazy(static_const_field_test.A, {
     get a() {
       return dart.const(new static_const_field_test.A());
