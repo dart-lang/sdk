@@ -45,7 +45,38 @@ class StrongTypeSystemImpl extends TypeSystem {
   }
 
   @override
-  bool canPromoteToType(DartType to, DartType from) => isSubtypeOf(to, from);
+  bool canPromoteToType(DartType to, DartType from) {
+    // Allow promoting to a subtype, for example:
+    //
+    //     f(Base b) {
+    //       if (b is SubTypeOfBase) {
+    //         // promote `b` to SubTypeOfBase for this block
+    //       }
+    //     }
+    //
+    // This allows the variable to be used wherever the supertype (here `Base`)
+    // is expected, while gaining a more precise type.
+    if (isSubtypeOf(to, from)) {
+      return true;
+    }
+    // For a type parameter `T extends U`, allow promoting from the upper bound
+    // `U` to `S` where `S <: U`.
+    //
+    // This does restrict the variable, because `S </: T`, it can no longer be
+    // used as a `T` without another cast.
+    //
+    // However the members you could access from a variable of type `T`, were
+    // already those on the upper bound `U`. So all members on `U` will be
+    // accessible, as well as those on `S`. Pragmatically this feels like a
+    // useful enough trade-off to allow promotion.
+    //
+    // (In general we would need union types to support this feature precisely.)
+    if (from is TypeParameterType) {
+      return isSubtypeOf(to, from.resolveToBound(DynamicTypeImpl.instance));
+    }
+
+    return false;
+  }
 
   @override
   FunctionType functionTypeToConcreteType(

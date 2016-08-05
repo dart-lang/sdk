@@ -3422,6 +3422,29 @@ g() {
 ''');
   }
 
+  void test_typePromotionFromTypeParameter() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26965
+    checkFile(r'''
+void f/*<T>*/(/*=T*/ object) {
+  if (object is String) print(object.substring(1));
+}
+void g/*<T extends num>*/(/*=T*/ object) {
+  if (object is int) print(object.isEven);
+  if (object is String) print(/*info:DYNAMIC_INVOKE*/object.substring(1));
+}
+class Clonable<T> {}
+class SubClonable<T> extends Clonable<T> {
+  T m(T t) => t;
+}
+void h/*<T extends Clonable<T>>*/(/*=T*/ object) {
+  if (/*info:NON_GROUND_TYPE_CHECK_INFO*/object is SubClonable/*<T>*/) {
+    // Note we need to cast back to T, because promotion lost that type info.
+    print(object.m(object as dynamic/*=T*/));
+  }
+}
+''');
+  }
+
   void test_typeSubtyping_assigningClass() {
     checkFile('''
 class A {}

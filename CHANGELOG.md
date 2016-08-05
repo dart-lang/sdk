@@ -7,9 +7,19 @@
     on Mac. Was already non-blocking on all other platforms.
   * Report a better error when a bind fails because of a bad source address.
 
-### Analyzer
+### Strong Mode
 
-*   Strong mode breaking change - infer generic type arguments from the
+*   New feature - an option to disable implicit casts
+    (SDK issue [26583](https://github.com/dart-lang/sdk/issues/26583)),
+    see the [documentation](https://github.com/dart-lang/dev_compiler/blob/master/doc/STATIC_SAFETY.md#disable-implicit-casts)
+    for usage instructions and examples.
+
+*   New feature - an option to disable implicit dynamic
+    (SDK issue [25573](https://github.com/dart-lang/sdk/issues/25573)),
+    see the [documentation](https://github.com/dart-lang/dev_compiler/blob/master/doc/STATIC_SAFETY.md#disable-implicit-dynamic)
+    for usage instructions and examples.
+
+*   Breaking change - infer generic type arguments from the
     constructor invocation arguments
     (SDK issue [25220](https://github.com/dart-lang/sdk/issues/25220))
 
@@ -20,7 +30,7 @@
     var otherMap = new Map.from(map);
     ```
 
-*   Strong mode breaking change - infer local function return type
+*   Breaking change - infer local function return type
     (SDK issue [26414](https://github.com/dart-lang/sdk/issues/26414))
 
     ```dart
@@ -29,6 +39,19 @@
       f() { return 40; }
       int y = f() + 2; // type checks
       print(y);
+    }
+    ```
+
+*   Breaking change - allow type promotion from a generic type parameter
+    (SDK issue [26414](https://github.com/dart-lang/sdk/issues/26965))
+
+    ```dart
+    void fn/*<T>*/(/*=T*/ object) {
+      if (object is String) {
+        // Treat `object` as `String` inside this block.
+        // But it will require a cast to pass it to something that expects `T`.
+        print(object.substring(1));
+      }
     }
     ```
 
