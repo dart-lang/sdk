@@ -16,10 +16,7 @@ main() {
     subscription = stream.listen(expectAsync((data) {
       expect(data, isNull);
       receivedCount++;
-      if (receivedCount == 5) {
-        var future = subscription.cancel();
-        expect(future, completes);
-      }
+      if (receivedCount == 5) subscription.cancel();
     }, count: 5));
   });
 }
