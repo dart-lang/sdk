@@ -1,10 +1,11 @@
 #if defined(__aarch64__)
-#include "arm_arch.h"
+#include <openssl/arm_arch.h>
 
 .text
 
 
 .globl	sha512_block_data_order
+.hidden	sha512_block_data_order
 .type	sha512_block_data_order,%function
 .align	6
 sha512_block_data_order:

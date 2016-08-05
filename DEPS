@@ -43,7 +43,7 @@ vars = {
   "barback_tag" : "@0.15.2+7",
   "bazel_worker_tag": "@v0.1.0",
   "boolean_selector_tag" : "@1.0.0",
-  "boringssl_rev" : "@daeafc22c66ad48f6b32fc8d3362eb9ba31b774e",
+  "boringssl_rev" : "@8d343b44bbab829d1a28fdef650ca95f7db4412e",
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
   "cli_util_tag" : "@0.0.1+2",
