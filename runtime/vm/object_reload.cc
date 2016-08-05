@@ -81,7 +81,7 @@ void Code::ResetICDatas(Zone* zone) const {
     }
     object = raw_object;
     if (object.IsICData()) {
-      ICData::Cast(object).Reset();
+      ICData::Cast(object).Reset(zone);
     }
   }
 #else
