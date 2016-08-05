@@ -3,23 +3,22 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:html';
 import 'package:unittest/unittest.dart';
-import 'package:observatory/mocks.dart';
 import 'package:observatory/src/elements/function_ref.dart';
+import '../mocks.dart';
 
 main(){
   FunctionRefElement.tag.ensureRegistration();
 
-  final IsolateRefMock isolate = new IsolateRefMock(id: 'i-id', name: 'i-name');
-  final FunctionRefMock function = new FunctionRefMock(id: 'f-id',
-      name: 'f-name');
+  final isolate = new IsolateRefMock(id: 'i-id', name: 'i-name');
+  final function = new FunctionRefMock(id: 'f-id', name: 'f-name');
   test('instantiation', () {
-    final FunctionRefElement e = new FunctionRefElement(isolate, function);
+    final e = new FunctionRefElement(isolate, function);
     expect(e, isNotNull, reason: 'element correctly created');
     expect(e.isolate, equals(isolate));
     expect(e.function, equals(function));
   });
   test('elements created after attachment', () async {
-    final FunctionRefElement e = new FunctionRefElement(isolate, function);
+    final e = new FunctionRefElement(isolate, function);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');

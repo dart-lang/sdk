@@ -31,6 +31,7 @@ class NavNotifyExceptionElement extends HtmlElement implements Renderable {
 
   Exception _exception;
   StackTrace _stacktrace;
+  
   Exception get exception => _exception;
   StackTrace get stacktrace => _stacktrace;
 

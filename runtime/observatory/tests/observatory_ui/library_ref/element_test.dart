@@ -3,22 +3,22 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:html';
 import 'package:unittest/unittest.dart';
-import 'package:observatory/mocks.dart';
 import 'package:observatory/src/elements/library_ref.dart';
+import '../mocks.dart';
 
 main(){
   LibraryRefElement.tag.ensureRegistration();
 
-  final IsolateRefMock isolate = new IsolateRefMock(id: 'i-id', name: 'i-name');
-  final LibraryRefMock library = new LibraryRefMock(id: 'c-id', name: 'c-name');
+  const isolate = const IsolateRefMock(id: 'i-id', name: 'i-name');
+  const library = const LibraryRefMock(id: 'c-id', name: 'c-name');
   test('instantiation', () {
-    final LibraryRefElement e = new LibraryRefElement(isolate, library);
+    final e = new LibraryRefElement(isolate, library);
     expect(e, isNotNull, reason: 'element correctly created');
     expect(e.isolate, equals(isolate));
     expect(e.library, equals(library));
   });
   test('elements created after attachment', () async {
-    final LibraryRefElement e = new LibraryRefElement(isolate, library);
+    final e = new LibraryRefElement(isolate, library);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');

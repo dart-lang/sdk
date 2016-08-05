@@ -3,14 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:html';
 import 'package:unittest/unittest.dart';
-import 'package:observatory/models.dart';
-import 'package:observatory/mocks.dart';
 import 'package:observatory/src/elements/error_ref.dart';
+import '../mocks.dart';
 
 main() {
   ErrorRefElement.tag.ensureRegistration();
 
-  final ErrorRef ref = new ErrorRefMock(id: 'id', message: 'fixed-error-m');
+  final ref = new ErrorRefMock(id: 'id', message: 'fixed-error-m');
   test('instantiation', () {
     final ErrorRefElement e = new ErrorRefElement(ref);
     expect(e, isNotNull, reason: 'element correctly created');

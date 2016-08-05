@@ -52,8 +52,8 @@ class FunctionRefElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    _r.disable(notify: true);
     children = [];
+    _r.disable(notify: true);
   }
 
   void render() {

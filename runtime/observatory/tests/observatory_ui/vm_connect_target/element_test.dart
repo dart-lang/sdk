@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:html';
 import 'package:unittest/unittest.dart';
-import 'package:observatory/mocks.dart';
 import 'package:observatory/src/elements/vm_connect_target.dart';
+import '../mocks.dart';
 
 main() {
   VMConnectTargetElement.tag.ensureRegistration();
@@ -15,28 +15,26 @@ main() {
   });
   group('instantiation', () {
     test('no other parameters', () {
-      final VMConnectTargetElement e = new VMConnectTargetElement(t);
+      final e = new VMConnectTargetElement(t);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.target, t, reason: 'target not setted');
       expect(e.current, isFalse, reason: 'default to not current');
     });
     test('isCurrent: false', () {
-      final VMConnectTargetElement e = new VMConnectTargetElement(t,
-                                            current:false);
+      final e = new VMConnectTargetElement(t, current:false);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.target, t, reason: 'target not setted');
       expect(e.current, isFalse, reason: 'default to not current');
     });
     test('isCurrent: true', () {
-      final VMConnectTargetElement e = new VMConnectTargetElement(t,
-                                            current:true);
+      final e = new VMConnectTargetElement(t, current:true);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.target, t, reason: 'target not setted');
       expect(e.current, isTrue, reason: 'default to not current');
     });
   });
   test('elements created after attachment', () async {
-    final VMConnectTargetElement e = new VMConnectTargetElement(t);
+    final e = new VMConnectTargetElement(t);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');

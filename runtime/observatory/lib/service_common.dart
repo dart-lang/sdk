@@ -91,6 +91,8 @@ abstract class CommonWebSocketVM extends VM {
   bool _hasFinishedConnect = false;
   Utf8Decoder _utf8Decoder = const Utf8Decoder();
 
+  String get displayName => '${name}@${target.name}';
+
   CommonWebSocket _webSocket;
 
   CommonWebSocketVM(this.target, this._webSocket) {

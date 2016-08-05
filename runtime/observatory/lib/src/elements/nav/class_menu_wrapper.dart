@@ -21,13 +21,17 @@ class NavClassMenuElementWrapper extends HtmlElement {
 
   bool _last = false;
   Class _cls;
+
   bool get last => _last;
   Class get cls => _cls;
+  
   set last(bool value) {
-    _last = value; render();
+    _last = value;
+    render();
   }
   set cls(Class value) {
-    _cls = value; render();
+    _cls = value;
+    render();
   }
 
   NavClassMenuElementWrapper.created() : super.created() {
@@ -45,7 +49,9 @@ class NavClassMenuElementWrapper extends HtmlElement {
 
   void render() {
     shadowRoot.children = [];
-    if (_cls == null || _last == null) return;
+    if (_cls == null || _last == null) {
+      return;
+    }
 
     shadowRoot.children = [
       new NavClassMenuElement(cls.isolate, cls, last: last,

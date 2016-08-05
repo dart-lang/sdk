@@ -12,12 +12,12 @@ main() {
     final label = 'custom-label';
     final link = 'link-to-target';
     test('label', () {
-      final NavMenuItemElement e = new NavMenuItemElement(label);
+      final e = new NavMenuItemElement(label);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.label, equals(label), reason: 'element correctly created');
     });
     test('label', () {
-      final NavMenuItemElement e = new NavMenuItemElement(label, link: link);
+      final e = new NavMenuItemElement(label, link: link);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.link, equals(link), reason: 'element correctly created');
     });
@@ -25,7 +25,7 @@ main() {
   group('elements', () {
     test('created', () async {
       final label = 'custom-label';
-      final NavMenuItemElement e = new NavMenuItemElement(label);
+      final e = new NavMenuItemElement(label);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.shadowRoot.children.length, isNonZero, reason: 'has elements');
@@ -38,7 +38,7 @@ main() {
     test('react to label change', () async {
       final label1 = 'custom-label-1';
       final label2 = 'custom-label-2';
-      final NavMenuItemElement e = new NavMenuItemElement(label1);
+      final e = new NavMenuItemElement(label1);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.shadowRoot.innerHtml.contains(label1), isTrue);
@@ -54,7 +54,7 @@ main() {
       final label = 'custom-label';
       final link1 = 'custom-label-1';
       final link2 = 'custom-label-2';
-      final NavMenuItemElement e = new NavMenuItemElement(label, link: link1);
+      final e = new NavMenuItemElement(label, link: link1);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.shadowRoot.innerHtml.contains(link1), isTrue);

@@ -10,6 +10,7 @@ class ObservatoryApplication extends Observable {
   static ObservatoryApplication app;
   final RenderingQueue queue = new RenderingQueue();
   final TargetRepository targets = new TargetRepository();
+  final EventRepository events = new EventRepository();
   final NotificationRepository notifications = new NotificationRepository();
   final _pageRegistry = new List<Page>();
   LocationManager _locationManager;
@@ -40,11 +41,11 @@ class ObservatoryApplication extends Observable {
           // This disconnect event occured *after* a new VM was installed.
           return;
         }
-        notifications.add(
-            new EventNotification.fromServiceEvent(
-              new ServiceEvent.connectionClosed(reason)));
+        events.add(new ConnectionClosedEvent(new DateTime.now(), reason));
       });
 
+      // TODO(cbernaschina) smart connection of streams in the events object.
+      vm.listenEventStream(VM.kVMStream, _onEvent);
       vm.listenEventStream(VM.kIsolateStream, _onEvent);
       vm.listenEventStream(VM.kDebugStream, _onEvent);
     }
@@ -65,48 +66,84 @@ class ObservatoryApplication extends Observable {
     locationManager._visit();
   }
 
+  void _deletePauseEvents(e) {
+    notifications.deletePauseEvents(isolate: e.isolate);
+  }
+  void _addNotification(M.Event e) {
+    notifications.add(new EventNotification(e));
+  }
+
   void _onEvent(ServiceEvent event) {
     assert(event.kind != ServiceEvent.kNone);
 
+    M.Event e;
+
     switch(event.kind) {
       case ServiceEvent.kVMUpdate:
+        e = new VMUpdateEvent(event.timestamp, event.vm);
+        break;
       case ServiceEvent.kIsolateStart:
+        e = new IsolateStartEvent(event.timestamp, event.isolate);
+        break;
       case ServiceEvent.kIsolateRunnable:
+        e = new IsolateRunnableEvent(event.timestamp, event.isolate);
+        break;
       case ServiceEvent.kIsolateUpdate:
-      case ServiceEvent.kBreakpointAdded:
-      case ServiceEvent.kBreakpointResolved:
-      case ServiceEvent.kBreakpointRemoved:
-      case ServiceEvent.kDebuggerSettingsUpdate:
-        // Ignore for now.
+        e = new IsolateUpdateEvent(event.timestamp, event.isolate);
         break;
-
       case ServiceEvent.kIsolateReload:
-        notifications.add(new EventNotification.fromServiceEvent(event));
+        e = new IsolateReloadEvent(event.timestamp, event.isolate, event.error);
         break;
-
       case ServiceEvent.kIsolateExit:
+        e = new IsolateExitEvent(event.timestamp, event.isolate);
+        break;
+      case ServiceEvent.kBreakpointAdded:
+        e = new BreakpointAddedEvent(event.timestamp, event.isolate,
+            event.breakpoint);
+        break;
+      case ServiceEvent.kBreakpointResolved:
+        e = new BreakpointResolvedEvent(event.timestamp, event.isolate,
+            event.breakpoint);
+        break;
+      case ServiceEvent.kBreakpointRemoved:
+        e = new BreakpointRemovedEvent(event.timestamp, event.isolate,
+          event.breakpoint);
+        break;
+      case ServiceEvent.kDebuggerSettingsUpdate:
+        e = new DebuggerSettingsUpdateEvent(event.timestamp, event.isolate);
+        break;
       case ServiceEvent.kResume:
-        notifications.deletePauseEvents(isolate: event.isolate);
+        e = new ResumeEvent(event.timestamp, event.isolate, event.topFrame);
         break;
-
       case ServiceEvent.kPauseStart:
+        e = new PauseStartEvent(event.timestamp, event.isolate);
+        break;
       case ServiceEvent.kPauseExit:
+        e = new PauseExitEvent(event.timestamp, event.isolate);
+        break;
       case ServiceEvent.kPauseBreakpoint:
+        e = new PauseBreakpointEvent(event.timestamp, event.isolate,
+            event.pauseBreakpoints, event.topFrame, event.atAsyncSuspension,
+            event.breakpoint);
+        break;
       case ServiceEvent.kPauseInterrupted:
+        e = new PauseInterruptedEvent(event.timestamp, event.isolate,
+            event.topFrame, event.atAsyncSuspension);
+        break;
       case ServiceEvent.kPauseException:
-        notifications.deletePauseEvents(isolate: event.isolate);
-        notifications.add(new EventNotification.fromServiceEvent(event));
+        e = new PauseExceptionEvent(event.timestamp, event.isolate,
+            event.topFrame, event.exception);
         break;
-
       case ServiceEvent.kInspect:
-        notifications.add(new EventNotification.fromServiceEvent(event));
+        e = new InspectEvent(event.timestamp, event.isolate,
+            event.inspectee);
         break;
-
       default:
         // Ignore unrecognized events.
         Logger.root.severe('Unrecognized event: $event');
-        break;
+        return;
     }
+    events.add(e);
   }
 
   void _registerPages() {
@@ -201,6 +238,23 @@ class ObservatoryApplication extends Observable {
     });
     _setVM(new WebSocketVM(targets.current));
     _initOnce();
+
+    // delete pause events.
+    events.onIsolateExit.listen(_deletePauseEvents);
+    events.onResume.listen(_deletePauseEvents);
+    events.onPauseStart.listen(_deletePauseEvents);
+    events.onPauseExit.listen(_deletePauseEvents);
+    events.onPauseBreakpoint.listen(_deletePauseEvents);
+    events.onPauseInterrupted.listen(_deletePauseEvents);
+    events.onPauseException.listen(_deletePauseEvents);
+
+    // show notification for an event.
+    events.onIsolateReload.listen(_addNotification);
+    events.onPauseExit.listen(_addNotification);
+    events.onPauseBreakpoint.listen(_addNotification);
+    events.onPauseInterrupted.listen(_addNotification);
+    events.onPauseException.listen(_addNotification);
+    events.onInspect.listen(_addNotification);
   }
 
   loadCrashDump(Map crashDump) {

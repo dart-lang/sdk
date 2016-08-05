@@ -44,16 +44,19 @@ class SourceLinkElement extends HtmlElement implements Renderable {
   @override
   void attached() {
     super.attached();
-    assert(location != null);
-    _r.enable();
     _repository.get(_location.script.id).then((script) {
       _script = script;
       _r.dirty();
     });
+    _r.enable();
   }
 
   @override
-  void detached() { super.detached(); children = []; _r.disable(notify: true); }
+  void detached() {
+    super.detached();
+    children = [];
+    _r.disable(notify: true);
+  }
 
   Future render() async {
     if (_script == null) {

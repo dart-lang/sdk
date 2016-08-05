@@ -20,13 +20,17 @@ class NavMenuItemElementWrapper extends HtmlElement {
 
   String _anchor;
   String _link;
+
   String get anchor => _anchor;
   String get link => _link;
+  
   set anchor(String value) {
-    _anchor = value; render();
+    _anchor = value;
+    render();
   }
   set link(String value) {
-    _link = value; render();
+    _link = value;
+    render();
   }
 
   NavMenuItemElementWrapper.created() : super.created() {
@@ -45,7 +49,9 @@ class NavMenuItemElementWrapper extends HtmlElement {
 
   void render() {
     shadowRoot.children = [];
-    if (_anchor == null) return;
+    if (_anchor == null) {
+      return;
+    }
 
     shadowRoot.children = [
       new NavMenuItemElement(_anchor, link: '#$link',

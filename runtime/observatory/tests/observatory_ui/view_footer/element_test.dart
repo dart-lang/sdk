@@ -9,11 +9,11 @@ main() {
   ViewFooterElement.tag.ensureRegistration();
 
   test('instantiation', () {
-    final ViewFooterElement e = new ViewFooterElement();
+    final e = new ViewFooterElement();
     expect(e, isNotNull, reason: 'element correctly created');
   });
   test('elements created', () async {
-    final ViewFooterElement e = new ViewFooterElement();
+    final e = new ViewFooterElement();
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');

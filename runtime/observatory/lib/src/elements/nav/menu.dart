@@ -53,9 +53,11 @@ class NavMenuElement extends HtmlElement implements Renderable {
   String _label;
   String _link;
   bool _last;
+
   String get label => _label;
   String get link => _link;
   bool get last => _last;
+  
   set label(String value) => _label = _r.checkAndReact(_label, value);
   set link(String value) => _link = _r.checkAndReact(_link, value);
   set last(bool value) => _last = _r.checkAndReact(_link, value);
@@ -75,11 +77,15 @@ class NavMenuElement extends HtmlElement implements Renderable {
   NavMenuElement.created() : super.created() { createShadowRoot(); }
 
   @override
-  void attached() { super.attached(); _r.enable(); }
+  void attached() {
+    super.attached();
+    _r.enable();
+  }
 
   @override
   void detached() {
-    super.detached(); _r.disable(notify: true);
+    super.detached();
+    _r.disable(notify: true);
     shadowRoot.children = [];
   }
 

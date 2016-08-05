@@ -1,6 +1,6 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file
+// BSD-style license that can be found in the LICENSE file.
 
 part of mocks;
 
@@ -42,6 +42,11 @@ class ServiceExtensionAddedEventMock implements M.ServiceExtensionAddedEvent {
   const ServiceExtensionAddedEventMock({this.extensionRPC, this.isolate,
       this.timestamp});
 }
+class DebuggerSettingsUpdateEventMock implements M.PauseStartEvent {
+  final DateTime timestamp;
+  final M.IsolateRef isolate;
+  const DebuggerSettingsUpdateEventMock({this.isolate, this.timestamp});
+}
 class PauseStartEventMock implements M.PauseStartEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
@@ -81,7 +86,8 @@ class PauseExceptionEventMock implements M.PauseExceptionEvent {
 class ResumeEventMock implements M.ResumeEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
-  const ResumeEventMock({this.timestamp, this.isolate});
+  final M.Frame topFrame;
+  const ResumeEventMock({this.timestamp, this.isolate, this.topFrame});
 }
 class BreakpointAddedEventMock implements M.BreakpointAddedEvent {
   final DateTime timestamp;

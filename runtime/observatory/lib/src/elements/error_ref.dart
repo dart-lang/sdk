@@ -19,6 +19,7 @@ class ErrorRefElement extends HtmlElement implements Renderable {
   Stream<RenderedEvent<ErrorRefElement>> get onRendered => _r.onRendered;
 
   ErrorRef _error;
+  
   ErrorRef get error => _error;
 
   factory ErrorRefElement(ErrorRef error, {RenderingQueue queue}) {

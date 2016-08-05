@@ -124,9 +124,9 @@ class FlagsPage extends SimplePage {
   @override
   onInstall() {
     element = new FlagListElement(app.vm,
-        app.vm.changes.map((_) => new VMUpdateEventMock(vm: app.vm)),
-        new FlagsRepository(),
-        app.notifications);
+                                  app.events,
+                                  new FlagsRepository(app.vm),
+                                  app.notifications);
   }
 
   void _visit(Uri uri) {
@@ -362,8 +362,7 @@ class VMConnectPage extends Page {
     if (element == null) {
       element = new VMConnectElement(
             ObservatoryApplication.app.targets,
-            new CrashDumpRepositoryMock(
-                load: ObservatoryApplication.app.loadCrashDump),
+            ObservatoryApplication.app.loadCrashDump,
             ObservatoryApplication.app.notifications,
             queue: ObservatoryApplication.app.queue);
     }

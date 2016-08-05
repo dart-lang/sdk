@@ -18,9 +18,12 @@ class NavTopMenuElementWrapper extends HtmlElement {
   static const tag = const Tag<NavTopMenuElementWrapper>('top-nav-menu');
 
   bool _last = false;
+  
   bool get last => _last;
+
   set last(bool value) {
-    _last = value; render();
+    _last = value;
+    render();
   }
 
   NavTopMenuElementWrapper.created() : super.created() {
@@ -38,7 +41,9 @@ class NavTopMenuElementWrapper extends HtmlElement {
 
   void render() {
     shadowRoot.children = [];
-    if (_last == null) return;
+    if (_last == null) {
+      return;
+    }
 
     shadowRoot.children = [
       new NavTopMenuElement(last: last, queue: ObservatoryApplication.app.queue)

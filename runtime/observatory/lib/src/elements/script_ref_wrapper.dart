@@ -20,8 +20,13 @@ class ScriptRefElementWrapper extends HtmlElement {
   static const tag = const Tag<ScriptRefElementWrapper>('script-ref');
 
   Script _script;
+
   Script get ref => _script;
-  set ref(Script script) { _script = script; render(); }
+
+  set ref(Script value) {
+    _script = value;
+    render();
+  }
 
   ScriptRefElementWrapper.created() : super.created() {
     binder.registerCallback(this);
@@ -37,7 +42,9 @@ class ScriptRefElementWrapper extends HtmlElement {
 
   Future render() async {
     shadowRoot.children = [];
-    if (_script == null) return;
+    if (_script == null) {
+      return;
+    }
 
     shadowRoot.children = [
       new StyleElement()

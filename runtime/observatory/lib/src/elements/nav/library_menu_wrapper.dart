@@ -21,13 +21,17 @@ class NavLibraryMenuElementWrapper extends HtmlElement {
 
   bool _last = false;
   Library _library;
+
   bool get last => _last;
   Library get library => _library;
+  
   set last(bool value) {
-    _last = value; render();
+    _last = value;
+    render();
   }
   set library(Library value) {
-    _library = value; render();
+    _library = value;
+    render();
   }
 
   NavLibraryMenuElementWrapper.created() : super.created() {
@@ -45,7 +49,9 @@ class NavLibraryMenuElementWrapper extends HtmlElement {
 
   void render() {
     shadowRoot.children = [];
-    if (_library == null || _last == null) return;
+    if (_library == null || _last == null) {
+      return;
+    }
 
     shadowRoot.children = [
       new NavLibraryMenuElement(library.isolate, library, last: last,

@@ -25,8 +25,10 @@ class NavRefreshElement extends HtmlElement implements Renderable {
 
   bool _disabled;
   String _label;
+
   bool get disabled => _disabled;
   String get label => _label;
+  
   set disabled(bool value) => _disabled = _r.checkAndReact(_disabled, value);
   set label(String value) => _label = _r.checkAndReact(_label, value);
 
@@ -44,10 +46,17 @@ class NavRefreshElement extends HtmlElement implements Renderable {
   NavRefreshElement.created() : super.created();
 
   @override
-  void attached() { super.attached(); _r.enable(); }
+  void attached() {
+    super.attached();
+    _r.enable();
+  }
 
   @override
-  void detached() { super.detached(); children = []; _r.disable(notify: true); }
+  void detached() {
+    super.detached();
+    children = [];
+    _r.disable(notify: true);
+  }
 
   void render() {
     children = [

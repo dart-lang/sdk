@@ -927,6 +927,8 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
 }
 
 class FakeVM extends VM {
+  String get displayName => name;
+
   final Map _responses = {};
   FakeVM(Map responses) {
     if (responses == null) {
@@ -1851,16 +1853,29 @@ class ServiceMap extends ServiceObject implements ObservableMap {
   String toString() => "ServiceMap($_map)";
 }
 
+M.ErrorKind stringToErrorKind(String value) {
+  switch(value) {
+    case 'UnhandledException': return M.ErrorKind.UnhandledException;
+    case 'LanguageError': return M.ErrorKind.UnhandledException;
+    case 'InternalError': return M.ErrorKind.InternalError;
+    case 'TerminationError': return M.ErrorKind.TerminationError;
+  }
+  Logger.root.severe('Unrecognized error kind: $value');
+  throw new FallThroughError();
+}
+
 /// A [DartError] is peered to a Dart Error object.
-class DartError extends ServiceObject {
+class DartError extends ServiceObject implements M.Error {
   DartError._empty(ServiceObject owner) : super._empty(owner);
 
+  M.ErrorKind kind;
   @observable String message;
   @observable Instance exception;
   @observable Instance stacktrace;
 
   void _update(ObservableMap map, bool mapIsRef) {
     message = map['message'];
+    kind = stringToErrorKind(map['kind']);
     exception = new ServiceObject._fromMap(owner, map['exception']);
     stacktrace = new ServiceObject._fromMap(owner, map['stacktrace']);
     name = 'DartError($message)';
@@ -1916,13 +1931,15 @@ class ServiceEvent extends ServiceObject {
 
   @observable String kind;
   @observable DateTime timestamp;
+  List<M.Breakpoint> pauseBreakpoints;
   @observable Breakpoint breakpoint;
   @observable Frame topFrame;
+  @observable DartError error;
   @observable String extensionRPC;
   @observable Instance exception;
   @observable Instance reloadError;
   @observable bool atAsyncSuspension;
-  @observable ServiceObject inspectee;
+  @observable Instance inspectee;
   @observable ByteData data;
   @observable int count;
   @observable String reason;
@@ -1960,13 +1977,16 @@ class ServiceEvent extends ServiceObject {
     if (map['breakpoint'] != null) {
       breakpoint = map['breakpoint'];
     }
-    // TODO(turnidge): Expose the full list of breakpoints.  For now
-    // we just pretend like there is only one active breakpoint.
     if (map['pauseBreakpoints'] != null) {
-      var pauseBpts = map['pauseBreakpoints'];
-      if (pauseBpts.length > 0) {
-        breakpoint = pauseBpts[0];
+      pauseBreakpoints = map['pauseBreakpoints'];
+      if (pauseBreakpoints.length > 0) {
+        breakpoint = pauseBreakpoints[0];
       }
+    } else {
+      pauseBreakpoints = const [];
+    }
+    if (map['error'] != null) {
+      error = map['error'];
     }
     if (map['extensionRPC'] != null) {
       extensionRPC = map['extensionRPC'];
@@ -2243,7 +2263,7 @@ class Class extends HeapObject implements M.ClassRef {
 
   @observable SourceLocation location;
 
-  @observable ServiceMap error;
+  @observable DartError error;
   @observable int vmCid;
 
   final Allocations newSpace = new Allocations();
@@ -2370,7 +2390,7 @@ class Class extends HeapObject implements M.ClassRef {
   String toString() => 'Class($vmName)';
 }
 
-class Instance extends HeapObject {
+class Instance extends HeapObject implements M.InstanceRef {
   @observable String kind;
   @observable String valueAsString;  // If primitive.
   @observable bool valueAsStringIsTruncated;

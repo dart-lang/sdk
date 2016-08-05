@@ -11,17 +11,17 @@ main() {
   group('instantiation', () {
     final label = 'custom-label';
     test('label', () {
-      final NavMenuElement e = new NavMenuElement(label);
+      final e = new NavMenuElement(label);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.label, equals(label), reason: 'element correctly created');
     });
     test('not last', () {
-      final NavMenuElement e = new NavMenuElement(label, last: false);
+      final e = new NavMenuElement(label, last: false);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.last, isFalse, reason: 'element correctly created');
     });
     test('last', () {
-      final NavMenuElement e = new NavMenuElement(label, last: true);
+      final e = new NavMenuElement(label, last: true);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.last, isTrue, reason: 'element correctly created');
     });
@@ -29,7 +29,7 @@ main() {
   group('elements', () {
     test('created', () async {
       final label = 'custom-label';
-      final NavMenuElement e = new NavMenuElement(label);
+      final e = new NavMenuElement(label);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.shadowRoot.children.length, isNonZero, reason: 'has elements');
@@ -42,7 +42,7 @@ main() {
     test('react to label change', () async {
       final label1 = 'custom-label-1';
       final label2 = 'custom-label-2';
-      final NavMenuElement e = new NavMenuElement(label1);
+      final e = new NavMenuElement(label1);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.shadowRoot.innerHtml.contains(label1), isTrue);
@@ -56,7 +56,7 @@ main() {
     });
     test('react to last change', () async {
       final label = 'custom-label';
-      final NavMenuElement e = new NavMenuElement(label, last: false);
+      final e = new NavMenuElement(label, last: false);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.shadowRoot.innerHtml.contains('&gt;'), isTrue);

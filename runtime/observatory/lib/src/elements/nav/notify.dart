@@ -23,7 +23,9 @@ class NavNotifyElement extends HtmlElement implements Renderable {
   StreamSubscription _subscription;
 
   bool _notifyOnPause;
+
   bool get notifyOnPause => _notifyOnPause;
+  
   set notifyOnPause(bool value) =>
       _notifyOnPause = _r.checkAndReact(_notifyOnPause, value);
 
@@ -43,8 +45,8 @@ class NavNotifyElement extends HtmlElement implements Renderable {
   @override
   void attached() {
     super.attached();
-    _r.enable();
     _subscription = _repository.onChange.listen((_) => _r.dirty());
+    _r.enable();
   }
 
   @override

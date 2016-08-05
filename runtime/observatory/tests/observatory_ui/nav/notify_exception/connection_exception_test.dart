@@ -4,23 +4,19 @@
 import 'dart:html';
 import 'dart:async';
 import 'package:unittest/unittest.dart';
-import 'package:observatory/models.dart';
-import 'package:observatory/mocks.dart';
 import 'package:observatory/src/elements/nav/notify_exception.dart';
+import '../../mocks.dart';
 
 main() {
   NavNotifyExceptionElement.tag.ensureRegistration();
 
-  final ConnectionException exception =
-      new ConnectionExceptionMock(message: 'message');
+  final exception = new ConnectionExceptionMock(message: 'message');
   test('instantiation', () {
-    final NavNotifyExceptionElement e =
-                                new NavNotifyExceptionElement(exception);
+    final e = new NavNotifyExceptionElement(exception);
     expect(e, isNotNull, reason: 'element correctly created');
   });
   test('elements created after attachment', () async {
-    final NavNotifyExceptionElement e =
-                                new NavNotifyExceptionElement(exception);
+    final e = new NavNotifyExceptionElement(exception);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');

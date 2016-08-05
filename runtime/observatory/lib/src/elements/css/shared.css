@@ -542,7 +542,8 @@ nav-refresh-wrapped > li > button {
   padding: 8px;
   border-width: 2px;
   line-height: 13px;
-  font: 400 13px 'Montserrat', sans-serif;
+  font-size: 13px;
+  font: 400 'Montserrat', sans-serif;
 }
 nav-refresh-wrapped > li > button[disabled] {
   color: #aaa;
@@ -637,4 +638,10 @@ vm-connect-target > button.delete-button {
 
 vm-connect-target > button.delete-button:hover {
   background: #ff0000;
+}
+
+/* vm-connect */
+
+vm-connect ul {
+  list-style-type: none;
 }

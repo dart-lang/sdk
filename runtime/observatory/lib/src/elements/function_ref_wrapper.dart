@@ -21,10 +21,18 @@ class FunctionRefElementWrapper extends HtmlElement {
 
   bool _qualified = true;
   ServiceFunction _function;
+
   bool get qualified => _qualified;
   ServiceFunction get ref => _function;
-  void set qualified(bool qualified) { _qualified = qualified; render(); }
-  void set ref(ServiceFunction ref) { _function = ref; render(); }
+
+  void set qualified(bool value) {
+    _qualified = value;
+    render();
+  }
+  void set ref(ServiceFunction value) {
+    _function = value;
+    render();
+  }
 
   FunctionRefElementWrapper.created() : super.created() {
     binder.registerCallback(this);
@@ -40,7 +48,9 @@ class FunctionRefElementWrapper extends HtmlElement {
 
   void render() {
     shadowRoot.children = [];
-    if (ref == null) return;
+    if (ref == null) {
+      return;
+    }
 
     shadowRoot.children = [
       new StyleElement()
