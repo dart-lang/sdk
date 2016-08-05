@@ -57,7 +57,7 @@ void Function::ZeroEdgeCounters() const {
 }
 
 
-void Code::ResetICDatas() const {
+void Code::ResetICDatas(Zone* zone) const {
   // Iterate over the Code's object pool and reset all ICDatas.
 #ifdef TARGET_ARCH_IA32
   // IA32 does not have an object pool, but, we can iterate over all
@@ -65,10 +65,10 @@ void Code::ResetICDatas() const {
   if (!is_alive()) {
     return;
   }
-  const Instructions& instrs = Instructions::Handle(instructions());
+  const Instructions& instrs = Instructions::Handle(zone, instructions());
   ASSERT(!instrs.IsNull());
   uword base_address = instrs.EntryPoint();
-  Object& object = Object::Handle();
+  Object& object = Object::Handle(zone);
   intptr_t offsets_length = pointer_offsets_length();
   const int32_t* offsets = raw_ptr()->data();
   for (intptr_t i = 0; i < offsets_length; i++) {
@@ -85,8 +85,8 @@ void Code::ResetICDatas() const {
     }
   }
 #else
-  const ObjectPool& pool = ObjectPool::Handle(object_pool());
-  Object& object = Object::Handle();
+  const ObjectPool& pool = ObjectPool::Handle(zone, object_pool());
+  Object& object = Object::Handle(zone);
   ASSERT(!pool.IsNull());
   for (intptr_t i = 0; i < pool.Length(); i++) {
     ObjectPool::EntryType entry_type = pool.InfoAt(i);
@@ -95,7 +95,7 @@ void Code::ResetICDatas() const {
     }
     object = pool.ObjectAt(i);
     if (object.IsICData()) {
-      ICData::Cast(object).Reset();
+      ICData::Cast(object).Reset(zone);
     }
   }
 #endif
@@ -679,24 +679,24 @@ void Library::CheckReload(const Library& replacement,
 static const Function* static_call_target = NULL;
 
 
-void ICData::Reset() const {
+void ICData::Reset(Zone* zone) const {
   if (is_static_call()) {
-    const Function& old_target = Function::Handle(GetTargetAt(0));
+    const Function& old_target = Function::Handle(zone, GetTargetAt(0));
     if (old_target.IsNull()) {
       FATAL("old_target is NULL.\n");
     }
     static_call_target = &old_target;
 
-    const String& selector = String::Handle(old_target.name());
-    Function& new_target = Function::Handle();
+    const String& selector = String::Handle(zone, old_target.name());
+    Function& new_target = Function::Handle(zone);
     if (!old_target.is_static()) {
       if (old_target.kind() == RawFunction::kConstructor) {
         return;  // Super constructor call.
       }
-      Function& caller = Function::Handle();
+      Function& caller = Function::Handle(zone);
       caller ^= Owner();
       ASSERT(!caller.is_static());
-      Class& cls = Class::Handle(caller.Owner());
+      Class& cls = Class::Handle(zone, caller.Owner());
       if (cls.raw() == old_target.Owner()) {
         // Dispatcher.
         if (caller.IsImplicitClosureFunction()) {
@@ -707,7 +707,7 @@ void ICData::Reset() const {
           return;
         }
         const Function& caller_parent =
-            Function::Handle(caller.parent_function());
+            Function::Handle(zone, caller.parent_function());
         if (!caller_parent.IsNull()) {
           if (caller_parent.kind() == RawFunction::kInvokeFieldDispatcher) {
             return;  // Call-through-getter.
@@ -730,23 +730,30 @@ void ICData::Reset() const {
       }
     } else {
       // This can be incorrect if the call site was an unqualified invocation.
-      const Class& cls = Class::Handle(old_target.Owner());
+      const Class& cls = Class::Handle(zone, old_target.Owner());
       new_target = cls.LookupStaticFunction(selector);
     }
 
-    const Array& args_desc_array = Array::Handle(arguments_descriptor());
+    const Array& args_desc_array = Array::Handle(zone, arguments_descriptor());
     ArgumentsDescriptor args_desc(args_desc_array);
     if (new_target.IsNull() ||
         !new_target.AreValidArguments(args_desc, NULL)) {
       // TODO(rmacnak): Patch to a NSME stub.
       VTIR_Print("Cannot rebind static call to %s from %s\n",
                  old_target.ToCString(),
-                 Object::Handle(Owner()).ToCString());
+                 Object::Handle(zone, Owner()).ToCString());
       return;
     }
     ClearAndSetStaticTarget(new_target);
   } else {
-    ClearWithSentinel();
+    intptr_t num_args = NumArgsTested();
+    if (num_args == 2) {
+      ClearWithSentinel();
+    } else {
+      const Array& data_array =
+          Array::Handle(zone, CachedEmptyICDataArray(num_args));
+      set_ic_data_array(data_array);
+    }
   }
 }
 

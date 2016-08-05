@@ -1853,8 +1853,7 @@ class ICData : public Object {
 
   bool IsImmutable() const;
 
-  void Reset() const;
-  void ResetData() const;
+  void Reset(Zone* zone) const;
 
   // Note: only deopts with reasons before Unknown in this list are recorded in
   // the ICData. All other reasons are used purely for informational messages
@@ -1960,7 +1959,6 @@ class ICData : public Object {
   RawArray* FindFreeIndex(intptr_t* index) const;
 
   void DebugDump() const;
-  void ValidateSentinelLocations() const;
 
   // Returns true if this is a two arg smi operation.
   bool AddSmiSmiCheckForFastSmiStubs() const;
@@ -2133,7 +2131,7 @@ class ICData : public Object {
 
   intptr_t TestEntryLength() const;
   static RawArray* NewNonCachedEmptyICDataArray(intptr_t num_args_tested);
-  static RawArray* NewEmptyICDataArray(intptr_t num_args_tested);
+  static RawArray* CachedEmptyICDataArray(intptr_t num_args_tested);
   static RawICData* NewDescriptor(Zone* zone,
                                   const Function& owner,
                                   const String& target_name,
@@ -4504,7 +4502,7 @@ class Code : public Object {
 
   // Used during reloading (see object_reload.cc). Calls Reset on all ICDatas
   // that are embedded inside the Code object.
-  void ResetICDatas() const;
+  void ResetICDatas(Zone* zone) const;
 
   TokenPosition GetTokenPositionAt(intptr_t offset) const;
 
