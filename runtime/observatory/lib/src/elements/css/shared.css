@@ -388,6 +388,34 @@ code-ref-wrapped > a[href] {
   text-decoration: none;
 }
 
+/* class-tree */
+
+class-tree {
+  position: relative;
+  display: block;
+  height: 100%;
+}
+
+class-tree virtual-tree {
+  position: absolute;
+  height: auto;
+  top: 60px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+class-tree virtual-tree .class-tree-item {
+  line-height: 25px;
+  height: 25px;
+  padding-left: 10%;
+  padding-right: 10%;
+}
+
+class-tree virtual-tree .class-tree-item .name {
+  margin-left: 0.5em;
+}
+
 /* error-ref */
 /* TODO(cbernaschina) fix error-ref-wrapped to error-ref when wrapper
 removed */
@@ -554,6 +582,18 @@ nav-refresh-wrapped > li {
   margin: 0;
 }
 
+/* observatory-application */
+
+observatory-application {
+  display: block;
+  height: 100%;
+}
+
+observatory-application > div {
+  display: block;
+  height: 100%;
+}
+
 /* script-ref */
 /* TODO(cbernaschina) fix script-ref-wrapped to script-ref when wrapper
 removed */
@@ -623,8 +663,64 @@ virtual-collection .shifter {
 }
 
 virtual-collection .shifter > * {
+  display: block;
   position: relative;
   top: -25%;
+  width: 100%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+  white-space: nowrap;
+}
+
+/* virtual-tree */
+
+virtual-tree .expander {
+  display: inline-block;
+  text-align: center;
+  font-weight: bold;
+  font-size: 18px;
+  width: 19px;
+}
+
+virtual-tree .lines,
+virtual-tree .lines > span {
+  display: inline-block;
+  vertical-align: top;
+  height: 100%;
+  line-height: 100%;
+}
+
+virtual-tree .lines:before,
+virtual-tree .lines > span:before {
+  display: inline-block;
+  content: '';
+}
+
+virtual-tree .lines > span {
+  width: 3px;
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
+virtual-tree .lines > span:nth-child(5n) {
+  background-color: #673AB7;
+}
+
+virtual-tree .lines > span:nth-child(5n+1) {
+  background-color: #F44336;
+}
+
+virtual-tree .lines > span:nth-child(5n+2) {
+  background-color: #4CAF50;
+}
+
+virtual-tree .lines > span:nth-child(5n+3) {
+  background-color: #3F51B5;
+}
+
+virtual-tree .lines > span:nth-child(5n+4) {
+  background-color: #FF9800;
 }
 
 /* vm-connect-target */

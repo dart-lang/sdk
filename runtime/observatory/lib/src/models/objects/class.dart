@@ -20,6 +20,9 @@ abstract class Class extends Object implements ClassRef {
   /// Is this a const class?
   bool get isConst;
 
+  /// [internal]
+  bool get isPatch;
+
   /// The library which contains this class.
   LibraryRef get library;
 

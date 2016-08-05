@@ -24,8 +24,10 @@ part 'mocks/objects/source_location.dart';
 part 'mocks/objects/target.dart';
 part 'mocks/objects/vm.dart';
 
+part 'mocks/repositories/class.dart';
 part 'mocks/repositories/event.dart';
 part 'mocks/repositories/flag.dart';
+part 'mocks/repositories/instance.dart';
 part 'mocks/repositories/notification.dart';
 part 'mocks/repositories/script.dart';
 part 'mocks/repositories/target.dart';

@@ -3,7 +3,6 @@ library observatory_elements;
 // Export elements.
 export 'package:observatory/src/elements/action_link.dart';
 export 'package:observatory/src/elements/class_ref_as_value.dart';
-export 'package:observatory/src/elements/class_tree.dart';
 export 'package:observatory/src/elements/class_view.dart';
 export 'package:observatory/src/elements/code_view.dart';
 export 'package:observatory/src/elements/context_ref.dart';
@@ -53,6 +52,7 @@ import 'dart:async';
 
 import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/class_ref_wrapper.dart';
+import 'package:observatory/src/elements/class_tree.dart';
 import 'package:observatory/src/elements/code_ref.dart';
 import 'package:observatory/src/elements/code_ref_wrapper.dart';
 import 'package:observatory/src/elements/containers/virtual_collection.dart';
@@ -101,6 +101,7 @@ import 'package:observatory/src/elements/vm_connect.dart';
 export 'package:observatory/src/elements/helpers/rendering_queue.dart';
 
 export 'package:observatory/src/elements/class_ref.dart';
+export 'package:observatory/src/elements/class_tree.dart';
 export 'package:observatory/src/elements/code_ref.dart';
 export 'package:observatory/src/elements/containers/virtual_collection.dart';
 export 'package:observatory/src/elements/containers/virtual_tree.dart';
@@ -134,6 +135,7 @@ export 'package:observatory/src/elements/vm_connect.dart';
 Future initElements() async {
   ClassRefElement.tag.ensureRegistration();
   ClassRefElementWrapper.tag.ensureRegistration();
+  ClassTreeElement.tag.ensureRegistration();
   CodeRefElement.tag.ensureRegistration();
   CodeRefElementWrapper.tag.ensureRegistration();
   CurlyBlockElement.tag.ensureRegistration();

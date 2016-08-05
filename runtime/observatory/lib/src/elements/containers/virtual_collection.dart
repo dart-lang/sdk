@@ -24,7 +24,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
   VirtualCollectionUpdateCallback _update;
   double _itemHeight;
   int _top;
-  int _height;
+  double _height;
   List _items;
   StreamSubscription _onScrollSubscription;
   StreamSubscription _onResizeSubscription;

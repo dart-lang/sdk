@@ -9,7 +9,7 @@ class IsolateRefMock implements M.IsolateRef {
   final int number;
   final String name;
 
-  const IsolateRefMock({this.id, this.number, this.name});
+  const IsolateRefMock({this.id: 'i-id', this.number, this.name: 'i-name'});
 }
 
 class IsolateMock implements M.Isolate {
@@ -19,7 +19,7 @@ class IsolateMock implements M.Isolate {
   final DateTime startTime;
   final bool runnable;
 
-  const IsolateMock({this.id, this.number, this.name, this.startTime,
-      this.runnable});
+  const IsolateMock({this.id: 'i-id', this.number, this.name: 'i-name',
+                     this.startTime, this.runnable: true});
   // TODO(cbernaschina) add other properties.
 }

@@ -12,8 +12,10 @@ import 'package:observatory/service.dart' as S;
 import 'package:observatory/service_common.dart' as SC;
 import 'package:observatory/utils.dart';
 
-part 'src/repositories/flag.dart';
+part 'src/repositories/class.dart';
 part 'src/repositories/event.dart';
+part 'src/repositories/flag.dart';
+part 'src/repositories/instance.dart';
 part 'src/repositories/notification.dart';
 part 'src/repositories/script.dart';
 part 'src/repositories/settings.dart';

@@ -162,14 +162,23 @@ class InspectPage extends SimplePage {
 class ClassTreePage extends SimplePage {
   ClassTreePage(app) : super('class-tree', 'class-tree', app);
 
+  final DivElement container = new DivElement();
+
+  @override
+  void onInstall() {
+    element = container;
+  }
+
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) {
-      if (element != null) {
-        /// Update the page.
-        ClassTreeElement page = element;
-        page.isolate = isolate;
-      }
+      container.children = [
+        new ClassTreeElement(app.vm,
+                             isolate,
+                             app.events,
+                             app.notifications,
+                             new ClassRepository(isolate))
+      ];
     });
   }
 }

@@ -4,15 +4,15 @@
 
 part of mocks;
 
-typedef Future<M.Script> ScriptRepositoryMockCallback(String id);
+typedef Future<M.Instance> InstanceRepositoryMockCallback(String id);
 
-class ScriptRepositoryMock implements M.ScriptRepository {
-  final ScriptRepositoryMockCallback _get;
+class InstanceRepositoryMock implements M.InstanceRepository {
+  final InstanceRepositoryMockCallback _get;
 
-  ScriptRepositoryMock({ScriptRepositoryMockCallback getter})
+  InstanceRepositoryMock({InstanceRepositoryMockCallback getter})
     : _get = getter;
 
-  Future<M.Script> get(String id){
+  Future<M.Instance> get(String id){
     if (_get != null) {
       return _get(id);
     }

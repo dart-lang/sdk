@@ -2252,7 +2252,7 @@ class Allocations {
   bool get empty => accumulated.empty && current.empty;
 }
 
-class Class extends HeapObject implements M.ClassRef {
+class Class extends HeapObject implements M.Class {
   @observable Library library;
 
   @observable bool isAbstract;
@@ -2390,7 +2390,7 @@ class Class extends HeapObject implements M.ClassRef {
   String toString() => 'Class($vmName)';
 }
 
-class Instance extends HeapObject implements M.InstanceRef {
+class Instance extends HeapObject implements M.Instance {
   @observable String kind;
   @observable String valueAsString;  // If primitive.
   @observable bool valueAsStringIsTruncated;
@@ -2489,7 +2489,7 @@ class Instance extends HeapObject implements M.InstanceRef {
   Instance._empty(ServiceObjectOwner owner) : super._empty(owner);
 
   void _update(ObservableMap map, bool mapIsRef) {
-    // Extract full properties.
+    // Extract full properties.1
     _upgradeCollection(map, isolate);
     super._update(map, mapIsRef);
 
@@ -2502,6 +2502,7 @@ class Instance extends HeapObject implements M.InstanceRef {
     name = map['name'];
     length = map['length'];
     pattern = map['pattern'];
+    typeClass = map['typeClass'];
 
     if (mapIsRef) {
       return;
@@ -2554,7 +2555,6 @@ class Instance extends HeapObject implements M.InstanceRef {
           typedElements = bytes.buffer.asFloat64x2List(); break;
       }
     }
-    typeClass = map['typeClass'];
     parameterizedClass = map['parameterizedClass'];
     typeArguments = map['typeArguments'];
     parameterIndex = map['parameterIndex'];
