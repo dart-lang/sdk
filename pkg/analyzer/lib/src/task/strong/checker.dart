@@ -629,6 +629,20 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   @override
+  Object visitVariableDeclaration(VariableDeclaration node) {
+    if (!node.isConst &&
+        !node.isFinal &&
+        node.initializer == null &&
+        rules.isNonNullableType(node?.element?.type)) {
+      _recordMessage(
+          node,
+          StaticTypeWarningCode.NON_NULLABLE_FIELD_NOT_INITIALIZED,
+          [node.name, node?.element?.type]);
+    }
+    return super.visitVariableDeclaration(node);
+  }
+
+  @override
   void visitWhileStatement(WhileStatement node) {
     checkBoolean(node.condition);
     node.visitChildren(this);

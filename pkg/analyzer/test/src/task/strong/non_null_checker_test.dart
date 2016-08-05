@@ -48,12 +48,6 @@ main() {
     checkFile('int x = null;');
   }
 
-  void test_uninitialized_nonnullable() {
-    // If `int`s are non-nullable, then this code should throw an error.
-    addFile('int x;');
-    check(nonnullableTypes: <String>['dart:core,int']);
-  }
-
   void test_initialize_nonnullable_with_null() {
     addFile('int x = /*error:INVALID_ASSIGNMENT*/null;');
     check(nonnullableTypes: <String>['dart:core,int']);
@@ -71,6 +65,50 @@ int x = 0;
 main() {
   x = 1;
   x = /*error:INVALID_ASSIGNMENT*/null;
+}
+''');
+    check(nonnullableTypes: <String>['dart:core,int']);
+  }
+
+  void test_uninitialized_nonnullable_local_variable() {
+    // Ideally, we will do flow analysis and throw an error only if a variable
+    // is used before it has been initialized.
+    addFile('main() { int /*error:NON_NULLABLE_FIELD_NOT_INITIALIZED*/x; }');
+    check(nonnullableTypes: <String>['dart:core,int']);
+  }
+
+  void test_uninitialized_nonnullable_top_level_variable_declaration() {
+    // If `int`s are non-nullable, then this code should throw an error.
+    addFile('int /*error:NON_NULLABLE_FIELD_NOT_INITIALIZED*/x;');
+    check(nonnullableTypes: <String>['dart:core,int']);
+  }
+
+  void test_uninitialized_nonnullable_field_declaration() {
+    addFile('''
+void foo() {}
+
+class A {
+  // Ideally, we should allow x to be init in the constructor, but that requires
+  // too much complication in the checker, so for now we throw a static error at
+  // the declaration site.
+  int /*error:NON_NULLABLE_FIELD_NOT_INITIALIZED*/x;
+
+  A();
+}
+''');
+    check(nonnullableTypes: <String>['dart:core,int']);
+  }
+
+  void test_prefer_final_to_non_nullable_error() {
+    addFile('main() { final int /*error:FINAL_NOT_INITIALIZED*/x; }');
+    addFile('final int /*error:FINAL_NOT_INITIALIZED*/x;');
+    addFile('''
+void foo() {}
+
+class A {
+  final int x;
+
+  /*warning:FINAL_NOT_INITIALIZED_CONSTRUCTOR_1*/A();
 }
 ''');
     check(nonnullableTypes: <String>['dart:core,int']);
