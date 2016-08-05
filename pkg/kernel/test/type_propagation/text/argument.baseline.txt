@@ -26,7 +26,7 @@ static method foo(dynamic/self::Foo! {other} x) → void/Null {}
 static method bar(dynamic/self::Bar! {other} x) → void/Null {}
 static method foo_escaped(dynamic/core::Object* {*} x) → void/Null {}
 static method bar_escaped(dynamic/core::Object* {*} x) → void/Null {}
-static method escape(dynamic/core::Function* {} fn) → void/Null {
+static method escape(dynamic/core::Function* {other} fn) → void/Null {
   fn.call(new self::Baz::•());
 }
 static method main() → dynamic/Null {

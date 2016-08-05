@@ -181,8 +181,7 @@ class Builder {
       visualizer?.annotateLatticePoint(concretePoint, class_, 'concrete');
       visualizer?.annotateVariable(variable, class_);
       visualizer?.annotateValue(value, class_);
-      constraints.addAllocation(value, variable);
-      constraints.addBitmaskInput(ValueBit.other, variable);
+      addInput(value, ValueBit.other, variable);
     }
 
     bottomNode = newVariable(null, 'bottom');
@@ -259,6 +258,11 @@ class Builder {
       List<int> parentLatticePoints, Class baseClass, BaseClassKind kind) {
     _baseTypeOfLatticePoint.add(new InferredValue(baseClass, kind, 0));
     return constraints.newLatticePoint(parentLatticePoints);
+  }
+
+  void addInput(int value, int bitmask, int destination) {
+    constraints.addAllocation(value, destination);
+    constraints.addBitmaskInput(bitmask, destination);
   }
 
   /// Returns an [InferredValue] with the base type relation for the given
@@ -415,7 +419,7 @@ class Builder {
 
   int _makeStaticTearOffVariable(FunctionNode node) {
     int variable = newVariable(node);
-    constraints.addAllocation(newFunctionValue(node), variable);
+    addInput(newFunctionValue(node), ValueBit.other, variable);
     return variable;
   }
 
@@ -429,7 +433,7 @@ class Builder {
 
   int _makeTearOffVariable(Class host, Procedure node) {
     int variable = newVariable(node, 'function');
-    constraints.addAllocation(newFunctionValue(node.function, node), variable);
+    addInput(newFunctionValue(node.function, node), ValueBit.other, variable);
     int sink = getSharedTearOffVariable(node.function);
     constraints.addSink(variable, sink);
     visualizer?.annotateSink(variable, sink, node);
@@ -588,8 +592,7 @@ class Builder {
     visualizer?.annotateLatticePoint(latticePoint, node, 'external');
     int value = constraints.newValue(latticePoint);
     int variable = newVariable(node, 'external');
-    constraints.addAllocation(value, variable);
-    constraints.addBitmaskInput(getValueBitForExternalClass(node), variable);
+    addInput(value, getValueBitForExternalClass(node), variable);
     externalClassValues[classIndex] = value;
     externalClassWorklist.add(classIndex);
     return variable;
@@ -1405,7 +1408,7 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
       environment.localVariables[self] = variable;
     }
     Environment inner = new Environment.inner(environment);
-    constraints.addAllocation(builder.newFunctionValue(node), variable);
+    builder.addInput(builder.newFunctionValue(node), ValueBit.other, variable);
     builder.buildFunctionNode(node, inner, function: variable);
     return variable;
   }
@@ -1753,7 +1756,7 @@ class CovariantExternalTypeVisitor extends DartTypeVisitor<int> {
     Member member = node.parent is Member ? node.parent : null;
     int functionValue = builder.newFunctionValue(node, member);
     int function = builder.newVariable(node);
-    builder.constraints.addAllocation(functionValue, function);
+    builder.addInput(functionValue, ValueBit.other, function);
     for (int arity = minArity; arity <= maxArity; ++arity) {
       for (int i = 0; i < arity; ++i) {
         int field = fieldNames.getPositionalParameterField(arity, i);
