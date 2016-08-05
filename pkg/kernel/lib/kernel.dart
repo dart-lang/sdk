@@ -24,7 +24,6 @@ import 'text/ast_to_text.dart';
 
 export 'ast.dart';
 export 'repository.dart';
-export 'analyzer/analyzer_repository.dart';
 
 Program loadProgramFromBinary(String path) {
   Repository repository = new Repository();

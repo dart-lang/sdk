@@ -7,6 +7,7 @@ import 'package:args/args.dart';
 import 'dart:io';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:kernel/analyzer/loader.dart';
 
 ArgParser parser = new ArgParser()
   ..addOption('sdk',
@@ -41,10 +42,9 @@ main(List<String> args) {
   bool strongMode = options['strong'];
 
   String path = options.rest.single;
-  Repository repository = new AnalyzerRepository(sdk: sdk,
-      packageRoot: packageRoot, strongMode: strongMode);
+  Repository repository = new Repository(sdk: sdk, packageRoot: packageRoot);
 
-  loadProgramFromDart(path, repository);
+  new AnalyzerLoader(repository, strongMode: strongMode).loadProgram(path);
 
   CacheEntry.recomputedCounts.forEach((key, value) {
     print('Recomputed $key $value times');

@@ -4,14 +4,14 @@
 
 library kernel.transformations.async;
 
-import '../checks.dart' as checks;
 import '../kernel.dart';
-
 import 'continuation.dart';
 
-abstract class ProxiedTreeVisitor<R> extends Visitor<R> {
+abstract class ProxiedTreeVisitor<R> extends TreeVisitor<R> {
   R visitProxyExpression(ProxyExpression node) => defaultExpression(node);
 }
+
+abstract class ProxiedVisitor = Visitor with ProxiedTreeVisitor;
 
 abstract class ProxiedTreeTransformer = Transformer
     with ProxiedTreeVisitor<TreeNode>;
@@ -36,7 +36,7 @@ class ProxyExpression extends Expression {
 
   accept(v) => v.visitProxyExpression(this);
 
-  visitChildren(ProxiedTreeVisitor v) {}
+  visitChildren(ProxiedVisitor v) {}
 
   transformChildren(ProxiedTreeTransformer v) {}
 }

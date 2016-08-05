@@ -42,7 +42,7 @@ void main() {
         if (isUpToDate(binaryPath, dartPath)) {
           program = loadProgramFromBinary(binaryPath);
         } else {
-          AnalyzerRepository repository = new AnalyzerRepository(sdk: sdk);
+          Repository repository = new Repository(sdk: sdk);
           program = loadProgramFromDart(dartPath, repository);
           writeProgramToBinary(program, binaryPath);
         }
