@@ -600,6 +600,12 @@ var v = new C().m(1, b: 'bbb', c: 2.0);
 
   @override
   @failingTest
+  void test_nullCoalescingOperator() {
+    super.test_nullCoalescingOperator();
+  }
+
+  @override
+  @failingTest
   void test_unsafeBlockClosureInference_closureCall() {
     super.test_unsafeBlockClosureInference_closureCall();
   }

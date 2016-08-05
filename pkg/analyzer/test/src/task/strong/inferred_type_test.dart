@@ -3626,6 +3626,23 @@ test1() {
 ''');
   }
 
+  void test_nullCoalescingOperator() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26552
+    checkFile(r'''
+List<int> x;
+var y = x ?? /*info:INFERRED_TYPE_LITERAL*/[];
+List<int> z = y;
+    ''');
+    // Don't do anything if we already have a context type.
+    var unit = checkFile(r'''
+List<int> x;
+List<num> y = x ?? /*info:INFERRED_TYPE_LITERAL*/[];
+    ''');
+
+    expect(unit.topLevelVariables[1].initializer.returnType.toString(),
+        'List<num>');
+  }
+
   void test_nullLiteralShouldNotInferAsBottom() {
     // Regression test for https://github.com/dart-lang/dev_compiler/issues/47
     checkFile(r'''
