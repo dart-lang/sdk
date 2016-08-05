@@ -295,8 +295,8 @@ class RecursiveVisitor<R> extends Visitor<R> {
 ///       @override
 ///       Node visitNot(Not node) {
 ///         var operand = node.operand.accept(this); // Remember to visit.
-///         if (operand is LogicalOperator && operand.operator == '&&') {
-///           return new LogicalOperator(
+///         if (operand is LogicalExpression && operand.operator == '&&') {
+///           return new LogicalExpression(
 ///             new Not(operand.left),
 ///             '||',
 ///             new Not(operand.right));
