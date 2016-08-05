@@ -7,6 +7,7 @@ dart_library.library('language/async_await_syntax_test_c05a_multi', null, /* Imp
   const dart = dart_sdk.dart;
   const dartx = dart_sdk.dartx;
   const async_await_syntax_test_c05a_multi = Object.create(null);
+  let VoidToFuture = () => (VoidToFuture = dart.constFn(dart.definiteFunctionType(async.Future, [])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();
   async_await_syntax_test_c05a_multi.yield = 0;
@@ -30,7 +31,7 @@ dart_library.library('language/async_await_syntax_test_c05a_multi', null, /* Imp
         yield 0;
       }, dart.dynamic);
     }
-    dart.fn(c05a, VoidTodynamic());
+    dart.fn(c05a, VoidToFuture());
     c05a();
   };
   dart.fn(async_await_syntax_test_c05a_multi.method1, VoidTodynamic());

@@ -23,7 +23,7 @@ dart_library.library('language/local_function_non_equal_test', null, /* Imports 
     function c() {
       return 68;
     }
-    dart.fn(c, VoidTodynamic());
+    dart.fn(c, VoidToint());
     return c;
   };
   dart.fn(local_function_non_equal_test.baz, VoidTodynamic());

@@ -12,11 +12,12 @@ dart_library.library('language/async_star_take_reyield_test', null, /* Imports *
   const expect$ = expect.expect;
   const async_helper$ = async_helper.async_helper;
   const async_star_take_reyield_test = Object.create(null);
+  let StreamOfnum = () => (StreamOfnum = dart.constFn(async.Stream$(core.num)))();
   let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
   let dynamicTodynamic = () => (dynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic])))();
   let dynamicAnddynamicTodynamic = () => (dynamicAnddynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic])))();
   let intToStream = () => (intToStream = dart.constFn(dart.definiteFunctionType(async.Stream, [core.int])))();
-  let StreamTodynamic = () => (StreamTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [async.Stream])))();
+  let StreamToStreamOfnum = () => (StreamToStreamOfnum = dart.constFn(dart.definiteFunctionType(StreamOfnum(), [async.Stream])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   async_star_take_reyield_test.expectList = function(stream, list) {
     return dart.dsend(dart.dsend(stream, 'toList'), 'then', dart.fn(v => {
@@ -47,9 +48,9 @@ dart_library.library('language/async_star_take_reyield_test', null, /* Imports *
         } finally {
           yield it.cancel();
         }
-      }, dart.dynamic, s);
+      }, core.num, s);
     }
-    dart.fn(fivePartialSums, StreamTodynamic());
+    dart.fn(fivePartialSums, StreamToStreamOfnum());
     async_helper$.asyncStart();
     dart.dsend(async_star_take_reyield_test.expectList(fivePartialSums(async_star_take_reyield_test.makeStream(10)), JSArrayOfint().of([0, 1, 3, 6, 10])), 'then', async_helper$.asyncSuccess);
   };

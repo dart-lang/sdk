@@ -11,7 +11,6 @@ dart_library.library('language/param2_test', null, /* Imports */[
   const param2_test = Object.create(null);
   let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
   let intToint = () => (intToint = dart.constFn(dart.definiteFunctionType(core.int, [core.int])))();
-  let dynamicTodynamic = () => (dynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic])))();
   let dynamicTobool = () => (dynamicTobool = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   param2_test.Param2Test = class Param2Test extends core.Object {
@@ -48,7 +47,7 @@ dart_library.library('language/param2_test', null, /* Imports */[
       function isOdd(element) {
         return dart.equals(dart.dsend(element, '%', 2), 1);
       }
-      dart.fn(isOdd, dynamicTodynamic());
+      dart.fn(isOdd, dynamicTobool());
       expect$.Expect.equals(true, param2_test.Param2Test.exists(JSArrayOfint().of([3, 5, 7, 11, 13]), isOdd));
       expect$.Expect.equals(false, param2_test.Param2Test.exists(JSArrayOfint().of([2, 4, 10]), isOdd));
       expect$.Expect.equals(false, param2_test.Param2Test.exists(JSArrayOfint().of([]), isOdd));

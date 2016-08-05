@@ -9,10 +9,11 @@ dart_library.library('corelib/int_modulo_arith_test_bignum_multi', null, /* Impo
   const dartx = dart_sdk.dartx;
   const expect$ = expect.expect;
   const int_modulo_arith_test_bignum_multi = Object.create(null);
-  let dynamicAnddynamicAnddynamicTodynamic = () => (dynamicAnddynamicAnddynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic, dart.dynamic])))();
+  let dynamicAnddynamicAnddynamicToint = () => (dynamicAnddynamicAnddynamicToint = dart.constFn(dart.definiteFunctionType(core.int, [dart.dynamic, dart.dynamic, dart.dynamic])))();
   let VoidTobool = () => (VoidTobool = dart.constFn(dart.definiteFunctionType(core.bool, [])))();
   let dynamicAnddynamicAnddynamic__Todynamic = () => (dynamicAnddynamicAnddynamic__Todynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
+  let dynamicAnddynamicAnddynamicTodynamic = () => (dynamicAnddynamicAnddynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic, dart.dynamic])))();
   let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();
   let dynamicAnddynamicTodynamic = () => (dynamicAnddynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic])))();
   int_modulo_arith_test_bignum_multi.smallNumber = 1234567890;
@@ -31,7 +32,7 @@ dart_library.library('corelib/int_modulo_arith_test_bignum_multi', null, /* Impo
           }
           return r;
         }
-        dart.fn(slowModPow, dynamicAnddynamicAnddynamicTodynamic());
+        dart.fn(slowModPow, dynamicAnddynamicAnddynamicToint());
         return dart.equals(slowModPow(x, e, m), expectedResult);
       }, VoidTobool()));
       let result = dart.dsend(x, 'modPow', e, m);

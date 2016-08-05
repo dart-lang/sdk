@@ -9,6 +9,7 @@ dart_library.library('language/bool_test', null, /* Imports */[
   const expect$ = expect.expect;
   const bool_test = Object.create(null);
   let dynamicAnddynamicAnddynamicTodynamic = () => (dynamicAnddynamicAnddynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic, dart.dynamic])))();
+  let VoidTobool = () => (VoidTobool = dart.constFn(dart.definiteFunctionType(core.bool, [])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   bool_test.BoolTest = class BoolTest extends core.Object {
     static testEquality() {
@@ -162,12 +163,12 @@ dart_library.library('language/bool_test', null, /* Imports */[
         trueCount = dart.notNull(trueCount) + 1;
         return true;
       }
-      dart.fn(trueFunc, VoidTodynamic());
+      dart.fn(trueFunc, VoidTobool());
       function falseFunc() {
         falseCount++;
         return false;
       }
-      dart.fn(falseFunc, VoidTodynamic());
+      dart.fn(falseFunc, VoidTobool());
       expect$.Expect.equals(0, trueCount);
       expect$.Expect.equals(0, falseCount);
       dart.test(trueFunc()) && dart.test(trueFunc());

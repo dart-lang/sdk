@@ -39,6 +39,7 @@ dart_library.library('stack_trace', null, /* Imports */[
   let FrameToString = () => (FrameToString = dart.constFn(dart.definiteFunctionType(core.String, [src__frame.Frame])))();
   let TraceToString = () => (TraceToString = dart.constFn(dart.definiteFunctionType(core.String, [src__trace.Trace])))();
   let VoidToFrame = () => (VoidToFrame = dart.constFn(dart.definiteFunctionType(src__frame.Frame, [])))();
+  let dynamicAnddynamicToFrame = () => (dynamicAnddynamicToFrame = dart.constFn(dart.definiteFunctionType(src__frame.Frame, [dart.dynamic, dart.dynamic])))();
   let VoidToTrace = () => (VoidToTrace = dart.constFn(dart.definiteFunctionType(src__trace.Trace, [])))();
   let ObjectAndStackTraceAndEventSinkTovoid = () => (ObjectAndStackTraceAndEventSinkTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.Object, core.StackTrace, async.EventSink])))();
   let dynamicTodynamic = () => (dynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic])))();
@@ -239,11 +240,11 @@ dart_library.library('stack_trace', null, /* Imports */[
           if (urlMatch == null) return new src__unparsed_frame.UnparsedFrame(frame);
           return new src__frame.Frame(src__frame.Frame._uriOrPathToUri(urlMatch.get(1)), core.int.parse(urlMatch.get(2)), core.int.parse(urlMatch.get(3)), core.String._check(member));
         }
-        dart.fn(parseLocation, dynamicAnddynamicTodynamic());
+        dart.fn(parseLocation, dynamicAnddynamicToFrame());
         if (match.get(2) != null) {
-          return src__frame.Frame._check(parseLocation(match.get(2), match.get(1)[dartx.replaceAll]("<anonymous>", "<fn>")[dartx.replaceAll]("Anonymous function", "<fn>")));
+          return parseLocation(match.get(2), match.get(1)[dartx.replaceAll]("<anonymous>", "<fn>")[dartx.replaceAll]("Anonymous function", "<fn>"));
         } else {
-          return src__frame.Frame._check(parseLocation(match.get(3), "<fn>"));
+          return parseLocation(match.get(3), "<fn>");
         }
       }, VoidToFrame()));
     }

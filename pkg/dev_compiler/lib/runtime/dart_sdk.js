@@ -8834,7 +8834,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _startWorker(functionName, uri, args, message, isSpawnUri, startPaused, replyPort, onError) {
       if (args != null) args = ListOfString().from(args);
       if (dart.test(_isolate_helper._globalState.isWorker)) {
-        _isolate_helper._globalState.mainManager.postMessage(_isolate_helper._serializeMessage(dart.map({command: 'spawn-worker', functionName: functionName, args: args, msg: message, uri: uri, isSpawnUri: isSpawnUri, startPaused: startPaused, replyPort: replyPort}, core.String, dart.dynamic)));
+        _isolate_helper._globalState.mainManager.postMessage(_isolate_helper._serializeMessage(dart.map({command: 'spawn-worker', functionName: functionName, args: args, msg: message, uri: uri, isSpawnUri: isSpawnUri, startPaused: startPaused, replyPort: replyPort}, core.String, core.Object)));
       } else {
         _isolate_helper.IsolateNatives._spawnWorker(functionName, uri, args, message, isSpawnUri, startPaused, replyPort, onError);
       }
@@ -8899,7 +8899,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       o.nextManagerId = dart.notNull(workerId) + 1;
       _isolate_helper.IsolateNatives.workerIds.set(worker, workerId);
       _isolate_helper._globalState.managers[dartx.set](workerId, worker);
-      worker.postMessage(_isolate_helper._serializeMessage(dart.map({command: 'start', id: workerId, replyTo: _isolate_helper._serializeMessage(replyPort), args: args, msg: _isolate_helper._serializeMessage(message), isSpawnUri: isSpawnUri, startPaused: startPaused, functionName: functionName}, core.String, dart.dynamic)));
+      worker.postMessage(_isolate_helper._serializeMessage(dart.map({command: 'start', id: workerId, replyTo: _isolate_helper._serializeMessage(replyPort), args: args, msg: _isolate_helper._serializeMessage(message), isSpawnUri: isSpawnUri, startPaused: startPaused, functionName: functionName}, core.String, core.Object)));
     }
     static workerOnError(event, uri, onError) {
       event.preventDefault();
@@ -9009,7 +9009,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.new(isolateId);
     }
     send(message) {
-      let workerMessage = _isolate_helper._serializeMessage(dart.map({command: 'message', port: this, msg: message}, core.String, dart.dynamic));
+      let workerMessage = _isolate_helper._serializeMessage(dart.map({command: 'message', port: this, msg: message}, core.String, core.Object));
       if (dart.test(_isolate_helper._globalState.isWorker)) {
         _isolate_helper._globalState.mainManager.postMessage(workerMessage);
       } else {
@@ -34903,7 +34903,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       return false;
     }
-    dart.fn(containsDate, dynamicTodynamic$());
+    dart.fn(containsDate, dynamicTobool$());
     if (dart.test(containsDate(nativeKey))) {
       dart.throw(new core.UnimplementedError('Key containing DateTime'));
     }

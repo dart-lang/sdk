@@ -16,6 +16,7 @@ dart_library.library('lib/html/client_rect_test', null, /* Imports */[
   let RectangleOfnum = () => (RectangleOfnum = dart.constFn(math.Rectangle$(core.num)))();
   let ListOfRectangleOfnum = () => (ListOfRectangleOfnum = dart.constFn(core.List$(RectangleOfnum())))();
   let dynamicTobool = () => (dynamicTobool = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic])))();
+  let VoidToElement = () => (VoidToElement = dart.constFn(dart.definiteFunctionType(html.Element, [])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   client_rect_test.main = function() {
     let isRectList = src__matcher__core_matchers.predicate(dart.fn(x => ListOfRectangleOfnum().is(x), dynamicTobool()), 'is a List<Rectangle>');
@@ -25,7 +26,7 @@ dart_library.library('lib/html/client_rect_test', null, /* Imports */[
       html.document[dartx.body][dartx.append](element);
       return element;
     }
-    dart.fn(insertTestDiv, VoidTodynamic());
+    dart.fn(insertTestDiv, VoidToElement());
     html_config.useHtmlConfiguration();
     unittest$.test("ClientRectList test", dart.fn(() => {
       insertTestDiv();

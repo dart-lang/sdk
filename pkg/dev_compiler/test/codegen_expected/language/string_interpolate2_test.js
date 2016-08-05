@@ -11,8 +11,8 @@ dart_library.library('language/string_interpolate2_test', null, /* Imports */[
   const string_interpolate2_test = Object.create(null);
   let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
   let dynamicTodynamic = () => (dynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic])))();
-  let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   let VoidToString = () => (VoidToString = dart.constFn(dart.definiteFunctionType(core.String, [])))();
+  let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   string_interpolate2_test.StringInterpolate2Test = class StringInterpolate2Test extends core.Object {
     static testMain() {
       string_interpolate2_test.StringInterpolate2Test.F1 = dart.str`1 + 5 = ${1 + 5}`;
@@ -24,7 +24,7 @@ dart_library.library('language/string_interpolate2_test', null, /* Imports */[
       s = dart.str`fib(${i}) = ${fib[dartx.get](i)}`;
       expect$.Expect.equals("fib(5) = 8", s);
       i = 5;
-      s = dart.str`${i} squared is ${dart.dcall(dart.fn(x => dart.dsend(x, '*', x), dynamicTodynamic()), i)}`;
+      s = dart.str`${i} squared is ${dart.fn(x => dart.dsend(x, '*', x), dynamicTodynamic())(i)}`;
       expect$.Expect.equals("5 squared is 25", s);
       expect$.Expect.equals("8", dart.str`${fib[dartx.length]}`);
       expect$.Expect.equals("8", dart.str`${fib[dartx.length]}`);
@@ -36,7 +36,7 @@ dart_library.library('language/string_interpolate2_test', null, /* Imports */[
       function b() {
         return dart.str`${++i}`;
       }
-      dart.fn(b, VoidTodynamic());
+      dart.fn(b, VoidToString());
       s = dart.str`aaa ${dart.str`bbb ${b()} bbb`} aaa ${b()}`;
       expect$.Expect.equals("aaa bbb 1 bbb aaa 2", s);
       s = dart.str`a ${dart.fn(() => dart.str`b ${dart.fn(() => "c", VoidToString())()}`, VoidToString())()} d`;

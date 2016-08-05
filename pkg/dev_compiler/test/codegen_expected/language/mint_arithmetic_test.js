@@ -8,8 +8,9 @@ dart_library.library('language/mint_arithmetic_test', null, /* Imports */[
   const dartx = dart_sdk.dartx;
   const expect$ = expect.expect;
   const mint_arithmetic_test = Object.create(null);
-  let dynamicAnddynamicTodynamic = () => (dynamicAnddynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic])))();
+  let dynamicAnddynamicTobool = () => (dynamicAnddynamicTobool = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic, dart.dynamic])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
+  let dynamicAnddynamicTodynamic = () => (dynamicAnddynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic])))();
   mint_arithmetic_test.test_and_1 = function() {
     try {
       function f(a, b) {
@@ -17,7 +18,7 @@ dart_library.library('language/mint_arithmetic_test', null, /* Imports */[
         let t = dart.dsend(a, '&', s);
         return dart.equals(t, b);
       }
-      dart.fn(f, dynamicAnddynamicTodynamic());
+      dart.fn(f, dynamicAnddynamicTobool());
       let x = 4294967295;
       for (let i = 0; i < 20; i++)
         f(x, 0);

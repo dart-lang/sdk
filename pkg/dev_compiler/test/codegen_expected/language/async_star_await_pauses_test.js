@@ -11,9 +11,11 @@ dart_library.library('language/async_star_await_pauses_test', null, /* Imports *
   const async_helper$ = async_helper.async_helper;
   const expect$ = expect.expect;
   const async_star_await_pauses_test = Object.create(null);
+  let FutureOfint = () => (FutureOfint = dart.constFn(async.Future$(core.int)))();
   let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
-  let dynamicTodynamic = () => (dynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic])))();
+  let dynamicToFutureOfint = () => (dynamicToFutureOfint = dart.constFn(dart.definiteFunctionType(FutureOfint(), [dart.dynamic])))();
+  let intTodynamic = () => (intTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.int])))();
   async_star_await_pauses_test.main = function() {
     let sc = null;
     let i = 0;
@@ -39,14 +41,14 @@ dart_library.library('language/async_star_await_pauses_test', null, /* Imports *
           yield it.cancel();
         }
         return r;
-      }, dart.dynamic, s);
+      }, core.int, s);
     }
-    dart.fn(f, dynamicTodynamic());
+    dart.fn(f, dynamicToFutureOfint());
     async_helper$.asyncStart();
-    dart.dsend(f(dart.dload(sc, 'stream')), 'then', dart.fn(v => {
+    f(dart.dload(sc, 'stream')).then(dart.dynamic)(dart.fn(v => {
       expect$.Expect.equals(10, v);
       async_helper$.asyncEnd();
-    }, dynamicTodynamic()));
+    }, intTodynamic()));
   };
   dart.fn(async_star_await_pauses_test.main, VoidTodynamic());
   // Exports:

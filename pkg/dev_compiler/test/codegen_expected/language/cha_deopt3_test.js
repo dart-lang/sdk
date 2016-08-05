@@ -28,7 +28,7 @@ dart_library.library('language/cha_deopt3_test', null, /* Imports */[
   cha_deopt3_test.make_array = function() {
     try {
       if (dart.test(cha_deopt3_test.loaded)) {
-        return [new cha_deopt3_lib.A(), new cha_deopt3_lib.B(), new cha_deopt3_lib.C(), new cha_deopt3_lib.D(), new cha_deopt3_lib.E(), cha_deopt3_deferred_lib.make_u()];
+        return JSArrayOfObject().of([new cha_deopt3_lib.A(), new cha_deopt3_lib.B(), new cha_deopt3_lib.C(), new cha_deopt3_lib.D(), new cha_deopt3_lib.E(), cha_deopt3_deferred_lib.make_u()]);
       } else {
         return JSArrayOfObject().of([new cha_deopt3_lib.A(), new cha_deopt3_lib.B(), new cha_deopt3_lib.C(), new cha_deopt3_lib.D(), new cha_deopt3_lib.E(), new cha_deopt3_lib.T()]);
       }

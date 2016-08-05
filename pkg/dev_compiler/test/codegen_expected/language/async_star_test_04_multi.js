@@ -4,8 +4,8 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
 ], function load__async_star_test_04_multi(exports, dart_sdk, unittest) {
   'use strict';
   const core = dart_sdk.core;
-  const _interceptors = dart_sdk._interceptors;
   const async = dart_sdk.async;
+  const _interceptors = dart_sdk._interceptors;
   const dart = dart_sdk.dart;
   const dartx = dart_sdk.dartx;
   const unittest$ = unittest.unittest;
@@ -13,23 +13,53 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
   const src__matcher__core_matchers = unittest.src__matcher__core_matchers;
   const src__matcher__numeric_matchers = unittest.src__matcher__numeric_matchers;
   const async_star_test_04_multi = Object.create(null);
-  let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
-  let JSArrayOfObject = () => (JSArrayOfObject = dart.constFn(_interceptors.JSArray$(core.Object)))();
   let StreamOfint = () => (StreamOfint = dart.constFn(async.Stream$(core.int)))();
+  let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
+  let ListOfint = () => (ListOfint = dart.constFn(core.List$(core.int)))();
+  let JSArrayOfObject = () => (JSArrayOfObject = dart.constFn(_interceptors.JSArray$(core.Object)))();
+  let VoidToObject = () => (VoidToObject = dart.constFn(dart.functionType(core.Object, [])))();
+  let StreamOfVoidToObject = () => (StreamOfVoidToObject = dart.constFn(async.Stream$(VoidToObject())))();
   let FutureOfObject = () => (FutureOfObject = dart.constFn(async.Future$(core.Object)))();
+  let VoidToFutureOfObject = () => (VoidToFutureOfObject = dart.constFn(dart.functionType(FutureOfObject(), [])))();
+  let StreamOfVoidToFutureOfObject = () => (StreamOfVoidToFutureOfObject = dart.constFn(async.Stream$(VoidToFutureOfObject())))();
   let StreamOfObject = () => (StreamOfObject = dart.constFn(async.Stream$(core.Object)))();
+  let VoidToStreamOfObject = () => (VoidToStreamOfObject = dart.constFn(dart.functionType(StreamOfObject(), [])))();
+  let StreamOfVoidToStreamOfObject = () => (StreamOfVoidToStreamOfObject = dart.constFn(async.Stream$(VoidToStreamOfObject())))();
   let JSArrayOfString = () => (JSArrayOfString = dart.constFn(_interceptors.JSArray$(core.String)))();
-  let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
-  let dynamicTodynamic = () => (dynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic])))();
-  let dynamicTovoid = () => (dynamicTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [dart.dynamic])))();
+  let StreamOfvoid = () => (StreamOfvoid = dart.constFn(async.Stream$(dart.void)))();
+  let FutureOfint = () => (FutureOfint = dart.constFn(async.Future$(core.int)))();
+  let StreamOfnum = () => (StreamOfnum = dart.constFn(async.Stream$(core.num)))();
+  let VoidToStream = () => (VoidToStream = dart.constFn(dart.definiteFunctionType(async.Stream, [])))();
+  let ListTodynamic = () => (ListTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.List])))();
   let VoidToFuture = () => (VoidToFuture = dart.constFn(dart.definiteFunctionType(async.Future, [])))();
+  let VoidToStreamOfint = () => (VoidToStreamOfint = dart.constFn(dart.definiteFunctionType(StreamOfint(), [])))();
+  let ListOfintTodynamic = () => (ListOfintTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [ListOfint()])))();
+  let intTovoid = () => (intTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.int])))();
+  let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
+  let dynamicTovoid = () => (dynamicTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [dart.dynamic])))();
+  let dynamicToStream = () => (dynamicToStream = dart.constFn(dart.definiteFunctionType(async.Stream, [dart.dynamic])))();
+  let dynamicTodynamic = () => (dynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic])))();
   let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();
-  let VoidToObject = () => (VoidToObject = dart.constFn(dart.definiteFunctionType(core.Object, [])))();
-  let VoidToFutureOfObject = () => (VoidToFutureOfObject = dart.constFn(dart.definiteFunctionType(FutureOfObject(), [])))();
-  let VoidToStreamOfObject = () => (VoidToStreamOfObject = dart.constFn(dart.definiteFunctionType(StreamOfObject(), [])))();
-  let dynamicToFuture = () => (dynamicToFuture = dart.constFn(dart.definiteFunctionType(async.Future, [dart.dynamic])))();
+  let dynamicToStreamOfint = () => (dynamicToStreamOfint = dart.constFn(dart.definiteFunctionType(StreamOfint(), [dart.dynamic])))();
   let VoidToint = () => (VoidToint = dart.constFn(dart.definiteFunctionType(core.int, [])))();
+  let VoidToObject$ = () => (VoidToObject$ = dart.constFn(dart.definiteFunctionType(core.Object, [])))();
+  let VoidToStreamOfVoidToObject = () => (VoidToStreamOfVoidToObject = dart.constFn(dart.definiteFunctionType(StreamOfVoidToObject(), [])))();
+  let FnTodynamic = () => (FnTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [VoidToObject()])))();
+  let VoidToFutureOfObject$ = () => (VoidToFutureOfObject$ = dart.constFn(dart.definiteFunctionType(FutureOfObject(), [])))();
+  let VoidToStreamOfVoidToFutureOfObject = () => (VoidToStreamOfVoidToFutureOfObject = dart.constFn(dart.definiteFunctionType(StreamOfVoidToFutureOfObject(), [])))();
+  let ObjectTodynamic = () => (ObjectTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.Object])))();
+  let FnToFutureOfObject = () => (FnToFutureOfObject = dart.constFn(dart.definiteFunctionType(FutureOfObject(), [VoidToFutureOfObject()])))();
+  let VoidToStreamOfObject$ = () => (VoidToStreamOfObject$ = dart.constFn(dart.definiteFunctionType(StreamOfObject(), [])))();
+  let VoidToStreamOfVoidToStreamOfObject = () => (VoidToStreamOfVoidToStreamOfObject = dart.constFn(dart.definiteFunctionType(StreamOfVoidToStreamOfObject(), [])))();
+  let FnToFutureOfObject$ = () => (FnToFutureOfObject$ = dart.constFn(dart.definiteFunctionType(FutureOfObject(), [VoidToStreamOfObject()])))();
+  let VoidToStreamOfvoid = () => (VoidToStreamOfvoid = dart.constFn(dart.definiteFunctionType(StreamOfvoid(), [])))();
+  let voidTovoid = () => (voidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [dart.void])))();
+  let dynamicToFuture = () => (dynamicToFuture = dart.constFn(dart.definiteFunctionType(async.Future, [dart.dynamic])))();
+  let intToStreamOfint = () => (intToStreamOfint = dart.constFn(dart.definiteFunctionType(StreamOfint(), [core.int])))();
+  let dynamicToFutureOfint = () => (dynamicToFutureOfint = dart.constFn(dart.definiteFunctionType(FutureOfint(), [dart.dynamic])))();
   let intTodynamic = () => (intTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.int])))();
+  let dynamicToStreamOfnum = () => (dynamicToStreamOfnum = dart.constFn(dart.definiteFunctionType(StreamOfnum(), [dart.dynamic])))();
+  let VoidToFutureOfint = () => (VoidToFutureOfint = dart.constFn(dart.definiteFunctionType(FutureOfint(), [])))();
   let dynamicAnddynamicTodynamic = () => (dynamicAnddynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic])))();
   let dynamicAndEventSinkTovoid = () => (dynamicAndEventSinkTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [dart.dynamic, async.EventSink])))();
   let ObjectAndStackTraceAndEventSinkTovoid = () => (ObjectAndStackTraceAndEventSinkTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.Object, core.StackTrace, async.EventSink])))();
@@ -41,23 +71,23 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
           return dart.asyncStar(function*(stream) {
           }, dart.dynamic);
         }
-        dart.fn(f, VoidTodynamic());
-        return dart.dsend(dart.dsend(f(), 'toList'), 'then', dart.fn(v => {
+        dart.fn(f, VoidToStream());
+        return f().toList().then(dart.dynamic)(dart.fn(v => {
           src__matcher__expect.expect(v, src__matcher__core_matchers.equals([]));
-        }, dynamicTodynamic()));
-      }, VoidTodynamic()));
+        }, ListTodynamic()));
+      }, VoidToFuture()));
       unittest$.test("single", dart.fn(() => {
         function f() {
           return dart.asyncStar(function*(stream) {
             if (stream.add(42)) return;
             yield;
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
-        return dart.dsend(dart.dsend(f(), 'toList'), 'then', dart.fn(v => {
+        dart.fn(f, VoidToStreamOfint());
+        return f().toList().then(dart.dynamic)(dart.fn(v => {
           src__matcher__expect.expect(v, src__matcher__core_matchers.equals(JSArrayOfint().of([42])));
-        }, dynamicTodynamic()));
-      }, VoidTodynamic()));
+        }, ListOfintTodynamic()));
+      }, VoidToFuture()));
       unittest$.test("call delays", dart.fn(() => {
         let list = [];
         function f() {
@@ -65,27 +95,27 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             list[dartx.add](1);
             if (stream.add(2)) return;
             yield;
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
-        let res = dart.dsend(f(), 'forEach', dart.fn(x => list[dartx.add](x), dynamicTovoid()));
+        dart.fn(f, VoidToStreamOfint());
+        let res = f().forEach(dart.fn(x => list[dartx.add](x), intTovoid()));
         list[dartx.add](0);
-        return dart.dsend(res, 'whenComplete', dart.fn(() => {
+        return res.whenComplete(dart.fn(() => {
           src__matcher__expect.expect(list, src__matcher__core_matchers.equals(JSArrayOfint().of([0, 1, 2])));
         }, VoidTodynamic()));
-      }, VoidTodynamic()));
+      }, VoidToFuture()));
       unittest$.test("throws", dart.fn(() => {
         function f() {
           return dart.asyncStar(function*(stream) {
             if (stream.add(1)) return;
             yield;
             dart.throw(2);
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         let completer = async.Completer.new();
         let list = [];
-        dart.dsend(f(), 'listen', dart.fn(x => list[dartx.add](x), dynamicTovoid()), {onError: dart.fn(v => list[dartx.add](dart.str`${v}`), dynamicTovoid()), onDone: dart.bind(completer, 'complete')});
+        f().listen(dart.fn(x => list[dartx.add](x), intTovoid()), {onError: dart.fn(v => list[dartx.add](dart.str`${v}`), dynamicTovoid()), onDone: dart.bind(completer, 'complete')});
         return completer.future.whenComplete(dart.fn(() => {
           src__matcher__expect.expect(list, src__matcher__core_matchers.equals(JSArrayOfObject().of([1, "2"])));
         }, VoidTodynamic()));
@@ -97,9 +127,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
               if (stream.add(i)) return;
               yield;
             }
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), core.List.generate(10, async_star_test_04_multi.id));
       }, VoidTodynamic()));
       unittest$.test("allows await", dart.fn(() => {
@@ -111,7 +141,7 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             x = (yield async.Future.value(42));
           }, dart.dynamic);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStream());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([42]));
       }, VoidTodynamic()));
       unittest$.test("allows await in loop", dart.fn(() => {
@@ -121,9 +151,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
               if (stream.add(yield i)) return;
               yield;
             }
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), core.List.generate(10, async_star_test_04_multi.id));
       }, VoidTodynamic()));
       unittest$.test("allows yield*", dart.fn(() => {
@@ -131,9 +161,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
           return dart.asyncStar(function*(stream) {
             if (stream.addStream(StreamOfint().fromIterable(JSArrayOfint().of([1, 2, 3])))) return;
             yield;
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([1, 2, 3]));
       }, VoidTodynamic()));
       unittest$.test("allows yield* of async*", dart.fn(() => {
@@ -148,7 +178,7 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             yield;
           }, dart.dynamic, n);
         }
-        dart.fn(f, dynamicTodynamic());
+        dart.fn(f, dynamicToStream());
         return async_star_test_04_multi.expectList(f(3), JSArrayOfint().of([3, 2, 1, 0, 1, 2, 3]));
       }, VoidTodynamic()));
       unittest$.test("Cannot yield* non-stream", dart.fn(() => {
@@ -158,11 +188,11 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             yield;
           }, dart.dynamic, s);
         }
-        dart.fn(f, dynamicTodynamic());
-        return dart.dsend(dart.dload(dart.dsend(f(42), 'transform', async_star_test_04_multi.getErrors), 'single'), 'then', dart.fn(v => {
+        dart.fn(f, dynamicToStream());
+        return f(42).transform(dart.dynamic)(async_star_test_04_multi.getErrors).single.then(dart.dynamic)(dart.fn(v => {
           src__matcher__expect.expect(core.Error.is(v), src__matcher__core_matchers.isTrue);
         }, dynamicTodynamic()));
-      }, VoidTodynamic()));
+      }, VoidToFuture()));
       unittest$.test("Cannot yield* non-stream", dart.fn(() => {
         function f(s) {
           return dart.asyncStar(function*(stream, s) {
@@ -170,11 +200,11 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             yield;
           }, dart.dynamic, s);
         }
-        dart.fn(f, dynamicTodynamic());
-        return dart.dsend(dart.dload(dart.dsend(f(new async_star_test_04_multi.NotAStream()), 'transform', async_star_test_04_multi.getErrors), 'single'), 'then', dart.fn(v => {
+        dart.fn(f, dynamicToStream());
+        return f(new async_star_test_04_multi.NotAStream()).transform(dart.dynamic)(async_star_test_04_multi.getErrors).single.then(dart.dynamic)(dart.fn(v => {
           src__matcher__expect.expect(core.Error.is(v), src__matcher__core_matchers.isTrue);
         }, dynamicTodynamic()));
-      }, VoidTodynamic()));
+      }, VoidToFuture()));
     }, VoidTovoid()));
     unittest$.group("yield statement context", dart.fn(() => {
       unittest$.test("plain", dart.fn(() => {
@@ -182,9 +212,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
           return dart.asyncStar(function*(stream) {
             if (stream.add(0)) return;
             yield;
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([0]));
       }, VoidTodynamic()));
       unittest$.test("if-then-else", dart.fn(() => {
@@ -197,9 +227,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
               if (stream.add(1)) return;
               yield;
             }
-          }, dart.dynamic, b);
+          }, core.int, b);
         }
-        dart.fn(f, dynamicTodynamic());
+        dart.fn(f, dynamicToStreamOfint());
         return dart.dsend(async_star_test_04_multi.expectList(f(true), JSArrayOfint().of([0])), 'whenComplete', dart.fn(() => {
           async_star_test_04_multi.expectList(f(false), JSArrayOfint().of([1]));
         }, VoidTodynamic()));
@@ -215,9 +245,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             }
             if (stream.add(2)) return;
             yield;
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([0, 1, 2]));
       }, VoidTodynamic()));
       unittest$.test("labeled", dart.fn(() => {
@@ -227,9 +257,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
               if (stream.add(0)) return;
               yield;
             }
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([0]));
       }, VoidTodynamic()));
       unittest$.test("for-loop", dart.fn(() => {
@@ -239,9 +269,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
               if (stream.add(i)) return;
               yield;
             }
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([0, 1, 2]));
       }, VoidTodynamic()));
       unittest$.test("for-in-loop", dart.fn(() => {
@@ -251,9 +281,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
               if (stream.add(i)) return;
               yield;
             }
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([0, 1, 2]));
       }, VoidTodynamic()));
       unittest$.test("await for-in-loop", dart.fn(() => {
@@ -269,9 +299,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             } finally {
               yield it.cancel();
             }
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([0, 1, 2]));
       }, VoidTodynamic()));
       unittest$.test("while-loop", dart.fn(() => {
@@ -282,9 +312,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
               if (stream.add(i++)) return;
               yield;
             }
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([0, 1, 2]));
       }, VoidTodynamic()));
       unittest$.test("do-while-loop", dart.fn(() => {
@@ -295,9 +325,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
               if (stream.add(i++)) return;
               yield;
             } while (i < 3);
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([0, 1, 2]));
       }, VoidTodynamic()));
       unittest$.test("try-catch-finally", dart.fn(() => {
@@ -314,9 +344,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
               if (stream.add(2)) return;
               yield;
             }
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([0, 2]));
       }, VoidTodynamic()));
       unittest$.test("try-catch-finally 2", dart.fn(() => {
@@ -333,9 +363,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
               if (stream.add(2)) return;
               yield;
             }
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([1, 2]));
       }, VoidTodynamic()));
       unittest$.test("dead-code return", dart.fn(() => {
@@ -344,9 +374,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             return;
             if (stream.add(1)) return;
             yield;
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), []);
       }, VoidTodynamic()));
       unittest$.test("dead-code throw", dart.fn(() => {
@@ -359,9 +389,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             } catch (_) {
             }
 
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), []);
       }, VoidTodynamic()));
       unittest$.test("dead-code break", dart.fn(() => {
@@ -372,9 +402,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
               if (stream.add(1)) return;
               yield;
             }
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), []);
       }, VoidTodynamic()));
       unittest$.test("dead-code break 2", dart.fn(() => {
@@ -385,9 +415,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
               if (stream.add(1)) return;
               yield;
             }
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), []);
       }, VoidTodynamic()));
       unittest$.test("dead-code continue", dart.fn(() => {
@@ -398,9 +428,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
               if (stream.add(1)) return;
               yield;
             } while (false);
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), []);
       }, VoidTodynamic()));
     }, VoidTovoid()));
@@ -411,9 +441,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             let x = 42;
             if (stream.add(x)) return;
             yield;
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([42]));
       }, VoidTodynamic()));
       unittest$.test("constant variable", dart.fn(() => {
@@ -422,23 +452,23 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             let x = 42;
             if (stream.add(x)) return;
             yield;
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([42]));
       }, VoidTodynamic()));
       unittest$.test("function call", dart.fn(() => {
         function g() {
           return 42;
         }
-        dart.fn(g, VoidTodynamic());
+        dart.fn(g, VoidToint());
         function f() {
           return dart.asyncStar(function*(stream) {
             if (stream.add(g())) return;
             yield;
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([42]));
       }, VoidTodynamic()));
       unittest$.test("unary operator", dart.fn(() => {
@@ -447,9 +477,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             let x = -42;
             if (stream.add(-x)) return;
             yield;
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([42]));
       }, VoidTodynamic()));
       unittest$.test("binary operator", dart.fn(() => {
@@ -458,9 +488,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             let x = 21;
             if (stream.add(x + x)) return;
             yield;
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([42]));
       }, VoidTodynamic()));
       unittest$.test("ternary operator", dart.fn(() => {
@@ -469,9 +499,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             let x = 21;
             if (stream.add(x == 21 ? x + x : x)) return;
             yield;
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([42]));
       }, VoidTodynamic()));
       unittest$.test("suffix post-increment", dart.fn(() => {
@@ -480,9 +510,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             let x = 42;
             if (stream.add(x++)) return;
             yield;
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([42]));
       }, VoidTodynamic()));
       unittest$.test("suffix pre-increment", dart.fn(() => {
@@ -491,9 +521,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             let x = 41;
             if (stream.add(++x)) return;
             yield;
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([42]));
       }, VoidTodynamic()));
       unittest$.test("assignment", dart.fn(() => {
@@ -502,9 +532,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             let x = 37;
             if (stream.add(x = 42)) return;
             yield;
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([42]));
       }, VoidTodynamic()));
       unittest$.test("assignment op", dart.fn(() => {
@@ -513,9 +543,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             let x = 41;
             if (stream.add((x = x + 1))) return;
             yield;
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([42]));
       }, VoidTodynamic()));
       unittest$.test("await", dart.fn(() => {
@@ -525,7 +555,7 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             yield;
           }, dart.dynamic);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStream());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([42]));
       }, VoidTodynamic()));
       unittest$.test("index operator", dart.fn(() => {
@@ -534,67 +564,67 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             let x = JSArrayOfint().of([42]);
             if (stream.add(x[dartx.get](0))) return;
             yield;
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([42]));
       }, VoidTodynamic()));
       unittest$.test("function expression block", dart.fn(() => {
         let o = new core.Object();
         function f() {
           return dart.asyncStar(function*(stream) {
-            if (stream.add(dart.fn(() => o, VoidToObject()))) return;
+            if (stream.add(dart.fn(() => o, VoidToObject$()))) return;
             yield;
-          }, dart.dynamic);
+          }, VoidToObject());
         }
-        dart.fn(f, VoidTodynamic());
-        return dart.dsend(dart.dload(f(), 'first'), 'then', dart.fn(v => {
-          src__matcher__expect.expect(dart.dcall(v), src__matcher__core_matchers.same(o));
-        }, dynamicTodynamic()));
-      }, VoidTodynamic()));
+        dart.fn(f, VoidToStreamOfVoidToObject());
+        return f().first.then(dart.dynamic)(dart.fn(v => {
+          src__matcher__expect.expect(v(), src__matcher__core_matchers.same(o));
+        }, FnTodynamic()));
+      }, VoidToFuture()));
       unittest$.test("function expression arrow", dart.fn(() => {
         let o = new core.Object();
         function f() {
           return dart.asyncStar(function*(stream) {
-            if (stream.add(dart.fn(() => o, VoidToObject()))) return;
+            if (stream.add(dart.fn(() => o, VoidToObject$()))) return;
             yield;
-          }, dart.dynamic);
+          }, VoidToObject());
         }
-        dart.fn(f, VoidTodynamic());
-        return dart.dsend(dart.dload(f(), 'first'), 'then', dart.fn(v => {
-          src__matcher__expect.expect(dart.dcall(v), src__matcher__core_matchers.same(o));
-        }, dynamicTodynamic()));
-      }, VoidTodynamic()));
+        dart.fn(f, VoidToStreamOfVoidToObject());
+        return f().first.then(dart.dynamic)(dart.fn(v => {
+          src__matcher__expect.expect(v(), src__matcher__core_matchers.same(o));
+        }, FnTodynamic()));
+      }, VoidToFuture()));
       unittest$.test("function expression block async", dart.fn(() => {
         let o = new core.Object();
         function f() {
           return dart.asyncStar(function*(stream) {
             if (stream.add(dart.fn(() => dart.async(function*() {
               return o;
-            }, core.Object), VoidToFutureOfObject()))) return;
+            }, core.Object), VoidToFutureOfObject$()))) return;
             yield;
-          }, dart.dynamic);
+          }, VoidToFutureOfObject());
         }
-        dart.fn(f, VoidTodynamic());
-        return dart.dsend(dart.dsend(dart.dload(f(), 'first'), 'then', dart.fn(v => dart.dcall(v), dynamicTodynamic())), 'then', dart.fn(v => {
+        dart.fn(f, VoidToStreamOfVoidToFutureOfObject());
+        return f().first.then(FutureOfObject())(dart.fn(v => v(), FnToFutureOfObject())).then(dart.dynamic)(dart.fn(v => {
           src__matcher__expect.expect(v, src__matcher__core_matchers.same(o));
-        }, dynamicTodynamic()));
-      }, VoidTodynamic()));
+        }, ObjectTodynamic()));
+      }, VoidToFuture()));
       unittest$.test("function expression arrow async", dart.fn(() => {
         let o = new core.Object();
         function f() {
           return dart.asyncStar(function*(stream) {
             if (stream.add(dart.fn(() => dart.async(function*() {
               return o;
-            }, core.Object), VoidToFutureOfObject()))) return;
+            }, core.Object), VoidToFutureOfObject$()))) return;
             yield;
-          }, dart.dynamic);
+          }, VoidToFutureOfObject());
         }
-        dart.fn(f, VoidTodynamic());
-        return dart.dsend(dart.dsend(dart.dload(f(), 'first'), 'then', dart.fn(v => dart.dcall(v), dynamicTodynamic())), 'then', dart.fn(v => {
+        dart.fn(f, VoidToStreamOfVoidToFutureOfObject());
+        return f().first.then(FutureOfObject())(dart.fn(v => v(), FnToFutureOfObject())).then(dart.dynamic)(dart.fn(v => {
           src__matcher__expect.expect(v, src__matcher__core_matchers.same(o));
-        }, dynamicTodynamic()));
-      }, VoidTodynamic()));
+        }, ObjectTodynamic()));
+      }, VoidToFuture()));
       unittest$.test("function expression block async*", dart.fn(() => {
         let o = new core.Object();
         function f() {
@@ -602,15 +632,15 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             if (stream.add(dart.fn(() => dart.asyncStar(function*(stream) {
               if (stream.add(o)) return;
               yield;
-            }, core.Object), VoidToStreamOfObject()))) return;
+            }, core.Object), VoidToStreamOfObject$()))) return;
             yield;
-          }, dart.dynamic);
+          }, VoidToStreamOfObject());
         }
-        dart.fn(f, VoidTodynamic());
-        return dart.dsend(dart.dsend(dart.dload(f(), 'first'), 'then', dart.fn(v => dart.dload(dart.dcall(v), 'first'), dynamicTodynamic())), 'then', dart.fn(v => {
+        dart.fn(f, VoidToStreamOfVoidToStreamOfObject());
+        return f().first.then(FutureOfObject())(dart.fn(v => v().first, FnToFutureOfObject$())).then(dart.dynamic)(dart.fn(v => {
           src__matcher__expect.expect(v, src__matcher__core_matchers.same(o));
-        }, dynamicTodynamic()));
-      }, VoidTodynamic()));
+        }, ObjectTodynamic()));
+      }, VoidToFuture()));
     }, VoidTovoid()));
     unittest$.group("loops", dart.fn(() => {
       unittest$.test("simple yield", dart.fn(() => {
@@ -620,9 +650,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
               if (stream.add(i)) return;
               yield;
             }
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([0, 1, 2]));
       }, VoidTodynamic()));
       unittest$.test("yield in double loop", dart.fn(() => {
@@ -634,9 +664,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
                 yield;
               }
             }
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return async_star_test_04_multi.expectList(f(), JSArrayOfint().of([0, 1, 2, 3, 4, 5]));
       }, VoidTodynamic()));
       unittest$.test("yield in try body", dart.fn(() => {
@@ -651,9 +681,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
                 list[dartx.add](dart.str`${i}`);
               }
             }
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return dart.dsend(async_star_test_04_multi.expectList(f(), JSArrayOfint().of([0, 1, 2])), 'whenComplete', dart.fn(() => {
           src__matcher__expect.expect(list, src__matcher__core_matchers.equals(JSArrayOfString().of(["0", "1", "2"])));
         }, VoidTodynamic()));
@@ -675,7 +705,7 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             }
           }, dart.dynamic);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStream());
         return dart.dsend(async_star_test_04_multi.expectList(f(), JSArrayOfint().of([0, 1, 2])), 'whenComplete', dart.fn(() => {
           src__matcher__expect.expect(list, src__matcher__core_matchers.equals(JSArrayOfString().of(["0", "1", "2"])));
         }, VoidTodynamic()));
@@ -694,9 +724,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
                 continue;
               }
             }
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         return dart.dsend(async_star_test_04_multi.expectList(f(), JSArrayOfint().of([0, 1, 2])), 'whenComplete', dart.fn(() => {
           src__matcher__expect.expect(list, src__matcher__core_matchers.equals(JSArrayOfString().of(["0", "1", "2"])));
         }, VoidTodynamic()));
@@ -712,10 +742,10 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
                 continue;
               }
             }
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
-        return async_star_test_04_multi.expectList(dart.dsend(f(), 'take', 3), JSArrayOfint().of([0, 1, 2]));
+        dart.fn(f, VoidToStreamOfint());
+        return async_star_test_04_multi.expectList(f().take(3), JSArrayOfint().of([0, 1, 2]));
       }, VoidTodynamic()));
     }, VoidTovoid()));
     unittest$.group("canceling", dart.fn(() => {
@@ -732,15 +762,15 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             } finally {
               exits.complete(3);
             }
-          }, dart.dynamic);
+          }, dart.void);
         }
-        dart.fn(f, VoidTodynamic());
-        let subscription = dart.dsend(f(), 'listen', dart.fn(v => {
+        dart.fn(f, VoidToStreamOfvoid());
+        let subscription = f().listen(dart.fn(v => {
           src__matcher__expect.fail(dart.str`Received event ${v}`);
-        }, dynamicTodynamic()), {onDone: dart.fn(() => {
+        }, voidTovoid()), {onDone: dart.fn(() => {
             src__matcher__expect.fail("Received done");
-          }, VoidTodynamic())});
-        dart.dsend(subscription, 'cancel');
+          }, VoidTovoid())});
+        subscription.cancel();
         return exits.future.then(dart.dynamic)(dart.fn(v => {
           src__matcher__expect.expect(v, src__matcher__core_matchers.equals(3));
           src__matcher__expect.expect(list, src__matcher__core_matchers.equals(JSArrayOfint().of([0, 1])));
@@ -761,10 +791,10 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
               list[dartx.add]("a");
               exits.complete(i);
             }
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
-        return dart.dsend(dart.dsend(async_star_test_04_multi.expectList(dart.dsend(f(), 'take', 5), JSArrayOfint().of([0, 1, 2, 3, 4])), 'then', dart.fn(_ => exits.future, dynamicToFuture())), 'then', dart.fn(v => {
+        dart.fn(f, VoidToStreamOfint());
+        return dart.dsend(dart.dsend(async_star_test_04_multi.expectList(f().take(5), JSArrayOfint().of([0, 1, 2, 3, 4])), 'then', dart.fn(_ => exits.future, dynamicToFuture())), 'then', dart.fn(v => {
           src__matcher__expect.expect(v, src__matcher__numeric_matchers.greaterThan(4));
           src__matcher__expect.expect(list, JSArrayOfString().of(["a"]));
         }, dynamicTodynamic()));
@@ -786,13 +816,13 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             }
           }, dart.dynamic);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStream());
         unittest$.test("- all, sanity check", dart.fn(() => async_star_test_04_multi.expectList(f(), JSArrayOfint().of([1, 2, 3])), VoidTodynamic()));
-        unittest$.test("after end", dart.fn(() => async_star_test_04_multi.expectList(dart.dsend(f(), 'take', 4), JSArrayOfint().of([1, 2, 3])), VoidTodynamic()));
-        unittest$.test("at end", dart.fn(() => async_star_test_04_multi.expectList(dart.dsend(f(), 'take', 3), JSArrayOfint().of([1, 2, 3])), VoidTodynamic()));
-        unittest$.test("before end", dart.fn(() => async_star_test_04_multi.expectList(dart.dsend(f(), 'take', 2), JSArrayOfint().of([1, 2])), VoidTodynamic()));
-        unittest$.test("early", dart.fn(() => async_star_test_04_multi.expectList(dart.dsend(f(), 'take', 1), JSArrayOfint().of([1])), VoidTodynamic()));
-        unittest$.test("at start", dart.fn(() => async_star_test_04_multi.expectList(dart.dsend(f(), 'take', 0), []), VoidTodynamic()));
+        unittest$.test("after end", dart.fn(() => async_star_test_04_multi.expectList(f().take(4), JSArrayOfint().of([1, 2, 3])), VoidTodynamic()));
+        unittest$.test("at end", dart.fn(() => async_star_test_04_multi.expectList(f().take(3), JSArrayOfint().of([1, 2, 3])), VoidTodynamic()));
+        unittest$.test("before end", dart.fn(() => async_star_test_04_multi.expectList(f().take(2), JSArrayOfint().of([1, 2])), VoidTodynamic()));
+        unittest$.test("early", dart.fn(() => async_star_test_04_multi.expectList(f().take(1), JSArrayOfint().of([1])), VoidTodynamic()));
+        unittest$.test("at start", dart.fn(() => async_star_test_04_multi.expectList(f().take(0), []), VoidTodynamic()));
       }, VoidTovoid()));
     }, VoidTovoid()));
     unittest$.group("pausing", dart.fn(() => {
@@ -807,22 +837,22 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             if (stream.add(4)) return;
             yield;
             list[dartx.add](5);
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         let done = async.Completer.new();
-        let sub = dart.dsend(f(), 'listen', dart.fn(v => {
-          if (dart.equals(v, 2)) {
+        let sub = f().listen(dart.fn(v => {
+          if (v == 2) {
             src__matcher__expect.expect(list, src__matcher__core_matchers.equals(JSArrayOfint().of([1])));
-          } else if (dart.equals(v, 4)) {
+          } else if (v == 4) {
             src__matcher__expect.expect(list, src__matcher__core_matchers.equals(JSArrayOfint().of([1, 3])));
           } else {
             src__matcher__expect.fail(dart.str`Unexpected value ${v}`);
           }
-        }, dynamicTodynamic()), {onDone: dart.fn(() => {
+        }, intTovoid()), {onDone: dart.fn(() => {
             src__matcher__expect.expect(list, src__matcher__core_matchers.equals(JSArrayOfint().of([1, 3, 5])));
             done.complete();
-          }, VoidTodynamic())});
+          }, VoidTovoid())});
         return done.future;
       }, VoidToFuture()));
       unittest$.test("pause stops execution at yield", dart.fn(() => {
@@ -836,28 +866,28 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             if (stream.add(4)) return;
             yield;
             list[dartx.add](5);
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         let done = async.Completer.new();
         let sub = null;
-        sub = dart.dsend(f(), 'listen', dart.fn(v => {
-          if (dart.equals(v, 2)) {
+        sub = f().listen(dart.fn(v => {
+          if (v == 2) {
             src__matcher__expect.expect(list, src__matcher__core_matchers.equals(JSArrayOfint().of([1])));
             dart.dsend(sub, 'pause');
             async.Timer.new(async_star_test_04_multi.MS['*'](300), dart.fn(() => {
               src__matcher__expect.expect(list[dartx.length], src__matcher__numeric_matchers.lessThan(3));
               dart.dsend(sub, 'resume');
             }, VoidTovoid()));
-          } else if (dart.equals(v, 4)) {
+          } else if (v == 4) {
             src__matcher__expect.expect(list, src__matcher__core_matchers.equals(JSArrayOfint().of([1, 3])));
           } else {
             src__matcher__expect.fail(dart.str`Unexpected value ${v}`);
           }
-        }, dynamicTodynamic()), {onDone: dart.fn(() => {
+        }, intTovoid()), {onDone: dart.fn(() => {
             src__matcher__expect.expect(list, src__matcher__core_matchers.equals(JSArrayOfint().of([1, 3, 5])));
             done.complete();
-          }, VoidTodynamic())});
+          }, VoidTovoid())});
         return done.future;
       }, VoidToFuture()));
       unittest$.test("pause stops execution at yield 2", dart.fn(() => {
@@ -871,23 +901,23 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
               list[dartx.add](i);
               i++;
             }
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
+        dart.fn(f, VoidToStreamOfint());
         let expected = 0;
         let done = async.Completer.new();
         let sub = null;
-        sub = dart.dsend(f(), 'listen', dart.fn(v => {
+        sub = f().listen(dart.fn(v => {
           src__matcher__expect.expect(v, src__matcher__core_matchers.equals(expected++));
-          if (dart.equals(dart.dsend(v, '%', 5), 0)) {
+          if (v[dartx['%']](5) == 0) {
             dart.dsend(sub, 'pause', async.Future.delayed(async_star_test_04_multi.MS['*'](300)));
-          } else if (dart.equals(v, 17)) {
+          } else if (v == 17) {
             dart.dsend(sub, 'cancel');
             done.complete();
           }
-        }, dynamicTodynamic()), {onDone: dart.fn(() => {
+        }, intTovoid()), {onDone: dart.fn(() => {
             src__matcher__expect.fail("Unexpected done!");
-          }, VoidTodynamic())});
+          }, VoidTovoid())});
         return done.future.whenComplete(dart.fn(() => {
           src__matcher__expect.expect(list[dartx.length] == 18 || list[dartx.length] == 19, src__matcher__core_matchers.isTrue);
         }, VoidTodynamic()));
@@ -900,9 +930,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             if (stream.add(i)) return;
             yield;
           }
-        }, dart.dynamic, n);
+        }, core.int, n);
       }
-      dart.fn(mkStream, intTodynamic());
+      dart.fn(mkStream, intToStreamOfint());
       unittest$.test("simple stream", dart.fn(() => {
         function f(s) {
           return dart.async(function*(s) {
@@ -917,13 +947,13 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
               yield it.cancel();
             }
             return r;
-          }, dart.dynamic, s);
+          }, core.int, s);
         }
-        dart.fn(f, dynamicTodynamic());
-        return dart.dsend(f(mkStream(5)), 'then', dart.fn(v => {
+        dart.fn(f, dynamicToFutureOfint());
+        return f(mkStream(5)).then(dart.dynamic)(dart.fn(v => {
           src__matcher__expect.expect(v, src__matcher__core_matchers.equals(10));
-        }, dynamicTodynamic()));
-      }, VoidTodynamic()));
+        }, intTodynamic()));
+      }, VoidToFuture()));
       unittest$.test("simple stream, await", dart.fn(() => {
         function f(s) {
           return dart.async(function*(s) {
@@ -938,13 +968,13 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
               yield it.cancel();
             }
             return r;
-          }, dart.dynamic, s);
+          }, core.int, s);
         }
-        dart.fn(f, dynamicTodynamic());
-        return dart.dsend(f(mkStream(5)), 'then', dart.fn(v => {
+        dart.fn(f, dynamicToFutureOfint());
+        return f(mkStream(5)).then(dart.dynamic)(dart.fn(v => {
           src__matcher__expect.expect(v, src__matcher__core_matchers.equals(10));
-        }, dynamicTodynamic()));
-      }, VoidTodynamic()));
+        }, intTodynamic()));
+      }, VoidToFuture()));
       unittest$.test("simple stream reyield", dart.fn(() => {
         function f(s) {
           return dart.asyncStar(function*(stream, s) {
@@ -959,9 +989,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             } finally {
               yield it.cancel();
             }
-          }, dart.dynamic, s);
+          }, core.num, s);
         }
-        dart.fn(f, dynamicTodynamic());
+        dart.fn(f, dynamicToStreamOfnum());
         return async_star_test_04_multi.expectList(f(mkStream(5)), JSArrayOfint().of([0, 1, 3, 6, 10]));
       }, VoidTodynamic()));
       unittest$.test("simple stream, await, reyield", dart.fn(() => {
@@ -978,9 +1008,9 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             } finally {
               yield it.cancel();
             }
-          }, dart.dynamic, s);
+          }, core.num, s);
         }
-        dart.fn(f, dynamicTodynamic());
+        dart.fn(f, dynamicToStreamOfnum());
         return async_star_test_04_multi.expectList(f(mkStream(5)), JSArrayOfint().of([0, 1, 3, 6, 10]));
       }, VoidTodynamic()));
       unittest$.test("simple stream - take, reyield", dart.fn(() => {
@@ -997,24 +1027,24 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
             } finally {
               yield it.cancel();
             }
-          }, dart.dynamic, s);
+          }, core.num, s);
         }
-        dart.fn(f, dynamicTodynamic());
+        dart.fn(f, dynamicToStreamOfnum());
         return async_star_test_04_multi.expectList(f(mkStream(10)), JSArrayOfint().of([0, 1, 3, 6, 10]));
       }, VoidTodynamic()));
       unittest$.test("nested", dart.fn(() => {
         function f() {
           return dart.async(function*() {
             let r = 0;
-            let it = async.StreamIterator.new(async.Stream._check(mkStream(5)));
+            let it = async.StreamIterator.new(mkStream(5));
             try {
               while (yield it.moveNext()) {
                 let i = it.current;
-                let it$ = async.StreamIterator.new(async.Stream._check(mkStream(3)));
+                let it$ = async.StreamIterator.new(mkStream(3));
                 try {
                   while (yield it$.moveNext()) {
                     let j = it$.current;
-                    r = dart.notNull(r) + dart.notNull(core.int._check(dart.dsend(i, '*', j)));
+                    r = r + dart.notNull(i) * dart.notNull(j);
                   }
                 } finally {
                   yield it$.cancel();
@@ -1024,26 +1054,26 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
               yield it.cancel();
             }
             return r;
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
-        return dart.dsend(f(), 'then', dart.fn(v => {
+        dart.fn(f, VoidToFutureOfint());
+        return f().then(dart.dynamic)(dart.fn(v => {
           src__matcher__expect.expect(v, src__matcher__core_matchers.equals((1 + 2 + 3 + 4) * (1 + 2)));
-        }, dynamicTodynamic()));
-      }, VoidTodynamic()));
+        }, intTodynamic()));
+      }, VoidToFuture()));
       unittest$.test("nested, await", dart.fn(() => {
         function f() {
           return dart.async(function*() {
             let r = 0;
-            let it = async.StreamIterator.new(async.Stream._check(mkStream(5)));
+            let it = async.StreamIterator.new(mkStream(5));
             try {
               while (yield it.moveNext()) {
                 let i = it.current;
-                let it$ = async.StreamIterator.new(async.Stream._check(mkStream(3)));
+                let it$ = async.StreamIterator.new(mkStream(3));
                 try {
                   while (yield it$.moveNext()) {
                     let j = it$.current;
-                    r = dart.notNull(r) + dart.notNull(core.int._check(yield async.Future.microtask(dart.fn(() => dart.dsend(i, '*', j), VoidTodynamic()))));
+                    r = dart.notNull(r) + dart.notNull(core.int._check(yield async.Future.microtask(dart.fn(() => dart.notNull(i) * dart.notNull(j), VoidToint()))));
                   }
                 } finally {
                   yield it$.cancel();
@@ -1053,23 +1083,23 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
               yield it.cancel();
             }
             return r;
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
-        return dart.dsend(f(), 'then', dart.fn(v => {
+        dart.fn(f, VoidToFutureOfint());
+        return f().then(dart.dynamic)(dart.fn(v => {
           src__matcher__expect.expect(v, src__matcher__core_matchers.equals((1 + 2 + 3 + 4) * (1 + 2)));
-        }, dynamicTodynamic()));
-      }, VoidTodynamic()));
+        }, intTodynamic()));
+      }, VoidToFuture()));
       unittest$.test("nested, await * 2", dart.fn(() => {
         function f() {
           return dart.async(function*() {
             let r = 0;
-            let it = async.StreamIterator.new(async.Stream._check(mkStream(5)));
+            let it = async.StreamIterator.new(mkStream(5));
             try {
               while (yield it.moveNext()) {
                 let i = it.current;
-                let ai = (yield async.Future.microtask(dart.fn(() => i, VoidTodynamic())));
-                let it$ = async.StreamIterator.new(async.Stream._check(mkStream(3)));
+                let ai = (yield async.Future.microtask(dart.fn(() => i, VoidToint())));
+                let it$ = async.StreamIterator.new(mkStream(3));
                 try {
                   while (yield it$.moveNext()) {
                     let j = it$.current;
@@ -1083,13 +1113,13 @@ dart_library.library('language/async_star_test_04_multi', null, /* Imports */[
               yield it.cancel();
             }
             return r;
-          }, dart.dynamic);
+          }, core.int);
         }
-        dart.fn(f, VoidTodynamic());
-        return dart.dsend(f(), 'then', dart.fn(v => {
+        dart.fn(f, VoidToFutureOfint());
+        return f().then(dart.dynamic)(dart.fn(v => {
           src__matcher__expect.expect(v, src__matcher__core_matchers.equals((1 + 2 + 3 + 4) * (1 + 2)));
-        }, dynamicTodynamic()));
-      }, VoidTodynamic()));
+        }, intTodynamic()));
+      }, VoidToFuture()));
     }, VoidTovoid()));
   };
   dart.fn(async_star_test_04_multi.main, VoidTodynamic());

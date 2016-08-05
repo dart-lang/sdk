@@ -9,6 +9,7 @@ dart_library.library('language/cascade_precedence_test', null, /* Imports */[
   const expect$ = expect.expect;
   const cascade_precedence_test = Object.create(null);
   let VoidToFunction = () => (VoidToFunction = dart.constFn(dart.definiteFunctionType(core.Function, [])))();
+  let VoidToA = () => (VoidToA = dart.constFn(dart.definiteFunctionType(cascade_precedence_test.A, [])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   cascade_precedence_test.A = class A extends core.Object {
     new(value) {
@@ -86,7 +87,7 @@ dart_library.library('language/cascade_precedence_test', null, /* Imports */[
     function fa() {
       return a;
     }
-    dart.fn(fa, VoidTodynamic());
+    dart.fn(fa, VoidToA());
     let box = new cascade_precedence_test.Box(a);
     expect$.Expect.equals(a, ((() => {
       a.set(37);
@@ -96,8 +97,8 @@ dart_library.library('language/cascade_precedence_test', null, /* Imports */[
     a.test(37);
     expect$.Expect.equals(a, (() => {
       let _ = fa();
-      dart.dsend(_, 'set', 42);
-      dart.dsend(_, 'get');
+      _.set(42);
+      _.get();
       return _;
     })());
     a.test(42);

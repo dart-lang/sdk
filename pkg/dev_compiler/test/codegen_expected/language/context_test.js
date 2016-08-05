@@ -8,6 +8,7 @@ dart_library.library('language/context_test', null, /* Imports */[
   const dartx = dart_sdk.dartx;
   const expect$ = expect.expect;
   const context_test = Object.create(null);
+  let VoidToint = () => (VoidToint = dart.constFn(dart.definiteFunctionType(core.int, [])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   context_test.ContextTest = class ContextTest extends core.Object {
     static foo(f) {
@@ -18,7 +19,7 @@ dart_library.library('language/context_test', null, /* Imports */[
       function bar() {
         return x;
       }
-      dart.fn(bar, VoidTodynamic());
+      dart.fn(bar, VoidToint());
       x++;
       expect$.Expect.equals(43, context_test.ContextTest.foo(bar));
     }

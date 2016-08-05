@@ -6,7 +6,7 @@ dart_library.library('language/closure_call_wrong_argument_count_negative_test',
   const dart = dart_sdk.dart;
   const dartx = dart_sdk.dartx;
   const closure_call_wrong_argument_count_negative_test = Object.create(null);
-  let intAndintTodynamic = () => (intAndintTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.int, core.int])))();
+  let intAndintToint = () => (intAndintToint = dart.constFn(dart.definiteFunctionType(core.int, [core.int, core.int])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   closure_call_wrong_argument_count_negative_test.ClosureCallWrongArgumentCountNegativeTest = class ClosureCallWrongArgumentCountNegativeTest extends core.Object {
     static melke(f) {
@@ -16,7 +16,7 @@ dart_library.library('language/closure_call_wrong_argument_count_negative_test',
       function kuh(a, b) {
         return dart.notNull(a) + dart.notNull(b);
       }
-      dart.fn(kuh, intAndintTodynamic());
+      dart.fn(kuh, intAndintToint());
       closure_call_wrong_argument_count_negative_test.ClosureCallWrongArgumentCountNegativeTest.melke(kuh);
     }
   };

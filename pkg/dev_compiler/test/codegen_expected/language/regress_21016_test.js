@@ -44,7 +44,7 @@ dart_library.library('language/regress_21016_test', null, /* Imports */[
   });
   regress_21016_test.main = function() {
     let holder = new regress_21016_test.Holder();
-    let hide = dart.dcall(dart.fn(X => X, dynamicTodynamic()), dart.bind(holder, 'tearMe'));
+    let hide = dart.fn(X => X, dynamicTodynamic())(dart.bind(holder, 'tearMe'));
     dart.dcall(hide, new regress_21016_test.A());
     regress_21016_test.list[dartx.add](dart.bind(holder, 'tearMe'));
     let x = regress_21016_test.list[dartx.get](0);

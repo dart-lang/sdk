@@ -16,8 +16,8 @@ dart_library.library('language/type_propagation2_test', null, /* Imports */[
   type_propagation2_test.main = function() {
     let d = new type_propagation2_test.Bar();
     while (false) {
-      let input = dart.dcall(dart.fn(x => {
-      }, dynamicTodynamic()), null);
+      let input = dart.fn(x => {
+      }, dynamicTodynamic())(null);
       let p2 = dart.dsend(dart.dload(input, 'keys'), 'firstWhere', null);
       let a2 = dart.dsend(dart.dload(input, 'keys'), 'firstWhere', null);
       core.print(dart.equals(dart.dindex(input, a2), p2));

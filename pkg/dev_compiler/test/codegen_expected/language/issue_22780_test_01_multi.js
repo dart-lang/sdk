@@ -6,12 +6,13 @@ dart_library.library('language/issue_22780_test_01_multi', null, /* Imports */[
   const dart = dart_sdk.dart;
   const dartx = dart_sdk.dartx;
   const issue_22780_test_01_multi = Object.create(null);
+  let VoidToString = () => (VoidToString = dart.constFn(dart.definiteFunctionType(core.String, [])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   issue_22780_test_01_multi.main = function() {
     function f() {
       return dart.str`Oh, the joy of ${f()}`;
     }
-    dart.fn(f, VoidTodynamic());
+    dart.fn(f, VoidToString());
     core.print(f());
   };
   dart.fn(issue_22780_test_01_multi.main, VoidTodynamic());

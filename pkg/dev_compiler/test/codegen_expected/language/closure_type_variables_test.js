@@ -13,6 +13,7 @@ dart_library.library('language/closure_type_variables_test', null, /* Imports */
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   closure_type_variables_test.A$ = dart.generic(T => {
     let AOfT = () => (AOfT = dart.constFn(closure_type_variables_test.A$(T)))();
+    let VoidToAOfT = () => (VoidToAOfT = dart.constFn(dart.definiteFunctionType(AOfT(), [])))();
     class A extends core.Object {
       new() {
       }
@@ -27,7 +28,7 @@ dart_library.library('language/closure_type_variables_test', null, /* Imports */
         function g() {
           return new (AOfT())();
         }
-        dart.fn(g, VoidTodynamic());
+        dart.fn(g, VoidToAOfT());
         return g();
       }
     }

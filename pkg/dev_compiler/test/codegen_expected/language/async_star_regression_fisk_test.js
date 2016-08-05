@@ -14,8 +14,10 @@ dart_library.library('language/async_star_regression_fisk_test', null, /* Import
   const async_star_regression_fisk_test = Object.create(null);
   let JSArrayOfObject = () => (JSArrayOfObject = dart.constFn(_interceptors.JSArray$(core.Object)))();
   let VoidToint = () => (VoidToint = dart.constFn(dart.definiteFunctionType(core.int, [])))();
+  let VoidToStream = () => (VoidToStream = dart.constFn(dart.definiteFunctionType(async.Stream, [])))();
+  let intToFuture = () => (intToFuture = dart.constFn(dart.definiteFunctionType(async.Future, [core.int])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
-  let intTodynamic = () => (intTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.int])))();
+  let VoidToFuture = () => (VoidToFuture = dart.constFn(dart.definiteFunctionType(async.Future, [])))();
   async_star_regression_fisk_test.main = function() {
     let res = [];
     function fisk() {
@@ -31,12 +33,12 @@ dart_library.library('language/async_star_regression_fisk_test', null, /* Import
         }
       }, dart.dynamic);
     }
-    dart.fn(fisk, VoidTodynamic());
+    dart.fn(fisk, VoidToStream());
     function fugl(count) {
       return dart.async(function*(count) {
         res[dartx.add](dart.str`fisk ${count}`);
         try {
-          let it = async.StreamIterator.new(async.Stream._check(dart.dsend(fisk(), 'take', count)));
+          let it = async.StreamIterator.new(fisk().take(count));
           try {
             while (yield it.moveNext()) {
               let i = it.current;
@@ -51,9 +53,9 @@ dart_library.library('language/async_star_regression_fisk_test', null, /* Import
         }
       }, dart.dynamic, count);
     }
-    dart.fn(fugl, intTodynamic());
+    dart.fn(fugl, intToFuture());
     async_helper$.asyncStart();
-    dart.dsend(dart.dsend(dart.dsend(fugl(3), 'whenComplete', dart.fn(() => fugl(2), VoidTodynamic())), 'whenComplete', dart.fn(() => fugl(1), VoidTodynamic())), 'whenComplete', dart.fn(() => {
+    fugl(3).whenComplete(dart.fn(() => fugl(2), VoidToFuture())).whenComplete(dart.fn(() => fugl(1), VoidToFuture())).whenComplete(dart.fn(() => {
       expect$.Expect.listEquals(JSArrayOfObject().of(["fisk 3", "+fisk", 0, 1, "-fisk", "done", "fisk 2", "+fisk", 0, 1, "-fisk", "done", "fisk 1", "+fisk", 0, "-fisk", "done"]), res);
       async_helper$.asyncEnd();
     }, VoidTodynamic()));

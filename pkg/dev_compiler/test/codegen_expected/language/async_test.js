@@ -10,14 +10,16 @@ dart_library.library('language/async_test', null, /* Imports */[
   const expect$ = expect.expect;
   const async_test = Object.create(null);
   let FutureOfint = () => (FutureOfint = dart.constFn(async.Future$(core.int)))();
+  let FutureOfnum = () => (FutureOfnum = dart.constFn(async.Future$(core.num)))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   let intToFutureOfint = () => (intToFutureOfint = dart.constFn(dart.definiteFunctionType(FutureOfint(), [core.int])))();
   let intTodynamic = () => (intTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.int])))();
   let intTovoid = () => (intTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.int])))();
   let StringTovoid = () => (StringTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.String])))();
   let ATovoid = () => (ATovoid = dart.constFn(dart.definiteFunctionType(dart.void, [async_test.A])))();
-  let intAnddynamicTodynamic = () => (intAnddynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.int, dart.dynamic])))();
-  let intAndStringAndnumTodynamic = () => (intAndStringAndnumTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.int, core.String, core.num])))();
+  let intAnddynamicToFuture = () => (intAnddynamicToFuture = dart.constFn(dart.definiteFunctionType(async.Future, [core.int, dart.dynamic])))();
+  let intToFutureOfnum = () => (intToFutureOfnum = dart.constFn(dart.definiteFunctionType(FutureOfnum(), [core.int])))();
+  let intAndStringAndnumToFutureOfnum = () => (intAndStringAndnumToFutureOfnum = dart.constFn(dart.definiteFunctionType(FutureOfnum(), [core.int, core.String, core.num])))();
   let dynamicTodynamic = () => (dynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic])))();
   let VoidToFutureOfint = () => (VoidToFutureOfint = dart.constFn(dart.definiteFunctionType(FutureOfint(), [])))();
   async_test.topLevelFunction = function() {
@@ -120,7 +122,7 @@ dart_library.library('language/async_test', null, /* Imports */[
         return dart.dsend(dart.dsend(p2, '+', z), '+', foo);
       }, dart.dynamic, p1, p2);
     }
-    dart.fn(bar, intAnddynamicTodynamic());
+    dart.fn(bar, intAnddynamicToFuture());
     asyncReturn = bar(1, 2);
     expect$.Expect.isTrue(async.Future.is(asyncReturn));
     dart.dsend(asyncReturn, 'then', dart.fn(result => expect$.Expect.equals(result, 27), intTovoid()));
@@ -129,11 +131,11 @@ dart_library.library('language/async_test', null, /* Imports */[
       function aa(shadowP1) {
         return dart.async(function*(shadowP1) {
           return foo + z + dart.notNull(p3) + dart.notNull(shadowP1);
-        }, dart.dynamic, shadowP1);
+        }, core.num, shadowP1);
       }
-      dart.fn(aa, intTodynamic());
+      dart.fn(aa, intToFutureOfnum());
       return aa(6);
-    }, intAndStringAndnumTodynamic());
+    }, intAndStringAndnumToFutureOfnum());
     asyncReturn = moreNesting(1, "ignore", 2);
     expect$.Expect.isTrue(async.Future.is(asyncReturn));
     dart.dsend(asyncReturn, 'then', dart.fn(result => expect$.Expect.equals(result, 28), intTovoid()));

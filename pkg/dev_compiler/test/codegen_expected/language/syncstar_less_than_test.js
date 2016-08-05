@@ -9,13 +9,14 @@ dart_library.library('language/syncstar_less_than_test', null, /* Imports */[
   const dartx = dart_sdk.dartx;
   const expect$ = expect.expect;
   const syncstar_less_than_test = Object.create(null);
+  let JSArrayOfObject = () => (JSArrayOfObject = dart.constFn(_interceptors.JSArray$(core.Object)))();
   let IterableOfint = () => (IterableOfint = dart.constFn(core.Iterable$(core.int)))();
   let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
   let dynamicTodynamic = () => (dynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic])))();
   let VoidToIterableOfint = () => (VoidToIterableOfint = dart.constFn(dart.definiteFunctionType(IterableOfint(), [])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   syncstar_less_than_test.confuse = function(x) {
-    return [1, 'x', true, null, x][dartx.last];
+    return JSArrayOfObject().of([1, 'x', true, null, x])[dartx.last];
   };
   dart.fn(syncstar_less_than_test.confuse, dynamicTodynamic());
   syncstar_less_than_test.foo = function() {

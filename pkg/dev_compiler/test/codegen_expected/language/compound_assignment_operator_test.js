@@ -10,8 +10,12 @@ dart_library.library('language/compound_assignment_operator_test', null, /* Impo
   const expect$ = expect.expect;
   const compound_assignment_operator_test = Object.create(null);
   let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
+  let ListOfint = () => (ListOfint = dart.constFn(core.List$(core.int)))();
+  let VoidToListOfint = () => (VoidToListOfint = dart.constFn(dart.definiteFunctionType(ListOfint(), [])))();
+  let VoidToint = () => (VoidToint = dart.constFn(dart.definiteFunctionType(core.int, [])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   let dynamicAnddynamicAnddynamicTodynamic = () => (dynamicAnddynamicAnddynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic, dart.dynamic])))();
+  let VoidToA = () => (VoidToA = dart.constFn(dart.definiteFunctionType(compound_assignment_operator_test.A, [])))();
   const _f = Symbol('_f');
   compound_assignment_operator_test.Indexed = class Indexed extends core.Object {
     new() {
@@ -75,12 +79,12 @@ dart_library.library('language/compound_assignment_operator_test', null, /* Impo
         dart.dsend(compound_assignment_operator_test.result, 'add', 0);
         return JSArrayOfint().of([0]);
       }
-      dart.fn(array, VoidTodynamic());
+      dart.fn(array, VoidToListOfint());
       function index() {
         dart.dsend(compound_assignment_operator_test.result, 'add', 1);
         return 0;
       }
-      dart.fn(index, VoidTodynamic());
+      dart.fn(index, VoidToint());
       function middle() {
         dart.dsend(compound_assignment_operator_test.result, 'add', 2);
       }
@@ -91,10 +95,10 @@ dart_library.library('language/compound_assignment_operator_test', null, /* Impo
       dart.fn(sequence, dynamicAnddynamicAnddynamicTodynamic());
       sequence((() => {
         let o = array(), i = index();
-        return dart.dsetindex(o, i, dart.dsend(dart.dindex(o, i), '+', 1));
+        return o[dartx.set](i, dart.notNull(o[dartx.get](i)) + 1);
       })(), middle(), (() => {
         let o = array(), i = index();
-        return dart.dsetindex(o, i, dart.dsend(dart.dindex(o, i), '+', 1));
+        return o[dartx.set](i, dart.notNull(o[dartx.get](i)) + 1);
       })());
       expect$.Expect.listEquals(JSArrayOfint().of([0, 1, 2, 0, 1, 3]), core.List._check(compound_assignment_operator_test.result));
     }
@@ -108,17 +112,17 @@ dart_library.library('language/compound_assignment_operator_test', null, /* Impo
         dart.dsend(compound_assignment_operator_test.result, 'add', 0);
         return new compound_assignment_operator_test.A();
       }
-      dart.fn(obj, VoidTodynamic());
+      dart.fn(obj, VoidToA());
       function sequence(a, b, c) {
         dart.dsend(compound_assignment_operator_test.result, 'add', 3);
       }
       dart.fn(sequence, dynamicAnddynamicAnddynamicTodynamic());
       sequence((() => {
         let o = obj();
-        return dart.dput(o, 'field', dart.dsend(dart.dload(o, 'field'), '+', 1));
+        return o.field = dart.dsend(o.field, '+', 1);
       })(), middle(), (() => {
         let o = obj();
-        return dart.dput(o, 'field', dart.dsend(dart.dload(o, 'field'), '+', 1));
+        return o.field = dart.dsend(o.field, '+', 1);
       })());
       expect$.Expect.listEquals(JSArrayOfint().of([0, 1, 2, 0, 1, 3]), core.List._check(compound_assignment_operator_test.result));
       compound_assignment_operator_test.result = [];

@@ -10,6 +10,7 @@ dart_library.library('language/closure_type_variable_test', null, /* Imports */[
   const closure_type_variable_test = Object.create(null);
   let A = () => (A = dart.constFn(closure_type_variable_test.A$()))();
   let AOfint = () => (AOfint = dart.constFn(closure_type_variable_test.A$(core.int)))();
+  let VoidToType = () => (VoidToType = dart.constFn(dart.definiteFunctionType(core.Type, [])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   closure_type_variable_test.A$ = dart.generic(T => {
     class A extends core.Object {
@@ -17,7 +18,7 @@ dart_library.library('language/closure_type_variable_test', null, /* Imports */[
         function bar() {
           return dart.wrapType(T);
         }
-        dart.fn(bar, VoidTodynamic());
+        dart.fn(bar, VoidToType());
         return bar();
       }
     }

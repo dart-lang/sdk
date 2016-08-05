@@ -1793,7 +1793,6 @@
       'proxy_test_02_multi': notyetstrong,
       'proxy_test_05_multi': notyetstrong,
       'proxy_test_06_multi': notyetstrong,
-      'recursive_inheritance_test': notyetstrong, // https://github.com/dart-lang/sdk/issues/26970
       'redirecting_constructor_initializer_test': notyetstrong,
       'redirecting_factory_default_values_test_01_multi': notyetstrong,
       'redirecting_factory_default_values_test_02_multi': notyetstrong,

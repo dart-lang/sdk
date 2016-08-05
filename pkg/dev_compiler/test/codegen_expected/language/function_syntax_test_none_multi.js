@@ -16,10 +16,9 @@ dart_library.library('language/function_syntax_test_none_multi', null, /* Import
   let dynamicTodynamic = () => (dynamicTodynamic = dart.constFn(dart.functionType(dart.dynamic, [dart.dynamic])))();
   let intTodynamic = () => (intTodynamic = dart.constFn(dart.functionType(dart.dynamic, [core.int])))();
   let JSArrayOfVoidToint = () => (JSArrayOfVoidToint = dart.constFn(_interceptors.JSArray$(VoidToint())))();
-  let VoidTodynamic$ = () => (VoidTodynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
+  let VoidToint$ = () => (VoidToint$ = dart.constFn(dart.definiteFunctionType(core.int, [])))();
   let dynamicTodynamic$ = () => (dynamicTodynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic])))();
   let dynamicAnddynamicTodynamic = () => (dynamicAnddynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic])))();
-  let VoidToint$ = () => (VoidToint$ = dart.constFn(dart.definiteFunctionType(core.int, [])))();
   let dynamicToint = () => (dynamicToint = dart.constFn(dart.definiteFunctionType(core.int, [dart.dynamic])))();
   let dynamicAnddynamicToint = () => (dynamicAnddynamicToint = dart.constFn(dart.definiteFunctionType(core.int, [dart.dynamic, dart.dynamic])))();
   let intToint = () => (intToint = dart.constFn(dart.definiteFunctionType(core.int, [core.int])))();
@@ -27,12 +26,13 @@ dart_library.library('language/function_syntax_test_none_multi', null, /* Import
   let VoidToListOfint = () => (VoidToListOfint = dart.constFn(dart.definiteFunctionType(ListOfint(), [])))();
   let ListOfintToListOfint = () => (ListOfintToListOfint = dart.constFn(dart.definiteFunctionType(ListOfint(), [ListOfint()])))();
   let dynamicAnddynamicAnddynamicTodynamic = () => (dynamicAnddynamicAnddynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic, dart.dynamic])))();
+  let VoidTodynamic$ = () => (VoidTodynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   let VoidTobool = () => (VoidTobool = dart.constFn(dart.definiteFunctionType(core.bool, [])))();
   let VoidTodouble = () => (VoidTodouble = dart.constFn(dart.definiteFunctionType(core.double, [])))();
   let FnTodynamic = () => (FnTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [VoidTodynamic()])))();
-  let FnTodynamic$ = () => (FnTodynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [VoidToint()])))();
-  let FnTodynamic$0 = () => (FnTodynamic$0 = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dynamicTodynamic()])))();
-  let FnTodynamic$1 = () => (FnTodynamic$1 = dart.constFn(dart.definiteFunctionType(dart.dynamic, [intTodynamic()])))();
+  let FnToint = () => (FnToint = dart.constFn(dart.definiteFunctionType(core.int, [VoidToint()])))();
+  let FnTodynamic$ = () => (FnTodynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dynamicTodynamic()])))();
+  let FnTodynamic$0 = () => (FnTodynamic$0 = dart.constFn(dart.definiteFunctionType(dart.dynamic, [intTodynamic()])))();
   function_syntax_test_none_multi.FunctionSyntaxTest = class FunctionSyntaxTest extends core.Object {
     static testMain() {
       function_syntax_test_none_multi.FunctionSyntaxTest.testNestedFunctions();
@@ -47,7 +47,7 @@ dart_library.library('language/function_syntax_test_none_multi', null, /* Import
       function nb0() {
         return 42;
       }
-      dart.fn(nb0, VoidTodynamic$());
+      dart.fn(nb0, VoidToint$());
       function nb1(a) {
         return a;
       }
@@ -62,7 +62,7 @@ dart_library.library('language/function_syntax_test_none_multi', null, /* Import
       function na0() {
         return 42;
       }
-      dart.fn(na0, VoidTodynamic$());
+      dart.fn(na0, VoidToint$());
       function na1(a) {
         return a;
       }
@@ -240,9 +240,9 @@ dart_library.library('language/function_syntax_test_none_multi', null, /* Import
       function fn() {
         return 42;
       }
-      dart.fn(fn, VoidTodynamic$());
+      dart.fn(fn, VoidToint$());
       let list = JSArrayOfint().of([87]);
-      expectEvaluatesTo(42, dart.fn(() => fn(), VoidTodynamic$()));
+      expectEvaluatesTo(42, dart.fn(() => fn(), VoidToint$()));
       expectEvaluatesTo(1, dart.fn(() => list[dartx.length], VoidToint$()));
       expectEvaluatesTo(87, dart.fn(() => list[dartx.get](0), VoidToint$()));
       expectEvaluatesTo(87, dart.fn(() => list[dartx.removeLast](), VoidToint$()));
@@ -282,17 +282,17 @@ dart_library.library('language/function_syntax_test_none_multi', null, /* Import
       function f1(fn) {
         return fn();
       }
-      dart.fn(f1, FnTodynamic$());
+      dart.fn(f1, FnToint());
       expect$.Expect.equals(87, f1(dart.fn(() => 87, VoidToint$())));
       function f2(fn) {
         return dart.dcall(fn, 42);
       }
-      dart.fn(f2, FnTodynamic$0());
+      dart.fn(f2, FnTodynamic$());
       expect$.Expect.equals(43, f2(dart.fn(a => dart.dsend(a, '+', 1), dynamicTodynamic$())));
       function f3(fn) {
         return fn(42);
       }
-      dart.fn(f3, FnTodynamic$1());
+      dart.fn(f3, FnTodynamic$0());
       expect$.Expect.equals(44, f3(dart.fn(a => dart.notNull(a) + 2, intToint())));
     }
     static testFunctionIdentifierExpression() {
@@ -302,7 +302,7 @@ dart_library.library('language/function_syntax_test_none_multi', null, /* Import
       function func() {
         return 42;
       }
-      dart.fn(func, VoidTodynamic$());
+      dart.fn(func, VoidToint$());
       expect$.Expect.equals(42, func());
       expect$.Expect.equals(true, core.Function.is(func));
     }

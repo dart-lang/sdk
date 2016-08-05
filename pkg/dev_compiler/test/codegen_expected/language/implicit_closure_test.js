@@ -8,8 +8,8 @@ dart_library.library('language/implicit_closure_test', null, /* Imports */[
   const dartx = dart_sdk.dartx;
   const expect$ = expect.expect;
   const implicit_closure_test = Object.create(null);
-  let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   let VoidToint = () => (VoidToint = dart.constFn(dart.definiteFunctionType(core.int, [])))();
+  let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   implicit_closure_test.First = class First extends core.Object {
     new(i) {
       this.i = i;
@@ -22,7 +22,7 @@ dart_library.library('language/implicit_closure_test', null, /* Imports */[
       const local = (function() {
         return this.i;
       }).bind(this);
-      dart.fn(local, VoidTodynamic());
+      dart.fn(local, VoidToint());
       return local;
     }
   };

@@ -18,6 +18,7 @@ dart_library.library('lib/html/svg_test', null, /* Imports */[
   let dynamicTobool = () => (dynamicTobool = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();
+  let VoidToElement = () => (VoidToElement = dart.constFn(dart.definiteFunctionType(html.Element, [])))();
   let dynamicAnddynamicTodynamic = () => (dynamicAnddynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic])))();
   svg_test.main = function() {
     html_individual_config.useHtmlIndividualConfiguration();
@@ -56,7 +57,7 @@ dart_library.library('lib/html/svg_test', null, /* Imports */[
         html.document[dartx.body][dartx.append](element);
         return element;
       }
-      dart.fn(insertTestDiv, VoidTodynamic());
+      dart.fn(insertTestDiv, VoidToElement());
       let isElement = src__matcher__core_matchers.predicate(dart.fn(x => html.Element.is(x), dynamicTobool()), 'is an Element');
       let isSvgElement = src__matcher__core_matchers.predicate(dart.fn(x => svg.SvgElement.is(x), dynamicTobool()), 'is a SvgElement');
       let isSvgSvgElement = src__matcher__core_matchers.predicate(dart.fn(x => svg.SvgSvgElement.is(x), dynamicTobool()), 'is a SvgSvgElement');
@@ -72,7 +73,7 @@ dart_library.library('lib/html/svg_test', null, /* Imports */[
         src__matcher__expect.expect(r, src__matcher__operator_matchers.isNot(isSvgNumber));
         src__matcher__expect.expect(r, src__matcher__operator_matchers.isNot(isSvgRect));
         src__matcher__expect.expect(r, src__matcher__operator_matchers.isNot(isSvgSvgElement));
-        dart.dsend(div, 'remove');
+        div[dartx.remove]();
       }, VoidTodynamic()));
     }, VoidTovoid()));
     function insertTestDiv() {
@@ -81,7 +82,7 @@ dart_library.library('lib/html/svg_test', null, /* Imports */[
       html.document[dartx.body][dartx.append](element);
       return element;
     }
-    dart.fn(insertTestDiv, VoidTodynamic());
+    dart.fn(insertTestDiv, VoidToElement());
     unittest$.group('svgBehavioral', dart.fn(() => {
       let isString = src__matcher__core_matchers.predicate(dart.fn(x => typeof x == 'string', dynamicTobool()), 'is a String');
       let isStringList = src__matcher__core_matchers.predicate(dart.fn(x => ListOfString().is(x), dynamicTobool()), 'is a List<String>');
@@ -96,7 +97,7 @@ dart_library.library('lib/html/svg_test', null, /* Imports */[
           let div = insertTestDiv();
           let r = html.document[dartx.query]('#rect1');
           dart.dcall(checker, r);
-          dart.dsend(div, 'remove');
+          div[dartx.remove]();
         }, VoidTodynamic()));
       }
       dart.fn(testRect, dynamicAnddynamicTodynamic());

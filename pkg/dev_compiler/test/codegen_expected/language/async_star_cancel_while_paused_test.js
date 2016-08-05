@@ -5,14 +5,17 @@ dart_library.library('language/async_star_cancel_while_paused_test', null, /* Im
 ], function load__async_star_cancel_while_paused_test(exports, dart_sdk, async_helper, expect) {
   'use strict';
   const core = dart_sdk.core;
-  const _interceptors = dart_sdk._interceptors;
   const async = dart_sdk.async;
+  const _interceptors = dart_sdk._interceptors;
   const dart = dart_sdk.dart;
   const dartx = dart_sdk.dartx;
   const async_helper$ = async_helper.async_helper;
   const expect$ = expect.expect;
   const async_star_cancel_while_paused_test = Object.create(null);
+  let StreamOfint = () => (StreamOfint = dart.constFn(async.Stream$(core.int)))();
+  let intTovoid = () => (intTovoid = dart.constFn(dart.functionType(dart.void, [core.int])))();
   let JSArrayOfObject = () => (JSArrayOfObject = dart.constFn(_interceptors.JSArray$(core.Object)))();
+  let VoidToStreamOfint = () => (VoidToStreamOfint = dart.constFn(dart.definiteFunctionType(StreamOfint(), [])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   let VoidToFuture = () => (VoidToFuture = dart.constFn(dart.definiteFunctionType(async.Future, [])))();
   async_star_cancel_while_paused_test.main = function() {
@@ -29,20 +32,20 @@ dart_library.library('language/async_star_cancel_while_paused_test', null, /* Im
         if (stream.add(2)) return;
         yield;
         list[dartx.add]("*3");
-      }, dart.dynamic);
+      }, core.int);
     }
-    dart.fn(f, VoidTodynamic());
+    dart.fn(f, VoidToStreamOfint());
     ;
     let stream = f();
-    let sub = dart.dsend(stream, 'listen', dart.bind(list, dartx.add));
+    let sub = stream.listen(intTovoid()._check(dart.bind(list, dartx.add)));
     async_helper$.asyncStart();
     return sync.wait().whenComplete(dart.fn(() => {
       expect$.Expect.listEquals(list, JSArrayOfObject().of(["*1", 1]));
-      dart.dsend(sub, 'pause');
+      sub.pause();
       return sync.wait();
     }, VoidToFuture())).whenComplete(dart.fn(() => {
       expect$.Expect.listEquals(list, JSArrayOfObject().of(["*1", 1, "*2"]));
-      dart.dsend(sub, 'cancel');
+      sub.cancel();
       async.Future.delayed(new core.Duration({milliseconds: 200}), dart.fn(() => {
         expect$.Expect.listEquals(list, JSArrayOfObject().of(["*1", 1, "*2"]));
         async_helper$.asyncEnd();

@@ -8,17 +8,16 @@ dart_library.library('language/call_closurization_test', null, /* Imports */[
   const dartx = dart_sdk.dartx;
   const expect$ = expect.expect;
   const call_closurization_test = Object.create(null);
-  let dynamicTodynamic = () => (dynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic])))();
-  let __Todynamic = () => (__Todynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [], [dart.dynamic])))();
-  let __Todynamic$ = () => (__Todynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [], {x: dart.dynamic, y: dart.dynamic})))();
-  let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();
   let dynamicTobool = () => (dynamicTobool = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic])))();
+  let __Tobool = () => (__Tobool = dart.constFn(dart.definiteFunctionType(core.bool, [], [dart.dynamic])))();
+  let __ToString = () => (__ToString = dart.constFn(dart.definiteFunctionType(core.String, [], {x: dart.dynamic, y: dart.dynamic})))();
+  let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   call_closurization_test.main = function() {
     function bar(a) {
       return typeof a == 'string';
     }
-    dart.fn(bar, dynamicTodynamic());
+    dart.fn(bar, dynamicTobool());
     let bar_tearOff = dart.dload(bar, 'call');
     for (let i = 0; i < 20; i++) {
       expect$.Expect.isFalse(dart.dcall(bar_tearOff, 1));
@@ -30,7 +29,7 @@ dart_library.library('language/call_closurization_test', null, /* Imports */[
       if (a === void 0) a = "a";
       return typeof a == 'string';
     }
-    dart.fn(opt_arg, __Todynamic());
+    dart.fn(opt_arg, __Tobool());
     let opt_arg_tearOff = dart.dload(opt_arg, 'call');
     for (let i = 0; i < 20; i++) {
       expect$.Expect.isFalse(dart.dcall(opt_arg_tearOff, 1));
@@ -45,7 +44,7 @@ dart_library.library('language/call_closurization_test', null, /* Imports */[
       let y = opts && 'y' in opts ? opts.y : 22;
       return dart.str`${x}${y}`;
     }
-    dart.fn(named_arg, __Todynamic$());
+    dart.fn(named_arg, __ToString());
     let named_arg_tearOff = dart.dload(named_arg, 'call');
     for (let i = 0; i < 20; i++) {
       expect$.Expect.equals("1122", dart.dcall(named_arg_tearOff));

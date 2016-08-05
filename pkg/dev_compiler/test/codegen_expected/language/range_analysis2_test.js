@@ -10,15 +10,16 @@ dart_library.library('language/range_analysis2_test', null, /* Imports */[
   const expect$ = expect.expect;
   const range_analysis2_test = Object.create(null);
   let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
-  let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
+  let VoidToint = () => (VoidToint = dart.constFn(dart.definiteFunctionType(core.int, [])))();
   let dynamicTobool = () => (dynamicTobool = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic])))();
+  let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   range_analysis2_test.main = function() {
     let a = 0;
     let b = JSArrayOfint().of([1]);
     function foo() {
       return dart.notNull(b[dartx.get](a--)) + dart.notNull(b[dartx.get](a));
     }
-    dart.fn(foo, VoidTodynamic());
+    dart.fn(foo, VoidToint());
     expect$.Expect.throws(foo, dart.fn(e => core.RangeError.is(e), dynamicTobool()));
   };
   dart.fn(range_analysis2_test.main, VoidTodynamic());

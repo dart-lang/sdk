@@ -9,6 +9,7 @@ dart_library.library('language/inlined_conditional_test', null, /* Imports */[
   const expect$ = expect.expect;
   const inlined_conditional_test = Object.create(null);
   let dynamicToFunction = () => (dynamicToFunction = dart.constFn(dart.definiteFunctionType(core.Function, [dart.dynamic])))();
+  let VoidToObject = () => (VoidToObject = dart.constFn(dart.definiteFunctionType(core.Object, [])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   inlined_conditional_test.topLevel = null;
   inlined_conditional_test.foo = function(c) {
@@ -24,7 +25,7 @@ dart_library.library('language/inlined_conditional_test', null, /* Imports */[
         return b.hashCode;
       }
     }
-    dart.fn(f, VoidTodynamic());
+    dart.fn(f, VoidToObject());
     return f();
   };
   dart.fn(inlined_conditional_test.bar, VoidTodynamic());

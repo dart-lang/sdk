@@ -23,7 +23,7 @@ dart_library.library('lib/html/js_typed_interop_test', null, /* Imports */[
   let VoidToString = () => (VoidToString = dart.constFn(dart.definiteFunctionType(core.String, [])))();
   let VoidToint = () => (VoidToint = dart.constFn(dart.definiteFunctionType(core.int, [])))();
   let dynamicTodynamic$ = () => (dynamicTodynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic])))();
-  let FooAndintTodynamic = () => (FooAndintTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.global.Foo, core.int])))();
+  let FooAndintToint = () => (FooAndintToint = dart.constFn(dart.definiteFunctionType(core.int, [dart.global.Foo, core.int])))();
   let dynamicAndExampleLiteralToExampleLiteral$ = () => (dynamicAndExampleLiteralToExampleLiteral$ = dart.constFn(dart.definiteFunctionType(dart.global.ExampleLiteral, [dart.dynamic, dart.global.ExampleLiteral])))();
   js_typed_interop_test._injectJs = function() {
     html.document[dartx.body][dartx.append]((() => {
@@ -155,7 +155,7 @@ dart_library.library('lib/html/js_typed_interop_test', null, /* Imports */[
         function addThisXAndArg(that, arg) {
           return dart.notNull(dart.global.foo.x) + dart.notNull(arg);
         }
-        dart.fn(addThisXAndArg, FooAndintTodynamic());
+        dart.fn(addThisXAndArg, FooAndintToint());
         let wrappedCaptureThisClosure = js.allowInteropCaptureThis(addThisXAndArg);
         dart.global.foo.x = 20;
         src__matcher__expect.expect(dart.global.foo.callClosureWithArgAndThis(wrappedCaptureThisClosure, 10), src__matcher__core_matchers.equals(30));

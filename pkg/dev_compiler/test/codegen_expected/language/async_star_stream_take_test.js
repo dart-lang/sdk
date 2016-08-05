@@ -11,9 +11,10 @@ dart_library.library('language/async_star_stream_take_test', null, /* Imports */
   const async_helper$ = async_helper.async_helper;
   const expect$ = expect.expect;
   const async_star_stream_take_test = Object.create(null);
+  let FutureOfint = () => (FutureOfint = dart.constFn(async.Future$(core.int)))();
   let intToStream = () => (intToStream = dart.constFn(dart.definiteFunctionType(async.Stream, [core.int])))();
-  let StreamTodynamic = () => (StreamTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [async.Stream])))();
-  let dynamicTodynamic = () => (dynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic])))();
+  let StreamToFutureOfint = () => (StreamToFutureOfint = dart.constFn(dart.definiteFunctionType(FutureOfint(), [async.Stream])))();
+  let intTodynamic = () => (intTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.int])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   async_star_stream_take_test.makeStream = function(n) {
     return dart.asyncStar(function*(stream, n) {
@@ -38,14 +39,14 @@ dart_library.library('language/async_star_stream_take_test', null, /* Imports */
           yield it.cancel();
         }
         return r;
-      }, dart.dynamic, s);
+      }, core.int, s);
     }
-    dart.fn(f, StreamTodynamic());
+    dart.fn(f, StreamToFutureOfint());
     async_helper$.asyncStart();
-    dart.dsend(f(async_star_stream_take_test.makeStream(10)), 'then', dart.fn(v => {
+    f(async_star_stream_take_test.makeStream(10)).then(dart.dynamic)(dart.fn(v => {
       expect$.Expect.equals(10, v);
       async_helper$.asyncEnd();
-    }, dynamicTodynamic()));
+    }, intTodynamic()));
   };
   dart.fn(async_star_stream_take_test.main, VoidTodynamic());
   // Exports:
