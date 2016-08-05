@@ -23,7 +23,6 @@
     'lib/src/app/event.dart',
     'lib/src/app/location_manager.dart',
     'lib/src/app/notification.dart',
-    'lib/src/app/event.dart',
     'lib/src/app/page.dart',
     'lib/src/app/settings.dart',
     'lib/src/app/view_model.dart',
