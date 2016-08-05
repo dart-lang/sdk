@@ -7,6 +7,31 @@
     on Mac. Was already non-blocking on all other platforms.
   * Report a better error when a bind fails because of a bad source address.
 
+### Analyzer
+
+*   Strong mode breaking change - infer generic type arguments from the
+    constructor invocation arguments
+    (SDK issue [25220](https://github.com/dart-lang/sdk/issues/25220))
+
+    ```dart
+    var map = new Map<String, String>();
+
+    // infer: Map<String, String>
+    var otherMap = new Map.from(map);
+    ```
+
+*   Strong mode breaking change - infer local function return type
+    (SDK issue [26414](https://github.com/dart-lang/sdk/issues/26414))
+
+    ```dart
+    void main() {
+      // infer: return type is int
+      f() { return 40; }
+      int y = f() + 2; // type checks
+      print(y);
+    }
+    ```
+
 ### Tool Changes
 
 * `dartfmt` - upgraded to v0.2.9

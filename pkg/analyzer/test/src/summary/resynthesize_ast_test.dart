@@ -567,6 +567,12 @@ var b = a.m();
 
   @override
   @failingTest
+  void test_inferLocalFunctionReturnType() {
+    super.test_inferLocalFunctionReturnType();
+  }
+
+  @override
+  @failingTest
   void test_inferredType_opAssignToProperty_prefixedIdentifier() {
     super.test_inferredType_opAssignToProperty_prefixedIdentifier();
   }

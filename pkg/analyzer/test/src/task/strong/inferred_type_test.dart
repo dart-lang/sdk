@@ -2518,6 +2518,42 @@ main() {
   ''');
   }
 
+  void test_inferLocalFunctionReturnType() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26414
+    var unit = checkFile(r'''
+main() {
+  f0() => 42;
+  f1() async => 42;
+
+  f2 /*info:INFERRED_TYPE_CLOSURE*/() { return 42; }
+  f3 /*info:INFERRED_TYPE_CLOSURE*/() async { return 42; }
+  f4 /*info:INFERRED_TYPE_CLOSURE*/() sync* { yield 42; }
+  f5 /*info:INFERRED_TYPE_CLOSURE*/() async* { yield 42; }
+
+  num f6() => 42;
+
+  f7() => f7();
+  f8() => /*error:REFERENCED_BEFORE_DECLARATION*/f9();
+  f9() => f5();
+}
+''');
+    var fns = unit.functions[0].functions;
+    expect(fns[0].type.toString(), '() → int');
+    expect(fns[1].type.toString(), '() → Future<int>');
+
+    expect(fns[2].type.toString(), '() → int');
+    expect(fns[3].type.toString(), '() → Future<int>');
+    expect(fns[4].type.toString(), '() → Iterable<int>');
+    expect(fns[5].type.toString(), '() → Stream<int>');
+
+    expect(fns[6].type.toString(), '() → num');
+
+    // Recursive cases: these infer in declaration order.
+    expect(fns[7].type.toString(), '() → dynamic');
+    expect(fns[8].type.toString(), '() → dynamic');
+    expect(fns[9].type.toString(), '() → Stream<int>');
+  }
+
   void test_inferred_nonstatic_field_depends_on_static_field_complex() {
     var mainUnit = checkFile('''
 class C {

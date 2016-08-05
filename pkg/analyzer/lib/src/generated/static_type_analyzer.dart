@@ -441,6 +441,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     if (node.parent is FunctionDeclarationStatement) {
       // TypeResolverVisitor sets the return type for top-level functions, so
       // we only need to handle local functions.
+      if (_strongMode && node.returnType == null) {
+        _inferLocalFunctionReturnType(node.functionExpression);
+        return null;
+      }
       functionElement.returnType =
           _computeStaticReturnTypeOfFunctionDeclaration(node);
       _recordPropagatedTypeOfFunction(functionElement, function.body);
@@ -486,6 +490,15 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       // node.
       return null;
     }
+    _inferLocalFunctionReturnType(node);
+    return null;
+  }
+
+  /**
+   * Infers the return type of a local function, either a lambda or
+   * (in strong mode) a local function declaration.
+   */
+  void _inferLocalFunctionReturnType(FunctionExpression node) {
     bool recordInference = false;
     ExecutableElementImpl functionElement =
         node.element as ExecutableElementImpl;
@@ -517,7 +530,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     if (recordInference) {
       _resolver.inferenceContext.recordInference(node, functionElement.type);
     }
-    return null;
   }
 
   /**
