@@ -51,6 +51,9 @@ class Message {
     return uri.pathSegments[0];
   }
 
+  Message.forMethod(String method)
+      : client = null, method = method, serial = '';
+
   Message.fromUri(this.client, Uri uri)
       : serial = '', method = _methodNameFromUri(uri) {
     params.addAll(uri.queryParameters);

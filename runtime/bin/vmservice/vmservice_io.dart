@@ -127,6 +127,15 @@ Future writeFileCallback(Uri path, List<int> bytes) async {
   return WriteLimiter.scheduleWrite(path, bytes);
 }
 
+Future writeStreamFileCallback(Uri path, Stream<List<int>> bytes) async {
+  var file = new File.fromUri(path);
+  var parent_directory = file.parent;
+  await parent_directory.create(recursive: true);
+  IOSink sink = await file.openWrite();
+  await sink.addStream(bytes);
+  await sink.close();
+}
+
 Future<List<int>> readFileCallback(Uri path) async {
   var file = new File.fromUri(path);
   return await file.readAsBytes();
@@ -191,6 +200,7 @@ main() {
   VMServiceEmbedderHooks.createTempDir = createTempDirCallback;
   VMServiceEmbedderHooks.deleteDir = deleteDirCallback;
   VMServiceEmbedderHooks.writeFile = writeFileCallback;
+  VMServiceEmbedderHooks.writeStreamFile = writeStreamFileCallback;
   VMServiceEmbedderHooks.readFile = readFileCallback;
   VMServiceEmbedderHooks.listFiles = listFilesCallback;
   // Always instantiate the vmservice object so that the exit message

@@ -157,9 +157,41 @@ class Server {
     return false;
   }
 
-  void _requestHandler(HttpRequest request) {
+  Future _requestHandler(HttpRequest request) async {
     if (!_originCheck(request)) {
       // This is a cross origin attempt to connect
+      request.response.close();
+      return;
+    }
+    if (request.method == 'PUT') {
+      // PUT requests are forwarded to DevFS for processing.
+
+      List fsNameList;
+      List fsPathList;
+      Object fsName;
+      Object fsPath;
+
+      try {
+        // Extract the fs name and fs path from the request headers.
+        fsNameList = request.headers['dev_fs_name'];
+        fsPathList = request.headers['dev_fs_path'];
+        fsName = fsNameList[0];
+        fsPath = fsPathList[0];
+      } catch (e) { /* ignore */ }
+
+      String result;
+      try {
+        result = await _service.devfs.handlePutStream(
+            fsName,
+            fsPath,
+            request.transform(GZIP.decoder));
+      } catch (e) { /* ignore */ }
+
+      if (result != null) {
+        request.response.headers.contentType =
+            HttpRequestClient.jsonContentType;
+        request.response.write(result);
+      }
       request.response.close();
       return;
     }
