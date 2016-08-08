@@ -389,15 +389,19 @@ class VMConnectPage extends Page {
 class IsolateReconnectPage extends Page {
   IsolateReconnectPage(app) : super(app);
 
+  DivElement container = new DivElement();
+
   void onInstall() {
-    if (element == null) {
-      element = new Element.tag('isolate-reconnect');
-    }
-    assert(element != null);
+    element = container;
   }
 
   void _visit(Uri uri) {
     app.vm.reload();
+    container.children = [
+      new IsolateReconnectElement(app.vm, app.events, app.notifications,
+                                  uri.queryParameters['isolateId'],
+                                  Uri.parse(uri.queryParameters['originalUri']))
+    ];
     assert(element != null);
     assert(canVisit(uri));
   }

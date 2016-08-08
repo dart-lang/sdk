@@ -98,8 +98,8 @@ class LocationManager extends Observable {
                        ? '/vm-connect' : '/isolate-reconnect');
         var parameters = {};
         parameters.addAll(_uri.queryParameters);
-        parameters['originalPath'] = _uri.path;
-        parameters['originalIsolateId'] = parameters['isolateId'];
+        parameters['originalUri'] = _uri.toString();
+        parameters['isolateId'] = parameters['isolateId'];
         var generatedUri = new Uri(path: newPath, queryParameters: parameters);
         go(makeLink(generatedUri.toString()), true);
         return;

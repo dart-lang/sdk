@@ -461,6 +461,12 @@ function-ref-wrapped > a[href] {
   text-decoration: none;
 }
 
+/* isolate-reconnect */
+
+isolate-reconnect div.doubleSpaced {
+  line-height: 2em;
+}
+
 /* isolate-ref */
 /* TODO(cbernaschina) fix isolate-ref-wrapped to isolate-ref when wrapper
 removed */
