@@ -7,12 +7,11 @@ library dart2js.scanner.task;
 import '../common/tasks.dart' show CompilerTask, Measurer;
 import '../diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
 import '../elements/elements.dart' show CompilationUnitElement, LibraryElement;
-import '../script.dart' show Script;
 import '../parser/diet_parser_task.dart' show DietParserTask;
+import '../script.dart' show Script;
 import '../tokens/token.dart' show Token;
 import '../tokens/token_constants.dart' as Tokens show COMMENT_TOKEN, EOF_TOKEN;
 import '../tokens/token_map.dart' show TokenMap;
-
 import 'scanner.dart' show Scanner;
 import 'string_scanner.dart' show StringScanner;
 

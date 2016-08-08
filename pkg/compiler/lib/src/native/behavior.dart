@@ -15,7 +15,6 @@ import '../js_backend/js_backend.dart';
 import '../tree/tree.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
-
 import 'enqueue.dart';
 import 'js.dart';
 

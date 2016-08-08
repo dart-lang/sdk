@@ -4,8 +4,8 @@
 
 library dart2js.cps_ir.loop_hierarchy;
 
-import 'cps_ir_nodes.dart';
 import 'cps_fragment.dart';
+import 'cps_ir_nodes.dart';
 
 /// Determines the effective nesting of loops.
 ///

@@ -6,7 +6,6 @@ library compiler.src.inferrer.map_tracer;
 
 import '../elements/elements.dart';
 import '../universe/selector.dart' show Selector;
-
 import 'node_tracer.dart';
 import 'type_graph_nodes.dart';
 

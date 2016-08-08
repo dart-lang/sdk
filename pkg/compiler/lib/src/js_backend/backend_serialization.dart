@@ -9,9 +9,9 @@ import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../js/js.dart' as js;
 import '../native/native.dart';
+import '../serialization/keys.dart';
 import '../serialization/serialization.dart'
     show DeserializerPlugin, ObjectDecoder, ObjectEncoder, SerializerPlugin;
-import '../serialization/keys.dart';
 import '../universe/side_effects.dart';
 import 'js_backend.dart';
 

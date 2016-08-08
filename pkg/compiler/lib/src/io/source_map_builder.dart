@@ -4,8 +4,8 @@
 
 library dart2js.source_map_builder;
 
-import '../util/util.dart';
 import '../util/uri_extras.dart' show relativize;
+import '../util/util.dart';
 import 'line_column_provider.dart';
 import 'source_information.dart' show SourceLocation;
 

@@ -1,11 +1,11 @@
 library dart2js.cps_ir.finalize;
 
-import 'cps_ir_nodes.dart';
-import 'cps_fragment.dart';
-import 'optimizers.dart' show Pass;
-import '../js_backend/js_backend.dart' show JavaScriptBackend;
-import '../js_backend/backend_helpers.dart';
 import '../js/js.dart' as js;
+import '../js_backend/backend_helpers.dart';
+import '../js_backend/js_backend.dart' show JavaScriptBackend;
+import 'cps_fragment.dart';
+import 'cps_ir_nodes.dart';
+import 'optimizers.dart' show Pass;
 
 /// A transformation pass that must run immediately before the tree IR builder.
 ///

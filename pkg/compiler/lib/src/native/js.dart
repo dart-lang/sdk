@@ -4,7 +4,6 @@
 
 import '../js/js.dart' as js;
 import '../universe/side_effects.dart' show SideEffects;
-
 import 'behavior.dart';
 
 class HasCapturedPlaceholders extends js.BaseVisitor {

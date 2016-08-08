@@ -13,9 +13,8 @@ import '../constants/values.dart';
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir show Node;
 import '../dart_types.dart' show DartType, FunctionType, TypeKind;
 import '../elements/elements.dart';
-import '../native/native.dart' as native;
-import '../tree/tree.dart' as ast show Node, LiteralBool, Send;
 import '../tree/dartstring.dart' show DartString;
+import '../tree/tree.dart' as ast show Node, LiteralBool, Send;
 import '../types/types.dart'
     show
         ContainerTypeMask,

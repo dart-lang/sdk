@@ -4,17 +4,17 @@
 
 library dart2js.cps_ir.optimize_interceptors;
 
-import 'optimizers.dart';
-import 'cps_ir_nodes.dart';
-import 'loop_hierarchy.dart';
-import 'cps_fragment.dart';
 import '../constants/values.dart';
 import '../elements/elements.dart';
+import '../io/source_information.dart' show SourceInformation;
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../types/types.dart' show TypeMask;
-import '../io/source_information.dart' show SourceInformation;
 import '../world.dart';
+import 'cps_fragment.dart';
+import 'cps_ir_nodes.dart';
+import 'loop_hierarchy.dart';
+import 'optimizers.dart';
 import 'type_mask_system.dart';
 
 /// Replaces `getInterceptor` calls with interceptor constants when possible,

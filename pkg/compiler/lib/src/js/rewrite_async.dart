@@ -4,15 +4,14 @@
 
 library rewrite_async;
 
-import "dart:math" show max;
 import 'dart:collection';
+import "dart:math" show max;
 
 import 'package:js_runtime/shared/async_await_error_codes.dart' as error_codes;
 
-import "js.dart" as js;
-
 import '../common.dart';
 import '../util/util.dart' show Pair;
+import "js.dart" as js;
 
 /// Rewrites a [js.Fun] with async/sync*/async* functions and await and yield
 /// (with dart-like semantics) to an equivalent function without these.

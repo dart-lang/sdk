@@ -12,15 +12,14 @@ import '../constants/values.dart' show PrimitiveConstantValue;
 import '../elements/elements.dart';
 import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
 import '../tree/tree.dart';
-import '../util/util.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/universe.dart'
     show
         ReceiverConstraint,
         UniverseSelectorConstraints,
         SelectorConstraintsStrategy;
+import '../util/util.dart';
 import '../world.dart' show ClassWorld, World;
-
 import 'abstract_value_domain.dart' show AbstractValue;
 
 part 'container_type_mask.dart';

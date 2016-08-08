@@ -4,9 +4,9 @@
 
 library tree_ir.optimization.logical_rewriter;
 
+import '../../constants/values.dart' as values;
 import '../tree_ir_nodes.dart';
 import 'optimization.dart' show Pass;
-import '../../constants/values.dart' as values;
 
 /// Rewrites logical expressions to be more compact in the Tree IR.
 ///

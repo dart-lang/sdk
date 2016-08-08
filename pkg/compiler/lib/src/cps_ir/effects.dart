@@ -4,6 +4,7 @@
 library dart2js.cps_ir.effects;
 
 import 'dart:typed_data';
+
 import '../universe/side_effects.dart' show SideEffects;
 
 /// Bitmasks for tracking non-local side effects and dependencies.

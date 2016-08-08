@@ -8,10 +8,11 @@
 library compiler_new;
 
 import 'dart:async';
+
+import 'compiler.dart' show Diagnostic;
 import 'src/apiimpl.dart';
 import 'src/options.dart' show CompilerOptions;
 
-import 'compiler.dart' show Diagnostic;
 export 'compiler.dart' show Diagnostic, PackagesDiscoveryProvider;
 
 // Unless explicitly allowed, passing `null` for any argument to the

@@ -4,8 +4,8 @@
 
 library dart2js.constant_system;
 
-import '../dart_types.dart';
 import '../compiler.dart' show Compiler;
+import '../dart_types.dart';
 import '../resolution/operators.dart';
 import '../tree/dartstring.dart' show DartString;
 import 'values.dart';

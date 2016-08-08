@@ -5,12 +5,13 @@
 library cps_ir.optimization.insert_refinements;
 
 import 'dart:math' show min;
-import 'optimizers.dart' show Pass;
-import 'cps_ir_nodes.dart';
-import '../elements/elements.dart';
+
 import '../common/names.dart';
+import '../elements/elements.dart';
 import '../types/types.dart' show TypeMask;
 import '../universe/selector.dart';
+import 'cps_ir_nodes.dart';
+import 'optimizers.dart' show Pass;
 import 'type_mask_system.dart';
 
 /// Inserts [Refinement] nodes in the IR to allow for sparse path-sensitive

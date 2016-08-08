@@ -6,8 +6,8 @@ library dart2js.serialization.types;
 
 import '../dart_types.dart';
 import '../elements/elements.dart';
-import 'serialization.dart';
 import 'keys.dart';
+import 'serialization.dart';
 
 /// Visitor that serializes a [DartType] by encoding it into an [ObjectEncoder].
 ///

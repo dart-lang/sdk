@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 library dart2js.cps_ir.path_based_optimizer;
 
+import '../js_backend/js_backend.dart';
+import 'cps_fragment.dart';
 import 'cps_ir_nodes.dart';
 import 'optimizers.dart';
-import 'cps_fragment.dart';
-import '../js_backend/js_backend.dart';
 import 'type_mask_system.dart';
 
 /// Optimizations based on intraprocedural forward dataflow analysis, taking

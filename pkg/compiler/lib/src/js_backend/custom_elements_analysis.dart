@@ -9,7 +9,6 @@ import '../elements/elements.dart';
 import '../enqueue.dart' show Enqueuer, ResolutionEnqueuer;
 import '../universe/use.dart'
     show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
-
 import 'backend.dart';
 
 /**

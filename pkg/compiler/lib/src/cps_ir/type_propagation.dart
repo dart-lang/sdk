@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 library dart2js.cps_ir.type_propagation;
 
-import 'optimizers.dart';
-
 import '../closure.dart' show ClosureClassElement;
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Selectors;
@@ -15,18 +13,19 @@ import '../dart_types.dart' as types;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
-import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../js_backend/codegen/task.dart' show CpsFunctionCompiler;
+import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../resolution/operators.dart';
 import '../tree/tree.dart' as ast;
-import '../types/types.dart';
 import '../types/abstract_value_domain.dart' show AbstractBool;
+import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show World;
 import 'cps_fragment.dart';
 import 'cps_ir_nodes.dart';
-import 'type_mask_system.dart';
 import 'effects.dart';
+import 'optimizers.dart';
+import 'type_mask_system.dart';
 
 class ConstantPropagationLattice {
   final TypeMaskSystem typeSystem;

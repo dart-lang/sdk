@@ -10,7 +10,6 @@ import '../compiler.dart' show Compiler;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../js_backend/js_backend.dart';
 import '../tracer.dart';
-
 import 'nodes.dart';
 
 /**

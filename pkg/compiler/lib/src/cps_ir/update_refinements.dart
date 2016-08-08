@@ -1,9 +1,9 @@
 library dart2js.cps_ir.update_refinements;
 
+import '../world.dart';
 import 'cps_ir_nodes.dart';
 import 'optimizers.dart' show Pass;
 import 'type_mask_system.dart';
-import '../world.dart';
 
 /// Updates all references to use the most refined version in scope.
 ///

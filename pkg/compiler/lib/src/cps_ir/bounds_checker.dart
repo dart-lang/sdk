@@ -4,16 +4,16 @@
 
 library dart2js.cps_ir.bounds_checker;
 
-import 'cps_ir_nodes.dart';
-import 'optimizers.dart' show Pass;
-import 'octagon.dart';
 import '../constants/values.dart';
-import 'cps_fragment.dart';
-import 'type_mask_system.dart';
 import '../types/types.dart';
 import '../world.dart';
-import 'loop_effects.dart';
+import 'cps_fragment.dart';
+import 'cps_ir_nodes.dart';
 import 'effects.dart';
+import 'loop_effects.dart';
+import 'octagon.dart';
+import 'optimizers.dart' show Pass;
+import 'type_mask_system.dart';
 
 /// Eliminates bounds checks when they can be proven safe.
 ///

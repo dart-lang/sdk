@@ -5,39 +5,37 @@
 /// Generate code using the cps-based IR pipeline.
 library code_generator_task;
 
-import 'glue.dart';
-import 'codegen.dart';
-import 'unsugar.dart';
-
-import '../js_backend.dart';
-
 import '../../common.dart';
 import '../../common/codegen.dart' show CodegenWorkItem;
 import '../../common/tasks.dart' show CompilerTask, GenericTask;
 import '../../compiler.dart' show Compiler;
 import '../../constants/constant_system.dart';
 import '../../cps_ir/cps_ir_builder_task.dart';
+import '../../cps_ir/cps_ir_integrity.dart';
 import '../../cps_ir/cps_ir_nodes.dart' as cps;
 import '../../cps_ir/cps_ir_nodes_sexpr.dart';
-import '../../cps_ir/cps_ir_integrity.dart';
+import '../../cps_ir/finalize.dart' show Finalize;
 import '../../cps_ir/optimizers.dart';
 import '../../cps_ir/optimizers.dart' as cps_opt;
 import '../../cps_ir/type_mask_system.dart';
-import '../../cps_ir/finalize.dart' show Finalize;
 import '../../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../../elements/elements.dart';
+import '../../io/source_information.dart' show SourceInformationStrategy;
 import '../../js/js.dart' as js;
 import '../../js_backend/codegen/codegen.dart';
-import '../../io/source_information.dart' show SourceInformationStrategy;
-import '../../tree_ir/tree_ir_builder.dart' as tree_builder;
-import '../../tracer.dart';
 import '../../ssa/ssa.dart' as ssa;
+import '../../tracer.dart';
 import '../../tree_ir/optimization/optimization.dart';
 import '../../tree_ir/optimization/optimization.dart' as tree_opt;
+import '../../tree_ir/tree_ir_builder.dart' as tree_builder;
 import '../../tree_ir/tree_ir_integrity.dart';
 import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
 import '../../types/types.dart'
     show FlatTypeMask, ForwardingTypeMask, TypeMask, UnionTypeMask;
+import '../js_backend.dart';
+import 'codegen.dart';
+import 'glue.dart';
+import 'unsugar.dart';
 
 class CpsFunctionCompiler implements FunctionCompiler {
   final ConstantSystem constantSystem;

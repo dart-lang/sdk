@@ -4,8 +4,6 @@
 
 library code_generator;
 
-import 'glue.dart';
-
 import '../../closure.dart' show ClosureClassElement;
 import '../../common/codegen.dart' show CodegenRegistry;
 import '../../constants/values.dart';
@@ -21,6 +19,7 @@ import '../../universe/call_structure.dart' show CallStructure;
 import '../../universe/selector.dart' show Selector;
 import '../../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../../util/maplet.dart';
+import 'glue.dart';
 
 class CodegenBailout {
   final tree_ir.Node node;

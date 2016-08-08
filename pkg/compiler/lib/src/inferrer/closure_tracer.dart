@@ -4,13 +4,13 @@
 
 library compiler.src.inferrer.closure_tracer;
 
-import '../types/types.dart' show TypeMask;
 import '../common/names.dart' show Names;
 import '../elements/elements.dart';
+import '../types/types.dart' show TypeMask;
 import '../universe/selector.dart' show Selector;
+import 'debug.dart' as debug;
 import 'node_tracer.dart';
 import 'type_graph_nodes.dart';
-import 'debug.dart' as debug;
 
 class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
   final Iterable<FunctionElement> tracedElements;

@@ -8,7 +8,6 @@ import '../compiler.dart' show Compiler;
 import '../core_types.dart' show CoreClasses;
 import '../dart_types.dart' show InterfaceType;
 import '../elements/elements.dart' show ClassElement, Element;
-
 import 'backend_helpers.dart';
 import 'constant_system_javascript.dart';
 import 'js_backend.dart';

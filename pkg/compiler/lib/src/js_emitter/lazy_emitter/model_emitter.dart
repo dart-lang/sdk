@@ -4,17 +4,6 @@
 
 library dart2js.js_emitter.lazy_emitter.model_emitter;
 
-import '../../compiler.dart' show Compiler;
-import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
-import '../../core_types.dart' show CoreClasses;
-import '../../elements/elements.dart' show ClassElement, FunctionElement;
-import '../../js/js.dart' as js;
-import '../../js_backend/js_backend.dart'
-    show JavaScriptBackend, Namer, ConstantEmitter;
-
-import '../js_emitter.dart' show NativeEmitter;
-import '../constant_ordering.dart' show deepCompareConstants;
-
 import 'package:js_runtime/shared/embedded_names.dart'
     show
         CREATE_NEW_ISOLATE,
@@ -31,6 +20,15 @@ import 'package:js_runtime/shared/embedded_names.dart'
         TYPE_TO_INTERCEPTOR_MAP,
         TYPES;
 
+import '../../compiler.dart' show Compiler;
+import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
+import '../../core_types.dart' show CoreClasses;
+import '../../elements/elements.dart' show ClassElement, FunctionElement;
+import '../../js/js.dart' as js;
+import '../../js_backend/js_backend.dart'
+    show JavaScriptBackend, Namer, ConstantEmitter;
+import '../constant_ordering.dart' show deepCompareConstants;
+import '../js_emitter.dart' show NativeEmitter;
 import '../js_emitter.dart' show NativeGenerator, buildTearOffCode;
 import '../model.dart';
 

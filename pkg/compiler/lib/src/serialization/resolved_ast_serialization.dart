@@ -25,7 +25,6 @@ import 'keys.dart';
 import 'modelz.dart';
 import 'serialization.dart';
 import 'serialization_util.dart';
-import 'modelz.dart';
 
 /// Visitor that computes a node-index mapping.
 class AstIndexComputer extends Visitor {

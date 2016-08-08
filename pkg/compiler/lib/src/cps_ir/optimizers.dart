@@ -4,30 +4,30 @@
 
 library dart2js.cps_ir.optimizers;
 
-import 'cps_ir_nodes.dart';
-import '../constants/values.dart';
 import '../common/names.dart';
+import '../constants/values.dart';
 import '../universe/selector.dart';
+import 'cps_ir_nodes.dart';
 
-export 'type_propagation.dart' show TypePropagator;
-export 'scalar_replacement.dart' show ScalarReplacer;
-export 'redundant_phi.dart' show RedundantPhiEliminator;
-export 'redundant_join.dart' show RedundantJoinEliminator;
-export 'shrinking_reductions.dart' show ShrinkingReducer;
-export 'mutable_ssa.dart' show MutableVariableEliminator;
-export 'insert_refinements.dart' show InsertRefinements;
-export 'update_refinements.dart' show UpdateRefinements;
-export 'redundant_refinement.dart' show RedundantRefinementEliminator;
-export 'optimize_interceptors.dart' show OptimizeInterceptors;
-export 'bounds_checker.dart' show BoundsChecker;
 export 'backward_null_check_remover.dart' show BackwardNullCheckRemover;
+export 'bounds_checker.dart' show BoundsChecker;
+export 'eagerly_load_statics.dart' show EagerlyLoadStatics;
 export 'gvn.dart' show GVN;
 export 'inline.dart' show Inliner;
-export 'eagerly_load_statics.dart' show EagerlyLoadStatics;
+export 'insert_refinements.dart' show InsertRefinements;
 export 'loop_invariant_branch.dart' show LoopInvariantBranchMotion;
-export 'path_based_optimizer.dart' show PathBasedOptimizer;
-export 'use_field_initializers.dart' show UseFieldInitializers;
+export 'mutable_ssa.dart' show MutableVariableEliminator;
+export 'optimize_interceptors.dart' show OptimizeInterceptors;
 export 'parent_visitor.dart' show ParentVisitor;
+export 'path_based_optimizer.dart' show PathBasedOptimizer;
+export 'redundant_join.dart' show RedundantJoinEliminator;
+export 'redundant_phi.dart' show RedundantPhiEliminator;
+export 'redundant_refinement.dart' show RedundantRefinementEliminator;
+export 'scalar_replacement.dart' show ScalarReplacer;
+export 'shrinking_reductions.dart' show ShrinkingReducer;
+export 'type_propagation.dart' show TypePropagator;
+export 'update_refinements.dart' show UpdateRefinements;
+export 'use_field_initializers.dart' show UseFieldInitializers;
 
 /// An optimization pass over the CPS IR.
 abstract class Pass {

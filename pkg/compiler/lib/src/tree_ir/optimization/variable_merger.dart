@@ -4,8 +4,8 @@
 
 library tree_ir.optimization.variable_merger;
 
-import 'optimization.dart' show Pass;
 import '../tree_ir_nodes.dart';
+import 'optimization.dart' show Pass;
 
 /// Merges variables based on liveness and source variable information.
 ///

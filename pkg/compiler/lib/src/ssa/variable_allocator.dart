@@ -5,7 +5,6 @@
 import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../js_backend/js_backend.dart';
-
 import 'nodes.dart';
 
 /**

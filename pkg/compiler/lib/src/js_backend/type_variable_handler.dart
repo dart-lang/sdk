@@ -17,7 +17,6 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart'
     show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
 import '../util/util.dart';
-
 import 'backend.dart';
 
 /**

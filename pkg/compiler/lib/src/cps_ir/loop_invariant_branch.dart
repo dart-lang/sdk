@@ -1,9 +1,9 @@
 library dart2js.cps_ir.loop_invariant_branch;
 
-import 'cps_ir_nodes.dart';
-import 'optimizers.dart';
-import 'loop_hierarchy.dart';
 import 'cps_fragment.dart';
+import 'cps_ir_nodes.dart';
+import 'loop_hierarchy.dart';
+import 'optimizers.dart';
 import 'redundant_join.dart' show AlphaRenamer;
 
 /// Hoists branches out of loops, where:

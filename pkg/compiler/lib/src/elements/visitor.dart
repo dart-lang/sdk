@@ -4,9 +4,9 @@
 
 library visitor;
 
-import 'elements.dart';
 import '../closure.dart'
     show BoxFieldElement, ClosureClassElement, ClosureFieldElement;
+import 'elements.dart';
 
 abstract class ElementVisitor<R, A> {
   const ElementVisitor();

@@ -5,8 +5,9 @@
 library dart2js.ir_tracer;
 
 import 'dart:async' show EventSink;
-import 'cps_ir_nodes.dart' as cps_ir;
+
 import '../tracer.dart';
+import 'cps_ir_nodes.dart' as cps_ir;
 
 /**
  * If true, show LetCont expressions in output.

@@ -63,11 +63,9 @@
 library dart2js.messages;
 
 import '../tokens/token.dart' show ErrorToken, Token;
-
+import 'generated/shared_messages.dart' as shared_messages;
 import 'invariant.dart' show invariant;
 import 'spannable.dart' show CURRENT_ELEMENT_SPANNABLE;
-
-import 'generated/shared_messages.dart' as shared_messages;
 
 const DONT_KNOW_HOW_TO_FIX = "Computer says no!";
 

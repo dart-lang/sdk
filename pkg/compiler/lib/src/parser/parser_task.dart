@@ -11,7 +11,6 @@ import '../elements/modelx.dart' show ElementX;
 import '../options.dart' show ParserOptions;
 import '../tokens/token.dart' show Token;
 import '../tree/tree.dart' show Node;
-
 import 'element_listener.dart' show ScannerOptions;
 import 'listener.dart' show ParserError;
 import 'node_listener.dart' show NodeListener;

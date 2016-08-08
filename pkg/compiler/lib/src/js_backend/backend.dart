@@ -70,7 +70,6 @@ import 'backend_impact.dart';
 import 'backend_serialization.dart' show JavaScriptBackendSerialization;
 import 'checked_mode_helpers.dart';
 import 'codegen/task.dart';
-
 import 'constant_handler_javascript.dart';
 import 'custom_elements_analysis.dart';
 import 'js_interop_analysis.dart' show JsInteropAnalysis;

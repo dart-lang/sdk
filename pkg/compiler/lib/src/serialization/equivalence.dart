@@ -7,7 +7,6 @@
 library dart2js.serialization.equivalence;
 
 import '../closure.dart';
-import '../common.dart';
 import '../common/resolution.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';

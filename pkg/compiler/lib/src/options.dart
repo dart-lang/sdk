@@ -4,8 +4,8 @@
 
 library dart2js.src.options;
 
-import 'commandline_options.dart' show Flags;
 import '../compiler.dart' show PackagesDiscoveryProvider;
+import 'commandline_options.dart' show Flags;
 
 /// Options used for parsing.
 ///

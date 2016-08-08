@@ -6,12 +6,11 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:compiler/src/apiimpl.dart';
-import 'package:compiler/src/dart2js.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/null_compiler_output.dart';
-import 'package:compiler/src/source_file_provider.dart';
 import 'package:compiler/src/options.dart';
 import 'package:compiler/src/serialization/json_serializer.dart';
+import 'package:compiler/src/source_file_provider.dart';
 import 'package:package_config/discovery.dart';
 
 main(var argv) async {

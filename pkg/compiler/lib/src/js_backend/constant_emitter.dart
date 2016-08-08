@@ -10,9 +10,8 @@ import '../elements/elements.dart';
 import '../io/code_output.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import 'constant_system_javascript.dart';
-
 import 'backend.dart';
+import 'constant_system_javascript.dart';
 import 'namer.dart';
 
 typedef jsAst.Expression _ConstantReferenceGenerator(ConstantValue constant);

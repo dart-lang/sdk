@@ -5,6 +5,7 @@
 library tree_ir_tracer;
 
 import 'dart:async' show EventSink;
+
 import '../tracer.dart';
 import 'tree_ir_nodes.dart';
 
