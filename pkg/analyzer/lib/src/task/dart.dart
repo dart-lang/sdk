@@ -334,6 +334,7 @@ final List<ListResultDescriptor<AnalysisError>> ERROR_SOURCE_RESULTS =
   BUILD_DIRECTIVES_ERRORS,
   BUILD_LIBRARY_ERRORS,
   PARSE_ERRORS,
+  RESOLVE_DIRECTIVES_ERRORS,
   SCAN_ERRORS,
 ];
 
@@ -626,6 +627,17 @@ final ListResultDescriptor<AnalysisError> PARSE_ERRORS =
         'PARSE_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
+ * The compilation unit AST produced while parsing a compilation unit.
+ *
+ * The AST structure will not have resolution information associated with it.
+ *
+ * The result is only available for [Source]s representing a compilation unit.
+ */
+final ResultDescriptor<CompilationUnit> PARSED_UNIT1 =
+    new ResultDescriptor<CompilationUnit>('PARSED_UNIT1', null,
+        cachingPolicy: AST_CACHING_POLICY);
+
+/**
  * The list of [PendingError]s for a compilation unit.
  *
  * The result is only available for [LibrarySpecificUnit]s.
@@ -727,6 +739,17 @@ final ListResultDescriptor<Source> REFERENCED_SOURCES =
 final ListResultDescriptor<ConstantEvaluationTarget> REQUIRED_CONSTANTS =
     new ListResultDescriptor<ConstantEvaluationTarget>(
         'REQUIRED_CONSTANTS', const <ConstantEvaluationTarget>[]);
+
+/**
+ * The errors produced while resolving [UriBasedDirective]s in a unit.
+ *
+ * The list will be empty if there were no errors, but will not be `null`.
+ *
+ * The result is only available for [Source]s representing a compilation unit.
+ */
+final ListResultDescriptor<AnalysisError> RESOLVE_DIRECTIVES_ERRORS =
+    new ListResultDescriptor<AnalysisError>(
+        'PARSE_ERRORS2', AnalysisError.NO_ERRORS);
 
 /**
  * The errors produced while resolving bounds of type parameters of classes,
@@ -2757,6 +2780,7 @@ class DartDelta extends Delta {
     // Keep results that don't change: any library.
     if (_isTaskResult(ScanDartTask.DESCRIPTOR, descriptor) ||
         _isTaskResult(ParseDartTask.DESCRIPTOR, descriptor) ||
+        _isTaskResult(ResolveDirectivesTask.DESCRIPTOR, descriptor) ||
         _isTaskResult(BuildCompilationUnitElementTask.DESCRIPTOR, descriptor) ||
         _isTaskResult(BuildLibraryElementTask.DESCRIPTOR, descriptor) ||
         _isTaskResult(BuildDirectiveElementsTask.DESCRIPTOR, descriptor) ||
@@ -4035,17 +4059,10 @@ class ParseDartTask extends SourceBasedAnalysisTask {
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'ParseDartTask', createTask, buildInputs, <ResultDescriptor>[
-    EXPLICITLY_IMPORTED_LIBRARIES,
-    EXPORTED_LIBRARIES,
-    IMPORTED_LIBRARIES,
-    INCLUDED_PARTS,
-    LIBRARY_SPECIFIC_UNITS,
     PARSE_ERRORS,
-    PARSED_UNIT,
+    PARSED_UNIT1,
     REFERENCED_NAMES,
-    REFERENCED_SOURCES,
     SOURCE_KIND,
-    UNITS,
   ]);
 
   /**
@@ -4077,10 +4094,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
 
     bool hasNonPartOfDirective = false;
     bool hasPartOfDirective = false;
-    HashSet<Source> explicitlyImportedSourceSet = new HashSet<Source>();
-    HashSet<Source> exportedSourceSet = new HashSet<Source>();
-    HashSet<Source> includedSourceSet = new HashSet<Source>();
-    NodeList<Directive> directives = unit.directives;
+    List<Directive> directives = unit.directives;
     int length = directives.length;
     for (int i = 0; i < length; i++) {
       Directive directive = directives[i];
@@ -4088,41 +4102,8 @@ class ParseDartTask extends SourceBasedAnalysisTask {
         hasPartOfDirective = true;
       } else {
         hasNonPartOfDirective = true;
-        if (directive is UriBasedDirective) {
-          Source referencedSource =
-              resolveDirective(context, source, directive, errorListener);
-          if (referencedSource != null) {
-            if (directive is ExportDirective) {
-              exportedSourceSet.add(referencedSource);
-            } else if (directive is ImportDirective) {
-              explicitlyImportedSourceSet.add(referencedSource);
-            } else if (directive is PartDirective) {
-              includedSourceSet.add(referencedSource);
-            } else {
-              throw new AnalysisException(
-                  '$runtimeType failed to handle a ${directive.runtimeType}');
-            }
-          }
-        }
       }
     }
-    //
-    // Always include "dart:core" source.
-    //
-    HashSet<Source> importedSourceSet =
-        new HashSet.from(explicitlyImportedSourceSet);
-    Source coreLibrarySource = context.sourceFactory.forUri(DartSdk.DART_CORE);
-    if (coreLibrarySource == null) {
-      String message;
-      DartSdk sdk = context.sourceFactory.dartSdk;
-      if (sdk == null) {
-        message = 'Could not resolve "dart:core": SDK not defined';
-      } else {
-        message = 'Could not resolve "dart:core": SDK incorrectly configured';
-      }
-      throw new AnalysisException(message);
-    }
-    importedSourceSet.add(coreLibrarySource);
     //
     // Compute kind.
     //
@@ -4140,31 +4121,11 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     //
     // Record outputs.
     //
-    List<Source> explicitlyImportedSources =
-        explicitlyImportedSourceSet.toList();
-    List<Source> exportedSources = exportedSourceSet.toList();
-    List<Source> importedSources = importedSourceSet.toList();
-    List<Source> includedSources = includedSourceSet.toList();
     List<AnalysisError> parseErrors = getUniqueErrors(errorListener.errors);
-    List<Source> unitSources = <Source>[source]..addAll(includedSourceSet);
-    List<Source> referencedSources = (new Set<Source>()
-          ..addAll(importedSources)
-          ..addAll(exportedSources)
-          ..addAll(unitSources))
-        .toList();
-    List<LibrarySpecificUnit> librarySpecificUnits =
-        unitSources.map((s) => new LibrarySpecificUnit(source, s)).toList();
-    outputs[EXPLICITLY_IMPORTED_LIBRARIES] = explicitlyImportedSources;
-    outputs[EXPORTED_LIBRARIES] = exportedSources;
-    outputs[IMPORTED_LIBRARIES] = importedSources;
-    outputs[INCLUDED_PARTS] = includedSources;
-    outputs[LIBRARY_SPECIFIC_UNITS] = librarySpecificUnits;
     outputs[PARSE_ERRORS] = parseErrors;
-    outputs[PARSED_UNIT] = unit;
+    outputs[PARSED_UNIT1] = unit;
     outputs[REFERENCED_NAMES] = referencedNames;
-    outputs[REFERENCED_SOURCES] = referencedSources;
     outputs[SOURCE_KIND] = sourceKind;
-    outputs[UNITS] = unitSources;
   }
 
   /**
@@ -4187,45 +4148,6 @@ class ParseDartTask extends SourceBasedAnalysisTask {
   static ParseDartTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new ParseDartTask(context, target);
-  }
-
-  /**
-   * Return the result of resolving the URI of the given URI-based [directive]
-   * against the URI of the given library, or `null` if the URI is not valid.
-   *
-   * Resolution is to be performed in the given [context]. Errors should be
-   * reported to the [errorListener].
-   */
-  static Source resolveDirective(AnalysisContext context, Source librarySource,
-      UriBasedDirective directive, AnalysisErrorListener errorListener) {
-    StringLiteral uriLiteral = directive.uri;
-    String uriContent = uriLiteral.stringValue;
-    if (uriContent != null) {
-      uriContent = uriContent.trim();
-      directive.uriContent = uriContent;
-    }
-    UriValidationCode code = directive.validate();
-    if (code == null) {
-      String encodedUriContent = Uri.encodeFull(uriContent);
-      Source source =
-          context.sourceFactory.resolveUri(librarySource, encodedUriContent);
-      directive.source = source;
-      return source;
-    }
-    if (code == UriValidationCode.URI_WITH_DART_EXT_SCHEME) {
-      return null;
-    }
-    if (code == UriValidationCode.URI_WITH_INTERPOLATION) {
-      errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
-          uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION));
-      return null;
-    }
-    if (code == UriValidationCode.INVALID_URI) {
-      errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
-          uriLiteral.length, CompileTimeErrorCode.INVALID_URI, [uriContent]));
-      return null;
-    }
-    throw new AnalysisException('Failed to handle validation code: $code');
   }
 }
 
@@ -5320,6 +5242,176 @@ class ResolveDirectiveElementsTask extends SourceBasedAnalysisTask {
   static ResolveDirectiveElementsTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new ResolveDirectiveElementsTask(context, target);
+  }
+}
+
+/**
+ * A task that resolves URIs of [UriBasedDirective]s and reports errors.
+ */
+class ResolveDirectivesTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the input whose value is the [PARSED_UNIT1] for the file.
+   */
+  static const String PARSED_UNIT_INPUT = 'PARSED_UNIT_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'ResolveDirectivesTask', createTask, buildInputs, <ResultDescriptor>[
+    EXPLICITLY_IMPORTED_LIBRARIES,
+    EXPORTED_LIBRARIES,
+    IMPORTED_LIBRARIES,
+    INCLUDED_PARTS,
+    LIBRARY_SPECIFIC_UNITS,
+    PARSED_UNIT,
+    RESOLVE_DIRECTIVES_ERRORS,
+    REFERENCED_SOURCES,
+    UNITS,
+  ]);
+
+  /**
+   * Initialize a newly created task to parse the content of the Dart file
+   * associated with the given [target] in the given [context].
+   */
+  ResolveDirectivesTask(InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    Source source = getRequiredSource();
+    CompilationUnit unit = getRequiredInput(PARSED_UNIT_INPUT);
+
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    HashSet<Source> explicitlyImportedSourceSet = new HashSet<Source>();
+    HashSet<Source> exportedSourceSet = new HashSet<Source>();
+    HashSet<Source> includedSourceSet = new HashSet<Source>();
+    NodeList<Directive> directives = unit.directives;
+    int length = directives.length;
+    for (int i = 0; i < length; i++) {
+      Directive directive = directives[i];
+      if (directive is UriBasedDirective) {
+        Source referencedSource =
+            resolveDirective(context, source, directive, errorListener);
+        if (referencedSource != null) {
+          if (directive is ExportDirective) {
+            exportedSourceSet.add(referencedSource);
+          } else if (directive is ImportDirective) {
+            explicitlyImportedSourceSet.add(referencedSource);
+          } else if (directive is PartDirective) {
+            includedSourceSet.add(referencedSource);
+          } else {
+            throw new AnalysisException(
+                '$runtimeType failed to handle a ${directive.runtimeType}');
+          }
+        }
+      }
+    }
+    //
+    // Always include "dart:core" source.
+    //
+    HashSet<Source> importedSourceSet =
+        new HashSet.from(explicitlyImportedSourceSet);
+    Source coreLibrarySource = context.sourceFactory.forUri(DartSdk.DART_CORE);
+    if (coreLibrarySource == null) {
+      String message;
+      DartSdk sdk = context.sourceFactory.dartSdk;
+      if (sdk == null) {
+        message = 'Could not resolve "dart:core": SDK not defined';
+      } else {
+        message = 'Could not resolve "dart:core": SDK incorrectly configured';
+      }
+      throw new AnalysisException(message);
+    }
+    importedSourceSet.add(coreLibrarySource);
+    //
+    // Record outputs.
+    //
+    List<Source> explicitlyImportedSources =
+        explicitlyImportedSourceSet.toList();
+    List<Source> exportedSources = exportedSourceSet.toList();
+    List<Source> importedSources = importedSourceSet.toList();
+    List<Source> includedSources = includedSourceSet.toList();
+    List<AnalysisError> errors = getUniqueErrors(errorListener.errors);
+    List<Source> unitSources = <Source>[source]..addAll(includedSourceSet);
+    List<Source> referencedSources = (new Set<Source>()
+          ..addAll(importedSources)
+          ..addAll(exportedSources)
+          ..addAll(unitSources))
+        .toList();
+    List<LibrarySpecificUnit> librarySpecificUnits =
+        unitSources.map((s) => new LibrarySpecificUnit(source, s)).toList();
+    outputs[EXPLICITLY_IMPORTED_LIBRARIES] = explicitlyImportedSources;
+    outputs[EXPORTED_LIBRARIES] = exportedSources;
+    outputs[IMPORTED_LIBRARIES] = importedSources;
+    outputs[INCLUDED_PARTS] = includedSources;
+    outputs[LIBRARY_SPECIFIC_UNITS] = librarySpecificUnits;
+    outputs[PARSED_UNIT] = unit;
+    outputs[RESOLVE_DIRECTIVES_ERRORS] = errors;
+    outputs[REFERENCED_SOURCES] = referencedSources;
+    outputs[UNITS] = unitSources;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the given
+   * [target].
+   */
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    return <String, TaskInput>{
+      PARSED_UNIT_INPUT: PARSED_UNIT1.of(target, flushOnAccess: true)
+    };
+  }
+
+  /**
+   * Create a [ResolveDirectivesTask] based on the given [target] in the given
+   * [context].
+   */
+  static ResolveDirectivesTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new ResolveDirectivesTask(context, target);
+  }
+
+  /**
+   * Return the result of resolving the URI of the given URI-based [directive]
+   * against the URI of the given library, or `null` if the URI is not valid.
+   *
+   * Resolution is to be performed in the given [context]. Errors should be
+   * reported to the [errorListener].
+   */
+  static Source resolveDirective(AnalysisContext context, Source librarySource,
+      UriBasedDirective directive, AnalysisErrorListener errorListener) {
+    StringLiteral uriLiteral = directive.uri;
+    String uriContent = uriLiteral.stringValue;
+    if (uriContent != null) {
+      uriContent = uriContent.trim();
+      directive.uriContent = uriContent;
+    }
+    UriValidationCode code = directive.validate();
+    if (code == null) {
+      String encodedUriContent = Uri.encodeFull(uriContent);
+      Source source =
+          context.sourceFactory.resolveUri(librarySource, encodedUriContent);
+      directive.source = source;
+      return source;
+    }
+    if (code == UriValidationCode.URI_WITH_DART_EXT_SCHEME) {
+      return null;
+    }
+    if (code == UriValidationCode.URI_WITH_INTERPOLATION) {
+      errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
+          uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION));
+      return null;
+    }
+    if (code == UriValidationCode.INVALID_URI) {
+      errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
+          uriLiteral.length, CompileTimeErrorCode.INVALID_URI, [uriContent]));
+      return null;
+    }
+    throw new AnalysisException('Failed to handle validation code: $code');
   }
 }
 

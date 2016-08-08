@@ -198,6 +198,8 @@ digraph G {
   MODIFICATION_TIME [shape=box]
   PARSED_UNIT -> BuildCompilationUnitElementTask
   PARSED_UNIT [shape=box]
+  PARSED_UNIT1 -> ResolveDirectivesTask
+  PARSED_UNIT1 [shape=box]
   PARSE_ERRORS -> dartErrorsForSource
   PARSE_ERRORS [shape=box]
   PENDING_ERRORS -> VerifyUnitTask
@@ -209,17 +211,10 @@ digraph G {
   PROPAGATED_VARIABLE -> PropagateVariableTypeTask
   PROPAGATED_VARIABLE -> PropagateVariableTypesInUnitTask
   PROPAGATED_VARIABLE [shape=box]
-  ParseDartTask -> EXPLICITLY_IMPORTED_LIBRARIES
-  ParseDartTask -> EXPORTED_LIBRARIES
-  ParseDartTask -> IMPORTED_LIBRARIES
-  ParseDartTask -> INCLUDED_PARTS
-  ParseDartTask -> LIBRARY_SPECIFIC_UNITS
-  ParseDartTask -> PARSED_UNIT
+  ParseDartTask -> PARSED_UNIT1
   ParseDartTask -> PARSE_ERRORS
   ParseDartTask -> REFERENCED_NAMES
-  ParseDartTask -> REFERENCED_SOURCES
   ParseDartTask -> SOURCE_KIND
-  ParseDartTask -> UNITS
   PartiallyResolveUnitReferencesTask -> CREATED_RESOLVED_UNIT7
   PartiallyResolveUnitReferencesTask -> INFERABLE_STATIC_VARIABLES_IN_UNIT
   PartiallyResolveUnitReferencesTask -> PROPAGABLE_VARIABLES_IN_UNIT
@@ -291,6 +286,8 @@ digraph G {
   RESOLVED_UNIT8 [shape=box]
   RESOLVED_UNIT9 -> ResolveInstanceFieldsInUnitTask
   RESOLVED_UNIT9 [shape=box]
+  RESOLVE_DIRECTIVES_ERRORS -> dartErrorsForSource
+  RESOLVE_DIRECTIVES_ERRORS [shape=box]
   RESOLVE_TYPE_BOUNDS_ERRORS -> LibraryUnitErrorsTask
   RESOLVE_TYPE_BOUNDS_ERRORS [shape=box]
   RESOLVE_TYPE_NAMES_ERRORS -> LibraryUnitErrorsTask
@@ -304,6 +301,15 @@ digraph G {
   ResolveConstantExpressionTask -> CONSTANT_EXPRESSION_RESOLVED
   ResolveDirectiveElementsTask -> CREATED_RESOLVED_UNIT2
   ResolveDirectiveElementsTask -> RESOLVED_UNIT2
+  ResolveDirectivesTask -> EXPLICITLY_IMPORTED_LIBRARIES
+  ResolveDirectivesTask -> EXPORTED_LIBRARIES
+  ResolveDirectivesTask -> IMPORTED_LIBRARIES
+  ResolveDirectivesTask -> INCLUDED_PARTS
+  ResolveDirectivesTask -> LIBRARY_SPECIFIC_UNITS
+  ResolveDirectivesTask -> PARSED_UNIT
+  ResolveDirectivesTask -> REFERENCED_SOURCES
+  ResolveDirectivesTask -> RESOLVE_DIRECTIVES_ERRORS
+  ResolveDirectivesTask -> UNITS
   ResolveInstanceFieldsInUnitTask -> CREATED_RESOLVED_UNIT10
   ResolveInstanceFieldsInUnitTask -> RESOLVED_UNIT10
   ResolveLibraryReferencesTask -> LIBRARY_ELEMENT9

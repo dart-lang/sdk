@@ -527,7 +527,7 @@ class DartWorkManagerTest {
   void test_onAnalysisOptionsChanged() {
     when(context.exists(anyObject)).thenReturn(true);
     // set cache values
-    entry1.setValue(PARSED_UNIT, AstFactory.compilationUnit(), []);
+    entry1.setValue(PARSED_UNIT1, AstFactory.compilationUnit(), []);
     entry1.setValue(IMPORTED_LIBRARIES, <Source>[], []);
     entry1.setValue(EXPLICITLY_IMPORTED_LIBRARIES, <Source>[], []);
     entry1.setValue(EXPORTED_LIBRARIES, <Source>[], []);
@@ -543,7 +543,7 @@ class DartWorkManagerTest {
     // resolution is invalidated
     expect(unitEntry.getState(BUILD_LIBRARY_ERRORS), CacheState.INVALID);
     // ...but URIs are still value
-    expect(entry1.getState(PARSED_UNIT), CacheState.VALID);
+    expect(entry1.getState(PARSED_UNIT1), CacheState.VALID);
     expect(entry1.getState(IMPORTED_LIBRARIES), CacheState.VALID);
     expect(entry1.getState(EXPLICITLY_IMPORTED_LIBRARIES), CacheState.VALID);
     expect(entry1.getState(EXPORTED_LIBRARIES), CacheState.VALID);
@@ -571,7 +571,9 @@ class DartWorkManagerTest {
   void test_onSourceFactoryChanged() {
     when(context.exists(anyObject)).thenReturn(true);
     // set cache values
-    entry1.setValue(PARSED_UNIT, AstFactory.compilationUnit(), []);
+    CompilationUnit unit = AstFactory.compilationUnit();
+    entry1.setValue(PARSED_UNIT1, unit, []);
+    entry1.setValue(PARSED_UNIT, unit, []);
     entry1.setValue(IMPORTED_LIBRARIES, <Source>[], []);
     entry1.setValue(EXPLICITLY_IMPORTED_LIBRARIES, <Source>[], []);
     entry1.setValue(EXPORTED_LIBRARIES, <Source>[], []);
@@ -589,6 +591,7 @@ class DartWorkManagerTest {
     // resolution is invalidated
     expect(unitEntry.getState(BUILD_LIBRARY_ERRORS), CacheState.INVALID);
     // ...and URIs resolution too
+    expect(entry1.getState(PARSED_UNIT1), CacheState.INVALID);
     expect(entry1.getState(PARSED_UNIT), CacheState.INVALID);
     expect(entry1.getState(IMPORTED_LIBRARIES), CacheState.INVALID);
     expect(entry1.getState(EXPLICITLY_IMPORTED_LIBRARIES), CacheState.INVALID);
@@ -636,7 +639,7 @@ class DartWorkManagerTest {
     entry1.setValue(PARSE_ERRORS, <AnalysisError>[error2], []);
     // PARSED_UNIT is ready, set errors
     manager
-        .resultsComputed(source1, {PARSED_UNIT: AstFactory.compilationUnit()});
+        .resultsComputed(source1, {PARSED_UNIT1: AstFactory.compilationUnit()});
     // all of the errors are included
     ChangeNoticeImpl notice = context.getNotice(source1);
     expect(notice.errors, unorderedEquals([error1, error2]));
@@ -721,7 +724,7 @@ class DartWorkManagerTest {
         .thenReturn(new AnalysisErrorInfoImpl([], lineInfo));
     entry1.setValue(LINE_INFO, lineInfo, []);
     CompilationUnit unit = AstFactory.compilationUnit();
-    manager.resultsComputed(source1, {PARSED_UNIT: unit});
+    manager.resultsComputed(source1, {PARSED_UNIT1: unit});
     ChangeNoticeImpl notice = context.getNotice(source1);
     expect(notice.parsedDartUnit, unit);
     expect(notice.resolvedDartUnit, isNull);

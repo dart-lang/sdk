@@ -29,6 +29,7 @@ class DartWorkManager implements WorkManager {
     BUILD_DIRECTIVES_ERRORS,
     BUILD_LIBRARY_ERRORS,
     PARSE_ERRORS,
+    RESOLVE_DIRECTIVES_ERRORS,
     SCAN_ERRORS
   ];
 
@@ -303,10 +304,10 @@ class DartWorkManager implements WorkManager {
       }
     }
     // Update parts in libraries.
-    if (isDartLibrarySource) {
-      Source library = target;
+    {
       List<Source> includedParts = outputs[INCLUDED_PARTS] as List<Source>;
-      if (includedParts != null) {
+      if (includedParts != null && !includedParts.isEmpty) {
+        Source library = target;
         libraryPartsMap[library] = includedParts;
         for (Source part in includedParts) {
           List<Source> libraries =
@@ -322,7 +323,7 @@ class DartWorkManager implements WorkManager {
     if (isDartSource) {
       bool shouldSetErrors = false;
       outputs.forEach((ResultDescriptor descriptor, value) {
-        if (descriptor == PARSED_UNIT && value != null) {
+        if (descriptor == PARSED_UNIT1 && value != null) {
           context.getNotice(target).parsedDartUnit = value;
           shouldSetErrors = true;
         }
@@ -425,6 +426,7 @@ class DartWorkManager implements WorkManager {
       if (entry != null) {
         // TODO(scheglov) we invalidate too much.
         // Would be nice to invalidate just URLs resolution.
+        entry.setState(PARSED_UNIT1, CacheState.INVALID);
         entry.setState(PARSED_UNIT, CacheState.INVALID);
         entry.setState(IMPORTED_LIBRARIES, CacheState.INVALID);
         entry.setState(EXPLICITLY_IMPORTED_LIBRARIES, CacheState.INVALID);
