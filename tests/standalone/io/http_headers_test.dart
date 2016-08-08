@@ -380,11 +380,30 @@ void testContentType() {
       "  text/html  ;  charset  =  utf-8  ;  xxx=yyy  ");
   check(contentType, "text", "html", {"charset": "utf-8", "xxx": "yyy"});
 
+  contentType = ContentType.parse("text/html; charset=;");
+  check(contentType, "text", "html", {"charset": null});
+  contentType = ContentType.parse("text/html; charset;");
+  check(contentType, "text", "html", {"charset": null});
+
   // Test builtin content types.
   check(ContentType.TEXT, "text", "plain", {"charset": "utf-8"});
   check(ContentType.HTML, "text", "html", {"charset": "utf-8"});
   check(ContentType.JSON, "application", "json", {"charset": "utf-8"});
   check(ContentType.BINARY, "application", "octet-stream");
+}
+
+void testKnownContentTypes() {
+  // Well known content types used by the VM service.
+  ContentType.parse('text/html; charset=UTF-8');
+  ContentType.parse('application/dart; charset=UTF-8');
+  ContentType.parse('application/javascript; charset=UTF-8');
+  ContentType.parse('text/css; charset=UTF-8');
+  ContentType.parse('image/gif');
+  ContentType.parse('image/png');
+  ContentType.parse('image/jpeg');
+  ContentType.parse('image/jpeg');
+  ContentType.parse('image/svg+xml');
+  ContentType.parse('text/plain');
 }
 
 void testContentTypeCache() {
@@ -570,6 +589,7 @@ main() {
   testEnumeration();
   testHeaderValue();
   testContentType();
+  testKnownContentTypes();
   testContentTypeCache();
   testCookie();
   testInvalidCookie();

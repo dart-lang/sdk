@@ -760,12 +760,12 @@ class _HeaderValue implements HeaderValue {
         }
         maybeExpect("=");
         skipWS();
-        if(done()) {
+        if (done()) {
           parameters[name] = null;
           return;
         }
         String value = parseParameterValue();
-        if (name == 'charset' && this is _ContentType) {
+        if (name == 'charset' && this is _ContentType && value != null) {
           // Charset parameter of ContentTypes are always lower-case.
           value = value.toLowerCase();
         }

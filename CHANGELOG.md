@@ -14,6 +14,7 @@
   * `Socket.connect` with source-address argument is now non-blocking
     on Mac. Was already non-blocking on all other platforms.
   * Report a better error when a bind fails because of a bad source address.
+  * Handle HTTP header `charset` parameter with empty value.
 
 ### Strong Mode
 
