@@ -232,16 +232,23 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       if (interceptedClasses.contains(helpers.jsNumberClass) &&
           !(interceptedClasses.contains(helpers.jsDoubleClass) ||
               interceptedClasses.contains(helpers.jsIntClass))) {
+        Set<ClassElement> required;
         for (HInstruction user in node.usedBy) {
           if (user is! HInvoke) continue;
           Set<ClassElement> intercepted =
               backend.getInterceptedClassesOn(user.selector.name);
           if (intercepted.contains(helpers.jsIntClass)) {
-            interceptedClasses.add(helpers.jsIntClass);
+            required ??= new Set<ClassElement>();
+            required.add(helpers.jsIntClass);
           }
           if (intercepted.contains(helpers.jsDoubleClass)) {
-            interceptedClasses.add(helpers.jsDoubleClass);
+            required ??= new Set<ClassElement>();
+            required.add(helpers.jsDoubleClass);
           }
+        }
+        // Don't modify the result of [backend.getInterceptedClassesOn].
+        if (required != null) {
+          interceptedClasses = interceptedClasses.union(required);
         }
       }
     } else {

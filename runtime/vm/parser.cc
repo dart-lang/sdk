@@ -48,6 +48,8 @@ DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
 // committed to the current version.
 DEFINE_FLAG(bool, conditional_directives, true,
     "Enable conditional directives");
+DEFINE_FLAG(bool, initializing_formal_access, false,
+    "Make initializing formal parameters visible in initializer list.");
 DEFINE_FLAG(bool, warn_super, false,
     "Warning if super initializer not last in initializer list.");
 DEFINE_FLAG(bool, await_is_keyword, false,
@@ -697,8 +699,19 @@ struct ParamList {
     for (int i = 0; i < num_params; i++) {
       ParamDesc& param = (*parameters)[i];
       ASSERT(param.var != NULL);
-      if (!param.is_field_initializer) {
+      if (FLAG_initializing_formal_access || !param.is_field_initializer) {
         param.var->set_invisible(invisible);
+      }
+    }
+  }
+
+  void HideInitFormals() {
+    const intptr_t num_params = parameters->length();
+    for (int i = 0; i < num_params; i++) {
+      ParamDesc& param = (*parameters)[i];
+      if (param.is_field_initializer) {
+        ASSERT(param.var != NULL);
+        param.var->set_invisible(true);
       }
     }
   }
@@ -1548,32 +1561,14 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
       &Object::dynamic_type());
 
   const Function& parent = Function::Handle(func.parent_function());
-  const String& target_name = String::Handle(parent.name());
-  const Class& owner = Class::Handle(parent.Owner());
-  Function& target = Function::ZoneHandle(owner.LookupFunction(target_name));
-  if (target.raw() != parent.raw()) {
-    ASSERT(Isolate::Current()->HasAttemptedReload());
-    if (target.IsNull() ||
-        (target.is_static() != parent.is_static()) ||
-        (target.kind() != parent.kind())) {
-      // TODO(26977): call noSuchMethod/throw NSME instead.
-      target = parent.raw();
-    }
-  }
-
-  if (target.IsImplicitSetterFunction()) {
+  if (parent.IsImplicitSetterFunction()) {
     const TokenPosition ident_pos = func.token_pos();
     ASSERT(IsIdentifier());
-    const String& field_name = *CurrentLiteral();
-    const Class& field_class = Class::ZoneHandle(Z, target.Owner());
-    const Field& field =
-        Field::ZoneHandle(Z, field_class.LookupInstanceField(field_name));
-    const AbstractType& field_type = AbstractType::ZoneHandle(Z, field.type());
     params.AddFinalParameter(ident_pos,
                              &Symbols::Value(),
-                             &field_type);
+                             &Object::dynamic_type());
     ASSERT(func.num_fixed_parameters() == 2);  // closure, value.
-  } else if (!target.IsGetterFunction() && !target.IsImplicitGetterFunction()) {
+  } else if (!parent.IsGetterFunction() && !parent.IsImplicitGetterFunction()) {
     const bool allow_explicit_default_values = true;
     SkipFunctionPreamble();
     ParseFormalParameterList(allow_explicit_default_values, false, &params);
@@ -1604,7 +1599,71 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
     }
     func_args->set_names(arg_names);
   }
-  StaticCallNode* call = new StaticCallNode(token_pos, target, func_args);
+
+  const String& func_name = String::ZoneHandle(parent.name());
+  const Class& owner = Class::Handle(parent.Owner());
+  Function& target = Function::ZoneHandle(owner.LookupFunction(func_name));
+  if (target.raw() != parent.raw()) {
+    ASSERT(Isolate::Current()->HasAttemptedReload());
+    if (target.IsNull() ||
+        (target.is_static() != parent.is_static()) ||
+        (target.kind() != parent.kind())) {
+      target = Function::null();
+    }
+  }
+
+  AstNode* call = NULL;
+  if (!target.IsNull()) {
+    call = new StaticCallNode(token_pos, target, func_args);
+  } else if (!parent.is_static()) {
+    ASSERT(Isolate::Current()->HasAttemptedReload());
+    // If a subsequent reload reintroduces the target in the middle of the
+    // Invocation object being constructed, we won't be able to successfully
+    // deopt because the generated AST will change.
+    current_function().SetIsOptimizable(false);
+
+    ArgumentListNode* arguments = BuildNoSuchMethodArguments(
+        token_pos, func_name, *func_args, NULL, false);
+    const intptr_t kNumArguments = 2;  // Receiver, InvocationMirror.
+    ArgumentsDescriptor args_desc(
+        Array::Handle(Z, ArgumentsDescriptor::New(kNumArguments)));
+    Function& no_such_method = Function::ZoneHandle(Z,
+    Resolver::ResolveDynamicForReceiverClass(owner,
+                                             Symbols::NoSuchMethod(),
+                                             args_desc));
+    if (no_such_method.IsNull()) {
+      // If noSuchMethod(i) is not found, call Object:noSuchMethod.
+      no_such_method ^= Resolver::ResolveDynamicForReceiverClass(
+          Class::Handle(Z, I->object_store()->object_class()),
+          Symbols::NoSuchMethod(),
+          args_desc);
+    }
+    call = new StaticCallNode(token_pos, no_such_method, arguments);
+  } else {
+    ASSERT(Isolate::Current()->HasAttemptedReload());
+    // If a subsequent reload reintroduces the target in the middle of the
+    // arguments array being constructed, we won't be able to successfully
+    // deopt because the generated AST will change.
+    current_function().SetIsOptimizable(false);
+
+    InvocationMirror::Type im_type;
+    if (parent.IsImplicitGetterFunction()) {
+      im_type = InvocationMirror::kGetter;
+    } else if (parent.IsImplicitSetterFunction()) {
+      im_type = InvocationMirror::kSetter;
+    } else {
+      im_type = InvocationMirror::kMethod;
+    }
+    call = ThrowNoSuchMethodError(TokenPos(),
+                                  owner,
+                                  func_name,
+                                  func_args,
+                                  InvocationMirror::kStatic,
+                                  im_type,
+                                  NULL);  // No existing function.
+  }
+
+  ASSERT(call != NULL);
   ReturnNode* return_node = new ReturnNode(token_pos, call);
   current_block_->statements->Add(return_node);
   return CloseBlock();
@@ -1902,6 +1961,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
   TRACE_PARSER("ParseFormalParameter");
   ParamDesc parameter;
   bool var_seen = false;
+  bool final_seen = false;
   bool this_seen = false;
 
   if (evaluate_metadata && (CurrentToken() == Token::kAT)) {
@@ -1912,6 +1972,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
 
   if (CurrentToken() == Token::kFINAL) {
     ConsumeToken();
+    final_seen = true;
     parameter.is_final = true;
   } else if (CurrentToken() == Token::kVAR) {
     ConsumeToken();
@@ -1926,6 +1987,9 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     ExpectToken(Token::kPERIOD);
     this_seen = true;
     parameter.is_field_initializer = true;
+    if (FLAG_initializing_formal_access) {
+      parameter.is_final = true;
+    }
   }
   if ((parameter.type == NULL) && (CurrentToken() == Token::kVOID)) {
     ConsumeToken();
@@ -1967,6 +2031,9 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     ExpectToken(Token::kPERIOD);
     this_seen = true;
     parameter.is_field_initializer = true;
+    if (FLAG_initializing_formal_access) {
+      parameter.is_final = true;
+    }
   }
 
   // At this point, we must see an identifier for the parameter name.
@@ -1996,7 +2063,11 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     // This parameter is probably a closure. If we saw the keyword 'var'
     // or 'final', a closure is not legal here and we ignore the
     // opening parens.
-    if (!var_seen && !parameter.is_final) {
+    // TODO(hausner): The language spec appears to allow var and final
+    // in signature types when used with initializing formals:
+    // fieldFormalParameter:
+    // metadata finalConstVarOrType? this ‘.’ identifier formalParameterList? ;
+    if (!var_seen && !final_seen) {
       // The parsed parameter type is actually the function result type.
       const AbstractType& result_type =
           AbstractType::Handle(Z, parameter.type->raw());
@@ -3202,7 +3273,6 @@ SequenceNode* Parser::ParseConstructor(const Function& func) {
         // Thus, they are set to be invisible when added to the scope.
         LocalVariable* p = param.var;
         ASSERT(p != NULL);
-        ASSERT(p->is_invisible());
         AstNode* value = new LoadLocalNode(param.name_pos, p);
         EnsureExpressionTemp();
         AstNode* initializer =
@@ -3232,6 +3302,9 @@ SequenceNode* Parser::ParseConstructor(const Function& func) {
 
   // Parsing of initializers done. Now we parse the constructor body.
   OpenBlock();  // Block to collect constructor body nodes.
+  if (FLAG_initializing_formal_access) {
+    params.HideInitFormals();
+  }
   if (CurrentToken() == Token::kLBRACE) {
     // We checked in the top-level parse phase that a redirecting
     // constructor does not have a body.
@@ -7422,7 +7495,10 @@ void Parser::AddFormalParamsToScope(const ParamList* params,
     if (param_desc.is_final) {
       parameter->set_is_final();
     }
-    if (param_desc.is_field_initializer) {
+    if (FLAG_initializing_formal_access) {
+      // Field initializer parameters are implicitly final.
+      ASSERT(!param_desc.is_field_initializer || param_desc.is_final);
+    } else if (param_desc.is_field_initializer) {
       parameter->set_invisible(true);
     }
   }

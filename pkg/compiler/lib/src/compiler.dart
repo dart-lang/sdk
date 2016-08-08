@@ -27,7 +27,6 @@ import 'common.dart';
 import 'compile_time_constants.dart';
 import 'constants/values.dart';
 import 'core_types.dart' show CoreClasses, CoreTypes;
-import 'dart_backend/dart_backend.dart' as dart_backend;
 import 'dart_types.dart' show DartType, DynamicType, InterfaceType, Types;
 import 'deferred_load.dart' show DeferredLoadTask;
 import 'diagnostics/code_location.dart';
@@ -302,19 +301,13 @@ abstract class Compiler implements LibraryLoaderListener {
 
     if (makeBackend != null) {
       backend = makeBackend(this);
-    } else if (options.emitJavaScript) {
+    } else {
       js_backend.JavaScriptBackend jsBackend = new js_backend.JavaScriptBackend(
           this,
           generateSourceMap: options.generateSourceMap,
           useStartupEmitter: options.useStartupEmitter,
           useNewSourceInfo: options.useNewSourceInfo);
       backend = jsBackend;
-    } else {
-      backend = new dart_backend.DartBackend(this, options.strips,
-          multiFile: options.dart2dartMultiFile);
-      if (options.dumpInfo) {
-        throw new ArgumentError('--dump-info is not supported for dart2dart.');
-      }
     }
 
     if (options.dumpInfo && options.useStartupEmitter) {

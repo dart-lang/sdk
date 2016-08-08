@@ -5,5 +5,5 @@
 part of models;
 
 abstract class FlagsRepository {
-  Future<Iterable<Flag>> list(VMRef vm);
+  Future<Iterable<Flag>> list();
 }

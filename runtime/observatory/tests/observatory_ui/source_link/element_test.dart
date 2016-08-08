@@ -3,40 +3,41 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:html';
 import 'package:unittest/unittest.dart';
-import 'package:observatory/mocks.dart';
-import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/source_link.dart';
+import '../mocks.dart';
 
 main() {
   SourceLinkElement.tag.ensureRegistration();
 
-  final M.IsolateRef isolate = const IsolateRefMock(id: 'isolate-id');
-  final M.Script script = new  ScriptMock(id: 'script-id',
-                                  uri: 'package/filename.dart',
-                                  tokenToLine: (int token) => 1,
-                                  tokenToCol: (int token) => 2);
-  final M.SourceLocation location = new SourceLocationMock(script: script,
-                                  tokenPos: 0, endTokenPos: 1);
-  M.ScriptRepository repository;
-  setUp(() {
-    repository = new ScriptRepositoryMock({ 'script-id': script });
-  });
+  const isolate = const IsolateRefMock(id: 'isolate-id');
+  const script_id = 'script-id';
+  const file = 'filename.dart';
+  final script = new ScriptMock(id: script_id, uri: 'package/$file',
+      tokenToLine: (int token) => 1, tokenToCol: (int token) => 2);
+  final location = new SourceLocationMock(script: script, tokenPos: 0,
+      endTokenPos: 1);
   test('instantiation', () {
-    final SourceLinkElement e = new SourceLinkElement(isolate, location,
-                                                               repository);
+    final e = new SourceLinkElement(isolate, location,
+        new ScriptRepositoryMock());
     expect(e, isNotNull, reason: 'element correctly created');
     expect(e.isolate, equals(isolate));
     expect(e.location, equals(location));
   });
   test('elements created after attachment', () async {
-    final SourceLinkElement e = new SourceLinkElement(isolate, location,
-                                                               repository);
+    bool rendered = false;
+    final e = new SourceLinkElement(isolate, location,
+        new ScriptRepositoryMock(getter: expectAsync((String id) async {
+          expect(rendered, isFalse);
+          expect(id, equals(script_id));
+          return script;
+        }, count: 1)));
     document.body.append(e);
     await e.onRendered.first;
+    rendered = true;
     expect(e.children.length, isNonZero, reason: 'has elements');
     expect(e.innerHtml.contains(isolate.id), isTrue,
       reason: 'no message in the component');
-    expect(e.innerHtml.contains('filename.dart'), isTrue,
+    expect(e.innerHtml.contains(file), isTrue,
       reason: 'no message in the component');
     e.remove();
     await e.onRendered.first;

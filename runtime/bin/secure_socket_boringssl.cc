@@ -94,11 +94,14 @@ static void ThrowIOException(int status,
                              const char* message) {
   char error_string[SSL_ERROR_MESSAGE_BUFFER_SIZE];
   FetchErrorString(error_string, SSL_ERROR_MESSAGE_BUFFER_SIZE);
-  OSError os_error_struct(status, error_string, OSError::kBoringSSL);
-  Dart_Handle os_error = DartUtils::NewDartOSError(&os_error_struct);
-  Dart_Handle exception =
-      DartUtils::NewDartIOException(exception_type, message, os_error);
-  ASSERT(!Dart_IsError(exception));
+  Dart_Handle exception;
+  {
+    OSError os_error_struct(status, error_string, OSError::kBoringSSL);
+    Dart_Handle os_error = DartUtils::NewDartOSError(&os_error_struct);
+    exception =
+        DartUtils::NewDartIOException(exception_type, message, os_error);
+    ASSERT(!Dart_IsError(exception));
+  }
   Dart_ThrowException(exception);
   UNREACHABLE();
 }
@@ -143,8 +146,8 @@ static Dart_Handle SetFilter(Dart_NativeArguments args, SSLFilter* filter) {
 }
 
 
-static SSL_CTX* GetSecurityContext(Dart_NativeArguments args) {
-  SSL_CTX* context;
+static SSLContext* GetSecurityContext(Dart_NativeArguments args) {
+  SSLContext* context;
   Dart_Handle dart_this = ThrowIfError(Dart_GetNativeArgument(args, 0));
   ASSERT(Dart_IsInstance(dart_this));
   ThrowIfError(Dart_GetNativeInstanceField(
@@ -155,17 +158,17 @@ static SSL_CTX* GetSecurityContext(Dart_NativeArguments args) {
 }
 
 
-static void FreeSecurityContext(
+static void DeleteSecurityContext(
     void* isolate_data,
     Dart_WeakPersistentHandle handle,
     void* context_pointer) {
-  SSL_CTX* context = static_cast<SSL_CTX*>(context_pointer);
-  SSL_CTX_free(context);
+  SSLContext* context = static_cast<SSLContext*>(context_pointer);
+  delete context;
 }
 
 
 static Dart_Handle SetSecurityContext(Dart_NativeArguments args,
-                                      SSL_CTX* context) {
+                                      SSLContext* context) {
   const int approximate_size_of_context = 1500;
   Dart_Handle dart_this = Dart_GetNativeArgument(args, 0);
   RETURN_IF_ERROR(dart_this);
@@ -178,7 +181,7 @@ static Dart_Handle SetSecurityContext(Dart_NativeArguments args,
   Dart_NewWeakPersistentHandle(dart_this,
                                context,
                                approximate_size_of_context,
-                               FreeSecurityContext);
+                               DeleteSecurityContext);
   return Dart_Null();
 }
 
@@ -198,7 +201,7 @@ static X509* GetX509Certificate(Dart_NativeArguments args) {
 // Forward declaration.
 static void SetAlpnProtocolList(Dart_Handle protocols_handle,
                                 SSL* ssl,
-                                SSL_CTX* context,
+                                SSLContext* context,
                                 bool is_server);
 
 
@@ -235,7 +238,7 @@ void FUNCTION_NAME(SecureSocket_Connect)(Dart_NativeArguments args) {
   // TODO(whesse): Is truncating a Dart string containing \0 what we want?
   ThrowIfError(Dart_StringToCString(host_name_object, &host_name));
 
-  SSL_CTX* context = NULL;
+  SSLContext* context = NULL;
   if (!Dart_IsNull(context_object)) {
     ThrowIfError(Dart_GetNativeInstanceField(
         context_object,
@@ -248,7 +251,7 @@ void FUNCTION_NAME(SecureSocket_Connect)(Dart_NativeArguments args) {
   ASSERT(!Dart_IsNull(protocols_handle));
 
   GetFilter(args)->Connect(host_name,
-                           context,
+                           context->context(),
                            is_server,
                            request_client_certificate,
                            require_client_certificate,
@@ -426,14 +429,15 @@ int CertificateCallback(int preverify_ok, X509_STORE_CTX* store_ctx) {
 
 void FUNCTION_NAME(SecurityContext_Allocate)(Dart_NativeArguments args) {
   SSLFilter::InitializeLibrary();
-  SSL_CTX* context = SSL_CTX_new(TLS_method());
-  SSL_CTX_set_verify(context, SSL_VERIFY_PEER, CertificateCallback);
-  SSL_CTX_set_min_version(context, TLS1_VERSION);
-  SSL_CTX_set_cipher_list(context, "HIGH:MEDIUM");
-  SSL_CTX_set_cipher_list_tls11(context, "HIGH:MEDIUM");
+  SSL_CTX* ctx = SSL_CTX_new(TLS_method());
+  SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, CertificateCallback);
+  SSL_CTX_set_min_version(ctx, TLS1_VERSION);
+  SSL_CTX_set_cipher_list(ctx, "HIGH:MEDIUM");
+  SSL_CTX_set_cipher_list_tls11(ctx, "HIGH:MEDIUM");
+  SSLContext* context = new SSLContext(ctx);
   Dart_Handle err = SetSecurityContext(args, context);
   if (Dart_IsError(err)) {
-    SSL_CTX_free(context);
+    delete context;
     Dart_PropagateError(err);
   }
 }
@@ -663,14 +667,17 @@ static const char* GetPasswordArgument(Dart_NativeArguments args,
 
 void FUNCTION_NAME(SecurityContext_UsePrivateKeyBytes)(
     Dart_NativeArguments args) {
-  SSL_CTX* context = GetSecurityContext(args);
+  SSLContext* context = GetSecurityContext(args);
   const char* password = GetPasswordArgument(args, 2);
 
   int status;
   {
     ScopedMemBIO bio(ThrowIfError(Dart_GetNativeArgument(args, 1)));
     EVP_PKEY *key = GetPrivateKey(bio.bio(), password);
-    status = SSL_CTX_use_PrivateKey(context, key);
+    status = SSL_CTX_use_PrivateKey(context->context(), key);
+    // SSL_CTX_use_PrivateKey increments the reference count of key on success,
+    // so we have to call EVP_PKEY_free on both success and failure.
+    EVP_PKEY_free(key);
   }
 
   // TODO(24184): Handle different expected errors here - file missing,
@@ -699,16 +706,18 @@ static int SetTrustedCertificatesBytesPKCS12(SSL_CTX* context,
   ScopedX509Stack cert_stack(ca_certs);
   X509_STORE* store = SSL_CTX_get_cert_store(context);
   status = X509_STORE_add_cert(store, cert);
+  // X509_STORE_add_cert increments the reference count of cert on success.
+  X509_free(cert);
   if (status == 0) {
-    X509_free(cert);
     return status;
   }
 
   X509* ca;
   while ((ca = sk_X509_shift(cert_stack.get())) != NULL) {
     status = X509_STORE_add_cert(store, ca);
+    // X509_STORE_add_cert increments the reference count of cert on success.
+    X509_free(ca);
     if (status == 0) {
-      X509_free(ca);
       return status;
     }
   }
@@ -724,8 +733,9 @@ static int SetTrustedCertificatesBytesPEM(SSL_CTX* context, BIO* bio) {
   X509* cert = NULL;
   while ((cert = PEM_read_bio_X509(bio, NULL, NULL, NULL)) != NULL) {
     status = X509_STORE_add_cert(store, cert);
+    // X509_STORE_add_cert increments the reference count of cert on success.
+    X509_free(cert);
     if (status == 0) {
-      X509_free(cert);
       return status;
     }
   }
@@ -759,12 +769,13 @@ static int SetTrustedCertificatesBytes(SSL_CTX* context,
 
 void FUNCTION_NAME(SecurityContext_SetTrustedCertificatesBytes)(
     Dart_NativeArguments args) {
-  SSL_CTX* context = GetSecurityContext(args);
+  SSLContext* context = GetSecurityContext(args);
   const char* password = GetPasswordArgument(args, 2);
   int status;
   {
     ScopedMemBIO bio(ThrowIfError(Dart_GetNativeArgument(args, 1)));
-    status = SetTrustedCertificatesBytes(context, bio.bio(), password);
+    status = SetTrustedCertificatesBytes(
+        context->context(), bio.bio(), password);
   }
   CheckStatus(status,
               "TlsException",
@@ -779,7 +790,7 @@ void FUNCTION_NAME(SecurityContext_AlpnSupported)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
     Dart_NativeArguments args) {
-  SSL_CTX* context = GetSecurityContext(args);
+  SSLContext* context = GetSecurityContext(args);
 #if defined(TARGET_OS_ANDROID)
   // On Android, we don't compile in the trusted root certificates. Insead,
   // we use the directory of trusted certificates already present on the device.
@@ -789,10 +800,11 @@ void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
   // the Dart thread so that Dart code can be invoked from the "bad certificate"
   // callback called by SSL_do_handshake.
   const char* android_cacerts = "/system/etc/security/cacerts";
-  int status = SSL_CTX_load_verify_locations(context, NULL, android_cacerts);
+  int status = SSL_CTX_load_verify_locations(
+      context->context(), NULL, android_cacerts);
   CheckStatus(status, "TlsException", "Failure trusting builtint roots");
 #else
-  X509_STORE* store = SSL_CTX_get_cert_store(context);
+  X509_STORE* store = SSL_CTX_get_cert_store(context->context());
   BIO* roots_bio =
       BIO_new_mem_buf(const_cast<unsigned char*>(root_certificates_pem),
                       root_certificates_pem_length);
@@ -801,7 +813,12 @@ void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
   // backed by a memory buffer), and returns X509 objects, one by one.
   // When the end of the bio is reached, it returns null.
   while ((root_cert = PEM_read_bio_X509(roots_bio, NULL, NULL, NULL)) != NULL) {
-    X509_STORE_add_cert(store, root_cert);
+    int status = X509_STORE_add_cert(store, root_cert);
+    // X509_STORE_add_cert increments the reference count of cert on success.
+    X509_free(root_cert);
+    if (status == 0) {
+      break;
+    }
   }
   BIO_free(roots_bio);
   // If there is an error here, it must be the error indicating that we are done
@@ -844,6 +861,8 @@ static int UseChainBytesPKCS12(SSL_CTX* context,
   X509* ca;
   while ((ca = sk_X509_shift(certs.get())) != NULL) {
     status = SSL_CTX_add0_chain_cert(context, ca);
+    // SSL_CTX_add0_chain_cert does not inc ref count, so don't free unless the
+    // call fails.
     if (status == 0) {
       X509_free(ca);
       return status;
@@ -875,6 +894,8 @@ static int UseChainBytesPEM(SSL_CTX* context, BIO* bio) {
   X509* ca;
   while ((ca = PEM_read_bio_X509(bio, NULL, NULL, NULL)) != NULL) {
     status = SSL_CTX_add0_chain_cert(context, ca);
+    // SSL_CTX_add0_chain_cert does not inc ref count, so don't free unless the
+    // call fails.
     if (status == 0) {
       X509_free(ca);
       return status;
@@ -906,12 +927,12 @@ static int UseChainBytes(SSL_CTX* context, BIO* bio, const char* password) {
 
 void FUNCTION_NAME(SecurityContext_UseCertificateChainBytes)(
     Dart_NativeArguments args) {
-  SSL_CTX* context = GetSecurityContext(args);
+  SSLContext* context = GetSecurityContext(args);
   const char* password = GetPasswordArgument(args, 2);
   int status;
   {
     ScopedMemBIO bio(ThrowIfError(Dart_GetNativeArgument(args, 1)));
-    status = UseChainBytes(context, bio.bio(), password);
+    status = UseChainBytes(context->context(), bio.bio(), password);
   }
   CheckStatus(status,
               "TlsException",
@@ -937,14 +958,16 @@ static int SetClientAuthoritiesPKCS12(SSL_CTX* context,
 
   ScopedX509Stack cert_stack(ca_certs);
   status = SSL_CTX_add_client_CA(context, cert);
+  // SSL_CTX_add_client_CA increments the reference count of cert on success.
+  X509_free(cert);
   if (status == 0) {
-    X509_free(cert);
     return status;
   }
 
   X509* ca;
   while ((ca = sk_X509_shift(cert_stack.get())) != NULL) {
     status = SSL_CTX_add_client_CA(context, ca);
+    // SSL_CTX_add_client_CA increments the reference count of ca on success.
     X509_free(ca);  // The name has been extracted.
     if (status == 0) {
       return status;
@@ -989,13 +1012,13 @@ static int SetClientAuthorities(SSL_CTX* context,
 
 void FUNCTION_NAME(SecurityContext_SetClientAuthoritiesBytes)(
     Dart_NativeArguments args) {
-  SSL_CTX* context = GetSecurityContext(args);
+  SSLContext* context = GetSecurityContext(args);
   const char* password = GetPasswordArgument(args, 2);
 
   int status;
   {
     ScopedMemBIO bio(ThrowIfError(Dart_GetNativeArgument(args, 1)));
-    status = SetClientAuthorities(context, bio.bio(), password);
+    status = SetClientAuthorities(context->context(), bio.bio(), password);
   }
 
   CheckStatus(status,
@@ -1006,7 +1029,7 @@ void FUNCTION_NAME(SecurityContext_SetClientAuthoritiesBytes)(
 
 void FUNCTION_NAME(SecurityContext_SetAlpnProtocols)(
     Dart_NativeArguments args) {
-  SSL_CTX* context = GetSecurityContext(args);
+  SSLContext* context = GetSecurityContext(args);
   Dart_Handle protocols_handle =
       ThrowIfError(Dart_GetNativeArgument(args, 1));
   Dart_Handle is_server_handle =
@@ -1363,7 +1386,7 @@ int AlpnCallback(SSL *ssl,
 // Sets the protocol list for ALPN on a SSL object or a context.
 static void SetAlpnProtocolList(Dart_Handle protocols_handle,
                                 SSL* ssl,
-                                SSL_CTX* context,
+                                SSLContext* context,
                                 bool is_server) {
   // Enable ALPN (application layer protocol negotiation) if the caller provides
   // a valid list of supported protocols.
@@ -1400,13 +1423,9 @@ static void SetAlpnProtocolList(Dart_Handle protocols_handle,
           static_cast<uint8_t*>(malloc(protocol_string_len + 1));
       memmove(protocol_string_copy, protocol_string, protocol_string_len);
       protocol_string_copy[protocol_string_len] = '\0';
-      SSL_CTX_set_alpn_select_cb(context, AlpnCallback, protocol_string_copy);
-      // TODO(whesse): If this function is called again, free the previous
-      // protocol_string_copy.  It may be better to keep this as a native
-      // field on the Dart object, since fetching it from the structure is
-      // not in the public api.
-      // Also free protocol_string_copy when the context is destroyed,
-      // in FreeSecurityContext()
+      SSL_CTX_set_alpn_select_cb(
+          context->context(), AlpnCallback, protocol_string_copy);
+      context->set_alpn_protocol_string(protocol_string_copy);
     } else {
       // The function makes a local copy of protocol_string, which it owns.
       if (ssl != NULL) {
@@ -1416,7 +1435,7 @@ static void SetAlpnProtocolList(Dart_Handle protocols_handle,
         ASSERT(context != NULL);
         ASSERT(ssl == NULL);
         status = SSL_CTX_set_alpn_protos(
-            context, protocol_string, protocol_string_len);
+            context->context(), protocol_string, protocol_string_len);
       }
       ASSERT(status == 0);  // The function returns a non-standard status.
     }

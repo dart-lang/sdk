@@ -41,7 +41,6 @@ class ScriptRefElement extends HtmlElement implements Renderable {
   @override
   void attached() {
     super.attached();
-    assert(script != null);
     _r.enable();
   }
 

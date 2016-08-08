@@ -47,7 +47,7 @@
 @ was reflected in below two parameters as 0 and 4. Now caller is
 @ expected to maintain native byte order for whole 64-bit values.
 #ifndef __KERNEL__
-# include "arm_arch.h"
+# include <openssl/arm_arch.h>
 # define VFP_ABI_PUSH	vstmdb	sp!,{d8-d15}
 # define VFP_ABI_POP	vldmia	sp!,{d8-d15}
 #else
@@ -133,6 +133,7 @@ K512:
 #endif
 
 .globl	sha512_block_data_order
+.hidden	sha512_block_data_order
 .type	sha512_block_data_order,%function
 sha512_block_data_order:
 .Lsha512_block_data_order:
@@ -147,7 +148,7 @@ sha512_block_data_order:
 #ifdef	__APPLE__
 	ldr	r12,[r12]
 #endif
-	tst	r12,#1
+	tst	r12,#ARMV7_NEON
 	bne	.LNEON
 #endif
 	add	r2,r1,r2,lsl#7	@ len to point at the end of inp
@@ -533,6 +534,7 @@ sha512_block_data_order:
 .fpu	neon
 
 .globl	sha512_block_data_order_neon
+.hidden	sha512_block_data_order_neon
 .type	sha512_block_data_order_neon,%function
 .align	4
 sha512_block_data_order_neon:

@@ -347,39 +347,4 @@ asm_RC4_set_key:
 	popl	%ebp
 	ret
 .size	asm_RC4_set_key,.-.L_asm_RC4_set_key_begin
-.globl	RC4_options
-.hidden	RC4_options
-.type	RC4_options,@function
-.align	16
-RC4_options:
-.L_RC4_options_begin:
-	call	.L018pic_point
-.L018pic_point:
-	popl	%eax
-	leal	.L019opts-.L018pic_point(%eax),%eax
-	call	.L020PIC_me_up
-.L020PIC_me_up:
-	popl	%edx
-	leal	OPENSSL_ia32cap_P-.L020PIC_me_up(%edx),%edx
-	movl	(%edx),%edx
-	btl	$20,%edx
-	jc	.L0211xchar
-	btl	$26,%edx
-	jnc	.L022ret
-	addl	$25,%eax
-	ret
-.L0211xchar:
-	addl	$12,%eax
-.L022ret:
-	ret
-.align	64
-.L019opts:
-.byte	114,99,52,40,52,120,44,105,110,116,41,0
-.byte	114,99,52,40,49,120,44,99,104,97,114,41,0
-.byte	114,99,52,40,56,120,44,109,109,120,41,0
-.byte	82,67,52,32,102,111,114,32,120,56,54,44,32,67,82,89
-.byte	80,84,79,71,65,77,83,32,98,121,32,60,97,112,112,114
-.byte	111,64,111,112,101,110,115,115,108,46,111,114,103,62,0
-.align	64
-.size	RC4_options,.-.L_RC4_options_begin
 #endif

@@ -4915,6 +4915,8 @@ class InferenceContext {
    * inference.
    */
   static void setType(AstNode node, DartType type) {
+    // TODO(jmesserly): this sets the type even when it's dynamic.
+    // Can we skip that?
     node?.setProperty(_typeProperty, type);
   }
 
@@ -6062,9 +6064,18 @@ class ResolverVisitor extends ScopedVisitor {
       // of the binary operator for other cases.
       if (operatorType == TokenType.QUESTION_QUESTION) {
         InferenceContext.setTypeFromNode(leftOperand, node);
-        InferenceContext.setTypeFromNode(rightOperand, node);
       }
       leftOperand?.accept(this);
+      if (operatorType == TokenType.QUESTION_QUESTION) {
+        // Set the right side, either from the context, or using the information
+        // from the left side if it is more precise.
+        DartType contextType = InferenceContext.getType(node);
+        DartType leftType = leftOperand?.staticType;
+        if (contextType == null || contextType.isDynamic) {
+          contextType = leftType;
+        }
+        InferenceContext.setType(rightOperand, contextType);
+      }
       rightOperand?.accept(this);
     }
     node.accept(elementResolver);

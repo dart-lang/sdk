@@ -442,6 +442,7 @@ void IsolateReloadContext::Reload(bool force_reload) {
   if (!modified_libs_->Contains(root_lib.index())) {
     ASSERT(modified_libs_->IsEmpty());
     reload_skipped_ = true;
+    ReportOnJSON(js_);
     TIR_Print("---- SKIPPING RELOAD (No libraries were modified)\n");
     return;
   }
@@ -596,14 +597,20 @@ void IsolateReloadContext::CommonFinalizeTail() {
 
 
 void IsolateReloadContext::ReportOnJSON(JSONStream* stream) {
-  // Clear the buffer.
-  stream->buffer()->Clear();
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", "ReloadReport");
-  jsobj.AddProperty("success", !HasReasonsForCancelling());
+  jsobj.AddProperty("success", reload_skipped_ || !HasReasonsForCancelling());
   {
     JSONObject details(&jsobj, "details");
-    if (HasReasonsForCancelling()) {
+    if (reload_skipped_) {
+      // Reload was skipped.
+      const GrowableObjectArray& libs =
+          GrowableObjectArray::Handle(object_store()->libraries());
+      const intptr_t final_library_count = libs.Length();
+      details.AddProperty("savedLibraryCount", final_library_count);
+      details.AddProperty("loadedLibraryCount", static_cast<intptr_t>(0));
+      details.AddProperty("finalLibraryCount", final_library_count);
+    } else if (HasReasonsForCancelling()) {
       // Reload was rejected.
       JSONArray array(&jsobj, "notices");
       for (intptr_t i = 0; i < reasons_to_cancel_reload_.length(); i++) {
@@ -1359,8 +1366,12 @@ ObjectStore* IsolateReloadContext::object_store() {
 
 
 void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
-  Code& code = Code::Handle();
-  Function& function = Function::Handle();
+  Thread* thread = Thread::Current();
+  StackZone stack_zone(thread);
+  Zone* zone = stack_zone.GetZone();
+
+  Code& code = Code::Handle(zone);
+  Function& function = Function::Handle(zone);
   DartFrameIterator iterator;
   StackFrame* frame = iterator.NextFrame();
   while (frame != NULL) {
@@ -1372,9 +1383,9 @@ void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
       function = code.function();
       code = function.unoptimized_code();
       ASSERT(!code.IsNull());
-      code.ResetICDatas();
+      code.ResetICDatas(zone);
     } else {
-      code.ResetICDatas();
+      code.ResetICDatas(zone);
     }
     frame = iterator.NextFrame();
   }
@@ -1393,13 +1404,15 @@ void IsolateReloadContext::ResetMegamorphicCaches() {
 class MarkFunctionsForRecompilation : public ObjectVisitor {
  public:
   MarkFunctionsForRecompilation(Isolate* isolate,
-                                IsolateReloadContext* reload_context)
+                                IsolateReloadContext* reload_context,
+                                Zone* zone)
     : ObjectVisitor(),
-      handle_(Object::Handle()),
-      owning_class_(Class::Handle()),
-      owning_lib_(Library::Handle()),
-      code_(Code::Handle()),
-      reload_context_(reload_context) {
+      handle_(Object::Handle(zone)),
+      owning_class_(Class::Handle(zone)),
+      owning_lib_(Library::Handle(zone)),
+      code_(Code::Handle(zone)),
+      reload_context_(reload_context),
+      zone_(zone) {
   }
 
   virtual void VisitObject(RawObject* obj) {
@@ -1453,7 +1466,7 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
     ASSERT(!code_.IsNull());
     // We are preserving the unoptimized code, fill all ICData arrays with
     // the sentinel values so that we have no stale type feedback.
-    code_.ResetICDatas();
+    code_.ResetICDatas(zone_);
   }
 
   bool IsFromDirtyLibrary(const Function& func) {
@@ -1467,15 +1480,19 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
   Library& owning_lib_;
   Code& code_;
   IsolateReloadContext* reload_context_;
+  Zone* zone_;
 };
 
 
 void IsolateReloadContext::MarkAllFunctionsForRecompilation() {
   TIMELINE_SCOPE(MarkAllFunctionsForRecompilation);
   TIR_Print("---- MARKING ALL FUNCTIONS FOR RECOMPILATION\n");
+  Thread* thread = Thread::Current();
+  StackZone stack_zone(thread);
+  Zone* zone = stack_zone.GetZone();
   NoSafepointScope no_safepoint;
   HeapIterationScope heap_iteration_scope;
-  MarkFunctionsForRecompilation visitor(isolate_, this);
+  MarkFunctionsForRecompilation visitor(isolate_, this, zone);
   isolate_->heap()->VisitObjects(&visitor);
 }
 

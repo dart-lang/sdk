@@ -53,12 +53,6 @@ generic_methods_new_test: CompiletimeError # Issue 25869
 generic_methods_function_type_test: CompiletimeError # Issue 25869
 generic_methods_type_expression_test: CompiletimeError # Issue 25869
 
-# Experimental feature: Use initializing formals in initializers and constructor body.
-initializing_formal_access_test: CompiletimeError # Issue 26656
-initializing_formal_capture_test: CompiletimeError # Issue 26656
-initializing_formal_final_test: CompiletimeError # Issue 26656
-initializing_formal_type_test: CompiletimeError # Issue 26656
-
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
 
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
@@ -99,6 +93,12 @@ main_test/42: Fail # Issue 20028
 mirror_in_static_init_test: Fail # Issue 22071
 vm/debug_break_enabled_vm_test/*: Skip # Issue 14651.
 
+# These tests need the flag --initializing-formal-access to pass:
+initializing_formal_access_test: Skip
+initializing_formal_capture_test: Skip
+initializing_formal_final_test: Skip
+initializing_formal_type_test: Skip
+
 # Experimental feature: Syntactic support for generic methods.
 generic_methods_test: RuntimeError # Issue 25869
 generic_functions_test: RuntimeError # Issue 25869
@@ -107,12 +107,6 @@ generic_sends_test: RuntimeError # Issue 25869
 generic_methods_new_test: RuntimeError # Issue 25869
 generic_methods_function_type_test: RuntimeError # Issue 25869
 generic_methods_type_expression_test: RuntimeError # Issue 25869
-
-# Experimental feature: Use initializing formals in initializers and constructor body.
-initializing_formal_access_test: RuntimeError # Issue 26656
-initializing_formal_capture_test: RuntimeError # Issue 26656
-initializing_formal_final_test: RuntimeError # Issue 26656
-initializing_formal_type_test: RuntimeError # Issue 26656
 
 config_import_test: Skip  # Issue 26250
 

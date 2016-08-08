@@ -21,9 +21,11 @@ class NavLibraryMenuElement extends HtmlElement implements Renderable {
   bool _last;
   M.IsolateRef _isolate;
   M.LibraryRef _library;
+
   bool get last => _last;
   M.IsolateRef get isolate => _isolate;
   M.LibraryRef get library => _library;
+  
   set last(bool value) => _last = _r.checkAndReact(_last, value);
 
   factory NavLibraryMenuElement(M.IsolateRef isolate, M.LibraryRef library,
@@ -42,11 +44,15 @@ class NavLibraryMenuElement extends HtmlElement implements Renderable {
   NavLibraryMenuElement.created() : super.created() { createShadowRoot(); }
 
   @override
-  void attached() { super.attached(); _r.enable(); }
+  void attached() {
+    super.attached();
+    _r.enable();
+  }
 
   @override
   void detached() {
-    super.detached(); _r.disable(notify: true);
+    super.detached();
+    _r.disable(notify: true);
     shadowRoot.children = [];
   }
 

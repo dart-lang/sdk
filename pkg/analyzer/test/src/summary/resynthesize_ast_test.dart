@@ -567,6 +567,12 @@ var b = a.m();
 
   @override
   @failingTest
+  void test_inferLocalFunctionReturnType() {
+    super.test_inferLocalFunctionReturnType();
+  }
+
+  @override
+  @failingTest
   void test_inferredType_opAssignToProperty_prefixedIdentifier() {
     super.test_inferredType_opAssignToProperty_prefixedIdentifier();
   }
@@ -596,6 +602,12 @@ class C {
 var v = new C().m(1, b: 'bbb', c: 2.0);
   ''');
     expect(unit.topLevelVariables[0].type.toString(), 'int');
+  }
+
+  @override
+  @failingTest
+  void test_nullCoalescingOperator() {
+    super.test_nullCoalescingOperator();
   }
 
   @override

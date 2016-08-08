@@ -10,66 +10,64 @@ main() {
 
   group('instantiation', () {
     test('default', () {
-      final CurlyBlockElement e = new CurlyBlockElement();
+      final e = new CurlyBlockElement();
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.expanded, isFalse);
       expect(e.disabled, isFalse);
     });
     test('not expanded', () {
-      final CurlyBlockElement e = new CurlyBlockElement(expanded: false);
+      final e = new CurlyBlockElement(expanded: false);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.expanded, isFalse);
       expect(e.disabled, isFalse);
     });
     test('not expanded / not disabled', () {
-      final CurlyBlockElement e = new CurlyBlockElement(expanded: false,
+      final e = new CurlyBlockElement(expanded: false,
                                                         disabled: false);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.expanded, isFalse);
       expect(e.disabled, isFalse);
     });
     test('not expanded / disabled', () {
-      final CurlyBlockElement e = new CurlyBlockElement(expanded: false,
+      final e = new CurlyBlockElement(expanded: false,
                                                         disabled: true);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.expanded, isFalse);
       expect(e.disabled, isTrue);
     });
     test('expanded', () {
-      final CurlyBlockElement e = new CurlyBlockElement(expanded: true);
+      final e = new CurlyBlockElement(expanded: true);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.expanded, isTrue);
       expect(e.disabled, isFalse);
     });
     test('expanded / not disabled', () {
-      final CurlyBlockElement e = new CurlyBlockElement(expanded: true,
-                                                        disabled: false);
+      final e = new CurlyBlockElement(expanded: true, disabled: false);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.expanded, isTrue);
       expect(e.disabled, isFalse);
     });
     test('expanded / disabled', () {
-      final CurlyBlockElement e = new CurlyBlockElement(expanded: true,
-                                                        disabled: true);
+      final e = new CurlyBlockElement(expanded: true, disabled: true);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.expanded, isTrue);
       expect(e.disabled, isTrue);
     });
     test('not disabled', () {
-      final CurlyBlockElement e = new CurlyBlockElement(disabled: false);
+      final e = new CurlyBlockElement(disabled: false);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.expanded, isFalse);
       expect(e.disabled, isFalse);
     });
     test('disabled', () {
-      final CurlyBlockElement e = new CurlyBlockElement(disabled: true);
+      final e = new CurlyBlockElement(disabled: true);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.expanded, isFalse);
       expect(e.disabled, isTrue);
     });
   });
   test('elements created', () async {
-    final CurlyBlockElement e = new CurlyBlockElement();
+    final e = new CurlyBlockElement();
     expect(e.shadowRoot, isNotNull, reason: 'shadowRoot is created');
     document.body.append(e);
     await e.onRendered.first;

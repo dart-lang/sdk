@@ -245,12 +245,6 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
   /// Whether to preserve comments while scanning (only use for dart:mirrors).
   final bool preserveComments;
 
-  /// Whether to emit JavaScript (false enables dart2dart).
-  final bool emitJavaScript;
-
-  /// When using dart2dart, whether to use the multi file format.
-  final bool dart2dartMultiFile;
-
   /// Strip option used by dart2dart.
   final List<String> strips;
 
@@ -280,7 +274,6 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
         analyzeSignaturesOnly: _hasOption(options, Flags.analyzeSignaturesOnly),
         buildId: _extractStringOption(
             options, '--build-id=', _UNDETERMINED_BUILD_ID),
-        dart2dartMultiFile: _hasOption(options, '--output-type=dart-multi'),
         deferredMapUri: _extractUriOption(options, '--deferred-map='),
         fatalWarnings: _hasOption(options, Flags.fatalWarnings),
         terseDiagnostics: _hasOption(options, Flags.terse),
@@ -291,8 +284,6 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
         disableInlining: _hasOption(options, Flags.disableInlining),
         disableTypeInference: _hasOption(options, Flags.disableTypeInference),
         dumpInfo: _hasOption(options, Flags.dumpInfo),
-        emitJavaScript: !(_hasOption(options, '--output-type=dart') ||
-            _hasOption(options, '--output-type=dart-multi')),
         enableAssertMessage: _hasOption(options, Flags.enableAssertMessage),
         enableGenericMethodSyntax:
             _hasOption(options, Flags.genericMethodSyntax),
@@ -354,7 +345,6 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       bool analyzeOnly: false,
       bool analyzeSignaturesOnly: false,
       String buildId: _UNDETERMINED_BUILD_ID,
-      bool dart2dartMultiFile: false,
       Uri deferredMapUri: null,
       bool fatalWarnings: false,
       bool terseDiagnostics: false,
@@ -364,7 +354,6 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       bool disableInlining: false,
       bool disableTypeInference: false,
       bool dumpInfo: false,
-      bool emitJavaScript: true,
       bool enableAssertMessage: false,
       bool enableGenericMethodSyntax: false,
       bool enableInitializingFormalAccess: false,
@@ -428,7 +417,6 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
             analyzeOnly || analyzeSignaturesOnly || analyzeAll || resolveOnly,
         analyzeSignaturesOnly: analyzeSignaturesOnly,
         buildId: buildId,
-        dart2dartMultiFile: dart2dartMultiFile,
         deferredMapUri: deferredMapUri,
         fatalWarnings: fatalWarnings,
         terseDiagnostics: terseDiagnostics,
@@ -436,9 +424,8 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
         suppressHints: suppressHints,
         shownPackageWarnings: shownPackageWarnings,
         disableInlining: disableInlining || hasIncrementalSupport,
-        disableTypeInference: disableTypeInference || !emitJavaScript,
+        disableTypeInference: disableTypeInference,
         dumpInfo: dumpInfo,
-        emitJavaScript: emitJavaScript,
         enableAssertMessage: enableAssertMessage,
         enableGenericMethodSyntax: enableGenericMethodSyntax,
         enableInitializingFormalAccess: enableInitializingFormalAccess,
@@ -452,8 +439,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
         hasIncrementalSupport: hasIncrementalSupport,
         outputUri: outputUri,
         platformConfigUri: platformConfigUri ??
-            _resolvePlatformConfig(
-                libraryRoot, null, !emitJavaScript, const []),
+            _resolvePlatformConfig(libraryRoot, null, const []),
         preserveComments: preserveComments,
         preserveUris: preserveUris,
         resolutionInputs: resolutionInputs,
@@ -482,7 +468,6 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       this.analyzeOnly: false,
       this.analyzeSignaturesOnly: false,
       this.buildId: _UNDETERMINED_BUILD_ID,
-      this.dart2dartMultiFile: false,
       this.deferredMapUri: null,
       this.fatalWarnings: false,
       this.terseDiagnostics: false,
@@ -492,7 +477,6 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       this.disableInlining: false,
       this.disableTypeInference: false,
       this.dumpInfo: false,
-      this.emitJavaScript: true,
       this.enableAssertMessage: false,
       this.enableGenericMethodSyntax: false,
       this.enableInitializingFormalAccess: false,
@@ -541,7 +525,6 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       analyzeOnly,
       analyzeSignaturesOnly,
       buildId,
-      dart2dartMultiFile,
       deferredMapUri,
       fatalWarnings,
       terseDiagnostics,
@@ -551,7 +534,6 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       disableInlining,
       disableTypeInference,
       dumpInfo,
-      emitJavaScript,
       enableAssertMessage,
       enableGenericMethodSyntax,
       enableInitializingFormalAccess,
@@ -599,7 +581,6 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
         analyzeSignaturesOnly:
             analyzeSignaturesOnly ?? options.analyzeSignaturesOnly,
         buildId: buildId ?? options.buildId,
-        dart2dartMultiFile: dart2dartMultiFile ?? options.dart2dartMultiFile,
         deferredMapUri: deferredMapUri ?? options.deferredMapUri,
         fatalWarnings: fatalWarnings ?? options.fatalWarnings,
         terseDiagnostics: terseDiagnostics ?? options.terseDiagnostics,
@@ -611,7 +592,6 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
         disableTypeInference:
             disableTypeInference ?? options.disableTypeInference,
         dumpInfo: dumpInfo ?? options.dumpInfo,
-        emitJavaScript: emitJavaScript ?? options.emitJavaScript,
         enableAssertMessage: enableAssertMessage ?? options.enableAssertMessage,
         enableGenericMethodSyntax:
             enableGenericMethodSyntax ?? options.enableGenericMethodSyntax,
@@ -722,11 +702,9 @@ List<String> _extractOptionalCsvOption(List<String> options, String flag) {
 }
 
 Uri _resolvePlatformConfig(Uri libraryRoot, String platformConfigPath,
-    bool isDart2Dart, Iterable<String> categories) {
+    Iterable<String> categories) {
   if (platformConfigPath != null) {
     return libraryRoot.resolve(platformConfigPath);
-  } else if (isDart2Dart) {
-    return libraryRoot.resolve(_dart2dartPlatform);
   } else {
     if (categories.length == 0) {
       return libraryRoot.resolve(_clientPlatform);
@@ -747,7 +725,6 @@ Uri _resolvePlatformConfigFromOptions(Uri libraryRoot, List<String> options) {
   return _resolvePlatformConfig(
       libraryRoot,
       _extractStringOption(options, "--platform-config=", null),
-      _hasOption(options, '--output-type=dart'),
       _extractCsvOption(options, '--categories='));
 }
 
@@ -755,7 +732,6 @@ Uri _resolvePlatformConfigFromOptions(Uri libraryRoot, List<String> options) {
 const String _clientPlatform = "lib/dart_client.platform";
 const String _serverPlatform = "lib/dart_server.platform";
 const String _sharedPlatform = "lib/dart_shared.platform";
-const String _dart2dartPlatform = "lib/dart2dart.platform";
 
 const String _UNDETERMINED_BUILD_ID = "build number could not be determined";
 const bool _forceIncrementalSupport =

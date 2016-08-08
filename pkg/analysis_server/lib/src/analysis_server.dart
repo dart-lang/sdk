@@ -29,9 +29,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
-import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
+import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -1661,7 +1662,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     EmbedderYamlLocator locator =
         disposition.getEmbedderLocator(resourceProvider);
     Map<Folder, YamlMap> embedderYamls = locator.embedderYamls;
-    EmbedderSdk embedderSdk = new EmbedderSdk(embedderYamls);
+    EmbedderSdk embedderSdk = new EmbedderSdk(resourceProvider, embedderYamls);
     if (embedderSdk.libraryMap.size() == 0) {
       // There was no embedder file, or the file was empty, so used the default
       // SDK.

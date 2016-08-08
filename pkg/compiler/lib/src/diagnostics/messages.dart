@@ -3626,15 +3626,18 @@ part of test.main;
       MessageKind.EXTERNAL_WITH_BODY: const MessageTemplate(
           MessageKind.EXTERNAL_WITH_BODY,
           "External function '#{functionName}' cannot have a function body.",
-          options: const ["--output-type=dart"],
           howToFix:
               "Try removing the 'external' modifier or the function body.",
           examples: const [
             """
+import 'package:js/js.dart';
+@JS()
 external foo() => 0;
 main() => foo();
 """,
             """
+import 'package:js/js.dart';
+@JS()
 external foo() {}
 main() => foo();
 """

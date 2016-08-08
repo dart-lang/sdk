@@ -21,17 +21,22 @@ class NavMenuElementWrapper extends HtmlElement {
   String _anchor = '---';
   String _link;
   bool _last = false;
+
   String get anchor => _anchor;
   String get link => _link;
   bool get last => _last;
+  
   set anchor(String value) {
-    _anchor = value; render();
+    _anchor = value;
+    render();
   }
   set link(String value) {
-    _link = value; render();
+    _link = value;
+    render();
   }
   set last(bool value) {
-    _last = value; render();
+    _last = value;
+    render();
   }
 
   NavMenuElementWrapper.created() : super.created() {
@@ -51,7 +56,9 @@ class NavMenuElementWrapper extends HtmlElement {
 
   void render() {
     shadowRoot.children = [];
-    if (_anchor == null || _last == null) return;
+    if (_anchor == null || _last == null) {
+      return;
+    }
 
     shadowRoot.children = [
       new NavMenuElement(_anchor, link: '#$_link', last: last,

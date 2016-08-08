@@ -20,13 +20,17 @@ class NavRefreshElementWrapper extends HtmlElement {
 
   Function _callback;
   String _label;
+  
   Function get callback => _callback;
   String get label => _label;
+
   set callback(Function value) {
-    _callback = value; render();
+    _callback = value;
+    render();
   }
   set label(String value) {
-    _label = value; render();
+    _label = value;
+    render();
   }
 
   NavRefreshElementWrapper.created() : super.created() {
@@ -44,7 +48,9 @@ class NavRefreshElementWrapper extends HtmlElement {
 
   void render() {
     shadowRoot.children = [];
-    if (_callback == null || _label == null) return;
+    if (_callback == null || _label == null) {
+      return;
+    }
 
     shadowRoot.children = [
       new StyleElement()

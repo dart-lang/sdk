@@ -9,11 +9,11 @@ main() {
   NavBarElement.tag.ensureRegistration();
 
   test('instantiation', () {
-    final NavBarElement e = new NavBarElement();
+    final e = new NavBarElement();
     expect(e, isNotNull, reason: 'element correctly created');
   });
   test('elements created', () async {
-    final NavBarElement e = new NavBarElement();
+    final e = new NavBarElement();
     document.body.append(e);
     await e.onRendered.first;
     expect(e.shadowRoot.children.length, isNonZero, reason: 'has elements');

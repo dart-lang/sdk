@@ -1,5 +1,66 @@
 ## 1.19.0
 
+### Core library changes
+
+* `dart:io`
+  * `Socket.connect` with source-address argument is now non-blocking
+    on Mac. Was already non-blocking on all other platforms.
+  * Report a better error when a bind fails because of a bad source address.
+
+### Strong Mode
+
+*   New feature - an option to disable implicit casts
+    (SDK issue [26583](https://github.com/dart-lang/sdk/issues/26583)),
+    see the [documentation](https://github.com/dart-lang/dev_compiler/blob/master/doc/STATIC_SAFETY.md#disable-implicit-casts)
+    for usage instructions and examples.
+
+*   New feature - an option to disable implicit dynamic
+    (SDK issue [25573](https://github.com/dart-lang/sdk/issues/25573)),
+    see the [documentation](https://github.com/dart-lang/dev_compiler/blob/master/doc/STATIC_SAFETY.md#disable-implicit-dynamic)
+    for usage instructions and examples.
+
+*   Breaking change - infer generic type arguments from the
+    constructor invocation arguments
+    (SDK issue [25220](https://github.com/dart-lang/sdk/issues/25220))
+
+    ```dart
+    var map = new Map<String, String>();
+
+    // infer: Map<String, String>
+    var otherMap = new Map.from(map);
+    ```
+
+*   Breaking change - infer local function return type
+    (SDK issue [26414](https://github.com/dart-lang/sdk/issues/26414))
+
+    ```dart
+    void main() {
+      // infer: return type is int
+      f() { return 40; }
+      int y = f() + 2; // type checks
+      print(y);
+    }
+    ```
+
+*   Breaking change - allow type promotion from a generic type parameter
+    (SDK issue [26414](https://github.com/dart-lang/sdk/issues/26965))
+
+    ```dart
+    void fn/*<T>*/(/*=T*/ object) {
+      if (object is String) {
+        // Treat `object` as `String` inside this block.
+        // But it will require a cast to pass it to something that expects `T`.
+        print(object.substring(1));
+      }
+    }
+    ```
+
+### Dart VM
+
+*   The dependency on BoringSSL has been rolled forward. Going forward, builds
+    of the Dart VM including secure sockets will require a compiler with C11
+    support, and to link against glib 2.16 or newer.
+
 ### Tool Changes
 
 * `dartfmt` - upgraded to v0.2.9
@@ -38,6 +99,9 @@
 
   * Eliminate some false negatives when determining whether global executables
     are on the user's executable path.
+
+* dart2dart (aka `dart2js --output-type=dart`) has been removed (this was
+  deprecated in Dart 1.11)
 
 [Flutter]: https://flutter.io/
 

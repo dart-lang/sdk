@@ -17,12 +17,13 @@ class Flag implements M.Flag {
 }
 
 class FlagsRepository implements M.FlagsRepository {
-  Future<Iterable<Flag>> list(M.VM vm) async{
-    if (vm is S.VM) {
-      List<Map> flags = ((await vm.getFlagList()) as S.ServiceMap)['flags'];
-      return flags.map(_toFlag);
-    }
-    return const [];
+  final S.VM vm;
+
+  FlagsRepository(this.vm);
+
+  Future<Iterable<Flag>> list() async{
+    List<Map> flags = ((await vm.getFlagList()) as S.ServiceMap)['flags'];
+    return flags.map(_toFlag);
   }
 
   static _toFlag(Map map){

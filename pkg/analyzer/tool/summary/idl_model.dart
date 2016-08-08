@@ -123,6 +123,9 @@ class FieldType {
   final bool isList;
 
   FieldType(this.typeName, this.isList);
+
+  @override
+  String toString() => isList ? 'List<$typeName>' : typeName;
 }
 
 /**

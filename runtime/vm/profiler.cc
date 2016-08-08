@@ -949,7 +949,9 @@ static uintptr_t __attribute__((noinline)) GetProgramCounter() {
 
 void Profiler::DumpStackTrace(bool native_stack_trace) {
   Thread* thread = Thread::Current();
-  ASSERT(thread != NULL);
+  if (thread == NULL) {
+    return;
+  }
   OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != NULL);
   Isolate* isolate = thread->isolate();

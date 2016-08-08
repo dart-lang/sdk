@@ -7,6 +7,7 @@ library test.src.serialization.test_all;
 import 'package:unittest/unittest.dart';
 
 import '../../utils.dart';
+import 'api_signature_test.dart' as api_signature_test;
 import 'flat_buffers_test.dart' as flat_buffers_test;
 import 'in_summary_source_test.dart' as in_summary_source_test;
 import 'incremental_cache_test.dart' as incremental_cache_test;
@@ -27,6 +28,7 @@ import 'summarize_elements_test.dart' as summarize_elements_test;
 main() {
   initializeTestEnvironment();
   group('summary tests', () {
+    api_signature_test.main();
     flat_buffers_test.main();
     in_summary_source_test.main();
     incremental_cache_test.main();

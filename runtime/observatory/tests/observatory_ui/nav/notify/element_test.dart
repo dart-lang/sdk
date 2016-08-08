@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:html' hide Notification, NotificationEvent;
 import 'package:unittest/unittest.dart';
-import 'package:observatory/mocks.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/notify_event.dart';
 import 'package:observatory/src/elements/nav/notify_exception.dart';
+import '../../mocks.dart';
 
 main() {
   NavNotifyElement.tag.ensureRegistration();
@@ -19,29 +19,29 @@ main() {
   const isolate = const IsolateRefMock(id: 'i-id', name: 'i-name');
 
   group('instantiation', () {
+    NotificationRepositoryMock repository;
+    setUp(() {
+      repository = new NotificationRepositoryMock();
+    });
     test('default', () {
-      final NavNotifyElement e = new NavNotifyElement(
-          new NotificationRepositoryMock());
+      final e = new NavNotifyElement(repository);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.notifyOnPause, isTrue, reason: 'notifyOnPause is default');
     });
     test('notify on pause', () {
-      final NavNotifyElement e = new NavNotifyElement(
-          new NotificationRepositoryMock(), notifyOnPause: true);
+      final e = new NavNotifyElement(repository, notifyOnPause: true);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.notifyOnPause, isTrue, reason: 'notifyOnPause is the same');
     });
     test('do not notify on pause', () {
-      final NavNotifyElement e = new NavNotifyElement(
-          new NotificationRepositoryMock(), notifyOnPause: false);
+      final e = new NavNotifyElement(repository, notifyOnPause: false);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.notifyOnPause, isFalse, reason: 'notifyOnPause is the same');
     });
   });
   test('is correctly listening', () async {
-    final NotificationRepositoryMock repository =
-        new NotificationRepositoryMock();
-    final NavNotifyElement e = new NavNotifyElement(repository);
+    final repository = new NotificationRepositoryMock();
+    final e = new NavNotifyElement(repository);
     document.body.append(e);
     await e.onRendered.first;
     expect(repository.hasListeners, isTrue, reason: 'is listening');
@@ -51,13 +51,13 @@ main() {
   });
   group('elements', () {
     test('created after attachment', () async {
-      final NotificationRepositoryMock repository =
+      final repository =
           new NotificationRepositoryMock(list: [
             new ExceptionNotificationMock(exception: new Exception("ex")),
             const EventNotificationMock(event: const VMUpdateEventMock(vm: vm)),
             const EventNotificationMock(event: const VMUpdateEventMock(vm: vm))
           ]);
-      final NavNotifyElement e = new NavNotifyElement(repository);
+      final e = new NavNotifyElement(repository);
       document.body.append(e);
       await e.onRendered.first;
       expect(repository.listInvoked, isTrue, reason: 'should invoke list()');
@@ -76,8 +76,7 @@ main() {
             const EventNotificationMock(
                 event: const PauseStartEventMock(isolate: isolate))
           ]);
-      final NavNotifyElement e = new NavNotifyElement(repository,
-          notifyOnPause: true);
+      final e = new NavNotifyElement(repository, notifyOnPause: true);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.querySelectorAll(evTag).length, equals(2));
@@ -99,10 +98,8 @@ main() {
         new ExceptionNotificationMock(exception: new Exception("ex")),
         const EventNotificationMock(event: const VMUpdateEventMock()),
       ];
-      final NotificationRepositoryMock repository =
-          new NotificationRepositoryMock(list: list);
-      final NavNotifyElement e = new NavNotifyElement(repository,
-          notifyOnPause: true);
+      final repository = new NotificationRepositoryMock(list: list);
+      final e = new NavNotifyElement(repository, notifyOnPause: true);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.querySelectorAll(evTag).length, equals(1));

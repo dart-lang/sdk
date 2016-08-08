@@ -2,38 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:html';
-import 'dart:async';
 import 'package:unittest/unittest.dart';
-import 'package:observatory/models.dart';
-import 'package:observatory/mocks.dart';
 import 'package:observatory/src/elements/isolate_ref.dart';
+import '../mocks.dart';
 
 main(){
   IsolateRefElement.tag.ensureRegistration();
 
-  StreamController<IsolateUpdateEvent> updatesController;
-  final IsolateRefMock ref = new IsolateRefMock(id: 'id', name: 'old-name');
-  final IsolateMock obj = new IsolateMock(id: 'id', name: 'new-name');
-  setUp(() {
-    updatesController = new StreamController<IsolateUpdateEvent>();
-  });
+  final ref = new IsolateRefMock(id: 'id', name: 'old-name');
+  final events = new EventRepositoryMock();
+  final obj = new IsolateMock(id: 'id', name: 'new-name');
   group('instantiation', () {
     test('IsolateRef', () {
-      final IsolateRefElement e = new IsolateRefElement(ref,
-                                      updatesController.stream);
+      final e = new IsolateRefElement(ref, events);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.isolate, equals(ref));
     });
     test('Isolate', () {
-      final IsolateRefElement e = new IsolateRefElement(obj,
-                                      updatesController.stream);
+      final e = new IsolateRefElement(obj, events);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.isolate, equals(obj));
     });
   });
   test('elements created after attachment', () async {
-    final IsolateRefElement e = new IsolateRefElement(ref,
-                                    updatesController.stream);
+    final e = new IsolateRefElement(ref, events);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');
@@ -43,23 +35,21 @@ main(){
   });
   group('updates', () {
     test('are correctly listen', () async {
-      final IsolateRefElement e = new IsolateRefElement(ref,
-                                      updatesController.stream);
-      expect(updatesController.hasListener, isFalse);
+      final e = new IsolateRefElement(ref, events);
+      expect(events.onIsolateUpdateHasListener, isFalse);
       document.body.append(e);
       await e.onRendered.first;
-      expect(updatesController.hasListener, isTrue);
+      expect(events.onIsolateUpdateHasListener, isTrue);
       e.remove();
       await e.onRendered.first;
-      expect(updatesController.hasListener, isFalse);
+      expect(events.onIsolateUpdateHasListener, isFalse);
     });
     test('have effects', () async {
-      final IsolateRefElement e = new IsolateRefElement(ref,
-                                      updatesController.stream);
+      final e = new IsolateRefElement(ref, events);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.innerHtml.contains(ref.id), isTrue);
-      updatesController.add(new IsolateUpdateEventMock(isolate: obj));
+      events.add(new IsolateUpdateEventMock(isolate: obj));
       await e.onRendered.first;
       expect(e.innerHtml.contains(ref.name), isFalse);
       expect(e.innerHtml.contains(obj.name), isTrue);

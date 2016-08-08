@@ -2,24 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:html';
-import 'dart:async';
 import 'package:unittest/unittest.dart';
-import 'package:observatory/mocks.dart';
 import 'package:observatory/src/elements/flag_list.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
+import '../mocks.dart';
 
 main() {
   FlagListElement.tag.ensureRegistration();
 
   final nTag = NavNotifyElement.tag.name;
-  const vm = const VMMock(name: 'vm');
-  final stream = new StreamController().stream;
+  const vm = const VMMock();
+  final events = new EventRepositoryMock();
+  final notifications = new NotificationRepositoryMock();
 
   group('instantiation', () {
     test('default', () {
-      final FlagListElement e = new FlagListElement(vm, stream,
-          new FlagsRepositoryMock(),
-          new NotificationRepositoryMock());
+      final e = new FlagListElement(vm, events,
+                                    new FlagsRepositoryMock(),
+                                    notifications);
       expect(e, isNotNull, reason: 'element correctly created');
     });
   });
@@ -32,15 +32,13 @@ main() {
         const FlagMock(name: 'f2', comment: 'c2', modified: false),
         const FlagMock(name: 'f3', comment: 'c3', modified: false),
       ];
-      final flags = new List.unmodifiable([]..addAll(modified)
-                                            ..addAll(unmodifed));
-      final FlagListElement e = new FlagListElement(vm, stream,
-          new FlagsRepositoryMock(list: expectAsync((input) async {
-            expect(input, equals(vm));
-            return flags;
-          }, count: 1)), new NotificationRepositoryMock());
+      final flags = []..addAll(modified)..addAll(unmodifed);
+      final repository = new FlagsRepositoryMock(list: flags);
+      final e = new FlagListElement(vm, events, repository, notifications);
       document.body.append(e);
+      expect(repository.isListInvoked, isFalse);
       await e.onRendered.first;
+      expect(repository.isListInvoked, isTrue);
       expect(e.children.length, isNonZero, reason: 'has elements');
       expect(e.querySelectorAll(nTag).length, equals(1));
       expect(e.querySelectorAll('.flag').length, equals(flags.length));

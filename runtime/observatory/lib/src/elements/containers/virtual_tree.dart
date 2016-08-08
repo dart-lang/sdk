@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:html';
+import 'dart:math' as Math;
 import 'package:observatory/src/elements/containers/virtual_collection.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
@@ -12,6 +13,16 @@ typedef HtmlElement VirtualTreeCreateCallback(
     toggle({bool autoToggleSingleChildNodes, bool autoToggleWholeTree}));
 typedef void VirtualTreeUpdateCallback(HtmlElement el, dynamic item, int depth);
 typedef Iterable<dynamic> VritualTreeGetChildrenCallback(dynamic value);
+
+void virtualTreeUpdateLines(SpanElement element, int n) {
+  n = Math.max(0, n);
+  while (element.children.length > n) {
+    element.children.removeLast();
+  }
+  while (element.children.length < n) {
+    element.children.add(new SpanElement());
+  }
+}
 
 class VirtualTreeElement extends HtmlElement implements Renderable {
   static const tag =

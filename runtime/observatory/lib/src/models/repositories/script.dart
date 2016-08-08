@@ -4,4 +4,6 @@
 
 part of models;
 
-abstract class ScriptRepository extends Repository<Script, String> {}
+abstract class ScriptRepository {
+  Future<Script> get(String id);
+}

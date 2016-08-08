@@ -20,13 +20,17 @@ class NavNotifyElementWrapper extends HtmlElement {
 
   NotificationRepository _notifications;
   bool _notifyOnPause = true;
+
   NotificationRepository get notifications => _notifications;
   bool get notifyOnPause => _notifyOnPause;
+  
   set notifications(NotificationRepository value) {
-    _notifications = value; render();
+    _notifications = value;
+    render();
   }
   set notifyOnPause(bool value) {
-    _notifyOnPause = value; render();
+    _notifyOnPause = value;
+    render();
   }
 
   NavNotifyElementWrapper.created() : super.created() {
@@ -43,7 +47,9 @@ class NavNotifyElementWrapper extends HtmlElement {
 
   void render() {
     shadowRoot.children = [];
-    if (_notifications == null) return;
+    if (_notifications == null) {
+      return;
+    }
 
     shadowRoot.children = [
       new StyleElement()

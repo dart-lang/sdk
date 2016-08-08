@@ -20,7 +20,9 @@ class NavTopMenuElement extends HtmlElement implements Renderable {
   Stream<RenderedEvent<NavTopMenuElement>> get onRendered => _r.onRendered;
 
   bool _last;
+  
   bool get last => _last;
+
   set last(bool value) => _last = _r.checkAndReact(_last, value);
 
   factory NavTopMenuElement({bool last: false, RenderingQueue queue}) {

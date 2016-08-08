@@ -2612,6 +2612,20 @@ class C {
 ''');
   }
 
+  void test_leastUpperBounds_fuzzyArrows() {
+    checkFile(r'''
+typedef String TakesA<T>(T item);
+
+void main() {
+  TakesA<int> f;
+  TakesA<dynamic> g;
+  TakesA<String> h;
+  g = h;
+  f = /*warning:DOWN_CAST_COMPOSITE*/f ?? g;
+}
+''');
+  }
+
   void test_loadLibrary() {
     addFile('''library lib1;''', name: '/lib1.dart');
     checkFile(r'''
@@ -3322,7 +3336,9 @@ class SplayTreeMap<K, V> {
                 bool isValidKey(potentialKey)])
     : _comparator = /*warning:DOWN_CAST_COMPOSITE*/(compare == null) ? Comparable.compare : compare,
       _validKey = (isValidKey != null) ? isValidKey : ((v) => true) {
-    _Predicate<Object> v = (isValidKey != null)
+
+    // NOTE: this is a down cast because isValidKey has fuzzy arrow type.
+    _Predicate<Object> v = /*warning:DOWN_CAST_COMPOSITE*/(isValidKey != null)
         ? isValidKey : (/*info:INFERRED_TYPE_CLOSURE*/(_) => true);
 
     v = (isValidKey != null)
@@ -3401,6 +3417,29 @@ g() {
   if (x is int) {
     int y = x;
     String z = /*error:INVALID_ASSIGNMENT*/x;
+  }
+}
+''');
+  }
+
+  void test_typePromotionFromTypeParameter() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26965
+    checkFile(r'''
+void f/*<T>*/(/*=T*/ object) {
+  if (object is String) print(object.substring(1));
+}
+void g/*<T extends num>*/(/*=T*/ object) {
+  if (object is int) print(object.isEven);
+  if (object is String) print(/*info:DYNAMIC_INVOKE*/object.substring(1));
+}
+class Clonable<T> {}
+class SubClonable<T> extends Clonable<T> {
+  T m(T t) => t;
+}
+void h/*<T extends Clonable<T>>*/(/*=T*/ object) {
+  if (/*info:NON_GROUND_TYPE_CHECK_INFO*/object is SubClonable/*<T>*/) {
+    // Note we need to cast back to T, because promotion lost that type info.
+    print(object.m(object as dynamic/*=T*/));
   }
 }
 ''');

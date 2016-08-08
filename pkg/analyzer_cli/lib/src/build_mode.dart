@@ -10,7 +10,6 @@ import 'dart:io' as io;
 import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -39,23 +38,26 @@ class AnalyzerWorkerLoop extends SyncWorkerLoop {
   final StringBuffer errorBuffer = new StringBuffer();
   final StringBuffer outBuffer = new StringBuffer();
 
+  final ResourceProvider resourceProvider;
   final String dartSdkPath;
 
-  AnalyzerWorkerLoop(SyncWorkerConnection connection, {this.dartSdkPath})
+  AnalyzerWorkerLoop(this.resourceProvider, SyncWorkerConnection connection,
+      {this.dartSdkPath})
       : super(connection: connection);
 
-  factory AnalyzerWorkerLoop.std(
+  factory AnalyzerWorkerLoop.std(ResourceProvider resourceProvider,
       {io.Stdin stdinStream, io.Stdout stdoutStream, String dartSdkPath}) {
     SyncWorkerConnection connection = new StdSyncWorkerConnection(
         stdinStream: stdinStream, stdoutStream: stdoutStream);
-    return new AnalyzerWorkerLoop(connection, dartSdkPath: dartSdkPath);
+    return new AnalyzerWorkerLoop(resourceProvider, connection,
+        dartSdkPath: dartSdkPath);
   }
 
   /**
    * Performs analysis with given [options].
    */
   void analyze(CommandLineOptions options) {
-    new BuildMode(options, new AnalysisStats()).analyze();
+    new BuildMode(resourceProvider, options, new AnalysisStats()).analyze();
     AnalysisEngine.instance.clearCaches();
   }
 
@@ -123,10 +125,10 @@ class AnalyzerWorkerLoop extends SyncWorkerLoop {
  * Analyzer used when the "--build-mode" option is supplied.
  */
 class BuildMode {
+  final ResourceProvider resourceProvider;
   final CommandLineOptions options;
   final AnalysisStats stats;
 
-  final ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
   SummaryDataStore summaryDataStore;
   InternalAnalysisContext context;
   Map<Uri, JavaFile> uriToFileMap;
@@ -136,7 +138,7 @@ class BuildMode {
   final Set<Source> processedSources = new Set<Source>();
   final Map<Uri, UnlinkedUnit> uriToUnit = <Uri, UnlinkedUnit>{};
 
-  BuildMode(this.options, this.stats);
+  BuildMode(this.resourceProvider, this.options, this.stats);
 
   /**
    * Perform package analysis according to the given [options].
@@ -285,7 +287,7 @@ class BuildMode {
     ]);
 
     // Set context options.
-    Driver.setAnalysisContextOptions(context, options,
+    Driver.setAnalysisContextOptions(resourceProvider, context, options,
         (AnalysisOptionsImpl contextOptions) {
       if (options.buildSummaryOnlyDiet) {
         contextOptions.analyzeFunctionBodies = false;

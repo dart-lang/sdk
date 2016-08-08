@@ -227,14 +227,6 @@ const Map<String, LibraryInfo> libraries = const {
       documented: false,
       platforms: DART2JS_PLATFORM),
 
-  // TODO(ahe): This library is only for dart2dart, perhaps it should use a
-  // different platform.
-  "_mirror_helper": const LibraryInfo(
-      "_internal/js_runtime/lib/mirror_helper.dart",
-      categories: "",
-      documented: false,
-      platforms: DART2JS_PLATFORM),
-
   "_js_embedded_names": const LibraryInfo(
       "_internal/js_runtime/lib/shared/embedded_names.dart",
       categories: "",

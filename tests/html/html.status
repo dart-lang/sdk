@@ -50,7 +50,6 @@ js_test/JsArray: RuntimeError # Issue 26197
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 fontface_test: Fail # Fontface not supported on these.
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
-element_animate_test: Fail # Element.animate not supported on these browsers.
 
 [ $compiler == none && $runtime == dartium && $system == macos]
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue 11834
@@ -115,6 +114,9 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Times out.
 transition_event_test/functional: Skip # Times out. Issue 22167
 request_animation_frame_test: Skip # Times out. Issue 22167
 custom/*: Pass, Timeout # Issue 26789
+custom_elements_test: Pass, Timeout # Issue 26789
+custom_element_method_clash_test: Pass, Timeout # Issue 26789
+custom_element_name_clash_test: Pass, Timeout # Issue 26789
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219
@@ -148,6 +150,7 @@ text_event_test: RuntimeError # Issue 23437
 transition_event_test/functional: Skip # Times out. Issue 22167
 request_animation_frame_test: Skip # Times out. Issue 22167
 js_util_test/callConstructor: RuntimeError # Issue 26978
+element_animate_test: Fail # Element.animate not supported on these browsers.
 
 [$runtime == ie10 ]
 # IE10 Feature support statuses-
@@ -266,6 +269,7 @@ canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not su
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
 element_test: Pass, Fail # Issue 21434
 mediasource_test: Pass, Fail # MediaSource only available on Safari 8 desktop, we can't express that.
+element_animate_test: Fail # Element.animate not supported on these browsers.
 
 # Safari Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.

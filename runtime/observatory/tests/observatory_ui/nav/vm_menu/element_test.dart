@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:html';
-import 'dart:async';
 import 'package:unittest/unittest.dart';
-import 'package:observatory/mocks.dart';
-import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/menu_item.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
+import '../../mocks.dart';
 
 main(){
   NavVMMenuElement.tag.ensureRegistration();
@@ -16,35 +14,22 @@ main(){
   final mTag = NavMenuElement.tag.name;
   final miTag = NavMenuItemElement.tag.name;
 
-  StreamController<M.VMUpdateEvent> updatesController;
-  final TargetMock target = new TargetMock(name: 'target-name');
-  final VMMock vm1 = const VMMock(name: 'vm-name-1',
+  EventRepositoryMock events;
+  final vm1 = const VMMock(name: 'vm-name-1', displayName: 'display-name-1',
       isolates: const [const IsolateRefMock(id: 'i-id-1', name: 'i-name-1')]);
-  final VMMock vm2 = const VMMock(name: 'vm-name-2',
+  final vm2 = const VMMock(name: 'vm-name-2', displayName: 'display-name-2',
       isolates: const [const IsolateRefMock(id: 'i-id-1', name: 'i-name-1'),
                        const IsolateRefMock(id: 'i-id-2', name: 'i-name-2')]);
   setUp(() {
-    updatesController = new StreamController<M.VMUpdateEvent>.broadcast();
+    events = new EventRepositoryMock();
   });
-  group('instantiation', () {
-    test('no target', () {
-      final NavVMMenuElement e = new NavVMMenuElement(vm1,
-          updatesController.stream);
-      expect(e, isNotNull, reason: 'element correctly created');
-      expect(e.vm, equals(vm1));
-      expect(e.target, isNull);
-    });
-    test('target', () {
-      final NavVMMenuElement e = new NavVMMenuElement(vm1,
-          updatesController.stream, target: target);
-      expect(e, isNotNull, reason: 'element correctly created');
-      expect(e.vm, equals(vm1));
-      expect(e.target, equals(target));
-    });
+  test('instantiation', () {
+    final e = new NavVMMenuElement(vm1, events);
+    expect(e, isNotNull, reason: 'element correctly created');
+    expect(e.vm, equals(vm1));
   });
   test('elements created after attachment', () async {
-    final NavVMMenuElement e = new NavVMMenuElement(vm1,
-        updatesController.stream);
+    final e = new NavVMMenuElement(vm1, events);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.shadowRoot.children.length, isNonZero, reason: 'has elements');
@@ -54,29 +39,27 @@ main(){
   });
   group('updates', () {
     test('are correctly listen', () async {
-      final NavVMMenuElement e = new NavVMMenuElement(vm1,
-          updatesController.stream);
-      expect(updatesController.hasListener, isFalse);
+      final e = new NavVMMenuElement(vm1, events);
+      expect(events.onVMUpdateHasListener, isFalse);
       document.body.append(e);
       await e.onRendered.first;
-      expect(updatesController.hasListener, isTrue);
+      expect(events.onVMUpdateHasListener, isTrue);
       e.remove();
       await e.onRendered.first;
-      expect(updatesController.hasListener, isFalse);
+      expect(events.onVMUpdateHasListener, isFalse);
     });
     test('have effects', () async {
-      final NavVMMenuElement e = new NavVMMenuElement(vm1,
-          updatesController.stream);
+      final e = new NavVMMenuElement(vm1, events);
       document.body.append(e);
       await e.onRendered.first;
       expect((e.shadowRoot.querySelector(mTag) as NavMenuElement).label,
-          equals(vm1.name));
+          equals(vm1.displayName));
       expect(e.shadowRoot.querySelectorAll(miTag).length,
           equals(vm1.isolates.length));
-      updatesController.add(new VMUpdateEventMock(vm: vm2));
+      events.add(new VMUpdateEventMock(vm: vm2));
       await e.onRendered.first;
       expect((e.shadowRoot.querySelector(mTag) as NavMenuElement).label,
-          equals(vm2.name));
+          equals(vm2.displayName));
       expect(e.shadowRoot.querySelectorAll(miTag).length,
           equals(vm2.isolates.length));
       e.remove();

@@ -43,6 +43,24 @@ class LinkerUnitTest extends SummaryLinkerTest {
     return linker.getLibrary(Uri.parse(uri));
   }
 
+  void test_apiSignature_apiChanges() {
+    var bundle0 =
+        createPackageBundle('f(int i) { print(i); }', path: '/test.dart');
+    var bundle1 =
+        createPackageBundle('f(String s) { print(s); }', path: '/test.dart');
+    expect(bundle0.apiSignature, isNotEmpty);
+    expect(bundle1.apiSignature, isNotEmpty);
+    expect(bundle0.apiSignature, isNot(bundle1.apiSignature));
+  }
+
+  void test_apiSignature_localChanges() {
+    var bundle0 = createPackageBundle('f() { print(0); }', path: '/test.dart');
+    var bundle1 = createPackageBundle('f() { print(1); }', path: '/test.dart');
+    expect(bundle0.apiSignature, isNotEmpty);
+    expect(bundle1.apiSignature, isNotEmpty);
+    expect(bundle0.apiSignature, bundle1.apiSignature);
+  }
+
   void test_baseClass_genericWithAccessor() {
     createLinker('''
 class B<T> {

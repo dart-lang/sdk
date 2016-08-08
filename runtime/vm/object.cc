@@ -12973,10 +12973,6 @@ void ICData::DebugDump() const {
 }
 
 
-void ICData::ValidateSentinelLocations() const {
-}
-
-
 void ICData::AddReceiverCheck(intptr_t receiver_class_id,
                               const Function& target,
                               intptr_t count) const {
@@ -13416,12 +13412,10 @@ RawArray* ICData::NewNonCachedEmptyICDataArray(intptr_t num_args_tested) {
 }
 
 
-RawArray* ICData::NewEmptyICDataArray(intptr_t num_args_tested) {
+RawArray* ICData::CachedEmptyICDataArray(intptr_t num_args_tested) {
   ASSERT(num_args_tested >= 0);
-  if (num_args_tested < kCachedICDataArrayCount) {
-    return cached_icdata_arrays_[num_args_tested];
-  }
-  return NewNonCachedEmptyICDataArray(num_args_tested);
+  ASSERT(num_args_tested < kCachedICDataArrayCount);
+  return cached_icdata_arrays_[num_args_tested];
 }
 
 
@@ -13468,16 +13462,6 @@ bool ICData::IsImmutable() const {
 }
 
 
-void ICData::ResetData() const {
-  // Number of array elements in one test entry.
-  intptr_t len = TestEntryLength();
-  // IC data array must be null terminated (sentinel entry).
-  const Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));
-  set_ic_data_array(ic_data);
-  WriteSentinel(ic_data, len);
-}
-
-
 RawICData* ICData::New() {
   ICData& result = ICData::Handle();
   {
@@ -13513,7 +13497,7 @@ RawICData* ICData::New(const Function& owner,
                                                       num_args_tested,
                                                       is_static_call));
   result.set_ic_data_array(
-      Array::Handle(zone, NewEmptyICDataArray(num_args_tested)));
+      Array::Handle(zone, CachedEmptyICDataArray(num_args_tested)));
   return result.raw();
 }
 

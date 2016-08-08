@@ -2595,7 +2595,8 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     ASSERT(heap() != NULL);
     thread->heap_ = heap();
     thread->set_os_thread(os_thread);
-    ASSERT(thread->execution_state() == Thread::kThreadInVM);
+    ASSERT(thread->execution_state() == Thread::kThreadInNative);
+    thread->set_execution_state(Thread::kThreadInVM);
     thread->set_safepoint_state(0);
     thread->set_vm_tag(VMTag::kVMTagId);
     ASSERT(thread->no_safepoint_scope_depth() == 0);
@@ -2646,8 +2647,8 @@ void Isolate::UnscheduleThread(Thread* thread,
   thread->isolate_ = NULL;
   thread->heap_ = NULL;
   thread->set_os_thread(NULL);
-  thread->set_execution_state(Thread::kThreadInVM);
-  thread->set_safepoint_state(0);
+  thread->set_execution_state(Thread::kThreadInNative);
+  thread->set_safepoint_state(Thread::SetAtSafepoint(true, 0));
   thread->clear_pending_functions();
   ASSERT(thread->no_safepoint_scope_depth() == 0);
   // Return thread structure.

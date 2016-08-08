@@ -11,8 +11,9 @@ class NavBarElement extends HtmlElement implements Renderable {
   static final StyleElement _style = () {
       var style = new StyleElement();
       style.text = 'nav.nav-bar {'
+                     'line-height: normal;'
                      'position: fixed;'
-                     'top: -56px;'
+                     'top: 0;'
                      'width: 100%;'
                      'z-index: 1000;'
                      '}'
@@ -21,20 +22,12 @@ class NavBarElement extends HtmlElement implements Renderable {
                      'position: relative;'
                      'list-style: none;'
                      'padding-left: 0;'
-                     'margin-left: 0;'
+                     'margin: 0;'
                      'width: 100%;'
                      'z-index: 1000;'
                      'font: 400 16px \'Montserrat\', sans-serif;'
                      'color: white;'
                      'background-color: #0489c3;'
-                   '}'
-                   'nav.nav-bar:after {'
-                     'content: ""; clear: both; display: block;'
-                   '}'
-                   'nav.nav-bar:before {'
-                     'height: 40px;'
-                     'background-color: #0489c3;'
-                     'content: ""; display: block;'
                    '}';
       return style;
   }();

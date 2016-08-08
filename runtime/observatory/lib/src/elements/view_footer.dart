@@ -23,7 +23,7 @@ class ViewFooterElement extends HtmlElement implements Renderable {
   }
 
   ViewFooterElement.created() : super.created() {
-    // TODO(cbernaschina) remove this when no more needed.
+    // TODO(cbernaschina) remove this when polymer is removed.
     _r = new RenderingScheduler(this);
   }
 
@@ -36,8 +36,8 @@ class ViewFooterElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    _r.disable(notify: true);
     children = [];
+    _r.disable(notify: true);
   }
 
   void render() {

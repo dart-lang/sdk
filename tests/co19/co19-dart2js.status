@@ -1677,6 +1677,7 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocume
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 Language/Expressions/Function_Invocation/async_invokation_t04: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/canvas-test_t01: Skip # Times out. Please triage this failure
+LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01: Skip # Times out flakily.
 LayoutTests/fast/canvas/webgl/context-lost-restored_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/canvas/webgl/draw-webgl-to-canvas-2d_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/oes-vertex-array-object_t01: RuntimeError # Please triage this failure
@@ -1842,10 +1843,7 @@ LayoutTests/fast/canvas/canvas-composite-image_t01: Pass, RuntimeError # Please 
 LayoutTests/fast/canvas/canvas-currentColor_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-currentTransform_t01: RuntimeError # Feature is not implemented.
 LayoutTests/fast/canvas/canvas-drawImage-incomplete_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/canvas-ellipse-360-winding_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/canvas-ellipse-negative-radius_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-ellipse-zero-lineto_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/canvas-ellipse_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-empty-image-pattern_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-fill-zeroSizeGradient_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-fillRect-zeroSizeGradient_t01: RuntimeError # Please triage this failure
@@ -2057,7 +2055,6 @@ LayoutTests/fast/css/parsing-at-rule-recovery_t01: RuntimeError # Please triage 
 LayoutTests/fast/css/parsing-css-allowed-string-characters_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-css-escapes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-css-nonascii_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/parsing-css-nth-child_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-page-rule_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-selector-error-recovery_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-unexpected-eof_t01: RuntimeError # Please triage this failure
@@ -2814,7 +2811,6 @@ LayoutTests/fast/writing-mode/percentage-padding_t01: RuntimeError # Please tria
 LayoutTests/fast/writing-mode/positionForPoint_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/writing-mode/table-hit-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-invalid-values_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responseXML-invalid-xml_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responseXML-xml-text-responsetype_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-abort_t01: RuntimeError # Please triage this failure
@@ -2944,6 +2940,7 @@ LibTest/html/Window/requestFileSystem_A01_t02: RuntimeError # Please triage this
 LibTest/html/Window/requestFileSystem_A02_t01: RuntimeError # Please triage this failure
 LibTest/html/Window/resizeBy_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Window/resizeTo_A01_t01: RuntimeError # Please triage this failure
+LibTest/math/log_A01_t01: Fail # Please triage this failure.
 LibTest/typed_data/Float32List/Float32List.view_A06_t01: RuntimeError # Please triage this failure
 LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: RuntimeError # Please triage this failure
 LibTest/typed_data/Float64List/Float64List.view_A06_t01: RuntimeError # Please triage this failure

@@ -181,6 +181,17 @@ abstract class Iterable<E> {
    *
    * The returned [Iterable] is lazy, and calls [f] for each element
    * of this every time it's iterated.
+   *
+   * Example:
+   *
+   *     var pairs = [[1, 2], [3, 4]];
+   *     var flattened = pairs.expand((pair) => pair).toList();
+   *     print(flattened); // => [1, 2, 3, 4];
+   *
+   *     var input = [1, 2, 3];
+   *     var duplicated = input.expand((i) => [i, i]).toList();
+   *     print(duplicated); // => [1, 1, 2, 2, 3, 3]
+   *
    */
   Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(E element)) =>
       new ExpandIterable<E, dynamic/*=T*/>(this, f);
@@ -207,7 +218,6 @@ abstract class Iterable<E> {
     }
     return false;
   }
-
 
   /**
    * Applies the function [f] to each element of this collection in iteration
@@ -316,7 +326,6 @@ abstract class Iterable<E> {
     return buffer.toString();
   }
 
-
   /**
    * Checks whether any element of this iterable satisfies [test].
    *
@@ -382,7 +391,7 @@ abstract class Iterable<E> {
    */
   bool get isNotEmpty => !isEmpty;
 
-   /**
+  /**
    * Returns a lazy iterable of the [count] first elements of this iterable.
    *
    * The returned `Iterable` may contain fewer than `count` elements, if `this`
@@ -480,7 +489,7 @@ abstract class Iterable<E> {
     E result;
     do {
       result = it.current;
-    } while(it.moveNext());
+    } while (it.moveNext());
     return result;
   }
 
@@ -506,7 +515,7 @@ abstract class Iterable<E> {
    * function is returned.
    * If [orElse] is omitted, it defaults to throwing a [StateError].
    */
-  E firstWhere(bool test(E element), { E orElse() }) {
+  E firstWhere(bool test(E element), {E orElse()}) {
     for (E element in this) {
       if (test(element)) return element;
     }

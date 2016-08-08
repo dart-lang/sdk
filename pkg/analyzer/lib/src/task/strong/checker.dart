@@ -21,8 +21,11 @@ import 'package:analyzer/src/generated/type_system.dart';
 
 import 'ast_properties.dart';
 
-bool isKnownFunction(Expression expression) {
+bool isKnownFunction(Expression expression, {bool instanceMethods: false}) {
   Element element = null;
+  if (expression is ParenthesizedExpression) {
+    expression = (expression as ParenthesizedExpression).expression;
+  }
   if (expression is FunctionExpression) {
     return true;
   } else if (expression is PropertyAccess) {
@@ -30,10 +33,10 @@ bool isKnownFunction(Expression expression) {
   } else if (expression is Identifier) {
     element = expression.staticElement;
   }
-// First class functions and static methods, where we know the original
-// declaration, will have an exact type, so we know a downcast will fail.
+  // First class functions and static methods, where we know the original
+  // declaration, will have an exact type, so we know a downcast will fail.
   return element is FunctionElement ||
-      element is MethodElement && element.isStatic;
+      element is MethodElement && (instanceMethods || element.isStatic);
 }
 
 DartType _elementType(Element e) {
@@ -162,8 +165,9 @@ class CodeChecker extends RecursiveAstVisitor {
     if (expr is ParenthesizedExpression) {
       checkAssignment(expr.expression, type);
     } else {
-      _checkDowncast(expr, type);
-      _checkNonNullAssignment(expr, type);
+      if (_checkNonNullAssignment(expr, type)) {
+        _checkDowncast(expr, type);
+      }
     }
   }
 
@@ -625,6 +629,20 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   @override
+  Object visitVariableDeclaration(VariableDeclaration node) {
+    if (!node.isConst &&
+        !node.isFinal &&
+        node.initializer == null &&
+        rules.isNonNullableType(node?.element?.type)) {
+      _recordMessage(
+          node,
+          StaticTypeWarningCode.NON_NULLABLE_FIELD_NOT_INITIALIZED,
+          [node.name, node?.element?.type]);
+    }
+    return super.visitVariableDeclaration(node);
+  }
+
+  @override
   void visitWhileStatement(WhileStatement node) {
     checkBoolean(node.condition);
     node.visitChildren(this);
@@ -839,12 +857,17 @@ class CodeChecker extends RecursiveAstVisitor {
         [declElement.name]);
   }
 
-  void _checkNonNullAssignment(Expression expression, DartType type) {
+  /// Checks if the assignment is valid with respect to non-nullable types.
+  /// Returns `false` if a nullable expression is assigned to a variable of
+  /// non-nullable type and `true` otherwise.
+  bool _checkNonNullAssignment(Expression expression, DartType type) {
     var exprType = expression.staticType;
-    if (rules.isNonNullableType(type) && !rules.isNonNullableType(exprType)) {
+    if (rules.isNonNullableType(type) && rules.isNullableType(exprType)) {
       _recordMessage(expression, StaticTypeWarningCode.INVALID_ASSIGNMENT,
           [exprType, type]);
+      return false;
     }
+    return true;
   }
 
   void _checkReturnOrYield(Expression expression, AstNode node,
@@ -936,10 +959,6 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
-  // Produce a coercion which coerces something of type fromT
-  // to something of type toT.
-  // Returns the error coercion if the types cannot be coerced
-  // according to our current criteria.
   DartType _getStaticType(Expression expr) {
     DartType t = expr.staticType ?? DynamicTypeImpl.instance;
 
@@ -985,14 +1004,9 @@ class CodeChecker extends RecursiveAstVisitor {
     // a dynamic parameter type requires a dynamic call in general.
     // However, as an optimization, if we have an original definition, we know
     // dynamic is reified as Object - in this case a regular call is fine.
-    if (call is SimpleIdentifier) {
-      var element = call.staticElement;
-      if (element is FunctionElement || element is MethodElement) {
-        // An original declaration.
-        return false;
-      }
+    if (isKnownFunction(call, instanceMethods: true)) {
+      return false;
     }
-
     return rules.anyParameterType(ft, (pt) => pt.isDynamic);
   }
 

@@ -22,7 +22,10 @@ class SourceLinkElementWrapper extends HtmlElement {
 
   SourceLocation _location;
   SourceLocation get location => location;
-  set location(SourceLocation location) { _location = location; render(); }
+  set location(SourceLocation value) {
+    _location = value;
+    render();
+  }
 
   SourceLinkElementWrapper.created() : super.created() {
     binder.registerCallback(this);
@@ -38,7 +41,9 @@ class SourceLinkElementWrapper extends HtmlElement {
 
   Future render() async {
     shadowRoot.children = [];
-    if (_location == null) return;
+    if (_location == null) {
+      return;
+    }
 
     ScriptRepository repository = new ScriptRepository(_location.isolate);
 

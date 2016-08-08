@@ -20,8 +20,13 @@ class CodeRefElementWrapper extends HtmlElement {
   static const tag = const Tag<CodeRefElementWrapper>('code-ref');
 
   Code _code;
+
   Code get ref => _code;
-  void set ref(Code ref) { _code = ref; render(); }
+
+  void set ref(Code value) {
+    _code = value;
+    render();
+  }
 
   CodeRefElementWrapper.created() : super.created() {
     binder.registerCallback(this);
@@ -37,7 +42,9 @@ class CodeRefElementWrapper extends HtmlElement {
 
   void render() {
     shadowRoot.children = [];
-    if (ref == null) return;
+    if (ref == null) {
+      return;
+    }
 
     shadowRoot.children = [
       new StyleElement()

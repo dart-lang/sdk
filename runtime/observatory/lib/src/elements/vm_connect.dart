@@ -16,6 +16,8 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 import 'package:observatory/src/elements/vm_connect_target.dart';
 
+typedef void CrashDumpLoadCallback(Map dump);
+
 class VMConnectElement extends HtmlElement implements Renderable {
   static const tag = const Tag<VMConnectElement>('vm-connect',
                      dependencies: const [NavBarElement.tag,
@@ -28,7 +30,7 @@ class VMConnectElement extends HtmlElement implements Renderable {
 
   Stream<RenderedEvent<VMConnectElement>> get onRendered => _r.onRendered;
 
-  M.CrashDumpRepository _dump;
+  CrashDumpLoadCallback _loadDump;
   M.NotificationRepository _notifications;
   M.TargetRepository _targets;
   StreamSubscription _targetsSubscription;
@@ -36,17 +38,17 @@ class VMConnectElement extends HtmlElement implements Renderable {
   String _address;
 
   factory VMConnectElement(M.TargetRepository targets,
-                           M.CrashDumpRepository dump,
+                           CrashDumpLoadCallback loadDump,
                            M.NotificationRepository notifications,
                            {String address: '', RenderingQueue queue}) {
     assert(address != null);
-    assert(dump != null);
+    assert(loadDump != null);
     assert(notifications != null);
     assert(targets != null);
     VMConnectElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._address = address;
-    e._dump = dump;
+    e._loadDump = loadDump;
     e._notifications = notifications;
     e._targets = targets;
     return e;
@@ -56,14 +58,17 @@ class VMConnectElement extends HtmlElement implements Renderable {
 
   @override
   void attached() {
-    super.attached(); _r.enable();
+    super.attached();
     _targetsSubscription = _targets.onChange.listen((_) => _r.dirty());
+    _r.enable();
   }
 
   @override
   void detached() {
-    super.detached(); children = []; _r.disable(notify: true);
-    _targetsSubscription.cancel(); _targetsSubscription = null;
+    super.detached();
+    children = [];
+    _r.disable(notify: true);
+    _targetsSubscription.cancel();
   }
 
   void render() {
@@ -158,7 +163,7 @@ class VMConnectElement extends HtmlElement implements Renderable {
       reader.readAsText(e.files[0]);
       reader.onLoad.listen((_) {
         var crashDump = JSON.decode(reader.result);
-        _dump.load(crashDump);
+        _loadDump(crashDump);
       });
     });
     return e;

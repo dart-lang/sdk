@@ -4,22 +4,22 @@
 import 'dart:html';
 import 'dart:async';
 import 'package:unittest/unittest.dart';
-import 'package:observatory/mocks.dart';
 import 'package:observatory/src/elements/nav/notify_event.dart';
+import '../../mocks.dart';
 
 main() {
   NavNotifyEventElement.tag.ensureRegistration();
 
-  final PauseStartEventMock event = new PauseStartEventMock(
+  final event = new PauseStartEventMock(
               isolate: new IsolateMock(id: 'isolate-id', name: 'isolate-name'));
   group('instantiation', () {
-    final NavNotifyEventElement e = new NavNotifyEventElement(event);
+    final e = new NavNotifyEventElement(event);
     expect(e, isNotNull, reason: 'element correctly created');
     expect(e.event, equals(event));
   });
   group('elements', () {
     test('created after attachment', () async {
-      final NavNotifyEventElement e = new NavNotifyEventElement(event);
+      final e = new NavNotifyEventElement(event);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.children.length, isNonZero, reason: 'has elements');

@@ -119,6 +119,20 @@ abstract class AbstractDartSdk implements DartSdk {
     _useSummary = use;
   }
 
+  /**
+   * Add the extensions from one or more sdk extension files to this sdk. The
+   * [extensions] should be a table mapping the names of extensions to the paths
+   * where those extensions can be found.
+   */
+  void addExtensions(Map<String, String> extensions) {
+    extensions.forEach((String uri, String path) {
+      String shortName = uri.substring(uri.indexOf(':') + 1);
+      SdkLibraryImpl library = new SdkLibraryImpl(shortName);
+      library.path = path;
+      libraryMap.setLibrary(uri, library);
+    });
+  }
+
   @override
   Source fromFileUri(Uri uri) {
     File file =
@@ -284,8 +298,7 @@ class EmbedderSdk extends AbstractDartSdk {
       srcPath = library.path;
     } else {
       String libraryPath = library.path;
-      int index =
-          libraryPath.lastIndexOf(resourceProvider.pathContext.separator);
+      int index = libraryPath.lastIndexOf(separator);
       if (index == -1) {
         index = libraryPath.lastIndexOf('/');
         if (index == -1) {
@@ -295,8 +308,7 @@ class EmbedderSdk extends AbstractDartSdk {
       String prefix = libraryPath.substring(0, index + 1);
       srcPath = '$prefix$relativePath';
     }
-    String filePath =
-        srcPath.replaceAll('/', resourceProvider.pathContext.separator);
+    String filePath = srcPath.replaceAll('/', separator);
     try {
       File file = resourceProvider.getFile(filePath);
       return file.createSource(parseUriWithException(dartUri));
@@ -522,8 +534,7 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   String getRelativePathFromFile(File file) {
     String filePath = file.path;
     String libPath = libraryDirectory.path;
-    if (!filePath
-        .startsWith("$libPath${resourceProvider.pathContext.separator}")) {
+    if (!filePath.startsWith("$libPath$separator")) {
       return null;
     }
     return filePath.substring(libPath.length + 1);

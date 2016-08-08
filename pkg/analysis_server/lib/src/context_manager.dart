@@ -16,14 +16,15 @@ import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/config.dart';
-import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/path_filter.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
+import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context.dart' as context;
 import 'package:analyzer/src/context/source.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -391,6 +392,13 @@ class ContextManagerImpl implements ContextManager {
   static const String PACKAGE_SPEC_NAME = '.packages';
 
   /**
+   * The name of the key in an embedder file whose value is the list of
+   * libraries in the SDK.
+   * TODO(brianwilkerson) This is also defined in sdk.dart.
+   */
+  static const String _EMBEDDED_LIB_MAP_KEY = 'embedded_libs';
+
+  /**
    * The [ResourceProvider] using which paths are converted into [Resource]s.
    */
   final ResourceProvider resourceProvider;
@@ -515,6 +523,7 @@ class ContextManagerImpl implements ContextManager {
       contexts.add(info.context);
       info.children.forEach(addContextAndDescendants);
     }
+
     if (innermostContainingInfo != null) {
       if (analysisRoot == innermostContainingInfo.folder) {
         addContextAndDescendants(innermostContainingInfo);
@@ -528,6 +537,11 @@ class ContextManagerImpl implements ContextManager {
     }
     return contexts;
   }
+
+  /**
+   * Check if this map defines embedded libraries.
+   */
+  bool definesEmbeddedLibs(Map map) => map[_EMBEDDED_LIB_MAP_KEY] != null;
 
   @override
   AnalysisContext getContextFor(String path) {
@@ -913,7 +927,8 @@ class ContextManagerImpl implements ContextManager {
                 .where((r) => r is! DartUriResolver)
                 .toList();
             // Add an embedded URI resolver in its place.
-            resolvers.add(new DartUriResolver(new EmbedderSdk(embedderYamls)));
+            resolvers.add(new DartUriResolver(
+                new EmbedderSdk(resourceProvider, embedderYamls)));
 
             // Set a new source factory.
             SourceFactoryImpl newFactory = sourceFactory.clone();
@@ -1158,7 +1173,7 @@ class ContextManagerImpl implements ContextManager {
     EmbedderYamlLocator locator =
         disposition.getEmbedderLocator(resourceProvider);
     Map<Folder, YamlMap> embedderYamls = locator.embedderYamls;
-    EmbedderSdk embedderSdk = new EmbedderSdk(embedderYamls);
+    EmbedderSdk embedderSdk = new EmbedderSdk(resourceProvider, embedderYamls);
     if (embedderSdk.libraryMap.size() == 0) {
       // There was no embedder file, or the file was empty, so used the default
       // SDK.

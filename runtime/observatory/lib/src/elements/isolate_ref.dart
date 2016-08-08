@@ -7,7 +7,7 @@ library isolate_ref_element;
 import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M
-  show IsolateRef, IsolateUpdateEvent;
+  show IsolateRef, EventRepository;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
@@ -19,20 +19,21 @@ class IsolateRefElement extends HtmlElement implements Renderable {
 
   Stream<RenderedEvent<IsolateRefElement>> get onRendered => _r.onRendered;
 
-  Stream<M.IsolateUpdateEvent> _updates;
-  StreamSubscription _updatesSubscription;
+
   M.IsolateRef _isolate;
+  M.EventRepository _events;
+  StreamSubscription _updatesSubscription;
 
   M.IsolateRef get isolate => _isolate;
 
-  factory IsolateRefElement(M.IsolateRef isolate,
-      Stream<M.IsolateUpdateEvent> updates, {RenderingQueue queue}) {
+  factory IsolateRefElement(M.IsolateRef isolate, M.EventRepository events,
+      {RenderingQueue queue}) {
     assert(isolate != null);
-    assert(updates != null);
+    assert(events != null);
     IsolateRefElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._isolate = isolate;
-    e._updates = updates;
+    e._events = events;
     return e;
   }
 
@@ -41,21 +42,18 @@ class IsolateRefElement extends HtmlElement implements Renderable {
   @override
   void attached() {
     super.attached();
-    assert(_isolate != null);
-    assert(_updates != null);
+    _updatesSubscription = _events.onIsolateUpdate
+      .where((e) => e.isolate.id == isolate.id)
+      .listen((e) { _isolate = e.isolate; _r.dirty(); });
     _r.enable();
-    _updatesSubscription = _updates
-      .where((M.IsolateUpdateEvent e) => e.isolate.id == isolate.id)
-      .listen((M.IsolateUpdateEvent e) { _isolate = e.isolate; _r.dirty(); });
   }
 
   @override
   void detached() {
-    super.detached(); _r.disable(notify: true);
+    super.detached();
     children = [];
-    assert(_updatesSubscription != null);
+    _r.disable(notify: true);
     _updatesSubscription.cancel();
-    _updatesSubscription = null;
   }
 
   void render() {

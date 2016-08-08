@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
@@ -192,7 +193,7 @@ class PackageBundleAssembler {
    * Assemble a new [PackageBundleBuilder] using the gathered information.
    */
   PackageBundleBuilder assemble() {
-    return new PackageBundleBuilder(
+    PackageBundleBuilder packageBundle = new PackageBundleBuilder(
         linkedLibraryUris: _linkedLibraryUris,
         linkedLibraries: _linkedLibraries,
         unlinkedUnitUris: _unlinkedUnitUris,
@@ -200,6 +201,10 @@ class PackageBundleAssembler {
         unlinkedUnitHashes: _unlinkedUnitHashes,
         majorVersion: currentMajorVersion,
         minorVersion: currentMinorVersion);
+    ApiSignature apiSignature = new ApiSignature();
+    packageBundle.collectApiSignature(apiSignature);
+    packageBundle.apiSignature = apiSignature.toHex();
+    return packageBundle;
   }
 
   /**

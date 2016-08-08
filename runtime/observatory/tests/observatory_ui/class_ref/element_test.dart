@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:html';
 import 'package:unittest/unittest.dart';
-import 'package:observatory/mocks.dart';
 import 'package:observatory/src/elements/class_ref.dart';
+import '../mocks.dart';
 
 main(){
   ClassRefElement.tag.ensureRegistration();

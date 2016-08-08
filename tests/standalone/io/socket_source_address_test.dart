@@ -43,7 +43,8 @@ Future testArguments(connectFunction) async {
     await throws(() => connectFunction('127.0.0.1',
                                        server.port,
                                        sourceAddress: sourceAddress),
-                 (e) => e is SocketException);
+                 (e) => e is SocketException &&
+                     e.address == new InternetAddress('8.8.8.8'));
   }
   // Address family mismatch.
   for (sourceAddress in ['::1', InternetAddress.LOOPBACK_IP_V6]) {

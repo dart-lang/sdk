@@ -81,8 +81,9 @@ def CreateUploadSDKZips():
 
 def DartArchiveUploadSDKs(system, sdk32_zip, sdk64_zip):
   namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
-  revision = utils.GetArchiveVersion()
-  for revision in [revision, 'latest']:
+  git_number = utils.GetArchiveVersion()
+  git_hash = 'hash/%s' % utils.GetGitRevision()
+  for revision in [git_number, git_hash, 'latest']:
     path32 = namer.sdk_zipfilepath(revision, system, 'ia32', 'release')
     path64 = namer.sdk_zipfilepath(revision, system, 'x64', 'release')
     DartArchiveFile(sdk32_zip, path32, checksum_files=True)

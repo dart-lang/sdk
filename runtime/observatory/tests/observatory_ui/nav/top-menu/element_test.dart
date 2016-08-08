@@ -9,27 +9,27 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 main() {
   NavTopMenuElement.tag.ensureRegistration();
 
-  final String tag = NavMenuElement.tag.name;
+  final tag = NavMenuElement.tag.name;
 
   group('instantiation', () {
     test('default', () {
-      final NavTopMenuElement e = new NavTopMenuElement();
+      final e = new NavTopMenuElement();
       expect(e, isNotNull, reason: 'element correctly created');
     });
     test('not last', () {
-      final NavTopMenuElement e = new NavTopMenuElement(last: false);
+      final e = new NavTopMenuElement(last: false);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.last, isFalse, reason: 'element correctly created');
     });
     test('last', () {
-      final NavTopMenuElement e = new NavTopMenuElement(last: true);
+      final e = new NavTopMenuElement(last: true);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.last, isTrue, reason: 'element correctly created');
     });
   });
   group('elements', () {
     test('created', () async {
-      final NavTopMenuElement e = new NavTopMenuElement();
+      final e = new NavTopMenuElement();
       document.body.append(e);
       await e.onRendered.first;
       expect(e.shadowRoot.children.length, isNonZero, reason: 'has elements');
@@ -40,7 +40,7 @@ main() {
       expect(e.shadowRoot.children.length, isZero, reason: 'is empty');
     });
     test('react to last change', () async {
-      final NavTopMenuElement e = new NavTopMenuElement(last: false);
+      final e = new NavTopMenuElement(last: false);
       document.body.append(e);
       await e.onRendered.first;
       expect((e.shadowRoot.querySelector(tag) as NavMenuElement).last, isFalse);

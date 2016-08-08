@@ -1745,7 +1745,7 @@ class C<T> {
 }
 ''');
     expectIdentifierType('f', '<S>(S) → S');
-    expectIdentifierType('g', '<S>(S) → dynamic');
+    expectIdentifierType('g', '<S>(S) → <S>(S) → S');
   }
 
   void test_genericMethod_override() {

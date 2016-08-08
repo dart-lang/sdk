@@ -1,11 +1,16 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file
+// BSD-style license that can be found in the LICENSE file.
 
 part of models;
 
 abstract class VMRef {
+  /// A name identifying this vm. Not guaranteed to be unique.
   String get name;
+
+  /// [Not actually from the apis]
+  /// A name used to identify the VM in the UI.
+  String get displayName;
 }
 
 abstract class VM implements VMRef {

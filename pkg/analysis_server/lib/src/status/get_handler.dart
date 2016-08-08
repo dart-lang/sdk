@@ -28,12 +28,12 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/context/source.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -670,6 +670,7 @@ class GetHandler {
             _writeRow(buffer, [tag.elapsedMs, percentStr, tag.label],
                 classes: ["right", "right", null]);
           }
+
           tags.forEach(writeRow);
           buffer.write('</table>');
           //
@@ -684,6 +685,7 @@ class GetHandler {
             }
             counts[key] = count;
           }
+
           Set<AnalysisTarget> countedTargets = new HashSet<AnalysisTarget>();
           Map<String, int> sourceTypeCounts = new HashMap<String, int>();
           Map<String, int> typeCounts = new HashMap<String, int>();
@@ -751,6 +753,7 @@ class GetHandler {
                 }
               });
             }
+
             explicitSourceCount += explicitSources.length;
             explicitLineCount += lineCount(explicitSources, true);
             implicitSourceCount += implicitSources.length;
@@ -1399,6 +1402,7 @@ class GetHandler {
         buffer.write('</table></p>');
       }
     }
+
     void writeOptions(StringBuffer buffer, AnalysisOptionsImpl options,
         {void writeAdditionalOptions(StringBuffer buffer)}) {
       if (options == null) {
@@ -1720,6 +1724,7 @@ class GetHandler {
             });
             buffer.write('</table>');
           }
+
           writeCountMap('Directly Held AST Nodes', data.directNodeCounts);
           writeCountMap('Indirectly Held AST Nodes', data.indirectNodeCounts);
           writeCountMap('Directly Held Elements', data.elementCounts);
@@ -2418,6 +2423,7 @@ class GetHandler {
       buffer.write(plugin.runtimeType);
       buffer.write(')<br>');
     }
+
     buffer.write('<h3>Plugin Status</h3><p>');
     writePlugin(AnalysisEngine.instance.enginePlugin);
     writePlugin(_server.serverPlugin);

@@ -4,6 +4,7 @@
 
 library analyzer_cli.test.built_mode;
 
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer_cli/src/build_mode.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
@@ -15,6 +16,25 @@ import 'package:unittest/unittest.dart';
 
 main() {
   defineReflectiveTests(WorkerLoopTest);
+}
+
+typedef void _TestWorkerLoopAnalyze(CommandLineOptions options);
+
+/**
+ * [AnalyzerWorkerLoop] for testing.
+ */
+class TestAnalyzerWorkerLoop extends AnalyzerWorkerLoop {
+  final _TestWorkerLoopAnalyze _analyze;
+
+  TestAnalyzerWorkerLoop(SyncWorkerConnection connection, [this._analyze])
+      : super(new MemoryResourceProvider(), connection);
+
+  @override
+  void analyze(CommandLineOptions options) {
+    if (_analyze != null) {
+      _analyze(options);
+    }
+  }
 }
 
 @reflectiveTest
@@ -29,16 +49,6 @@ class WorkerLoopTest {
   }
 
   void setUp() {}
-
-  List<int> _serializeProto(GeneratedMessage message) {
-    var buffer = message.writeToBuffer();
-
-    var writer = new CodedBufferWriter();
-    writer.writeInt32NoTag(buffer.length);
-    writer.writeRawBytes(buffer);
-
-    return writer.toBuffer();
-  }
 
   test_run() {
     var request = new WorkRequest();
@@ -119,23 +129,14 @@ class WorkerLoopTest {
     stdinStream.close();
     new TestAnalyzerWorkerLoop(connection).run();
   }
-}
 
-typedef void _TestWorkerLoopAnalyze(CommandLineOptions options);
+  List<int> _serializeProto(GeneratedMessage message) {
+    var buffer = message.writeToBuffer();
 
-/**
- * [AnalyzerWorkerLoop] for testing.
- */
-class TestAnalyzerWorkerLoop extends AnalyzerWorkerLoop {
-  final _TestWorkerLoopAnalyze _analyze;
+    var writer = new CodedBufferWriter();
+    writer.writeInt32NoTag(buffer.length);
+    writer.writeRawBytes(buffer);
 
-  TestAnalyzerWorkerLoop(SyncWorkerConnection connection, [this._analyze])
-      : super(connection);
-
-  @override
-  void analyze(CommandLineOptions options) {
-    if (_analyze != null) {
-      _analyze(options);
-    }
+    return writer.toBuffer();
   }
 }

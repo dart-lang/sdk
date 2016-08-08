@@ -58,6 +58,7 @@ static intptr_t Create(const RawAddr& addr) {
     return -1;
   }
   FDUtils::SetCloseOnExec(fd);
+  FDUtils::SetNonBlocking(fd);
   return fd;
 }
 
@@ -79,8 +80,6 @@ intptr_t Socket::CreateConnect(const RawAddr& addr) {
     return fd;
   }
 
-  FDUtils::SetNonBlocking(fd);
-
   return Connect(fd, addr);
 }
 
@@ -100,6 +99,12 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
   }
 
   return Connect(fd, addr);
+}
+
+
+bool Socket::IsBindError(intptr_t error_number) {
+  return error_number == EADDRINUSE || error_number == EADDRNOTAVAIL ||
+      error_number == EINVAL;
 }
 
 

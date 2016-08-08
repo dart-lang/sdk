@@ -2743,6 +2743,7 @@ abstract class ErrorCode {
     StaticTypeWarningCode.NON_BOOL_EXPRESSION,
     StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION,
     StaticTypeWarningCode.NON_BOOL_OPERAND,
+    StaticTypeWarningCode.NON_NULLABLE_FIELD_NOT_INITIALIZED,
     StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
     StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
     StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
@@ -4279,6 +4280,14 @@ class StaticTypeWarningCode extends ErrorCode {
   static const StaticTypeWarningCode NON_BOOL_OPERAND =
       const StaticTypeWarningCode('NON_BOOL_OPERAND',
           "The operands of the '{0}' operator must be assignable to 'bool'");
+
+  /**
+   *
+   */
+  static const StaticTypeWarningCode NON_NULLABLE_FIELD_NOT_INITIALIZED =
+      const StaticTypeWarningCode(
+          'NON_NULLABLE_FIELD_NOT_INITIALIZED',
+          "Variable '{0}' of non-nullable type '{1}' must be initialized");
 
   /**
    * 15.8 Parameterized Types: It is a static type warning if <i>A<sub>i</sub>,

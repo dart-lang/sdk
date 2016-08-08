@@ -10,6 +10,7 @@ library analyzer.src.summary.format;
 import 'flat_buffers.dart' as fb;
 import 'idl.dart' as idl;
 import 'dart:convert' as convert;
+import 'api_signature.dart' as api_sig;
 
 class _CacheSourceKindReader extends fb.Reader<idl.CacheSourceKind> {
   const _CacheSourceKindReader() : super();
@@ -216,6 +217,17 @@ class CacheAnalysisErrorBuilder extends Object with _CacheAnalysisErrorMixin imp
   void flushInformative() {
   }
 
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._errorCodeUniqueName ?? '');
+    signature.addInt(this._offset ?? 0);
+    signature.addInt(this._length ?? 0);
+    signature.addString(this._message ?? '');
+    signature.addString(this._correction ?? '');
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_correction;
     fb.Offset offset_errorCodeUniqueName;
@@ -385,6 +397,37 @@ class CacheSourceContentBuilder extends Object with _CacheSourceContentMixin imp
   void flushInformative() {
   }
 
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addInt(this._kind == null ? 0 : this._kind.index);
+    if (this._importedUris == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._importedUris.length);
+      for (var x in this._importedUris) {
+        signature.addString(x);
+      }
+    }
+    if (this._exportedUris == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._exportedUris.length);
+      for (var x in this._exportedUris) {
+        signature.addString(x);
+      }
+    }
+    if (this._partUris == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._partUris.length);
+      for (var x in this._partUris) {
+        signature.addString(x);
+      }
+    }
+  }
+
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "CaSS");
@@ -514,6 +557,20 @@ class CacheSourceErrorsInLibraryBuilder extends Object with _CacheSourceErrorsIn
     _errors?.forEach((b) => b.flushInformative());
   }
 
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._errors == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._errors.length);
+      for (var x in this._errors) {
+        x?.collectApiSignature(signature);
+      }
+    }
+  }
+
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "CSEL");
@@ -610,6 +667,14 @@ class CodeRangeBuilder extends Object with _CodeRangeMixin implements idl.CodeRa
    * Flush [informative] data recursively.
    */
   void flushInformative() {
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addInt(this._offset ?? 0);
+    signature.addInt(this._length ?? 0);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -820,6 +885,41 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
     _typeArguments?.forEach((b) => b.flushInformative());
   }
 
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addInt(this._reference ?? 0);
+    if (this._typeArguments == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._typeArguments.length);
+      for (var x in this._typeArguments) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    signature.addInt(this._slot ?? 0);
+    signature.addInt(this._paramReference ?? 0);
+    if (this._implicitFunctionTypeIndices == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._implicitFunctionTypeIndices.length);
+      for (var x in this._implicitFunctionTypeIndices) {
+        signature.addInt(x);
+      }
+    }
+    signature.addBool(this._syntheticReturnType != null);
+    this._syntheticReturnType?.collectApiSignature(signature);
+    if (this._syntheticParams == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._syntheticParams.length);
+      for (var x in this._syntheticParams) {
+        x?.collectApiSignature(signature);
+      }
+    }
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_implicitFunctionTypeIndices;
     fb.Offset offset_syntheticParams;
@@ -995,6 +1095,21 @@ class LinkedDependencyBuilder extends Object with _LinkedDependencyMixin impleme
   void flushInformative() {
   }
 
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._uri ?? '');
+    if (this._parts == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._parts.length);
+      for (var x in this._parts) {
+        signature.addString(x);
+      }
+    }
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_parts;
     fb.Offset offset_uri;
@@ -1126,6 +1241,16 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
    * Flush [informative] data recursively.
    */
   void flushInformative() {
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addInt(this._dependency ?? 0);
+    signature.addString(this._name ?? '');
+    signature.addInt(this._unit ?? 0);
+    signature.addInt(this._kind == null ? 0 : this._kind.index);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -1339,6 +1464,54 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
     _dependencies?.forEach((b) => b.flushInformative());
     _exportNames?.forEach((b) => b.flushInformative());
     _units?.forEach((b) => b.flushInformative());
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._dependencies == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._dependencies.length);
+      for (var x in this._dependencies) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._importDependencies == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._importDependencies.length);
+      for (var x in this._importDependencies) {
+        signature.addInt(x);
+      }
+    }
+    signature.addInt(this._numPrelinkedDependencies ?? 0);
+    if (this._units == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._units.length);
+      for (var x in this._units) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._exportNames == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._exportNames.length);
+      for (var x in this._exportNames) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    signature.addBool(this._fallbackMode == true);
+    if (this._exportDependencies == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._exportDependencies.length);
+      for (var x in this._exportDependencies) {
+        signature.addInt(x);
+      }
+    }
   }
 
   List<int> toBuffer() {
@@ -1617,6 +1790,19 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
   void flushInformative() {
   }
 
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addInt(this._unit ?? 0);
+    signature.addInt(this._dependency ?? 0);
+    signature.addInt(this._kind == null ? 0 : this._kind.index);
+    signature.addString(this._name ?? '');
+    signature.addInt(this._numTypeParameters ?? 0);
+    signature.addInt(this._containingReference ?? 0);
+    signature.addInt(this._localIndex ?? 0);
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_name;
     if (_name != null) {
@@ -1797,6 +1983,36 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
     _types?.forEach((b) => b.flushInformative());
   }
 
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._references == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._references.length);
+      for (var x in this._references) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._types == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._types.length);
+      for (var x in this._types) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._constCycles == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._constCycles.length);
+      for (var x in this._constCycles) {
+        signature.addInt(x);
+      }
+    }
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_constCycles;
     fb.Offset offset_references;
@@ -1882,6 +2098,7 @@ abstract class _LinkedUnitMixin implements idl.LinkedUnit {
 }
 
 class PackageBundleBuilder extends Object with _PackageBundleMixin implements idl.PackageBundle {
+  String _apiSignature;
   List<LinkedLibraryBuilder> _linkedLibraries;
   List<String> _linkedLibraryUris;
   int _majorVersion;
@@ -1889,6 +2106,18 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
   List<String> _unlinkedUnitHashes;
   List<UnlinkedUnitBuilder> _unlinkedUnits;
   List<String> _unlinkedUnitUris;
+
+  @override
+  String get apiSignature => _apiSignature ??= '';
+
+  /**
+   * MD5 hash of the non-informative fields of the [PackageBundle] (not
+   * including this one).  This can be used to identify when the API of a
+   * package may have changed.
+   */
+  void set apiSignature(String _value) {
+    _apiSignature = _value;
+  }
 
   @override
   List<LinkedLibraryBuilder> get linkedLibraries => _linkedLibraries ??= <LinkedLibraryBuilder>[];
@@ -1966,8 +2195,9 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
     _unlinkedUnitUris = _value;
   }
 
-  PackageBundleBuilder({List<LinkedLibraryBuilder> linkedLibraries, List<String> linkedLibraryUris, int majorVersion, int minorVersion, List<String> unlinkedUnitHashes, List<UnlinkedUnitBuilder> unlinkedUnits, List<String> unlinkedUnitUris})
-    : _linkedLibraries = linkedLibraries,
+  PackageBundleBuilder({String apiSignature, List<LinkedLibraryBuilder> linkedLibraries, List<String> linkedLibraryUris, int majorVersion, int minorVersion, List<String> unlinkedUnitHashes, List<UnlinkedUnitBuilder> unlinkedUnits, List<String> unlinkedUnitUris})
+    : _apiSignature = apiSignature,
+      _linkedLibraries = linkedLibraries,
       _linkedLibraryUris = linkedLibraryUris,
       _majorVersion = majorVersion,
       _minorVersion = minorVersion,
@@ -1984,17 +2214,62 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
     _unlinkedUnits?.forEach((b) => b.flushInformative());
   }
 
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._linkedLibraries == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._linkedLibraries.length);
+      for (var x in this._linkedLibraries) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._linkedLibraryUris == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._linkedLibraryUris.length);
+      for (var x in this._linkedLibraryUris) {
+        signature.addString(x);
+      }
+    }
+    if (this._unlinkedUnits == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._unlinkedUnits.length);
+      for (var x in this._unlinkedUnits) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._unlinkedUnitUris == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._unlinkedUnitUris.length);
+      for (var x in this._unlinkedUnitUris) {
+        signature.addString(x);
+      }
+    }
+    signature.addInt(this._majorVersion ?? 0);
+    signature.addInt(this._minorVersion ?? 0);
+    signature.addString(this._apiSignature ?? '');
+  }
+
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "PBdl");
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_apiSignature;
     fb.Offset offset_linkedLibraries;
     fb.Offset offset_linkedLibraryUris;
     fb.Offset offset_unlinkedUnitHashes;
     fb.Offset offset_unlinkedUnits;
     fb.Offset offset_unlinkedUnitUris;
+    if (_apiSignature != null) {
+      offset_apiSignature = fbBuilder.writeString(_apiSignature);
+    }
     if (!(_linkedLibraries == null || _linkedLibraries.isEmpty)) {
       offset_linkedLibraries = fbBuilder.writeList(_linkedLibraries.map((b) => b.finish(fbBuilder)).toList());
     }
@@ -2011,6 +2286,9 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
       offset_unlinkedUnitUris = fbBuilder.writeList(_unlinkedUnitUris.map((b) => fbBuilder.writeString(b)).toList());
     }
     fbBuilder.startTable();
+    if (offset_apiSignature != null) {
+      fbBuilder.addOffset(7, offset_apiSignature);
+    }
     if (offset_linkedLibraries != null) {
       fbBuilder.addOffset(0, offset_linkedLibraries);
     }
@@ -2054,6 +2332,7 @@ class _PackageBundleImpl extends Object with _PackageBundleMixin implements idl.
 
   _PackageBundleImpl(this._bc, this._bcOffset);
 
+  String _apiSignature;
   List<idl.LinkedLibrary> _linkedLibraries;
   List<String> _linkedLibraryUris;
   int _majorVersion;
@@ -2061,6 +2340,12 @@ class _PackageBundleImpl extends Object with _PackageBundleMixin implements idl.
   List<String> _unlinkedUnitHashes;
   List<idl.UnlinkedUnit> _unlinkedUnits;
   List<String> _unlinkedUnitUris;
+
+  @override
+  String get apiSignature {
+    _apiSignature ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 7, '');
+    return _apiSignature;
+  }
 
   @override
   List<idl.LinkedLibrary> get linkedLibraries {
@@ -2109,6 +2394,7 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
+    if (apiSignature != '') _result["apiSignature"] = apiSignature;
     if (linkedLibraries.isNotEmpty) _result["linkedLibraries"] = linkedLibraries.map((_value) => _value.toJson()).toList();
     if (linkedLibraryUris.isNotEmpty) _result["linkedLibraryUris"] = linkedLibraryUris;
     if (majorVersion != 0) _result["majorVersion"] = majorVersion;
@@ -2121,6 +2407,7 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
 
   @override
   Map<String, Object> toMap() => {
+    "apiSignature": apiSignature,
     "linkedLibraries": linkedLibraries,
     "linkedLibraryUris": linkedLibraryUris,
     "majorVersion": majorVersion,
@@ -2277,6 +2564,84 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
    */
   void flushInformative() {
     _units?.forEach((b) => b.flushInformative());
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._elementUnits == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._elementUnits.length);
+      for (var x in this._elementUnits) {
+        signature.addInt(x);
+      }
+    }
+    if (this._elementNameUnitMemberIds == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._elementNameUnitMemberIds.length);
+      for (var x in this._elementNameUnitMemberIds) {
+        signature.addInt(x);
+      }
+    }
+    if (this._unitLibraryUris == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._unitLibraryUris.length);
+      for (var x in this._unitLibraryUris) {
+        signature.addInt(x);
+      }
+    }
+    if (this._unitUnitUris == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._unitUnitUris.length);
+      for (var x in this._unitUnitUris) {
+        signature.addInt(x);
+      }
+    }
+    if (this._units == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._units.length);
+      for (var x in this._units) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._elementKinds == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._elementKinds.length);
+      for (var x in this._elementKinds) {
+        signature.addInt(x.index);
+      }
+    }
+    if (this._strings == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._strings.length);
+      for (var x in this._strings) {
+        signature.addString(x);
+      }
+    }
+    if (this._elementNameClassMemberIds == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._elementNameClassMemberIds.length);
+      for (var x in this._elementNameClassMemberIds) {
+        signature.addInt(x);
+      }
+    }
+    if (this._elementNameParameterIds == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._elementNameParameterIds.length);
+      for (var x in this._elementNameParameterIds) {
+        signature.addInt(x);
+      }
+    }
   }
 
   List<int> toBuffer() {
@@ -2654,6 +3019,109 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
    * Flush [informative] data recursively.
    */
   void flushInformative() {
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addInt(this._unit ?? 0);
+    if (this._usedElementLengths == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._usedElementLengths.length);
+      for (var x in this._usedElementLengths) {
+        signature.addInt(x);
+      }
+    }
+    if (this._usedElementOffsets == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._usedElementOffsets.length);
+      for (var x in this._usedElementOffsets) {
+        signature.addInt(x);
+      }
+    }
+    if (this._usedElements == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._usedElements.length);
+      for (var x in this._usedElements) {
+        signature.addInt(x);
+      }
+    }
+    if (this._usedElementKinds == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._usedElementKinds.length);
+      for (var x in this._usedElementKinds) {
+        signature.addInt(x.index);
+      }
+    }
+    if (this._definedNames == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._definedNames.length);
+      for (var x in this._definedNames) {
+        signature.addInt(x);
+      }
+    }
+    if (this._definedNameKinds == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._definedNameKinds.length);
+      for (var x in this._definedNameKinds) {
+        signature.addInt(x.index);
+      }
+    }
+    if (this._definedNameOffsets == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._definedNameOffsets.length);
+      for (var x in this._definedNameOffsets) {
+        signature.addInt(x);
+      }
+    }
+    if (this._usedNames == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._usedNames.length);
+      for (var x in this._usedNames) {
+        signature.addInt(x);
+      }
+    }
+    if (this._usedNameOffsets == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._usedNameOffsets.length);
+      for (var x in this._usedNameOffsets) {
+        signature.addInt(x);
+      }
+    }
+    if (this._usedNameKinds == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._usedNameKinds.length);
+      for (var x in this._usedNameKinds) {
+        signature.addInt(x.index);
+      }
+    }
+    if (this._usedElementIsQualifiedFlags == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._usedElementIsQualifiedFlags.length);
+      for (var x in this._usedElementIsQualifiedFlags) {
+        signature.addBool(x);
+      }
+    }
+    if (this._usedNameIsQualifiedFlags == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._usedNameIsQualifiedFlags.length);
+      for (var x in this._usedNameIsQualifiedFlags) {
+        signature.addBool(x);
+      }
+    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -3089,6 +3557,66 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
     _typeParameters?.forEach((b) => b.flushInformative());
   }
 
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._name ?? '');
+    if (this._executables == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._executables.length);
+      for (var x in this._executables) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    signature.addBool(this._supertype != null);
+    this._supertype?.collectApiSignature(signature);
+    if (this._fields == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._fields.length);
+      for (var x in this._fields) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._annotations == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._annotations.length);
+      for (var x in this._annotations) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._interfaces == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._interfaces.length);
+      for (var x in this._interfaces) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    signature.addBool(this._isAbstract == true);
+    if (this._typeParameters == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._typeParameters.length);
+      for (var x in this._typeParameters) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._mixins == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._mixins.length);
+      for (var x in this._mixins) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    signature.addBool(this._isMixinApplication == true);
+    signature.addBool(this._hasNoSupertype == true);
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_annotations;
     fb.Offset offset_codeRange;
@@ -3397,6 +3925,28 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
     _offset = null;
   }
 
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._shows == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._shows.length);
+      for (var x in this._shows) {
+        signature.addString(x);
+      }
+    }
+    if (this._hides == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._hides.length);
+      for (var x in this._hides) {
+        signature.addString(x);
+      }
+    }
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_hides;
     fb.Offset offset_shows;
@@ -3591,6 +4141,61 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
    */
   void flushInformative() {
     _references?.forEach((b) => b.flushInformative());
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._operations == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._operations.length);
+      for (var x in this._operations) {
+        signature.addInt(x.index);
+      }
+    }
+    if (this._ints == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._ints.length);
+      for (var x in this._ints) {
+        signature.addInt(x);
+      }
+    }
+    if (this._references == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._references.length);
+      for (var x in this._references) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._strings == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._strings.length);
+      for (var x in this._strings) {
+        signature.addString(x);
+      }
+    }
+    if (this._doubles == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._doubles.length);
+      for (var x in this._doubles) {
+        signature.addDouble(x);
+      }
+    }
+    signature.addBool(this._isValidConst == true);
+    if (this._assignmentOperators == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._assignmentOperators.length);
+      for (var x in this._assignmentOperators) {
+        signature.addInt(x.index);
+      }
+    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -3816,6 +4421,32 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
     _expression?.flushInformative();
   }
 
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._name ?? '');
+    signature.addBool(this._expression != null);
+    this._expression?.collectApiSignature(signature);
+    signature.addInt(this._kind == null ? 0 : this._kind.index);
+    if (this._arguments == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._arguments.length);
+      for (var x in this._arguments) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._argumentNames == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._argumentNames.length);
+      for (var x in this._argumentNames) {
+        signature.addString(x);
+      }
+    }
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_argumentNames;
     fb.Offset offset_arguments;
@@ -3978,6 +4609,15 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
    * Flush [informative] data recursively.
    */
   void flushInformative() {
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addInt(this._length ?? 0);
+    signature.addString(this._text ?? '');
+    signature.addInt(this._offset ?? 0);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -4143,6 +4783,29 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
     _documentationComment = null;
     _nameOffset = null;
     _values?.forEach((b) => b.flushInformative());
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._name ?? '');
+    if (this._values == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._values.length);
+      for (var x in this._values) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._annotations == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._annotations.length);
+      for (var x in this._annotations) {
+        x?.collectApiSignature(signature);
+      }
+    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -4321,6 +4984,13 @@ class UnlinkedEnumValueBuilder extends Object with _UnlinkedEnumValueMixin imple
   void flushInformative() {
     _documentationComment = null;
     _nameOffset = null;
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._name ?? '');
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -4830,6 +5500,71 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     _redirectedConstructor?.flushInformative();
     _returnType?.flushInformative();
     _typeParameters?.forEach((b) => b.flushInformative());
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._name ?? '');
+    if (this._parameters == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._parameters.length);
+      for (var x in this._parameters) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    signature.addBool(this._returnType != null);
+    this._returnType?.collectApiSignature(signature);
+    signature.addInt(this._kind == null ? 0 : this._kind.index);
+    signature.addInt(this._inferredReturnTypeSlot ?? 0);
+    if (this._annotations == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._annotations.length);
+      for (var x in this._annotations) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    signature.addBool(this._isFactory == true);
+    signature.addBool(this._isStatic == true);
+    signature.addBool(this._isAbstract == true);
+    signature.addBool(this._isExternal == true);
+    signature.addBool(this._isConst == true);
+    signature.addBool(this._isRedirectedConstructor == true);
+    if (this._constantInitializers == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._constantInitializers.length);
+      for (var x in this._constantInitializers) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    signature.addBool(this._redirectedConstructor != null);
+    this._redirectedConstructor?.collectApiSignature(signature);
+    if (this._typeParameters == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._typeParameters.length);
+      for (var x in this._typeParameters) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    signature.addString(this._redirectedConstructorName ?? '');
+    if (this._localFunctions == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._localFunctions.length);
+      for (var x in this._localFunctions) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    signature.addInt(this._visibleLength ?? 0);
+    signature.addInt(this._visibleOffset ?? 0);
+    signature.addInt(this._constCycleSlot ?? 0);
+    signature.addBool(this._bodyExpr != null);
+    this._bodyExpr?.collectApiSignature(signature);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -5351,6 +6086,20 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
     _uriOffset = null;
   }
 
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._annotations == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._annotations.length);
+      for (var x in this._annotations) {
+        x?.collectApiSignature(signature);
+      }
+    }
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_annotations;
     if (!(_annotations == null || _annotations.isEmpty)) {
@@ -5472,6 +6221,21 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
    */
   void flushInformative() {
     _combinators?.forEach((b) => b.flushInformative());
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._uri ?? '');
+    if (this._combinators == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._combinators.length);
+      for (var x in this._combinators) {
+        x?.collectApiSignature(signature);
+      }
+    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -5688,6 +6452,32 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
     _prefixOffset = null;
     _uriEnd = null;
     _uriOffset = null;
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._uri ?? '');
+    if (this._combinators == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._combinators.length);
+      for (var x in this._combinators) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    signature.addBool(this._isImplicit == true);
+    signature.addInt(this._prefixReference ?? 0);
+    if (this._annotations == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._annotations.length);
+      for (var x in this._annotations) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    signature.addBool(this._isDeferred == true);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -5917,6 +6707,15 @@ class UnlinkedLabelBuilder extends Object with _UnlinkedLabelMixin implements id
    */
   void flushInformative() {
     _nameOffset = null;
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._name ?? '');
+    signature.addBool(this._isOnSwitchMember == true);
+    signature.addBool(this._isOnSwitchStatement == true);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -6209,6 +7008,39 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     _type?.flushInformative();
   }
 
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._name ?? '');
+    signature.addInt(this._inferredTypeSlot ?? 0);
+    signature.addBool(this._type != null);
+    this._type?.collectApiSignature(signature);
+    signature.addInt(this._kind == null ? 0 : this._kind.index);
+    signature.addBool(this._isFunctionTyped == true);
+    signature.addBool(this._isInitializingFormal == true);
+    if (this._parameters == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._parameters.length);
+      for (var x in this._parameters) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._annotations == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._annotations.length);
+      for (var x in this._annotations) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    signature.addInt(this._visibleLength ?? 0);
+    signature.addInt(this._visibleOffset ?? 0);
+    signature.addBool(this._initializer != null);
+    this._initializer?.collectApiSignature(signature);
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_annotations;
     fb.Offset offset_codeRange;
@@ -6494,6 +7326,20 @@ class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements idl.
     _uriOffset = null;
   }
 
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._annotations == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._annotations.length);
+      for (var x in this._annotations) {
+        x?.collectApiSignature(signature);
+      }
+    }
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_annotations;
     if (!(_annotations == null || _annotations.isEmpty)) {
@@ -6634,6 +7480,23 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
    */
   void flushInformative() {
     _members?.forEach((b) => b.flushInformative());
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._name ?? '');
+    signature.addInt(this._kind == null ? 0 : this._kind.index);
+    if (this._members == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._members.length);
+      for (var x in this._members) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    signature.addInt(this._numTypeParameters ?? 0);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -6779,6 +7642,36 @@ class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespac
     _names?.forEach((b) => b.flushInformative());
   }
 
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._names == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._names.length);
+      for (var x in this._names) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._parts == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._parts.length);
+      for (var x in this._parts) {
+        signature.addString(x);
+      }
+    }
+    if (this._exports == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._exports.length);
+      for (var x in this._exports) {
+        x?.collectApiSignature(signature);
+      }
+    }
+  }
+
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "UPNS");
@@ -6913,6 +7806,14 @@ class UnlinkedReferenceBuilder extends Object with _UnlinkedReferenceMixin imple
    * Flush [informative] data recursively.
    */
   void flushInformative() {
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._name ?? '');
+    signature.addInt(this._prefixReference ?? 0);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -7092,6 +7993,39 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
     _parameters?.forEach((b) => b.flushInformative());
     _returnType?.flushInformative();
     _typeParameters?.forEach((b) => b.flushInformative());
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._name ?? '');
+    signature.addBool(this._returnType != null);
+    this._returnType?.collectApiSignature(signature);
+    if (this._parameters == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._parameters.length);
+      for (var x in this._parameters) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._annotations == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._annotations.length);
+      for (var x in this._annotations) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._typeParameters == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._typeParameters.length);
+      for (var x in this._typeParameters) {
+        x?.collectApiSignature(signature);
+      }
+    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -7328,6 +8262,23 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
     _bound?.flushInformative();
     _codeRange = null;
     _nameOffset = null;
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._name ?? '');
+    signature.addBool(this._bound != null);
+    this._bound?.collectApiSignature(signature);
+    if (this._annotations == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._annotations.length);
+      for (var x in this._annotations) {
+        x?.collectApiSignature(signature);
+      }
+    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -7684,6 +8635,96 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     _references?.forEach((b) => b.flushInformative());
     _typedefs?.forEach((b) => b.flushInformative());
     _variables?.forEach((b) => b.flushInformative());
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addBool(this._publicNamespace != null);
+    this._publicNamespace?.collectApiSignature(signature);
+    if (this._references == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._references.length);
+      for (var x in this._references) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._classes == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._classes.length);
+      for (var x in this._classes) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._variables == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._variables.length);
+      for (var x in this._variables) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._executables == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._executables.length);
+      for (var x in this._executables) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._imports == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._imports.length);
+      for (var x in this._imports) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    signature.addString(this._libraryName ?? '');
+    if (this._typedefs == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._typedefs.length);
+      for (var x in this._typedefs) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._parts == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._parts.length);
+      for (var x in this._parts) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._enums == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._enums.length);
+      for (var x in this._enums) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._exports == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._exports.length);
+      for (var x in this._exports) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._libraryAnnotations == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._libraryAnnotations.length);
+      for (var x in this._libraryAnnotations) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    signature.addString(this._fallbackModePath ?? '');
   }
 
   List<int> toBuffer() {
@@ -8197,6 +9238,32 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     _initializer?.flushInformative();
     _nameOffset = null;
     _type?.flushInformative();
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._name ?? '');
+    signature.addInt(this._propagatedTypeSlot ?? 0);
+    signature.addBool(this._type != null);
+    this._type?.collectApiSignature(signature);
+    signature.addBool(this._isStatic == true);
+    signature.addBool(this._isConst == true);
+    signature.addBool(this._isFinal == true);
+    if (this._annotations == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._annotations.length);
+      for (var x in this._annotations) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    signature.addInt(this._inferredTypeSlot ?? 0);
+    signature.addInt(this._visibleLength ?? 0);
+    signature.addInt(this._visibleOffset ?? 0);
+    signature.addBool(this._initializer != null);
+    this._initializer?.collectApiSignature(signature);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {

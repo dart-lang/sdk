@@ -588,6 +588,16 @@ class C2 implements A, B {
 ''');
   }
 
+  void test_constructors_downwardsWithConstraint() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26431
+    checkFile(r'''
+class Foo<T extends Iterable> {}
+void main() {
+  Foo<List> foo = /*info:INFERRED_TYPE_ALLOCATION*/new Foo();
+}
+    ''');
+  }
+
   void test_constructors_inferenceFBounded() {
     // Regression for https://github.com/dart-lang/sdk/issues/26990
     var unit = checkFile('''
@@ -2508,6 +2518,42 @@ main() {
   ''');
   }
 
+  void test_inferLocalFunctionReturnType() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26414
+    var unit = checkFile(r'''
+main() {
+  f0() => 42;
+  f1() async => 42;
+
+  f2 /*info:INFERRED_TYPE_CLOSURE*/() { return 42; }
+  f3 /*info:INFERRED_TYPE_CLOSURE*/() async { return 42; }
+  f4 /*info:INFERRED_TYPE_CLOSURE*/() sync* { yield 42; }
+  f5 /*info:INFERRED_TYPE_CLOSURE*/() async* { yield 42; }
+
+  num f6() => 42;
+
+  f7() => f7();
+  f8() => /*error:REFERENCED_BEFORE_DECLARATION*/f9();
+  f9() => f5();
+}
+''');
+    var fns = unit.functions[0].functions;
+    expect(fns[0].type.toString(), '() → int');
+    expect(fns[1].type.toString(), '() → Future<int>');
+
+    expect(fns[2].type.toString(), '() → int');
+    expect(fns[3].type.toString(), '() → Future<int>');
+    expect(fns[4].type.toString(), '() → Iterable<int>');
+    expect(fns[5].type.toString(), '() → Stream<int>');
+
+    expect(fns[6].type.toString(), '() → num');
+
+    // Recursive cases: these infer in declaration order.
+    expect(fns[7].type.toString(), '() → dynamic');
+    expect(fns[8].type.toString(), '() → dynamic');
+    expect(fns[9].type.toString(), '() → Stream<int>');
+  }
+
   void test_inferred_nonstatic_field_depends_on_static_field_complex() {
     var mainUnit = checkFile('''
 class C {
@@ -3616,6 +3662,23 @@ test1() {
 ''');
   }
 
+  void test_nullCoalescingOperator() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26552
+    checkFile(r'''
+List<int> x;
+var y = x ?? /*info:INFERRED_TYPE_LITERAL*/[];
+List<int> z = y;
+    ''');
+    // Don't do anything if we already have a context type.
+    var unit = checkFile(r'''
+List<int> x;
+List<num> y = x ?? /*info:INFERRED_TYPE_LITERAL*/[];
+    ''');
+
+    expect(unit.topLevelVariables[1].initializer.returnType.toString(),
+        'List<num>');
+  }
+
   void test_nullLiteralShouldNotInferAsBottom() {
     // Regression test for https://github.com/dart-lang/dev_compiler/issues/47
     checkFile(r'''
@@ -3906,10 +3969,9 @@ class C {
   }
 
   void test_unsafeBlockClosureInference_closureCall() {
-    // Note: this is a DYNAMIC_INVOKE due to dartbug.com/26962.
+    // Regression test for https://github.com/dart-lang/sdk/issues/26962
     var mainUnit = checkFile('''
-var v = /*info:DYNAMIC_INVOKE*/((x) => 1.0)(
-  /*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
+var v = ((x) => 1.0)(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
 ''');
     var v = mainUnit.topLevelVariables[0];
     expect(v.name, 'v');
@@ -4075,11 +4137,9 @@ var v = f(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
   }
 
   void test_unsafeBlockClosureInference_functionCall_noTypeParam_viaExpr() {
-    // TODO(paulberry): why is the call to f() considered a DYNAMIC_INVOKE?
     var mainUnit = checkFile('''
 double f(x) => 1.0;
-var v = /*info:DYNAMIC_INVOKE*/(f)(
-  /*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
+var v = (f)(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
 ''');
     var v = mainUnit.topLevelVariables[0];
     expect(v.name, 'v');

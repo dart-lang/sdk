@@ -33,7 +33,7 @@ class FlagListElement extends HtmlElement implements Renderable {
   Stream<RenderedEvent<FlagListElement>> get onRendered => _r.onRendered;
 
   M.VMRef _vm;
-  Stream<M.VMUpdateEvent> _vmUpdates;
+  M.EventRepository _events;
   M.FlagsRepository _repository;
   M.NotificationRepository _notifications;
   Iterable<M.Flag> _flags;
@@ -41,18 +41,18 @@ class FlagListElement extends HtmlElement implements Renderable {
   M.VMRef get vm => _vm;
 
   factory FlagListElement(M.VMRef vm,
-                          Stream<M.VMUpdateEvent> vmUpdates,
+                          M.EventRepository events,
                           M.FlagsRepository repository,
                           M.NotificationRepository notifications,
                           {RenderingQueue queue}) {
     assert(vm != null);
-    assert(vmUpdates != null);
+    assert(events != null);
     assert(repository != null);
     assert(notifications != null);
     FlagListElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._vm = vm;
-    e._vmUpdates = vmUpdates;
+    e._events = events;
     e._repository = repository;
     e._notifications = notifications;
     return e;
@@ -63,8 +63,8 @@ class FlagListElement extends HtmlElement implements Renderable {
   @override
   void attached() {
     super.attached();
-    _r.enable();
     _refresh();
+    _r.enable();
   }
 
   @override
@@ -103,7 +103,7 @@ class FlagListElement extends HtmlElement implements Renderable {
       new NavBarElement(queue: _r.queue)
         ..children = [
           new NavTopMenuElement(queue: _r.queue),
-          new NavVMMenuElement(_vm, _vmUpdates, queue: _r.queue),
+          new NavVMMenuElement(_vm, _events, queue: _r.queue),
           new NavMenuElement('flags', link: Uris.flags(), last: true,
                              queue: _r.queue),
           new NavRefreshElement(queue: _r.queue)
@@ -124,9 +124,11 @@ class FlagListElement extends HtmlElement implements Renderable {
     ];
   }
 
-  Future _refresh() async {
-    _flags = await _repository.list(_vm);
-    _r.dirty();
+  Future _refresh() {
+    return _repository.list().then((flags) {
+      _flags = flags;
+      _r.dirty();
+    });
   }
 
   static bool _isModified(M.Flag flag) => flag.modified;

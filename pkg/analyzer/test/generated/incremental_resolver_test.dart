@@ -1348,6 +1348,24 @@ class A {
 ''');
   }
 
+  void test_true_emptyLine_betweenClassMembers_insert_beforeComment() {
+    _resolveUnit(r'''
+class A {
+  a() {}
+  /// BBB
+  b() {}
+}
+''');
+    _updateAndValidate(r'''
+class A {
+  a() {}
+
+  /// BBB
+  b() {}
+}
+''');
+  }
+
   void test_true_emptyLine_betweenClassMembers_remove() {
     _resolveUnit(r'''
 class A {
@@ -1364,7 +1382,25 @@ class A {
 ''');
   }
 
-  void test_true_emptyLine_betweenCompilationUnitMembers_insert() {
+  void test_true_emptyLine_betweenClassMembers_remove_beforeComment() {
+    _resolveUnit(r'''
+class A {
+  a() {}
+
+  /// BBB
+  b() {}
+}
+''');
+    _updateAndValidate(r'''
+class A {
+  a() {}
+  /// BBB
+  b() {}
+}
+''');
+  }
+
+  void test_true_emptyLine_betweenUnitMembers_insert() {
     _resolveUnit(r'''
 a() {}
 b() {}
@@ -1376,7 +1412,23 @@ b() {}
 ''');
   }
 
-  void test_true_emptyLine_betweenCompilationUnitMembers_remove() {
+  void test_true_emptyLine_betweenUnitMembers_insert_beforeComment() {
+    _resolveUnit(r'''
+a() {}
+
+// BBB
+b() {}
+''');
+    _updateAndValidate(r'''
+a() {}
+
+
+// BBB
+b() {}
+''');
+  }
+
+  void test_true_emptyLine_betweenUnitMembers_remove() {
     _resolveUnit(r'''
 a() {
   print(1)
@@ -1395,6 +1447,20 @@ b() {
   foo(42);
 }
 foo(String p) {}
+''');
+  }
+
+  void test_true_emptyLine_betweenUnitMembers_remove_beforeComment() {
+    _resolveUnit(r'''
+a() {}
+
+// BBB
+b() {}
+''');
+    _updateAndValidate(r'''
+a() {}
+// BBB
+b() {}
 ''');
   }
 

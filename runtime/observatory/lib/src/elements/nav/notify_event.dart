@@ -26,6 +26,7 @@ class NavNotifyEventElement extends HtmlElement implements Renderable {
   Stream<EventDeleteEvent> get onDelete => _onDelete.stream;
 
   M.Event _event;
+  
   M.Event get event => _event;
 
   factory NavNotifyEventElement(M.Event event, {RenderingQueue queue}) {

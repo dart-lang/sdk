@@ -80,7 +80,6 @@ class MockCompiler extends Compiler {
        bool disableTypeInference: false,
        bool analyzeAll: false,
        bool analyzeOnly: false,
-       bool emitJavaScript: true,
        bool preserveComments: false,
        // Our unit tests check code generation output that is
        // affected by inlining support.
@@ -106,7 +105,6 @@ class MockCompiler extends Compiler {
               disableTypeInference: disableTypeInference,
               analyzeAll: analyzeAll,
               analyzeOnly: analyzeOnly,
-              emitJavaScript: emitJavaScript,
               preserveComments: preserveComments,
               trustTypeAnnotations: trustTypeAnnotations,
               trustJSInteropTypeAnnotations: trustJSInteropTypeAnnotations,
