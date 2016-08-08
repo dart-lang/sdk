@@ -159,6 +159,30 @@ class C extends B {
     // No assertions--just make sure it doesn't crash.
   }
 
+  void test_bundle_refers_to_bundle() {
+    var bundle1 = createPackageBundle(
+        '''
+var x = 0;
+''',
+        path: '/a.dart');
+    addBundle('/a.ds', bundle1);
+    var bundle2 = createPackageBundle(
+        '''
+import "a.dart";
+var y = x;
+''',
+        path: '/b.dart');
+    addBundle('/a.ds', bundle1);
+    addBundle('/b.ds', bundle2);
+    createLinker('''
+import "b.dart";
+var z = y;
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    expect(_getVariable(library.getContainedName('z')).inferredType.toString(),
+        'int');
+  }
+
   void test_constCycle_viaLength() {
     createLinker('''
 class C {
@@ -206,7 +230,7 @@ const x = [const C()];
 var x = () {};
 ''',
         path: '/a.dart');
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
 var y = x;
@@ -228,7 +252,7 @@ class D {
 class E {}
 ''',
         path: '/a.dart');
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
 var y = C.x;
@@ -341,7 +365,7 @@ var x;
 var y = x; // Inferred type: dynamic
 ''',
         path: '/a.dart');
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
 var z = y; // Inferred type: dynamic
@@ -359,7 +383,7 @@ class C {
 }
 ''',
         path: '/a.dart');
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
 var x = new C().f; // Inferred type: int
@@ -377,7 +401,7 @@ class C {
 }
 ''',
         path: '/a.dart');
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
 class D {
@@ -400,7 +424,7 @@ class C extends B {
 }
 ''',
         path: '/a.dart');
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
 var x = new C().f(0); // Inferred type: int
@@ -421,7 +445,7 @@ class C extends B {
 }
 ''',
         path: '/a.dart');
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
 class D extends C {
@@ -448,7 +472,7 @@ class C extends B {
 }
 ''',
         path: '/a.dart');
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
 var x = new C().f(); // Inferred type: int
@@ -469,7 +493,7 @@ class C extends B {
 }
 ''',
         path: '/a.dart');
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
 class D extends C {
@@ -486,7 +510,7 @@ class D extends C {
   void test_inferredTypeFromOutsideBuildUnit_staticField() {
     var bundle =
         createPackageBundle('class C { static var f = 0; }', path: '/a.dart');
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('import "a.dart"; var x = C.f;', path: '/b.dart');
     expect(
         _getVariable(linker
@@ -499,7 +523,7 @@ class D extends C {
 
   void test_inferredTypeFromOutsideBuildUnit_topLevelVariable() {
     var bundle = createPackageBundle('var a = 0;', path: '/a.dart');
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('import "a.dart"; var b = a;', path: '/b.dart');
     expect(
         _getVariable(linker
@@ -670,7 +694,7 @@ var x = {
         ref.localIndex = 1234;
       }
     }
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
 var y = x;
