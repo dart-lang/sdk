@@ -8659,6 +8659,17 @@ library foo;''';
         expectedTargetUnit: 2);
   }
 
+  test_lineStarts() {
+    String text = '''
+int foo;
+class Test {}
+
+int bar;'''
+        .replaceAll('\r\n', '\n');
+    serializeLibraryText(text);
+    expect(unlinkedUnits[0].lineStarts, [0, 9, 23, 24]);
+  }
+
   test_linked_reference_reuse() {
     if (skipFullyLinkedData) {
       return;

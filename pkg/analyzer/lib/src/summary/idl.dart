@@ -2660,6 +2660,13 @@ abstract class UnlinkedUnit extends base.SummaryClass {
   int get libraryNameOffset;
 
   /**
+   * Offsets of the first character of each line in the source code.
+   */
+  @informative
+  @Id(17)
+  List<int> get lineStarts;
+
+  /**
    * Part declarations in the compilation unit.
    */
   @Id(11)

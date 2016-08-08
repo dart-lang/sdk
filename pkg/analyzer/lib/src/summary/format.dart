@@ -8406,6 +8406,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   String _libraryName;
   int _libraryNameLength;
   int _libraryNameOffset;
+  List<int> _lineStarts;
   List<UnlinkedPartBuilder> _parts;
   UnlinkedPublicNamespaceBuilder _publicNamespace;
   List<UnlinkedReferenceBuilder> _references;
@@ -8544,6 +8545,17 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   }
 
   @override
+  List<int> get lineStarts => _lineStarts ??= <int>[];
+
+  /**
+   * Offsets of the first character of each line in the source code.
+   */
+  void set lineStarts(List<int> _value) {
+    assert(_value == null || _value.every((e) => e >= 0));
+    _lineStarts = _value;
+  }
+
+  @override
   List<UnlinkedPartBuilder> get parts => _parts ??= <UnlinkedPartBuilder>[];
 
   /**
@@ -8597,7 +8609,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     _variables = _value;
   }
 
-  UnlinkedUnitBuilder({List<UnlinkedClassBuilder> classes, CodeRangeBuilder codeRange, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, String fallbackModePath, List<UnlinkedImportBuilder> imports, List<UnlinkedConstBuilder> libraryAnnotations, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, String libraryName, int libraryNameLength, int libraryNameOffset, List<UnlinkedPartBuilder> parts, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables})
+  UnlinkedUnitBuilder({List<UnlinkedClassBuilder> classes, CodeRangeBuilder codeRange, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, String fallbackModePath, List<UnlinkedImportBuilder> imports, List<UnlinkedConstBuilder> libraryAnnotations, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, String libraryName, int libraryNameLength, int libraryNameOffset, List<int> lineStarts, List<UnlinkedPartBuilder> parts, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables})
     : _classes = classes,
       _codeRange = codeRange,
       _enums = enums,
@@ -8610,6 +8622,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
       _libraryName = libraryName,
       _libraryNameLength = libraryNameLength,
       _libraryNameOffset = libraryNameOffset,
+      _lineStarts = lineStarts,
       _parts = parts,
       _publicNamespace = publicNamespace,
       _references = references,
@@ -8630,6 +8643,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     _libraryDocumentationComment = null;
     _libraryNameLength = null;
     _libraryNameOffset = null;
+    _lineStarts = null;
     _parts?.forEach((b) => b.flushInformative());
     _publicNamespace?.flushInformative();
     _references?.forEach((b) => b.flushInformative());
@@ -8743,6 +8757,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     fb.Offset offset_libraryAnnotations;
     fb.Offset offset_libraryDocumentationComment;
     fb.Offset offset_libraryName;
+    fb.Offset offset_lineStarts;
     fb.Offset offset_parts;
     fb.Offset offset_publicNamespace;
     fb.Offset offset_references;
@@ -8777,6 +8792,9 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     }
     if (_libraryName != null) {
       offset_libraryName = fbBuilder.writeString(_libraryName);
+    }
+    if (!(_lineStarts == null || _lineStarts.isEmpty)) {
+      offset_lineStarts = fbBuilder.writeListUint32(_lineStarts);
     }
     if (!(_parts == null || _parts.isEmpty)) {
       offset_parts = fbBuilder.writeList(_parts.map((b) => b.finish(fbBuilder)).toList());
@@ -8830,6 +8848,9 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     if (_libraryNameOffset != null && _libraryNameOffset != 0) {
       fbBuilder.addUint32(8, _libraryNameOffset);
     }
+    if (offset_lineStarts != null) {
+      fbBuilder.addOffset(17, offset_lineStarts);
+    }
     if (offset_parts != null) {
       fbBuilder.addOffset(11, offset_parts);
     }
@@ -8879,6 +8900,7 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
   String _libraryName;
   int _libraryNameLength;
   int _libraryNameOffset;
+  List<int> _lineStarts;
   List<idl.UnlinkedPart> _parts;
   idl.UnlinkedPublicNamespace _publicNamespace;
   List<idl.UnlinkedReference> _references;
@@ -8958,6 +8980,12 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
   }
 
   @override
+  List<int> get lineStarts {
+    _lineStarts ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 17, const <int>[]);
+    return _lineStarts;
+  }
+
+  @override
   List<idl.UnlinkedPart> get parts {
     _parts ??= const fb.ListReader<idl.UnlinkedPart>(const _UnlinkedPartReader()).vTableGet(_bc, _bcOffset, 11, const <idl.UnlinkedPart>[]);
     return _parts;
@@ -9004,6 +9032,7 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
     if (libraryName != '') _result["libraryName"] = libraryName;
     if (libraryNameLength != 0) _result["libraryNameLength"] = libraryNameLength;
     if (libraryNameOffset != 0) _result["libraryNameOffset"] = libraryNameOffset;
+    if (lineStarts.isNotEmpty) _result["lineStarts"] = lineStarts;
     if (parts.isNotEmpty) _result["parts"] = parts.map((_value) => _value.toJson()).toList();
     if (publicNamespace != null) _result["publicNamespace"] = publicNamespace.toJson();
     if (references.isNotEmpty) _result["references"] = references.map((_value) => _value.toJson()).toList();
@@ -9026,6 +9055,7 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
     "libraryName": libraryName,
     "libraryNameLength": libraryNameLength,
     "libraryNameOffset": libraryNameOffset,
+    "lineStarts": lineStarts,
     "parts": parts,
     "publicNamespace": publicNamespace,
     "references": references,

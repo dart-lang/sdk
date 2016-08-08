@@ -184,19 +184,19 @@ class LineInfo {
    * A list containing the offsets of the first character of each line in the
    * source code.
    */
-  final List<int> _lineStarts;
+  final List<int> lineStarts;
 
   /**
-   * The zero-based [_lineStarts] index resulting from the last call to
+   * The zero-based [lineStarts] index resulting from the last call to
    * [getLocation].
    */
   int _previousLine = 0;
 
   /**
    * Initialize a newly created set of line information to represent the data
-   * encoded in the given list of [_lineStarts].
+   * encoded in the given list of [lineStarts].
    */
-  factory LineInfo(List<int> _lineStarts) => new LineInfoWithCount(_lineStarts);
+  factory LineInfo(List<int> lineStarts) => new LineInfoWithCount(lineStarts);
 
   /**
    * Initialize a newly created set of line information corresponding to the
@@ -207,12 +207,12 @@ class LineInfo {
 
   /**
    * Initialize a newly created set of line information to represent the data
-   * encoded in the given list of [_lineStarts].
+   * encoded in the given list of [lineStarts].
    */
-  LineInfo._(this._lineStarts) {
-    if (_lineStarts == null) {
+  LineInfo._(this.lineStarts) {
+    if (lineStarts == null) {
       throw new IllegalArgumentException("lineStarts must be non-null");
-    } else if (_lineStarts.length < 1) {
+    } else if (lineStarts.length < 1) {
       throw new IllegalArgumentException("lineStarts must be non-empty");
     }
   }
@@ -220,26 +220,26 @@ class LineInfo {
   /**
    * The number of lines.
    */
-  int get lineCount => _lineStarts.length;
+  int get lineCount => lineStarts.length;
 
   /**
    * Return the location information for the character at the given [offset].
    */
   LineInfo_Location getLocation(int offset) {
     var min = 0;
-    var max = _lineStarts.length - 1;
+    var max = lineStarts.length - 1;
 
     // Subsequent calls to [getLocation] are often for offsets near each other.
     // To take advantage of that, we cache the index of the line start we found
     // when this was last called. If the current offset is on that line or
     // later, we'll skip those early indices completely when searching.
-    if (offset >= _lineStarts[_previousLine]) {
+    if (offset >= lineStarts[_previousLine]) {
       min = _previousLine;
 
       // Before kicking off a full binary search, do a quick check here to see
       // if the new offset is on that exact line.
-      if (min == _lineStarts.length - 1 || offset < _lineStarts[min + 1]) {
-        return new LineInfo_Location(min + 1, offset - _lineStarts[min] + 1);
+      if (min == lineStarts.length - 1 || offset < lineStarts[min + 1]) {
+        return new LineInfo_Location(min + 1, offset - lineStarts[min] + 1);
       }
     }
 
@@ -247,7 +247,7 @@ class LineInfo {
     while (min < max) {
       var midpoint = (max - min + 1) ~/ 2 + min;
 
-      if (_lineStarts[midpoint] > offset) {
+      if (lineStarts[midpoint] > offset) {
         max = midpoint - 1;
       } else {
         min = midpoint;
@@ -256,7 +256,7 @@ class LineInfo {
 
     _previousLine = min;
 
-    return new LineInfo_Location(min + 1, offset - _lineStarts[min] + 1);
+    return new LineInfo_Location(min + 1, offset - lineStarts[min] + 1);
   }
 
   /**
@@ -268,7 +268,7 @@ class LineInfo {
       throw new ArgumentError(
           'Invalid line number: $lineNumber; must be between 0 and ${lineCount - 1}');
     }
-    return _lineStarts[lineNumber];
+    return lineStarts[lineNumber];
   }
 }
 
@@ -310,14 +310,9 @@ class LineInfo_Location {
 class LineInfoWithCount extends LineInfo {
   /**
    * Initialize a newly created set of line information to represent the data
-   * encoded in the given list of [_lineStarts].
+   * encoded in the given list of [lineStarts].
    */
-  LineInfoWithCount(List<int> _lineStarts) : super._(_lineStarts);
-
-  /**
-   * Return the number of lines in the file.
-   */
-  int get lineCount => _lineStarts.length;
+  LineInfoWithCount(List<int> lineStarts) : super._(lineStarts);
 }
 
 /**

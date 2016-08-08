@@ -20,6 +20,7 @@ import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart'
     show PackageBundleAssembler;
 import 'package:analyzer/task/dart.dart' show PARSED_UNIT;
+import 'package:analyzer/task/general.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
@@ -791,7 +792,9 @@ abstract class _AstResynthesizeTestMixin {
     }
     return uriToUnit.putIfAbsent(uriStr, () {
       CompilationUnit unit = context.computeResult(source, PARSED_UNIT);
-      UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
+      LineInfo lineInfo = context.computeResult(source, LINE_INFO);
+      UnlinkedUnitBuilder unlinkedUnit =
+          serializeAstUnlinked(unit, lineInfo.lineStarts);
       bundleAssembler.addUnlinkedUnit(source, unlinkedUnit);
       return unlinkedUnit;
     });

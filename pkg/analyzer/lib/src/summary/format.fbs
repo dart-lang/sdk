@@ -2329,6 +2329,11 @@ table UnlinkedUnit {
   libraryNameOffset:uint (id: 8);
 
   /**
+   * Offsets of the first character of each line in the source code.
+   */
+  lineStarts:[uint] (id: 17);
+
+  /**
    * Part declarations in the compilation unit.
    */
   parts:[UnlinkedPart] (id: 11);

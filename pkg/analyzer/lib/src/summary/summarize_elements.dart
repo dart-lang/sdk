@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -450,6 +451,8 @@ class _CompilationUnitSerializer {
     }
     unlinkedUnit.variables = variables;
     unlinkedUnit.references = unlinkedReferences;
+    unlinkedUnit.lineStarts =
+        compilationUnit.context?.computeLineInfo(unitSource)?.lineStarts;
     linkedUnit.references = linkedReferences;
     unitUri = compilationUnit.source.uri.toString();
   }

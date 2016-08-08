@@ -25,6 +25,7 @@ import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer/task/general.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
@@ -358,7 +359,9 @@ class BuildMode {
       }
       return uriToUnit.putIfAbsent(uri, () {
         CompilationUnit unit = context.computeResult(source, PARSED_UNIT);
-        UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
+        LineInfo lineInfo = context.computeResult(source, LINE_INFO);
+        UnlinkedUnitBuilder unlinkedUnit =
+            serializeAstUnlinked(unit, lineInfo.lineStarts);
         assembler.addUnlinkedUnit(source, unlinkedUnit);
         return unlinkedUnit;
       });
