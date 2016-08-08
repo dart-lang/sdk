@@ -2,7 +2,37 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_backend;
+library js_backend.namer;
+
+import 'dart:collection' show HashMap;
+
+import 'package:js_runtime/shared/embedded_names.dart' show JsGetName;
+
+import '../closure.dart';
+import '../common.dart';
+import '../common/names.dart' show Identifiers, Names, Selectors, Uris;
+import '../compiler.dart' show Compiler;
+import '../constants/values.dart';
+import '../core_types.dart' show CoreClasses, CoreTypes;
+import '../dart_types.dart';
+import '../diagnostics/invariant.dart' show DEBUG_MODE;
+import '../elements/elements.dart';
+import '../js/js.dart' as jsAst;
+import '../js/js.dart' show js;
+import '../tree/tree.dart';
+import '../universe/call_structure.dart' show CallStructure;
+import '../universe/selector.dart' show Selector, SelectorKind;
+import '../util/characters.dart';
+import '../util/util.dart';
+import '../world.dart' show ClassWorld;
+import 'backend.dart';
+import 'backend_helpers.dart';
+import 'constant_system_javascript.dart';
+
+part 'field_naming_mixin.dart';
+part 'frequency_namer.dart';
+part 'minify_namer.dart';
+part 'namer_names.dart';
 
 /**
  * Assigns JavaScript identifiers to Dart variables, class-names and members.

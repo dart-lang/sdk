@@ -2,7 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_backend;
+import '../common.dart';
+import '../common/names.dart' show Identifiers, Names, Selectors, Uris;
+import '../compiler.dart' show Compiler;
+import '../elements/elements.dart';
+import '../tree/tree.dart';
+import '../types/types.dart';
+
+import 'backend.dart';
 
 /**
  * Categorizes `noSuchMethod` implementations.

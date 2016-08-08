@@ -4,7 +4,6 @@
 
 library js_backend.serialization;
 
-import '../common.dart';
 import '../common/backend_api.dart' show BackendSerialization;
 import '../dart_types.dart';
 import '../elements/elements.dart';
