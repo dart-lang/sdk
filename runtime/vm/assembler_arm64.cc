@@ -13,12 +13,6 @@
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 
-// An extra check since we are assuming the existence of /proc/cpuinfo below.
-#if !defined(USING_SIMULATOR) && !defined(__linux__) && !defined(ANDROID) && \
-    !TARGET_OS_IOS
-#error ARM64 cross-compile only supported on Linux
-#endif
-
 namespace dart {
 
 DECLARE_FLAG(bool, check_code_pointer);

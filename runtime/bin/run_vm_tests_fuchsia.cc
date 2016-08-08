@@ -33,11 +33,11 @@ const char* kSkip[] = {
   "Read",
   "FileLength",
   "FilePosition",
-  // Hangs.
+  // Crash and then Hang.
   "ArrayLengthMaxElements",
   "Int8ListLengthMaxElements",
+  // Crashes in realloc.
   "LargeMap",
-  "CompileFunctionOnHelperThread",
   // The profiler is turned off.
   "Profiler_AllocationSampleTest",
   "Profiler_ArrayAllocation",

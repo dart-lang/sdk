@@ -13,8 +13,6 @@
 
 namespace dart {
 
-static const intptr_t kTestStackSpace = 512 * kWordSize;
-
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(Simple, assembler) {
