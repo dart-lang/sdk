@@ -133,7 +133,7 @@ abstract class ConstantExpression {
   /// if it contains positional or named references, used to define constant
   /// constructors.
   // TODO(johnniwinther): Maybe make this final if we use it outside assertions.
-  bool get isPotential => true;
+  bool get isPotential => false;
 }
 
 /// A synthetic constant used to recover from errors.
@@ -193,9 +193,6 @@ class SyntheticConstantExpression extends ConstantExpression {
   }
 
   ConstantExpressionKind get kind => ConstantExpressionKind.SYNTHETIC;
-
-  @override
-  bool get isPotential => false;
 
   @override
   bool get isImplicit => false;
@@ -1270,9 +1267,7 @@ class PositionalArgumentReference extends ConstantExpression {
   }
 
   @override
-  bool get isPotential {
-    return true;
-  }
+  bool get isPotential => true;
 }
 
 /// A reference to a named parameter.
@@ -1311,9 +1306,7 @@ class NamedArgumentReference extends ConstantExpression {
   }
 
   @override
-  bool get isPotential {
-    return true;
-  }
+  bool get isPotential => true;
 }
 
 abstract class FromEnvironmentConstantExpression extends ConstantExpression {

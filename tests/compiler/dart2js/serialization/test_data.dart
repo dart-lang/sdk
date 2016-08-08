@@ -644,6 +644,35 @@ test() {
 }
 ''',
   }),
+
+  const Test('Use of dart:indexed_db', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+import 'dart:indexed_db';
+''',
+  }),
+
+  const Test('Deferred static access', const {},
+      preserializedSourceFiles: const {
+    'main.dart': '''
+import 'b.dart' deferred as prefix;
+
+main() => prefix.loadLibrary().then((_) => prefix.test2());
+''',
+    'b.dart': '''
+test2() => x;
+var x = const ConstClass(const ConstClass(1));
+class ConstClass {
+  final x;
+  const ConstClass(this.x);
+}
+''',
+  }),
 ];
 
 class Test {
