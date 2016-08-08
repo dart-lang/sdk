@@ -1095,7 +1095,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   nativeGetOption(int option, int protocol) native "Socket_GetOption";
   bool nativeSetOption(int option, int protocol, value)
       native "Socket_SetOption";
-  bool nativeJoinMulticast(
+  OSError nativeJoinMulticast(
       List<int> addr, List<int> interfaceAddr, int interfaceIndex)
           native "Socket_JoinMulticast";
   bool nativeLeaveMulticast(

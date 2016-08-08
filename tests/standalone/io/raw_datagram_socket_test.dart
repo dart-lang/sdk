@@ -195,6 +195,25 @@ testLoopbackMulticast() {
   }
 }
 
+testLoopbackMulticastError() {
+  var bindAddress = InternetAddress.ANY_IP_V4;
+  var multicastAddress = new InternetAddress("228.0.0.4");
+  asyncStart();
+  Future.wait([
+      RawDatagramSocket.bind(bindAddress, 0, reuseAddress: false),
+      RawDatagramSocket.bind(bindAddress, 0, reuseAddress: false)])
+    .then((values) {
+      var sender = values[0];
+      var receiver = values[1];
+      Expect.throws(
+          () { sender.joinMulticast(new InternetAddress("127.0.0.1")); },
+          (e) => e is! TypeError);
+      sender.close();
+      receiver.close();
+      asyncEnd();
+    });
+}
+
 testSendReceive(InternetAddress bindAddress, int dataSize) {
   asyncStart();
 
@@ -320,6 +339,7 @@ main() {
   }
   testBroadcast();
   testLoopbackMulticast();
+  testLoopbackMulticastError();
   testSendReceive(InternetAddress.LOOPBACK_IP_V4, 1000);
   testSendReceive(InternetAddress.LOOPBACK_IP_V6, 1000);
   if (!Platform.isMacOS) {
