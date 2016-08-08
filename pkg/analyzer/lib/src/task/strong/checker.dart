@@ -21,22 +21,31 @@ import 'package:analyzer/src/generated/type_system.dart';
 
 import 'ast_properties.dart';
 
-bool isKnownFunction(Expression expression, {bool instanceMethods: false}) {
-  Element element = null;
+bool isKnownFunction(Expression expression) {
+  var element = _getKnownElement(expression);
+  // First class functions and static methods, where we know the original
+  // declaration, will have an exact type, so we know a downcast will fail.
+  return element is FunctionElement ||
+      element is MethodElement && element.isStatic;
+}
+
+bool _hasStrictArrow(Expression expression) {
+  var element = _getKnownElement(expression);
+  return element is FunctionElement || element is MethodElement;
+}
+
+Element _getKnownElement(Expression expression) {
   if (expression is ParenthesizedExpression) {
     expression = (expression as ParenthesizedExpression).expression;
   }
   if (expression is FunctionExpression) {
-    return true;
+    return expression.element;
   } else if (expression is PropertyAccess) {
-    element = expression.propertyName.staticElement;
+    return expression.propertyName.staticElement;
   } else if (expression is Identifier) {
-    element = expression.staticElement;
+    return expression.staticElement;
   }
-  // First class functions and static methods, where we know the original
-  // declaration, will have an exact type, so we know a downcast will fail.
-  return element is FunctionElement ||
-      element is MethodElement && (instanceMethods || element.isStatic);
+  return null;
 }
 
 DartType _elementType(Element e) {
@@ -111,6 +120,7 @@ _MemberTypeGetter _memberTypeGetter(ExecutableElement member) {
     if (baseMethod == null || baseMethod.isStatic) return null;
     return baseMethod.type;
   }
+
   return f;
 }
 
@@ -963,7 +973,7 @@ class CodeChecker extends RecursiveAstVisitor {
     DartType t = expr.staticType ?? DynamicTypeImpl.instance;
 
     // Remove fuzzy arrow if possible.
-    if (t is FunctionType && isKnownFunction(expr)) {
+    if (t is FunctionType && _hasStrictArrow(expr)) {
       t = rules.functionTypeToConcreteType(typeProvider, t);
     }
 
@@ -975,7 +985,7 @@ class CodeChecker extends RecursiveAstVisitor {
   /// for the possibility of a call method).  Returns null
   /// if expression is not statically callable.
   FunctionType _getTypeAsCaller(Expression node) {
-    DartType t = node.staticType;
+    DartType t = _getStaticType(node);
     if (node is SimpleIdentifier) {
       Expression parent = node.parent;
       if (parent is MethodInvocation) {
@@ -1004,7 +1014,7 @@ class CodeChecker extends RecursiveAstVisitor {
     // a dynamic parameter type requires a dynamic call in general.
     // However, as an optimization, if we have an original definition, we know
     // dynamic is reified as Object - in this case a regular call is fine.
-    if (isKnownFunction(call, instanceMethods: true)) {
+    if (_hasStrictArrow(call)) {
       return false;
     }
     return rules.anyParameterType(ft, (pt) => pt.isDynamic);
@@ -1288,6 +1298,7 @@ class _OverrideChecker {
         seen.add(e.name);
       }
     }
+
     subType.methods.forEach(checkHelper);
     subType.accessors.forEach(checkHelper);
   }

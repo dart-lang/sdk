@@ -2687,6 +2687,18 @@ class H implements F {
 ''');
   }
 
+  void test_methodTearoffStrictArrow() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26393
+    checkFile(r'''
+class A {
+  void foo(dynamic x) {}
+  void test(void f(int x)) {
+    test(foo);
+  }
+}
+    ''');
+  }
+
   void test_mixinOverrideOfGrandInterface_interfaceOfAbstractSuperclass() {
     checkFile('''
 class A {}
