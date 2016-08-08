@@ -1459,7 +1459,7 @@ DART_EXPORT void Dart_SetStickyError(Dart_Handle error) {
   if (isolate->sticky_error() != Error::null()) {
     FATAL1("%s expects there to be no sticky error.", CURRENT_FUNC);
   }
-  if (!Dart_IsUnhandledExceptionError(error)) {
+  if (!::Dart_IsUnhandledExceptionError(error)) {
     FATAL1("%s expects the error to be an unhandled exception error.",
             CURRENT_FUNC);
   }
