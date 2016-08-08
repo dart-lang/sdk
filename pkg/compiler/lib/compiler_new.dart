@@ -40,9 +40,9 @@ abstract class CompilerInput {
 /// files, source map files, dump info files, etc.
 abstract class CompilerOutput {
   /// Returns an [EventSink] that will serve as compiler output for the given
-  ///  component.
+  /// component.
   ///
-  ///  Components are identified by [name] and [extension]. By convention,
+  /// Components are identified by [name] and [extension]. By convention,
   /// the empty string [:"":] will represent the main script
   /// (corresponding to the script parameter of [compile]) even if the
   /// main script is a library. For libraries that are compiled

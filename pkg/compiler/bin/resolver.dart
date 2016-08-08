@@ -18,6 +18,8 @@ main(var argv) async {
   parser.addOption('deps', abbr: 'd', allowMultiple: true);
   parser.addOption('out', abbr: 'o');
   parser.addOption('library-root', abbr: 'l');
+  parser.addOption('packages', abbr: 'p');
+  parser.addOption('bazel-config');
   var args = parser.parse(argv);
 
   var resolutionInputs = args['deps']
@@ -27,17 +29,30 @@ main(var argv) async {
   var libraryRoot = root == null
       ? Platform.script.resolve('../../../sdk/')
       : currentDirectory.resolve(nativeToUriPath(root));
+
   var options = new CompilerOptions(
       libraryRoot: libraryRoot,
+      packageConfig: args['packages'] == null
+          ? null
+          : currentDirectory.resolve(args['packages']),
       resolveOnly: true,
       resolutionInputs: resolutionInputs,
       packagesDiscoveryProvider: findPackages);
-  var inputProvider = new CompilerSourceFileProvider();
+
+  var bazelConfigPath = args['bazel-config'];
+  var inputProvider = bazelConfigPath != null
+      ? new BazelInputProvider(bazelConfigPath)
+      : new CompilerSourceFileProvider();
+
   var outputProvider = const NullCompilerOutput();
   var diagnostics = new FormattingDiagnosticHandler(inputProvider);
-
   var compiler =
       new CompilerImpl(inputProvider, outputProvider, diagnostics, options);
+
+  if (args.rest.isEmpty) {
+    print('missing input files');
+    exit(1);
+  }
 
   var inputs = args.rest
       .map((uri) => currentDirectory.resolve(nativeToUriPath(uri)))
