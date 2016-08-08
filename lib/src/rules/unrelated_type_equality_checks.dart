@@ -133,8 +133,7 @@ class UnrelatedTypeEqualityChecks extends LintRule {
             name: 'unrelated_type_equality_checks',
             description: _desc,
             details: _details,
-            group: Group.errors,
-            maturity: Maturity.experimental) {
+            group: Group.errors) {
     _visitor = new _Visitor(this);
   }
 

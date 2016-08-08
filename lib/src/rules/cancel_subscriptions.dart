@@ -65,8 +65,7 @@ class CancelSubscriptions extends LintRule {
             name: 'cancel_subscriptions',
             description: _desc,
             details: _details,
-            group: Group.errors,
-            maturity: Maturity.experimental) {
+            group: Group.errors) {
     _visitor = new _Visitor(this);
   }
 
