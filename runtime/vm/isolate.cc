@@ -1513,6 +1513,13 @@ static void ShutdownIsolate(uword parameter) {
 }
 
 
+void Isolate::SetStickyError(RawError* sticky_error) {
+  ASSERT(sticky_error_ == Error::null());
+  sticky_error_ = sticky_error;
+  message_handler()->PausedOnExit(true);
+}
+
+
 void Isolate::Run() {
   message_handler()->Run(Dart::thread_pool(),
                          RunIsolate,

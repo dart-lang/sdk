@@ -1178,6 +1178,23 @@ DART_EXPORT void Dart_SetPausedOnExit(bool paused);
 
 
 /**
+ * Called when the embedder has caught a top level unhandled exception error
+ * in the current isolate. Also marks the isolate as paused at exit.
+ *
+ * NOTE: It is illegal to call this twice on the same isolate.
+ *
+ * \param error The unhandled exception error.
+ */
+DART_EXPORT void Dart_SetStickyError(Dart_Handle error);
+
+
+/**
+ * Does the current isolate have a sticky error?
+ */
+DART_EXPORT bool Dart_HasStickyError();
+
+
+/**
  * Handles the next pending message for the current isolate.
  *
  * May generate an unhandled exception error.

@@ -1450,6 +1450,32 @@ DART_EXPORT void Dart_SetPausedOnExit(bool paused) {
 }
 
 
+DART_EXPORT void Dart_SetStickyError(Dart_Handle error) {
+  Thread* thread = Thread::Current();
+  DARTSCOPE(thread);
+  Isolate* isolate = thread->isolate();
+  CHECK_ISOLATE(isolate);
+  NoSafepointScope no_safepoint_scope;
+  if (isolate->sticky_error() != Error::null()) {
+    FATAL1("%s expects there to be no sticky error.", CURRENT_FUNC);
+  }
+  if (!Dart_IsUnhandledExceptionError(error)) {
+    FATAL1("%s expects the error to be an unhandled exception error.",
+            CURRENT_FUNC);
+  }
+  isolate->SetStickyError(
+      Api::UnwrapErrorHandle(Z, error).raw());
+}
+
+
+DART_EXPORT bool Dart_HasStickyError() {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  NoSafepointScope no_safepoint_scope;
+  return isolate->sticky_error() != Error::null();
+}
+
+
 DART_EXPORT void Dart_ExitIsolate() {
   Thread* T = Thread::Current();
   CHECK_ISOLATE(T->isolate());

@@ -3618,6 +3618,19 @@ UNIT_TEST_CASE(SetMessageCallbacks) {
 }
 
 
+TEST_CASE(SetStickyError) {
+    const char* kScriptChars =
+      "main() => throw 'HI';";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle retobj = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT(Dart_IsError(retobj));
+  EXPECT(Dart_IsUnhandledExceptionError(retobj));
+  EXPECT(!Dart_HasStickyError());
+  Dart_SetStickyError(retobj);
+  EXPECT(Dart_HasStickyError());
+}
+
+
 TEST_CASE(TypeGetNonParamtericTypes) {
   const char* kScriptChars =
       "class MyClass0 {\n"
