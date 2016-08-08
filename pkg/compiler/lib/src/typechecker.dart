@@ -443,7 +443,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     if (result == null) {
       reporter.internalError(node, 'Type is null.');
     }
-    return _record(node, result);
+    return result;
   }
 
   void checkTypePromotion(Node node, TypePromotion typePromotion,
@@ -1149,24 +1149,6 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       }
     }
     return null;
-  }
-
-  static bool _fyiShown = false;
-  DartType _record(Node node, DartType type) {
-    if (node is! Expression) return type;
-    if (const bool.fromEnvironment('send_stats') &&
-        executableContext != null &&
-        // TODO(sigmund): enable also in core libs.
-        !executableContext.library.isPlatformLibrary &&
-        !type.isDynamic) {
-      if (!_fyiShown) {
-        print('FYI experiment to collect send stats is on: '
-            'caching types of expressions');
-        _fyiShown = true;
-      }
-      elements.typesCache[node] = type;
-    }
-    return type;
   }
 
   DartType visitSend(Send node) {
