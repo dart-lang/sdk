@@ -31,6 +31,17 @@ class B {
   }
 }
 
+class B1 {
+  Socket _socketB1;
+  Future init(filename) async {
+    _socketB1 = await Socket.connect(null /*address*/, 1234); // OK
+  }
+
+  void dispose(filename) {
+    _socketB1.destroy();
+  }
+}
+
 class C {
   final IOSink _sinkC; // OK
 

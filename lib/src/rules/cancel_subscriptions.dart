@@ -57,6 +57,9 @@ void someFunctionOK() {
 ```
 ''';
 
+bool _isSubscription(DartType type) => DartTypeUtilities.implementsInterface(
+    type, 'StreamSubscription', 'dart.async');
+
 class CancelSubscriptions extends LintRule {
   _Visitor _visitor;
 
@@ -76,14 +79,10 @@ class CancelSubscriptions extends LintRule {
 class _Visitor extends LeakDetectorVisitor {
   static const _cancelMethodName = 'cancel';
 
+  @override
+  Map<DartTypePredicate, String> predicates = {
+    _isSubscription: _cancelMethodName
+  };
+
   _Visitor(LintRule rule) : super(rule);
-
-  @override
-  String get methodName => _cancelMethodName;
-
-  @override
-  DartTypePredicate get predicate => _isSubscription;
 }
-
-bool _isSubscription(DartType type) => DartTypeUtilities.implementsInterface(
-    type, 'StreamSubscription', 'dart.async');

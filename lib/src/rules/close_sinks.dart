@@ -57,6 +57,12 @@ void someFunctionOK() {
 ```
 ''';
 
+bool _isSink(DartType type) =>
+    DartTypeUtilities.implementsInterface(type, 'Sink', 'dart.core');
+
+bool _isSocket(DartType type) =>
+    DartTypeUtilities.implementsInterface(type, 'Socket', 'dart.io');
+
 class CloseSinks extends LintRule {
   _Visitor _visitor;
 
@@ -75,15 +81,13 @@ class CloseSinks extends LintRule {
 
 class _Visitor extends LeakDetectorVisitor {
   static const _closeMethodName = 'close';
+  static const _destroyMethodName = 'destroy';
+
+  @override
+  Map<DartTypePredicate, String> predicates = {
+    _isSink: _closeMethodName,
+    _isSocket: _destroyMethodName
+  };
 
   _Visitor(LintRule rule) : super(rule);
-
-  @override
-  String get methodName => _closeMethodName;
-
-  @override
-  DartTypePredicate get predicate => _isSink;
 }
-
-bool _isSink(DartType type) =>
-    DartTypeUtilities.implementsInterface(type, 'Sink', 'dart.core');
