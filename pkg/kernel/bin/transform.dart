@@ -75,7 +75,7 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
     writeProgramToText(program, output);
   } else {
     assert(format == 'bin');
-    writeProgramToBinary(program, output);
+    await writeProgramToBinary(program, output);
   }
 
   if (verbose) {
