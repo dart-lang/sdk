@@ -3,10 +3,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+import 'dart:io';
+
 import 'package:args/args.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/checks.dart' as checks;
 import 'package:kernel/transformations/continuation.dart' as cont;
+
+import 'batch_util.dart';
 
 ArgParser parser = new ArgParser()
   ..addOption('format',
@@ -28,11 +33,23 @@ ArgParser parser = new ArgParser()
       help: 'The transformation to apply.',
       defaultsTo: 'continuation');
 
-main(List<String> args) {
-  ArgResults result = parser.parse(args);
+main(List<String> arguments) async {
+  if (arguments.isNotEmpty && arguments[0] == '--batch') {
+    if (arguments.length != 1) {
+      throw '--batch cannot be used with other arguments';
+    }
+    await runBatch((arguments) => runTransformation(arguments));
+  } else {
+    CompilerOutcome outcome = await runTransformation(arguments);
+    exit(outcome == CompilerOutcome.Ok ? 0 : 1);
+  }
+}
+
+Future<CompilerOutcome> runTransformation(List<String> arguments) async {
+  ArgResults result = parser.parse(arguments);
 
   if (result.rest.length != 1) {
-    throw "Usage:\n${parser.usage}";
+    throw 'Usage:\n${parser.usage}';
   }
 
   var input = result.rest.first;
@@ -64,4 +81,6 @@ main(List<String> args) {
   if (verbose) {
     writeLibraryToText(program.mainMethod.parent as Library, null);
   }
+
+  return CompilerOutcome.Ok;
 }
