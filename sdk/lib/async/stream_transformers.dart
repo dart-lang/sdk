@@ -109,7 +109,7 @@ class _SinkTransformerStreamSubscription<S, T>
     if (_isSubscribed) {
       StreamSubscription subscription = _subscription;
       _subscription = null;
-      return subscription.cancel();
+      subscription.cancel();
     }
     return null;
   }

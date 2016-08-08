@@ -16,12 +16,6 @@
   * Report a better error when a bind fails because of a bad source address.
   * Handle HTTP header `charset` parameter with empty value.
 
-* `dart:async`
-  * More aggressively returns a Future on Stream.cancel operations.
-    Discourages to return `null` from `cancel`.
-  * Fixes a few bugs where the cancel future wasn't passed through
-    transformations.
-
 ### Strong Mode
 
 *   New feature - an option to disable implicit casts

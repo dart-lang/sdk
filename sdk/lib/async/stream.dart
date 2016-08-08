@@ -232,7 +232,6 @@ abstract class Stream<T> {
         onCancel: () {
           if (timer != null) timer.cancel();
           timer = null;
-          return Future._nullFuture;
         });
     return controller.stream;
   }
@@ -442,7 +441,7 @@ abstract class Stream<T> {
         onListen: onListen,
         onPause: () { subscription.pause(); },
         onResume: () { subscription.resume(); },
-        onCancel: () => subscription.cancel(),
+        onCancel: () { subscription.cancel(); },
         sync: true
       );
     }
@@ -500,7 +499,7 @@ abstract class Stream<T> {
         onListen: onListen,
         onPause: () { subscription.pause(); },
         onResume: () { subscription.resume(); },
-        onCancel: () => subscription.cancel(),
+        onCancel: () { subscription.cancel(); },
         sync: true
       );
     }
@@ -1408,10 +1407,7 @@ abstract class StreamSubscription<T> {
    * the subscription is canceled.
    *
    * Returns a future that is completed once the stream has finished
-   * its cleanup.
-   *
-   * For historical reasons, may also return `null` if no cleanup was necessary.
-   * Returning `null` is deprecated and should be avoided.
+   * its cleanup. May also return `null` if no cleanup was necessary.
    *
    * Typically, futures are returned when the stream needs to release resources.
    * For example, a stream might need to close an open file (as an asynchronous
@@ -1715,7 +1711,7 @@ abstract class StreamTransformer<S, T> {
    *             },
    *             onPause: () { subscription.pause(); },
    *             onResume: () { subscription.resume(); },
-   *             onCancel: () => subscription.cancel(),
+   *             onCancel: () { subscription.cancel(); },
    *             sync: true);
    *           return controller.stream.listen(null);
    *         });
