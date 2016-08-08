@@ -1768,7 +1768,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
 
   @override
   void visitSynthetic(SyntheticConstantValue constant, [_]) {
-    switch (constant.kind) {
+    switch (constant.valueKind) {
       case SyntheticConstantKind.DUMMY_INTERCEPTOR:
         add('dummy_receiver');
         break;
@@ -1888,7 +1888,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   @override
   int visitSynthetic(SyntheticConstantValue constant, [_]) {
-    switch (constant.kind) {
+    switch (constant.valueKind) {
       case SyntheticConstantKind.TYPEVARIABLE_REFERENCE:
         // These contain a deferred opaque index into metadata. There is nothing
         // we can access that is stable between compiles.  Luckily, since they

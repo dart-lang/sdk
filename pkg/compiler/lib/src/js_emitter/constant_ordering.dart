@@ -148,11 +148,11 @@ class _CompareVisitor implements ConstantValueVisitor<int, ConstantValue> {
     // as elements of a few constants.  If this becomes a source of instability,
     // we will need to add a total ordering on JavaScript ASTs including
     // deferred elements.
-    SyntheticConstantKind aKind = a.kind;
-    SyntheticConstantKind bKind = b.kind;
+    SyntheticConstantKind aKind = a.valueKind;
+    SyntheticConstantKind bKind = b.valueKind;
     int r = aKind.index - bKind.index;
     if (r != 0) return r;
-    switch (a.kind) {
+    switch (aKind) {
       case SyntheticConstantKind.DUMMY_INTERCEPTOR:
       case SyntheticConstantKind.EMPTY_VALUE:
         // Never emitted.
