@@ -1,10 +1,10 @@
-## 1.19.0
+git ## 1.19.0
 
 ### Language changes
 
-* The language now allows a final argument or parameter in an argument or
- parameter list to have an optional trailing comma. This can make long argument
- or parameter lists easier to maintain, as commas can be left as-is when
+* The language now allows a trailing comma after the last argument of a call and
+ the last parameter of a function declaration. This can make long argument or
+ parameter lists easier to maintain, as commas can be left as-is when
  reordering lines. For details, see SDK issue
  [26644](https://github.com/dart-lang/sdk/issues/26644).
 
