@@ -147,6 +147,25 @@ abstract class Annotator {
   String annotateField(Printer printer, Field node);
 }
 
+class InferredValueAnnotator implements Annotator {
+  const InferredValueAnnotator();
+
+  String annotateVariable(Printer printer, VariableDeclaration node) {
+    if (node.inferredValue == null) return null;
+    return printer.getInferredValueString(node.inferredValue);
+  }
+
+  String annotateReturn(Printer printer, FunctionNode node) {
+    if (node.inferredReturnValue == null) return null;
+    return printer.getInferredValueString(node.inferredReturnValue);
+  }
+
+  String annotateField(Printer printer, Field node) {
+    if (node.inferredValue == null) return null;
+    return printer.getInferredValueString(node.inferredValue);
+  }
+}
+
 /// A quick and dirty ambiguous text printer.
 class Printer extends Visitor<Null> {
   final NameSystem syntheticNames;
@@ -161,9 +180,11 @@ class Printer extends Visitor<Null> {
   static int SYMBOL = 2;
   int state = SPACE;
 
-  Printer(this.sink,
-      {NameSystem syntheticNames, this.importTable, this.annotator})
-      : this.syntheticNames = syntheticNames ?? new NameSystem();
+  Printer(this.sink, {NameSystem syntheticNames,
+                      this.importTable,
+                      this.annotator: const InferredValueAnnotator()})
+      : this.syntheticNames = syntheticNames ?? new NameSystem() {
+  }
 
   Printer._inner(Printer parent, this.importTable)
       : sink = parent.sink,

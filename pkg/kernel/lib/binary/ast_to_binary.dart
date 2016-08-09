@@ -113,6 +113,17 @@ class BinaryPrinter extends Visitor {
     }
   }
 
+  void writeOptionalInferredValue(InferredValue node) {
+    if (node == null) {
+      writeByte(Tag.Nothing);
+    } else {
+      writeByte(Tag.Something);
+      writeClassReference(node.baseClass, allowNull: true);
+      writeByte(node.baseClassKind.index);
+      writeByte(node.valueBits);
+    }
+  }
+
   void writeLibraryFile(Library library) {
     writeMagicWord(Tag.LibraryFile);
     _importTable = new LibraryImportTable(library);
@@ -153,12 +164,16 @@ class BinaryPrinter extends Visitor {
     writeUInt30(_globalIndexer[node]);
   }
 
-  void writeClassReference(Class node) {
+  void writeClassReference(Class node, {bool allowNull: false}) {
     if (node == null) {
-      throw 'I found an unresolved class reference. '
-          'The binary format does not support these yet.';
+      if (allowNull) {
+        writeByte(Tag.NullClassReference);
+      } else {
+        throw 'Expected a valid class reference to be valid but was `null`.';
+      }
+    } else {
+      node.acceptReference(this);
     }
-    node.acceptReference(this);
   }
 
   void writeMemberReference(Member node) {
@@ -284,6 +299,7 @@ class BinaryPrinter extends Visitor {
     writeByte(node.flags);
     writeName(node.name ?? '');
     writeNode(node.type);
+    writeOptionalInferredValue(node.inferredValue);
     writeOptionalNode(node.initializer);
   }
 
@@ -328,6 +344,7 @@ class BinaryPrinter extends Visitor {
     writeVariableDeclarationList(node.positionalParameters);
     writeVariableDeclarationList(node.namedParameters);
     writeNode(node.returnType);
+    writeOptionalInferredValue(node.inferredReturnValue);
     writeOptionalNode(node.body);
     _labelIndexer = oldLabels;
     _switchCaseIndexer = oldCases;
@@ -721,6 +738,7 @@ class BinaryPrinter extends Visitor {
     writeByte(node.flags);
     writeStringReference(node.name ?? '');
     writeNode(node.type);
+    writeOptionalInferredValue(node.inferredValue);
     writeOptionalNode(node.initializer);
   }
 

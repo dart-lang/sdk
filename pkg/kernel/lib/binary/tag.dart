@@ -94,6 +94,7 @@ class Tag {
   static const int SimpleInterfaceType = 96;
   static const int SimpleFunctionType = 97;
 
+  static const int NullClassReference = 99;
   static const int NormalClassReference = 100;
   static const int MixinClassReference = 101;
 

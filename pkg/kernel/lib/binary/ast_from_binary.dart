@@ -109,6 +109,16 @@ class BinaryBuilder {
     return string.isEmpty ? null : string;
   }
 
+  InferredValue readOptionalInferredValue() {
+    if (readAndCheckOptionTag()) {
+      Class baseClass = readClassReference(allowNull: true);
+      BaseClassKind baseClassKind = BaseClassKind.values[readByte()];
+      int valueBits = readByte();
+      return new InferredValue(baseClass, baseClassKind, valueBits);
+    }
+    return null;
+  }
+
   bool readAndCheckOptionTag() {
     int tag = readByte();
     if (tag == Tag.Nothing) {
@@ -226,11 +236,18 @@ class BinaryBuilder {
     return importTable[index];
   }
 
-  Class readClassReference() {
+  Class readClassReference({bool allowNull: false}) {
     int tag = readByte();
-    var library = readLibraryReference();
-    int index = readUInt();
-    return loader.getClassReference(library, tag, index);
+    if (tag == Tag.NullClassReference) {
+      if (!allowNull) {
+        throw 'Expected a valid class reference to be valid but was `null`.';
+      }
+      return null;
+    } else {
+      var library = readLibraryReference();
+      int index = readUInt();
+      return loader.getClassReference(library, tag, index);
+    }
   }
 
   Member readMemberReference() {
@@ -347,6 +364,7 @@ class BinaryBuilder {
     node.name = readName();
     debugPath.add(node.name?.name ?? 'field');
     node.type = readDartType();
+    node.inferredValue = readOptionalInferredValue();
     node.initializer = readExpressionOption();
     node.initializer?.parent = node;
     debugPath.removeLast();
@@ -409,6 +427,7 @@ class BinaryBuilder {
     var positional = readAndPushVariableDeclarationList();
     var named = readAndPushVariableDeclarationList();
     var returnType = readDartType();
+    var inferredReturnValue = readOptionalInferredValue();
     int oldLabelStackBase = labelStackBase;
     labelStackBase = labelStack.length;
     var body = readStatementOption();
@@ -421,6 +440,7 @@ class BinaryBuilder {
         positionalParameters: positional,
         namedParameters: named,
         returnType: returnType,
+        inferredReturnValue: inferredReturnValue,
         asyncMarker: asyncMarker);
   }
 
@@ -835,6 +855,7 @@ class BinaryBuilder {
     int flags = readByte();
     return new VariableDeclaration(readStringOrNullIfEmpty(),
         type: readDartType(),
+        inferredValue: readOptionalInferredValue(),
         initializer: readExpressionOption(),
         isFinal: flags & 0x1 != 0,
         isConst: flags & 0x2 != 0);

@@ -58,7 +58,7 @@ enum BaseClassKind { None, Exact, Subclass, Subtype, }
 /// Inferred values consist of two parts that each represent a set of values:
 /// its base class and its bitmask.  The InferredValue object represents the
 /// intersection of these two value sets.
-class InferredValue {
+class InferredValue extends Node {
   final Class baseClass;
   final BaseClassKind baseClassKind;
 
@@ -105,6 +105,12 @@ class InferredValue {
 
   /// True if the value must be null or a subtype of [baseClass].
   bool get isSubtype => baseClassKind == BaseClassKind.Subtype;
+
+  accept(Visitor v) => v.visitInferredValue(this);
+
+  visitChildren(Visitor v) {
+    baseClass?.acceptReference(v);
+  }
 }
 
 /// Defines bits representing value sets for use in [InferredValue.valueBits].
