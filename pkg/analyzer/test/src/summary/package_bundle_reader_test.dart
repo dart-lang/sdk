@@ -10,6 +10,7 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer/task/general.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
@@ -90,6 +91,19 @@ class ResynthesizerResultProviderTest {
     bool success = provider.compute(entry2, CONTAINING_LIBRARIES);
     expect(success, isTrue);
     expect(entry2.getValue(CONTAINING_LIBRARIES), unorderedEquals([source1]));
+  }
+
+  test_compute_LINE_INFO_hasLineStarts() {
+    when(unlinkedUnit1.lineStarts).thenReturn(<int>[10, 20, 30]);
+    bool success = provider.compute(entry1, LINE_INFO);
+    expect(success, isTrue);
+    expect(entry1.getValue(LINE_INFO).lineStarts, <int>[10, 20, 30]);
+  }
+
+  test_compute_LINE_INFO_emptyLineStarts() {
+    when(unlinkedUnit1.lineStarts).thenReturn(<int>[]);
+    bool success = provider.compute(entry1, LINE_INFO);
+    expect(success, isFalse);
   }
 
   test_compute_SOURCE_KIND_librarySource() {

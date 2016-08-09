@@ -17,10 +17,8 @@ import 'package:analyzer/src/summary/summarize_const_expr.dart';
 /**
  * Serialize all the declarations in [compilationUnit] to an unlinked summary.
  */
-UnlinkedUnitBuilder serializeAstUnlinked(
-    CompilationUnit compilationUnit, List<int> lineStarts) {
-  return new _SummarizeAstVisitor()
-      .serializeCompilationUnit(compilationUnit, lineStarts);
+UnlinkedUnitBuilder serializeAstUnlinked(CompilationUnit compilationUnit) {
+  return new _SummarizeAstVisitor().serializeCompilationUnit(compilationUnit);
 }
 
 /**
@@ -506,14 +504,14 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    * Main entry point for serializing an AST.
    */
   UnlinkedUnitBuilder serializeCompilationUnit(
-      CompilationUnit compilationUnit, List<int> lineStarts) {
+      CompilationUnit compilationUnit) {
     compilationUnit.directives.accept(this);
     if (!hasCoreBeenImported) {
       unlinkedImports.add(new UnlinkedImportBuilder(isImplicit: true));
     }
     compilationUnit.declarations.accept(this);
     UnlinkedUnitBuilder b = new UnlinkedUnitBuilder();
-    b.lineStarts = lineStarts;
+    b.lineStarts = compilationUnit.lineInfo?.lineStarts;
     b.libraryName = libraryName;
     b.libraryNameOffset = libraryNameOffset;
     b.libraryNameLength = libraryNameLength;

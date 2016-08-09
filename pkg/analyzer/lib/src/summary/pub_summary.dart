@@ -197,8 +197,7 @@ class PubSummaryManager {
         Uri uri = getUri(path);
         Source source = file.createSource(uri);
         CompilationUnit unit = _parse(source);
-        UnlinkedUnitBuilder unlinkedUnit =
-            serializeAstUnlinked(unit, unit.lineInfo.lineStarts);
+        UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
         assembler.addUnlinkedUnit(source, unlinkedUnit);
       }
     }

@@ -15,6 +15,7 @@ import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:path/path.dart' as pathos;
 
@@ -193,6 +194,15 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
                   context.sourceFactory.resolveUri(target, libraryUriString))
               .toList(growable: false);
           entry.setValue(result, librarySources, TargetedResult.EMPTY_LIST);
+          return true;
+        }
+        return false;
+      } else if (result == LINE_INFO) {
+        UnlinkedUnit unlinkedUnit = _dataStore.unlinkedMap[uriString];
+        List<int> lineStarts = unlinkedUnit.lineStarts;
+        if (lineStarts.isNotEmpty) {
+          LineInfo lineInfo = new LineInfo(lineStarts);
+          entry.setValue(result, lineInfo, TargetedResult.EMPTY_LIST);
           return true;
         }
         return false;

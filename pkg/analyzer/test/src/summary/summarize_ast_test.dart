@@ -10,7 +10,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -313,8 +312,7 @@ abstract class SummaryLinkerTest {
    */
   Source addNamedSource(String filePath, String contents) {
     CompilationUnit unit = _parseText(contents);
-    List<int> lineStarts = StringUtilities.computeLineStarts(contents);
-    UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit, lineStarts);
+    UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
     _filesToLink.uriToUnit[absUri(filePath)] = unlinkedUnit;
     // Tests using SummaryLinkerTest don't actually need the returned
     // Source, so we can safely return `null`.
@@ -324,9 +322,7 @@ abstract class SummaryLinkerTest {
   LinkerInputs createLinkerInputs(String text, {String path: '/test.dart'}) {
     Uri testDartUri = Uri.parse(absUri(path));
     CompilationUnit unit = _parseText(text);
-    List<int> lineStarts = StringUtilities.computeLineStarts(text);
-    UnlinkedUnitBuilder unlinkedDefiningUnit =
-        serializeAstUnlinked(unit, lineStarts);
+    UnlinkedUnitBuilder unlinkedDefiningUnit = serializeAstUnlinked(unit);
     _filesToLink.uriToUnit[testDartUri.toString()] = unlinkedDefiningUnit;
     LinkerInputs linkerInputs = new LinkerInputs(
         allowMissingFiles,
@@ -371,7 +367,9 @@ abstract class SummaryLinkerTest {
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, AnalysisErrorListener.NULL_LISTENER);
     parser.parseGenericMethods = true;
-    return parser.parseCompilationUnit(token);
+    CompilationUnit unit = parser.parseCompilationUnit(token);
+    unit.lineInfo = new LineInfo(scanner.lineStarts);
+    return unit;
   }
 }
 
