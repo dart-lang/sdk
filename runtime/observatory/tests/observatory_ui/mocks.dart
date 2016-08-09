@@ -16,6 +16,7 @@ part 'mocks/objects/event.dart';
 part 'mocks/objects/class.dart';
 part 'mocks/objects/flag.dart';
 part 'mocks/objects/function.dart';
+part 'mocks/objects/heap_space.dart';
 part 'mocks/objects/isolate.dart';
 part 'mocks/objects/library.dart';
 part 'mocks/objects/notification.dart';

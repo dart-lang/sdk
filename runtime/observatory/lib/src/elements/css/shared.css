@@ -61,12 +61,12 @@ h1 {
   white-space: nowrap;
 }
 
-a {
+a[href] {
   color: #0489c3;
   text-decoration: none;
 }
 
-a:hover {
+a[href]:hover {
   text-decoration: underline;
 }
 
@@ -461,6 +461,30 @@ function-ref-wrapped > a[href] {
   text-decoration: none;
 }
 
+/* isolate-counter-chart */
+
+isolate-counter-chart {
+  display: block;
+  position: relative;
+  height: 300px;
+  min-width: 350px;
+}
+isolate-counter-chart > div.host {
+  position: absolute;
+  left: 0;
+  bottom: 20px;
+  top: 5px;
+  right: 250px;
+}
+isolate-counter-chart > div.legend {
+  position: absolute;
+  width: 250px;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+}
+
 /* isolate-reconnect */
 
 isolate-reconnect div.doubleSpaced {
@@ -477,6 +501,38 @@ isolate-ref-wrapped > a[href]:hover {
 isolate-ref-wrapped > a[href] {
   color: #0489c3;
   text-decoration: none;
+}
+
+/* isolate-shared-summary */
+/* TODO(cbernaschina) fix isolate-shared-summary-wrapped
+to isolate-shared-summary when wrapper removed */
+
+isolate-shared-summary,
+isolate-shared-summary-wrapped {
+  display: block;
+  height: 300px;
+  position: relative;
+}
+isolate-shared-summary-wrapped > .menu {
+  float: right;
+  top: 0;
+  right: 0;
+}
+isolate-shared-summary-wrapped > isolate-counter-chart {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 230px;
+  clear: both;
+}
+isolate-shared-summary-wrapped .errorBox {
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  padding: 2em;
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: pre;
 }
 
 /* library-ref */

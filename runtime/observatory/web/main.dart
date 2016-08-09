@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:html';
 import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
 import 'package:observatory/elements.dart';
@@ -24,4 +25,6 @@ main() async {
   Logger.root.info('Polymer initialized');
   await Polymer.onReady;
   Logger.root.info('Polymer elements have been upgraded');
+  document.body.children
+      .insert(0, document.createElement('observatory-application'));
 }

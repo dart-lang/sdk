@@ -17,6 +17,7 @@ part 'src/models/objects/extension_data.dart';
 part 'src/models/objects/flag.dart';
 part 'src/models/objects/frame.dart';
 part 'src/models/objects/function.dart';
+part 'src/models/objects/heap_space.dart';
 part 'src/models/objects/instance.dart';
 part 'src/models/objects/isolate.dart';
 part 'src/models/objects/library.dart';
