@@ -504,7 +504,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     // * BlockFunctionBody, if we inferred a type from yield/return.
     // * we also normalize bottom to dynamic here.
     if (_strongMode && (computedType.isBottom || computedType.isDynamic)) {
-      computedType = InferenceContext.getType(body) ?? _dynamicType;
+      DartType contextType = InferenceContext.getContext(body);
+      if (contextType is FutureUnionType) {
+        // TODO(jmesserly): can we do something better here?
+        computedType = body.isAsynchronous ? contextType.type : _dynamicType;
+      } else {
+        computedType = contextType ?? _dynamicType;
+      }
       recordInference = !computedType.isDynamic;
     }
 
@@ -1970,8 +1976,17 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         }
       }
 
-      return ts.inferGenericFunctionCall(_typeProvider, fnType, paramTypes,
-          argTypes, InferenceContext.getType(node));
+      DartType returnContext = InferenceContext.getContext(node);
+      DartType returnType;
+      if (returnContext is FutureUnionType) {
+        returnType = fnType.returnType.isDartAsyncFuture
+            ? returnContext.futureOfType
+            : returnContext.type;
+      } else {
+        returnType = returnContext as DartType;
+      }
+      return ts.inferGenericFunctionCall(
+          _typeProvider, fnType, paramTypes, argTypes, returnType);
     }
     return null;
   }

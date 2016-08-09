@@ -121,9 +121,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     check("f2", _isFutureOfDynamic);
 
     check("f3", _isFutureOfInt);
-    // This should be int when we handle the implicit Future<T> | T union
-    // https://github.com/dart-lang/sdk/issues/25322
-    check("f4", _isFutureOfDynamic);
+    check("f4", _isFutureOfInt);
     check("f5", _isFutureOfInt);
 
     check("g0", _isFutureOfDynamic);
@@ -131,9 +129,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     check("g2", _isFutureOfDynamic);
 
     check("g3", _isFutureOfInt);
-    // This should be int when we handle the implicit Future<T> | T union
-    // https://github.com/dart-lang/sdk/issues/25322
-    check("g4", _isFutureOfDynamic);
+    check("g4", _isFutureOfInt);
     check("g5", _isFutureOfInt);
   }
 
@@ -181,9 +177,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     check("f2", _isFutureOfDynamic);
 
     check("f3", _isFutureOfInt);
-    // This should be int when we handle the implicit Future<T> | T union
-    // https://github.com/dart-lang/sdk/issues/25322
-    check("f4", _isFutureOfDynamic);
+    check("f4", _isFutureOfInt);
     check("f5", _isFutureOfInt);
 
     check("g0", _isFutureOfDynamic);
@@ -191,9 +185,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     check("g2", _isFutureOfDynamic);
 
     check("g3", _isFutureOfInt);
-    // This should be int when we handle the implicit Future<T> | T union
-    // https://github.com/dart-lang/sdk/issues/25322
-    check("g4", _isFutureOfDynamic);
+    check("g4", _isFutureOfInt);
     check("g5", _isFutureOfInt);
   }
 

@@ -4697,8 +4697,6 @@ class InferenceContext {
    * A stack of return types for all of the enclosing
    * functions and methods.
    */
-  // TODO(leafp) Handle the implicit union type for Futures
-  // https://github.com/dart-lang/sdk/issues/25322
   final List<DartType> _returnStack = <DartType>[];
 
   InferenceContext._(this._errorReporter, TypeProvider typeProvider,
@@ -4727,9 +4725,12 @@ class InferenceContext {
     if (_returnStack.isEmpty) {
       return;
     }
-    DartType inferred = _inferredReturn.last;
-    inferred = _typeSystem.getLeastUpperBound(_typeProvider, type, inferred);
-    _inferredReturn[_inferredReturn.length - 1] = inferred;
+    DartType context = _returnStack.last;
+    if (context is! FutureUnionType) {
+      DartType inferred = _inferredReturn.last;
+      inferred = _typeSystem.getLeastUpperBound(_typeProvider, type, inferred);
+      _inferredReturn[_inferredReturn.length - 1] = inferred;
+    }
   }
 
   /**
@@ -4766,8 +4767,7 @@ class InferenceContext {
    * Push a block function body's return type onto the return stack.
    */
   void pushReturnContext(BlockFunctionBody node) {
-    DartType returnType = getType(node);
-    _returnStack.add(returnType);
+    _returnStack.add(getContext(node));
     _inferredReturn.add(BottomTypeImpl.instance);
   }
 
@@ -4909,18 +4909,49 @@ class InferenceContext {
   }
 
   /**
+   * Look for a single contextual type attached to [node], and returns the type
+   * if found, otherwise null.
+   *
+   * If [node] has a contextual union type like `T | Future<T>` this will
+   * simplify it to only return `T`. If the caller can handle a union type,
+   * [getContext] should be used instead.
+   */
+  static DartType getType(AstNode node) {
+    DartType t = getContext(node);
+    if (t is FutureUnionType) {
+      return t.type;
+    }
+    return t;
+  }
+
+  /**
    * Look for contextual type information attached to [node].  Returns
    * the type if found, otherwise null.
+   *
+   * If [node] has a contextual union type like `T | Future<T>` this will be
+   * returned. You can use [getType] if you prefer to only get the `T`.
    */
-  static DartType getType(AstNode node) => node?.getProperty(_typeProperty);
+  static DartType getContext(AstNode node) => node?.getProperty(_typeProperty);
+
+  /**
+   * Like [getContext] but expands a union type into a list of types.
+   */
+  static Iterable<DartType> getTypes(AstNode node) {
+    DartType t = getContext(node);
+    if (t == null) {
+      return DartType.EMPTY_LIST;
+    }
+    if (t is FutureUnionType) {
+      return t.types;
+    }
+    return <DartType>[t];
+  }
 
   /**
    * Attach contextual type information [type] to [node] for use during
    * inference.
    */
   static void setType(AstNode node, DartType type) {
-    // TODO(jmesserly): this sets the type even when it's dynamic.
-    // Can we skip that?
     node?.setProperty(_typeProperty, type);
   }
 
@@ -4929,7 +4960,7 @@ class InferenceContext {
    * inference.
    */
   static void setTypeFromNode(AstNode innerNode, AstNode outerNode) {
-    setType(innerNode, getType(outerNode));
+    setType(innerNode, getContext(outerNode));
   }
 }
 
@@ -6013,13 +6044,11 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitAwaitExpression(AwaitExpression node) {
-    // TODO(leafp): Handle the implicit union type here
-    // https://github.com/dart-lang/sdk/issues/25322
-    DartType contextType = InferenceContext.getType(node);
+    DartType contextType = InferenceContext.getContext(node);
     if (contextType != null) {
-      InterfaceType futureT = typeProvider.futureType
-          .instantiate([contextType.flattenFutures(typeSystem)]);
-      InferenceContext.setType(node.expression, futureT);
+      var futureUnion =
+          FutureUnionType.from(contextType, typeProvider, typeSystem);
+      InferenceContext.setType(node.expression, futureUnion);
     }
     return super.visitAwaitExpression(node);
   }
@@ -6073,7 +6102,7 @@ class ResolverVisitor extends ScopedVisitor {
       if (operatorType == TokenType.QUESTION_QUESTION) {
         // Set the right side, either from the context, or using the information
         // from the left side if it is more precise.
-        DartType contextType = InferenceContext.getType(node);
+        DartType contextType = InferenceContext.getContext(node);
         DartType leftType = leftOperand?.staticType;
         if (contextType == null || contextType.isDynamic) {
           contextType = leftType;
@@ -6551,8 +6580,24 @@ class ResolverVisitor extends ScopedVisitor {
               matchFunctionTypeParameters(node.typeParameters, functionType);
           if (functionType is FunctionType) {
             _inferFormalParameterList(node.parameters, functionType);
-            DartType returnType =
-                _computeReturnOrYieldType(functionType.returnType);
+
+            DartType returnType;
+            if (_isFutureThenLambda(node)) {
+              var futureThenType =
+                  InferenceContext.getContext(node.parent) as FunctionType;
+
+              // Pretend the return type of Future<T>.then<S> first parameter is
+              //
+              //     T -> (S | Future<S>)
+              //
+              // We can't represent this in Dart so we populate it here during
+              // inference.
+              returnType = FutureUnionType.from(
+                  futureThenType.returnType, typeProvider, typeSystem);
+            } else {
+              returnType = _computeReturnOrYieldType(functionType.returnType);
+            }
+
             InferenceContext.setType(node.body, returnType);
           }
         }
@@ -6668,30 +6713,37 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
     TypeName classTypeName = node.constructorName.type;
     if (classTypeName.typeArguments == null) {
-      DartType contextType = InferenceContext.getType(node);
-      if (contextType is InterfaceType &&
-          contextType.typeArguments != null &&
-          contextType.typeArguments.length > 0) {
-        // TODO(jmesserly): for generic methods we use the
-        // StrongTypeSystemImpl.inferGenericFunctionCall, which appears to
-        // be a tad more powerful than matchTypes.
-        //
-        // For example it can infer this case:
-        //
-        //     class E<S, T> extends A<C<S>, T> { ... }
-        //     A<C<int>, String> a0 = /*infer<int, String>*/new E("hello");
-        //
-        // See _inferArgumentTypesFromContext in this file for use of it.
-        List<DartType> targs =
-            inferenceContext.matchTypes(classTypeName.type, contextType);
-        if (targs != null && targs.any((t) => !t.isDynamic)) {
-          ClassElement classElement = classTypeName.type.element;
-          InterfaceType rawType = classElement.type;
-          InterfaceType fullType =
-              rawType.substitute2(targs, rawType.typeArguments);
-          // The element resolver uses the type on the constructor name, so
-          // infer it first
-          typeAnalyzer.inferConstructorName(node.constructorName, fullType);
+      // Given a union of context types ` T0 | T1 | ... | Tn`, find the first
+      // valid instantiation `new C<Ti>`, if it exists.
+      // TODO(jmesserly): if we support union types for real, `new C<Ti | Tj>`
+      // will become a valid possibility. Right now the only allowed union is
+      // `T | Future<T>` so we can take a simple approach.
+      for (var contextType in InferenceContext.getTypes(node)) {
+        if (contextType is InterfaceType &&
+            contextType.typeArguments != null &&
+            contextType.typeArguments.isNotEmpty) {
+          // TODO(jmesserly): for generic methods we use the
+          // StrongTypeSystemImpl.inferGenericFunctionCall, which appears to
+          // be a tad more powerful than matchTypes.
+          //
+          // For example it can infer this case:
+          //
+          //     class E<S, T> extends A<C<S>, T> { ... }
+          //     A<C<int>, String> a0 = /*infer<int, String>*/new E("hello");
+          //
+          // See _inferArgumentTypesFromContext in this file for use of it.
+          List<DartType> targs =
+              inferenceContext.matchTypes(classTypeName.type, contextType);
+          if (targs != null && targs.any((t) => !t.isDynamic)) {
+            ClassElement classElement = classTypeName.type.element;
+            InterfaceType rawType = classElement.type;
+            InterfaceType fullType =
+                rawType.substitute2(targs, rawType.typeArguments);
+            // The element resolver uses the type on the constructor name, so
+            // infer it first
+            typeAnalyzer.inferConstructorName(node.constructorName, fullType);
+            break;
+          }
         }
       }
     }
@@ -6805,7 +6857,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitNamedExpression(NamedExpression node) {
-    InferenceContext.setType(node.expression, InferenceContext.getType(node));
+    InferenceContext.setTypeFromNode(node.expression, node);
     return super.visitNamedExpression(node);
   }
 
@@ -6819,7 +6871,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitParenthesizedExpression(ParenthesizedExpression node) {
-    InferenceContext.setType(node.expression, InferenceContext.getType(node));
+    InferenceContext.setTypeFromNode(node.expression, node);
     return super.visitParenthesizedExpression(node);
   }
 
@@ -6937,7 +6989,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitVariableDeclaration(VariableDeclaration node) {
-    InferenceContext.setType(node.initializer, InferenceContext.getType(node));
+    InferenceContext.setTypeFromNode(node.initializer, node);
     super.visitVariableDeclaration(node);
     VariableElement element = node.element;
     if (element.initializer != null && node.initializer != null) {
@@ -7081,21 +7133,22 @@ class ResolverVisitor extends ScopedVisitor {
     if (!isGenerator && !isAsynchronous) {
       return declaredType;
     }
-    if (isGenerator) {
-      if (declaredType is! InterfaceType) {
-        return null;
+    if (declaredType is InterfaceType) {
+      if (isGenerator) {
+        // If it's sync* we expect Iterable<T>
+        // If it's async* we expect Stream<T>
+        InterfaceType rawType = isAsynchronous
+            ? typeProvider.streamDynamicType
+            : typeProvider.iterableDynamicType;
+        // Match the types to instantiate the type arguments if possible
+        List<DartType> typeArgs =
+            inferenceContext.matchTypes(rawType, declaredType);
+        return (typeArgs?.length == 1) ? typeArgs[0] : null;
       }
-      // If it's synchronous, we expect Iterable<T>, otherwise Stream<T>
-      InterfaceType rawType = isAsynchronous
-          ? typeProvider.streamDynamicType
-          : typeProvider.iterableDynamicType;
-      // Match the types to instantiate the type arguments if possible
-      List<DartType> typeArgs =
-          inferenceContext.matchTypes(rawType, declaredType);
-      return (typeArgs?.length == 1) ? typeArgs[0] : null;
+      // async functions expect `Future<T> | T`
+      return new FutureUnionType(declaredType, typeProvider, typeSystem);
     }
-    // Must be asynchronous to reach here, so strip off any layers of Future
-    return declaredType.flattenFutures(typeSystem);
+    return declaredType;
   }
 
   /**
@@ -7337,6 +7390,19 @@ class ResolverVisitor extends ScopedVisitor {
       return _isAbruptTerminationStatement(statements[size - 1]);
     }
     return false;
+  }
+
+  /**
+   * Returns true if this expression is being passed to `Future.then`.
+   *
+   * If so we will apply special typing rules in strong mode, to handle the
+   * implicit union of `S | Future<S>`
+   */
+  bool _isFutureThenLambda(FunctionExpression node) {
+    Element element = node.staticParameterElement?.enclosingElement;
+    return element is MethodElement &&
+        element.name == 'then' &&
+        element.enclosingElement.type.isDartAsyncFuture;
   }
 
   /**
