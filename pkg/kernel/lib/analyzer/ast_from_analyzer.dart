@@ -297,51 +297,22 @@ class TypeScope extends ReferenceScope {
   }
 }
 
-/// Translates expressions, statements, and other constructs into [ast] nodes.
-///
-/// Naming convention:
-/// - `buildX` may not be given null as argument (it may crash the compiler).
-/// - `buildOptionalX` returns null or an empty list if given null
-/// - `buildMandatoryX` returns an invalid node if given null.
-class MemberScope extends TypeScope {
+class ExpressionScope extends TypeScope {
+  /// The library containing the code, currently at body level.
+  ast.Library currentLibrary;
   final Map<LocalElement, ast.VariableDeclaration> localVariables =
       <LocalElement, ast.VariableDeclaration>{};
-
-  /// A reference to the member currently being upgraded to body level.
-  final ast.Member currentMember;
 
   ExpressionBuilder _expressionBuilder;
   StatementBuilder _statementBuilder;
 
-  MemberScope(ReferenceLevelLoader loader, this.currentMember) : super(loader) {
-    assert(currentMember != null);
+  ExpressionScope(ReferenceLevelLoader loader, this.currentLibrary)
+      : super(loader) {
     _expressionBuilder = new ExpressionBuilder(this);
     _statementBuilder = new StatementBuilder(this);
   }
 
-  /// The library containing the code, currently at body level.
-  ast.Library get currentLibrary => currentMember.enclosingLibrary;
-
-  ast.Class get currentClass => currentMember.enclosingClass;
-
-  bool get allowThis => _memberHasThis(currentMember);
-
-  /// Returns a string for debugging use, indicating the location of the member
-  /// being built.
-  String get location {
-    var library = currentMember.enclosingLibrary?.importUri ?? '<No Library>';
-    var className = currentMember.enclosingClass == null
-        ? null
-        : (currentMember.enclosingClass?.name ?? '<Anonymous Class>');
-    var member =
-        currentMember.name?.name ?? '<Anonymous ${currentMember.runtimeType}>';
-    return [library, className, member].join('::');
-  }
-
-  bool _memberHasThis(ast.Member member) {
-    return member is ast.Procedure && !member.isStatic ||
-        member is ast.Constructor;
-  }
+  bool get allowThis => false; // Overridden by MemberScope.
 
   ast.Name buildName(SimpleIdentifier node) {
     return new ast.Name(node.name, currentLibrary);
@@ -478,6 +449,63 @@ class MemberScope extends TypeScope {
     }
     return declaration;
   }
+
+  ast.Expression buildAnnotation(Annotation annotation) {
+    Element element = annotation.element;
+    if (annotation.arguments == null) {
+      var target = resolveGet(element, null);
+      return target == null
+          ? new ast.InvalidExpression()
+          : new ast.StaticGet(target);
+    } else if (element is ConstructorElement && element.isConst) {
+      var target = resolveConstructor(element);
+      return target == null
+          ? new ast.InvalidExpression()
+          : new ast.ConstructorInvocation(
+              target, _expressionBuilder.buildArguments(annotation.arguments),
+              isConst: true);
+    } else {
+      return new ast.InvalidExpression();
+    }
+  }
+}
+
+/// Translates expressions, statements, and other constructs into [ast] nodes.
+///
+/// Naming convention:
+/// - `buildX` may not be given null as argument (it may crash the compiler).
+/// - `buildOptionalX` returns null or an empty list if given null
+/// - `buildMandatoryX` returns an invalid node if given null.
+class MemberScope extends ExpressionScope {
+  /// A reference to the member currently being upgraded to body level.
+  final ast.Member currentMember;
+
+  MemberScope(ReferenceLevelLoader loader, ast.Member currentMember)
+      : currentMember = currentMember,
+        super(loader, currentMember.enclosingLibrary) {
+    assert(currentMember != null);
+  }
+
+  ast.Class get currentClass => currentMember.enclosingClass;
+
+  bool get allowThis => _memberHasThis(currentMember);
+
+  /// Returns a string for debugging use, indicating the location of the member
+  /// being built.
+  String get location {
+    var library = currentMember.enclosingLibrary?.importUri ?? '<No Library>';
+    var className = currentMember.enclosingClass == null
+        ? null
+        : (currentMember.enclosingClass?.name ?? '<Anonymous Class>');
+    var member =
+        currentMember.name?.name ?? '<Anonymous ${currentMember.runtimeType}>';
+    return [library, className, member].join('::');
+  }
+
+  bool _memberHasThis(ast.Member member) {
+    return member is ast.Procedure && !member.isStatic ||
+        member is ast.Constructor;
+  }
 }
 
 class LabelStack {
@@ -495,7 +523,7 @@ class LabelStack {
 }
 
 class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
-  final MemberScope scope;
+  final ExpressionScope scope;
   final LabelStack breakStack, continueStack;
 
   StatementBuilder(this.scope, [this.breakStack, this.continueStack]);
@@ -851,7 +879,7 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
 
 class ExpressionBuilder
     extends GeneralizingAstVisitor /* <ast.Expression | Accessor> */ {
-  final MemberScope scope;
+  final ExpressionScope scope;
   final ast.VariableDeclaration cascadeReceiver;
   ExpressionBuilder(this.scope, [this.cascadeReceiver]);
 
@@ -1447,7 +1475,7 @@ class ExpressionBuilder
 }
 
 class StringLiteralPartBuilder extends GeneralizingAstVisitor<Null> {
-  final MemberScope scope;
+  final ExpressionScope scope;
   final List<ast.Expression> output;
   StringLiteralPartBuilder(this.scope, this.output);
 
@@ -1698,19 +1726,27 @@ class InitializerBuilder extends GeneralizingAstVisitor<ast.Initializer> {
 ///
 /// The enclosing library is assumed to be at body level already.
 class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
-  final TypeScope scope;
+  final ExpressionScope scope;
   final ast.Class currentClass;
   final ClassElement element;
   ast.Library get currentLibrary => currentClass.enclosingLibrary;
 
-  ClassBodyBuilder(ReferenceLevelLoader loader, this.currentClass, this.element)
-      : scope = new TypeScope(loader);
+  ClassBodyBuilder(
+      ReferenceLevelLoader loader, ast.Class currentClass, this.element)
+      : this.currentClass = currentClass,
+        scope = new ExpressionScope(loader, currentClass.enclosingLibrary);
 
   void build(CompilationUnitMember node) {
     if (node == null) {
       throw 'Missing class declaration for $element';
     }
     node.accept(this);
+  }
+
+  void addAnnotations(List<Annotation> annotations) {
+    for (var annotation in annotations) {
+      currentClass.addAnnotation(scope.buildAnnotation(annotation));
+    }
   }
 
   void addTypeParameterBounds(TypeParameterList typeParameters) {
@@ -1760,6 +1796,7 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
   }
 
   visitClassDeclaration(ClassDeclaration node) {
+    addAnnotations(node.metadata);
     ast.NormalClass classNode = currentClass;
     addTypeParameterBounds(node.typeParameters);
     // Build the super class reference and expand the 'with' clause into
@@ -1810,6 +1847,7 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
   static bool _isValuesField(FieldElement field) => field.name == 'values';
 
   visitEnumDeclaration(EnumDeclaration node) {
+    addAnnotations(node.metadata);
     ast.NormalClass classNode = currentClass;
     classNode.supertype = new ast.InterfaceType(scope.getRootClassReference());
     var intType =
@@ -1856,6 +1894,7 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
   }
 
   visitClassTypeAlias(ClassTypeAlias node) {
+    addAnnotations(node.metadata);
     assert(node.withClause != null && node.withClause.mixinTypes.isNotEmpty);
     ast.MixinClass classNode = currentClass;
     addTypeParameterBounds(node.typeParameters);
@@ -1986,6 +2025,12 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
             types: typeArguments))..parent = constructor);
   }
 
+  void addAnnotations(List<Annotation> annotations) {
+    for (var annotation in annotations) {
+      currentMember.addAnnotation(scope.buildAnnotation(annotation));
+    }
+  }
+
   visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.factoryKeyword != null) {
       buildFactoryConstructor(node);
@@ -1995,6 +2040,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
   }
 
   void buildGenerativeConstructor(ConstructorDeclaration node) {
+    addAnnotations(node.metadata);
     ast.Constructor constructor = currentMember;
     constructor.function = scope.buildFunctionNode(node.parameters, node.body,
         inferredReturnType: const ast.VoidType())..parent = constructor;
@@ -2030,6 +2076,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
   }
 
   void buildFactoryConstructor(ConstructorDeclaration node) {
+    addAnnotations(node.metadata);
     ast.Procedure procedure = currentMember;
     ClassElement classElement = node.element.enclosingElement;
     ast.NormalClass classNode = procedure.enclosingClass;
@@ -2074,6 +2121,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
   }
 
   visitMethodDeclaration(MethodDeclaration node) {
+    addAnnotations(node.metadata);
     ast.Procedure procedure = currentMember;
     procedure.function = scope.buildFunctionNode(node.parameters, node.body,
         returnType: node.returnType,
@@ -2084,6 +2132,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
   }
 
   visitVariableDeclaration(VariableDeclaration node) {
+    addAnnotations(node.metadata);
     ast.Field field = currentMember;
     field.type = scope.buildType(node.element.type);
     if (node.initializer != null) {

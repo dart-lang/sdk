@@ -251,6 +251,7 @@ class BinaryPrinter extends Visitor {
     writeByte(Tag.NormalClass);
     writeByte(node.isAbstract ? 1 : 0);
     writeStringReference(node.name ?? '');
+    writeNodeList(node.annotations);
     _typeParameterIndexer.push(node.typeParameters);
     writeNodeList(node.typeParameters);
     writeOptionalNode(node.supertype);
@@ -265,6 +266,7 @@ class BinaryPrinter extends Visitor {
     writeByte(Tag.MixinClass);
     writeByte(node.isAbstract ? 1 : 0);
     writeStringReference(node.name ?? '');
+    writeNodeList(node.annotations);
     _typeParameterIndexer.push(node.typeParameters);
     writeNodeList(node.typeParameters);
     writeNode(node.supertype);
@@ -279,6 +281,7 @@ class BinaryPrinter extends Visitor {
     writeByte(Tag.Constructor);
     writeByte(node.flags);
     writeName(node.name ?? '');
+    writeNodeList(node.annotations);
     assert(node.function.typeParameters.isEmpty);
     writeNode(node.function);
     writeNodeList(node.initializers);
@@ -290,6 +293,7 @@ class BinaryPrinter extends Visitor {
     writeByte(node.kind.index);
     writeByte(node.flags);
     writeName(node.name ?? '');
+    writeNodeList(node.annotations);
     writeOptionalNode(node.function);
   }
 
@@ -298,6 +302,7 @@ class BinaryPrinter extends Visitor {
     writeByte(Tag.Field);
     writeByte(node.flags);
     writeName(node.name ?? '');
+    writeNodeList(node.annotations);
     writeNode(node.type);
     writeOptionalInferredValue(node.inferredValue);
     writeOptionalNode(node.initializer);

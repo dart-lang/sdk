@@ -130,6 +130,16 @@ class BinaryBuilder {
     }
   }
 
+  List<Expression> readAnnotationList(TreeNode parent) {
+    int length = readUInt();
+    if (length == 0) return const <Expression>[];
+    List<Expression> list = new List<Expression>(length);
+    for (int i = 0; i < length; ++i) {
+      list[i] = readExpression()..parent = parent;
+    }
+    return list;
+  }
+
   void _fillTreeNodeList(
       List<TreeNode> list, TreeNode buildObject(), TreeNode parent) {
     list.length = readUInt();
@@ -322,6 +332,7 @@ class BinaryBuilder {
     int flags = readByte();
     node.isAbstract = flags & 0x1 != 0;
     node.name = readStringOrNullIfEmpty();
+    node.annotations = readAnnotationList(node);
     debugPath.add(node.name ?? 'normal-class');
     readAndPushTypeParameterList(node.typeParameters, node);
     node.supertype = readDartTypeOption();
@@ -343,6 +354,7 @@ class BinaryBuilder {
     int flags = readByte();
     node.isAbstract = flags & 0x1 != 0;
     node.name = readStringOrNullIfEmpty();
+    node.annotations = readAnnotationList(node);
     debugPath.add(node.name ?? 'mixin-class');
     readAndPushTypeParameterList(node.typeParameters, node);
     node.supertype = readDartType();
@@ -362,6 +374,7 @@ class BinaryBuilder {
     assert(tag == Tag.Field);
     node.flags = readByte();
     node.name = readName();
+    node.annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'field');
     node.type = readDartType();
     node.inferredValue = readOptionalInferredValue();
@@ -374,6 +387,7 @@ class BinaryBuilder {
     assert(tag == Tag.Constructor);
     node.flags = readByte();
     node.name = readName();
+    node.annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'constructor');
     node.function = readFunctionNode()..parent = node;
     pushVariableDeclarations(node.function.positionalParameters);
@@ -389,6 +403,7 @@ class BinaryBuilder {
     node.kind = ProcedureKind.values[kindIndex];
     node.flags = readByte();
     node.name = readName();
+    node.annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'procedure');
     node.function = readFunctionNodeOption();
     node.function?.parent = node;

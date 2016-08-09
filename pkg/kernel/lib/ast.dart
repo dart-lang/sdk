@@ -261,6 +261,12 @@ class Library extends TreeNode implements Comparable<Library> {
 /// should treat the two kinds of classes separately, but otherwise it is
 /// recommended to interface against [Class].
 abstract class Class extends TreeNode {
+  /// List of metadata annotations on the class.
+  ///
+  /// This defaults to an immutable empty list. Use [addAnnotation] to add
+  /// annotations if needed.
+  List<Expression> annotations = const <Expression>[];
+
   String name; // Cosmetic name.
   bool isAbstract;
   final List<TypeParameter> typeParameters;
@@ -343,6 +349,14 @@ abstract class Class extends TreeNode {
     }
   }
 
+  void addAnnotation(Expression node) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
+    annotations.add(node);
+    node.parent = this;
+  }
+
   accept(ClassVisitor v);
   acceptReference(ClassReferenceVisitor v);
 
@@ -387,6 +401,7 @@ class NormalClass extends Class {
   acceptReference(ClassReferenceVisitor v) => v.visitNormalClassReference(this);
 
   visitChildren(Visitor v) {
+    visitList(annotations, v);
     visitList(typeParameters, v);
     supertype?.accept(v);
     visitList(implementedTypes, v);
@@ -396,6 +411,7 @@ class NormalClass extends Class {
   }
 
   transformChildren(Transformer v) {
+    transformList(annotations, v, this);
     transformList(typeParameters, v, this);
     transformList(constructors, v, this);
     transformList(procedures, v, this);
@@ -440,6 +456,7 @@ class MixinClass extends Class {
   acceptReference(ClassReferenceVisitor v) => v.visitMixinClassReference(this);
 
   visitChildren(Visitor v) {
+    visitList(annotations, v);
     visitList(typeParameters, v);
     supertype?.accept(v);
     mixedInType?.accept(v);
@@ -448,6 +465,7 @@ class MixinClass extends Class {
   }
 
   transformChildren(Transformer v) {
+    transformList(annotations, v, this);
     transformList(typeParameters, v, this);
     transformList(constructors, v, this);
   }
@@ -458,6 +476,11 @@ class MixinClass extends Class {
 // ------------------------------------------------------------------------
 
 abstract class Member extends TreeNode {
+  /// List of metadata annotations on the class.
+  ///
+  /// This defaults to an immutable empty list. Use [addAnnotation] to add
+  /// annotations if needed.
+  List<Expression> annotations = const <Expression>[];
   Name name;
 
   Member(this.name);
@@ -482,6 +505,14 @@ abstract class Member extends TreeNode {
   /// Returns a possibly synthesized name for this member, consistent with
   /// the names used across all [toString] calls.
   String toString() => debugQualifiedMemberName(this);
+
+  void addAnnotation(Expression node) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
+    annotations.add(node);
+    node.parent = this;
+  }
 }
 
 /// A field declaration.
@@ -537,6 +568,7 @@ class Field extends Member {
   acceptReference(MemberReferenceVisitor v) => v.visitFieldReference(this);
 
   visitChildren(Visitor v) {
+    visitList(annotations, v);
     type?.accept(v);
     inferredValue?.accept(v);
     name?.accept(v);
@@ -544,6 +576,7 @@ class Field extends Member {
   }
 
   transformChildren(Transformer v) {
+    transformList(annotations, v, this);
     if (initializer != null) {
       initializer = initializer.accept(v);
       initializer?.parent = this;
@@ -600,12 +633,14 @@ class Constructor extends Member {
       v.visitConstructorReference(this);
 
   visitChildren(Visitor v) {
+    visitList(annotations, v);
     name?.accept(v);
     function?.accept(v);
     visitList(initializers, v);
   }
 
   transformChildren(Transformer v) {
+    transformList(annotations, v, this);
     if (function != null) {
       function = function.accept(v);
       function?.parent = this;
@@ -689,11 +724,13 @@ class Procedure extends Member {
   acceptReference(MemberReferenceVisitor v) => v.visitProcedureReference(this);
 
   visitChildren(Visitor v) {
+    visitList(annotations, v);
     name?.accept(v);
     function?.accept(v);
   }
 
   transformChildren(Transformer v) {
+    transformList(annotations, v, this);
     if (function != null) {
       function = function.accept(v);
       function?.parent = this;

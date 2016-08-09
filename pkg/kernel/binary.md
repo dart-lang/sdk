@@ -173,6 +173,7 @@ type NormalClass extends Class {
   Byte tag = 2;
   Byte flags (isAbstract);
   StringReference name;
+  List<Expression> annotations;
   List<TypeParameter> typeParameters;
   Option<InterfaceType> superClass;
   List<InterfaceType> implementedClasses;
@@ -185,6 +186,7 @@ type MixinClass extends Class {
   Byte tag = 3;
   Byte flags (isAbstract);
   StringReference name;
+  List<Expression> annotations;
   List<TypeParameter> typeParameters;
   InterfaceType firstSuperClass;
   InterfaceType secondSuperClass;
@@ -198,6 +200,7 @@ type Field extends Member {
   Byte tag = 4;
   Byte flags (isFinal, isConst, isStatic);
   Name name;
+  List<Expression> annotations;
   DartType type;
   Option<Expression> initializer;
 }
@@ -206,6 +209,7 @@ type Constructor extends Member {
   Byte tag = 5;
   Byte flags (isConst, isExternal);
   Name name;
+  List<Expression> annotations;
   FunctionNode function;
   List<Initializer> initializers;
 }
@@ -225,6 +229,7 @@ type Procedure extends Member {
   Byte kind; // Index into the ProcedureKind enum above.
   Byte flags (isStatic, isAbstract, isExternal, isConst);
   Name name;
+  List<Expression> annotations;
   // Can only be absent if abstract, but tag is there anyway.
   Option<FunctionNode> function;
 }

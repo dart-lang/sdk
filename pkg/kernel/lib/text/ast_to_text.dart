@@ -609,9 +609,28 @@ class Printer extends Visitor<Null> {
     }
   }
 
+  void writeAnnotation(Expression node) {
+    writeSymbol('@');
+    if (node is ConstructorInvocation) {
+      writeMemberReference(node.target);
+      visitArguments(node.arguments);
+    } else {
+      writeExpression(node);
+    }
+  }
+
+  void writeAnnotationList(List<Expression> nodes) {
+    for (Expression node in nodes) {
+      writeIndentation();
+      writeAnnotation(node);
+      endLine();
+    }
+  }
+
   visitLibrary(Library node) {}
 
   visitField(Field node) {
+    writeAnnotationList(node.annotations);
     writeIndentation();
     writeModifier(node.isStatic, 'static');
     writeModifier(node.isFinal, 'final');
@@ -627,6 +646,7 @@ class Printer extends Visitor<Null> {
   }
 
   visitProcedure(Procedure node) {
+    writeAnnotationList(node.annotations);
     writeIndentation();
     writeModifier(node.isExternal, 'external');
     writeModifier(node.isStatic, 'static');
@@ -636,6 +656,7 @@ class Printer extends Visitor<Null> {
   }
 
   visitConstructor(Constructor node) {
+    writeAnnotationList(node.annotations);
     writeIndentation();
     writeModifier(node.isExternal, 'external');
     writeModifier(node.isConst, 'const');
@@ -645,6 +666,7 @@ class Printer extends Visitor<Null> {
   }
 
   visitNormalClass(NormalClass node) {
+    writeAnnotationList(node.annotations);
     writeIndentation();
     writeModifier(node.isAbstract, 'abstract');
     writeWord('class');
@@ -669,6 +691,7 @@ class Printer extends Visitor<Null> {
   }
 
   visitMixinClass(MixinClass node) {
+    writeAnnotationList(node.annotations);
     writeIndentation();
     writeModifier(node.isAbstract, 'abstract');
     writeWord('mixin');
