@@ -9,25 +9,19 @@ import 'dart:html' show HttpRequest;
 import 'dart:convert' show BASE64;
 
 import 'package:analyzer/file_system/file_system.dart'
-    show ResourceProvider, ResourceUriResolver;
+    show ResourceUriResolver;
 import 'package:analyzer/file_system/memory_file_system.dart'
     show MemoryResourceProvider;
-import 'package:analyzer/src/context/cache.dart'
-    show AnalysisCache, CachePartition;
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisEngine, TimestampedData;
-import 'package:analyzer/src/generated/sdk.dart'
-    show DartSdk, SdkLibrary, SdkLibraryImpl;
 import 'package:analyzer/src/generated/source.dart'
-    show DartUriResolver, Source, SourceFactory, UriKind;
+    show DartUriResolver;
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
     show
-        SummaryDataStore,
-        InSummaryPackageUriResolver,
-        InputPackagesResultProvider,
-        InSummarySource;
+    SummaryDataStore,
+    InSummaryPackageUriResolver,
+    InputPackagesResultProvider,
+    InSummarySource;
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 
 import 'package:args/command_runner.dart';
@@ -43,6 +37,7 @@ typedef void MessageHandler(Object message);
 /// The command for invoking the modular compiler.
 class WebCompileCommand extends Command {
   get name => 'compile';
+
   get description => 'Compile a set of Dart files into a JavaScript module.';
   final MessageHandler messageHandler;
 
@@ -69,7 +64,7 @@ class WebCompileCommand extends Command {
 
       Future.wait(summaryRequests).then((summaryResponses) {
         // Map summary responses to summary bytes.
-        var summaryBytes = [];
+        var summaryBytes = <List<int>>[];
         for (var response in summaryResponses) {
           summaryBytes.add(BASE64.decode(response.responseText));
         }
@@ -108,8 +103,8 @@ class WebCompileCommand extends Command {
         fileResolvers: fileResolvers,
         resourceProvider: resourceProvider);
 
-    compiler.context.resultProvider =
-        new InputPackagesResultProvider(compiler.context, summaryDataStore);
+    (compiler.context as AnalysisContextImpl).resultProvider =
+    new InputPackagesResultProvider(compiler.context, summaryDataStore);
 
     var compilerOptions = new CompilerOptions.fromArguments(argResults);
 
