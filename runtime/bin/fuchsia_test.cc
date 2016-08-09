@@ -148,16 +148,11 @@ int Main() {
     FATAL("Failed to set flags\n");
   }
   Log::Print("Calling Dart_Initialize\n");
-  char* error = Dart_Initialize(
-      vm_isolate_snapshot_buffer, NULL, NULL,
-      NULL, NULL, NULL, NULL,
-      NULL,
-      NULL,
-      NULL,
-      NULL,
-      NULL,
-      NULL,
-      NULL);
+  Dart_InitializeParams init_params;
+  memset(&init_params, 0, sizeof(init_params));
+  init_params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
+  init_params.vm_isolate_snapshot = vm_isolate_snapshot_buffer;
+  char* error = Dart_Initialize(&init_params);
   if (error != NULL) {
     FATAL1("VM initialization failed: %s\n", error);
   }
