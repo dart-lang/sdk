@@ -34,6 +34,7 @@ Uri nativeDirectoryToUri(String nativePath) {
 abstract class CompilerConfiguration {
   final bool isDebug;
   final bool isChecked;
+  final bool isStrong;
   final bool isHostChecked;
   final bool useSdk;
 
@@ -48,6 +49,7 @@ abstract class CompilerConfiguration {
     // object.
     bool isDebug = configuration['mode'] == 'debug';
     bool isChecked = configuration['checked'];
+    bool isStrong = configuration['strong'];
     bool isHostChecked = configuration['host_checked'];
     bool useSdk = configuration['use_sdk'];
     bool isCsp = configuration['csp'];
@@ -61,6 +63,7 @@ abstract class CompilerConfiguration {
         return new AnalyzerCompilerConfiguration(
             isDebug: isDebug,
             isChecked: isChecked,
+            isStrong: isStrong,
             isHostChecked: isHostChecked,
             useSdk: useSdk);
       case 'dart2js':
@@ -102,6 +105,7 @@ abstract class CompilerConfiguration {
   CompilerConfiguration._subclass(
       {this.isDebug: false,
       this.isChecked: false,
+      this.isStrong: false,
       this.isHostChecked: false,
       this.useSdk: false});
 
@@ -604,10 +608,12 @@ class Dart2AppJitSnapshotCompilerConfiguration extends Dart2AppSnapshotCompilerC
 
 class AnalyzerCompilerConfiguration extends CompilerConfiguration {
   AnalyzerCompilerConfiguration(
-      {bool isDebug, bool isChecked, bool isHostChecked, bool useSdk})
+      {bool isDebug, bool isChecked, bool isStrong, bool isHostChecked, bool
+      useSdk})
       : super._subclass(
             isDebug: isDebug,
             isChecked: isChecked,
+            isStrong: isStrong,
             isHostChecked: isHostChecked,
             useSdk: useSdk);
 
@@ -640,8 +646,11 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
       List arguments,
       Map<String, String> environmentOverrides) {
     arguments = new List.from(arguments);
-    if (isChecked) {
+    if (isChecked || isStrong) {
       arguments.add('--enable_type_checks');
+    }
+    if (isStrong){
+      arguments.add('--strong');
     }
     return new CommandArtifact(<Command>[
       commandBuilder.getAnalysisCommand('dart2analyzer',

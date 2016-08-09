@@ -163,6 +163,9 @@ class TestOptionsParser {
       new _TestOptionSpecification(
           'checked', 'Run tests in checked mode', ['--checked'], [], false,
           type: 'bool'),
+      new _TestOptionSpecification(
+          'strong', 'Run tests in strong mode', ['--strong'], [], false,
+          type: 'bool'),
       new _TestOptionSpecification('host_checked',
           'Run compiler in checked mode', ['--host-checked'], [], false,
           type: 'bool'),
