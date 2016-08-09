@@ -43,7 +43,7 @@ abstract class SourceFileProvider implements CompilerInput {
     assert(resourceUri.scheme == 'file');
     List<int> source;
     try {
-      source = _readAll(resourceUri.toFilePath());
+      source = readAll(resourceUri.toFilePath());
     } on FileSystemException catch (ex) {
       String message = ex.osError?.message;
       String detail = message != null ? ' ($message)' : '';
@@ -97,7 +97,7 @@ abstract class SourceFileProvider implements CompilerInput {
   }
 }
 
-List<int> _readAll(String filename) {
+List<int> readAll(String filename) {
   var file = (new File(filename)).openSync();
   var length = file.lengthSync();
   // +1 to have a 0 terminated list, see [Scanner].
