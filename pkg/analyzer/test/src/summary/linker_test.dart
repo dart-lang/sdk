@@ -61,6 +61,42 @@ class LinkerUnitTest extends SummaryLinkerTest {
     expect(bundle0.apiSignature, bundle1.apiSignature);
   }
 
+  void test_apiSignature_orderChange() {
+    // A change to the order in which files are processed should not affect the
+    // API signature.
+    addNamedSource('/a.dart', 'class A {}');
+    var bundle0 = createPackageBundle('class B {}', path: '/b.dart');
+    addNamedSource('/b.dart', 'class B {}');
+    var bundle1 = createPackageBundle('class A {}', path: '/a.dart');
+    expect(bundle0.apiSignature, isNotEmpty);
+    expect(bundle1.apiSignature, isNotEmpty);
+    expect(bundle0.apiSignature, bundle1.apiSignature);
+  }
+
+  void test_apiSignature_unlinkedOnly() {
+    // The API signature of a package bundle should only contain unlinked
+    // information.  In this test, the linked information for bundle2 and
+    // bundle3 refer to class C as existing in different files.  But the
+    // unlinked information for bundle2 and bundle3 should be the same, so their
+    // API signatures should be the same.
+    addNamedSource('/a.dart', 'class C {}');
+    var bundle0 = createPackageBundle('', path: '/b.dart');
+    addNamedSource('/a.dart', '');
+    var bundle1 = createPackageBundle('class C {}', path: '/b.dart');
+    var text = '''
+import 'a.dart';
+import 'b.dart';
+class D extends C {}
+''';
+    addBundle('/bundle0.ds', bundle0);
+    var bundle2 = createPackageBundle(text, path: '/c.dart');
+    addBundle('/bundle1.ds', bundle1);
+    var bundle3 = createPackageBundle(text, path: '/c.dart');
+    expect(bundle2.apiSignature, isNotEmpty);
+    expect(bundle3.apiSignature, isNotEmpty);
+    expect(bundle2.apiSignature, bundle3.apiSignature);
+  }
+
   void test_baseClass_genericWithAccessor() {
     createLinker('''
 class B<T> {
