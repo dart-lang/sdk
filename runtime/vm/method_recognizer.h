@@ -13,7 +13,7 @@ namespace dart {
 // When adding a new function add a 0 as fingerprint, build and run to get the
 // correct fingerprint from the mismatch error.
 #define OTHER_RECOGNIZED_LIST(V)                                               \
-  V(::, identical, ObjectIdentical, Bool, 0x12e69c8c)                          \
+  V(::, identical, ObjectIdentical, Bool, 0x49c6e96a)                          \
   V(ClassID, getID, ClassIDgetID, Smi, 0x528fd455)                             \
   V(Object, Object., ObjectConstructor, Dynamic, 0x681617fe)                   \
   V(_List, ., ObjectArrayAllocate, Array, 0x63078b15)                          \
@@ -239,17 +239,17 @@ namespace dart {
 
 
 #define MATH_LIB_INTRINSIC_LIST(V)                                             \
-  V(::, sqrt, MathSqrt, Double, 0x18e8d5f6)                                    \
+  V(::, sqrt, MathSqrt, Double, 0x1afb83d4)                                    \
   V(_Random, _nextState, Random_nextState, Dynamic, 0x1e4b0103)                \
 
 #define GRAPH_MATH_LIB_INTRINSIC_LIST(V)                                       \
-  V(::, sin, MathSin, Double, 0x0000fe08)                                      \
-  V(::, cos, MathCos, Double, 0x7794b33e)                                      \
-  V(::, tan, MathTan, Double, 0x4c1b72fd)                                      \
-  V(::, asin, MathAsin, Double, 0x640d48ad)                                    \
-  V(::, acos, MathAcos, Double, 0x42d46f81)                                    \
-  V(::, atan, MathAtan, Double, 0x4223f879)                                    \
-  V(::, atan2, MathAtan2, Double, 0x3553fb61)                                  \
+  V(::, sin, MathSin, Double, 0x0213abe6)                                      \
+  V(::, cos, MathCos, Double, 0x79a7611c)                                      \
+  V(::, tan, MathTan, Double, 0x4e2e20db)                                      \
+  V(::, asin, MathAsin, Double, 0x661ff68b)                                    \
+  V(::, acos, MathAcos, Double, 0x44e71d5f)                                    \
+  V(::, atan, MathAtan, Double, 0x4436a657)                                    \
+  V(::, atan2, MathAtan2, Double, 0x60a40743)                                  \
 
 #define TYPED_DATA_LIB_INTRINSIC_LIST(V)                                       \
   V(Int8List, ., TypedData_Int8Array_factory, TypedDataInt8Array, 0x2e7749e3)  \
@@ -335,7 +335,7 @@ namespace dart {
   V(::, _getDefaultTag, UserTag_defaultTag, Dynamic, 0x14ddc3b7)               \
   V(::, _getCurrentTag, Profiler_getCurrentTag, Dynamic, 0x486ee02d)           \
   V(::, _isDartStreamEnabled, Timeline_isDartStreamEnabled, Dynamic,           \
-    0x3fe92e14)                                                                \
+    0x1667ce76)                                                                \
 
 #define ALL_INTRINSICS_NO_INTEGER_LIB_LIST(V)                                  \
   CORE_LIB_INTRINSIC_LIST(V)                                                   \
@@ -421,19 +421,19 @@ namespace dart {
   V(_ByteDataView, getUint64, ByteDataViewGetUint64, 0x2fab992e)               \
   V(_ByteDataView, getFloat32, ByteDataViewGetFloat32, 0x387e9fc6)             \
   V(_ByteDataView, getFloat64, ByteDataViewGetFloat64, 0x5396432d)             \
-  V(::, asin, MathAsin, 0x640d48ad)                                            \
-  V(::, acos, MathAcos, 0x42d46f81)                                            \
-  V(::, atan, MathAtan, 0x4223f879)                                            \
-  V(::, atan2, MathAtan2, 0x3553fb61)                                          \
-  V(::, cos, MathCos, 0x7794b33e)                                              \
-  V(::, exp, MathExp, 0x59769f9d)                                              \
-  V(::, log, MathLog, 0x2c12654e)                                              \
+  V(::, asin, MathAsin, 0x661ff68b)                                            \
+  V(::, acos, MathAcos, 0x44e71d5f)                                            \
+  V(::, atan, MathAtan, 0x4436a657)                                            \
+  V(::, atan2, MathAtan2, 0x60a40743)                                          \
+  V(::, cos, MathCos, 0x79a7611c)                                              \
+  V(::, exp, MathExp, 0x5b894d7b)                                              \
+  V(::, log, MathLog, 0x2e25132c)                                              \
   V(::, max, MathMax, 0x54121d6a)                                              \
   V(::, min, MathMin, 0x4276561c)                                              \
-  V(::, pow, MathPow, 0x7ab62ca7)                                              \
-  V(::, sin, MathSin, 0x0000fe08)                                              \
-  V(::, sqrt, MathSqrt, 0x18e8d5f6)                                            \
-  V(::, tan, MathTan, 0x4c1b72fd)                                              \
+  V(::, pow, MathPow, 0x438e3089)                                              \
+  V(::, sin, MathSin, 0x0213abe6)                                              \
+  V(::, sqrt, MathSqrt, 0x1afb83d4)                                            \
+  V(::, tan, MathTan, 0x4e2e20db)                                              \
   V(Lists, copy, ListsCopy, 0x21a194fa)                                        \
   V(_Bigint, get:_neg, Bigint_getNeg, 0x7bf17a57)                              \
   V(_Bigint, get:_used, Bigint_getUsed, 0x55041013)                            \

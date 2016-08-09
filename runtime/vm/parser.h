@@ -401,6 +401,7 @@ class Parser : public ValueObject {
   void SkipToMatchingParenthesis();
   void SkipBlock();
   TokenPosition SkipMetadata();
+  bool IsPatchAnnotation(TokenPosition pos);
   void SkipTypeArguments();
   void SkipType(bool allow_void);
   void SkipInitializers();

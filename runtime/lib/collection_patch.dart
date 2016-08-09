@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch class HashMap<K, V> {
-  /* patch */ factory HashMap({ bool equals(K key1, K key2),
-                                int hashCode(K key),
-                                bool isValidKey(potentialKey) }) {
+@patch class HashMap<K, V> {
+  /* @patch */ factory HashMap({ bool equals(K key1, K key2),
+                                 int hashCode(K key),
+                                 bool isValidKey(potentialKey) }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -518,10 +518,10 @@ class _HashMapValueIterator<V> extends _HashMapIterator<V> {
   }
 }
 
-patch class HashSet<E> {
-  /* patch */ factory HashSet({ bool equals(E e1, E e2),
-                                int hashCode(E e),
-                                bool isValidKey(potentialKey) }) {
+@patch class HashSet<E> {
+  /* @patch */ factory HashSet({ bool equals(E e1, E e2),
+                                 int hashCode(E e),
+                                 bool isValidKey(potentialKey) }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -548,7 +548,7 @@ patch class HashSet<E> {
     return new _CustomHashSet<E>(equals, hashCode, isValidKey);
   }
 
-  /* patch */ factory HashSet.identity() = _IdentityHashSet<E>;
+  /* @patch */ factory HashSet.identity() = _IdentityHashSet<E>;
 }
 
 class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
@@ -901,7 +901,7 @@ class _LinkedHashMapValueIterator<V> extends _LinkedHashMapIterator<V> {
 /**
  * A hash-based map that iterates keys and values in key insertion order.
  */
-patch class LinkedHashMap<K, V> {
+@patch class LinkedHashMap<K, V> {
   /// Holds a double-linked list of entries in insertion order.
   /// The fields have the same name as the ones in [_LinkedHashMapEntry],
   /// and this map is itself used as the head entry of the list.
@@ -910,9 +910,9 @@ patch class LinkedHashMap<K, V> {
   var _nextEntry;
   var _previousEntry;
 
-  /* patch */ factory LinkedHashMap({ bool equals(K key1, K key2),
-                                      int hashCode(K key),
-                                      bool isValidKey(potentialKey) }) {
+  /* @patch */ factory LinkedHashMap({ bool equals(K key1, K key2),
+                                       int hashCode(K key),
+                                       bool isValidKey(potentialKey) }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -939,14 +939,14 @@ patch class LinkedHashMap<K, V> {
     return new _CompactLinkedCustomHashMap<K, V>(equals, hashCode, isValidKey);
   }
 
-  /* patch */ factory LinkedHashMap.identity() =
+  /* @patch */ factory LinkedHashMap.identity() =
       _CompactLinkedIdentityHashMap<K, V>;
 }
 
-patch class LinkedHashSet<E> {
-  /* patch */ factory LinkedHashSet({ bool equals(E e1, E e2),
-                                      int hashCode(E e),
-                                      bool isValidKey(potentialKey) }) {
+@patch class LinkedHashSet<E> {
+  /* @patch */ factory LinkedHashSet({ bool equals(E e1, E e2),
+                                       int hashCode(E e),
+                                       bool isValidKey(potentialKey) }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -973,6 +973,6 @@ patch class LinkedHashSet<E> {
     return new _CompactLinkedCustomHashSet<E>(equals, hashCode, isValidKey);
   }
 
-  /* patch */ factory LinkedHashSet.identity() =
+  /* @patch */ factory LinkedHashSet.identity() =
       _CompactLinkedIdentityHashSet<E>;
 }

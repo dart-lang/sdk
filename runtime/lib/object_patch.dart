@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch class Object {
+@patch class Object {
 
   // The VM has its own implementation of equals.
   bool operator ==(other) native "Object_equals";
@@ -29,10 +29,10 @@ patch class Object {
     return result;
   }
 
-  /* patch */ int get hashCode => _objectHashCode(this);
+  /* @patch */ int get hashCode => _objectHashCode(this);
   int get _identityHashCode => _objectHashCode(this);
 
-  /* patch */ String toString() native "Object_toString";
+  /* @patch */ String toString() native "Object_toString";
   // A statically dispatched version of Object.toString.
   static String _toString(obj) native "Object_toString";
 
@@ -43,7 +43,7 @@ patch class Object {
                 Map<String, dynamic> namedArguments)
       native "Object_noSuchMethod";
 
-  /* patch */ noSuchMethod(Invocation invocation) {
+  /* @patch */ noSuchMethod(Invocation invocation) {
     return _noSuchMethod(invocation.isMethod,
                          internal.Symbol.getName(invocation.memberName),
                          invocation._type,
@@ -51,7 +51,7 @@ patch class Object {
                          _symbolMapToStringMap(invocation.namedArguments));
   }
 
-  /* patch */ Type get runtimeType native "Object_runtimeType";
+  /* @patch */ Type get runtimeType native "Object_runtimeType";
 
   // Call this function instead of inlining instanceof, thus collecting
   // type feedback and reducing code size of unoptimized code.
@@ -62,7 +62,7 @@ patch class Object {
   bool _simpleInstanceOf(type) native "Object_simpleInstanceOf";
   bool _simpleInstanceOfTrue(type) => true;
   bool _simpleInstanceOfFalse(type) => false;
-  
+
   bool _instanceOfDouble(bool negate) native "Object_instanceOfDouble";
   bool _instanceOfNum(bool negate) native "Object_instanceOfNum";
   bool _instanceOfInt(bool negate) native "Object_instanceOfInt";
