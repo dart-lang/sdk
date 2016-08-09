@@ -228,6 +228,9 @@ external bool identical(Object a, Object b);
 
 void print(Object object) {}
 
+const proxy = const _Proxy();
+class _Proxy { const _Proxy(); }
+
 class _Override {
   const _Override();
 }

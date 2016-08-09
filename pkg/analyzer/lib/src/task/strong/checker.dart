@@ -236,14 +236,14 @@ class CodeChecker extends RecursiveAstVisitor {
   void visitBinaryExpression(BinaryExpression node) {
     var op = node.operator;
     if (op.isUserDefinableOperator) {
-      if (_isDynamicTarget(node.leftOperand)) {
+      var element = node.staticElement;
+      if (element == null) {
         // Dynamic invocation
         // TODO(vsm): Move this logic to the resolver?
         if (op.type != TokenType.EQ_EQ && op.type != TokenType.BANG_EQ) {
           _recordDynamicInvoke(node, node.leftOperand);
         }
       } else {
-        var element = node.staticElement;
         // Method invocation.
         if (element is MethodElement) {
           var type = element.type;
@@ -436,20 +436,18 @@ class CodeChecker extends RecursiveAstVisitor {
   @override
   void visitIndexExpression(IndexExpression node) {
     var target = node.realTarget;
-    if (_isDynamicTarget(target)) {
+    var element = node.staticElement;
+    if (element == null) {
       _recordDynamicInvoke(node, target);
-    } else {
-      var element = node.staticElement;
-      if (element is MethodElement) {
-        var type = element.type;
-        // Analyzer should enforce number of parameter types, but check in
-        // case we have erroneous input.
-        if (type.normalParameterTypes.isNotEmpty) {
-          checkArgument(node.index, type.normalParameterTypes[0]);
-        }
-      } else {
-        // TODO(vsm): Assert that the analyzer found an error here?
+    } else if (element is MethodElement) {
+      var type = element.type;
+      // Analyzer should enforce number of parameter types, but check in
+      // case we have erroneous input.
+      if (type.normalParameterTypes.isNotEmpty) {
+        checkArgument(node.index, type.normalParameterTypes[0]);
       }
+    } else {
+      // TODO(vsm): Assert that the analyzer found an error here?
     }
     node.visitChildren(this);
   }
@@ -533,7 +531,8 @@ class CodeChecker extends RecursiveAstVisitor {
   @override
   visitMethodInvocation(MethodInvocation node) {
     var target = node.realTarget;
-    if (_isDynamicTarget(target) && !_isObjectMethod(node, node.methodName)) {
+    var element = node.methodName.staticElement;
+    if (element == null && !_isObjectMethod(node, node.methodName)) {
       _recordDynamicInvoke(node, target);
 
       // Mark the tear-off as being dynamic, too. This lets us distinguish
@@ -558,7 +557,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
-    _checkUnary(node);
+    _checkUnary(node, node.staticElement);
     node.visitChildren(this);
   }
 
@@ -572,7 +571,7 @@ class CodeChecker extends RecursiveAstVisitor {
     if (node.operator.type == TokenType.BANG) {
       checkBoolean(node.operand);
     } else {
-      _checkUnary(node);
+      _checkUnary(node, node.staticElement);
     }
     node.visitChildren(this);
   }
@@ -761,8 +760,7 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   void _checkFieldAccess(AstNode node, AstNode target, SimpleIdentifier field) {
-    if ((_isDynamicTarget(target) || field.staticElement == null) &&
-        !_isObjectProperty(target, field)) {
+    if (field.staticElement == null && !_isObjectProperty(target, field)) {
       _recordDynamicInvoke(node, target);
     }
     node.visitChildren(this);
@@ -901,12 +899,13 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
-  void _checkUnary(/*PrefixExpression|PostfixExpression*/ node) {
+  void _checkUnary(
+      /*PrefixExpression|PostfixExpression*/ node, Element element) {
     var op = node.operator;
     if (op.isUserDefinableOperator ||
         op.type == TokenType.PLUS_PLUS ||
         op.type == TokenType.MINUS_MINUS) {
-      if (_isDynamicTarget(node.operand)) {
+      if (element == null) {
         _recordDynamicInvoke(node, node.operand);
       }
       // For ++ and --, even if it is not dynamic, we still need to check
@@ -1020,21 +1019,6 @@ class CodeChecker extends RecursiveAstVisitor {
     return rules.anyParameterType(ft, (pt) => pt.isDynamic);
   }
 
-  /// Returns `true` if the target expression is dynamic.
-  bool _isDynamicTarget(Expression node) {
-    if (node == null) return false;
-
-    if (_isLibraryPrefix(node)) return false;
-
-    // Null type happens when we have unknown identifiers, like a dart: import
-    // that doesn't resolve.
-    var type = node.staticType;
-    return type == null || type.isDynamic;
-  }
-
-  bool _isLibraryPrefix(Expression node) =>
-      node is SimpleIdentifier && node.staticElement is PrefixElement;
-
   bool _isObjectGetter(Expression target, SimpleIdentifier id) {
     PropertyAccessorElement element =
         typeProvider.objectType.element.getGetter(id.name);
@@ -1055,7 +1039,7 @@ class CodeChecker extends RecursiveAstVisitor {
     // TODO(jmesserly): we may eventually want to record if the whole operation
     // (node) was dynamic, rather than the target, but this is an easier fit
     // with what we used to do.
-    setIsDynamicInvoke(target, true);
+    if (target != null) setIsDynamicInvoke(target, true);
   }
 
   /// Records an implicit cast for the [expression] from [fromType] to [toType].

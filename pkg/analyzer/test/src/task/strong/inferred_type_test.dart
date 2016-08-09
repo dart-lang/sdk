@@ -2280,7 +2280,7 @@ var f = 2 + 3;          // binary expressions are OK if the left operand
                         // conected component.
 var g = -3;
 var h = new A() + 3;
-var i = /*error:UNDEFINED_OPERATOR*/- new A();
+var i = /*error:UNDEFINED_OPERATOR,info:DYNAMIC_INVOKE*/- new A();
 var j = null as B;
 
 test1() {

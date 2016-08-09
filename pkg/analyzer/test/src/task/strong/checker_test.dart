@@ -3024,6 +3024,44 @@ class Child extends helper.Base {
 ''');
   }
 
+  void test_proxy() {
+    checkFile(r'''
+@proxy class C {}
+@proxy class D {
+  var f;
+  m() => null;
+  operator -() => null;
+  operator +(int other) => null;
+  operator [](int index) => null;
+  call() => null;
+}
+@proxy class F implements Function { noSuchMethod(i) => 42; }
+
+
+m() {
+  D d = new D();
+  d.m();
+  d.m;
+  d.f;
+  -d;
+  d + 7;
+  d[7];
+  d();
+
+  C c = new C();
+  /*info:DYNAMIC_INVOKE*/c.m();
+  /*info:DYNAMIC_INVOKE*/c.m;
+  /*info:DYNAMIC_INVOKE*/-c;
+  /*info:DYNAMIC_INVOKE*/c + 7;
+  /*info:DYNAMIC_INVOKE*/c[7];
+  /*error:INVOCATION_OF_NON_FUNCTION,info:DYNAMIC_INVOKE*/c();
+
+  F f = new F();
+  /*info:DYNAMIC_INVOKE*/f();
+}
+    ''');
+  }
+
   void test_redirectingConstructor() {
     checkFile('''
 class A {
