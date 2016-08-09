@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
-import '../common/names.dart' show Identifiers, Names, Selectors, Uris;
+import '../common/names.dart' show Identifiers, Names, Selectors;
 import '../compiler.dart' show Compiler;
 import '../elements/elements.dart';
 import '../tree/tree.dart';

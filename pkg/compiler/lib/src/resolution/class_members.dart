@@ -7,7 +7,6 @@ library dart2js.resolution.compute_members;
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Names;
 import '../common/resolution.dart' show Resolution;
-import '../compiler.dart' show Compiler;
 import '../dart_types.dart';
 import '../elements/elements.dart'
     show

@@ -10,10 +10,10 @@ import 'package:js_runtime/shared/embedded_names.dart' show JsGetName;
 
 import '../closure.dart';
 import '../common.dart';
-import '../common/names.dart' show Identifiers, Names, Selectors, Uris;
+import '../common/names.dart' show Identifiers, Selectors;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../core_types.dart' show CoreClasses, CoreTypes;
+import '../core_types.dart' show CoreClasses;
 import '../dart_types.dart';
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../elements/elements.dart';

@@ -8,8 +8,7 @@ import 'common/backend_api.dart' show Backend;
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
 import 'compiler.dart' show Compiler;
-import 'constants/expressions.dart'
-    show ConstantExpression, ConstantExpressionKind;
+import 'constants/expressions.dart' show ConstantExpression;
 import 'constants/values.dart'
     show
         ConstantValue,

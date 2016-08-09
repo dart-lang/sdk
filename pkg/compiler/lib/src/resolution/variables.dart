@@ -10,7 +10,6 @@ import '../elements/modelx.dart' show LocalVariableElementX, VariableList;
 import '../tree/tree.dart';
 import '../universe/use.dart' show TypeUse;
 import '../util/util.dart' show Link;
-
 import 'members.dart' show ResolverVisitor;
 import 'registry.dart' show ResolutionRegistry;
 import 'resolution_common.dart' show CommonResolverVisitor;

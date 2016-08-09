@@ -13,7 +13,7 @@ import '../common.dart';
 import '../common/backend_api.dart'
     show Backend, ImpactTransformer, ForeignResolver, NativeRegistry;
 import '../common/codegen.dart' show CodegenImpact, CodegenWorkItem;
-import '../common/names.dart' show Identifiers, Names, Selectors, Uris;
+import '../common/names.dart' show Identifiers, Selectors, Uris;
 import '../common/registry.dart' show EagerRegistry, Registry;
 import '../common/resolution.dart'
     show
@@ -43,12 +43,11 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js/js_source_mapping.dart' show JavaScriptSourceInformationStrategy;
 import '../js/rewrite_async.dart';
-import '../js_emitter/js_emitter.dart'
-    show CodeEmitterTask, MetadataCollector, Placeholder;
+import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native;
 import '../ssa/builder.dart' show SsaFunctionCompiler;
-import '../ssa/nodes.dart' show HTypeConversion, HInstruction;
+import '../ssa/nodes.dart' show HInstruction;
 import '../tree/tree.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;

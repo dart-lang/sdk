@@ -8,10 +8,9 @@ import '../elements/elements.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../ssa/codegen.dart' show SsaCodeGenerator;
-import '../ssa/nodes.dart' show HTypeConversion, HInstruction;
+import '../ssa/nodes.dart' show HTypeConversion;
 import '../universe/call_structure.dart' show CallStructure;
-import '../universe/use.dart'
-    show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
+import '../universe/use.dart' show StaticUse;
 import 'backend.dart';
 
 class CheckedModeHelper {

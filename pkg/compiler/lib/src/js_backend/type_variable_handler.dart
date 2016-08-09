@@ -3,19 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
-import '../common/registry.dart' show EagerRegistry, Registry;
+import '../common/registry.dart' show Registry;
 import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
-import '../enqueue.dart' show Enqueuer, ResolutionEnqueuer;
+import '../enqueue.dart' show Enqueuer;
 import '../js/js.dart' as jsAst;
 import '../js_emitter/js_emitter.dart'
     show CodeEmitterTask, MetadataCollector, Placeholder;
 import '../universe/call_structure.dart' show CallStructure;
-import '../universe/use.dart'
-    show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
+import '../universe/use.dart' show StaticUse;
 import '../util/util.dart';
 import 'backend.dart';
 

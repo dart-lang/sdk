@@ -20,7 +20,6 @@ import '../elements/modelx.dart'
         ConstructorElementX,
         ErroneousElementX,
         FunctionElementX,
-        InitializingFormalElementX,
         JumpTargetX,
         LocalFunctionElementX,
         LocalParameterElementX,

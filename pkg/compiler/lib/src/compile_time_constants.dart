@@ -16,8 +16,7 @@ import 'constants/values.dart';
 import 'core_types.dart' show CoreTypes;
 import 'dart_types.dart';
 import 'elements/elements.dart';
-import 'elements/modelx.dart'
-    show FieldElementX, FunctionElementX, ConstantVariableMixin;
+import 'elements/modelx.dart' show ConstantVariableMixin;
 import 'resolution/operators.dart';
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'tree/tree.dart';

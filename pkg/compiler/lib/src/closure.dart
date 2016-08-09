@@ -13,7 +13,7 @@ import 'constants/expressions.dart';
 import 'dart_types.dart';
 import 'elements/elements.dart';
 import 'elements/modelx.dart'
-    show BaseFunctionElementX, ClassElementX, ElementX, LocalFunctionElementX;
+    show BaseFunctionElementX, ClassElementX, ElementX;
 import 'elements/visitor.dart' show ElementVisitor;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'resolution/tree_elements.dart' show TreeElements;
