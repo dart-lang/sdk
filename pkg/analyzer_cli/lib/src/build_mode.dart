@@ -137,8 +137,13 @@ class BuildMode {
   PackageBundleAssembler assembler;
   final Set<Source> processedSources = new Set<Source>();
   final Map<Uri, UnlinkedUnit> uriToUnit = <Uri, UnlinkedUnit>{};
+  PackageBundle sdkBundle;
 
   BuildMode(this.resourceProvider, this.options, this.stats);
+
+  bool get _shouldOutputSummary =>
+      options.buildSummaryOutput != null ||
+      options.buildSummaryOutputSemantic != null;
 
   /**
    * Perform package analysis according to the given [options].
@@ -188,8 +193,7 @@ class BuildMode {
     assembler = new PackageBundleAssembler(
         excludeHashes: options.buildSummaryExcludeInformative &&
             options.buildSummaryOutputSemantic == null);
-    if (options.buildSummaryOutput != null ||
-        options.buildSummaryOutputSemantic != null) {
+    if (_shouldOutputSummary) {
       if (options.buildSummaryOnlyAst && !options.buildSummaryFallback) {
         _serializeAstBasedSummary(explicitSources);
       } else {
@@ -208,21 +212,26 @@ class BuildMode {
           }
         }
       }
+      if (!options.buildSummaryOnlyAst) {
+        // In non-AST mode, the SDK bundle wasn't added to the summaryDataStore
+        // because it is automatically loaded during analysis.  However we still
+        // want the SDK bundle to be noted as a dependency, so add it now.
+        summaryDataStore.addBundle(null, sdkBundle);
+      }
       // Write the whole package bundle.
-      PackageBundleBuilder sdkBundle = assembler.assemble();
+      assembler.recordDependencies(summaryDataStore);
+      PackageBundleBuilder bundle = assembler.assemble();
       if (options.buildSummaryExcludeInformative) {
-        sdkBundle.flushInformative();
+        bundle.flushInformative();
       }
       if (options.buildSummaryOutput != null) {
         io.File file = new io.File(options.buildSummaryOutput);
-        file.writeAsBytesSync(sdkBundle.toBuffer(),
-            mode: io.FileMode.WRITE_ONLY);
+        file.writeAsBytesSync(bundle.toBuffer(), mode: io.FileMode.WRITE_ONLY);
       }
       if (options.buildSummaryOutputSemantic != null) {
-        sdkBundle.flushInformative();
+        bundle.flushInformative();
         io.File file = new io.File(options.buildSummaryOutputSemantic);
-        file.writeAsBytesSync(sdkBundle.toBuffer(),
-            mode: io.FileMode.WRITE_ONLY);
+        file.writeAsBytesSync(bundle.toBuffer(), mode: io.FileMode.WRITE_ONLY);
       }
     }
 
@@ -254,10 +263,10 @@ class BuildMode {
 
   void _createContext() {
     // Read the summaries.
-    summaryDataStore = new SummaryDataStore(options.buildSummaryInputs);
+    summaryDataStore = new SummaryDataStore(options.buildSummaryInputs,
+        recordDependencyInfo: _shouldOutputSummary);
 
     DartSdk sdk;
-    PackageBundle sdkBundle;
     if (options.dartSdkSummaryPath != null) {
       SummaryBasedDartSdk summarySdk = new SummaryBasedDartSdk(
           options.dartSdkSummaryPath, options.strongMode);

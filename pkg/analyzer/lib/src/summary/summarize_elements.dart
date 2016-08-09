@@ -24,6 +24,7 @@ import 'package:analyzer/src/summary/summarize_const_expr.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as path;
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 
 /**
  * Serialize all the elements in [lib] to a summary using [ctx] as the context
@@ -140,6 +141,8 @@ class PackageBundleAssembler {
   final List<String> _unlinkedUnitUris = <String>[];
   final List<UnlinkedUnitBuilder> _unlinkedUnits = <UnlinkedUnitBuilder>[];
   final List<String> _unlinkedUnitHashes;
+  final List<PackageDependencyInfoBuilder> _dependencies =
+      <PackageDependencyInfoBuilder>[];
   final bool _excludeHashes;
 
   /**
@@ -160,6 +163,14 @@ class PackageBundleAssembler {
     String uri = source.uri.toString();
     _linkedLibraryUris.add(uri);
     _linkedLibraries.add(new LinkedLibraryBuilder(fallbackMode: true));
+  }
+
+  /**
+   * Use the dependency information in [summaryDataStore] to populate the
+   * dependencies in the package bundle being assembled.
+   */
+  void recordDependencies(SummaryDataStore summaryDataStore) {
+    _dependencies.addAll(summaryDataStore.dependencies);
   }
 
   /**
@@ -201,7 +212,8 @@ class PackageBundleAssembler {
         unlinkedUnits: _unlinkedUnits,
         unlinkedUnitHashes: _unlinkedUnitHashes,
         majorVersion: currentMajorVersion,
-        minorVersion: currentMinorVersion);
+        minorVersion: currentMinorVersion,
+        dependencies: _dependencies);
     ApiSignature apiSignature = new ApiSignature();
     packageBundle.collectApiSignature(apiSignature);
     packageBundle.apiSignature = apiSignature.toHex();
