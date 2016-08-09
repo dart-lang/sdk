@@ -52,6 +52,7 @@ DEFINE_FLAG(bool, initializing_formal_access, false,
     "Make initializing formal parameters visible in initializer list.");
 DEFINE_FLAG(bool, warn_super, false,
     "Warning if super initializer not last in initializer list.");
+DEFINE_FLAG(bool, warn_patch, false, "Warn on old-style patch syntax.");
 DEFINE_FLAG(bool, await_is_keyword, false,
     "await and yield are treated as proper keywords in synchronous code.");
 
@@ -4553,7 +4554,9 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
   } else if (is_patch_source() &&
       (CurrentToken() == Token::kIDENT) &&
       CurrentLiteral()->Equals("patch")) {
-    ReportWarning("deprecated use of patch 'keyword'");
+    if (FLAG_warn_patch) {
+      ReportWarning("deprecated use of patch 'keyword'");
+    }
     ConsumeToken();
     is_patch = true;
   } else if (CurrentToken() == Token::kABSTRACT) {
@@ -5631,7 +5634,9 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
       (CurrentToken() == Token::kIDENT) &&
       CurrentLiteral()->Equals("patch") &&
       (LookaheadToken(1) != Token::kLPAREN)) {
-    ReportWarning("deprecated use of patch 'keyword'");
+    if (FLAG_warn_patch) {
+      ReportWarning("deprecated use of patch 'keyword'");
+    }
     ConsumeToken();
     is_patch = true;
   } else if (CurrentToken() == Token::kEXTERNAL) {
@@ -5757,7 +5762,9 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
   } else if (is_patch_source() &&
       (CurrentToken() == Token::kIDENT) &&
       CurrentLiteral()->Equals("patch")) {
-    ReportWarning("deprecated use of patch 'keyword'");
+    if (FLAG_warn_patch) {
+      ReportWarning("deprecated use of patch 'keyword'");
+    }
     ConsumeToken();
     is_patch = true;
   } else if (CurrentToken() == Token::kEXTERNAL) {
