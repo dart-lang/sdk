@@ -118,7 +118,15 @@ EventHandlerImplementation::EventHandlerImplementation()
 }
 
 
+static void DeleteDescriptorInfo(void* info) {
+  DescriptorInfo* di = reinterpret_cast<DescriptorInfo*>(info);
+  di->Close();
+  delete di;
+}
+
+
 EventHandlerImplementation::~EventHandlerImplementation() {
+  socket_map_.Clear(DeleteDescriptorInfo);
   VOID_TEMP_FAILURE_RETRY(close(epoll_fd_));
   VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[0]));
   VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[1]));

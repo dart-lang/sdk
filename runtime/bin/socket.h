@@ -402,6 +402,7 @@ class ListeningSocketRegistry {
   ListeningSocketRegistry() : mutex_(new Mutex()) {}
 
   ~ListeningSocketRegistry() {
+    CloseAllSafe();
     delete mutex_;
     mutex_ = NULL;
   }
@@ -437,6 +438,10 @@ class ListeningSocketRegistry {
     return NULL;
   }
 
+  bool CloseOneSafe(OSSocket* os_socket);
+  void CloseAllSafe();
+
+  // TODO(zra): Replace std::map with the HashMap in platform/hashmap.h.
   std::map<intptr_t, OSSocket*> sockets_by_port_;
   std::map<intptr_t, OSSocket*> sockets_by_fd_;
   Mutex *mutex_;
