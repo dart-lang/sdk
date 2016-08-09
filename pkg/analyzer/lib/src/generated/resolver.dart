@@ -4719,12 +4719,9 @@ class InferenceContext {
     if (_returnStack.isEmpty) {
       return;
     }
-    DartType context = _returnStack.last;
-    if (context == null || context.isDynamic) {
-      DartType inferred = _inferredReturn.last;
-      inferred = _typeSystem.getLeastUpperBound(_typeProvider, type, inferred);
-      _inferredReturn[_inferredReturn.length - 1] = inferred;
-    }
+    DartType inferred = _inferredReturn.last;
+    inferred = _typeSystem.getLeastUpperBound(_typeProvider, type, inferred);
+    _inferredReturn[_inferredReturn.length - 1] = inferred;
   }
 
   /**
@@ -4746,15 +4743,14 @@ class InferenceContext {
    * bound of all types added with [addReturnOrYieldType].
    */
   void popReturnContext(BlockFunctionBody node) {
-    assert(_returnStack.isNotEmpty && _inferredReturn.isNotEmpty);
-    if (_returnStack.isNotEmpty) {
-      _returnStack.removeLast();
-    }
-    if (_inferredReturn.isNotEmpty) {
+    if (_returnStack.isNotEmpty && _inferredReturn.isNotEmpty) {
+      DartType context = _returnStack.removeLast() ?? DynamicTypeImpl.instance;
       DartType inferred = _inferredReturn.removeLast();
-      if (!inferred.isBottom) {
+      if (!inferred.isBottom && _typeSystem.isSubtypeOf(inferred, context)) {
         setType(node, inferred);
       }
+    } else {
+      assert(false);
     }
   }
 

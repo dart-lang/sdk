@@ -2554,6 +2554,18 @@ main() {
     expect(fns[9].type.toString(), '() → Stream<int>');
   }
 
+  void test_inferReturnOfStatementLambda() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26139
+    checkFile(r'''
+List<String> strings() {
+  var stuff = [].expand(/*info:INFERRED_TYPE_CLOSURE*/(i) {
+    return <String>[];
+  });
+  return stuff.toList();
+}
+    ''');
+  }
+
   void test_inferred_nonstatic_field_depends_on_static_field_complex() {
     var mainUnit = checkFile('''
 class C {

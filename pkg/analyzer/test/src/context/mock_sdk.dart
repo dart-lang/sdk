@@ -194,6 +194,10 @@ abstract class Iterable<E> {
 
   /*=R*/ fold/*<R>*/(/*=R*/ initialValue,
       /*=R*/ combine(/*=R*/ previousValue, E element));
+
+  Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(E element));
+
+  List<E> toList();
 }
 
 class List<E> implements Iterable<E> {
