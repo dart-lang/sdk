@@ -40,6 +40,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer/src/summary/pub_summary.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/task/dart.dart';
@@ -299,6 +300,11 @@ class AnalysisServer {
   ResolverProvider fileResolverProvider;
 
   /**
+   * The manager of pub package summaries.
+   */
+  PubSummaryManager pubSummaryManager;
+
+  /**
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    *
@@ -363,6 +369,8 @@ class AnalysisServer {
       });
     });
     _setupIndexInvalidation();
+    pubSummaryManager =
+        new PubSummaryManager(resourceProvider, '${io.pid}.temp');
     Notification notification =
         new ServerConnectedParams(VERSION, io.pid).toNotification();
     channel.sendNotification(notification);
@@ -1594,6 +1602,10 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     context.sourceFactory =
         _createSourceFactory(context, options, disposition, folder);
     context.analysisOptions = options;
+
+    // TODO(scheglov) use linked bundles
+    analysisServer.pubSummaryManager.getLinkedBundles(context);
+
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(added: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
