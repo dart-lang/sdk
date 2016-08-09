@@ -1855,10 +1855,10 @@ class ServiceMap extends ServiceObject implements ObservableMap {
 
 M.ErrorKind stringToErrorKind(String value) {
   switch(value) {
-    case 'UnhandledException': return M.ErrorKind.UnhandledException;
-    case 'LanguageError': return M.ErrorKind.UnhandledException;
-    case 'InternalError': return M.ErrorKind.InternalError;
-    case 'TerminationError': return M.ErrorKind.TerminationError;
+    case 'UnhandledException': return M.ErrorKind.unhandledException;
+    case 'LanguageError': return M.ErrorKind.unhandledException;
+    case 'InternalError': return M.ErrorKind.internalError;
+    case 'TerminationError': return M.ErrorKind.terminationError;
   }
   Logger.root.severe('Unrecognized error kind: $value');
   throw new FallThroughError();

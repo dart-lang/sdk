@@ -4,6 +4,9 @@
 
 part of app;
 
+IsolateSampleProfileRepository _isolateSampleProfileRepository
+    = new IsolateSampleProfileRepository();
+
 class IsolateNotFound implements Exception {
   String isolateId;
   IsolateNotFound(this.isolateId);
@@ -47,17 +50,10 @@ abstract class Page extends Observable {
   bool canVisit(Uri uri);
 }
 
-/// A [SimplePage] matches a single uri path and displays a single element.
-class SimplePage extends Page {
+/// A [MatchingPage] matches a single uri path.
+abstract class MatchingPage extends Page {
   final String path;
-  final String elementTagName;
-  SimplePage(this.path, this.elementTagName, app) : super(app);
-
-  void onInstall() {
-    if (element == null) {
-      element = new Element.tag(elementTagName);
-    }
-  }
+  MatchingPage(this.path, app) : super(app);
 
   void _visit(Uri uri) {
     assert(uri != null);
@@ -75,6 +71,18 @@ class SimplePage extends Page {
   }
 
   bool canVisit(Uri uri) => uri.path == path;
+}
+
+/// A [SimplePage] matches a single uri path and displays a single element.
+class SimplePage extends MatchingPage {
+  final String elementTagName;
+  SimplePage(String path, this.elementTagName, app) : super(path, app);
+
+  void onInstall() {
+    if (element == null) {
+      element = new Element.tag(elementTagName);
+    }
+  }
 }
 
 /// Error page for unrecognized paths.
@@ -216,18 +224,27 @@ class ObjectStorePage extends SimplePage {
   }
 }
 
-class CpuProfilerPage extends SimplePage {
-  CpuProfilerPage(app) : super('profiler', 'cpu-profile', app);
+class CpuProfilerPage extends MatchingPage {
+  CpuProfilerPage(app) : super('profiler', app);
+
+  DivElement container = new DivElement();
 
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) {
-      if (element != null) {
-        /// Update the page.
-        CpuProfileElement page = element;
-        page.isolate = isolate;
-      }
+      container.children = [
+        new CpuProfileElement(isolate.vm, isolate, app.events,
+                              app.notifications,
+                              _isolateSampleProfileRepository)
+      ];
     });
+  }
+
+  void onInstall() {
+    if (element == null) {
+      element = container;
+    }
+    assert(element != null);
   }
 }
 

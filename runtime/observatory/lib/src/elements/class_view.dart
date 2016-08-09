@@ -6,9 +6,13 @@ library class_view_element;
 
 import 'dart:async';
 import 'observatory_element.dart';
-import 'package:observatory/cpu_profile.dart';
+import 'sample_buffer_control.dart';
+import 'stack_trace_tree_config.dart';
+import 'cpu_profile/virtual_tree.dart';
 import 'package:observatory/elements.dart';
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart';
+import 'package:observatory/repositories.dart';
 import 'package:polymer/polymer.dart';
 
 @CustomTag('class-view')
@@ -21,6 +25,8 @@ class ClassViewElement extends ObservatoryElement {
   SampleBufferControlElement sampleBufferControlElement;
   StackTraceTreeConfigElement stackTraceTreeConfigElement;
   CpuProfileVirtualTreeElement cpuProfileTreeElement;
+  ClassSampleProfileRepository repository = new ClassSampleProfileRepository();
+
 
   ClassViewElement.created() : super.created();
 
@@ -59,65 +65,61 @@ class ClassViewElement extends ObservatoryElement {
 
   void attached() {
     super.attached();
-    sampleBufferControlElement =
-        shadowRoot.querySelector('#sampleBufferControl');
-    assert(sampleBufferControlElement != null);
-    sampleBufferControlElement.onSampleBufferUpdate = onSampleBufferChange;
-    sampleBufferControlElement.state =
-        SampleBufferControlElement.kNotLoadedState;
-    stackTraceTreeConfigElement =
-        shadowRoot.querySelector('#stackTraceTreeConfig');
-    assert(stackTraceTreeConfigElement != null);
-    stackTraceTreeConfigElement.onTreeConfigChange = onTreeConfigChange;
-    stackTraceTreeConfigElement.show = false;
-    stackTraceTreeConfigElement.showFilter = false;
-    cpuProfileTreeElement = shadowRoot.querySelector('#cpuProfileTree');
-    assert(cpuProfileTreeElement != null);
-    cpuProfileTreeElement.profile = sampleBufferControlElement.profile;
-    cpuProfileTreeElement.show = false;
     cls.fields.forEach((field) => field.reload());
-    sampleBufferControlElement.allocationProfileClass = cls;
   }
 
-  Future refresh() {
+  Future refresh() async {
     instances = null;
     retainedBytes = null;
     mostRetained = null;
-    var loads = [];
-    loads.add(cls.reload());
-    cls.fields.forEach((field) => loads.add(field.reload()));
-    return Future.wait(loads);
+    await cls.reload();
+    await Future.wait(cls.fields.map((field) => field.reload()));
   }
 
-  onSampleBufferChange(CpuProfile sampleBuffer) {
-    stackTraceTreeConfigElement.show = sampleBuffer.sampleCount > 0;
-    cpuProfileTreeElement.show = sampleBuffer.sampleCount > 0;
-    cpuProfileTreeElement.render();
-  }
-
-  onTreeConfigChange(String modeSelector,
-                     String directionSelector,
-                     String filter) {
-    ProfileTreeDirection direction = ProfileTreeDirection.Exclusive;
-    if (directionSelector != 'Up') {
-      direction = ProfileTreeDirection.Inclusive;
-    }
-    ProfileTreeMode mode = ProfileTreeMode.Function;
-    if (modeSelector == 'Code') {
-      mode = ProfileTreeMode.Code;
-    }
-    cpuProfileTreeElement.direction = direction;
-    cpuProfileTreeElement.mode = mode;
-    cpuProfileTreeElement.render();
-  }
+  M.SampleProfileTag _tag = M.SampleProfileTag.none;
 
   Future refreshAllocationProfile() async {
-    return sampleBufferControlElement.reload(cls.isolate);
+    shadowRoot.querySelector('#sampleBufferControl').children = const [];
+    shadowRoot.querySelector('#stackTraceTreeConfig').children = const [];
+    shadowRoot.querySelector('#cpuProfileTree').children = const [];
+    final stream = repository.get(cls, _tag);
+    var progress = (await stream.first).progress;
+    shadowRoot.querySelector('#sampleBufferControl')..children = [
+      new SampleBufferControlElement(progress, stream, queue: app.queue,
+          selectedTag: _tag)
+        ..onTagChange.listen((e) {
+          _tag = e.element.selectedTag;
+          refreshAllocationProfile();
+        })
+    ];
+    if (M.isSampleProcessRunning(progress.status)) {
+      progress = await stream.last;
+    }
+    if (progress.status == M.SampleProfileLoadingStatus.loaded) {
+      shadowRoot.querySelector('#stackTraceTreeConfig')..children = [
+        new StackTraceTreeConfigElement(
+          queue: app.queue)
+          ..showFilter = false
+          ..onModeChange.listen((e) {
+            cpuProfileTreeElement.mode = e.element.mode;
+          })
+          ..onDirectionChange.listen((e) {
+            cpuProfileTreeElement.direction = e.element.direction;
+          })
+      ];
+      shadowRoot.querySelector('#cpuProfileTree')..children = [
+        cpuProfileTreeElement = new CpuProfileVirtualTreeElement(cls.isolate,
+          progress.profile, queue: app.queue)
+      ];
+    }
   }
 
   Future toggleAllocationTrace() {
     if (cls == null) {
       return new Future(refresh);
+    }
+    if (cls.traceAllocations) {
+      refreshAllocationProfile();
     }
     return cls.setTraceAllocations(!cls.traceAllocations).whenComplete(refresh);
   }
