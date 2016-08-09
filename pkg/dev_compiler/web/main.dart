@@ -46,26 +46,22 @@ import 'package:js/js.dart';
 import 'web_command.dart';
 
 @JS()
-external set compileDartExpression(Function function);
-
-typedef String CompileFn(String dart);
-typedef void OnLoadFn(CompileFn compile);
+external set setUpCompilerInBrowser(Function function);
 
 Future main() async {
   var args = ['compile'];
-  _runCommand((result) {
-    compileDartExpression = allowInterop(result);
-  }, args);
+  _runCommand(args);
 }
 
 /// Runs a single compile command, and returns an exit code.
-Future<int> _runCommand(OnLoadFn onload, List<String> args,
+Future<int> _runCommand(List<String> args,
     {MessageHandler messageHandler}) async {
   try {
+    // TODO: Remove CommandRunner and args if possible. May run into issues
+    // with ArgResults or ArgParsers.
     var runner = new CommandRunner('dartdevc', 'Dart Development Compiler');
-    runner
-        .addCommand(new WebCompileCommand(onload, messageHandler: messageHandler));
-    await runner.run(args);
+    runner.addCommand(new WebCompileCommand(messageHandler: messageHandler));
+    setUpCompilerInBrowser = allowInterop(await runner.run(args));
   } catch (e, s) {
     return _handleError(e, s, args, messageHandler: messageHandler);
   }
