@@ -1242,7 +1242,7 @@ void Simulator::DoBreak(Instr *instr) {
       Redirection* redirection = Redirection::FromBreakInstruction(instr);
       uword external = redirection->external_function();
       if (IsTracingExecution()) {
-        OS::Print("Call to host function at 0x%" Pd "\n", external);
+        THR_Print("Call to host function at 0x%" Pd "\n", external);
       }
 
       if ((redirection->call_kind() == kRuntimeCall) ||
@@ -1994,13 +1994,13 @@ void Simulator::DecodeCop1(Instr* instr) {
 
 void Simulator::InstructionDecode(Instr* instr) {
   if (IsTracingExecution()) {
-    OS::Print("%" Pu64 " ", icount_);
+    THR_Print("%" Pu64 " ", icount_);
     const uword start = reinterpret_cast<uword>(instr);
     const uword end = start + Instr::kInstrSize;
     if (FLAG_support_disassembler) {
       Disassembler::Disassemble(start, end);
     } else {
-      OS::Print("Disassembler not supported in this mode.\n");
+      THR_Print("Disassembler not supported in this mode.\n");
     }
   }
 
