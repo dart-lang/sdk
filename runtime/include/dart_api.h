@@ -784,33 +784,34 @@ typedef bool (*Dart_EntropySource)(uint8_t* buffer, intptr_t length);
 typedef Dart_Handle (*Dart_GetVMServiceAssetsArchive)();
 
 /**
- * Initializes the VM.
+ * The current version of the Dart_InitializeFlags. Should be incremented every
+ * time Dart_InitializeFlags changes in a binary incompatible way.
+ */
+#define DART_INITIALIZE_PARAMS_CURRENT_VERSION (0x00000001)
+
+/**
+ * Describes how to initialize the VM. Used with Dart_Initialize.
  *
+ * \param version Identifies the version of the struct used by the client.
+ *   should be initialized to DART_INITIALIZE_PARAMS_CURRENT_VERSION.
  * \param vm_isolate_snapshot A buffer containing a snapshot of the VM isolate
  *   or NULL if no snapshot is provided.
  * \param instructions_snapshot A buffer containing a snapshot of precompiled
  *   instructions, or NULL if no snapshot is provided.
  * \param create A function to be called during isolate creation.
  *   See Dart_IsolateCreateCallback.
- * \param interrupt This parameter has been DEPRECATED.
- * \param unhandled_exception This parameter has been DEPRECATED.
  * \param shutdown A function to be called when an isolate is shutdown.
  *   See Dart_IsolateShutdownCallback.
- *
  * \param get_service_assets A function to be called by the service isolate when
  *    it requires the vmservice assets archive.
  *    See Dart_GetVMServiceAssetsArchive.
- *
- * \return NULL if initialization is successful. Returns an error message
- *   otherwise. The caller is responsible for freeing the error message.
  */
-DART_EXPORT char* Dart_Initialize(
+typedef struct {
+    int32_t version;
     const uint8_t* vm_isolate_snapshot,
     const uint8_t* instructions_snapshot,
     const uint8_t* data_snapshot,
     Dart_IsolateCreateCallback create,
-    Dart_IsolateInterruptCallback interrupt,
-    Dart_IsolateUnhandledExceptionCallback unhandled_exception,
     Dart_IsolateShutdownCallback shutdown,
     Dart_ThreadExitCallback thread_exit,
     Dart_FileOpenCallback file_open,
@@ -818,7 +819,19 @@ DART_EXPORT char* Dart_Initialize(
     Dart_FileWriteCallback file_write,
     Dart_FileCloseCallback file_close,
     Dart_EntropySource entropy_source,
-    Dart_GetVMServiceAssetsArchive get_service_assets);
+    Dart_GetVMServiceAssetsArchive get_service_assets;
+} Dart_InitializeParams;
+
+/**
+ * Initializes the VM.
+ *
+ * \param flags A struct containing initialization information. The version
+ *   field of the struct must be DART_INITIALIZE_PARAMS_CURRENT_VERSION.
+ *
+ * \return NULL if initialization is successful. Returns an error message
+ *   otherwise. The caller is responsible for freeing the error message.
+ */
+DART_EXPORT char* Dart_Initialize(Dart_InitializeParams* params);
 
 /**
  * Cleanup state in the VM before process termination.

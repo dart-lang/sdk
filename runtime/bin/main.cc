@@ -1731,16 +1731,22 @@ void main(int argc, char** argv) {
   }
 
   // Initialize the Dart VM.
-  char* error = Dart_Initialize(
-      vm_isolate_snapshot_buffer, instructions_snapshot, data_snapshot,
-      CreateIsolateAndSetup, NULL, NULL, ShutdownIsolate,
-      NULL,
-      DartUtils::OpenFile,
-      DartUtils::ReadFile,
-      DartUtils::WriteFile,
-      DartUtils::CloseFile,
-      DartUtils::EntropySource,
-      GetVMServiceAssetsArchiveCallback);
+  Dart_InitializeParams init_params;
+  memset(&init_params, 0, sizeof(init_params));
+  init_params.version = DART_INITIALIZE_FLAGS_CURRENT_VERSION;
+  init_params.vm_isolate_snapshot = vm_isolate_snapshot_buffer;
+  init_params.instructions_snapshot = instructions_snapshot;
+  init_params.data_snapshot = data_snapshot;
+  init_params.create = CreateIsolateAndSetup;
+  init_params.shutdown = ShutdownIsolate;
+  init_params.file_open = DartUtils::OpenFile;
+  init_params.file_read = DartUtils::ReadFile;
+  init_params.file_write = DartUtils::WriteFile;
+  init_params.file_close = DartUtils::CloseFile;
+  init_params.entropy_source = DartUtils::EntropySource;
+  init_params.get_service_assets = GetVMServiceAssetsArchiveCallback;
+
+  char* error = Dart_Initialize(&init_params);
   if (error != NULL) {
     EventHandler::Stop();
     fprintf(stderr, "VM initialization failed: %s\n", error);
