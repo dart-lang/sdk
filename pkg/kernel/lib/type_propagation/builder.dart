@@ -811,7 +811,8 @@ class Builder {
     var environment = new Environment(this, null, field);
     int initializer = field.initializer == null
         ? nullNode
-        : new ExpressionBuilder(this, environment).build(field.initializer);
+        : new StatementBuilder(this, environment)
+            .buildExpression(field.initializer);
     environment.addAssign(initializer, getSharedFieldVariable(field));
   }
 
@@ -833,8 +834,9 @@ class Builder {
   }
 
   int _makeDeclarationSiteFieldInitializer(Field field) {
-    return new ExpressionBuilder(this, new Environment(this, null, field))
-        .build(field.initializer);
+    final initializerEnvironment = new Environment(this, null, field);
+    return new StatementBuilder(this, initializerEnvironment)
+        .buildExpression(field.initializer);
   }
 
   void buildConstructor(Class hostClass, Constructor node) {
@@ -873,7 +875,8 @@ class Builder {
   /// which currently do have function values).
   void buildFunctionNode(FunctionNode node, Environment environment,
       {int function, bool addTypeBasedSummary: false}) {
-    var expressionBuilder = new ExpressionBuilder(this, environment);
+    var expressionBuilder =
+        new StatementBuilder(this, environment).expressionBuilder;
     int minArity = node.requiredParameterCount;
     int maxArity = node.positionalParameters.length;
     for (int i = 0; i < node.positionalParameters.length; ++i) {
@@ -936,8 +939,7 @@ class Builder {
     if (addTypeBasedSummary) {
       int returnFromType = buildCovariantType(node.returnType, environment);
       environment.addAssign(returnFromType, environment.returnVariable);
-    }
-    if (node.body != null) {
+    } else if (node.body != null) {
       Completion completes =
           new StatementBuilder(this, environment).build(node.body);
       if (completes == Completion.Maybe) {
@@ -1137,12 +1139,13 @@ class Environment extends TypeEnvironment {
 class ExpressionBuilder extends ExpressionVisitor<int> {
   final Builder builder;
   final Environment environment;
+  final StatementBuilder statementBuilder;
 
   ConstraintSystem get constraints => builder.constraints;
   Visualizer get visualizer => builder.visualizer;
   FieldNames get fieldNames => builder.fieldNames;
 
-  ExpressionBuilder(this.builder, this.environment);
+  ExpressionBuilder(this.builder, this.statementBuilder, this.environment);
 
   int build(Expression node) {
     int variable = node.accept(this);
@@ -1439,6 +1442,11 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
     return build(node.body);
   }
 
+  int visitBlockExpression(BlockExpression node) {
+    statementBuilder.build(node.body);
+    return build(node.value);
+  }
+
   int buildInnerFunction(FunctionNode node, {VariableDeclaration self}) {
     int variable = builder.newFunction(node);
     if (self != null) {
@@ -1500,7 +1508,7 @@ class StatementBuilder extends StatementVisitor<Completion> {
   FieldNames get names => builder.fieldNames;
 
   StatementBuilder(this.builder, this.environment) {
-    expressionBuilder = new ExpressionBuilder(builder, environment);
+    expressionBuilder = new ExpressionBuilder(builder, this, environment);
   }
 
   Completion build(Statement node) => node.accept(this);
@@ -1671,7 +1679,8 @@ class InitializerBuilder extends InitializerVisitor<Null> {
   FieldNames get fieldNames => builder.fieldNames;
 
   InitializerBuilder(this.builder, this.environment) {
-    expressionBuilder = new ExpressionBuilder(builder, environment);
+    expressionBuilder =
+        new StatementBuilder(builder, environment).expressionBuilder;
   }
 
   void build(Initializer node) {
