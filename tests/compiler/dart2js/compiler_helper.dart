@@ -179,7 +179,7 @@ Future compileAndCheck(String code,
 
 Future compileSources(Map<String, String> sources,
                check(MockCompiler compiler)) {
-  Uri base = new Uri(scheme: 'source');
+  Uri base = new Uri(scheme: 'source', path: '/');
   Uri mainUri = base.resolve('main.dart');
   String mainCode = sources['main.dart'];
   Expect.isNotNull(mainCode, 'No source code found for "main.dart"');
