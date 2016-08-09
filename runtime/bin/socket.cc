@@ -127,57 +127,42 @@ Dart_Handle ListeningSocketRegistry::CreateBindListen(Dart_Handle socket_object,
 }
 
 
-bool ListeningSocketRegistry::CloseOneSafe(OSSocket* os_socket) {
-  ASSERT(!mutex_->TryLock());
-  ASSERT(os_socket != NULL);
-  ASSERT(os_socket->ref_count > 0);
-  os_socket->ref_count--;
-  if (os_socket->ref_count > 0) {
-    return false;
-  }
-  // We free the OS socket by removing it from two datastructures.
-  sockets_by_fd_.erase(os_socket->socketfd);
-
-  OSSocket *prev = NULL;
-  OSSocket *current = sockets_by_port_[os_socket->port];
-  while (current != os_socket) {
-    ASSERT(current != NULL);
-    prev = current;
-    current = current->next;
-  }
-
-  if ((prev == NULL) && (current->next == NULL)) {
-    // Remove last element from the list.
-    sockets_by_port_.erase(os_socket->port);
-  } else if (prev == NULL) {
-    // Remove first element of the list.
-    sockets_by_port_[os_socket->port] = current->next;
-  } else {
-    // Remove element from the list which is not the first one.
-    prev->next = os_socket->next;
-  }
-
-  ASSERT(os_socket->ref_count == 0);
-  delete os_socket;
-  return true;
-}
-
-
-void ListeningSocketRegistry::CloseAllSafe() {
-  MutexLocker ml(mutex_);
-  SocketsIterator it = sockets_by_fd_.begin();
-  while (it != sockets_by_fd_.end()) {
-    CloseOneSafe(it->second);
-    it++;
-  }
-}
-
-
 bool ListeningSocketRegistry::CloseSafe(intptr_t socketfd) {
   ASSERT(!mutex_->TryLock());
+
   SocketsIterator it = sockets_by_fd_.find(socketfd);
   if (it != sockets_by_fd_.end()) {
-    return CloseOneSafe(it->second);
+    OSSocket *os_socket = it->second;
+
+    ASSERT(os_socket->ref_count > 0);
+    os_socket->ref_count--;
+    if (os_socket->ref_count == 0) {
+      // We free the OS socket by removing it from two datastructures.
+      sockets_by_fd_.erase(socketfd);
+
+      OSSocket *prev = NULL;
+      OSSocket *current = sockets_by_port_[os_socket->port];
+      while (current != os_socket) {
+        ASSERT(current != NULL);
+        prev = current;
+        current = current->next;
+      }
+
+      if ((prev == NULL) && (current->next == NULL)) {
+        // Remove last element from the list.
+        sockets_by_port_.erase(os_socket->port);
+      } else if (prev == NULL) {
+        // Remove first element of the list.
+        sockets_by_port_[os_socket->port] = current->next;
+      } else {
+        // Remove element from the list which is not the first one.
+        prev->next = os_socket->next;
+      }
+
+      delete os_socket;
+      return true;
+    }
+    return false;
   } else {
     // It should be impossible for the event handler to close something that
     // hasn't been created before.

@@ -13,8 +13,6 @@ class HashMap {
  public:
   typedef bool (*MatchFun) (void* key1, void* key2);
 
-  typedef void (*ClearFun) (void* value);
-
   static bool SamePointerValue(void* key1, void* key2) {
     return key1 == key2;
   }
@@ -50,7 +48,6 @@ class HashMap {
   // Some clients may not need to use the value slot
   // (e.g. implementers of sets, where the key is the value).
   struct Entry {
-    Entry() : key(NULL), value(NULL), hash(0) {}
     void* key;
     void* value;
     uint32_t hash;  // The full hash value for key.
@@ -66,12 +63,8 @@ class HashMap {
   // Removes the entry with matching key.
   void Remove(void* key, uint32_t hash);
 
-  // Empties the hash map (occupancy() == 0), and calls the function 'clear' on
-  // each of the values if given.
-  void Clear(ClearFun clear = NULL);
-
-  // The number of entries stored in the table.
-  intptr_t size() const { return occupancy_; }
+  // Empties the hash map (occupancy() == 0).
+  void Clear();
 
   // The capacity of the table. The implementation
   // makes sure that occupancy is at most 80% of

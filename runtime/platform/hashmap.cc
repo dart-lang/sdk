@@ -15,7 +15,7 @@ HashMap::HashMap(MatchFun match, uint32_t initial_capacity) {
 
 
 HashMap::~HashMap() {
-  delete[] map_;
+  free(map_);
 }
 
 
@@ -106,19 +106,14 @@ void HashMap::Remove(void* key, uint32_t hash) {
 
   // Clear the candidate which will not break searching the hash table.
   candidate->key = NULL;
-  candidate->value = NULL;
   occupancy_--;
 }
 
 
-void HashMap::Clear(ClearFun clear) {
+void HashMap::Clear() {
   // Mark all entries as empty.
   const Entry* end = map_end();
   for (Entry* p = map_; p < end; p++) {
-    if ((clear != NULL) && (p->key != NULL)) {
-      clear(p->value);
-    }
-    p->value = NULL;
     p->key = NULL;
   }
   occupancy_ = 0;
@@ -164,14 +159,14 @@ HashMap::Entry* HashMap::Probe(void* key, uint32_t hash) {
 
 void HashMap::Initialize(uint32_t capacity) {
   ASSERT(dart::Utils::IsPowerOfTwo(capacity));
-  map_ = new Entry[capacity];
+  map_ = reinterpret_cast<Entry*>(malloc(capacity * sizeof(Entry)));
   if (map_ == NULL) {
     // TODO(sgjesse): Handle out of memory.
     FATAL("Cannot allocate memory for hashmap");
     return;
   }
   capacity_ = capacity;
-  occupancy_ = 0;
+  Clear();
 }
 
 
@@ -191,7 +186,7 @@ void HashMap::Resize() {
   }
 
   // Delete old map.
-  delete[] map;
+  free(map);
 }
 
 }  // namespace dart

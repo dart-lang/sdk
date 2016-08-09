@@ -132,8 +132,6 @@ class CircularLinkedList {
  public:
   CircularLinkedList() : head_(NULL) {}
 
-  typedef void (*ClearFun) (void* value);
-
   // Returns true if the list was empty.
   bool Add(T t) {
     Entry* e = new Entry(t);
@@ -153,7 +151,7 @@ class CircularLinkedList {
     }
   }
 
-  void RemoveHead(ClearFun clear = NULL) {
+  void RemoveHead() {
     ASSERT(head_ != NULL);
 
     Entry* e = head_;
@@ -163,9 +161,6 @@ class CircularLinkedList {
       e->prev_->next_ = e->next_;
       e->next_->prev_ = e->prev_;
       head_ = e->next_;
-    }
-    if (clear != NULL) {
-      clear(reinterpret_cast<void*>(e->t));
     }
     delete e;
   }
@@ -200,9 +195,9 @@ class CircularLinkedList {
     }
   }
 
-  void RemoveAll(ClearFun clear = NULL) {
+  void RemoveAll() {
     while (HasHead()) {
-      RemoveHead(clear);
+      RemoveHead();
     }
   }
 
@@ -418,9 +413,7 @@ class DescriptorInfoMultipleMixin : public DI {
       : DI(fd), tokens_map_(&SamePortValue, kTokenCount),
         disable_tokens_(disable_tokens) {}
 
-  virtual ~DescriptorInfoMultipleMixin() {
-    RemoveAllPorts();
-  }
+  virtual ~DescriptorInfoMultipleMixin() {}
 
   virtual bool IsListeningSocket() const { return true; }
 
@@ -504,16 +497,14 @@ class DescriptorInfoMultipleMixin : public DI {
   }
 
   virtual void RemoveAllPorts() {
+    active_readers_.RemoveAll();
     for (HashMap::Entry *entry = tokens_map_.Start();
          entry != NULL;
          entry = tokens_map_.Next(entry)) {
       PortEntry* pentry = reinterpret_cast<PortEntry*>(entry->value);
-      entry->value = NULL;
-      active_readers_.Remove(pentry);
       delete pentry;
     }
     tokens_map_.Clear();
-    active_readers_.RemoveAll(DeletePortEntry);
   }
 
   virtual Dart_Port NextNotifyDartPort(intptr_t events_ready) {
@@ -594,11 +585,6 @@ class DescriptorInfoMultipleMixin : public DI {
   }
 
  private:
-  static void DeletePortEntry(void* data) {
-    PortEntry* entry = reinterpret_cast<PortEntry*>(data);
-    delete entry;
-  }
-
   // The [Dart_Port]s which are not paused (i.e. are interested in read events,
   // i.e. `mask == (1 << kInEvent)`) and we have enough tokens to communicate
   // with them.
