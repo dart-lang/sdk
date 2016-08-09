@@ -2977,6 +2977,16 @@ main() {
 ''');
   }
 
+  void test_optionalParams() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26155
+    checkFile(r'''
+void takesF(void f(int x)) {
+  takesF(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/([x]) { bool z = x.isEven; });
+  takesF(/*info:INFERRED_TYPE_CLOSURE*/(y) { bool z = y.isEven; });
+}
+    ''');
+  }
+
   void test_privateOverride() {
     addFile(
         '''

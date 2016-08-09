@@ -7179,6 +7179,20 @@ class ResolverVisitor extends ScopedVisitor {
     if (typeAnalyzer.inferFormalParameterList(node, type)) {
       // TODO(leafp): This gets dropped on the floor if we're in the field
       // inference task.  We should probably keep these infos.
+      //
+      // TODO(jmesserly): this is reporting the context type, and therefore not
+      // necessarily the correct inferred type for the lambda.
+      //
+      // For example, `([x]) {}`  could be passed to `int -> void` but its type
+      // will really be `([int]) -> void`. Similar issue for named arguments.
+      // It can also happen if the return type is inferred later on to be
+      // more precise.
+      //
+      // This reporting bug defeats the deduplication of error messages and
+      // results in the same inference message being reported twice.
+      //
+      // To get this right, we'd have to delay reporting until we have the
+      // complete type including return type.
       inferenceContext.recordInference(node.parent, type);
     }
   }

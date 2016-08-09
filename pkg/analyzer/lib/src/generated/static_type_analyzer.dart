@@ -131,29 +131,15 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       }
 
       List<ParameterElement> parameters = node.parameterElements;
-
       {
-        List<DartType> normalParameterTypes = functionType.normalParameterTypes;
-        int normalCount = normalParameterTypes.length;
-        Iterable<ParameterElement> required = parameters
-            .where((p) => p.parameterKind == ParameterKind.REQUIRED)
-            .take(normalCount);
-        int index = 0;
-        for (ParameterElementImpl p in required) {
-          inferType(p, normalParameterTypes[index++]);
-        }
-      }
-
-      {
-        List<DartType> optionalParameterTypes =
-            functionType.optionalParameterTypes;
-        int optionalCount = optionalParameterTypes.length;
-        Iterable<ParameterElement> optional = parameters
-            .where((p) => p.parameterKind == ParameterKind.POSITIONAL)
-            .take(optionalCount);
-        int index = 0;
-        for (ParameterElementImpl p in optional) {
-          inferType(p, optionalParameterTypes[index++]);
+        Iterator<ParameterElement> positional = parameters
+            .where((p) => p.parameterKind != ParameterKind.NAMED)
+            .iterator;
+        Iterator<ParameterElement> fnPositional = functionType.parameters
+            .where((p) => p.parameterKind != ParameterKind.NAMED)
+            .iterator;
+        while (positional.moveNext() && fnPositional.moveNext()) {
+          inferType(positional.current, fnPositional.current.type);
         }
       }
 
@@ -1697,6 +1683,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         visitedClasses.remove(element);
       }
     }
+
     if (type is InterfaceType) {
       _find(type);
     }
