@@ -418,9 +418,7 @@ class Builder {
   }
 
   int _makeStaticTearOffVariable(FunctionNode node) {
-    int variable = newVariable(node);
-    addInput(newFunctionValue(node), ValueBit.other, variable);
-    return variable;
+    return newFunction(node);
   }
 
   /// Returns a variable containing the torn-off copy of the given procedure.
@@ -432,8 +430,7 @@ class Builder {
   }
 
   int _makeTearOffVariable(Class host, Procedure node) {
-    int variable = newVariable(node, 'function');
-    addInput(newFunctionValue(node.function, node), ValueBit.other, variable);
+    int variable = newFunction(node.function, node);
     int sink = getSharedTearOffVariable(node.function);
     constraints.addSink(variable, sink);
     visualizer?.annotateSink(variable, sink, node);
@@ -484,16 +481,15 @@ class Builder {
     return point;
   }
 
-  /// Returns a new function value annotated with given AST node.
+  /// Returns a variable holding a new function value annotated with given AST
+  /// node.
   ///
   /// If the function is the body of an instance procedure, it should be passed
-  /// as [member] to ensure an effective union hierarchy is built for it.
+  /// as [member] to ensure an effective lattice is built for it.
   /// Otherwise, [member] should be omitted.
-  ///
-  /// Note that the returned value is not a variable. Add a function allocation
-  /// constraint to move it into a variable.
-  int newFunctionValue(FunctionNode node, [Procedure member]) {
+  int newFunction(FunctionNode node, [Procedure member]) {
     assert(node != null);
+    int functionVariable = newVariable(node);
     int baseLatticePoint = member == null
         ? latticePointForAllFunctions
         : getLatticePointForFunctionsOverridingMethod(member);
@@ -515,9 +511,9 @@ class Builder {
       int variable = newVariable();
       for (int arity = minArity; arity <= maxArity; ++arity) {
         int field = fieldNames.getNamedParameterField(
-          arity, node.namedParameters[i].name);
-          constraints.setStoreLocation(functionValue, field, variable);
-          constraints.setLoadLocation(functionValue, field, variable);
+            arity, node.namedParameters[i].name);
+        constraints.setStoreLocation(functionValue, field, variable);
+        constraints.setLoadLocation(functionValue, field, variable);
       }
     }
     int returnVariable = newVariable();
@@ -528,7 +524,12 @@ class Builder {
     }
     visualizer?.annotateFunction(functionValue, node);
     visualizer?.annotateValue(functionValue, member, 'function');
-    return functionValue;
+    addInput(functionValue, ValueBit.other, functionVariable);
+    constraints.setLoadLocation(
+        functionValue, fieldNames.callHandlerField, functionVariable);
+    constraints.setLoadLocation(functionValue,
+        fieldNames.getPropertyField(Names.call_), functionVariable);
+    return functionVariable;
   }
 
   /// Returns a variable containing the concrete instances of the given class.
@@ -772,8 +773,8 @@ class Builder {
   void buildInstanceValue(Class host) {
     int value = getInstanceValue(host);
     for (Member target in hierarchy.getDispatchTargets(host, setters: false)) {
-      constraints.setLoadLocation(
-          value, getPropertyField(target.name), getMemberGetter(host, target));
+      var getter = getMemberGetter(host, target);
+      constraints.setLoadLocation(value, getPropertyField(target.name), getter);
     }
     for (Member target in hierarchy.getDispatchTargets(host, setters: true)) {
       constraints.setStoreLocation(
@@ -787,6 +788,21 @@ class Builder {
       }
       for (Constructor constructor in node.constructors) {
         buildConstructor(host, constructor);
+      }
+    }
+    // If the object is callable as a function, set up its call handler.
+    Member callHandler = hierarchy.getDispatchTarget(host, Names.call_);
+    if (callHandler != null) {
+      if (callHandler is Procedure && !callHandler.isAccessor) {
+        constraints.setLoadLocation(value, fieldNames.callHandlerField,
+            getTearOffVariable(host, callHandler));
+      } else {
+        // Generate `this.[call] = this.call.[call]` where [call] is the
+        // call handler field, corresponding to repeatedly reading "call".
+        var environment = new TypeEnvironment(this, host, callHandler);
+        int getter = getMemberGetter(host, callHandler);
+        constraints.setLoadLocation(value, fieldNames.callHandlerField,
+            environment.getLoad(getter, fieldNames.callHandlerField));
       }
     }
   }
@@ -870,7 +886,7 @@ class Builder {
         for (int arity = minArity; arity <= maxArity; ++arity) {
           if (i < arity) {
             environment.addLoad(
-              function, getPositionalParameterField(arity, i), variable);
+                function, getPositionalParameterField(arity, i), variable);
           }
         }
       }
@@ -967,6 +983,18 @@ class FieldNames {
   static const int _TagNamedParameter = 3;
   static const int _TagReturn = 4;
   static const int _TagTypeParameter = 5;
+  static const int _TagCallHandler = 6;
+
+  /// Field mapping an object to the function value that should be invoked when
+  /// the object is called as a function.
+  ///
+  /// This is the equivalent of repeatedly reading the "call" property of an
+  /// object until a function value is found.
+  int callHandlerField;
+
+  FieldNames() {
+    callHandlerField = _table.get1(_TagCallHandler);
+  }
 
   /// Field representing the value returned from a getter, passed into a setter,
   /// or stored in a Dart field with the given name.
@@ -1021,6 +1049,8 @@ class FieldNames {
         return 'return(${tuple[1]})';
       case _TagTypeParameter:
         return 'type-param(${tuple[1]})';
+      case _TagCallHandler:
+        return 'call-handler()';
       default:
         return '!error';
     }
@@ -1211,20 +1241,28 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
     int function = node.name.name == 'call'
         ? receiver
         : environment.getLoad(receiver, methodProperty);
-    visualizer?.annotateVariable(function, node, 'callee');
+    // We have to dispatch through any number of 'call' getters to get to
+    // the actual function.  The 'call handler' field unfolds all the 'call'
+    // getters and refers directly to the actual function (if it exists).
+    // TODO(asgerf): When we have strong mode types, skip the 'call handler'
+    //     load if the static type system resolves the target to a method.
+    //     It is only needed for getters, fields, and untyped calls.
+    int handler = environment.getLoad(function, fieldNames.callHandlerField);
+    visualizer?.annotateVariable(function, node, 'function');
+    visualizer?.annotateVariable(handler, node, 'call handler');
     int arity = node.arguments.positional.length;
     for (int i = 0; i < node.arguments.positional.length; ++i) {
       int field = builder.getPositionalParameterField(arity, i);
       int argument = build(node.arguments.positional[i]);
-      environment.addStore(function, field, argument);
+      environment.addStore(handler, field, argument);
     }
     for (int i = 0; i < node.arguments.named.length; ++i) {
       NamedExpression namedNode = node.arguments.named[i];
       int field = builder.getNamedParameterField(arity, namedNode.name);
       int argument = build(namedNode.value);
-      environment.addStore(function, field, argument);
+      environment.addStore(handler, field, argument);
     }
-    return environment.getLoad(function, builder.getReturnField(arity));
+    return environment.getLoad(handler, builder.getReturnField(arity));
   }
 
   void passArgumentsToFunction(
@@ -1402,13 +1440,12 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
   }
 
   int buildInnerFunction(FunctionNode node, {VariableDeclaration self}) {
-    int variable = builder.newVariable(node);
+    int variable = builder.newFunction(node);
     if (self != null) {
       assert(!environment.localVariables.containsKey(self));
       environment.localVariables[self] = variable;
     }
     Environment inner = new Environment.inner(environment);
-    builder.addInput(builder.newFunctionValue(node), ValueBit.other, variable);
     builder.buildFunctionNode(node, inner, function: variable);
     return variable;
   }
@@ -1673,6 +1710,7 @@ class Names {
   static final Name current = new Name('current');
   static final Name iterator = new Name('iterator');
   static final Name then = new Name('then');
+  static final Name call_ = new Name('call');
 }
 
 /// Returns a variable with the possible values of a given type, as provided
@@ -1754,9 +1792,7 @@ class CovariantExternalTypeVisitor extends DartTypeVisitor<int> {
     int minArity = node.requiredParameterCount;
     int maxArity = node.positionalParameters.length;
     Member member = node.parent is Member ? node.parent : null;
-    int functionValue = builder.newFunctionValue(node, member);
-    int function = builder.newVariable(node);
-    builder.addInput(functionValue, ValueBit.other, function);
+    int function = builder.newFunction(node, member);
     for (int arity = minArity; arity <= maxArity; ++arity) {
       for (int i = 0; i < arity; ++i) {
         int field = fieldNames.getPositionalParameterField(arity, i);
