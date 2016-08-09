@@ -67,7 +67,6 @@ main() {
   runReflectiveTests(PropagateVariableTypesInUnitTaskTest);
   runReflectiveTests(PropagateVariableTypeTaskTest);
   runReflectiveTests(ReferencedNamesBuilderTest);
-  runReflectiveTests(ResolveDirectivesTaskTest);
   runReflectiveTests(ResolveDirectiveElementsTaskTest);
   runReflectiveTests(ResolveInstanceFieldsInUnitTaskTest);
   runReflectiveTests(ResolveLibraryTaskTest);
@@ -136,8 +135,6 @@ isInstanceOf isPropagateVariableTypeTask =
     new isInstanceOf<PropagateVariableTypeTask>();
 isInstanceOf isResolveDirectiveElementsTask =
     new isInstanceOf<ResolveDirectiveElementsTask>();
-isInstanceOf isResolveDirectivesTask =
-    new isInstanceOf<ResolveDirectivesTask>();
 isInstanceOf isResolveLibraryReferencesTask =
     new isInstanceOf<ResolveLibraryReferencesTask>();
 isInstanceOf isResolveLibraryTask = new isInstanceOf<ResolveLibraryTask>();
@@ -3220,14 +3217,21 @@ class ParseDartTaskTest extends _AbstractDartTaskTest {
   Source source;
 
   test_perform() {
-    _performTask(r'''
+    _performParseTask(r'''
 part of lib;
 class B {}''');
-    expect(outputs, hasLength(4));
+    expect(outputs, hasLength(11));
+    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(0));
+    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
+    _assertHasCore(outputs[IMPORTED_LIBRARIES], 1);
+    expect(outputs[INCLUDED_PARTS], hasLength(0));
+    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
     expect(outputs[PARSE_ERRORS], hasLength(0));
-    expect(outputs[PARSED_UNIT1], isNotNull);
+    expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[REFERENCED_NAMES], isNotNull);
+    expect(outputs[REFERENCED_SOURCES], hasLength(2));
     expect(outputs[SOURCE_KIND], SourceKind.PART);
+    expect(outputs[UNITS], hasLength(1));
   }
 
   test_perform_computeSourceKind_noDirectives_hasContainingLibrary() {
@@ -3239,110 +3243,160 @@ class B {}''');
 library lib;
 part 'test.dart';
 '''),
-        PARSED_UNIT1);
+        PARSED_UNIT);
     // If there are no the "part of" directive, then it is not a part.
-    _performTask('');
+    _performParseTask('');
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
   }
 
   test_perform_computeSourceKind_noDirectives_noContainingLibrary() {
-    _performTask('');
+    _performParseTask('');
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
   }
 
   test_perform_doesNotExist() {
-    _performTask(null);
-    expect(outputs, hasLength(4));
+    _performParseTask(null);
+    expect(outputs, hasLength(11));
+    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(0));
+    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
+    _assertHasCore(outputs[IMPORTED_LIBRARIES], 1);
+    expect(outputs[INCLUDED_PARTS], hasLength(0));
+    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
     expect(outputs[PARSE_ERRORS], hasLength(0));
-    expect(outputs[PARSED_UNIT1], isNotNull);
+    expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[REFERENCED_NAMES], isNotNull);
+    expect(outputs[REFERENCED_SOURCES], hasLength(2));
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
+    expect(outputs[UNITS], hasLength(1));
   }
 
   test_perform_enableAsync_false() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableAsync = false;
     prepareAnalysisContext(options);
-    _performTask(r'''
+    _performParseTask(r'''
 import 'dart:async';
 class B {void foo() async {}}''');
-    expect(outputs, hasLength(4));
+    expect(outputs, hasLength(11));
+    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
+    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
+    _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
+    expect(outputs[INCLUDED_PARTS], hasLength(0));
+    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
     expect(outputs[PARSE_ERRORS], hasLength(1));
-    expect(outputs[PARSED_UNIT1], isNotNull);
+    expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[REFERENCED_NAMES], isNotNull);
+    expect(outputs[REFERENCED_SOURCES], hasLength(3));
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
+    expect(outputs[UNITS], hasLength(1));
   }
 
   test_perform_enableAsync_true() {
-    _performTask(r'''
+    _performParseTask(r'''
 import 'dart:async';
 class B {void foo() async {}}''');
-    expect(outputs, hasLength(4));
+    expect(outputs, hasLength(11));
+    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
+    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
+    _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
+    expect(outputs[INCLUDED_PARTS], hasLength(0));
+    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
     expect(outputs[PARSE_ERRORS], hasLength(0));
-    expect(outputs[PARSED_UNIT1], isNotNull);
+    expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[REFERENCED_NAMES], isNotNull);
+    expect(outputs[REFERENCED_SOURCES], hasLength(3));
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
+    expect(outputs[UNITS], hasLength(1));
   }
 
   test_perform_flushTokenStream() {
-    _performTask(r'''
+    _performParseTask(r'''
 class Test {}
 ''');
     expect(analysisCache.getState(source, TOKEN_STREAM), CacheState.FLUSHED);
   }
 
   test_perform_invalidDirectives() {
-    _performTask(r'''
+    _performParseTask(r'''
 library lib;
 import '/does/not/exist.dart';
 import '://invaliduri.dart';
 export '${a}lib3.dart';
 part 'part.dart';
 class A {}''');
-    expect(outputs, hasLength(4));
-    expect(outputs[PARSE_ERRORS], hasLength(0));
-    expect(outputs[PARSED_UNIT1], isNotNull);
+    expect(outputs, hasLength(11));
+    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
+    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
+    _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
+    expect(outputs[INCLUDED_PARTS], hasLength(1));
+    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(2));
+    expect(outputs[PARSE_ERRORS], hasLength(2));
+    expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[REFERENCED_NAMES], isNotNull);
+    expect(outputs[REFERENCED_SOURCES], hasLength(4));
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
+    expect(outputs[UNITS], hasLength(2));
   }
 
   test_perform_library() {
-    _performTask(r'''
+    _performParseTask(r'''
 library lib;
 import 'lib2.dart';
 export 'lib3.dart';
 part 'part.dart';
 class A {''');
-    expect(outputs, hasLength(4));
+    expect(outputs, hasLength(11));
+    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
+    expect(outputs[EXPORTED_LIBRARIES], hasLength(1));
+    _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
+    expect(outputs[INCLUDED_PARTS], hasLength(1));
+    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(2));
     expect(outputs[PARSE_ERRORS], hasLength(1));
-    expect(outputs[PARSED_UNIT1], isNotNull);
+    expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[REFERENCED_NAMES], isNotNull);
+    expect(outputs[REFERENCED_SOURCES], hasLength(5));
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
+    expect(outputs[UNITS], hasLength(2));
+  }
+
+  test_perform_library_selfReferenceAsPart() {
+    _performParseTask(r'''
+library lib;
+part 'test.dart';
+''');
+    expect(outputs[INCLUDED_PARTS], unorderedEquals(<Source>[source]));
   }
 
   test_perform_part() {
-    _performTask(r'''
+    _performParseTask(r'''
 part of lib;
 class B {}''');
-    expect(outputs, hasLength(4));
+    expect(outputs, hasLength(11));
+    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(0));
+    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
+    _assertHasCore(outputs[IMPORTED_LIBRARIES], 1);
+    expect(outputs[INCLUDED_PARTS], hasLength(0));
+    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
     expect(outputs[PARSE_ERRORS], hasLength(0));
-    expect(outputs[PARSED_UNIT1], isNotNull);
+    expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[REFERENCED_NAMES], isNotNull);
+    expect(outputs[REFERENCED_SOURCES], hasLength(2));
     expect(outputs[SOURCE_KIND], SourceKind.PART);
+    expect(outputs[UNITS], hasLength(1));
   }
 
-  void _performTask(String content) {
+  void _performParseTask(String content) {
     if (content == null) {
       source = resourceProvider.getFile('/test.dart').createSource();
     } else {
       source = newSource('/test.dart', content);
     }
-    computeResult(source, PARSED_UNIT1, matcher: isParseDartTask);
+    computeResult(source, PARSED_UNIT, matcher: isParseDartTask);
   }
 
-  static void _assertHasCore(dynamic sourceList, int length) {
+  static void _assertHasCore(dynamic sourceList, int lenght) {
     List<Source> sources = sourceList as List<Source>;
-    expect(sources, hasLength(length));
+    expect(sources, hasLength(lenght));
     expect(sources, contains(predicate((Source s) {
       return s.fullName.endsWith('core.dart');
     })));
@@ -3490,7 +3544,6 @@ class C {
       SimpleIdentifier reference = statement.expression;
       expect(reference.staticElement, isResolved ? isNotNull : isNull);
     }
-
     //
     // The reference to 'A' in 'f1' should not be resolved.
     //
@@ -4164,163 +4217,6 @@ library libC;
       expect(exportElement, isNotNull);
       expect(exportElement.exportedLibrary, libraryElementC);
     }
-  }
-}
-
-@reflectiveTest
-class ResolveDirectivesTaskTest extends _AbstractDartTaskTest {
-  Source source;
-
-  test_perform() {
-    _performTask(r'''
-part of lib;
-class B {}''');
-    expect(outputs, hasLength(9));
-    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(0));
-    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
-    _assertHasCore(outputs[IMPORTED_LIBRARIES], 1);
-    expect(outputs[INCLUDED_PARTS], hasLength(0));
-    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
-    expect(outputs[PARSED_UNIT], isNotNull);
-    expect(outputs[REFERENCED_SOURCES], hasLength(2));
-    expect(outputs[RESOLVE_DIRECTIVES_ERRORS], hasLength(0));
-    expect(outputs[UNITS], hasLength(1));
-  }
-
-  test_perform_doesNotExist() {
-    _performTask(null);
-    expect(outputs, hasLength(9));
-    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(0));
-    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
-    _assertHasCore(outputs[IMPORTED_LIBRARIES], 1);
-    expect(outputs[INCLUDED_PARTS], hasLength(0));
-    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
-    expect(outputs[PARSED_UNIT], isNotNull);
-    expect(outputs[REFERENCED_SOURCES], hasLength(2));
-    expect(outputs[RESOLVE_DIRECTIVES_ERRORS], hasLength(0));
-    expect(outputs[UNITS], hasLength(1));
-  }
-
-  test_perform_enableAsync_false() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableAsync = false;
-    prepareAnalysisContext(options);
-    _performTask(r'''
-import 'dart:async';
-class B {void foo() async {}}''');
-    expect(outputs, hasLength(9));
-    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
-    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
-    _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
-    expect(outputs[INCLUDED_PARTS], hasLength(0));
-    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
-    expect(outputs[PARSED_UNIT], isNotNull);
-    expect(outputs[REFERENCED_SOURCES], hasLength(3));
-    expect(outputs[RESOLVE_DIRECTIVES_ERRORS], hasLength(0));
-    expect(outputs[UNITS], hasLength(1));
-  }
-
-  test_perform_enableAsync_true() {
-    _performTask(r'''
-import 'dart:async';
-class B {void foo() async {}}''');
-    expect(outputs, hasLength(9));
-    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
-    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
-    _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
-    expect(outputs[INCLUDED_PARTS], hasLength(0));
-    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
-    expect(outputs[PARSED_UNIT], isNotNull);
-    expect(outputs[REFERENCED_SOURCES], hasLength(3));
-    expect(outputs[RESOLVE_DIRECTIVES_ERRORS], hasLength(0));
-    expect(outputs[UNITS], hasLength(1));
-  }
-
-  test_perform_flushParsedUnit1() {
-    _performTask(r'''
-class Test {}
-''');
-    expect(analysisCache.getState(source, PARSED_UNIT1), CacheState.FLUSHED);
-  }
-
-  test_perform_invalidDirectives() {
-    _performTask(r'''
-library lib;
-import '/does/not/exist.dart';
-import '://invaliduri.dart';
-export '${a}lib3.dart';
-part 'part.dart';
-class A {}''');
-    expect(outputs, hasLength(9));
-    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
-    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
-    _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
-    expect(outputs[INCLUDED_PARTS], hasLength(1));
-    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(2));
-    expect(outputs[PARSED_UNIT], isNotNull);
-    expect(outputs[REFERENCED_SOURCES], hasLength(4));
-    expect(outputs[RESOLVE_DIRECTIVES_ERRORS], hasLength(2));
-    expect(outputs[UNITS], hasLength(2));
-  }
-
-  test_perform_library() {
-    _performTask(r'''
-library lib;
-import 'lib2.dart';
-export 'lib3.dart';
-part 'part.dart';
-class A {''');
-    expect(outputs, hasLength(9));
-    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
-    expect(outputs[EXPORTED_LIBRARIES], hasLength(1));
-    _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
-    expect(outputs[INCLUDED_PARTS], hasLength(1));
-    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(2));
-    expect(outputs[PARSED_UNIT], isNotNull);
-    expect(outputs[REFERENCED_SOURCES], hasLength(5));
-    expect(outputs[RESOLVE_DIRECTIVES_ERRORS], hasLength(0));
-    expect(outputs[UNITS], hasLength(2));
-  }
-
-  test_perform_library_selfReferenceAsPart() {
-    _performTask(r'''
-library lib;
-part 'test.dart';
-''');
-    expect(outputs[INCLUDED_PARTS], unorderedEquals(<Source>[source]));
-  }
-
-  test_perform_part() {
-    _performTask(r'''
-part of lib;
-class B {}''');
-    expect(outputs, hasLength(9));
-    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(0));
-    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
-    _assertHasCore(outputs[IMPORTED_LIBRARIES], 1);
-    expect(outputs[INCLUDED_PARTS], hasLength(0));
-    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
-    expect(outputs[PARSED_UNIT], isNotNull);
-    expect(outputs[REFERENCED_SOURCES], hasLength(2));
-    expect(outputs[RESOLVE_DIRECTIVES_ERRORS], hasLength(0));
-    expect(outputs[UNITS], hasLength(1));
-  }
-
-  void _performTask(String content) {
-    if (content == null) {
-      source = resourceProvider.getFile('/test.dart').createSource();
-    } else {
-      source = newSource('/test.dart', content);
-    }
-    computeResult(source, PARSED_UNIT, matcher: isResolveDirectivesTask);
-  }
-
-  static void _assertHasCore(dynamic sourceList, int length) {
-    List<Source> sources = sourceList as List<Source>;
-    expect(sources, hasLength(length));
-    expect(sources, contains(predicate((Source s) {
-      return s.fullName.endsWith('core.dart');
-    })));
   }
 }
 
@@ -5889,7 +5785,6 @@ class _AbstractDartTaskTest extends AbstractContextTest {
           matcher: matcher);
       return outputs[result];
     }
-
     return sources.map(compute).toList();
   }
 
@@ -5900,7 +5795,6 @@ class _AbstractDartTaskTest extends AbstractContextTest {
       computeResult(source, result, matcher: matcher);
       return outputs;
     }
-
     return sources.map(compute).toList();
   }
 

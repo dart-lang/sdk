@@ -84,7 +84,9 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT =
     new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT', null);
 
 /**
- * The compilation unit AST with resolved [UriBasedDirective]s.
+ * The compilation unit AST produced while parsing a compilation unit.
+ *
+ * The AST structure will not have resolution information associated with it.
  *
  * The result is only available for [Source]s representing a compilation unit.
  */

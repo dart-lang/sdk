@@ -118,7 +118,6 @@ class IncrementalBodyDelta extends Delta {
         isByTask(PropagateVariableTypeTask.DESCRIPTOR) ||
         isByTask(ScanDartTask.DESCRIPTOR) ||
         isByTask(ResolveConstantExpressionTask.DESCRIPTOR) ||
-        isByTask(ResolveDirectivesTask.DESCRIPTOR) ||
         isByTask(ResolveDirectiveElementsTask.DESCRIPTOR) ||
         isByTask(ResolveInstanceFieldsInUnitTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryReferencesTask.DESCRIPTOR) ||
@@ -877,9 +876,7 @@ class PoorMansIncrementalResolver {
     _sourceEntry.setValueIncremental(LINE_INFO, _newLineInfo, false);
     // parse results
     _sourceEntry.setValueIncremental(PARSE_ERRORS, _newParseErrors, true);
-    _sourceEntry.setValueIncremental(PARSED_UNIT1, _oldUnit, false);
     _sourceEntry.setValueIncremental(PARSED_UNIT, _oldUnit, false);
-    _sourceEntry.setValueIncremental(RESOLVE_DIRECTIVES_ERRORS, _newParseErrors, true);
     // referenced names
     ReferencedNames referencedNames = new ReferencedNames(_unitSource);
     new ReferencedNamesBuilder(referencedNames).build(_oldUnit);

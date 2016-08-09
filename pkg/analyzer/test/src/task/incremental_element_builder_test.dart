@@ -2003,7 +2003,6 @@ main() {
       // Flush all tokens, ASTs and elements.
       context.analysisCache.flush((target, result) {
         return result == TOKEN_STREAM ||
-            result == PARSED_UNIT1 ||
             result == PARSED_UNIT ||
             RESOLVED_UNIT_RESULTS.contains(result) ||
             LIBRARY_ELEMENT_RESULTS.contains(result);

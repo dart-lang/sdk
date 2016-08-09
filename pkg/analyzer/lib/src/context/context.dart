@@ -1277,9 +1277,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       setValue(LIBRARY_ELEMENT9, library);
       setValue(LINE_INFO, new LineInfo(<int>[0]));
       setValue(PARSE_ERRORS, AnalysisError.NO_ERRORS);
-      entry.setState(PARSED_UNIT1, CacheState.FLUSHED);
       entry.setState(PARSED_UNIT, CacheState.FLUSHED);
-      setValue(RESOLVE_DIRECTIVES_ERRORS, AnalysisError.NO_ERRORS);
       entry.setState(RESOLVE_TYPE_NAMES_ERRORS, CacheState.FLUSHED);
       entry.setState(RESOLVE_TYPE_BOUNDS_ERRORS, CacheState.FLUSHED);
       setValue(SCAN_ERRORS, AnalysisError.NO_ERRORS);
@@ -1375,7 +1373,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void test_flushAstStructures(Source source) {
     CacheEntry entry = getCacheEntry(source);
-    entry.setState(PARSED_UNIT1, CacheState.FLUSHED);
     entry.setState(PARSED_UNIT, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT1, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT2, CacheState.FLUSHED);
@@ -1661,14 +1658,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       } else if (state == CacheState.ERROR) {
         return;
       }
-      state = entry.getState(RESOLVE_DIRECTIVES_ERRORS);
-      if (state == CacheState.INVALID ||
-          (isPriority && state == CacheState.FLUSHED)) {
-        sources.add(source);
-        return;
-      } else if (state == CacheState.ERROR) {
-        return;
-      }
 //      if (isPriority) {
 //        if (!entry.hasResolvableCompilationUnit) {
 //          sources.add(source);
@@ -1873,7 +1862,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           AnalysisEngine.isDartFileName(source.fullName)) {
         // TODO(scheglov) Incorrect implementation in general.
         entry.setState(TOKEN_STREAM, CacheState.FLUSHED);
-        entry.setState(PARSED_UNIT1, CacheState.FLUSHED);
         entry.setState(PARSED_UNIT, CacheState.FLUSHED);
         SourceKind sourceKind = getKindOf(source);
         List<Source> partSources = getResult(source, INCLUDED_PARTS);
@@ -1887,7 +1875,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               .firstWhere((unit) => unit != null, orElse: () => null);
           // If we have the old unit, we can try to update it.
           if (oldUnit != null) {
-            CompilationUnit newUnit = computeResult(source, PARSED_UNIT);
+            CompilationUnit newUnit = parseCompilationUnit(source);
             IncrementalCompilationUnitElementBuilder builder =
                 new IncrementalCompilationUnitElementBuilder(oldUnit, newUnit);
             builder.build();

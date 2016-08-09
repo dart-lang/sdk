@@ -1894,10 +1894,8 @@ class B extends A {}
       bool expectCachePostConstantsValid: true}) {
     _assertCacheSourceResult(TOKEN_STREAM);
     _assertCacheSourceResult(SCAN_ERRORS);
-    _assertCacheSourceResult(PARSED_UNIT1);
     _assertCacheSourceResult(PARSED_UNIT);
     _assertCacheSourceResult(PARSE_ERRORS);
-    _assertCacheSourceResult(RESOLVE_DIRECTIVES_ERRORS);
     if (!expectLibraryUnchanged) {
       return;
     }

@@ -435,11 +435,7 @@ class GetHandler {
    * Return any AST structure stored in the given [entry].
    */
   CompilationUnit _getAnyAst(CacheEntry entry) {
-    CompilationUnit unit = entry.getValue(PARSED_UNIT1);
-    if (unit != null) {
-      return unit;
-    }
-    unit = entry.getValue(PARSED_UNIT);
+    CompilationUnit unit = entry.getValue(PARSED_UNIT);
     if (unit != null) {
       return unit;
     }
@@ -530,7 +526,6 @@ class GetHandler {
         results.add(LIBRARY_ELEMENT);
         results.add(LIBRARY_ERRORS_READY);
         results.add(PARSE_ERRORS);
-        results.add(PARSED_UNIT1);
         results.add(PARSED_UNIT);
         results.add(REFERENCED_NAMES);
         results.add(SCAN_ERRORS);

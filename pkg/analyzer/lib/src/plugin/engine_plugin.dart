@@ -170,7 +170,6 @@ class EnginePlugin implements Plugin {
 
   void _registerDartErrorsForSource(RegisterExtension registerExtension) {
     registerExtension(DART_ERRORS_FOR_SOURCE_EXTENSION_POINT_ID, PARSE_ERRORS);
-    registerExtension(DART_ERRORS_FOR_SOURCE_EXTENSION_POINT_ID, RESOLVE_DIRECTIVES_ERRORS);
     registerExtension(DART_ERRORS_FOR_SOURCE_EXTENSION_POINT_ID, SCAN_ERRORS);
   }
 
@@ -232,7 +231,6 @@ class EnginePlugin implements Plugin {
     registerExtension(taskId, ReadyLibraryElement6Task.DESCRIPTOR);
     registerExtension(taskId, ReadyResolvedUnitTask.DESCRIPTOR);
     registerExtension(taskId, ResolveConstantExpressionTask.DESCRIPTOR);
-    registerExtension(taskId, ResolveDirectivesTask.DESCRIPTOR);
     registerExtension(taskId, ResolveDirectiveElementsTask.DESCRIPTOR);
     registerExtension(taskId, ResolveInstanceFieldsInUnitTask.DESCRIPTOR);
     registerExtension(taskId, ResolveLibraryReferencesTask.DESCRIPTOR);
