@@ -624,13 +624,16 @@ class FixProcessor {
     } else {
       for (ImportElement import in unitLibraryElement.imports) {
         if (prefixElement is PrefixElement && import.prefix == prefixElement) {
-          targetUnit = import.importedLibrary.definingCompilationUnit;
-          Source targetSource = targetUnit.source;
-          int offset = targetSource.contents.data.length;
-          sb = new SourceBuilder(targetSource.fullName, offset);
-          prefix = '$eol';
-          suffix = '$eol';
-          break;
+          LibraryElement library = import.importedLibrary;
+          if (library != null) {
+            targetUnit = library.definingCompilationUnit;
+            Source targetSource = targetUnit.source;
+            int offset = targetSource.contents.data.length;
+            sb = new SourceBuilder(targetSource.fullName, offset);
+            prefix = '$eol';
+            suffix = '$eol';
+            break;
+          }
         }
       }
       if (sb == null) {
@@ -1283,6 +1286,7 @@ class FixProcessor {
       }
       isFirst = false;
     }
+
     // merge getter/setter pairs into fields
     String prefix = utils.getIndent(1);
     for (int i = 0; i < elements.length; i++) {

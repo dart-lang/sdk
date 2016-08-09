@@ -155,6 +155,43 @@ class AnalysisContextImplTest extends AbstractContextTest {
     expect(entry.explicitlyAdded, isTrue);
   }
 
+  void test_applyChanges_addNewImport_invalidateLibraryCycle() {
+    context.analysisOptions =
+        new AnalysisOptionsImpl.from(context.analysisOptions)
+          ..strongMode = true;
+    Source embedder = addSource(
+        '/a.dart',
+        r'''
+library a;
+import 'b.dart';
+//import 'c.dart';
+''');
+    addSource(
+        '/b.dart',
+        r'''
+library b;
+import 'a.dart';
+''');
+    addSource(
+        '/c.dart',
+        r'''
+library c;
+import 'b.dart';
+''');
+    _performPendingAnalysisTasks();
+    // Add a new import into a.dart, this should invalidate its library cycle.
+    // If it doesn't, we will get a task cycle exception.
+    context.setContents(
+        embedder,
+        r'''
+library a;
+import 'b.dart';
+import 'c.dart';
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getCacheEntry(embedder).exception, isNull);
+  }
+
   Future test_applyChanges_change() {
     SourcesChangedListener listener = new SourcesChangedListener();
     context.onSourcesChanged.listen(listener.onData);
@@ -378,7 +415,7 @@ import 'libB.dart';''';
     expect(sources[0], same(libA));
     libAElement = context.computeLibraryElement(libA);
     importedLibraries = libAElement.importedLibraries;
-    expect(importedLibraries, hasLength(1));
+    expect(importedLibraries, hasLength(2));
     return pumpEventQueue().then((_) {
       listener.assertEvent(wereSourcesAdded: true);
       listener.assertEvent(wereSourcesAdded: true);
@@ -485,43 +522,6 @@ class B {}
     _performPendingAnalysisTasks();
     expect(getErrorsState(a), CacheState.VALID);
     expect(context.getErrors(a).errors, hasLength(0));
-  }
-
-  void test_applyChanges_addNewImport_invalidateLibraryCycle() {
-    context.analysisOptions =
-        new AnalysisOptionsImpl.from(context.analysisOptions)
-          ..strongMode = true;
-    Source embedder = addSource(
-        '/a.dart',
-        r'''
-library a;
-import 'b.dart';
-//import 'c.dart';
-''');
-    addSource(
-        '/b.dart',
-        r'''
-library b;
-import 'a.dart';
-''');
-    addSource(
-        '/c.dart',
-        r'''
-library c;
-import 'b.dart';
-''');
-    _performPendingAnalysisTasks();
-    // Add a new import into a.dart, this should invalidate its library cycle.
-    // If it doesn't, we will get a task cycle exception.
-    context.setContents(
-        embedder,
-        r'''
-library a;
-import 'b.dart';
-import 'c.dart';
-''');
-    _performPendingAnalysisTasks();
-    expect(context.getCacheEntry(embedder).exception, isNull);
   }
 
   void test_cacheConsistencyValidator_computed_deleted() {
@@ -3750,6 +3750,7 @@ main() {
       MethodInvocation invocation = statement.expression;
       return invocation.argumentList.arguments[0];
     }
+
     {
       Expression argument = find42();
       expect(argument.staticParameterElement, isNull);

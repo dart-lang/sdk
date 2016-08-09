@@ -711,6 +711,15 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     // Then check for error conditions.
     //
     ErrorCode errorCode = _checkForInvocationError(target, true, staticElement);
+    if (errorCode != null &&
+        target is SimpleIdentifier &&
+        target.staticElement is PrefixElement) {
+      Identifier functionName =
+          new PrefixedIdentifierImpl.temp(target, methodName);
+      if (_resolver.nameScope.shouldIgnoreUndefined(functionName)) {
+        return null;
+      }
+    }
     bool generatedWithTypePropagation = false;
     if (_enableHints && errorCode == null && staticElement == null) {
       // The method lookup may have failed because there were multiple
@@ -750,8 +759,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         identical(errorCode,
             CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT) ||
         identical(errorCode, StaticTypeWarningCode.UNDEFINED_FUNCTION)) {
-      _resolver.errorReporter
-          .reportErrorForNode(errorCode, methodName, [methodName.name]);
+      if (!_resolver.nameScope.shouldIgnoreUndefined(methodName)) {
+        _resolver.errorReporter
+            .reportErrorForNode(errorCode, methodName, [methodName.name]);
+      }
     } else if (identical(errorCode, StaticTypeWarningCode.UNDEFINED_METHOD)) {
       String targetTypeName;
       if (target == null) {
@@ -817,6 +828,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         }
         return type;
       }
+
       DartType targetType = getSuperType(_getStaticType(target));
       String targetTypeName = targetType?.name;
       _resolver.errorReporter.reportErrorForNode(
@@ -893,6 +905,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             new SimpleIdentifierImpl(new StringToken(TokenType.STRING,
                 "${node.identifier.name}=", node.identifier.offset - 1)));
         element = _resolver.nameScope.lookup(setterName, _definingLibrary);
+      }
+      if (element == null && _resolver.nameScope.shouldIgnoreUndefined(node)) {
+        return null;
       }
       if (element == null) {
         if (identifier.inSetterContext()) {
@@ -1112,7 +1127,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT,
             node,
             [_resolver.enclosingFunction.displayName]);
-      } else {
+      } else if (!_resolver.nameScope.shouldIgnoreUndefined(node)) {
         _recordUndefinedNode(_resolver.enclosingClass,
             StaticWarningCode.UNDEFINED_IDENTIFIER, node, [node.name]);
       }
@@ -1177,6 +1192,15 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       name.staticElement = element;
     }
     node.staticElement = element;
+    // TODO(brianwilkerson) Defer this check until we know there's an error (by
+    // in-lining _resolveArgumentsToFunction below).
+    ClassDeclaration declaration =
+        node.getAncestor((AstNode node) => node is ClassDeclaration);
+    Identifier superclassName = declaration.extendsClause?.superclass?.name;
+    if (superclassName != null &&
+        _resolver.nameScope.shouldIgnoreUndefined(superclassName)) {
+      return null;
+    }
     ArgumentList argumentList = node.argumentList;
     List<ParameterElement> parameters = _resolveArgumentsToFunction(
         isInConstConstructor, argumentList, element);
@@ -1212,7 +1236,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * error code that should be reported, or `null` if no error should be
    * reported. The [target] is the target of the invocation, or `null` if there
    * was no target. The flag [useStaticContext] should be `true` if the
-   * invocation is in a static constant (does not have access to instance state.
+   * invocation is in a static constant (does not have access to instance state).
    */
   ErrorCode _checkForInvocationError(
       Expression target, bool useStaticContext, Element element) {
@@ -1283,6 +1307,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             targetType = _getBestType(target);
           }
           if (targetType == null) {
+            if (target is Identifier &&
+                _resolver.nameScope.shouldIgnoreUndefined(target)) {
+              return null;
+            }
             return StaticTypeWarningCode.UNDEFINED_FUNCTION;
           } else if (!targetType.isDynamic && !targetType.isBottom) {
             // Proxy-conditional warning, based on state of

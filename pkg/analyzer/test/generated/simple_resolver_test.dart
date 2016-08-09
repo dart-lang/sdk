@@ -26,59 +26,6 @@ main() {
 
 @reflectiveTest
 class SimpleResolverTest extends ResolverTestCase {
-  void fail_getter_and_setter_fromMixins_property_access() {
-    // TODO(paulberry): it appears that auxiliaryElements isn't properly set on
-    // a SimpleIdentifier that's inside a property access.  This bug should be
-    // fixed.
-    Source source = addSource('''
-class B {}
-class M1 {
-  get x => null;
-  set x(value) {}
-}
-class M2 {
-  get x => null;
-  set x(value) {}
-}
-class C extends B with M1, M2 {}
-void main() {
-  new C().x += 1;
-}
-''');
-    LibraryElement library = resolve2(source);
-    assertNoErrors(source);
-    verify([source]);
-    // Verify that both the getter and setter for "x" in "new C().x" refer to
-    // the accessors defined in M2.
-    FunctionDeclaration main =
-        library.definingCompilationUnit.functions[0].computeNode();
-    BlockFunctionBody body = main.functionExpression.body;
-    ExpressionStatement stmt = body.block.statements[0];
-    AssignmentExpression assignment = stmt.expression;
-    PropertyAccess propertyAccess = assignment.leftHandSide;
-    expect(
-        propertyAccess.propertyName.staticElement.enclosingElement.name, 'M2');
-    expect(
-        propertyAccess
-            .propertyName.auxiliaryElements.staticElement.enclosingElement.name,
-        'M2');
-  }
-
-  void fail_staticInvocation() {
-    Source source = addSource(r'''
-class A {
-  static int get g => (a,b) => 0;
-}
-class B {
-  f() {
-    A.g(1,0);
-  }
-}''');
-    computeLibrarySourceErrors(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   void test_argumentResolution_required_matching() {
     Source source = addSource(r'''
 class A {
@@ -791,6 +738,45 @@ class C extends B with M1, M2 {
         'M2');
   }
 
+  @failingTest
+  void test_getter_and_setter_fromMixins_property_access() {
+    // TODO(paulberry): it appears that auxiliaryElements isn't properly set on
+    // a SimpleIdentifier that's inside a property access.  This bug should be
+    // fixed.
+    Source source = addSource('''
+class B {}
+class M1 {
+  get x => null;
+  set x(value) {}
+}
+class M2 {
+  get x => null;
+  set x(value) {}
+}
+class C extends B with M1, M2 {}
+void main() {
+  new C().x += 1;
+}
+''');
+    LibraryElement library = resolve2(source);
+    assertNoErrors(source);
+    verify([source]);
+    // Verify that both the getter and setter for "x" in "new C().x" refer to
+    // the accessors defined in M2.
+    FunctionDeclaration main =
+        library.definingCompilationUnit.functions[0].computeNode();
+    BlockFunctionBody body = main.functionExpression.body;
+    ExpressionStatement stmt = body.block.statements[0];
+    AssignmentExpression assignment = stmt.expression;
+    PropertyAccess propertyAccess = assignment.leftHandSide;
+    expect(
+        propertyAccess.propertyName.staticElement.enclosingElement.name, 'M2');
+    expect(
+        propertyAccess
+            .propertyName.auxiliaryElements.staticElement.enclosingElement.name,
+        'M2');
+  }
+
   void test_getter_fromMixins_bare_identifier() {
     Source source = addSource('''
 class B {}
@@ -923,6 +909,66 @@ main() {
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_import_prefix_doesNotExist() {
+    //
+    // The primary purpose of this test is to ensure that we are only getting a
+    // single error generated when the only problem is that an imported file
+    // does not exist.
+    //
+    Source source = addNamedSource(
+        "/a.dart",
+        r'''
+import 'missing.dart' as p;
+int a = p.q + p.r.s;
+String b = p.t(a) + p.u(v: 0);
+p.T c = new p.T();
+class D<E> extends p.T {
+  D(int i) : super(i);
+  p.U f = new p.V();
+}
+class F implements p.T {
+  p.T m(p.U u) => null;
+}
+class G extends Object with p.V {}
+class H extends D<p.W> {
+  H(int i) : super(i);
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+    verify([source]);
+  }
+
+  void test_import_show_doesNotExist() {
+    //
+    // The primary purpose of this test is to ensure that we are only getting a
+    // single error generated when the only problem is that an imported file
+    // does not exist.
+    //
+    Source source = addNamedSource(
+        "/a.dart",
+        r'''
+import 'missing.dart' show q, r, t, u, T, U, V, W;
+int a = q + r.s;
+String b = t(a) + u(v: 0);
+T c = new T();
+class D<E> extends T {
+  D(int i) : super(i);
+  U f = new V();
+}
+class F implements T {
+  T m(U u) => null;
+}
+class G extends Object with V {}
+class H extends D<W> {
+  H(int i) : super(i);
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
     verify([source]);
   }
 
@@ -1673,6 +1719,22 @@ set s(x) {
 
 main() {
   s = 123;
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  @failingTest
+  void test_staticInvocation() {
+    Source source = addSource(r'''
+class A {
+  static int get g => (a,b) => 0;
+}
+class B {
+  f() {
+    A.g(1,0);
+  }
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);

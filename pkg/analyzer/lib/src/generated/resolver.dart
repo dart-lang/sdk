@@ -562,6 +562,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       }
       return element.isDeprecated;
     }
+
     if (!inDeprecatedMember && isDeprecated(element)) {
       String displayName = element.displayName;
       if (element is ConstructorElement) {
@@ -971,6 +972,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       }
       return false;
     }
+
     FunctionBody body = node.body;
     if (body is ExpressionFunctionBody) {
       if (isNonObjectNoSuchMethodInvocation(body.expression)) {
@@ -1916,7 +1918,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitExportDirective(ExportDirective node) {
     ExportElement exportElement = node.element;
-    if (exportElement != null) {
+    if (exportElement != null && exportElement.uriExists) {
       // The element is null when the URI is invalid
       LibraryElement library = exportElement.exportedLibrary;
       if (library != null) {
@@ -1960,8 +1962,9 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitImportDirective(ImportDirective node) {
     ImportElement importElement = node.element;
-    if (importElement != null) {
-      // The element is null when the URI is invalid
+    if (importElement != null && importElement.uriExists) {
+      // The element is null when the URI is invalid, but not when the URI is
+      // valid but refers to a non-existent file.
       LibraryElement library = importElement.importedLibrary;
       if (library != null) {
         for (Combinator combinator in node.combinators) {
@@ -2547,8 +2550,10 @@ class DeclarationResolver extends RecursiveAstVisitor<Object>
       String nameOfMethod = methodName.name;
       if (property == null) {
         String elementName = nameOfMethod == '-' &&
-            node.parameters != null &&
-            node.parameters.parameters.isEmpty ? 'unary-' : nameOfMethod;
+                node.parameters != null &&
+                node.parameters.parameters.isEmpty
+            ? 'unary-'
+            : nameOfMethod;
         _enclosingExecutable = _findWithNameAndOffset(_enclosingClass.methods,
             methodName, elementName, methodName.offset);
         _expectedElements.remove(_enclosingExecutable);
@@ -3963,6 +3968,7 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
       }
       return false;
     }
+
     AstNode parent = identifier.parent;
     if (parent is MethodInvocation && parent.methodName == identifier) {
       return recordIfTargetIsPrefixElement(parent.target);
@@ -4439,11 +4445,13 @@ class ImportsVerifier {
     int length = _unusedImports.length;
     for (int i = 0; i < length; i++) {
       ImportDirective unusedImport = _unusedImports[i];
-      // Check that the import isn't dart:core
+      // Check that the imported URI exists and isn't dart:core
       ImportElement importElement = unusedImport.element;
       if (importElement != null) {
         LibraryElement libraryElement = importElement.importedLibrary;
-        if (libraryElement != null && libraryElement.isDartCore) {
+        if (libraryElement == null ||
+            libraryElement.isDartCore ||
+            !importElement.uriExists) {
           continue;
         }
       }
@@ -8552,6 +8560,11 @@ class TypeNameResolver {
         node.type = voidType;
         return;
       }
+      if (nameScope.shouldIgnoreUndefined(typeName)) {
+        typeName.staticType = undefinedType;
+        node.type = undefinedType;
+        return;
+      }
       //
       // If not, the look to see whether we might have created the wrong AST
       // structure for a constructor name. If so, fix the AST structure and then
@@ -8568,6 +8581,11 @@ class TypeNameResolver {
           SimpleIdentifier prefix = prefixedIdentifier.prefix;
           element = nameScope.lookup(prefix, definingLibrary);
           if (element is PrefixElement) {
+            if (nameScope.shouldIgnoreUndefined(typeName)) {
+              typeName.staticType = undefinedType;
+              node.type = undefinedType;
+              return;
+            }
             AstNode grandParent = parent.parent;
             if (grandParent is InstanceCreationExpression &&
                 grandParent.isConst) {
@@ -8601,6 +8619,11 @@ class TypeNameResolver {
             typeName = prefix;
           }
         }
+      }
+      if (nameScope.shouldIgnoreUndefined(typeName)) {
+        typeName.staticType = undefinedType;
+        node.type = undefinedType;
+        return;
       }
     }
     // check element
@@ -10423,7 +10446,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     Identifier name = typeName.name;
     if (name.name == Keyword.DYNAMIC.syntax) {
       errorReporter.reportErrorForNode(dynamicTypeError, name, [name.name]);
-    } else {
+    } else if (!nameScope.shouldIgnoreUndefined(name)) {
       errorReporter.reportErrorForNode(nonTypeError, name, [name.name]);
     }
     return null;

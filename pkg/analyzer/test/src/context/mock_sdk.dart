@@ -305,8 +305,7 @@ class MockSdk implements DartSdk {
     "dart:core": "/lib/core/core.dart",
   };
 
-  final resource.MemoryResourceProvider provider =
-      new resource.MemoryResourceProvider();
+  final resource.MemoryResourceProvider provider;
 
   final Map<String, String> uriMap;
 
@@ -318,8 +317,9 @@ class MockSdk implements DartSdk {
   @override
   final List<SdkLibrary> sdkLibraries;
 
-  MockSdk({bool dartAsync: true})
-      : sdkLibraries = dartAsync ? _LIBRARIES : [_LIB_CORE],
+  MockSdk({bool dartAsync: true, resource.ResourceProvider resourceProvider})
+      : provider = resourceProvider ?? new resource.MemoryResourceProvider(),
+        sdkLibraries = dartAsync ? _LIBRARIES : [_LIB_CORE],
         uriMap = dartAsync ? FULL_URI_MAP : NO_ASYNC_URI_MAP {
     for (_MockSdkLibrary library in sdkLibraries) {
       provider.newFile(library.path, library.content);
