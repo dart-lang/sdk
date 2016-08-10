@@ -34,7 +34,11 @@ class LinkedPubPackage {
   final PubPackage package;
   final PackageBundle unlinked;
   final PackageBundle linked;
+
   LinkedPubPackage(this.package, this.unlinked, this.linked);
+
+  @override
+  String toString() => package.toString();
 }
 
 /**
@@ -141,13 +145,11 @@ class PubSummaryManager {
 
     // Create graph nodes for packages.
     List<_LinkedNode> nodes = <_LinkedNode>[];
-    Map<String, _LinkedNode> uriToNode = <String, _LinkedNode>{};
+    Map<String, _LinkedNode> packageToNode = <String, _LinkedNode>{};
     unlinkedBundles.forEach((package, unlinked) {
-      _LinkedNode node = new _LinkedNode(package, unlinked, uriToNode);
+      _LinkedNode node = new _LinkedNode(package, unlinked, packageToNode);
       nodes.add(node);
-      for (String uri in unlinked.unlinkedUnitUris) {
-        uriToNode[uri] = node;
-      }
+      packageToNode[package.name] = node;
     });
 
     // Fill the store with unlinked bundles.
@@ -177,6 +179,7 @@ class PubSummaryManager {
     }
 
     // TODO(scheglov) compute dependency hashes and write linked bundles.
+    // TODO(scheglov) don't forget to include the SDK API signature.
 
     // Done.
     return linkedPackages;
@@ -190,11 +193,13 @@ class PubSummaryManager {
     bool strong = context.analysisOptions.strongMode;
     Map<PubPackage, PackageBundle> unlinkedBundles =
         new HashMap<PubPackage, PackageBundle>();
+    // TODO(scheglov) get _sdkext bundles.
     Map<String, List<Folder>> packageMap = context.sourceFactory.packageMap;
     if (packageMap != null) {
       packageMap.forEach((String packageName, List<Folder> libFolders) {
         if (libFolders.length == 1) {
           Folder libFolder = libFolders.first;
+          // TODO(scheglov) handle Flutter packages, outside of the pub cache.
           if (isPathInPubCache(pathContext, libFolder.path)) {
             PubPackage package = new PubPackage(packageName, libFolder);
             PackageBundle unlinkedBundle =
@@ -375,6 +380,23 @@ class PubSummaryManager {
   }
 
   /**
+   * If the given [uri] has the `package` scheme, return the name of the
+   * package that contains the referenced resource.  Otherwise return `null`.
+   *
+   * For example `package:foo/bar.dart` => `foo`.
+   */
+  static String getPackageName(String uri) {
+    const String PACKAGE_SCHEME = 'package:';
+    if (uri.startsWith(PACKAGE_SCHEME)) {
+      int index = uri.indexOf('/');
+      if (index != -1) {
+        return uri.substring(PACKAGE_SCHEME.length, index);
+      }
+    }
+    return null;
+  }
+
+  /**
    * Return `true` if the given absolute [path] is in the pub cache.
    */
   static bool isPathInPubCache(pathos.Context pathContext, String path) {
@@ -397,34 +419,42 @@ class PubSummaryManager {
 class _LinkedNode extends Node<_LinkedNode> {
   final PubPackage package;
   final PackageBundle unlinked;
-  final Map<String, _LinkedNode> uriToNode;
+  final Map<String, _LinkedNode> packageToNode;
 
   PackageBundleBuilder linkedBuilder;
   bool failed = false;
 
-  _LinkedNode(this.package, this.unlinked, this.uriToNode);
+  _LinkedNode(this.package, this.unlinked, this.packageToNode);
 
   @override
   bool get isEvaluated => linkedBuilder != null || failed;
 
   @override
   List<_LinkedNode> computeDependencies() {
-    Set<String> referencedUris = new Set<String>();
+    Set<_LinkedNode> dependencies = new Set<_LinkedNode>();
     for (UnlinkedUnit unit in unlinked.unlinkedUnits) {
       for (UnlinkedImport import in unit.imports) {
-        String uri = import.isImplicit ? 'dart:core' : import.uri;
-        if (uri.startsWith('dart:')) {
-          // Ignore SDK imports.
-        } else if (uri.startsWith('package:')) {
-          referencedUris.add(uri);
+        String uriStr = import.isImplicit ? 'dart:core' : import.uri;
+        Uri uri = FastUri.parse(uriStr);
+        if (!uri.hasScheme) {
+          // A relative path in this package, skip it.
+        } else if (uri.scheme == 'dart') {
+          // TODO(scheglov) link _sdkext bundles.
+        } else if (uriStr.startsWith('package:')) {
+          String package = PubSummaryManager.getPackageName(uriStr);
+          _LinkedNode packageNode = packageToNode[package];
+          if (packageNode == null) {
+            failed = true;
+            return const <_LinkedNode>[];
+          }
+          dependencies.add(packageNode);
         } else {
           failed = true;
           return const <_LinkedNode>[];
         }
       }
     }
-    // TODO(scheglov) fail if no corresponding node
-    return referencedUris.map((uri) => uriToNode[uri]).toSet().toList();
+    return dependencies.toList();
   }
 
   @override
@@ -441,36 +471,49 @@ class _LinkedWalker extends DependencyWalker<_LinkedNode> {
   _LinkedWalker(this.store, this.strong);
 
   @override
-  void evaluate(_LinkedNode v) {
-    Set<String> libraryUris = v.unlinked.unlinkedUnitUris.toSet();
-    Map<String, LinkedLibraryBuilder> map = link(libraryUris, (String absUri) {
-      LinkedLibrary dependencyLibrary = store.linkedMap[absUri];
-      if (dependencyLibrary == null) {
-        // TODO(scheglov) add test
-        v.failed = true;
-      }
-      return dependencyLibrary;
-    }, (String absUri) {
-      UnlinkedUnit unlinkedUnit = store.unlinkedMap[absUri];
-      if (unlinkedUnit == null) {
-        // TODO(scheglov) add test
-        v.failed = true;
-      }
-      return unlinkedUnit;
-    }, strong);
-    if (!v.failed) {
-      PackageBundleAssembler assembler = new PackageBundleAssembler();
-      map.forEach((uri, linkedLibrary) {
-        assembler.addLinkedLibrary(uri, linkedLibrary);
-      });
-      v.linkedBuilder = assembler.assemble();
-      store.addBundle(null, v.linkedBuilder);
-    }
+  void evaluate(_LinkedNode node) {
+    evaluateScc([node]);
   }
 
   @override
   void evaluateScc(List<_LinkedNode> scc) {
-    print('evaluateScc: $scc');
-    // TODO(scheglov): implement evaluateScc
+    Map<String, _LinkedNode> uriToNode = <String, _LinkedNode>{};
+    for (_LinkedNode node in scc) {
+      for (String uri in node.unlinked.unlinkedUnitUris) {
+        uriToNode[uri] = node;
+      }
+    }
+    Set<String> libraryUris = uriToNode.keys.toSet();
+    // Perform linking.
+    bool failed = false;
+    Map<String, LinkedLibraryBuilder> linkedLibraries =
+        link(libraryUris, (String absoluteUri) {
+      LinkedLibrary dependencyLibrary = store.linkedMap[absoluteUri];
+      if (dependencyLibrary == null) {
+        failed = true;
+      }
+      return dependencyLibrary;
+    }, (String absoluteUri) {
+      UnlinkedUnit unlinkedUnit = store.unlinkedMap[absoluteUri];
+      if (unlinkedUnit == null) {
+        failed = true;
+      }
+      return unlinkedUnit;
+    }, strong);
+    // Assemble linked bundles and put them into the store.
+    if (!failed) {
+      for (_LinkedNode node in scc) {
+        PackageBundleAssembler assembler = new PackageBundleAssembler();
+        linkedLibraries.forEach((uri, linkedLibrary) {
+          if (identical(uriToNode[uri], node)) {
+            assembler.addLinkedLibrary(uri, linkedLibrary);
+          }
+        });
+        node.linkedBuilder = assembler.assemble();
+        store.addBundle(null, node.linkedBuilder);
+      }
+    } else {
+      scc.forEach((node) => node.failed = true);
+    }
   }
 }
