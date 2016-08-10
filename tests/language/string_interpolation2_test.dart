@@ -4,13 +4,13 @@
 
 // A dollar must be followed by a "{" or an identifier.
 
-class StringInterpolation4NegativeTest {
-  testMain() {
-    // Dollar not followed by "{" or identifier.
-    print("-" + "$" + "foo");
+class StringInterpolation2NegativeTest {
+  static testMain() {
+    // Dollar followed by "/".
+    print('C;Y1;X4;K"$/Month"'); /// 01: compile-time error
   }
 }
 
 main() {
-  StringInterpolation4NegativeTest.testMain();
+  StringInterpolation2NegativeTest.testMain();
 }

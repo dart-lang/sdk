@@ -4,18 +4,15 @@
 
 // A dollar must be followed by a "{" or an identifier.
 
-class A {
-  final String str;
-  const A(this.str);
-}
-
-class StringInterpolation1NegativeTest {
-  // Dollar not followed by "{" or identifier.
-  static const DOLLAR = const A("$");
-  testMain() {
+class StringInterpolation6NegativeTest {
+  static testMain() {
+    // Dollar not followed by "{" or identifier.
+    String regexp;
+    regexp = "^(\\d\\d?)[-/](\\d\\d?)$"; /// 01: compile-time error
+    print(regexp);
   }
 }
 
 main() {
-  StringInterpolation1NegativeTest.testMain();
+  StringInterpolation6NegativeTest.testMain();
 }
