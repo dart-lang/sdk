@@ -2986,6 +2986,19 @@ main() {
 ''');
   }
 
+  void test_nullCoalescingStrictArrow() {
+    checkFile(r'''
+bool _alwaysTrue(x) => true;
+typedef bool TakesA<T>(T t);
+class C<T> {
+  TakesA<T> g;
+  C(TakesA<T> f)
+    : g = f ?? _alwaysTrue;
+  C.a() : g = _alwaysTrue;
+}
+    ''');
+  }
+
   void test_optionalParams() {
     // Regression test for https://github.com/dart-lang/sdk/issues/26155
     checkFile(r'''
