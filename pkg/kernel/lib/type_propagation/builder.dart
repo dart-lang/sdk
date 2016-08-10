@@ -45,11 +45,16 @@ class LatticeMapping {
   final Map<Name, int> functionsWithName = <Name, int>{};
 
   /// Maps a class index to a lattice point containing all values that are
-  /// subtypes of that class..
+  /// subtypes of that class.
   final List<int> subtypesOfClass;
 
+  /// Maps a class index to a lattice point containing all values that are
+  /// subclasses of that class.
+  final List<int> subclassesOfClass;
+
   LatticeMapping(int numberOfClasses)
-      : subtypesOfClass = new List<int>(numberOfClasses);
+      : subtypesOfClass = new List<int>(numberOfClasses),
+        subclassesOfClass = new List<int>(numberOfClasses);
 }
 
 /// Generates a [ConstraintSystem] to be solved by [Solver].
@@ -154,7 +159,13 @@ class Builder {
       visualizer.fieldNames = fieldNames;
     }
 
-    // Translate class hierarchy into constraints.
+    // Build the subtype lattice points.
+    // The order in which lattice points are created determines how ambiguous
+    // upper bounds are resolved.  The lattice point with highest index among
+    // the potential upper bounds is the result of a join.
+    // We create all the subtype lattice point before all the subclass lattice
+    // points, to ensure that subclass information takes precedence over
+    // subtype information.
     for (int i = 0; i < hierarchy.classes.length; ++i) {
       Class class_ = hierarchy.classes[i];
       List<int> supers = <int>[];
@@ -167,17 +178,36 @@ class Builder {
       for (InterfaceType supertype in class_.implementedTypes) {
         supers.add(getLatticePointForSubtypesOfClass(supertype.classNode));
       }
-      int subtypePoint = newLatticePoint(supers, class_, BaseClassKind.Subtype);
-      int concretePoint =
-          newLatticePoint(<int>[subtypePoint], class_, BaseClassKind.Exact);
+      int subtypePoint = newLatticePoint(supers, class_,
+            i == 0 ? BaseClassKind.Subclass : BaseClassKind.Subtype);
       lattice.subtypesOfClass[i] = subtypePoint;
+      visualizer?.annotateLatticePoint(subtypePoint, class_, 'subtype');
+    }
+
+    // Build the lattice points for subclasses and exact classes.
+    for (int i = 0; i < hierarchy.classes.length; ++i) {
+      Class class_ = hierarchy.classes[i];
+      int subtypePoint = lattice.subtypesOfClass[i];
+      assert(subtypePoint != null);
+      int subclassPoint;
+      if (class_.supertype == null) {
+        subclassPoint = subtypePoint;
+      } else {
+        subclassPoint = newLatticePoint(<int>[
+          getLatticePointForSubclassesOf(class_.superclass),
+          subtypePoint
+        ], class_, BaseClassKind.Subclass);
+      }
+      lattice.subclassesOfClass[i] = subclassPoint;
+      int concretePoint =
+          newLatticePoint(<int>[subclassPoint], class_, BaseClassKind.Exact);
       int value = constraints.newValue(concretePoint);
       int variable = constraints.newVariable();
       // We construct the constraint system so the first N variables and values
       // correspond to the N classes in the program.
       assert(variable == i);
       assert(value == -i);
-      visualizer?.annotateLatticePoint(subtypePoint, class_, 'subtype');
+      visualizer?.annotateLatticePoint(subclassPoint, class_, 'subclass');
       visualizer?.annotateLatticePoint(concretePoint, class_, 'concrete');
       visualizer?.annotateVariable(variable, class_);
       visualizer?.annotateValue(value, class_);
@@ -276,6 +306,12 @@ class Builder {
   int getLatticePointForSubtypesOfClass(Class classNode) {
     int index = hierarchy.getClassIndex(classNode);
     return lattice.subtypesOfClass[index];
+  }
+
+  /// Returns the lattice point containing all subclasses of the given class.
+  int getLatticePointForSubclassesOf(Class classNode) {
+    int index = hierarchy.getClassIndex(classNode);
+    return lattice.subclassesOfClass[index];
   }
 
   /// Returns the lattice point containing all function implementing the given

@@ -34,7 +34,7 @@ static method useAsB(self::B/self::B* {other} object) → void/Null {
   dynamic/core::int* {null,int} _ = object.field;
   self::escape(object);
 }
-static method escape(dynamic/core::Object* {int,string,other} x) → void/Null {
+static method escape(dynamic/core::Object+ {int,string,other} x) → void/Null {
   x.==(null) ? x = "" : null;
   x.==(null) ? x = 45 : null;
   if(!(x is core::int) && !(x is core::String)) {

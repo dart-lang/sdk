@@ -55,7 +55,7 @@ external static method externalStatic() → core::bool/core::bool* {other};
 external static method createBar() → self::Bar/self::Bar* {other};
 static method stringArgument(dynamic/core::String* {string} x) → dynamic/Null {}
 static method intArgument(dynamic/core::int* {int} x) → dynamic/Null {}
-static method makeDynamicCall(dynamic/core::Object* {other} receiver) → void/Null {
+static method makeDynamicCall(dynamic/core::Object+ {other} receiver) → void/Null {
   receiver.dynamicallyCalled("sdfg");
 }
 static method main() → dynamic/Null {
@@ -75,5 +75,5 @@ static method main() → dynamic/Null {
   self::makeDynamicCall(new self::DynamicReceiver1::•());
   self::makeDynamicCall(new self::DynamicReceiver2::•());
   dynamic/core::List* {other} list = <dynamic>["string"];
-  dynamic/core::Object* {*} d = list.[](0);
+  dynamic/core::Object+ {*} d = list.[](0);
 }

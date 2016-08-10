@@ -16,7 +16,7 @@ class Strength extends core::Object {
   final field core::String/core::String* {string} name;
   const constructor •(core::int/core::int* {int} value, core::String/core::String* {string} name) → void
     : self::Strength::value = value, self::Strength::name = name, super core::Object::•();
-  method nextWeaker() → self::Strength/core::Object* {*}
+  method nextWeaker() → self::Strength/core::Object+ {*}
     return const <self::Strength>[self::STRONG_PREFERRED, self::PREFERRED, self::STRONG_DEFAULT, self::NORMAL, self::WEAK_DEFAULT, self::WEAKEST].[](this.value);
   static method stronger(self::Strength/self::Strength! {other} s1, self::Strength/self::Strength! {other} s2) → core::bool/core::bool* {other} {
     return s1.value.<(s2.value);
@@ -49,7 +49,7 @@ abstract class Constraint extends core::Object {
     this.addToGraph();
     self::planner.incrementalAdd(this);
   }
-  method satisfy(dynamic/core::num* {int,double} mark) → self::Constraint/self::Constraint* {null,other} {
+  method satisfy(dynamic/core::num* {int,double} mark) → self::Constraint/self::Constraint+ {null,other} {
     this.chooseMethod(mark);
     if(!this.isSatisfied()) {
       if(this.strength.==(self::REQUIRED)) {
@@ -59,7 +59,7 @@ abstract class Constraint extends core::Object {
     }
     this.markInputs(mark);
     self::Variable/self::Variable! {null,other} out = this.output();
-    self::Constraint/self::Constraint* {null,other} overridden = out.determinedBy;
+    self::Constraint/self::Constraint+ {null,other} overridden = out.determinedBy;
     if(!overridden.==(null))
       overridden.markUnsatisfied();
     out.determinedBy = this;
@@ -230,7 +230,7 @@ class EqualityConstraint extends self::BinaryConstraint {
 }
 class Variable extends core::Object {
   field core::List<self::Constraint>/core::List* {other} constraints = <self::Constraint>[];
-  field self::Constraint/self::Constraint* {null,other} determinedBy;
+  field self::Constraint/self::Constraint+ {null,other} determinedBy;
   field core::int/core::num* {int,double} mark = 0;
   field self::Strength/self::Strength! {other} walkStrength = self::WEAKEST;
   field core::bool/core::bool* {other} stay = true;
@@ -238,10 +238,10 @@ class Variable extends core::Object {
   final field core::String/core::String* {string} name;
   constructor •(core::String/core::String* {string} name, core::int/core::num* {int,double} value) → void
     : self::Variable::name = name, self::Variable::value = value, super core::Object::•();
-  method addConstraint(self::Constraint/self::Constraint* {other} c) → void/Null {
+  method addConstraint(self::Constraint/self::Constraint+ {other} c) → void/Null {
     this.constraints.add(c);
   }
-  method removeConstraint(self::Constraint/self::Constraint* {other} c) → void/Null {
+  method removeConstraint(self::Constraint/self::Constraint+ {other} c) → void/Null {
     this.constraints.remove(c);
     if(this.determinedBy.==(c))
       this.determinedBy = null;
@@ -252,20 +252,20 @@ class Planner extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  method incrementalAdd(self::Constraint/core::Object* {*} c) → void/Null {
+  method incrementalAdd(self::Constraint/core::Object+ {*} c) → void/Null {
     core::int/core::num* {int,double} mark = this.newMark();
-    for(self::Constraint/self::Constraint* {null,other} overridden = c.satisfy(mark); !overridden.==(null); overridden = overridden.satisfy(mark))
+    for(self::Constraint/self::Constraint+ {null,other} overridden = c.satisfy(mark); !overridden.==(null); overridden = overridden.satisfy(mark))
       ;
   }
-  method incrementalRemove(self::Constraint/self::Constraint* {other} c) → void/Null {
+  method incrementalRemove(self::Constraint/self::Constraint+ {other} c) → void/Null {
     self::Variable/self::Variable! {null,other} out = c.output();
     c.markUnsatisfied();
     c.removeFromGraph();
     core::List<self::Constraint>/core::List* {other} unsatisfied = this.removePropagateFrom(out);
-    self::Strength/core::Object* {*} strength = self::REQUIRED;
+    self::Strength/core::Object+ {*} strength = self::REQUIRED;
     do {
       for(core::int/core::num* {int,double} i = 0; i.<(unsatisfied.length); i = i.+(1)) {
-        self::Constraint/core::Object* {*} u = unsatisfied.[](i);
+        self::Constraint/core::Object+ {*} u = unsatisfied.[](i);
         if(u.strength.==(strength))
           this.incrementalAdd(u);
       }
@@ -280,7 +280,7 @@ class Planner extends core::Object {
     self::Plan/self::Plan! {other} plan = new self::Plan::•();
     core::List<self::Constraint>/core::List* {other} todo = sources;
     while (todo.length.>(0)) {
-      self::Constraint/core::Object* {*} c = todo.removeLast();
+      self::Constraint/core::Object+ {*} c = todo.removeLast();
       if(!c.output().mark.==(mark) && c.inputsKnown(mark)) {
         plan.addConstraint(c);
         c.output().mark = mark;
@@ -292,16 +292,16 @@ class Planner extends core::Object {
   method extractPlanFromConstraints(core::List<self::Constraint>/core::List* {other} constraints) → self::Plan/self::Plan! {other} {
     core::List<self::Constraint>/core::List* {other} sources = <self::Constraint>[];
     for(core::int/core::num* {int,double} i = 0; i.<(constraints.length); i = i.+(1)) {
-      self::Constraint/core::Object* {*} c = constraints.[](i);
+      self::Constraint/core::Object+ {*} c = constraints.[](i);
       if(c.isInput() && c.isSatisfied())
         sources.add(c);
     }
     return this.makePlan(sources);
   }
-  method addPropagate(self::Constraint/self::Constraint* {other} c, core::int/core::num* {int,double} mark) → core::bool/core::bool* {other} {
+  method addPropagate(self::Constraint/self::Constraint+ {other} c, core::int/core::num* {int,double} mark) → core::bool/core::bool* {other} {
     core::List<self::Constraint>/core::List* {other} todo = <self::Constraint>[c];
     while (todo.length.>(0)) {
-      self::Constraint/core::Object* {*} d = todo.removeLast();
+      self::Constraint/core::Object+ {*} d = todo.removeLast();
       if(d.output().mark.==(mark)) {
         this.incrementalRemove(c);
         return false;
@@ -318,15 +318,15 @@ class Planner extends core::Object {
     core::List<self::Constraint>/core::List* {other} unsatisfied = <self::Constraint>[];
     core::List<self::Variable>/core::List* {other} todo = <self::Variable>[out];
     while (todo.length.>(0)) {
-      self::Variable/core::Object* {*} v = todo.removeLast();
+      self::Variable/core::Object+ {*} v = todo.removeLast();
       for(core::int/core::num* {int,double} i = 0; i.<(v.constraints.length); i = i.+(1)) {
-        self::Constraint/core::Object* {*} c = v.constraints.[](i);
+        self::Constraint/core::Object+ {*} c = v.constraints.[](i);
         if(!c.isSatisfied())
           unsatisfied.add(c);
       }
-      self::Constraint/self::Constraint* {null,other} determining = v.determinedBy;
+      self::Constraint/self::Constraint+ {null,other} determining = v.determinedBy;
       for(core::int/core::num* {int,double} i = 0; i.<(v.constraints.length); i = i.+(1)) {
-        self::Constraint/core::Object* {*} next = v.constraints.[](i);
+        self::Constraint/core::Object+ {*} next = v.constraints.[](i);
         if(!next.==(determining) && next.isSatisfied()) {
           next.recalculate();
           todo.add(next.output());
@@ -336,9 +336,9 @@ class Planner extends core::Object {
     return unsatisfied;
   }
   method addConstraintsConsumingTo(self::Variable/self::Variable! {null,other} v, core::List<self::Constraint>/core::List* {other} coll) → void/Null {
-    self::Constraint/self::Constraint* {null,other} determining = v.determinedBy;
+    self::Constraint/self::Constraint+ {null,other} determining = v.determinedBy;
     for(core::int/core::num* {int,double} i = 0; i.<(v.constraints.length); i = i.+(1)) {
-      self::Constraint/core::Object* {*} c = v.constraints.[](i);
+      self::Constraint/core::Object+ {*} c = v.constraints.[](i);
       if(!c.==(determining) && c.isSatisfied())
         coll.add(c);
     }
@@ -349,7 +349,7 @@ class Plan extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  method addConstraint(self::Constraint/core::Object* {*} c) → void/Null {
+  method addConstraint(self::Constraint/core::Object+ {*} c) → void/Null {
     this.list.add(c);
   }
   method size() → core::int/core::int* {int}
