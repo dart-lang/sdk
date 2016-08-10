@@ -4,3 +4,6 @@
 
 [ $browser == false || $runtime == drt ]
 *: SkipByDesign
+
+[ $runtime == dartium ]
+isolate/*: Skip
