@@ -9,11 +9,11 @@ library dart2js.source_information.position;
 
 import '../common.dart';
 import '../elements/elements.dart'
-    show AstElement, FieldElement, ResolvedAst, ResolvedAstKind;
+    show AstElement, ResolvedAst, ResolvedAstKind;
 import '../js/js.dart' as js;
 import '../js/js_debug.dart';
 import '../js/js_source_mapping.dart';
-import '../tree/tree.dart' show FunctionExpression, Node, Send;
+import '../tree/tree.dart' show Node, Send;
 import 'code_output.dart' show CodeBuffer;
 import 'source_file.dart';
 import 'source_information.dart';

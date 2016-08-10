@@ -7,6 +7,7 @@ library dart2js.serialization_test_helper;
 import 'dart:collection';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/constants/expressions.dart';
+import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/dart_types.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
@@ -88,6 +89,15 @@ class CheckStrategy implements TestStrategy {
   }
 
   @override
+  bool testMaps(
+      var object1, var object2, String property, Map map1, Map map2,
+      [bool keyEquivalence(a, b) = equality,
+      bool valueEquivalence(a, b) = equality]) {
+    return checkMapEquivalence(object1, object2, property,
+        map1, map2, keyEquivalence, valueEquivalence);
+  }
+
+  @override
   bool testElements(
       Object object1, Object object2, String property,
       Element element1, Element element2) {
@@ -110,6 +120,12 @@ class CheckStrategy implements TestStrategy {
   }
 
   @override
+  bool testConstantValues(Object object1, Object object2, String property,
+      ConstantValue value1, ConstantValue value2) {
+    return areConstantValuesEquivalent(value1, value2);
+  }
+
+  @override
   bool testTypeLists(
       Object object1, Object object2, String property,
       List<DartType> list1, List<DartType> list2) {
@@ -122,6 +138,12 @@ class CheckStrategy implements TestStrategy {
       List<ConstantExpression> list1,
       List<ConstantExpression> list2) {
     return checkConstantLists(object1, object2, property, list1, list2);
+  }
+
+  @override
+  bool testConstantValueLists(Object object1, Object object2, String property,
+      List<ConstantValue> list1, List<ConstantValue> list2) {
+    return checkConstantValueLists(object1, object2, property, list1, list2);
   }
 
   @override
@@ -247,6 +269,38 @@ bool checkSetEquivalence(
   return true;
 }
 
+/// Check equivalence of the two iterables, [set1] and [set1], as sets using
+/// [elementEquivalence] to compute the pair-wise equivalence.
+///
+/// Uses [object1], [object2] and [property] to provide context for failures.
+bool checkMapEquivalence(
+    var object1,
+    var object2,
+    String property,
+    Map map1,
+    Map map2,
+    bool sameKey(a, b),
+    bool sameValue(a, b)) {
+  List<List> common = <List>[];
+  List unfound = [];
+  Set remaining =
+      computeSetDifference(map1.keys, map2.keys, common, unfound,
+          sameElement: sameKey);
+  if (unfound.isNotEmpty || remaining.isNotEmpty) {
+    String message =
+        "Map key mismatch for `$property` on $object1 vs $object2: \n"
+        "Common:\n ${common.join('\n ')}\n"
+        "Unfound:\n ${unfound.join('\n ')}\n"
+        "Extra: \n ${remaining.join('\n ')}";
+    throw message;
+  }
+  for (List pair in common) {
+    check(object1, object2, 'Map value for `$property`',
+        map1[pair[0]], map2[pair[1]], sameValue);
+  }
+  return true;
+}
+
 /// Checks the equivalence of the identity (but not properties) of [element1]
 /// and [element2].
 ///
@@ -311,7 +365,23 @@ bool checkConstants(
   }
 }
 
-/// Checks the pair-wise equivalence of the contants in [list1] and [list2].
+/// Checks the equivalence of [value1] and [value2].
+///
+/// Uses [object1], [object2] and [property] to provide context for failures.
+bool checkConstantValues(
+    Object object1, Object object2, String property,
+    ConstantValue value1, ConstantValue value2) {
+  if (identical(value1, value2)) return true;
+  if (value1 == null || value2 == null) {
+    return check(object1, object2, property, value1, value2);
+  } else {
+    return check(object1, object2, property, value1, value2,
+        (a, b) => const ConstantValueEquivalence(
+            const CheckStrategy()).visit(a, b));
+  }
+}
+
+/// Checks the pair-wise equivalence of the constants in [list1] and [list2].
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
 bool checkConstantLists(
@@ -323,6 +393,18 @@ bool checkConstantLists(
       list1, list2, checkConstants);
 }
 
+/// Checks the pair-wise equivalence of the constants values in [list1] and
+/// [list2].
+///
+/// Uses [object1], [object2] and [property] to provide context for failures.
+bool checkConstantValueLists(
+    Object object1, Object object2, String property,
+    List<ConstantValue> list1,
+    List<ConstantValue> list2) {
+  return checkListEquivalence(
+      object1, object2, property,
+      list1, list2, checkConstantValues);
+}
 
 /// Check member property equivalence between all members common to [compiler1]
 /// and [compiler2].
@@ -439,27 +521,41 @@ void checkSets(
     {bool failOnUnfound: true,
     bool failOnExtra: true,
     bool verbose: false,
-    void onSameElement(a, b)}) {
+    void onSameElement(a, b),
+    void onUnfoundElement(a),
+    void onExtraElement(b),
+    String elementToString(key): defaultToString}) {
   List<List> common = <List>[];
   List unfound = [];
   Set remaining = computeSetDifference(
       set1, set2, common, unfound,
       sameElement: sameElement,
       checkElements: onSameElement);
+  if (onUnfoundElement != null) {
+    unfound.forEach(onUnfoundElement);
+  }
+  if (onExtraElement != null) {
+    remaining.forEach(onExtraElement);
+  }
   StringBuffer sb = new StringBuffer();
   sb.write("$messagePrefix:");
   if (verbose) {
-    sb.write("\n Common:\n  ${common.join('\n  ')}");
+    sb.write("\n Common: \n");
+    for (List pair in common) {
+      var element1 = pair[0];
+      var element2 = pair[1];
+      sb.write("  [${elementToString(element1)},"
+          "${elementToString(element2)}]\n");
+    }
   }
   if (unfound.isNotEmpty || verbose) {
-    sb.write("\n Unfound:\n  ${unfound.join('\n  ')}");
+    sb.write("\n Unfound:\n  ${unfound.map(elementToString).join('\n  ')}");
   }
   if (remaining.isNotEmpty || verbose) {
-    sb.write("\n Extra: \n  ${remaining.join('\n  ')}");
+    sb.write("\n Extra: \n  ${remaining.map(elementToString).join('\n  ')}");
   }
   String message = sb.toString();
   if (unfound.isNotEmpty || remaining.isNotEmpty) {
-
     if ((failOnUnfound && unfound.isNotEmpty) ||
         (failOnExtra && remaining.isNotEmpty)) {
       Expect.fail(message);

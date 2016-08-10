@@ -11,7 +11,6 @@ import '../tokens/precedence_constants.dart';
 import '../tokens/token.dart';
 import '../tokens/token_constants.dart';
 import '../util/characters.dart';
-
 import 'string_scanner.dart' show StringScanner;
 import 'utf8_bytes_scanner.dart' show Utf8BytesScanner;
 

@@ -5,7 +5,6 @@
 library dart2js.serialization.elements;
 
 import '../common.dart';
-import '../common/names.dart';
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';

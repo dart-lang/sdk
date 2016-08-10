@@ -1156,6 +1156,11 @@ abstract class ExportElement implements Element, UriReferencedElement {
    * directive.
    */
   LibraryElement get exportedLibrary;
+
+  /**
+   * Return `true` if the file referenced by the import's URI exists.
+   */
+  bool get uriExists;
 }
 
 /**
@@ -1341,6 +1346,11 @@ abstract class ImportElement implements Element, UriReferencedElement {
    * prefix, or otherwise does not have an offset.
    */
   int get prefixOffset;
+
+  /**
+   * Return `true` if the file referenced by the import's URI exists.
+   */
+  bool get uriExists;
 }
 
 /**

@@ -4,11 +4,11 @@
 
 import 'dart:_internal';
 
-patch class UserTag {
-  /* patch */ factory UserTag(String label) {
+@patch class UserTag {
+  /* @patch */ factory UserTag(String label) {
     return new _UserTag(label);
   }
-  /* patch */ static UserTag get defaultTag => _getDefaultTag();
+  /* @patch */ static UserTag get defaultTag => _getDefaultTag();
 }
 
 
@@ -18,7 +18,7 @@ class _UserTag implements UserTag {
   UserTag makeCurrent() native "UserTag_makeCurrent";
 }
 
-patch UserTag getCurrentTag() => _getCurrentTag();
+@patch UserTag getCurrentTag() => _getCurrentTag();
 UserTag _getCurrentTag() native "Profiler_getCurrentTag";
 
 UserTag _getDefaultTag() native "UserTag_defaultTag";

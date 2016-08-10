@@ -1,6 +1,5 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
 <link rel="import" href="action_link.html">
-<link rel="import" href="cpu_profile.html">
 <link rel="import" href="eval_box.html">
 <link rel="import" href="eval_link.html">
 <link rel="import" href="field_ref.html">
@@ -258,15 +257,11 @@
           </div>
         </template>
       </div>
-      <sample-buffer-control id="sampleBufferControl"></sample-buffer-control>
+      <div id="sampleBufferControl"></div>
       <br>
-      <stack-trace-tree-config id="stackTraceTreeConfig"></stack-trace-tree-config>
+      <div id="stackTraceTreeConfig"></div>
       <br>
-      <div class="flex-row centered">
-        <div class="flex-item-90-percent outlined" style="margin: 16px; margin-left: 8px; margin-right: 8px">
-          <cpu-profile-virtual-tree id="cpuProfileTree"></cpu-profile-virtual-tree>
-        </div>
-      </div>
+      <div id="cpuProfileTree"></div>
     </div>
 
     <div class="content-centered-big">

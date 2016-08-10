@@ -10,6 +10,7 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer/task/general.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
@@ -92,6 +93,19 @@ class ResynthesizerResultProviderTest {
     expect(entry2.getValue(CONTAINING_LIBRARIES), unorderedEquals([source1]));
   }
 
+  test_compute_LINE_INFO_hasLineStarts() {
+    when(unlinkedUnit1.lineStarts).thenReturn(<int>[10, 20, 30]);
+    bool success = provider.compute(entry1, LINE_INFO);
+    expect(success, isTrue);
+    expect(entry1.getValue(LINE_INFO).lineStarts, <int>[10, 20, 30]);
+  }
+
+  test_compute_LINE_INFO_emptyLineStarts() {
+    when(unlinkedUnit1.lineStarts).thenReturn(<int>[]);
+    bool success = provider.compute(entry1, LINE_INFO);
+    expect(success, isFalse);
+  }
+
   test_compute_SOURCE_KIND_librarySource() {
     bool success = provider.compute(entry1, SOURCE_KIND);
     expect(success, isTrue);
@@ -113,7 +127,8 @@ class ResynthesizerResultProviderTest {
 
 @reflectiveTest
 class SummaryDataStoreTest {
-  SummaryDataStore dataStore = new SummaryDataStore(<String>[]);
+  SummaryDataStore dataStore =
+      new SummaryDataStore(<String>[], recordDependencyInfo: true);
 
   PackageBundle bundle1 = new _PackageBundleMock();
   PackageBundle bundle2 = new _PackageBundleMock();
@@ -134,6 +149,7 @@ class SummaryDataStoreTest {
         .thenReturn(<UnlinkedUnit>[unlinkedUnit11, unlinkedUnit12]);
     when(bundle1.linkedLibraryUris).thenReturn(<String>['package:p1/u1.dart']);
     when(bundle1.linkedLibraries).thenReturn(<LinkedLibrary>[linkedLibrary1]);
+    when(bundle1.apiSignature).thenReturn('signature1');
     dataStore.addBundle('/p1.ds', bundle1);
     // bundle2
     when(unlinkedUnit21.publicNamespace).thenReturn(_namespaceWithParts([]));
@@ -141,11 +157,22 @@ class SummaryDataStoreTest {
     when(bundle2.unlinkedUnits).thenReturn(<UnlinkedUnit>[unlinkedUnit21]);
     when(bundle2.linkedLibraryUris).thenReturn(<String>['package:p2/u1.dart']);
     when(bundle2.linkedLibraries).thenReturn(<LinkedLibrary>[linkedLibrary2]);
+    when(bundle2.apiSignature).thenReturn('signature2');
     dataStore.addBundle('/p2.ds', bundle2);
   }
 
   test_addBundle() {
     expect(dataStore.bundles, unorderedEquals([bundle1, bundle2]));
+    expect(dataStore.dependencies[0].summaryPath, '/p1.ds');
+    expect(dataStore.dependencies[0].apiSignature, 'signature1');
+    expect(dataStore.dependencies[0].includedPackageNames, ['p1']);
+    expect(dataStore.dependencies[0].includesFileUris, false);
+    expect(dataStore.dependencies[0].includesDartUris, false);
+    expect(dataStore.dependencies[1].summaryPath, '/p2.ds');
+    expect(dataStore.dependencies[1].apiSignature, 'signature2');
+    expect(dataStore.dependencies[1].includedPackageNames, ['p2']);
+    expect(dataStore.dependencies[1].includesFileUris, false);
+    expect(dataStore.dependencies[1].includesDartUris, false);
     expect(dataStore.uriToSummaryPath,
         containsPair('package:p1/u1.dart', '/p1.ds'));
     // unlinkedMap
@@ -162,6 +189,47 @@ class SummaryDataStoreTest {
         containsPair('package:p1/u1.dart', linkedLibrary1));
     expect(dataStore.linkedMap,
         containsPair('package:p2/u1.dart', linkedLibrary2));
+  }
+
+  test_addBundle_dartUris() {
+    PackageBundle bundle = new _PackageBundleMock();
+    when(bundle.unlinkedUnitUris).thenReturn(<String>['dart:core']);
+    when(bundle.unlinkedUnits).thenReturn(<UnlinkedUnit>[unlinkedUnit11]);
+    when(bundle.linkedLibraryUris).thenReturn(<String>['dart:core']);
+    when(bundle.linkedLibraries).thenReturn(<LinkedLibrary>[linkedLibrary1]);
+    when(bundle.apiSignature).thenReturn('signature');
+    dataStore.addBundle('/p3.ds', bundle);
+    expect(dataStore.dependencies.last.includedPackageNames, []);
+    expect(dataStore.dependencies.last.includesFileUris, false);
+    expect(dataStore.dependencies.last.includesDartUris, true);
+  }
+
+  test_addBundle_fileUris() {
+    PackageBundle bundle = new _PackageBundleMock();
+    when(bundle.unlinkedUnitUris).thenReturn(<String>['file:/foo.dart']);
+    when(bundle.unlinkedUnits).thenReturn(<UnlinkedUnit>[unlinkedUnit11]);
+    when(bundle.linkedLibraryUris).thenReturn(<String>['file:/foo.dart']);
+    when(bundle.linkedLibraries).thenReturn(<LinkedLibrary>[linkedLibrary1]);
+    when(bundle.apiSignature).thenReturn('signature');
+    dataStore.addBundle('/p3.ds', bundle);
+    expect(dataStore.dependencies.last.includedPackageNames, []);
+    expect(dataStore.dependencies.last.includesFileUris, true);
+    expect(dataStore.dependencies.last.includesDartUris, false);
+  }
+
+  test_addBundle_multiProject() {
+    PackageBundle bundle = new _PackageBundleMock();
+    when(bundle.unlinkedUnitUris)
+        .thenReturn(<String>['package:p2/u1.dart', 'package:p1/u1.dart']);
+    when(bundle.unlinkedUnits)
+        .thenReturn(<UnlinkedUnit>[unlinkedUnit21, unlinkedUnit11]);
+    when(bundle.linkedLibraryUris)
+        .thenReturn(<String>['package:p2/u1.dart', 'package:p1/u1.dart']);
+    when(bundle.linkedLibraries)
+        .thenReturn(<LinkedLibrary>[linkedLibrary2, linkedLibrary1]);
+    when(bundle.apiSignature).thenReturn('signature');
+    dataStore.addBundle('/p3.ds', bundle);
+    expect(dataStore.dependencies.last.includedPackageNames, ['p1', 'p2']);
   }
 
   test_getContainingLibraryUris_libraryUri() {

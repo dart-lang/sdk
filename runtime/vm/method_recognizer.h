@@ -13,7 +13,7 @@ namespace dart {
 // When adding a new function add a 0 as fingerprint, build and run to get the
 // correct fingerprint from the mismatch error.
 #define OTHER_RECOGNIZED_LIST(V)                                               \
-  V(::, identical, ObjectIdentical, Bool, 0x12e69c8c)                          \
+  V(::, identical, ObjectIdentical, Bool, 0x49c6e96a)                          \
   V(ClassID, getID, ClassIDgetID, Smi, 0x528fd455)                             \
   V(Object, Object., ObjectConstructor, Dynamic, 0x681617fe)                   \
   V(_List, ., ObjectArrayAllocate, Array, 0x63078b15)                          \
@@ -111,22 +111,6 @@ namespace dart {
   V(Int32x4, withFlagY, Int32x4WithFlagY, Int32x4, 0x6485a9c4)                 \
   V(Int32x4, withFlagZ, Int32x4WithFlagZ, Int32x4, 0x267acdfa)                 \
   V(Int32x4, withFlagW, Int32x4WithFlagW, Int32x4, 0x345ac675)                 \
-  V(Float32List, [], Float32ArrayGetIndexed, Double, 0x5686528f)               \
-  V(Float32List, []=, Float32ArraySetIndexed, Dynamic, 0x1b0d90df)             \
-  V(Int8List, [], Int8ArrayGetIndexed, Smi, 0x069af8b3)                        \
-  V(Int8List, []=, Int8ArraySetIndexed, Dynamic, 0x33994cd7)                   \
-  V(Uint8ClampedList, [], Uint8ClampedArrayGetIndexed, Smi, 0x027603ed)        \
-  V(Uint8ClampedList, []=, Uint8ClampedArraySetIndexed, Dynamic, 0x28f5f058)   \
-  V(_ExternalUint8ClampedArray, [], ExternalUint8ClampedArrayGetIndexed,       \
-    Smi, 0x027603ed)                                                           \
-  V(_ExternalUint8ClampedArray, []=, ExternalUint8ClampedArraySetIndexed,      \
-    Dynamic, 0x28f5f058)                                                       \
-  V(Int16List, [], Int16ArrayGetIndexed, Smi, 0x173cd6a1)                      \
-  V(Int16List, []=, Int16ArraySetIndexed, Dynamic, 0x32f84e3c)                 \
-  V(Uint16List, [], Uint16ArrayGetIndexed, Smi, 0x3ececa2f)                    \
-  V(Uint16List, []=, Uint16ArraySetIndexed, Dynamic, 0x5c3a0bb9)               \
-  V(Int32List, [], Int32ArrayGetIndexed, Dynamic, 0x262eef09)                  \
-  V(Int32List, []=, Int32ArraySetIndexed, Dynamic, 0x1b05b471)                 \
   V(Int64List, [], Int64ArrayGetIndexed, Dynamic, 0x0c0c939a)                  \
   V(Int64List, []=, Int64ArraySetIndexed, Dynamic, 0x3714d004)                 \
   V(Float32x4List, [], Float32x4ArrayGetIndexed, Float32x4, 0x01c7017b)        \
@@ -239,17 +223,17 @@ namespace dart {
 
 
 #define MATH_LIB_INTRINSIC_LIST(V)                                             \
-  V(::, sqrt, MathSqrt, Double, 0x18e8d5f6)                                    \
+  V(::, sqrt, MathSqrt, Double, 0x1afb83d4)                                    \
   V(_Random, _nextState, Random_nextState, Dynamic, 0x1e4b0103)                \
 
 #define GRAPH_MATH_LIB_INTRINSIC_LIST(V)                                       \
-  V(::, sin, MathSin, Double, 0x0000fe08)                                      \
-  V(::, cos, MathCos, Double, 0x7794b33e)                                      \
-  V(::, tan, MathTan, Double, 0x4c1b72fd)                                      \
-  V(::, asin, MathAsin, Double, 0x640d48ad)                                    \
-  V(::, acos, MathAcos, Double, 0x42d46f81)                                    \
-  V(::, atan, MathAtan, Double, 0x4223f879)                                    \
-  V(::, atan2, MathAtan2, Double, 0x3553fb61)                                  \
+  V(::, sin, MathSin, Double, 0x0213abe6)                                      \
+  V(::, cos, MathCos, Double, 0x79a7611c)                                      \
+  V(::, tan, MathTan, Double, 0x4e2e20db)                                      \
+  V(::, asin, MathAsin, Double, 0x661ff68b)                                    \
+  V(::, acos, MathAcos, Double, 0x44e71d5f)                                    \
+  V(::, atan, MathAtan, Double, 0x4436a657)                                    \
+  V(::, atan2, MathAtan2, Double, 0x60a40743)                                  \
 
 #define TYPED_DATA_LIB_INTRINSIC_LIST(V)                                       \
   V(Int8List, ., TypedData_Int8Array_factory, TypedDataInt8Array, 0x2e7749e3)  \
@@ -281,15 +265,31 @@ namespace dart {
     TypedDataFloat64x2Array, 0x18cbf4d9)                                       \
 
 #define GRAPH_TYPED_DATA_INTRINSICS_LIST(V)                                    \
+  V(Int8List, [], Int8ArrayGetIndexed, Smi, 0x069af8b3)                        \
+  V(Int8List, []=, Int8ArraySetIndexed, Dynamic, 0x33994cd7)                   \
   V(Uint8List, [], Uint8ArrayGetIndexed, Smi, 0x027603ed)                      \
   V(Uint8List, []=, Uint8ArraySetIndexed, Dynamic, 0x060d5256)                 \
   V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, Smi, 0x027603ed)    \
   V(_ExternalUint8Array, []=, ExternalUint8ArraySetIndexed, Dynamic,           \
     0x060d5256)                                                                \
+  V(Uint8ClampedList, [], Uint8ClampedArrayGetIndexed, Smi, 0x027603ed)        \
+  V(Uint8ClampedList, []=, Uint8ClampedArraySetIndexed, Dynamic, 0x28f5f058)   \
+  V(_ExternalUint8ClampedArray, [], ExternalUint8ClampedArrayGetIndexed,       \
+    Smi, 0x027603ed)                                                           \
+  V(_ExternalUint8ClampedArray, []=, ExternalUint8ClampedArraySetIndexed,      \
+    Dynamic, 0x28f5f058)                                                       \
+  V(Int16List, [], Int16ArrayGetIndexed, Smi, 0x173cd6a1)                      \
+  V(Int16List, []=, Int16ArraySetIndexed, Dynamic, 0x32f84e3c)                 \
+  V(Uint16List, [], Uint16ArrayGetIndexed, Smi, 0x3ececa2f)                    \
+  V(Uint16List, []=, Uint16ArraySetIndexed, Dynamic, 0x5c3a0bb9)               \
+  V(Int32List, [], Int32ArrayGetIndexed, Dynamic, 0x262eef09)                  \
+  V(Int32List, []=, Int32ArraySetIndexed, Dynamic, 0x1b05b471)                 \
   V(Uint32List, [], Uint32ArrayGetIndexed, Dynamic, 0x6040f7fb)                \
   V(Uint32List, []=, Uint32ArraySetIndexed, Dynamic, 0x3a4e1119)               \
   V(Float64List, [], Float64ArrayGetIndexed, Double, 0x7a27098d)               \
   V(Float64List, []=, Float64ArraySetIndexed, Dynamic, 0x139b2465)             \
+  V(Float32List, [], Float32ArrayGetIndexed, Double, 0x5686528f)               \
+  V(Float32List, []=, Float32ArraySetIndexed, Dynamic, 0x1b0d90df)             \
   V(_TypedList, get:length, TypedDataLength, Smi, 0x2090dc1a)                  \
   V(Float32x4, get:x, Float32x4ShuffleX, Double, 0x63d0c13f)                   \
   V(Float32x4, get:y, Float32x4ShuffleY, Double, 0x20343b1b)                   \
@@ -335,7 +335,7 @@ namespace dart {
   V(::, _getDefaultTag, UserTag_defaultTag, Dynamic, 0x14ddc3b7)               \
   V(::, _getCurrentTag, Profiler_getCurrentTag, Dynamic, 0x486ee02d)           \
   V(::, _isDartStreamEnabled, Timeline_isDartStreamEnabled, Dynamic,           \
-    0x3fe92e14)                                                                \
+    0x1667ce76)                                                                \
 
 #define ALL_INTRINSICS_NO_INTEGER_LIB_LIST(V)                                  \
   CORE_LIB_INTRINSIC_LIST(V)                                                   \
@@ -421,19 +421,19 @@ namespace dart {
   V(_ByteDataView, getUint64, ByteDataViewGetUint64, 0x2fab992e)               \
   V(_ByteDataView, getFloat32, ByteDataViewGetFloat32, 0x387e9fc6)             \
   V(_ByteDataView, getFloat64, ByteDataViewGetFloat64, 0x5396432d)             \
-  V(::, asin, MathAsin, 0x640d48ad)                                            \
-  V(::, acos, MathAcos, 0x42d46f81)                                            \
-  V(::, atan, MathAtan, 0x4223f879)                                            \
-  V(::, atan2, MathAtan2, 0x3553fb61)                                          \
-  V(::, cos, MathCos, 0x7794b33e)                                              \
-  V(::, exp, MathExp, 0x59769f9d)                                              \
-  V(::, log, MathLog, 0x2c12654e)                                              \
+  V(::, asin, MathAsin, 0x661ff68b)                                            \
+  V(::, acos, MathAcos, 0x44e71d5f)                                            \
+  V(::, atan, MathAtan, 0x4436a657)                                            \
+  V(::, atan2, MathAtan2, 0x60a40743)                                          \
+  V(::, cos, MathCos, 0x79a7611c)                                              \
+  V(::, exp, MathExp, 0x5b894d7b)                                              \
+  V(::, log, MathLog, 0x2e25132c)                                              \
   V(::, max, MathMax, 0x54121d6a)                                              \
   V(::, min, MathMin, 0x4276561c)                                              \
-  V(::, pow, MathPow, 0x7ab62ca7)                                              \
-  V(::, sin, MathSin, 0x0000fe08)                                              \
-  V(::, sqrt, MathSqrt, 0x18e8d5f6)                                            \
-  V(::, tan, MathTan, 0x4c1b72fd)                                              \
+  V(::, pow, MathPow, 0x438e3089)                                              \
+  V(::, sin, MathSin, 0x0213abe6)                                              \
+  V(::, sqrt, MathSqrt, 0x1afb83d4)                                            \
+  V(::, tan, MathTan, 0x4e2e20db)                                              \
   V(Lists, copy, ListsCopy, 0x21a194fa)                                        \
   V(_Bigint, get:_neg, Bigint_getNeg, 0x7bf17a57)                              \
   V(_Bigint, get:_used, Bigint_getUsed, 0x55041013)                            \
@@ -529,6 +529,7 @@ class MethodRecognizer : public AllStatic {
   static bool AlwaysInline(const Function& function);
   static bool PolymorphicTarget(const Function& function);
   static intptr_t ResultCid(const Function& function);
+  static intptr_t MethodKindToReceiverCid(Kind kind);
   static const char* KindToCString(Kind kind);
 #if defined(DART_NO_SNAPSHOT)
   static void InitializeState();

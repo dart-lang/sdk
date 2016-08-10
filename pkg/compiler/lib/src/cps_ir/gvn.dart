@@ -4,16 +4,16 @@
 
 library dart2js.cps_ir.gvn;
 
-import 'cps_ir_nodes.dart';
-import '../elements/elements.dart';
-import 'optimizers.dart' show Pass;
-import 'loop_hierarchy.dart';
-import 'loop_effects.dart';
-import '../world.dart';
 import '../compiler.dart' show Compiler;
+import '../elements/elements.dart';
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
-import 'type_mask_system.dart';
+import '../world.dart';
+import 'cps_ir_nodes.dart';
 import 'effects.dart';
+import 'loop_effects.dart';
+import 'loop_hierarchy.dart';
+import 'optimizers.dart' show Pass;
+import 'type_mask_system.dart';
 
 /// Eliminates redundant primitives by reusing the value of another primitive
 /// that is known to have the same result.  Primitives are also hoisted out of

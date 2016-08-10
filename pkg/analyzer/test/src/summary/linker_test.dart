@@ -61,6 +61,42 @@ class LinkerUnitTest extends SummaryLinkerTest {
     expect(bundle0.apiSignature, bundle1.apiSignature);
   }
 
+  void test_apiSignature_orderChange() {
+    // A change to the order in which files are processed should not affect the
+    // API signature.
+    addNamedSource('/a.dart', 'class A {}');
+    var bundle0 = createPackageBundle('class B {}', path: '/b.dart');
+    addNamedSource('/b.dart', 'class B {}');
+    var bundle1 = createPackageBundle('class A {}', path: '/a.dart');
+    expect(bundle0.apiSignature, isNotEmpty);
+    expect(bundle1.apiSignature, isNotEmpty);
+    expect(bundle0.apiSignature, bundle1.apiSignature);
+  }
+
+  void test_apiSignature_unlinkedOnly() {
+    // The API signature of a package bundle should only contain unlinked
+    // information.  In this test, the linked information for bundle2 and
+    // bundle3 refer to class C as existing in different files.  But the
+    // unlinked information for bundle2 and bundle3 should be the same, so their
+    // API signatures should be the same.
+    addNamedSource('/a.dart', 'class C {}');
+    var bundle0 = createPackageBundle('', path: '/b.dart');
+    addNamedSource('/a.dart', '');
+    var bundle1 = createPackageBundle('class C {}', path: '/b.dart');
+    var text = '''
+import 'a.dart';
+import 'b.dart';
+class D extends C {}
+''';
+    addBundle('/bundle0.ds', bundle0);
+    var bundle2 = createPackageBundle(text, path: '/c.dart');
+    addBundle('/bundle1.ds', bundle1);
+    var bundle3 = createPackageBundle(text, path: '/c.dart');
+    expect(bundle2.apiSignature, isNotEmpty);
+    expect(bundle3.apiSignature, isNotEmpty);
+    expect(bundle2.apiSignature, bundle3.apiSignature);
+  }
+
   void test_baseClass_genericWithAccessor() {
     createLinker('''
 class B<T> {
@@ -159,6 +195,33 @@ class C extends B {
     // No assertions--just make sure it doesn't crash.
   }
 
+  void test_bundle_refers_to_bundle() {
+    var bundle1 = createPackageBundle(
+        '''
+var x = 0;
+''',
+        path: '/a.dart');
+    addBundle('/a.ds', bundle1);
+    var bundle2 = createPackageBundle(
+        '''
+import "a.dart";
+var y = x;
+''',
+        path: '/b.dart');
+    expect(bundle2.dependencies, hasLength(1));
+    expect(bundle2.dependencies[0].summaryPath, '/a.ds');
+    expect(bundle2.dependencies[0].apiSignature, bundle1.apiSignature);
+    addBundle('/a.ds', bundle1);
+    addBundle('/b.ds', bundle2);
+    createLinker('''
+import "b.dart";
+var z = y;
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    expect(_getVariable(library.getContainedName('z')).inferredType.toString(),
+        'int');
+  }
+
   void test_constCycle_viaLength() {
     createLinker('''
 class C {
@@ -206,7 +269,7 @@ const x = [const C()];
 var x = () {};
 ''',
         path: '/a.dart');
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
 var y = x;
@@ -228,7 +291,7 @@ class D {
 class E {}
 ''',
         path: '/a.dart');
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
 var y = C.x;
@@ -341,7 +404,7 @@ var x;
 var y = x; // Inferred type: dynamic
 ''',
         path: '/a.dart');
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
 var z = y; // Inferred type: dynamic
@@ -359,7 +422,7 @@ class C {
 }
 ''',
         path: '/a.dart');
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
 var x = new C().f; // Inferred type: int
@@ -377,7 +440,7 @@ class C {
 }
 ''',
         path: '/a.dart');
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
 class D {
@@ -400,7 +463,7 @@ class C extends B {
 }
 ''',
         path: '/a.dart');
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
 var x = new C().f(0); // Inferred type: int
@@ -421,7 +484,7 @@ class C extends B {
 }
 ''',
         path: '/a.dart');
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
 class D extends C {
@@ -448,7 +511,7 @@ class C extends B {
 }
 ''',
         path: '/a.dart');
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
 var x = new C().f(); // Inferred type: int
@@ -469,7 +532,7 @@ class C extends B {
 }
 ''',
         path: '/a.dart');
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
 class D extends C {
@@ -486,7 +549,7 @@ class D extends C {
   void test_inferredTypeFromOutsideBuildUnit_staticField() {
     var bundle =
         createPackageBundle('class C { static var f = 0; }', path: '/a.dart');
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('import "a.dart"; var x = C.f;', path: '/b.dart');
     expect(
         _getVariable(linker
@@ -499,7 +562,7 @@ class D extends C {
 
   void test_inferredTypeFromOutsideBuildUnit_topLevelVariable() {
     var bundle = createPackageBundle('var a = 0;', path: '/a.dart');
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('import "a.dart"; var b = a;', path: '/b.dart');
     expect(
         _getVariable(linker
@@ -670,7 +733,7 @@ var x = {
         ref.localIndex = 1234;
       }
     }
-    addBundle(bundle);
+    addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
 var y = x;

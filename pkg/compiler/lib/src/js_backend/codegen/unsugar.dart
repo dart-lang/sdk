@@ -1,14 +1,13 @@
 library dart2js.unsugar_cps;
 
-import '../../cps_ir/cps_ir_nodes.dart';
-
-import '../../cps_ir/optimizers.dart' show Pass;
+import '../../common/names.dart';
 import '../../constants/values.dart';
+import '../../cps_ir/cps_fragment.dart';
+import '../../cps_ir/cps_ir_nodes.dart';
+import '../../cps_ir/optimizers.dart' show Pass;
 import '../../elements/elements.dart';
 import '../../js_backend/codegen/glue.dart';
 import '../../universe/selector.dart' show Selector;
-import '../../cps_ir/cps_fragment.dart';
-import '../../common/names.dart';
 
 class ExplicitReceiverParameterEntity implements Local {
   String get name => 'receiver';

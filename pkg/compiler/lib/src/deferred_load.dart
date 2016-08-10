@@ -8,8 +8,7 @@ import 'common/backend_api.dart' show Backend;
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
 import 'compiler.dart' show Compiler;
-import 'constants/expressions.dart'
-    show ConstantExpression, ConstantExpressionKind;
+import 'constants/expressions.dart' show ConstantExpression;
 import 'constants/values.dart'
     show
         ConstantValue,
@@ -180,10 +179,20 @@ class DeferredLoadTask extends CompilerTask {
     return _elementToOutputUnit[element];
   }
 
+  /// Direct access to the output-unit to element relation used for testing.
+  OutputUnit getOutputUnitForElementForTesting(Element element) {
+    return _elementToOutputUnit[element];
+  }
+
   /// Returns the [OutputUnit] where [constant] belongs.
   OutputUnit outputUnitForConstant(ConstantValue constant) {
     if (!isProgramSplit) return mainOutputUnit;
     return _constantToOutputUnit[constant];
+  }
+
+  /// Direct access to the output-unit to constants map used for testing.
+  Map<ConstantValue, OutputUnit> get outputUnitForConstantsForTesting {
+    return _constantToOutputUnit;
   }
 
   bool isDeferred(Element element) {
@@ -348,7 +357,7 @@ class DeferredLoadTask extends CompilerTask {
         treeElements.forEachConstantNode(
             (ast.Node node, ConstantExpression expression) {
           if (compiler.serialization.isDeserialized(analyzableElement)) {
-            if (!expression.isImplicit && !expression.isPotential) {
+            if (!expression.isPotential) {
               // Enforce evaluation of [expression].
               backend.constants.getConstantValue(expression);
             }
@@ -926,7 +935,8 @@ class DeferredLoadTask extends CompilerTask {
 
     StringBuffer sb = new StringBuffer();
     for (OutputUnit outputUnit in allOutputUnits) {
-      sb.write(outputUnit.name);
+      sb.write('\n-------------------------------\n');
+      sb.write('Output unit: ${outputUnit.name}');
       List<String> elements = elementMap[outputUnit];
       if (elements != null) {
         sb.write('\n elements:');

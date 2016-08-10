@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../universe/side_effects.dart' show SideEffects;
-
 import 'nodes.dart';
 
 class ValueSet {

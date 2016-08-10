@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 library dart2js.cps_ir.scalar_replacement;
 
-import 'optimizers.dart';
-
 import 'dart:collection' show Queue;
 
 import '../common.dart';
@@ -14,6 +12,7 @@ import '../elements/elements.dart';
 import '../types/types.dart';
 import '../world.dart' show World;
 import 'cps_ir_nodes.dart';
+import 'optimizers.dart';
 
 /**
  * Replaces aggregates with a set of local values.  Performs inlining of

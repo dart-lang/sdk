@@ -2,7 +2,84 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_backend;
+library js_backend.backend;
+
+import 'dart:async' show Future;
+
+import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
+
+import '../closure.dart';
+import '../common.dart';
+import '../common/backend_api.dart'
+    show Backend, ImpactTransformer, ForeignResolver, NativeRegistry;
+import '../common/codegen.dart' show CodegenImpact, CodegenWorkItem;
+import '../common/names.dart' show Identifiers, Selectors, Uris;
+import '../common/registry.dart' show EagerRegistry, Registry;
+import '../common/resolution.dart'
+    show
+        Feature,
+        Frontend,
+        ListLiteralUse,
+        MapLiteralUse,
+        Resolution,
+        ResolutionImpact;
+import '../common/tasks.dart' show CompilerTask;
+import '../common/work.dart' show ItemCompilationContext;
+import '../compiler.dart' show Compiler;
+import '../constants/constant_system.dart';
+import '../constants/expressions.dart';
+import '../constants/values.dart';
+import '../core_types.dart' show CoreClasses, CoreTypes;
+import '../dart_types.dart';
+import '../deferred_load.dart' show DeferredLoadTask;
+import '../dump_info.dart' show DumpInfoTask;
+import '../elements/elements.dart';
+import '../enqueue.dart' show Enqueuer, ResolutionEnqueuer;
+import '../io/position_information.dart' show PositionSourceInformationStrategy;
+import '../io/source_information.dart' show SourceInformationStrategy;
+import '../io/start_end_information.dart'
+    show StartEndSourceInformationStrategy;
+import '../js/js.dart' as jsAst;
+import '../js/js.dart' show js;
+import '../js/js_source_mapping.dart' show JavaScriptSourceInformationStrategy;
+import '../js/rewrite_async.dart';
+import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
+import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
+import '../native/native.dart' as native;
+import '../ssa/builder.dart' show SsaFunctionCompiler;
+import '../ssa/nodes.dart' show HInstruction;
+import '../tree/tree.dart';
+import '../types/types.dart';
+import '../universe/call_structure.dart' show CallStructure;
+import '../universe/selector.dart' show Selector, SelectorKind;
+import '../universe/universe.dart';
+import '../universe/use.dart'
+    show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
+import '../universe/world_impact.dart'
+    show
+        ImpactStrategy,
+        ImpactUseCase,
+        TransformedWorldImpact,
+        WorldImpact,
+        WorldImpactVisitor;
+import '../util/util.dart';
+import '../world.dart' show ClassWorld;
+import 'backend_helpers.dart';
+import 'backend_impact.dart';
+import 'backend_serialization.dart' show JavaScriptBackendSerialization;
+import 'checked_mode_helpers.dart';
+import 'codegen/task.dart';
+import 'constant_handler_javascript.dart';
+import 'custom_elements_analysis.dart';
+import 'js_interop_analysis.dart' show JsInteropAnalysis;
+import 'lookup_map_analysis.dart' show LookupMapAnalysis;
+import 'namer.dart';
+import 'native_data.dart' show NativeData;
+import 'no_such_method_registry.dart';
+import 'patch_resolver.dart';
+import 'type_variable_handler.dart';
+
+part 'runtime_types.dart';
 
 const VERBOSE_OPTIMIZER_HINTS = false;
 

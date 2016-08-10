@@ -3248,8 +3248,9 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
       unit.accept(new Dart2JSVerifier(errorReporter));
     }
     // Dart best practices.
-    InheritanceManager inheritanceManager =
-        new InheritanceManager(libraryElement);
+    InheritanceManager inheritanceManager = new InheritanceManager(
+        libraryElement,
+        includeAbstractFromSuperclasses: true);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
 
     unit.accept(new BestPracticesVerifier(
@@ -6545,8 +6546,10 @@ class _SourceClosureTaskInputBuilder implements TaskInputBuilder<List<Source>> {
         int length = imports.length;
         for (int i = 0; i < length; i++) {
           ImportElement importElement = imports[i];
-          Source importedSource = importElement.importedLibrary.source;
-          _newSources.add(importedSource);
+          Source importedSource = importElement.importedLibrary?.source;
+          if (importedSource != null) {
+            _newSources.add(importedSource);
+          }
         }
       }
       if (kind == _SourceClosureKind.EXPORT ||
@@ -6555,8 +6558,10 @@ class _SourceClosureTaskInputBuilder implements TaskInputBuilder<List<Source>> {
         int length = exports.length;
         for (int i = 0; i < length; i++) {
           ExportElement exportElement = exports[i];
-          Source exportedSource = exportElement.exportedLibrary.source;
-          _newSources.add(exportedSource);
+          Source exportedSource = exportElement.exportedLibrary?.source;
+          if (exportedSource != null) {
+            _newSources.add(exportedSource);
+          }
         }
       }
     }

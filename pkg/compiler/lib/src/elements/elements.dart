@@ -11,16 +11,15 @@ import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../core_types.dart' show CoreClasses;
 import '../dart_types.dart';
+import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../resolution/scope.dart' show Scope;
 import '../resolution/tree_elements.dart' show TreeElements;
-import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../script.dart';
 import '../tokens/token.dart'
     show Token, isUserDefinableOperator, isMinusOperator;
 import '../tree/tree.dart';
 import '../util/characters.dart' show $_;
 import '../util/util.dart';
-
 import 'visitor.dart' show ElementVisitor;
 
 part 'names.dart';

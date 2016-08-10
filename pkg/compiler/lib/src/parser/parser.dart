@@ -4,8 +4,8 @@
 
 library dart2js.parser;
 
-import '../options.dart' show ParserOptions;
 import '../common.dart';
+import '../options.dart' show ParserOptions;
 import '../tokens/keyword.dart' show Keyword;
 import '../tokens/precedence.dart' show PrecedenceInfo;
 import '../tokens/precedence_constants.dart'
@@ -58,7 +58,6 @@ import '../tokens/token_constants.dart'
         STRING_TOKEN;
 import '../util/characters.dart' as Characters show $CLOSE_CURLY_BRACKET;
 import '../util/util.dart' show Link;
-
 import 'listener.dart' show Listener;
 
 class FormalParameterType {

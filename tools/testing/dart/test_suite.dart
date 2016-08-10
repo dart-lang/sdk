@@ -377,25 +377,27 @@ abstract class TestSuite {
 
   String createOutputDirectory(Path testPath, String optionsName) {
     var checked = configuration['checked'] ? '-checked' : '';
+    var strong =  configuration['strong'] ? '-strong' : '';
     var minified = configuration['minified'] ? '-minified' : '';
     var sdk = configuration['use_sdk'] ? '-sdk' : '';
     var packages =
         configuration['use_public_packages'] ? '-public_packages' : '';
     var dirName = "${configuration['compiler']}-${configuration['runtime']}"
-        "$checked$minified$packages$sdk";
+        "$checked$strong$minified$packages$sdk";
     return createGeneratedTestDirectoryHelper(
         "tests", dirName, testPath, optionsName);
   }
 
   String createCompilationOutputDirectory(Path testPath) {
     var checked = configuration['checked'] ? '-checked' : '';
+    var strong =  configuration['strong'] ? '-strong' : '';
     var minified = configuration['minified'] ? '-minified' : '';
     var csp = configuration['csp'] ? '-csp' : '';
     var sdk = configuration['use_sdk'] ? '-sdk' : '';
     var packages =
         configuration['use_public_packages'] ? '-public_packages' : '';
     var dirName = "${configuration['compiler']}"
-        "$checked$minified$csp$packages$sdk";
+        "$checked$strong$minified$csp$packages$sdk";
     return createGeneratedTestDirectoryHelper(
         "compilations", dirName, testPath, "");
   }
@@ -2211,13 +2213,14 @@ class TestUtils {
         configuration['compiler'] == 'dart2appjit' ||
         configuration['compiler'] == 'precompiler') {
       var checked = configuration['checked'] ? '-checked' : '';
+      var strong =  configuration['strong'] ? '-strong' : '';
       var minified = configuration['minified'] ? '-minified' : '';
       var csp = configuration['csp'] ? '-csp' : '';
       var sdk = configuration['use_sdk'] ? '-sdk' : '';
       var packages =
           configuration['use_public_packages'] ? '-public_packages' : '';
       var dirName = "${configuration['compiler']}"
-          "$checked$minified$csp$packages$sdk";
+          "$checked$strong$minified$csp$packages$sdk";
       String generatedPath = "${TestUtils.buildDir(configuration)}"
           "/generated_compilations/$dirName";
       TestUtils.deleteDirectory(generatedPath);

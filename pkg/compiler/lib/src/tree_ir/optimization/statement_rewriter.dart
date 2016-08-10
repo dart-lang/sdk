@@ -4,11 +4,11 @@
 
 library tree_ir.optimization.statement_rewriter;
 
-import 'optimization.dart' show Pass;
-import '../tree_ir_nodes.dart';
-import '../../io/source_information.dart';
 import '../../elements/elements.dart';
+import '../../io/source_information.dart';
 import '../../js/placeholder_safety.dart';
+import '../tree_ir_nodes.dart';
+import 'optimization.dart' show Pass;
 
 /**
  * Translates to direct-style.

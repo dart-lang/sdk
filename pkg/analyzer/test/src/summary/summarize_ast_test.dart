@@ -15,6 +15,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:unittest/unittest.dart';
@@ -204,7 +205,7 @@ abstract class LinkedSummarizeAstTest extends SummaryLinkerTest
 
   @override
   void serializeLibraryText(String text, {bool allowErrors: false}) {
-    Map<String, UnlinkedUnitBuilder> uriToUnit = this.uriToUnit;
+    Map<String, UnlinkedUnitBuilder> uriToUnit = this._filesToLink.uriToUnit;
     LinkerInputs linkerInputs = createLinkerInputs(text);
     linked = link(linkerInputs.linkedLibraries, linkerInputs.getDependency,
         linkerInputs.getUnit, strongMode)[linkerInputs.testDartUri.toString()];
@@ -287,23 +288,9 @@ class LinkerInputs {
  */
 abstract class SummaryLinkerTest {
   /**
-   * Map from absolute URI to the [UnlinkedUnit] for each compilation unit
-   * passed to [addNamedSource].
+   * Information about the files to be linked.
    */
-  Map<String, UnlinkedUnitBuilder> uriToUnit = <String, UnlinkedUnitBuilder>{};
-
-  /**
-   * Map from absolute URI to the [LinkedLibrary] for each compilation unit in a
-   * package bundle passed to [addBundle].
-   */
-  Map<String, LinkedLibrary> _dependentLinkedLibraries =
-      <String, LinkedLibrary>{};
-
-  /**
-   * Map from absolute URI to the [UnlinkedUnit] for each compilation unit in a
-   * package bundle passed to [addBundle].
-   */
-  Map<String, UnlinkedUnit> _dependentUnlinkedUnits = <String, UnlinkedUnit>{};
+  _FilesToLink _filesToLink = new _FilesToLink();
 
   /**
    * A test will set this to `true` if it contains `import`, `export`, or
@@ -315,15 +302,8 @@ abstract class SummaryLinkerTest {
    * Add the given package bundle as a dependency so that it may be referenced
    * by the files under test.
    */
-  void addBundle(PackageBundle bundle) {
-    for (int i = 0; i < bundle.linkedLibraryUris.length; i++) {
-      _dependentLinkedLibraries[bundle.linkedLibraryUris[i]] =
-          bundle.linkedLibraries[i];
-    }
-    for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
-      _dependentUnlinkedUnits[bundle.unlinkedUnitUris[i]] =
-          bundle.unlinkedUnits[i];
-    }
+  void addBundle(String path, PackageBundle bundle) {
+    _filesToLink.summaryDataStore.addBundle(path, bundle);
   }
 
   /**
@@ -333,7 +313,7 @@ abstract class SummaryLinkerTest {
   Source addNamedSource(String filePath, String contents) {
     CompilationUnit unit = _parseText(contents);
     UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
-    uriToUnit[absUri(filePath)] = unlinkedUnit;
+    _filesToLink.uriToUnit[absUri(filePath)] = unlinkedUnit;
     // Tests using SummaryLinkerTest don't actually need the returned
     // Source, so we can safely return `null`.
     return null;
@@ -343,19 +323,16 @@ abstract class SummaryLinkerTest {
     Uri testDartUri = Uri.parse(absUri(path));
     CompilationUnit unit = _parseText(text);
     UnlinkedUnitBuilder unlinkedDefiningUnit = serializeAstUnlinked(unit);
-    uriToUnit[testDartUri.toString()] = unlinkedDefiningUnit;
+    _filesToLink.uriToUnit[testDartUri.toString()] = unlinkedDefiningUnit;
     LinkerInputs linkerInputs = new LinkerInputs(
         allowMissingFiles,
-        uriToUnit,
+        _filesToLink.uriToUnit,
         testDartUri,
         unlinkedDefiningUnit,
-        _dependentLinkedLibraries,
-        _dependentUnlinkedUnits);
-    // Reset uriToUnit, _dependentLinkedLibraries, and _dependentUnlinkedUnits
-    // in case the test needs to start a new package bundle.
-    uriToUnit = <String, UnlinkedUnitBuilder>{};
-    _dependentLinkedLibraries = <String, LinkedLibrary>{};
-    _dependentUnlinkedUnits = <String, UnlinkedUnit>{};
+        _filesToLink.summaryDataStore.linkedMap,
+        _filesToLink.summaryDataStore.unlinkedMap);
+    // Reset _filesToLink in case the test needs to start a new package bundle.
+    _filesToLink = new _FilesToLink();
     return linkerInputs;
   }
 
@@ -368,6 +345,7 @@ abstract class SummaryLinkerTest {
   PackageBundleBuilder createPackageBundle(String text,
       {String path: '/test.dart'}) {
     PackageBundleAssembler assembler = new PackageBundleAssembler();
+    assembler.recordDependencies(_filesToLink.summaryDataStore);
     LinkerInputs linkerInputs = createLinkerInputs(text, path: path);
     Map<String, LinkedLibraryBuilder> linkedLibraries = link(
         linkerInputs.linkedLibraries,
@@ -390,6 +368,27 @@ abstract class SummaryLinkerTest {
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, AnalysisErrorListener.NULL_LISTENER);
     parser.parseGenericMethods = true;
-    return parser.parseCompilationUnit(token);
+    CompilationUnit unit = parser.parseCompilationUnit(token);
+    unit.lineInfo = new LineInfo(scanner.lineStarts);
+    return unit;
   }
+}
+
+/**
+ * [_FilesToLink] stores information about a set of files to be linked together.
+ * This information is grouped into a class to allow it to be reset easily when
+ * [SummaryLinkerTest.createLinkerInputs] is called.
+ */
+class _FilesToLink {
+  /**
+   * Map from absolute URI to the [UnlinkedUnit] for each compilation unit
+   * passed to [addNamedSource].
+   */
+  Map<String, UnlinkedUnitBuilder> uriToUnit = <String, UnlinkedUnitBuilder>{};
+
+  /**
+   * Information about summaries to be included in the link process.
+   */
+  SummaryDataStore summaryDataStore =
+      new SummaryDataStore([], recordDependencyInfo: true);
 }

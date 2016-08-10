@@ -11,9 +11,8 @@ import 'dart:io' show exit, File, FileMode, Platform, stdin, stderr;
 import 'package:package_config/discovery.dart' show findPackages;
 
 import '../compiler_new.dart' as api;
-import 'apiimpl.dart';
-import 'common/names.dart' show Uris;
 import 'commandline_options.dart';
+import 'common/names.dart' show Uris;
 import 'filenames.dart';
 import 'io/source_file.dart';
 import 'null_compiler_output.dart';

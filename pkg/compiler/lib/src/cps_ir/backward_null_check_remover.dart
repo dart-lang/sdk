@@ -1,9 +1,9 @@
 library dart2js.cps_ir.backward_null_check_remover;
 
+import 'cps_fragment.dart';
 import 'cps_ir_nodes.dart';
 import 'optimizers.dart';
 import 'type_mask_system.dart';
-import 'cps_fragment.dart';
 
 /// Removes null checks that are follwed by another instruction that will
 /// perform the same check.

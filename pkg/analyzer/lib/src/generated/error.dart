@@ -3317,6 +3317,7 @@ class ErrorReporter {
       }
       return type.displayName;
     }
+
     if (_hasEqualTypeNames(arguments)) {
       int count = arguments.length;
       for (int i = 0; i < count; i++) {
@@ -5338,6 +5339,26 @@ class StaticWarningCode extends ErrorCode {
           false);
 
   /**
+   * 17.9 Switch: It is a static warning if all of the following conditions
+   * hold:
+   * * The switch statement does not have a 'default' clause.
+   * * The static type of <i>e</i> is an enumerated typed with elements
+   *   <i>id<sub>1</sub></i>, &hellip;, <i>id<sub>n</sub></i>.
+   * * The sets {<i>e<sub>1</sub></i>, &hellip;, <i>e<sub>k</sub></i>} and
+   *   {<i>id<sub>1</sub></i>, &hellip;, <i>id<sub>n</sub></i>} are not the
+   *   same.
+   *
+   * Parameters:
+   * 0: the name of the constant that is missing
+   */
+  static const StaticWarningCode MISSING_ENUM_CONSTANT_IN_SWITCH =
+      const StaticWarningCode(
+          'MISSING_ENUM_CONSTANT_IN_SWITCH',
+          "Missing case clause for '{0}'",
+          "Add a case clause for the missing constant or add a default clause.",
+          false);
+
+  /**
    * 13.12 Return: It is a static warning if a function contains both one or
    * more return statements of the form <i>return;</i> and one or more return
    * statements of the form <i>return e;</i>.
@@ -5859,26 +5880,6 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode VOID_RETURN_FOR_GETTER =
       const StaticWarningCode('VOID_RETURN_FOR_GETTER',
           "The return type of the getter must not be 'void'", null, false);
-
-  /**
-   * 17.9 Switch: It is a static warning if all of the following conditions
-   * hold:
-   * * The switch statement does not have a 'default' clause.
-   * * The static type of <i>e</i> is an enumerated typed with elements
-   *   <i>id<sub>1</sub></i>, &hellip;, <i>id<sub>n</sub></i>.
-   * * The sets {<i>e<sub>1</sub></i>, &hellip;, <i>e<sub>k</sub></i>} and
-   *   {<i>id<sub>1</sub></i>, &hellip;, <i>id<sub>n</sub></i>} are not the
-   *   same.
-   *
-   * Parameters:
-   * 0: the name of the constant that is missing
-   */
-  static const StaticWarningCode MISSING_ENUM_CONSTANT_IN_SWITCH =
-      const StaticWarningCode(
-          'MISSING_ENUM_CONSTANT_IN_SWITCH',
-          "Missing case clause for '{0}'",
-          "Add a case clause for the missing constant or add a default clause.",
-          false);
 
   /**
    * A flag indicating whether this warning is an error when running with strong

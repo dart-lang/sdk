@@ -488,8 +488,6 @@ class A {
 
   void test_overrideOnNonOverridingField_inInterface() {
     Source source = addSource(r'''
-library dart.core;
-const override = null;
 class A {
   int get a => 0;
   void set b(_) {}
@@ -510,8 +508,6 @@ class B implements A {
 
   void test_overrideOnNonOverridingField_inSuperclass() {
     Source source = addSource(r'''
-library dart.core;
-const override = null;
 class A {
   int get a => 0;
   void set b(_) {}
@@ -532,8 +528,6 @@ class B extends A {
 
   void test_overrideOnNonOverridingGetter_inInterface() {
     Source source = addSource(r'''
-library dart.core;
-const override = null;
 class A {
   int get m => 0;
 }
@@ -548,8 +542,6 @@ class B implements A {
 
   void test_overrideOnNonOverridingGetter_inSuperclass() {
     Source source = addSource(r'''
-library dart.core;
-const override = null;
 class A {
   int get m => 0;
 }
@@ -564,8 +556,6 @@ class B extends A {
 
   void test_overrideOnNonOverridingMethod_inInterface() {
     Source source = addSource(r'''
-library dart.core;
-const override = null;
 class A {
   int m() => 0;
 }
@@ -580,8 +570,6 @@ class B implements A {
 
   void test_overrideOnNonOverridingMethod_inSuperclass() {
     Source source = addSource(r'''
-library dart.core;
-const override = null;
 class A {
   int m() => 0;
 }
@@ -594,10 +582,22 @@ class B extends A {
     verify([source]);
   }
 
+  void test_overrideOnNonOverridingMethod_inSuperclass_abstract() {
+    Source source = addSource(r'''
+abstract class A {
+  int m();
+}
+class B extends A {
+  @override
+  int m() => 1;
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_overrideOnNonOverridingSetter_inInterface() {
     Source source = addSource(r'''
-library dart.core;
-const override = null;
 class A {
   set m(int x) {}
 }
@@ -612,8 +612,6 @@ class B implements A {
 
   void test_overrideOnNonOverridingSetter_inSuperclass() {
     Source source = addSource(r'''
-library dart.core;
-const override = null;
 class A {
   set m(int x) {}
 }

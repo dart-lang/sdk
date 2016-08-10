@@ -52,6 +52,7 @@ DEFINE_FLAG(bool, initializing_formal_access, false,
     "Make initializing formal parameters visible in initializer list.");
 DEFINE_FLAG(bool, warn_super, false,
     "Warning if super initializer not last in initializer list.");
+DEFINE_FLAG(bool, warn_patch, false, "Warn on old-style patch syntax.");
 DEFINE_FLAG(bool, await_is_keyword, false,
     "await and yield are treated as proper keywords in synchronous code.");
 
@@ -4545,10 +4546,17 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
   bool is_patch = false;
   bool is_abstract = false;
   TokenPosition declaration_pos =
-      metadata_pos.IsReal() ? metadata_pos : TokenPos();
-  if (is_patch_source() &&
+    metadata_pos.IsReal() ? metadata_pos : TokenPos();
+  if (is_patch_source() && IsPatchAnnotation(metadata_pos)) {
+    is_patch = true;
+    metadata_pos = TokenPosition::kNoSource;
+    declaration_pos = TokenPos();
+  } else if (is_patch_source() &&
       (CurrentToken() == Token::kIDENT) &&
       CurrentLiteral()->Equals("patch")) {
+    if (FLAG_warn_patch) {
+      ReportWarning("deprecated use of patch 'keyword'");
+    }
     ConsumeToken();
     is_patch = true;
   } else if (CurrentToken() == Token::kABSTRACT) {
@@ -5264,6 +5272,19 @@ void Parser::ConsumeRightAngleBracket() {
 }
 
 
+bool Parser::IsPatchAnnotation(TokenPosition pos) {
+  if (pos == TokenPosition::kNoSource) {
+    return false;
+  }
+  TokenPosition saved_pos = TokenPos();
+  SetPosition(pos);
+  ExpectToken(Token::kAT);
+  bool is_patch = IsSymbol(Symbols::Patch());
+  SetPosition(saved_pos);
+  return is_patch;
+}
+
+
 TokenPosition Parser::SkipMetadata() {
   if (CurrentToken() != Token::kAT) {
     return TokenPosition::kNoSource;
@@ -5606,10 +5627,16 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
   const bool is_static = true;
   bool is_external = false;
   bool is_patch = false;
-  if (is_patch_source() &&
+  if (is_patch_source() && IsPatchAnnotation(metadata_pos)) {
+    is_patch = true;
+    metadata_pos = TokenPosition::kNoSource;
+  } else if (is_patch_source() &&
       (CurrentToken() == Token::kIDENT) &&
       CurrentLiteral()->Equals("patch") &&
       (LookaheadToken(1) != Token::kLPAREN)) {
+    if (FLAG_warn_patch) {
+      ReportWarning("deprecated use of patch 'keyword'");
+    }
     ConsumeToken();
     is_patch = true;
   } else if (CurrentToken() == Token::kEXTERNAL) {
@@ -5729,9 +5756,15 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
   bool is_external = false;
   bool is_patch = false;
   AbstractType& result_type = AbstractType::Handle(Z);
-  if (is_patch_source() &&
+  if (is_patch_source() && IsPatchAnnotation(metadata_pos)) {
+    is_patch = true;
+    metadata_pos = TokenPosition::kNoSource;
+  } else if (is_patch_source() &&
       (CurrentToken() == Token::kIDENT) &&
       CurrentLiteral()->Equals("patch")) {
+    if (FLAG_warn_patch) {
+      ReportWarning("deprecated use of patch 'keyword'");
+    }
     ConsumeToken();
     is_patch = true;
   } else if (CurrentToken() == Token::kEXTERNAL) {

@@ -1,9 +1,9 @@
 library dart2js.cps_ir.loop_effects;
 
-import 'cps_ir_nodes.dart';
-import 'loop_hierarchy.dart';
 import '../world.dart';
+import 'cps_ir_nodes.dart';
 import 'effects.dart';
+import 'loop_hierarchy.dart';
 
 /// Determines the side effects that may occur in each loop.
 class LoopSideEffects extends TrampolineRecursiveVisitor {

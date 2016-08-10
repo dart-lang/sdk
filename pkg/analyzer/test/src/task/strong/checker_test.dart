@@ -2687,6 +2687,18 @@ class H implements F {
 ''');
   }
 
+  void test_methodTearoffStrictArrow() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26393
+    checkFile(r'''
+class A {
+  void foo(dynamic x) {}
+  void test(void f(int x)) {
+    test(foo);
+  }
+}
+    ''');
+  }
+
   void test_mixinOverrideOfGrandInterface_interfaceOfAbstractSuperclass() {
     checkFile('''
 class A {}
@@ -2965,6 +2977,16 @@ main() {
 ''');
   }
 
+  void test_optionalParams() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26155
+    checkFile(r'''
+void takesF(void f(int x)) {
+  takesF(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/([x]) { bool z = x.isEven; });
+  takesF(/*info:INFERRED_TYPE_CLOSURE*/(y) { bool z = y.isEven; });
+}
+    ''');
+  }
+
   void test_privateOverride() {
     addFile(
         '''
@@ -3000,6 +3022,44 @@ class Child extends helper.Base {
   String _m1() => null;
 }
 ''');
+  }
+
+  void test_proxy() {
+    checkFile(r'''
+@proxy class C {}
+@proxy class D {
+  var f;
+  m() => null;
+  operator -() => null;
+  operator +(int other) => null;
+  operator [](int index) => null;
+  call() => null;
+}
+@proxy class F implements Function { noSuchMethod(i) => 42; }
+
+
+m() {
+  D d = new D();
+  d.m();
+  d.m;
+  d.f;
+  -d;
+  d + 7;
+  d[7];
+  d();
+
+  C c = new C();
+  /*info:DYNAMIC_INVOKE*/c.m();
+  /*info:DYNAMIC_INVOKE*/c.m;
+  /*info:DYNAMIC_INVOKE*/-c;
+  /*info:DYNAMIC_INVOKE*/c + 7;
+  /*info:DYNAMIC_INVOKE*/c[7];
+  /*error:INVOCATION_OF_NON_FUNCTION,info:DYNAMIC_INVOKE*/c();
+
+  F f = new F();
+  /*info:DYNAMIC_INVOKE*/f();
+}
+    ''');
   }
 
   void test_redirectingConstructor() {

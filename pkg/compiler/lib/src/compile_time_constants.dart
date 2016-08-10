@@ -4,9 +4,9 @@
 
 library dart2js.compile_time_constant_evaluator;
 
-import 'common.dart';
 import 'common/resolution.dart' show Resolution;
 import 'common/tasks.dart' show CompilerTask, Measurer;
+import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'constant_system_dart.dart';
 import 'constants/constant_system.dart';
@@ -16,13 +16,12 @@ import 'constants/values.dart';
 import 'core_types.dart' show CoreTypes;
 import 'dart_types.dart';
 import 'elements/elements.dart';
-import 'elements/modelx.dart'
-    show FieldElementX, FunctionElementX, ConstantVariableMixin;
-import 'resolution/tree_elements.dart' show TreeElements;
+import 'elements/modelx.dart' show ConstantVariableMixin;
 import 'resolution/operators.dart';
+import 'resolution/tree_elements.dart' show TreeElements;
 import 'tree/tree.dart';
-import 'util/util.dart' show Link;
 import 'universe/call_structure.dart' show CallStructure;
+import 'util/util.dart' show Link;
 
 /// A [ConstantEnvironment] provides access for constants compiled for variable
 /// initializers.

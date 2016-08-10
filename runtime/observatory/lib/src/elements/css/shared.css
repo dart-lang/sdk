@@ -61,12 +61,12 @@ h1 {
   white-space: nowrap;
 }
 
-a {
+a[href] {
   color: #0489c3;
   text-decoration: none;
 }
 
-a:hover {
+a[href]:hover {
   text-decoration: underline;
 }
 
@@ -307,6 +307,12 @@ input.textbox {
   font: 400 16px 'Montserrat', sans-serif;
 }
 
+select, button, input {
+  border-radius: 0px;
+  border-style: solid;
+  border-width: 1px;
+}
+
 @-webkit-keyframes fadeIn {
   0%   { opacity: 0; }
   100% { opacity: 1; }
@@ -416,6 +422,56 @@ class-tree virtual-tree .class-tree-item .name {
   margin-left: 0.5em;
 }
 
+/* cpu-profile */
+
+cpu-profile {
+  position: relative;
+  display: block;
+  height: 100%;
+}
+
+cpu-profile > cpu-profile-virtual-tree {
+  position: absolute;
+  height: auto;
+  top: 320px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+/* cpu-profile-virtual-tree */
+
+cpu-profile-virtual-tree {
+  display: block;
+  height: 600px;
+}
+
+cpu-profile-virtual-tree .tree-item {
+  line-height: 30px;
+  height: 30px;
+  padding-left: 5%;
+  padding-right: 5%;
+}
+
+cpu-profile-virtual-tree .tree-item > .inclusive,
+cpu-profile-virtual-tree .tree-item > .exclusive,
+cpu-profile-virtual-tree .tree-item > .percentage {
+  display: inline-block;
+  text-align: right;
+  width: 4em;
+  margin-left: 0.25em;
+  margin-right: 0.25em;
+}
+
+cpu-profile-virtual-tree .tree-item > .exclusive {
+  margin-right: 1.5em;
+}
+
+cpu-profile-virtual-tree .tree-item > .name {
+  display: inline;
+  margin-left: 0.5em;
+}
+
 /* error-ref */
 /* TODO(cbernaschina) fix error-ref-wrapped to error-ref when wrapper
 removed */
@@ -461,6 +517,36 @@ function-ref-wrapped > a[href] {
   text-decoration: none;
 }
 
+/* isolate-counter-chart */
+
+isolate-counter-chart {
+  display: block;
+  position: relative;
+  height: 300px;
+  min-width: 350px;
+}
+isolate-counter-chart > div.host {
+  position: absolute;
+  left: 0;
+  bottom: 20px;
+  top: 5px;
+  right: 250px;
+}
+isolate-counter-chart > div.legend {
+  position: absolute;
+  width: 250px;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+}
+
+/* isolate-reconnect */
+
+isolate-reconnect div.doubleSpaced {
+  line-height: 2em;
+}
+
 /* isolate-ref */
 /* TODO(cbernaschina) fix isolate-ref-wrapped to isolate-ref when wrapper
 removed */
@@ -471,6 +557,38 @@ isolate-ref-wrapped > a[href]:hover {
 isolate-ref-wrapped > a[href] {
   color: #0489c3;
   text-decoration: none;
+}
+
+/* isolate-shared-summary */
+/* TODO(cbernaschina) fix isolate-shared-summary-wrapped
+to isolate-shared-summary when wrapper removed */
+
+isolate-shared-summary,
+isolate-shared-summary-wrapped {
+  display: block;
+  height: 300px;
+  position: relative;
+}
+isolate-shared-summary-wrapped > .menu {
+  float: right;
+  top: 0;
+  right: 0;
+}
+isolate-shared-summary-wrapped > isolate-counter-chart {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 230px;
+  clear: both;
+}
+isolate-shared-summary-wrapped .errorBox {
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  padding: 2em;
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: pre;
 }
 
 /* library-ref */
@@ -621,6 +739,47 @@ source-link-wrapped > a[href] {
 }
 
 
+/* observatory-application */
+
+observatory-application {
+  display: block;
+  height: 100%;
+}
+
+observatory-application > div {
+  display: block;
+  height: 100%;
+}
+
+/* sample-buffer-control */
+
+sample-buffer-control .statusMessage {
+  font-size: 150%;
+  font-weight: bold;
+}
+
+sample-buffer-control .statusBox {
+  height: 100%;
+  padding: 1em;
+}
+
+sample-buffer-control .center {
+  align-items: center;
+  justify-content: center;
+}
+
+sample-buffer-control .notice {
+  background-color: #fcf8e3;
+}
+
+sample-buffer-control .red {
+  background-color: #f2dede;
+}
+
+sample-buffer-control .shadow {
+  box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.16),
+              0 2px 5px 0 rgba(0, 0, 0, 0.26);
+}
 
 /* view-footer */
 
@@ -681,6 +840,12 @@ virtual-tree .expander {
   font-weight: bold;
   font-size: 18px;
   width: 19px;
+  border: none;
+  background-color: transparent;
+}
+
+virtual-tree .expander:focus {
+  outline: none;
 }
 
 virtual-tree .lines,

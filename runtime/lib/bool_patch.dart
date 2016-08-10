@@ -4,9 +4,9 @@
 
 // Dart core library.
 
-patch class bool {
+@patch class bool {
 
-  /* patch */ const factory bool.fromEnvironment(String name,
+  /* @patch */ const factory bool.fromEnvironment(String name,
                                                  {bool defaultValue: false})
       native "Bool_fromEnvironment";
 

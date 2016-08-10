@@ -255,6 +255,7 @@ class TestOutcomeLogWriter extends EventListener {
     'compiler',
     'runtime',
     'checked',
+    'strong',
     'host_checked',
     'minified',
     'csp',

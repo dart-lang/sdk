@@ -11,9 +11,8 @@ import '../closure.dart' show BoxFieldElement;
 import '../common.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
-import '../world.dart' show ClassWorld;
 import '../util/util.dart' show Hashing;
-
+import '../world.dart' show ClassWorld;
 import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
 import 'universe.dart' show ReceiverConstraint;

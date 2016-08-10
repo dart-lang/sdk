@@ -116,6 +116,9 @@ typedef Future DeleteDirCallback(Uri path);
 /// Called to write a file.
 typedef Future WriteFileCallback(Uri path, List<int> bytes);
 
+/// Called to write a stream into a file.
+typedef Future WriteStreamFileCallback(Uri path, Stream<List<int>> bytes);
+
 /// Called to read a file.
 typedef Future<List<int>> ReadFileCallback(Uri path);
 
@@ -130,6 +133,7 @@ class VMServiceEmbedderHooks {
   static CreateTempDirCallback createTempDir;
   static DeleteDirCallback deleteDir;
   static WriteFileCallback writeFile;
+  static WriteStreamFileCallback writeStreamFile;
   static ReadFileCallback readFile;
   static ListFilesCallback listFiles;
 }
@@ -146,7 +150,7 @@ class VMService extends MessageRouter {
   /// A port used to receive events from the VM.
   final RawReceivePort eventPort;
 
-  final _devfs = new DevFS();
+  final devfs = new DevFS();
 
   void _addClient(Client client) {
     assert(client.streams.isEmpty);
@@ -206,7 +210,7 @@ class VMService extends MessageRouter {
     for (var client in clientsList) {
       client.disconnect();
     }
-    _devfs.cleanup();
+    devfs.cleanup();
     if (VMServiceEmbedderHooks.cleanup != null) {
       await VMServiceEmbedderHooks.cleanup();
     }
@@ -401,8 +405,8 @@ class VMService extends MessageRouter {
     if (message.method == '_spawnUri') {
       return _spawnUri(message);
     }
-    if (_devfs.shouldHandleMessage(message)) {
-      return _devfs.handleMessage(message);
+    if (devfs.shouldHandleMessage(message)) {
+      return devfs.handleMessage(message);
     }
     if (message.params['isolateId'] != null) {
       return runningIsolates.route(message);

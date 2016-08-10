@@ -535,6 +535,9 @@ class Isolate : public BaseIsolate {
   void set_deoptimized_code_array(const GrowableObjectArray& value);
   void TrackDeoptimizedCode(const Code& code);
 
+  // Also sends a paused at exit event over the service protocol.
+  void SetStickyError(RawError* sticky_error);
+
   RawError* sticky_error() const { return sticky_error_; }
   void clear_sticky_error();
 

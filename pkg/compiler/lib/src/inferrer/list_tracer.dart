@@ -7,7 +7,6 @@ library compiler.src.inferrer.list_tracer;
 import '../elements/elements.dart';
 import '../universe/selector.dart' show Selector;
 import '../util/util.dart' show Setlet;
-
 import 'node_tracer.dart';
 import 'type_graph_nodes.dart';
 

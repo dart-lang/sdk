@@ -900,7 +900,7 @@ void main() {
 import 'dart:async';
 Future test() async {
   dynamic d;
-  List<int> l0 = /*warning:DOWN_CAST_COMPOSITE should be pass*/await /*pass should be info:INFERRED_TYPE_LITERAL*/[d];
+  List<int> l0 = await /*info:INFERRED_TYPE_LITERAL*/[/*info:DYNAMIC_CAST*/d];
   List<int> l1 = await /*info:INFERRED_TYPE_ALLOCATION*/new Future.value(/*info:INFERRED_TYPE_LITERAL*/[/*info:DYNAMIC_CAST*/d]);
 }
 ''');
@@ -1523,7 +1523,53 @@ int get y => null;
     checkFile('''
 import 'dart:async';
 Future f;
-Future<int> t1 = f.then((_) => new Future<int>.value(42));
+Future<int> t1 = f.then((_) async => await new Future<int>.value(3));
+Future<int> t2 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async {return await new Future<int>.value(3);});
+Future<int> t3 = f.then((_) async => 3);
+Future<int> t4 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async {return 3;});
+Future<int> t5 = f.then((_) => new Future<int>.value(3));
+Future<int> t6 = f.then((_) {return new Future<int>.value(3);});
+Future<int> t7 = f.then((_) async => new Future<int>.value(3));
+Future<int> t8 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async {return new Future<int>.value(3);});
+''');
+  }
+
+  void test_futureThen_conditional() {
+    checkFile('''
+import 'dart:async';
+Future<bool> f;
+Future<int> t1 = f.then((x) async => x ? 2 : await new Future<int>.value(3));
+Future<int> t2 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(x) async {return await x ? 2 : new Future<int>.value(3);});
+Future<int> t5 = f.then((x) => x ? 2 : new Future<int>.value(3));
+Future<int> t6 = f.then((x) {return x ? 2 : new Future<int>.value(3);});
+''');
+  }
+
+  void test_futureUnion_asyncConditional() {
+    checkFile('''
+import 'dart:async';
+
+Future<int> g1(bool x) async { return x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new Future.value(42); }
+Future<int> g2(bool x) async => x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new Future.value(42);
+
+Future<int> g3(bool x) async {
+  var y = x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new Future.value(42);
+  return y;
+}
+    ''');
+  }
+
+  void test_futureUnion_downwards() {
+    checkFile('''
+import 'dart:async';
+Future f;
+// Instantiates Future<int>
+Future<int> t1 = f.then((_) => /*info:INFERRED_TYPE_ALLOCATION*/new Future.value(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi'));
+
+// Instantiates List<int>
+Future<List<int>> t2 = f.then((_) => /*info:INFERRED_TYPE_LITERAL*/[3]);
+Future<List<int>> g2() async { return /*info:INFERRED_TYPE_LITERAL*/[3]; }
+Future<List<int>> g3() async { return /*info:INFERRED_TYPE_ALLOCATION*/new Future.value(/*info:INFERRED_TYPE_LITERAL*/[3]); }
 ''');
   }
 
@@ -2280,7 +2326,7 @@ var f = 2 + 3;          // binary expressions are OK if the left operand
                         // conected component.
 var g = -3;
 var h = new A() + 3;
-var i = /*error:UNDEFINED_OPERATOR*/- new A();
+var i = /*error:UNDEFINED_OPERATOR,info:DYNAMIC_INVOKE*/- new A();
 var j = null as B;
 
 test1() {
@@ -2552,6 +2598,18 @@ main() {
     expect(fns[7].type.toString(), '() → dynamic');
     expect(fns[8].type.toString(), '() → dynamic');
     expect(fns[9].type.toString(), '() → Stream<int>');
+  }
+
+  void test_inferReturnOfStatementLambda() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26139
+    checkFile(r'''
+List<String> strings() {
+  var stuff = [].expand(/*info:INFERRED_TYPE_CLOSURE*/(i) {
+    return <String>[];
+  });
+  return stuff.toList();
+}
+    ''');
   }
 
   void test_inferred_nonstatic_field_depends_on_static_field_complex() {

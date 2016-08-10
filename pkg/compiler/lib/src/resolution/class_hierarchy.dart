@@ -19,9 +19,8 @@ import '../elements/modelx.dart'
         UnnamedMixinApplicationElementX;
 import '../ordered_typeset.dart' show OrderedTypeSet, OrderedTypeSetBuilder;
 import '../tree/tree.dart';
-import '../util/util.dart' show Link, Setlet;
 import '../universe/call_structure.dart' show CallStructure;
-
+import '../util/util.dart' show Link, Setlet;
 import 'enum_creator.dart';
 import 'members.dart' show lookupInScope;
 import 'registry.dart' show ResolutionRegistry;

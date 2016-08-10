@@ -147,7 +147,7 @@ class ClassTreeElement extends HtmlElement implements Renderable{
     return new DivElement()..classes = ['class-tree-item']
         ..children = [
           new SpanElement()..classes = ['lines'],
-          new SpanElement()..classes = ['expander']
+          new ButtonElement()..classes = ['expander']
             ..onClick.listen((_) => toggle(autoToggleSingleChildNodes: true)),
           new SpanElement()..classes = ['name']
         ];

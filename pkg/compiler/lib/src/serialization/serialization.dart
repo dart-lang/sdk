@@ -11,7 +11,6 @@ import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../library_loader.dart' show LibraryProvider;
 import '../util/enumset.dart';
-
 import 'constant_serialization.dart';
 import 'element_serialization.dart';
 import 'json_serializer.dart';

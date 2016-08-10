@@ -4,10 +4,10 @@
 
 library dart2js.cps_ir.eagerly_load_statics;
 
-import 'cps_ir_nodes.dart';
-import 'optimizers.dart' show Pass;
 import '../elements/elements.dart';
 import 'cps_fragment.dart';
+import 'cps_ir_nodes.dart';
+import 'optimizers.dart' show Pass;
 
 /// Replaces [GetLazyStatic] with [GetStatic] when the static field is known
 /// to have been initialized.

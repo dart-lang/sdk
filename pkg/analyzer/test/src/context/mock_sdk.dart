@@ -29,7 +29,7 @@ class Future<T> {
 
   static Future<List/*<T>*/> wait/*<T>*/(
       Iterable<Future/*<T>*/> futures) => null;
-  Future/*<R>*/ then/*<R>*/(/*=R*/ onValue(T value)) => null;
+  Future/*<R>*/ then/*<R>*/(onValue(T value)) => null;
 }
 
 abstract class Completer<T> {
@@ -194,6 +194,10 @@ abstract class Iterable<E> {
 
   /*=R*/ fold/*<R>*/(/*=R*/ initialValue,
       /*=R*/ combine(/*=R*/ previousValue, E element));
+
+  Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(E element));
+
+  List<E> toList();
 }
 
 class List<E> implements Iterable<E> {
@@ -223,6 +227,9 @@ class Map<K, V> extends Object {
 external bool identical(Object a, Object b);
 
 void print(Object object) {}
+
+const proxy = const _Proxy();
+class _Proxy { const _Proxy(); }
 
 class _Override {
   const _Override();
@@ -298,8 +305,7 @@ class MockSdk implements DartSdk {
     "dart:core": "/lib/core/core.dart",
   };
 
-  final resource.MemoryResourceProvider provider =
-      new resource.MemoryResourceProvider();
+  final resource.MemoryResourceProvider provider;
 
   final Map<String, String> uriMap;
 
@@ -311,8 +317,9 @@ class MockSdk implements DartSdk {
   @override
   final List<SdkLibrary> sdkLibraries;
 
-  MockSdk({bool dartAsync: true})
-      : sdkLibraries = dartAsync ? _LIBRARIES : [_LIB_CORE],
+  MockSdk({bool dartAsync: true, resource.ResourceProvider resourceProvider})
+      : provider = resourceProvider ?? new resource.MemoryResourceProvider(),
+        sdkLibraries = dartAsync ? _LIBRARIES : [_LIB_CORE],
         uriMap = dartAsync ? FULL_URI_MAP : NO_ASYNC_URI_MAP {
     for (_MockSdkLibrary library in sdkLibraries) {
       provider.newFile(library.path, library.content);

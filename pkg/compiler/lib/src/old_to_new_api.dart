@@ -8,9 +8,10 @@
 library compiler.api.legacy;
 
 import 'dart:async' show EventSink, Future;
-import 'null_compiler_output.dart' show NullSink;
+
 import '../compiler.dart';
 import '../compiler_new.dart';
+import 'null_compiler_output.dart' show NullSink;
 
 /// Implementation of [CompilerInput] using a [CompilerInputProvider].
 class LegacyCompilerInput implements CompilerInput {

@@ -1188,6 +1188,11 @@ table PackageBundle {
   apiSignature:string (id: 7);
 
   /**
+   * Information about the packages this package depends on, if known.
+   */
+  dependencies:[PackageDependencyInfo] (id: 8);
+
+  /**
    * Linked libraries.
    */
   linkedLibraries:[LinkedLibrary] (id: 0);
@@ -1225,6 +1230,46 @@ table PackageBundle {
    * The list of URIs of items in [unlinkedUnits], e.g. `dart:core/bool.dart`.
    */
   unlinkedUnitUris:[string] (id: 3);
+}
+
+/**
+ * Information about a single dependency of a summary package.
+ */
+table PackageDependencyInfo {
+  /**
+   * API signature of this dependency.
+   */
+  apiSignature:string (id: 0);
+
+  /**
+   * If this dependency summarizes any files whose URI takes the form
+   * "package:<package_name>/...", a list of all such package names, sorted
+   * lexicographically.  Otherwise empty.
+   */
+  includedPackageNames:[string] (id: 2);
+
+  /**
+   * Indicates whether this dependency summarizes any files whose URI takes the
+   * form "dart:...".
+   */
+  includesDartUris:bool (id: 4);
+
+  /**
+   * Indicates whether this dependency summarizes any files whose URI takes the
+   * form "file:...".
+   */
+  includesFileUris:bool (id: 3);
+
+  /**
+   * Relative path to the summary file for this dependency.  This is intended as
+   * a hint to help the analysis server locate summaries of dependencies.  We
+   * don't specify precisely what this path is relative to, but we expect it to
+   * be relative to a directory the analysis server can find (e.g. for projects
+   * built using Bazel, it would be relative to the "bazel-bin" directory).
+   *
+   * Absent if the path is not known.
+   */
+  summaryPath:string (id: 1);
 }
 
 /**
@@ -2327,6 +2372,11 @@ table UnlinkedUnit {
    * the library has no name).
    */
   libraryNameOffset:uint (id: 8);
+
+  /**
+   * Offsets of the first character of each line in the source code.
+   */
+  lineStarts:[uint] (id: 17);
 
   /**
    * Part declarations in the compilation unit.

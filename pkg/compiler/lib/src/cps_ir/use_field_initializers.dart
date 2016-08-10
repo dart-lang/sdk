@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 library dart2js.cps_ir.use_field_initializers;
 
-import 'cps_ir_nodes.dart';
-import 'optimizers.dart';
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart';
+import 'cps_ir_nodes.dart';
+import 'optimizers.dart';
 
 /// Eliminates [SetField] instructions when the value can instead be passed into
 /// the field initializer of a [CreateInstance] instruction.

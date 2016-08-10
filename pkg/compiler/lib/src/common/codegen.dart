@@ -4,7 +4,6 @@
 
 library dart2js.common.codegen;
 
-import '../closure.dart' show SynthesizedCallMethodElementX;
 import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart' show ConstantValue;

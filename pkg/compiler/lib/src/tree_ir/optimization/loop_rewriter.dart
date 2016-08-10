@@ -4,8 +4,8 @@
 
 library tree_ir.optimization.loop_rewriter;
 
-import 'optimization.dart' show Pass;
 import '../tree_ir_nodes.dart';
+import 'optimization.dart' show Pass;
 
 /// Rewrites [WhileTrue] statements into [For] statements.
 ///

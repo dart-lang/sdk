@@ -5,9 +5,9 @@
 library dart2js.ir_nodes_sexpr;
 
 import '../constants/values.dart';
+import '../universe/call_structure.dart' show CallStructure;
 import '../util/util.dart';
 import 'cps_ir_nodes.dart';
-import '../universe/call_structure.dart' show CallStructure;
 
 /// A [Decorator] is a function used by [SExpressionStringifier] to augment the
 /// output produced for a node or reference.  It can be provided to the

@@ -9,7 +9,6 @@ import 'dart:convert' show UNICODE_BOM_CHARACTER_RUNE, UTF8;
 import '../io/source_file.dart' show SourceFile;
 import '../tokens/precedence.dart' show PrecedenceInfo;
 import '../tokens/token.dart' show StringToken, Token;
-
 import 'array_based_scanner.dart' show ArrayBasedScanner;
 
 /**

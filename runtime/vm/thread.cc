@@ -642,6 +642,12 @@ CACHED_VM_OBJECTS_LIST(COMPUTE_OFFSET)
 
 
 bool Thread::ObjectAtOffset(intptr_t offset, Object* object) {
+  if (Isolate::Current() == Dart::vm_isolate()) {
+    // --disassemble-stubs runs before all the references through
+    // thread have targets
+    return false;
+  }
+
 #define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
   if (Thread::member_name##offset() == offset) {                               \
     *object = expr;                                                            \

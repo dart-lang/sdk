@@ -10,7 +10,6 @@ import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
 import '../elements/elements.dart';
 import '../io/source_information.dart';
 import '../js_backend/codegen/glue.dart';
-
 import 'tree_ir_nodes.dart';
 
 typedef Statement NodeCallback(Statement next);

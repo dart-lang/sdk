@@ -8,8 +8,8 @@
  */
 library sha1;
 
-import 'dart:math' show pow;
 import 'dart:convert';
+import 'dart:math' show pow;
 
 import '../io/code_output.dart' show CodeOutputListener;
 

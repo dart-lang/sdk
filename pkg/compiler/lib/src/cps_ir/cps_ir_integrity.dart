@@ -1,8 +1,8 @@
 library dart2js.cps_ir_integrity;
 
+import '../tracer.dart' as tracer;
 import 'cps_ir_nodes.dart';
 import 'cps_ir_nodes_sexpr.dart';
-import '../tracer.dart' as tracer;
 
 /// Dump S-expressions on error if the tracer is enabled.
 ///

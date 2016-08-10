@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch List makeListFixedLength(List growableList)
+@patch List makeListFixedLength(List growableList)
     native "Internal_makeListFixedLength";
 
-patch List makeFixedListUnmodifiable(List fixedLengthList)
+@patch List makeFixedListUnmodifiable(List fixedLengthList)
     native "Internal_makeFixedListUnmodifiable";
 
 class VMLibraryHooks {
@@ -32,7 +32,7 @@ class VMLibraryHooks {
   static var platformScript;
 }
 
-patch class CodeUnits {
+@patch class CodeUnits {
   static final int cid = ClassID.getID(new CodeUnits(""));
 }
 

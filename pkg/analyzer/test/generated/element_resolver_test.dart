@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -827,6 +828,9 @@ class ElementResolverTest extends EngineTestCase {
     subclass.constructors = <ConstructorElement>[subConstructor];
     SuperConstructorInvocation invocation =
         AstFactory.superConstructorInvocation();
+    AstFactory.classDeclaration(null, 'C', null, null, null, null, [
+      AstFactory.constructorDeclaration(null, 'C', null, [invocation])
+    ]);
     _resolveInClass(invocation, subclass);
     expect(invocation.staticElement, superConstructor);
     _listener.assertNoErrors();
@@ -848,6 +852,9 @@ class ElementResolverTest extends EngineTestCase {
     SuperConstructorInvocation invocation = AstFactory
         .superConstructorInvocation([
       AstFactory.namedExpression2(parameterName, AstFactory.integer(0))
+    ]);
+    AstFactory.classDeclaration(null, 'C', null, null, null, null, [
+      AstFactory.constructorDeclaration(null, 'C', null, [invocation])
     ]);
     _resolveInClass(invocation, subclass);
     expect(invocation.staticElement, superConstructor);
@@ -949,8 +956,9 @@ class ElementResolverTest extends EngineTestCase {
         _visitor.enclosingClass = null;
         _visitor.nameScope = outerScope;
       }
-    } catch (exception) {
-      throw new IllegalArgumentException("Could not resolve node", exception);
+    } catch (exception, stackTrace) {
+      throw new IllegalArgumentException(
+          "Could not resolve node", new CaughtException(exception, stackTrace));
     }
   }
 

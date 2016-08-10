@@ -4,11 +4,11 @@
 
 library dart2js.diagnostic_listener;
 
+import '../elements/elements.dart' show Element;
 import '../options.dart' show DiagnosticOptions;
+import 'messages.dart';
 import 'source_span.dart' show SourceSpan;
 import 'spannable.dart' show Spannable;
-import '../elements/elements.dart' show Element;
-import 'messages.dart';
 
 // TODO(johnniwinther): Rename and cleanup this interface. Add severity enum.
 abstract class DiagnosticReporter {

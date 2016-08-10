@@ -9,8 +9,7 @@ library dart2js.source_information.start_end;
 
 import '../common.dart';
 import '../diagnostics/messages.dart' show MessageTemplate;
-import '../elements/elements.dart'
-    show AstElement, ResolvedAst, ResolvedAstKind;
+import '../elements/elements.dart' show ResolvedAst, ResolvedAstKind;
 import '../js/js.dart' as js;
 import '../js/js_source_mapping.dart';
 import '../tokens/token.dart' show Token;

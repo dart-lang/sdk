@@ -154,6 +154,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
       ImportElementImpl importElement = new ImportElementImpl(-1);
       importElement.importedLibrary = importLibraryMap[coreLibrarySource];
       importElement.synthetic = true;
+      importElement.uriExists = true;
       imports.add(importElement);
     }
     //
@@ -170,38 +171,38 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
     node.element = null;
     Source exportedSource = node.source;
     int exportedTime = sourceModificationTimeMap[exportedSource] ?? -1;
-    if (exportedTime != -1) {
-      // The exported source will be null if the URI in the export
-      // directive was invalid.
-      LibraryElement exportedLibrary = exportLibraryMap[exportedSource];
-      if (exportedLibrary != null) {
-        ExportElementImpl exportElement = new ExportElementImpl(node.offset);
-        exportElement.metadata = _getElementAnnotations(node.metadata);
-        StringLiteral uriLiteral = node.uri;
+    // The exported source will be null if the URI in the export
+    // directive was invalid.
+    LibraryElement exportedLibrary = exportLibraryMap[exportedSource];
+    if (exportedLibrary != null) {
+      ExportElementImpl exportElement = new ExportElementImpl(node.offset);
+      exportElement.metadata = _getElementAnnotations(node.metadata);
+      StringLiteral uriLiteral = node.uri;
+      if (uriLiteral != null) {
+        exportElement.uriOffset = uriLiteral.offset;
+        exportElement.uriEnd = uriLiteral.end;
+      }
+      exportElement.uri = node.uriContent;
+      exportElement.uriExists = exportedTime >= 0;
+      exportElement.combinators = _buildCombinators(node);
+      exportElement.exportedLibrary = exportedLibrary;
+      setElementDocumentationComment(exportElement, node);
+      node.element = exportElement;
+      exports.add(exportElement);
+      if (exportedTime >= 0 &&
+          exportSourceKindMap[exportedSource] != SourceKind.LIBRARY) {
+        int offset = node.offset;
+        int length = node.length;
         if (uriLiteral != null) {
-          exportElement.uriOffset = uriLiteral.offset;
-          exportElement.uriEnd = uriLiteral.end;
+          offset = uriLiteral.offset;
+          length = uriLiteral.length;
         }
-        exportElement.uri = node.uriContent;
-        exportElement.combinators = _buildCombinators(node);
-        exportElement.exportedLibrary = exportedLibrary;
-        setElementDocumentationComment(exportElement, node);
-        node.element = exportElement;
-        exports.add(exportElement);
-        if (exportSourceKindMap[exportedSource] != SourceKind.LIBRARY) {
-          int offset = node.offset;
-          int length = node.length;
-          if (uriLiteral != null) {
-            offset = uriLiteral.offset;
-            length = uriLiteral.length;
-          }
-          errors.add(new AnalysisError(
-              libraryElement.source,
-              offset,
-              length,
-              CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
-              [uriLiteral.toSource()]));
-        }
+        errors.add(new AnalysisError(
+            libraryElement.source,
+            offset,
+            length,
+            CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
+            [uriLiteral.toSource()]));
       }
     }
     return null;
@@ -213,53 +214,53 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
     node.element = null;
     Source importedSource = node.source;
     int importedTime = sourceModificationTimeMap[importedSource] ?? -1;
-    if (importedTime != -1) {
-      // The imported source will be null if the URI in the import
-      // directive was invalid.
-      LibraryElement importedLibrary = importLibraryMap[importedSource];
-      if (importedLibrary != null) {
-        if (importedLibrary.isDartCore) {
-          explicitlyImportsCore = true;
+    // The imported source will be null if the URI in the import
+    // directive was invalid.
+    LibraryElement importedLibrary = importLibraryMap[importedSource];
+    if (importedLibrary != null) {
+      if (importedLibrary.isDartCore) {
+        explicitlyImportsCore = true;
+      }
+      ImportElementImpl importElement = new ImportElementImpl(node.offset);
+      importElement.metadata = _getElementAnnotations(node.metadata);
+      StringLiteral uriLiteral = node.uri;
+      if (uriLiteral != null) {
+        importElement.uriOffset = uriLiteral.offset;
+        importElement.uriEnd = uriLiteral.end;
+      }
+      importElement.uri = node.uriContent;
+      importElement.uriExists = importedTime >= 0;
+      importElement.deferred = node.deferredKeyword != null;
+      importElement.combinators = _buildCombinators(node);
+      importElement.importedLibrary = importedLibrary;
+      setElementDocumentationComment(importElement, node);
+      SimpleIdentifier prefixNode = node.prefix;
+      if (prefixNode != null) {
+        importElement.prefixOffset = prefixNode.offset;
+        String prefixName = prefixNode.name;
+        PrefixElementImpl prefix = nameToPrefixMap[prefixName];
+        if (prefix == null) {
+          prefix = new PrefixElementImpl.forNode(prefixNode);
+          nameToPrefixMap[prefixName] = prefix;
         }
-        ImportElementImpl importElement = new ImportElementImpl(node.offset);
-        importElement.metadata = _getElementAnnotations(node.metadata);
-        StringLiteral uriLiteral = node.uri;
+        importElement.prefix = prefix;
+        prefixNode.staticElement = prefix;
+      }
+      node.element = importElement;
+      imports.add(importElement);
+      if (importedTime >= 0 &&
+          importSourceKindMap[importedSource] != SourceKind.LIBRARY) {
+        int offset = node.offset;
+        int length = node.length;
         if (uriLiteral != null) {
-          importElement.uriOffset = uriLiteral.offset;
-          importElement.uriEnd = uriLiteral.end;
+          offset = uriLiteral.offset;
+          length = uriLiteral.length;
         }
-        importElement.uri = node.uriContent;
-        importElement.deferred = node.deferredKeyword != null;
-        importElement.combinators = _buildCombinators(node);
-        importElement.importedLibrary = importedLibrary;
-        setElementDocumentationComment(importElement, node);
-        SimpleIdentifier prefixNode = node.prefix;
-        if (prefixNode != null) {
-          importElement.prefixOffset = prefixNode.offset;
-          String prefixName = prefixNode.name;
-          PrefixElementImpl prefix = nameToPrefixMap[prefixName];
-          if (prefix == null) {
-            prefix = new PrefixElementImpl.forNode(prefixNode);
-            nameToPrefixMap[prefixName] = prefix;
-          }
-          importElement.prefix = prefix;
-          prefixNode.staticElement = prefix;
-        }
-        node.element = importElement;
-        imports.add(importElement);
-        if (importSourceKindMap[importedSource] != SourceKind.LIBRARY) {
-          int offset = node.offset;
-          int length = node.length;
-          if (uriLiteral != null) {
-            offset = uriLiteral.offset;
-            length = uriLiteral.length;
-          }
-          ErrorCode errorCode = (importElement.isDeferred
-              ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
-              : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY);
-          errors.add(new AnalysisError(libraryElement.source, offset, length,
-              errorCode, [uriLiteral.toSource()]));
-        }
+        ErrorCode errorCode = importElement.isDeferred
+            ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
+            : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
+        errors.add(new AnalysisError(libraryElement.source, offset, length,
+            errorCode, [uriLiteral.toSource()]));
       }
     }
     return null;
@@ -975,8 +976,8 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       } else {
         SimpleIdentifier propertyNameNode = node.name;
         String propertyName = propertyNameNode.name;
-        FieldElementImpl field =
-            _currentHolder.getField(propertyName, synthetic: true) as FieldElementImpl;
+        FieldElementImpl field = _currentHolder.getField(propertyName,
+            synthetic: true) as FieldElementImpl;
         if (field == null) {
           field = new FieldElementImpl(node.name.name, -1);
           field.final2 = true;

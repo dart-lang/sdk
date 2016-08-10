@@ -282,28 +282,32 @@ static bool ProcessEnvironmentOption(const char* arg,
     environment = new HashMap(&HashMap::SameStringValue, 4);
   }
   // Split the name=value part of the -Dname=value argument.
-  char* name;
-  char* value = NULL;
   const char* equals_pos = strchr(arg, '=');
   if (equals_pos == NULL) {
     // No equal sign (name without value) currently not supported.
     Log::PrintErr("No value given to -D option\n");
     return false;
-  } else {
-    int name_len = equals_pos - arg;
-    if (name_len == 0) {
-      Log::PrintErr("No name given to -D option\n");
-      return false;
-    }
-    // Split name=value into name and value.
-    name = reinterpret_cast<char*>(malloc(name_len + 1));
-    strncpy(name, arg, name_len);
-    name[name_len] = '\0';
-    value = strdup(equals_pos + 1);
   }
+
+  char* name;
+  char* value = NULL;
+  int name_len = equals_pos - arg;
+  if (name_len == 0) {
+    Log::PrintErr("No name given to -D option\n");
+    return false;
+  }
+  // Split name=value into name and value.
+  name = reinterpret_cast<char*>(malloc(name_len + 1));
+  strncpy(name, arg, name_len);
+  name[name_len] = '\0';
+  value = strdup(equals_pos + 1);
   HashMap::Entry* entry = environment->Lookup(
       GetHashmapKeyFromString(name), HashMap::StringHash(name), true);
   ASSERT(entry != NULL);  // Lookup adds an entry if key not found.
+  if (entry->value != NULL) {
+    free(name);
+    free(entry->value);
+  }
   entry->value = value;
   return true;
 }
@@ -1727,16 +1731,22 @@ void main(int argc, char** argv) {
   }
 
   // Initialize the Dart VM.
-  char* error = Dart_Initialize(
-      vm_isolate_snapshot_buffer, instructions_snapshot, data_snapshot,
-      CreateIsolateAndSetup, NULL, NULL, ShutdownIsolate,
-      NULL,
-      DartUtils::OpenFile,
-      DartUtils::ReadFile,
-      DartUtils::WriteFile,
-      DartUtils::CloseFile,
-      DartUtils::EntropySource,
-      GetVMServiceAssetsArchiveCallback);
+  Dart_InitializeParams init_params;
+  memset(&init_params, 0, sizeof(init_params));
+  init_params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
+  init_params.vm_isolate_snapshot = vm_isolate_snapshot_buffer;
+  init_params.instructions_snapshot = instructions_snapshot;
+  init_params.data_snapshot = data_snapshot;
+  init_params.create = CreateIsolateAndSetup;
+  init_params.shutdown = ShutdownIsolate;
+  init_params.file_open = DartUtils::OpenFile;
+  init_params.file_read = DartUtils::ReadFile;
+  init_params.file_write = DartUtils::WriteFile;
+  init_params.file_close = DartUtils::CloseFile;
+  init_params.entropy_source = DartUtils::EntropySource;
+  init_params.get_service_assets = GetVMServiceAssetsArchiveCallback;
+
+  char* error = Dart_Initialize(&init_params);
   if (error != NULL) {
     EventHandler::Stop();
     fprintf(stderr, "VM initialization failed: %s\n", error);

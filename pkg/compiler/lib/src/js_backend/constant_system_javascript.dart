@@ -5,9 +5,9 @@
 library dart2js.constant_system.js;
 
 import '../compiler.dart' show Compiler;
+import '../constant_system_dart.dart';
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../constant_system_dart.dart';
 import '../core_types.dart' show CoreTypes;
 import '../dart_types.dart';
 import '../elements/elements.dart' show ClassElement, FieldElement;

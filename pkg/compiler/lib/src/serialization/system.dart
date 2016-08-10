@@ -5,22 +5,18 @@
 library dart2js.serialization_system;
 
 import 'dart:async';
-import '../commandline_options.dart';
+
 import '../common.dart';
-import '../common/backend_api.dart';
-import '../common/names.dart';
 import '../common/resolution.dart';
 import '../compiler.dart';
 import '../elements/elements.dart';
-import '../io/source_file.dart';
 import '../scanner/scanner.dart';
 import '../script.dart';
 import '../serialization/impact_serialization.dart';
 import '../tokens/token.dart';
 import '../universe/call_structure.dart';
-import '../universe/world_impact.dart';
 import '../universe/use.dart';
-import 'json_serializer.dart';
+import '../universe/world_impact.dart';
 import 'modelz.dart';
 import 'resolved_ast_serialization.dart';
 import 'serialization.dart';

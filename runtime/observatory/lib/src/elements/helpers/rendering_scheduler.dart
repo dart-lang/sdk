@@ -13,7 +13,7 @@ abstract class Renderable {
 }
 
 /// Event related to a Renderable rendering phase.
-class RenderedEvent<T extends Renderable> {
+class RenderedEvent<T> {
   /// Renderable to which the event is related
   final T element;
   /// Is another rendering scheduled for this element.

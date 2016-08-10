@@ -125,7 +125,8 @@ class EnclosedScope extends Scope {
             getSource(identifier),
             identifier.offset,
             identifier.length,
-            CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, [name]));
+            CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+            [name]));
         return hiddenElement;
       }
     }
@@ -438,6 +439,51 @@ class LibraryImportScope extends Scope {
     return foundElement;
   }
 
+  @override
+  bool shouldIgnoreUndefined(Identifier node) {
+    Iterable<NamespaceCombinator> getShowCombinators(
+            ImportElement importElement) =>
+        importElement.combinators.where((NamespaceCombinator combinator) =>
+            combinator is ShowElementCombinator);
+    if (node is PrefixedIdentifier) {
+      String prefix = node.prefix.name;
+      String name = node.identifier.name;
+      List<ImportElement> imports = _definingLibrary.imports;
+      int count = imports.length;
+      for (int i = 0; i < count; i++) {
+        ImportElement importElement = imports[i];
+        if (importElement.prefix?.name == prefix && !importElement.uriExists) {
+          Iterable<NamespaceCombinator> showCombinators =
+              getShowCombinators(importElement);
+          if (showCombinators.isEmpty) {
+            return true;
+          }
+          for (ShowElementCombinator combinator in showCombinators) {
+            if (combinator.shownNames.contains(name)) {
+              return true;
+            }
+          }
+        }
+      }
+    } else if (node is SimpleIdentifier) {
+      String name = node.name;
+      List<ImportElement> imports = _definingLibrary.imports;
+      int count = imports.length;
+      for (int i = 0; i < count; i++) {
+        ImportElement importElement = imports[i];
+        if (importElement.prefix == null && !importElement.uriExists) {
+          for (ShowElementCombinator combinator
+              in getShowCombinators(importElement)) {
+            if (combinator.shownNames.contains(name)) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   /**
    * Create all of the namespaces associated with the libraries imported into
    * this library. The names are not added to this scope, but are stored for
@@ -521,8 +567,7 @@ class LibraryImportScope extends Scope {
       return foundElement;
     }
     for (int i = 0; i < _importedNamespaces.length; i++) {
-      Namespace nameSpace = _importedNamespaces[i];
-      Element element = nameSpace.getPrefixed(prefix, name);
+      Element element = _importedNamespaces[i].getPrefixed(prefix, name);
       if (element != null) {
         if (foundElement == null) {
           foundElement = element;
@@ -1158,6 +1203,20 @@ abstract class Scope {
           identifier.identifier.name, referencingLibrary);
     }
     return internalLookup(identifier, identifier.name, referencingLibrary);
+  }
+
+  /**
+   * Return `true` if the fact that the given [node] is not defined should be
+   * ignored (from the perspective of error reporting). This will be the case if
+   * there is at least one import that defines the node's prefix, and if that
+   * import either has no show combinators or has a show combinator that
+   * explicitly lists the node's name.
+   */
+  bool shouldIgnoreUndefined(Identifier node) {
+    if (enclosingScope != null) {
+      return enclosingScope.shouldIgnoreUndefined(node);
+    }
+    return false;
   }
 
   /**

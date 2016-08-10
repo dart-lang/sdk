@@ -115,6 +115,50 @@ static RawClass* GetClass(const Library& lib, const char* name) {
 }
 
 
+TEST_CASE(Service_IsolateStickyError) {
+  const char* kScript =
+      "main() => throw 'HI THERE STICKY';\n";
+
+  Isolate* isolate = thread->isolate();
+  isolate->set_is_runnable(true);
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& vmlib = Library::Handle();
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT(Dart_IsUnhandledExceptionError(result));
+  EXPECT(!Dart_HasStickyError());
+  EXPECT(Thread::Current()->sticky_error() == Error::null());
+
+  {
+    TransitionNativeToVM transition(thread);
+
+    JSONStream js;
+    isolate->PrintJSON(&js, false);
+    // No error property and no PauseExit state.
+    EXPECT_NOTSUBSTRING("\"error\":", js.ToCString());
+    EXPECT_NOTSUBSTRING("HI THERE STICKY", js.ToCString());
+    EXPECT_NOTSUBSTRING("PauseExit", js.ToCString());
+  }
+
+  // Set the sticky error.
+  Dart_SetStickyError(result);
+  EXPECT(Dart_HasStickyError());
+
+  {
+    TransitionNativeToVM transition(thread);
+
+    JSONStream js;
+    isolate->PrintJSON(&js, false);
+    // Error and PauseExit set.
+    EXPECT_SUBSTRING("\"error\":", js.ToCString());
+    EXPECT_SUBSTRING("HI THERE STICKY", js.ToCString());
+    EXPECT_SUBSTRING("PauseExit", js.ToCString());
+  }
+}
+
+
 TEST_CASE(Service_IdZones) {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();

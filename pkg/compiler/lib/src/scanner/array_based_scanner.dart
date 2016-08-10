@@ -15,7 +15,6 @@ import '../tokens/token_constants.dart' as Tokens
     show LT_TOKEN, OPEN_CURLY_BRACKET_TOKEN, STRING_INTERPOLATION_TOKEN;
 import '../util/characters.dart' show $LF, $STX;
 import '../util/util.dart' show Link;
-
 import 'scanner.dart' show AbstractScanner;
 
 abstract class ArrayBasedScanner extends AbstractScanner {

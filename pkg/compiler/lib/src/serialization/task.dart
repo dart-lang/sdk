@@ -5,7 +5,7 @@
 library dart2js.serialization.task;
 
 import 'dart:async' show EventSink, Future;
-import '../common.dart';
+
 import '../common/resolution.dart' show ResolutionImpact, ResolutionWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../common/work.dart' show ItemCompilationContext;

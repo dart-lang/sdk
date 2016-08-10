@@ -17,7 +17,6 @@ import '../elements/elements.dart'
         PublicName;
 import '../util/util.dart' show Hashing;
 import '../world.dart' show World;
-
 import 'call_structure.dart' show CallStructure;
 
 class SelectorKind {

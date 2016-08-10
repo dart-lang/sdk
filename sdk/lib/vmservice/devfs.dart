@@ -121,6 +121,39 @@ class DevFS {
     }
   }
 
+  Future<String> handlePutStream(Object fsName,
+                                 Object path,
+                                 Stream<List<int>> bytes) async {
+    // A dummy Message for error message construction.
+    Message message = new Message.forMethod('_writeDevFSFile');
+    var writeStreamFile = VMServiceEmbedderHooks.writeStreamFile;
+    if (writeStreamFile == null) {
+      return _encodeDevFSDisabledError(message);
+    }
+    if (fsName == null) {
+      return encodeMissingParamError(message, 'fsName');
+    }
+    if (fsName is! String) {
+      return encodeInvalidParamError(message, 'fsName');
+    }
+    var fs = _fsMap[fsName];
+    if (fs == null) {
+      return _encodeFileSystemDoesNotExistError(message, fsName);
+    }
+    if (path == null) {
+      return encodeMissingParamError(message, 'path');
+    }
+    if (path is! String) {
+      return encodeInvalidParamError(message, 'path');
+    }
+    Uri uri = fs.resolvePath(path);
+    if (uri == null) {
+      return encodeInvalidParamError(message, 'path');
+    }
+    await writeStreamFile(uri, bytes);
+    return encodeSuccess(message);
+  }
+
   Future<String> _listDevFS(Message message) async {
     var result = {};
     result['type'] = 'FileSystemList';

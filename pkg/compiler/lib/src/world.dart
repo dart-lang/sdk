@@ -5,8 +5,8 @@
 library dart2js.world;
 
 import 'closure.dart' show SynthesizedCallMethodElementX;
-import 'common.dart';
 import 'common/backend_api.dart' show Backend;
+import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'core_types.dart' show CoreClasses;
 import 'dart_types.dart';

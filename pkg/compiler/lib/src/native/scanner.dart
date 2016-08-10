@@ -4,7 +4,6 @@
 
 import '../common.dart';
 import '../parser/element_listener.dart' show ElementListener;
-import '../parser/listener.dart' show Listener;
 import '../tokens/token.dart' show BeginGroupToken, Token;
 import '../tokens/token_constants.dart' as Tokens show STRING_TOKEN;
 

@@ -658,6 +658,13 @@ abstract class PackageBundle extends base.SummaryClass {
   String get apiSignature;
 
   /**
+   * Information about the packages this package depends on, if known.
+   */
+  @Id(8)
+  @informative
+  List<PackageDependencyInfo> get dependencies;
+
+  /**
    * Linked libraries.
    */
   @Id(0)
@@ -703,6 +710,51 @@ abstract class PackageBundle extends base.SummaryClass {
    */
   @Id(3)
   List<String> get unlinkedUnitUris;
+}
+
+/**
+ * Information about a single dependency of a summary package.
+ */
+abstract class PackageDependencyInfo extends base.SummaryClass {
+  /**
+   * API signature of this dependency.
+   */
+  @Id(0)
+  String get apiSignature;
+
+  /**
+   * If this dependency summarizes any files whose URI takes the form
+   * "package:<package_name>/...", a list of all such package names, sorted
+   * lexicographically.  Otherwise empty.
+   */
+  @Id(2)
+  List<String> get includedPackageNames;
+
+  /**
+   * Indicates whether this dependency summarizes any files whose URI takes the
+   * form "dart:...".
+   */
+  @Id(4)
+  bool get includesDartUris;
+
+  /**
+   * Indicates whether this dependency summarizes any files whose URI takes the
+   * form "file:...".
+   */
+  @Id(3)
+  bool get includesFileUris;
+
+  /**
+   * Relative path to the summary file for this dependency.  This is intended as
+   * a hint to help the analysis server locate summaries of dependencies.  We
+   * don't specify precisely what this path is relative to, but we expect it to
+   * be relative to a directory the analysis server can find (e.g. for projects
+   * built using Bazel, it would be relative to the "bazel-bin" directory).
+   *
+   * Absent if the path is not known.
+   */
+  @Id(1)
+  String get summaryPath;
 }
 
 /**
@@ -2658,6 +2710,13 @@ abstract class UnlinkedUnit extends base.SummaryClass {
   @informative
   @Id(8)
   int get libraryNameOffset;
+
+  /**
+   * Offsets of the first character of each line in the source code.
+   */
+  @informative
+  @Id(17)
+  List<int> get lineStarts;
 
   /**
    * Part declarations in the compilation unit.

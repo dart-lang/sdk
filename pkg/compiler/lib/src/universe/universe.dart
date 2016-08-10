@@ -8,11 +8,10 @@ import 'dart:collection';
 
 import '../common.dart';
 import '../compiler.dart' show Compiler;
-import '../elements/elements.dart';
 import '../dart_types.dart';
+import '../elements/elements.dart';
 import '../util/util.dart';
 import '../world.dart' show ClassWorld, World;
-
 import 'selector.dart' show Selector;
 import 'use.dart' show DynamicUse, DynamicUseKind, StaticUse, StaticUseKind;
 

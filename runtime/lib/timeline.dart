@@ -4,33 +4,33 @@
 
 import 'dart:_internal';
 
-patch bool _isDartStreamEnabled() native "Timeline_isDartStreamEnabled";
+@patch bool _isDartStreamEnabled() native "Timeline_isDartStreamEnabled";
 
-patch int _getTraceClock() native "Timeline_getTraceClock";
+@patch int _getTraceClock() native "Timeline_getTraceClock";
 
-patch int _getThreadCpuClock() native "Timeline_getThreadCpuClock";
+@patch int _getThreadCpuClock() native "Timeline_getThreadCpuClock";
 
-patch int _getNextAsyncId() native "Timeline_getNextAsyncId";
+@patch int _getNextAsyncId() native "Timeline_getNextAsyncId";
 
-patch int _getIsolateNum() native "Timeline_getIsolateNum";
+@patch int _getIsolateNum() native "Timeline_getIsolateNum";
 
-patch void _reportTaskEvent(
-    int start,
-    int taskId,
-    String phase,
-    String category,
-    String name,
-    String argumentsAsJson) native "Timeline_reportTaskEvent";
+@patch void _reportTaskEvent(
+     int start,
+     int taskId,
+     String phase,
+     String category,
+     String name,
+     String argumentsAsJson) native "Timeline_reportTaskEvent";
 
-patch void _reportCompleteEvent(
-    int start,
-    int end,
-    String category,
-    String name,
-    String argumentsAsJson) native "Timeline_reportCompleteEvent";
+@patch void _reportCompleteEvent(
+     int start,
+     int end,
+     String category,
+     String name,
+     String argumentsAsJson) native "Timeline_reportCompleteEvent";
 
-patch void _reportInstantEvent(
-    int start,
-    String category,
-    String name,
-    String argumentsAsJson) native "Timeline_reportInstantEvent";
+@patch void _reportInstantEvent(
+     int start,
+     String category,
+     String name,
+     String argumentsAsJson) native "Timeline_reportInstantEvent";

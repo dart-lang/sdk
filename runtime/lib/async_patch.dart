@@ -188,4 +188,4 @@ class _AsyncStarStreamController {
   }
 }
 
-patch void _rethrow(Object error, StackTrace stackTrace) native "Async_rethrow";
+@patch void _rethrow(Object error, StackTrace stackTrace) native "Async_rethrow";

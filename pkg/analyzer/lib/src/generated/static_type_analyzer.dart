@@ -131,29 +131,15 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       }
 
       List<ParameterElement> parameters = node.parameterElements;
-
       {
-        List<DartType> normalParameterTypes = functionType.normalParameterTypes;
-        int normalCount = normalParameterTypes.length;
-        Iterable<ParameterElement> required = parameters
-            .where((p) => p.parameterKind == ParameterKind.REQUIRED)
-            .take(normalCount);
-        int index = 0;
-        for (ParameterElementImpl p in required) {
-          inferType(p, normalParameterTypes[index++]);
-        }
-      }
-
-      {
-        List<DartType> optionalParameterTypes =
-            functionType.optionalParameterTypes;
-        int optionalCount = optionalParameterTypes.length;
-        Iterable<ParameterElement> optional = parameters
-            .where((p) => p.parameterKind == ParameterKind.POSITIONAL)
-            .take(optionalCount);
-        int index = 0;
-        for (ParameterElementImpl p in optional) {
-          inferType(p, optionalParameterTypes[index++]);
+        Iterator<ParameterElement> positional = parameters
+            .where((p) => p.parameterKind != ParameterKind.NAMED)
+            .iterator;
+        Iterator<ParameterElement> fnPositional = functionType.parameters
+            .where((p) => p.parameterKind != ParameterKind.NAMED)
+            .iterator;
+        while (positional.moveNext() && fnPositional.moveNext()) {
+          inferType(positional.current, fnPositional.current.type);
         }
       }
 
@@ -518,7 +504,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     // * BlockFunctionBody, if we inferred a type from yield/return.
     // * we also normalize bottom to dynamic here.
     if (_strongMode && (computedType.isBottom || computedType.isDynamic)) {
-      computedType = InferenceContext.getType(body) ?? _dynamicType;
+      DartType contextType = InferenceContext.getContext(body);
+      if (contextType is FutureUnionType) {
+        // TODO(jmesserly): can we do something better here?
+        computedType = body.isAsynchronous ? contextType.type : _dynamicType;
+      } else {
+        computedType = contextType ?? _dynamicType;
+      }
       recordInference = !computedType.isDynamic;
     }
 
@@ -1697,6 +1689,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         visitedClasses.remove(element);
       }
     }
+
     if (type is InterfaceType) {
       _find(type);
     }
@@ -1983,8 +1976,17 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         }
       }
 
-      return ts.inferGenericFunctionCall(_typeProvider, fnType, paramTypes,
-          argTypes, InferenceContext.getType(node));
+      DartType returnContext = InferenceContext.getContext(node);
+      DartType returnType;
+      if (returnContext is FutureUnionType) {
+        returnType = fnType.returnType.isDartAsyncFuture
+            ? returnContext.futureOfType
+            : returnContext.type;
+      } else {
+        returnType = returnContext as DartType;
+      }
+      return ts.inferGenericFunctionCall(
+          _typeProvider, fnType, paramTypes, argTypes, returnType);
     }
     return null;
   }

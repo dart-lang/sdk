@@ -10,8 +10,8 @@ class _GrowableArrayMarker implements int {
 
 const _GROWABLE_ARRAY_MARKER = const _GrowableArrayMarker();
 
-patch class List<E> {
-  /* patch */ factory List([int length = _GROWABLE_ARRAY_MARKER]) {
+@patch class List<E> {
+  /* @patch */ factory List([int length = _GROWABLE_ARRAY_MARKER]) {
     if (identical(length, _GROWABLE_ARRAY_MARKER)) {
       return new _GrowableList<E>(0);
     }
@@ -20,7 +20,7 @@ patch class List<E> {
     return new _List<E>(length);
   }
 
-  /* patch */ factory List.filled(int length, E fill, {bool growable: false}) {
+  /* @patch */ factory List.filled(int length, E fill, {bool growable: false}) {
     // All error handling on the length parameter is done at the implementation
     // of new _List.
     var result = growable ? new _GrowableList<E>(length) : new _List<E>(length);
@@ -32,7 +32,7 @@ patch class List<E> {
     return result;
   }
 
-  /* patch */ factory List.from(Iterable elements, { bool growable: true }) {
+  /* @patch */ factory List.from(Iterable elements, { bool growable: true }) {
     if (elements is EfficientLength) {
       int length = elements.length;
       var list = growable ? new _GrowableList<E>(length) : new _List<E>(length);
@@ -54,7 +54,7 @@ patch class List<E> {
     return makeListFixedLength(list);
   }
 
-  /* patch */ factory List.unmodifiable(Iterable elements) {
+  /* @patch */ factory List.unmodifiable(Iterable elements) {
     List result = new List<E>.from(elements, growable: false);
     return makeFixedListUnmodifiable(result);
   }

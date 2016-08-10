@@ -1142,37 +1142,29 @@ DART_EXPORT const char* Dart_VersionString() {
   return Version::String();
 }
 
-DART_EXPORT char* Dart_Initialize(
-    const uint8_t* vm_isolate_snapshot,
-    const uint8_t* instructions_snapshot,
-    const uint8_t* data_snapshot,
-    Dart_IsolateCreateCallback create,
-    Dart_IsolateInterruptCallback interrupt,
-    Dart_IsolateUnhandledExceptionCallback unhandled,
-    Dart_IsolateShutdownCallback shutdown,
-    Dart_ThreadExitCallback thread_exit,
-    Dart_FileOpenCallback file_open,
-    Dart_FileReadCallback file_read,
-    Dart_FileWriteCallback file_write,
-    Dart_FileCloseCallback file_close,
-    Dart_EntropySource entropy_source,
-    Dart_GetVMServiceAssetsArchive get_service_assets) {
-  if (interrupt != NULL) {
+DART_EXPORT char* Dart_Initialize(Dart_InitializeParams* params) {
+  if (params == NULL) {
     return strdup("Dart_Initialize: "
-                  "Setting of interrupt callback is not supported.");
+                  "Dart_InitializeParams is null.");
   }
-  if (unhandled != NULL) {
+
+  if (params->version != DART_INITIALIZE_PARAMS_CURRENT_VERSION) {
     return strdup("Dart_Initialize: "
-                  "Setting of unhandled exception callback is not supported.");
+                  "Invalid Dart_InitializeParams version.");
   }
-  return Dart::InitOnce(vm_isolate_snapshot,
-                        instructions_snapshot,
-                        data_snapshot,
-                        create, shutdown,
-                        thread_exit,
-                        file_open, file_read, file_write, file_close,
-                        entropy_source,
-                        get_service_assets);
+
+  return Dart::InitOnce(params->vm_isolate_snapshot,
+                        params->instructions_snapshot,
+                        params->data_snapshot,
+                        params->create,
+                        params->shutdown,
+                        params->thread_exit,
+                        params->file_open,
+                        params->file_read,
+                        params->file_write,
+                        params->file_close,
+                        params->entropy_source,
+                        params->get_service_assets);
 }
 
 
@@ -1447,6 +1439,32 @@ DART_EXPORT void Dart_SetPausedOnExit(bool paused) {
   if (isolate->message_handler()->is_paused_on_exit() != paused) {
     isolate->message_handler()->PausedOnExit(paused);
   }
+}
+
+
+DART_EXPORT void Dart_SetStickyError(Dart_Handle error) {
+  Thread* thread = Thread::Current();
+  DARTSCOPE(thread);
+  Isolate* isolate = thread->isolate();
+  CHECK_ISOLATE(isolate);
+  NoSafepointScope no_safepoint_scope;
+  if (isolate->sticky_error() != Error::null()) {
+    FATAL1("%s expects there to be no sticky error.", CURRENT_FUNC);
+  }
+  if (!::Dart_IsUnhandledExceptionError(error)) {
+    FATAL1("%s expects the error to be an unhandled exception error.",
+            CURRENT_FUNC);
+  }
+  isolate->SetStickyError(
+      Api::UnwrapErrorHandle(Z, error).raw());
+}
+
+
+DART_EXPORT bool Dart_HasStickyError() {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  NoSafepointScope no_safepoint_scope;
+  return isolate->sticky_error() != Error::null();
 }
 
 

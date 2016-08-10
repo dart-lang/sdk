@@ -10,8 +10,8 @@ import '../dart_types.dart';
 import '../elements/elements.dart' show FieldElement;
 import '../resolution/operators.dart';
 import '../universe/call_structure.dart' show CallStructure;
-import 'serialization.dart';
 import 'keys.dart';
+import 'serialization.dart';
 
 /// Visitor that serializes a [ConstantExpression] by encoding it into an
 /// [ObjectEncoder].

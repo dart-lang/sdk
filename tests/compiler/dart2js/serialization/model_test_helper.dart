@@ -11,6 +11,7 @@ import 'package:expect/expect.dart';
 import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
+import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/deferred_load.dart';
 import 'package:compiler/src/elements/elements.dart';
@@ -161,6 +162,38 @@ Future checkModels(
         compilerNormal.deferredLoadTask.isProgramSplit,
         compilerDeserialized.deferredLoadTask.isProgramSplit,
         "isProgramSplit mismatch");
+
+    Map<ConstantValue, OutputUnit> constants1 =
+        compilerNormal.deferredLoadTask.outputUnitForConstantsForTesting;
+    Map<ConstantValue, OutputUnit> constants2 =
+        compilerDeserialized.deferredLoadTask.outputUnitForConstantsForTesting;
+    checkSets(
+        constants1.keys,
+        constants2.keys,
+        'deferredLoadTask._outputUnitForConstants.keys',
+        areConstantValuesEquivalent,
+        failOnUnfound: false,
+        failOnExtra: false,
+        onSameElement: (ConstantValue value1, ConstantValue value2) {
+          OutputUnit outputUnit1 = constants1[value1];
+          OutputUnit outputUnit2 = constants2[value2];
+          checkOutputUnits(outputUnit1, outputUnit2,
+              'for ${value1.toStructuredText()} '
+                  'vs ${value2.toStructuredText()}');
+        },
+        onUnfoundElement: (ConstantValue value1) {
+          OutputUnit outputUnit1 = constants1[value1];
+          Expect.isTrue(outputUnit1.isMainOutput,
+              "Missing deferred constant: ${value1.toStructuredText()}");
+        },
+        onExtraElement: (ConstantValue value2) {
+          OutputUnit outputUnit2 = constants2[value2];
+          Expect.isTrue(outputUnit2.isMainOutput,
+              "Extra deferred constant: ${value2.toStructuredText()}");
+        },
+        elementToString: (a) {
+          return '${a.toStructuredText()} -> ${constants1[a]}/${constants2[a]}';
+        });
   });
 }
 
@@ -244,7 +277,7 @@ void checkElements(
       backend2.inlineCache.getCurrentCacheDecisionForTesting(element2),
       "Inline cache decision mismatch for $element1 vs $element2");
 
-  checkOutputUnits(compiler1, compiler2, element1, element2);
+  checkElementOutputUnits(compiler1, compiler2, element1, element2);
 }
 
 void checkMixinUses(
@@ -360,17 +393,24 @@ String nodeToString(Node node) {
   return '(${node.runtimeType}) $text';
 }
 
-void checkOutputUnits(Compiler compiler1, Compiler compiler2, Element element1,
-    Element element2) {
+void checkElementOutputUnits(
+    Compiler compiler1, Compiler compiler2,
+    Element element1, Element element2) {
   OutputUnit outputUnit1 =
-      compiler1.deferredLoadTask.outputUnitForElement(element1);
+      compiler1.deferredLoadTask.getOutputUnitForElementForTesting(element1);
   OutputUnit outputUnit2 =
-      compiler2.deferredLoadTask.outputUnitForElement(element2);
+      compiler2.deferredLoadTask.getOutputUnitForElementForTesting(element2);
+  checkOutputUnits(outputUnit1, outputUnit2, 'for $element1 vs $element2');
+}
+
+void checkOutputUnits(
+    OutputUnit outputUnit1, OutputUnit outputUnit2, String message) {
+  if (outputUnit1 == null && outputUnit2 == null) return;
   check(outputUnit1, outputUnit2,
-      'OutputUnit.isMainOutput for $element1 vs $element2',
+      'OutputUnit.isMainOutput $message',
       outputUnit1.isMainOutput, outputUnit2.isMainOutput);
   checkSetEquivalence(outputUnit1, outputUnit2,
-      'OutputUnit.imports for $element1 vs $element2',
+      'OutputUnit.imports $message',
       outputUnit1.imports, outputUnit2.imports,
       (a, b) => areElementsEquivalent(a.declaration, b.declaration));
 }

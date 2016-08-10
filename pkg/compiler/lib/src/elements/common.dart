@@ -10,7 +10,6 @@ import '../common/names.dart' show Identifiers, Names, Uris;
 import '../core_types.dart' show CoreClasses;
 import '../dart_types.dart' show DartType, InterfaceType, FunctionType;
 import '../util/util.dart' show Link;
-
 import 'elements.dart';
 
 abstract class ElementCommon implements Element {

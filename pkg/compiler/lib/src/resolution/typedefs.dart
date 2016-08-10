@@ -4,8 +4,6 @@
 
 library dart2js.resolution.typedefs;
 
-import 'dart:developer';
-
 import '../common.dart';
 import '../common/resolution.dart';
 import '../dart_types.dart';
@@ -14,7 +12,6 @@ import '../elements/elements.dart'
 import '../elements/modelx.dart' show ErroneousElementX, TypedefElementX;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link;
-
 import 'class_hierarchy.dart' show TypeDefinitionVisitor;
 import 'registry.dart' show ResolutionRegistry;
 import 'scope.dart' show MethodScope, TypeDeclarationScope;

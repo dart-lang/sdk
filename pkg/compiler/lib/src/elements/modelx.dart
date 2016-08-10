@@ -15,9 +15,9 @@ import '../dart_types.dart';
 import '../diagnostics/messages.dart' show MessageTemplate;
 import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../resolution/class_members.dart' show ClassMemberMixin;
+import '../resolution/resolution.dart' show AnalyzableElementX;
 import '../resolution/scope.dart'
     show ClassScope, LibraryScope, Scope, TypeDeclarationScope;
-import '../resolution/resolution.dart' show AnalyzableElementX;
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../resolution/typedefs.dart' show TypedefCyclicVisitor;
 import '../script.dart';
@@ -25,7 +25,6 @@ import '../tokens/token.dart' show ErrorToken, Token;
 import '../tokens/token_constants.dart' as Tokens show EOF_TOKEN;
 import '../tree/tree.dart';
 import '../util/util.dart';
-
 import 'common.dart';
 import 'elements.dart';
 import 'visitor.dart' show ElementVisitor;

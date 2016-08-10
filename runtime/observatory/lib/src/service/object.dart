@@ -1077,7 +1077,7 @@ class TagProfile {
   }
 }
 
-class HeapSpace extends Observable {
+class HeapSpace extends Observable implements M.HeapSpace {
   @observable int used = 0;
   @observable int capacity = 0;
   @observable int external = 0;
@@ -1139,7 +1139,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return (new DateTime.now().difference(startTime));
   }
 
-  @observable ObservableMap counters = new ObservableMap();
+  @observable Map counters = {};
 
   void _updateRunState() {
     topFrame = (pauseEvent != null ? pauseEvent.topFrame : null);
@@ -1441,18 +1441,18 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       for (var i = 0; i < counts.length; i++) {
         sum += counts[i];
       }
-      // TODO: Why does this not work without this?
-      counters = toObservable({});
+      var _counters = {};
       if (sum == 0) {
         for (var i = 0; i < names.length; i++) {
-          counters[names[i]] = '0.0%';
+          _counters[names[i]] = '0.0%';
         }
       } else {
         for (var i = 0; i < names.length; i++) {
-          counters[names[i]] =
+          _counters[names[i]] =
               (counts[i] / sum * 100.0).toStringAsFixed(2) + '%';
         }
       }
+      counters = _counters;
     }
 
     updateHeapsFromMap(map['_heaps']);
@@ -1855,10 +1855,10 @@ class ServiceMap extends ServiceObject implements ObservableMap {
 
 M.ErrorKind stringToErrorKind(String value) {
   switch(value) {
-    case 'UnhandledException': return M.ErrorKind.UnhandledException;
-    case 'LanguageError': return M.ErrorKind.UnhandledException;
-    case 'InternalError': return M.ErrorKind.InternalError;
-    case 'TerminationError': return M.ErrorKind.TerminationError;
+    case 'UnhandledException': return M.ErrorKind.unhandledException;
+    case 'LanguageError': return M.ErrorKind.unhandledException;
+    case 'InternalError': return M.ErrorKind.internalError;
+    case 'TerminationError': return M.ErrorKind.terminationError;
   }
   Logger.root.severe('Unrecognized error kind: $value');
   throw new FallThroughError();

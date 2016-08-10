@@ -4,8 +4,8 @@
 
 library tree_ir.optimization.pull_into_initializers;
 
-import 'optimization.dart' show Pass;
 import '../tree_ir_nodes.dart';
+import 'optimization.dart' show Pass;
 
 /// Where a variable has been assigned.
 enum AssignArea {

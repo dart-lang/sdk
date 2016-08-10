@@ -1992,6 +1992,9 @@ class _CompilerResolution implements Resolution {
         message: "Element $element must be the declaration."));
     assert(invariant(element, hasResolvedAst(element),
         message: "ResolvedAst not available for $element."));
+    if (compiler.serialization.isDeserialized(element)) {
+      return compiler.serialization.getResolvedAst(element);
+    }
     return element.resolvedAst;
   }
 

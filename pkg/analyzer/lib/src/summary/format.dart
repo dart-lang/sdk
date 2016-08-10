@@ -2099,6 +2099,7 @@ abstract class _LinkedUnitMixin implements idl.LinkedUnit {
 
 class PackageBundleBuilder extends Object with _PackageBundleMixin implements idl.PackageBundle {
   String _apiSignature;
+  List<PackageDependencyInfoBuilder> _dependencies;
   List<LinkedLibraryBuilder> _linkedLibraries;
   List<String> _linkedLibraryUris;
   int _majorVersion;
@@ -2117,6 +2118,16 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
    */
   void set apiSignature(String _value) {
     _apiSignature = _value;
+  }
+
+  @override
+  List<PackageDependencyInfoBuilder> get dependencies => _dependencies ??= <PackageDependencyInfoBuilder>[];
+
+  /**
+   * Information about the packages this package depends on, if known.
+   */
+  void set dependencies(List<PackageDependencyInfoBuilder> _value) {
+    _dependencies = _value;
   }
 
   @override
@@ -2195,8 +2206,9 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
     _unlinkedUnitUris = _value;
   }
 
-  PackageBundleBuilder({String apiSignature, List<LinkedLibraryBuilder> linkedLibraries, List<String> linkedLibraryUris, int majorVersion, int minorVersion, List<String> unlinkedUnitHashes, List<UnlinkedUnitBuilder> unlinkedUnits, List<String> unlinkedUnitUris})
+  PackageBundleBuilder({String apiSignature, List<PackageDependencyInfoBuilder> dependencies, List<LinkedLibraryBuilder> linkedLibraries, List<String> linkedLibraryUris, int majorVersion, int minorVersion, List<String> unlinkedUnitHashes, List<UnlinkedUnitBuilder> unlinkedUnits, List<String> unlinkedUnitUris})
     : _apiSignature = apiSignature,
+      _dependencies = dependencies,
       _linkedLibraries = linkedLibraries,
       _linkedLibraryUris = linkedLibraryUris,
       _majorVersion = majorVersion,
@@ -2209,6 +2221,7 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
    * Flush [informative] data recursively.
    */
   void flushInformative() {
+    _dependencies = null;
     _linkedLibraries?.forEach((b) => b.flushInformative());
     _unlinkedUnitHashes = null;
     _unlinkedUnits?.forEach((b) => b.flushInformative());
@@ -2262,6 +2275,7 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_apiSignature;
+    fb.Offset offset_dependencies;
     fb.Offset offset_linkedLibraries;
     fb.Offset offset_linkedLibraryUris;
     fb.Offset offset_unlinkedUnitHashes;
@@ -2269,6 +2283,9 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
     fb.Offset offset_unlinkedUnitUris;
     if (_apiSignature != null) {
       offset_apiSignature = fbBuilder.writeString(_apiSignature);
+    }
+    if (!(_dependencies == null || _dependencies.isEmpty)) {
+      offset_dependencies = fbBuilder.writeList(_dependencies.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_linkedLibraries == null || _linkedLibraries.isEmpty)) {
       offset_linkedLibraries = fbBuilder.writeList(_linkedLibraries.map((b) => b.finish(fbBuilder)).toList());
@@ -2288,6 +2305,9 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
     fbBuilder.startTable();
     if (offset_apiSignature != null) {
       fbBuilder.addOffset(7, offset_apiSignature);
+    }
+    if (offset_dependencies != null) {
+      fbBuilder.addOffset(8, offset_dependencies);
     }
     if (offset_linkedLibraries != null) {
       fbBuilder.addOffset(0, offset_linkedLibraries);
@@ -2333,6 +2353,7 @@ class _PackageBundleImpl extends Object with _PackageBundleMixin implements idl.
   _PackageBundleImpl(this._bc, this._bcOffset);
 
   String _apiSignature;
+  List<idl.PackageDependencyInfo> _dependencies;
   List<idl.LinkedLibrary> _linkedLibraries;
   List<String> _linkedLibraryUris;
   int _majorVersion;
@@ -2345,6 +2366,12 @@ class _PackageBundleImpl extends Object with _PackageBundleMixin implements idl.
   String get apiSignature {
     _apiSignature ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 7, '');
     return _apiSignature;
+  }
+
+  @override
+  List<idl.PackageDependencyInfo> get dependencies {
+    _dependencies ??= const fb.ListReader<idl.PackageDependencyInfo>(const _PackageDependencyInfoReader()).vTableGet(_bc, _bcOffset, 8, const <idl.PackageDependencyInfo>[]);
+    return _dependencies;
   }
 
   @override
@@ -2395,6 +2422,7 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (apiSignature != '') _result["apiSignature"] = apiSignature;
+    if (dependencies.isNotEmpty) _result["dependencies"] = dependencies.map((_value) => _value.toJson()).toList();
     if (linkedLibraries.isNotEmpty) _result["linkedLibraries"] = linkedLibraries.map((_value) => _value.toJson()).toList();
     if (linkedLibraryUris.isNotEmpty) _result["linkedLibraryUris"] = linkedLibraryUris;
     if (majorVersion != 0) _result["majorVersion"] = majorVersion;
@@ -2408,6 +2436,7 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
   @override
   Map<String, Object> toMap() => {
     "apiSignature": apiSignature,
+    "dependencies": dependencies,
     "linkedLibraries": linkedLibraries,
     "linkedLibraryUris": linkedLibraryUris,
     "majorVersion": majorVersion,
@@ -2415,6 +2444,212 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
     "unlinkedUnitHashes": unlinkedUnitHashes,
     "unlinkedUnits": unlinkedUnits,
     "unlinkedUnitUris": unlinkedUnitUris,
+  };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
+}
+
+class PackageDependencyInfoBuilder extends Object with _PackageDependencyInfoMixin implements idl.PackageDependencyInfo {
+  String _apiSignature;
+  List<String> _includedPackageNames;
+  bool _includesDartUris;
+  bool _includesFileUris;
+  String _summaryPath;
+
+  @override
+  String get apiSignature => _apiSignature ??= '';
+
+  /**
+   * API signature of this dependency.
+   */
+  void set apiSignature(String _value) {
+    _apiSignature = _value;
+  }
+
+  @override
+  List<String> get includedPackageNames => _includedPackageNames ??= <String>[];
+
+  /**
+   * If this dependency summarizes any files whose URI takes the form
+   * "package:<package_name>/...", a list of all such package names, sorted
+   * lexicographically.  Otherwise empty.
+   */
+  void set includedPackageNames(List<String> _value) {
+    _includedPackageNames = _value;
+  }
+
+  @override
+  bool get includesDartUris => _includesDartUris ??= false;
+
+  /**
+   * Indicates whether this dependency summarizes any files whose URI takes the
+   * form "dart:...".
+   */
+  void set includesDartUris(bool _value) {
+    _includesDartUris = _value;
+  }
+
+  @override
+  bool get includesFileUris => _includesFileUris ??= false;
+
+  /**
+   * Indicates whether this dependency summarizes any files whose URI takes the
+   * form "file:...".
+   */
+  void set includesFileUris(bool _value) {
+    _includesFileUris = _value;
+  }
+
+  @override
+  String get summaryPath => _summaryPath ??= '';
+
+  /**
+   * Relative path to the summary file for this dependency.  This is intended as
+   * a hint to help the analysis server locate summaries of dependencies.  We
+   * don't specify precisely what this path is relative to, but we expect it to
+   * be relative to a directory the analysis server can find (e.g. for projects
+   * built using Bazel, it would be relative to the "bazel-bin" directory).
+   *
+   * Absent if the path is not known.
+   */
+  void set summaryPath(String _value) {
+    _summaryPath = _value;
+  }
+
+  PackageDependencyInfoBuilder({String apiSignature, List<String> includedPackageNames, bool includesDartUris, bool includesFileUris, String summaryPath})
+    : _apiSignature = apiSignature,
+      _includedPackageNames = includedPackageNames,
+      _includesDartUris = includesDartUris,
+      _includesFileUris = includesFileUris,
+      _summaryPath = summaryPath;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._apiSignature ?? '');
+    signature.addString(this._summaryPath ?? '');
+    if (this._includedPackageNames == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._includedPackageNames.length);
+      for (var x in this._includedPackageNames) {
+        signature.addString(x);
+      }
+    }
+    signature.addBool(this._includesFileUris == true);
+    signature.addBool(this._includesDartUris == true);
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_apiSignature;
+    fb.Offset offset_includedPackageNames;
+    fb.Offset offset_summaryPath;
+    if (_apiSignature != null) {
+      offset_apiSignature = fbBuilder.writeString(_apiSignature);
+    }
+    if (!(_includedPackageNames == null || _includedPackageNames.isEmpty)) {
+      offset_includedPackageNames = fbBuilder.writeList(_includedPackageNames.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (_summaryPath != null) {
+      offset_summaryPath = fbBuilder.writeString(_summaryPath);
+    }
+    fbBuilder.startTable();
+    if (offset_apiSignature != null) {
+      fbBuilder.addOffset(0, offset_apiSignature);
+    }
+    if (offset_includedPackageNames != null) {
+      fbBuilder.addOffset(2, offset_includedPackageNames);
+    }
+    if (_includesDartUris == true) {
+      fbBuilder.addBool(4, true);
+    }
+    if (_includesFileUris == true) {
+      fbBuilder.addBool(3, true);
+    }
+    if (offset_summaryPath != null) {
+      fbBuilder.addOffset(1, offset_summaryPath);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _PackageDependencyInfoReader extends fb.TableReader<_PackageDependencyInfoImpl> {
+  const _PackageDependencyInfoReader();
+
+  @override
+  _PackageDependencyInfoImpl createObject(fb.BufferContext bc, int offset) => new _PackageDependencyInfoImpl(bc, offset);
+}
+
+class _PackageDependencyInfoImpl extends Object with _PackageDependencyInfoMixin implements idl.PackageDependencyInfo {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _PackageDependencyInfoImpl(this._bc, this._bcOffset);
+
+  String _apiSignature;
+  List<String> _includedPackageNames;
+  bool _includesDartUris;
+  bool _includesFileUris;
+  String _summaryPath;
+
+  @override
+  String get apiSignature {
+    _apiSignature ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
+    return _apiSignature;
+  }
+
+  @override
+  List<String> get includedPackageNames {
+    _includedPackageNames ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 2, const <String>[]);
+    return _includedPackageNames;
+  }
+
+  @override
+  bool get includesDartUris {
+    _includesDartUris ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 4, false);
+    return _includesDartUris;
+  }
+
+  @override
+  bool get includesFileUris {
+    _includesFileUris ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
+    return _includesFileUris;
+  }
+
+  @override
+  String get summaryPath {
+    _summaryPath ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
+    return _summaryPath;
+  }
+}
+
+abstract class _PackageDependencyInfoMixin implements idl.PackageDependencyInfo {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (apiSignature != '') _result["apiSignature"] = apiSignature;
+    if (includedPackageNames.isNotEmpty) _result["includedPackageNames"] = includedPackageNames;
+    if (includesDartUris != false) _result["includesDartUris"] = includesDartUris;
+    if (includesFileUris != false) _result["includesFileUris"] = includesFileUris;
+    if (summaryPath != '') _result["summaryPath"] = summaryPath;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+    "apiSignature": apiSignature,
+    "includedPackageNames": includedPackageNames,
+    "includesDartUris": includesDartUris,
+    "includesFileUris": includesFileUris,
+    "summaryPath": summaryPath,
   };
 
   @override
@@ -8406,6 +8641,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   String _libraryName;
   int _libraryNameLength;
   int _libraryNameOffset;
+  List<int> _lineStarts;
   List<UnlinkedPartBuilder> _parts;
   UnlinkedPublicNamespaceBuilder _publicNamespace;
   List<UnlinkedReferenceBuilder> _references;
@@ -8544,6 +8780,17 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   }
 
   @override
+  List<int> get lineStarts => _lineStarts ??= <int>[];
+
+  /**
+   * Offsets of the first character of each line in the source code.
+   */
+  void set lineStarts(List<int> _value) {
+    assert(_value == null || _value.every((e) => e >= 0));
+    _lineStarts = _value;
+  }
+
+  @override
   List<UnlinkedPartBuilder> get parts => _parts ??= <UnlinkedPartBuilder>[];
 
   /**
@@ -8597,7 +8844,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     _variables = _value;
   }
 
-  UnlinkedUnitBuilder({List<UnlinkedClassBuilder> classes, CodeRangeBuilder codeRange, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, String fallbackModePath, List<UnlinkedImportBuilder> imports, List<UnlinkedConstBuilder> libraryAnnotations, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, String libraryName, int libraryNameLength, int libraryNameOffset, List<UnlinkedPartBuilder> parts, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables})
+  UnlinkedUnitBuilder({List<UnlinkedClassBuilder> classes, CodeRangeBuilder codeRange, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, String fallbackModePath, List<UnlinkedImportBuilder> imports, List<UnlinkedConstBuilder> libraryAnnotations, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, String libraryName, int libraryNameLength, int libraryNameOffset, List<int> lineStarts, List<UnlinkedPartBuilder> parts, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables})
     : _classes = classes,
       _codeRange = codeRange,
       _enums = enums,
@@ -8610,6 +8857,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
       _libraryName = libraryName,
       _libraryNameLength = libraryNameLength,
       _libraryNameOffset = libraryNameOffset,
+      _lineStarts = lineStarts,
       _parts = parts,
       _publicNamespace = publicNamespace,
       _references = references,
@@ -8630,6 +8878,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     _libraryDocumentationComment = null;
     _libraryNameLength = null;
     _libraryNameOffset = null;
+    _lineStarts = null;
     _parts?.forEach((b) => b.flushInformative());
     _publicNamespace?.flushInformative();
     _references?.forEach((b) => b.flushInformative());
@@ -8743,6 +8992,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     fb.Offset offset_libraryAnnotations;
     fb.Offset offset_libraryDocumentationComment;
     fb.Offset offset_libraryName;
+    fb.Offset offset_lineStarts;
     fb.Offset offset_parts;
     fb.Offset offset_publicNamespace;
     fb.Offset offset_references;
@@ -8777,6 +9027,9 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     }
     if (_libraryName != null) {
       offset_libraryName = fbBuilder.writeString(_libraryName);
+    }
+    if (!(_lineStarts == null || _lineStarts.isEmpty)) {
+      offset_lineStarts = fbBuilder.writeListUint32(_lineStarts);
     }
     if (!(_parts == null || _parts.isEmpty)) {
       offset_parts = fbBuilder.writeList(_parts.map((b) => b.finish(fbBuilder)).toList());
@@ -8830,6 +9083,9 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     if (_libraryNameOffset != null && _libraryNameOffset != 0) {
       fbBuilder.addUint32(8, _libraryNameOffset);
     }
+    if (offset_lineStarts != null) {
+      fbBuilder.addOffset(17, offset_lineStarts);
+    }
     if (offset_parts != null) {
       fbBuilder.addOffset(11, offset_parts);
     }
@@ -8879,6 +9135,7 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
   String _libraryName;
   int _libraryNameLength;
   int _libraryNameOffset;
+  List<int> _lineStarts;
   List<idl.UnlinkedPart> _parts;
   idl.UnlinkedPublicNamespace _publicNamespace;
   List<idl.UnlinkedReference> _references;
@@ -8958,6 +9215,12 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
   }
 
   @override
+  List<int> get lineStarts {
+    _lineStarts ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 17, const <int>[]);
+    return _lineStarts;
+  }
+
+  @override
   List<idl.UnlinkedPart> get parts {
     _parts ??= const fb.ListReader<idl.UnlinkedPart>(const _UnlinkedPartReader()).vTableGet(_bc, _bcOffset, 11, const <idl.UnlinkedPart>[]);
     return _parts;
@@ -9004,6 +9267,7 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
     if (libraryName != '') _result["libraryName"] = libraryName;
     if (libraryNameLength != 0) _result["libraryNameLength"] = libraryNameLength;
     if (libraryNameOffset != 0) _result["libraryNameOffset"] = libraryNameOffset;
+    if (lineStarts.isNotEmpty) _result["lineStarts"] = lineStarts;
     if (parts.isNotEmpty) _result["parts"] = parts.map((_value) => _value.toJson()).toList();
     if (publicNamespace != null) _result["publicNamespace"] = publicNamespace.toJson();
     if (references.isNotEmpty) _result["references"] = references.map((_value) => _value.toJson()).toList();
@@ -9026,6 +9290,7 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
     "libraryName": libraryName,
     "libraryNameLength": libraryNameLength,
     "libraryNameOffset": libraryNameOffset,
+    "lineStarts": lineStarts,
     "parts": parts,
     "publicNamespace": publicNamespace,
     "references": references,

@@ -7,26 +7,22 @@ library dart2js.resolution.registry;
 import '../common.dart';
 import '../common/backend_api.dart'
     show Backend, ForeignResolver, NativeRegistry;
+import '../common/registry.dart' show Registry;
 import '../common/resolution.dart'
     show Feature, ListLiteralUse, MapLiteralUse, ResolutionImpact, Target;
-import '../common/registry.dart' show Registry;
-import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../diagnostics/source_span.dart';
-import '../enqueue.dart' show ResolutionEnqueuer;
 import '../elements/elements.dart';
 import '../tree/tree.dart';
-import '../util/util.dart' show Setlet;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilder;
 import '../util/enumset.dart' show EnumSet;
-
-import 'send_structure.dart';
-
+import '../util/util.dart' show Setlet;
 import 'members.dart' show ResolverVisitor;
+import 'send_structure.dart';
 import 'tree_elements.dart' show TreeElementMapping;
 
 class _ResolutionWorldImpact extends ResolutionImpact

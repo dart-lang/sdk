@@ -19,16 +19,6 @@ import 'filenames.dart';
 import 'io/source_file.dart';
 import 'util/uri_extras.dart';
 
-List<int> readAll(String filename) {
-  var file = (new File(filename)).openSync();
-  var length = file.lengthSync();
-  // +1 to have a 0 terminated list, see [Scanner].
-  var buffer = new Uint8List(length + 1);
-  file.readIntoSync(buffer, 0, length);
-  file.closeSync();
-  return buffer;
-}
-
 abstract class SourceFileProvider implements CompilerInput {
   bool isWindows = (Platform.operatingSystem == 'windows');
   Uri cwd = currentDirectory;
@@ -55,12 +45,10 @@ abstract class SourceFileProvider implements CompilerInput {
     try {
       source = readAll(resourceUri.toFilePath());
     } on FileSystemException catch (ex) {
-      OSError ose = ex.osError;
-      String detail =
-          (ose != null && ose.message != null) ? ' (${ose.message})' : '';
+      String message = ex.osError?.message;
+      String detail = message != null ? ' ($message)' : '';
       return new Future.error(
-          "Error reading '${relativize(cwd, resourceUri, isWindows)}'"
-          "$detail");
+          "Error reading '${relativizeUri(resourceUri)}' $detail");
     }
     dartCharactersRead += source.length;
     sourceFiles[resourceUri] = new CachingUtf8BytesSourceFile(
@@ -100,13 +88,23 @@ abstract class SourceFileProvider implements CompilerInput {
 
   // TODO(johnniwinther): Remove this when no longer needed for the old compiler
   // API.
-  Future/*<List<int> | String>*/ call(Uri resourceUri);
+  Future/*<List<int> | String>*/ call(Uri resourceUri) => throw "unimplemented";
 
   relativizeUri(Uri uri) => relativize(cwd, uri, isWindows);
 
   SourceFile getSourceFile(Uri resourceUri) {
     return sourceFiles[resourceUri];
   }
+}
+
+List<int> readAll(String filename) {
+  var file = (new File(filename)).openSync();
+  var length = file.lengthSync();
+  // +1 to have a 0 terminated list, see [Scanner].
+  var buffer = new Uint8List(length + 1);
+  file.readIntoSync(buffer, 0, length);
+  file.closeSync();
+  return buffer;
 }
 
 class CompilerSourceFileProvider extends SourceFileProvider {
@@ -330,18 +328,94 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
       }
     }
 
-    return new EventSinkWrapper(writeStringSync, onDone);
+    return new _EventSinkWrapper(writeStringSync, onDone);
   }
 }
 
-class EventSinkWrapper extends EventSink<String> {
+class _EventSinkWrapper extends EventSink<String> {
   var onAdd, onClose;
 
-  EventSinkWrapper(this.onAdd, this.onClose);
+  _EventSinkWrapper(this.onAdd, this.onClose);
 
   void add(String data) => onAdd(data);
 
   void addError(error, [StackTrace stackTrace]) => throw error;
 
   void close() => onClose();
+}
+
+/// Adapter to integrate dart2js in bazel.
+///
+/// To handle bazel's special layout:
+///
+///  * We specify a .packages configuration file that expands packages to their
+///    corresponding bazel location. This way there is no need to create a pub
+///    cache prior to invoking dart2js.
+///
+///  * We provide a mapping that can make all urls relative to the bazel root.
+///    To the compiler, URIs look like:
+///      file:///bazel-root/a/b/c.dart
+///
+///    even though in the file system the file is located at:
+///      file:///path/to/the/actual/bazel/root/a/b/c.dart
+///
+///    This mapping serves two purposes:
+///      - It makes compiler results independent of the machine layout, which
+///        enables us to share results across bazel runs and across machines.
+///
+///      - It hides the distinction between generated and source files. That way
+///      we can use the standard package-resolution mechanism and ignore the
+///      internals of how files are organized within bazel.
+///
+/// This class is initialized using a dart2js-bazel configuration file. The file
+/// follows the following custom format:
+///
+///     <generated-path-prefix>
+///     <file1-bazel-root-relative-path>
+///     <file2-bazel-root-relative-path>
+///     ...
+///     <fileN-bazel-root-relative-path>
+///
+/// For example:
+///
+///     bazel-bin/123/
+///     a/b/c.dart
+///     bazel-bin/123/a/b/d.dart
+///     a/b/e.dart
+///
+/// The current working directory will be used to resolve the bazel-root and
+/// when invoking the compiler, bazel will use `package:` and
+/// `file:///bazel-root/` URIs to specify entrypoints.
+class BazelInputProvider extends SourceFileProvider {
+  /// Anything above this root is treated as machine specific and will only be
+  /// used to locate files on disk, but otherwise it's abstracted away in the
+  /// representation of canonical uris in the compiler.
+  final Uri bazelRoot;
+
+  /// Path prefix where generated files are located.
+  final String genPath;
+
+  /// Mapping from bazel-root uris to relative paths on top of [bazelRoot].
+  final Map<Uri, Uri> mappings = <Uri, Uri>{};
+
+  factory BazelInputProvider(String configPath) {
+    var config = new File(configPath).readAsLinesSync();
+    var bazelRoot = currentDirectory;
+    var outPrefix = config[0];
+    var files = config.skip(1);
+    return new BazelInputProvider._(bazelRoot, outPrefix, files);
+  }
+
+  BazelInputProvider._(this.bazelRoot, this.genPath, Iterable<String> files) {
+    var fakeBazelRoot = Uri.parse('file:///bazel-root/');
+    for (var path in files) {
+      var absolute = currentDirectory.resolve(path);
+      var bazelRelativeUri = fakeBazelRoot.resolve(
+          path.startsWith(genPath) ? path.substring(genPath.length) : path);
+      mappings[bazelRelativeUri] = absolute;
+    }
+  }
+
+  @override
+  Future readFromUri(Uri uri) => readUtf8BytesFromUri(mappings[uri] ?? uri);
 }

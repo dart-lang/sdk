@@ -1,11 +1,20 @@
 ## 1.19.0
 
+### Language changes
+
+* The language now allows a trailing comma after the last argument of a call and
+ the last parameter of a function declaration. This can make long argument or
+ parameter lists easier to maintain, as commas can be left as-is when
+ reordering lines. For details, see SDK issue
+ [26644](https://github.com/dart-lang/sdk/issues/26644).
+
 ### Core library changes
 
 * `dart:io`
   * `Socket.connect` with source-address argument is now non-blocking
     on Mac. Was already non-blocking on all other platforms.
   * Report a better error when a bind fails because of a bad source address.
+  * Handle HTTP header `charset` parameter with empty value.
 
 ### Strong Mode
 
@@ -58,8 +67,9 @@
 ### Dart VM
 
 *   The dependency on BoringSSL has been rolled forward. Going forward, builds
-    of the Dart VM including secure sockets will require a compiler with C11
-    support, and to link against glib 2.16 or newer.
+    of the Dart VM including secure sockets will require a compiler with C++11
+    support, and to link against glibc 2.16 or newer. For details, see the
+    [Building wiki page](https://github.com/dart-lang/sdk/wiki/Building).
 
 ### Tool Changes
 

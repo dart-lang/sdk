@@ -1231,21 +1231,20 @@ int main(int argc, char** argv) {
   // core library snapshot generation. However for the case when a full
   // snasphot is generated from a script (app_script_name != NULL) we will
   // need the service isolate to resolve URI and load code.
-  char* error = Dart_Initialize(
-      NULL,
-      NULL,
-      NULL,
-      (app_script_name != NULL) ? CreateServiceIsolate : NULL,
-      NULL,
-      NULL,
-      NULL,
-      NULL,
-      DartUtils::OpenFile,
-      DartUtils::ReadFile,
-      DartUtils::WriteFile,
-      DartUtils::CloseFile,
-      DartUtils::EntropySource,
-      NULL);
+
+  Dart_InitializeParams init_params;
+  memset(&init_params, 0, sizeof(init_params));
+  init_params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
+  if (app_script_name != NULL) {
+    init_params.create = CreateServiceIsolate;
+  }
+  init_params.file_open = DartUtils::OpenFile;
+  init_params.file_read = DartUtils::ReadFile;
+  init_params.file_write = DartUtils::WriteFile;
+  init_params.file_close = DartUtils::CloseFile;
+  init_params.entropy_source = DartUtils::EntropySource;
+
+  char* error = Dart_Initialize(&init_params);
   if (error != NULL) {
     Log::PrintErr("VM initialization failed: %s\n", error);
     free(error);

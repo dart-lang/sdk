@@ -10,7 +10,6 @@ import '../elements/elements.dart';
 import '../types/types.dart';
 import '../util/util.dart' show Hashing, Setlet;
 import '../world.dart' show ClassWorld;
-
 import 'selector.dart' show Selector;
 import 'universe.dart' show ReceiverConstraint;
 

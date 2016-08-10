@@ -4157,6 +4157,23 @@ class ExportElementImpl extends UriReferencedElementImpl
   }
 
   @override
+  bool get uriExists {
+    if (_unlinkedExportNonPublic != null) {
+      return true;
+    }
+    return hasModifier(Modifier.URI_EXISTS);
+  }
+
+  /**
+   * Set whether the file referenced by the import's URI exists to match the
+   * given flag.
+   */
+  void set uriExists(bool exists) {
+    assert(_unlinkedExportNonPublic == null);
+    setModifier(Modifier.URI_EXISTS, exists);
+  }
+
+  @override
   int get uriOffset {
     if (_unlinkedExportNonPublic != null) {
       return _unlinkedExportNonPublic.uriOffset;
@@ -5100,6 +5117,23 @@ class ImportElementImpl extends UriReferencedElementImpl
   }
 
   @override
+  bool get uriExists {
+    if (_unlinkedImport != null) {
+      return true;
+    }
+    return hasModifier(Modifier.URI_EXISTS);
+  }
+
+  /**
+   * Set whether the file referenced by the import's URI exists to match the
+   * given flag.
+   */
+  void set uriExists(bool exists) {
+    assert(_unlinkedImport == null);
+    setModifier(Modifier.URI_EXISTS, exists);
+  }
+
+  @override
   int get uriOffset {
     if (_unlinkedImport != null) {
       if (_unlinkedImport.isImplicit) {
@@ -5668,6 +5702,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
           return lib;
         }
       }
+
       void recurse(LibraryElementImpl child) {
         if (!indices.containsKey(child)) {
           // We haven't visited this child yet, so recurse on the child,
@@ -5682,6 +5717,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
           root = min(root, indices[child]);
         }
       }
+
       // Recurse on all of the children in the import/export graph, filtering
       // out those for which library cycles have already been computed.
       library.exportedLibraries
@@ -5708,6 +5744,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       }
       return root;
     }
+
     scc(library);
     return _libraryCycle;
   }
@@ -5907,6 +5944,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         library.importedLibraries.forEach(invalidate);
       }
     }
+
     invalidate(this);
   }
 
@@ -6395,6 +6433,12 @@ class Modifier extends Enum<Modifier> {
    */
   static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 16);
 
+  /**
+   * A flag used for import and export elements that indicates whether the URI
+   * in the corresponding directive referenced a file that exists.
+   */
+  static const Modifier URI_EXISTS = const Modifier('URI_EXISTS', 17);
+
   static const List<Modifier> values = const [
     ABSTRACT,
     ASYNCHRONOUS,
@@ -6412,7 +6456,8 @@ class Modifier extends Enum<Modifier> {
     REFERENCES_SUPER,
     SETTER,
     STATIC,
-    SYNTHETIC
+    SYNTHETIC,
+    URI_EXISTS
   ];
 
   const Modifier(String name, int ordinal) : super(name, ordinal);

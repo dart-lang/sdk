@@ -4,12 +4,12 @@
 
 library cps_ir.cps_fragment;
 
-import 'cps_ir_nodes.dart';
 import '../constants/values.dart';
-import '../universe/selector.dart' show Selector;
-import '../types/types.dart' show TypeMask;
-import '../io/source_information.dart';
 import '../elements/elements.dart';
+import '../io/source_information.dart';
+import '../types/types.dart' show TypeMask;
+import '../universe/selector.dart' show Selector;
+import 'cps_ir_nodes.dart';
 
 /// Builds a CPS fragment that can be plugged into another CPS term.
 ///
