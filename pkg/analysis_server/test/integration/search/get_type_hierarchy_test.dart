@@ -103,6 +103,7 @@ class Derived extends Pivot {}
               equals(text.indexOf('class $name') + 'class '.length));
         }
       }
+
       checkElement('Object');
       checkElement('Base');
       checkElement('Pivot');
@@ -270,7 +271,8 @@ class Pivot /* target */ extends Base2 {}
       if (result.hierarchyItems == null) {
         return null;
       } else {
-        return new HierarchyResults(result.hierarchyItems);
+        return new HierarchyResults(
+            result.hierarchyItems as List<TypeHierarchyItem>);
       }
     });
   }
