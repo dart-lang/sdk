@@ -4,6 +4,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import os
 import os.path
 import shutil
 import sys
@@ -21,8 +22,24 @@ CHANNEL = bot_utils.GetChannelFromName(bot_name)
 
 def BuildSDK():
   with bot.BuildStep('Build SDK'):
+    sysroot_env =  dict(os.environ)
+    ia32root = os.path.join(bot_utils.DART_DIR, 'sysroots', 'build', 'linux',
+                            'debian_wheezy_i386-sysroot')
+    sysroot_env['CXXFLAGS'] = ("--sysroot=%s -I=/usr/include/c++/4.6 "
+             "-I=/usr/include/c++/4.6/i486-linux-gnu") % ia32root
+    sysroot_env['LDFLAGS'] = '--sysroot=%s' % ia32root
+    sysroot_env['CFLAGS'] = '--sysroot=%s' % ia32root
     Run([sys.executable, './tools/build.py', '--mode=release',
-         '--arch=ia32,x64', 'create_sdk'])
+         '--arch=ia32', 'create_sdk'], env=sysroot)
+
+    x64root = os.path.join(bot_utils.DART_DIR, 'sysroots', 'build', 'linux',
+                            'debian_wheezy_amd64-sysroot')
+    sysroot_env['CXXFLAGS'] = ("--sysroot=%s -I=/usr/include/c++/4.6 "
+            "-I=/usr/include/c++/4.6/x86_64-linux-gnu") % x64root
+    sysroot_env['LDFLAGS'] = '--sysroot=%s' % x64root
+    sysroot_env['CFLAGS'] = '--sysroot=%s' % x64root
+    Run([sys.executable, './tools/build.py', '--mode=release',
+         '--arch=x64', 'create_sdk'], env=sysroot)
 
 def BuildDartdocAPIDocs(dirname):
   dart_sdk = os.path.join(bot_utils.DART_DIR,
@@ -214,9 +231,9 @@ def DartArchiveFile(local_path, remote_path, checksum_files=False):
                                                       mangled_filename)
     gsutil.upload(local_sha256, remote_path + '.sha256sum', public=True)
 
-def Run(command):
+def Run(command, env=None):
   print "Running %s" % ' '.join(command)
-  return bot.RunProcess(command)
+  return bot.RunProcess(command, env=env)
 
 if __name__ == '__main__':
   # We always clobber the bot, to make sure releases are build from scratch
