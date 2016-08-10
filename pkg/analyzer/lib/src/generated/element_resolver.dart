@@ -643,7 +643,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         }
         staticElement = _resolveElement(typeReference, methodName);
       } else {
-        DartType staticType = _getStaticType(target);
+        DartType staticType = _resolver.strongMode
+            ? _getStaticTypeOrFunctionType(target)
+            : _getStaticType(target);
         DartType propagatedType = _getPropagatedType(target);
         staticElement = _resolveInvokedElementWithTarget(
             target, staticType, methodName, isConditional);
@@ -1544,10 +1546,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * type analysis.
    */
   DartType _getStaticType(Expression expression) {
-    if (expression is NullLiteral) {
-      return _resolver.typeProvider.bottomType;
-    }
-    DartType staticType = _resolveTypeParameter(expression.staticType);
+    DartType staticType = _getStaticTypeOrFunctionType(expression);
     if (staticType is FunctionType) {
       //
       // All function types are subtypes of 'Function', which is itself a
@@ -1556,6 +1555,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       staticType = _resolver.typeProvider.functionType;
     }
     return staticType;
+  }
+
+  DartType _getStaticTypeOrFunctionType(Expression expression) {
+    if (expression is NullLiteral) {
+      return _resolver.typeProvider.bottomType;
+    }
+    return _resolveTypeParameter(expression.staticType);
   }
 
   /**
@@ -2224,6 +2230,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       return element;
     } else if (target is SimpleIdentifier) {
       Element targetElement = target.staticElement;
+      if (targetType is FunctionType &&
+          methodName.name == FunctionElement.CALL_METHOD_NAME) {
+        return targetElement;
+      }
       if (targetElement is PrefixElement) {
         if (isConditional) {
           _resolver.errorReporter.reportErrorForNode(

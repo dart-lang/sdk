@@ -113,6 +113,15 @@ test() {
 ''');
   }
 
+  void test_callMethodOnFunctions() {
+    checkFile(r'''
+void f(int x) => print(x);
+main() {
+  f.call(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi');
+}
+    ''');
+  }
+
   void test_castsInConditions() {
     checkFile('''
 main() {
