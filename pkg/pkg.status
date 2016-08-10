@@ -70,9 +70,6 @@ typed_data/test/typed_buffers_test/none: Fail # Issue 17607 (I put this here exp
 # Unexplained errors only occuring on Safari 6.1 and earlier.
 typed_data/test/typed_buffers_test: RuntimeError
 
-[ $compiler == dart2analyzer ]
-compiler/samples/compile_loop/compile_loop: CompileTimeError  # Issue 16524
-
 [ $compiler == dart2js && $csp ]
 # This test cannot run under CSP because it is injecting a JavaScript polyfill
 mutation_observer: Skip
