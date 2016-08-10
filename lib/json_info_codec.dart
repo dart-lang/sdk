@@ -6,27 +6,30 @@
 part of dart2js_info.info;
 
 // TODO(sigmund): add unit tests.
-class JsonToAllInfoConverter extends Converter<Map, AllInfo> {
+class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
   Map<String, Info> registry;
 
-  AllInfo convert(Map json) {
+  AllInfo convert(Map<String, dynamic> json) {
     registry = <String, Info>{};
 
     var result = new AllInfo();
     var elements = json['elements'];
-    result.libraries.addAll(elements['library'].values.map(parseLibrary));
-    result.classes.addAll(elements['class'].values.map(parseClass));
-    result.functions.addAll(elements['function'].values.map(parseFunction));
-    result.fields.addAll(elements['field'].values.map(parseField));
-    result.typedefs.addAll(elements['typedef'].values.map(parseTypedef));
+    result.libraries
+        .addAll((elements['library'] as Map).values.map(parseLibrary));
+    result.classes.addAll((elements['class'] as Map).values.map(parseClass));
+    result.functions
+        .addAll((elements['function'] as Map).values.map(parseFunction));
+    result.fields.addAll((elements['field'] as Map).values.map(parseField));
+    result.typedefs
+        .addAll((elements['typedef'] as Map).values.map(parseTypedef));
 
     // TODO(sigmund): remove null check on next breaking version
     var constants = elements['constant'];
     if (constants != null) {
-      result.constants.addAll(constants.values.map(parseConstant));
+      result.constants.addAll((constants as Map).values.map(parseConstant));
     }
 
-    var idMap = {};
+    var idMap = <String, Info>{};
     for (var f in result.functions) {
       idMap[f.serializedId] = f;
     }
@@ -40,15 +43,16 @@ class JsonToAllInfoConverter extends Converter<Map, AllInfo> {
       for (var dep in deps) {
         var target = idMap[dep['id']];
         assert(target != null);
-        src.uses.add(new DependencyInfo(target, dep['mask']));
+        (src as CodeInfo).uses.add(new DependencyInfo(target, dep['mask']));
       }
     });
 
-    json['dependencies']?.forEach((k, deps) {
+    json['dependencies']?.forEach((String k, List<String> deps) {
       result.dependencies[idMap[k]] = deps.map((d) => idMap[d]).toList();
     });
 
-    result.outputUnits.addAll(json['outputUnits'].map(parseOutputUnit));
+    result.outputUnits
+        .addAll((json['outputUnits'] as List).map(parseOutputUnit));
 
     result.program = parseProgram(json['program']);
     // todo: version, etc
@@ -60,7 +64,8 @@ class JsonToAllInfoConverter extends Converter<Map, AllInfo> {
     result
       ..name = json['name']
       ..size = json['size'];
-    result.imports.addAll(json['imports'] ?? const []);
+    result.imports
+        .addAll((json['imports'] as List).map((s) => s as String) ?? const []);
     return result;
   }
 
@@ -119,7 +124,7 @@ class JsonToAllInfoConverter extends Converter<Map, AllInfo> {
       ..code = json['code']
       ..isConst = json['const'] ?? false
       ..initializer = parseId(json['initializer'])
-      ..closures = json['children'].map(parseId).toList();
+      ..closures = (json['children'] as List).map(parseId).toList();
   }
 
   ConstantInfo parseConstant(Map json) {
@@ -153,11 +158,12 @@ class JsonToAllInfoConverter extends Converter<Map, AllInfo> {
       ..type = json['type']
       ..returnType = json['returnType']
       ..inferredReturnType = json['inferredReturnType']
-      ..parameters = json['parameters'].map(parseParameter).toList()
+      ..parameters = (json['parameters'] as List).map(parseParameter).toList()
       ..code = json['code']
       ..sideEffects = json['sideEffects']
-      ..modifiers = parseModifiers(json['modifiers'])
-      ..closures = json['children'].map(parseId).toList()
+      ..modifiers =
+          parseModifiers(new Map<String, bool>.from(json['modifiers']))
+      ..closures = (json['children'] as List).map(parseId).toList()
       ..measurements = parseMeasurements(json['measurements']);
   }
 
@@ -306,8 +312,9 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     };
     // TODO(sigmund): Omit this also when outputUnit.id == 0 (most code is in
     // the main output unit by default).
-    if (info.outputUnit != null) res['outputUnit'] =
-        info.outputUnit.serializedId;
+    if (info.outputUnit != null) {
+      res['outputUnit'] = info.outputUnit.serializedId;
+    }
     if (info.coverageId != null) res['coverageId'] = info.coverageId;
     if (info.parent != null) res['parent'] = info.parent.serializedId;
     return res;
@@ -346,8 +353,9 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
       });
     if (info.isConst) {
       result['const'] = true;
-      if (info.initializer != null) result['initializer'] =
-          info.initializer.serializedId;
+      if (info.initializer != null) {
+        result['initializer'] = info.initializer.serializedId;
+      }
     }
     return result;
   }
@@ -376,12 +384,12 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
 
   Map _visitMeasurements(Measurements measurements) {
     if (measurements == null) return null;
-    var jsonEntries = <String, List<Map>>{};
+    var jsonEntries = <String, List<int>>{};
     measurements.entries.forEach((metric, values) {
       jsonEntries[_visitMetric(metric)] =
           values.expand((e) => [e.begin, e.end]).toList();
     });
-    var json = {'entries': jsonEntries};
+    var json = <String, dynamic>{'entries': jsonEntries};
     // TODO(sigmund): encode uri as an offset of the URIs available in the parts
     // of the library info.
     if (measurements.uri != null) json['sourceFile'] = '${measurements.uri}';

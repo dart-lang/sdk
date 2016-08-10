@@ -29,7 +29,7 @@ import 'package:shelf/shelf_io.dart' as shelf;
 
 const _DEFAULT_OUT_TEMPLATE = '<dart2js-out-file>.coverage.json';
 
-main(argv) async {
+main(List<String> argv) async {
   var parser = new ArgParser()
     ..addOption('port', abbr: 'p', help: 'port number', defaultsTo: "8080")
     ..addOption('host',
@@ -169,8 +169,9 @@ class _Server {
       await new Future.delayed(new Duration(seconds: 3));
       await new File(outPath).writeAsString(_serializedData);
       var diff = data.length - _total;
-      print(
-          diff ? ' - no new element covered' : ' - $diff new elements covered');
+      print(diff == 0
+          ? ' - no new element covered'
+          : ' - $diff new elements covered');
       _savePending = false;
       _total = data.length;
     }

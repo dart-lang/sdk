@@ -116,8 +116,8 @@ class SendHighlighter extends RecursiveInfoVisitor {
   }
 
   @override
-  visitFunction(FunctionInfo function) {
-    if (function.measurements?.uri?.path != path) return;
+  Null visitFunction(FunctionInfo function) {
+    if (function.measurements?.uri?.path != path) return null;
     var entries = function.measurements.entries;
     for (var metric in entries.keys) {
       if (metric is GroupedMetric) continue;
@@ -128,6 +128,7 @@ class SendHighlighter extends RecursiveInfoVisitor {
         code.insert(entry.end, '</span>');
       }
     }
+    return null;
   }
 }
 

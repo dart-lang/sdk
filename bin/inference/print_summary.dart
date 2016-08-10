@@ -81,10 +81,11 @@ class _Counter extends RecursiveInfoVisitor {
     totals.addFrom(currentBundleTotals);
   }
 
-  visitFunction(FunctionInfo function) {
+  Null visitFunction(FunctionInfo function) {
     var measurements = function.measurements;
-    if (measurements == null) return;
+    if (measurements == null) return null;
     currentBundleTotals.addFrom(measurements);
+    return null;
   }
 }
 

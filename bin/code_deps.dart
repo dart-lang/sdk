@@ -96,12 +96,12 @@ class SomePathQuery {
 
   List<Info> run(Graph<Info> graph) {
     var seen = {source: null};
-    var queue = new Queue();
+    var queue = new Queue<Info>();
     queue.addLast(source);
     while (queue.isNotEmpty) {
       var node = queue.removeFirst();
       if (identical(node, target)) {
-        var result = new Queue();
+        var result = new Queue<Info>();
         while (node != null) {
           result.addFirst(node);
           node = seen[node];
@@ -118,4 +118,7 @@ class SomePathQuery {
   }
 }
 
-_longNameMatcher(RegExp regexp) => (e) => regexp.hasMatch(longName(e));
+typedef bool LongNameMatcher(FunctionInfo info);
+
+LongNameMatcher _longNameMatcher(RegExp regexp) =>
+    (e) => regexp.hasMatch(longName(e));

@@ -135,7 +135,7 @@ class Metric {
   static const Metric dynamicSend = const Metric('dynamic');
 
   static Map<String, Metric> _nameToMetricMap = () {
-    var res = {};
+    var res = <String, Metric>{};
     visitAllMetrics((m, _) => res[m.name] = m);
     return res;
   }();

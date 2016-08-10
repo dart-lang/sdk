@@ -43,7 +43,7 @@ abstract class Graph<N> {
   /// Returns all nodes reachable from [root] in post order.
   Iterable<N> postOrder(N root) sync* {
     var seen = new Set<N>();
-    Iterable<N> helper(n) sync* {
+    Iterable<N> helper(N n) sync* {
       if (!seen.add(n)) return;
       for (var x in targetsOf(n)) {
         yield* helper(x);
@@ -297,7 +297,7 @@ class _DominatorFinder<N> {
       for (var n in nodesInReversedPostOrder) {
         if (n == root) continue;
         bool first = true;
-        var idom = null;
+        N idom;
         for (var p in _graph.sourcesOf(n)) {
           if (immediateDominators[p] != null) {
             if (first) {
