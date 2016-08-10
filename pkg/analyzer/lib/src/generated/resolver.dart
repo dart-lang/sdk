@@ -4217,7 +4217,8 @@ class HintGenerator {
     _usedImportedElementsVisitor =
         new GatherUsedImportedElementsVisitor(_library);
     _enableDart2JSHints = _context.analysisOptions.dart2jsHint;
-    _manager = new InheritanceManager(_library);
+    _manager =
+        new InheritanceManager(_library, includeAbstractFromSuperclasses: true);
     _usedLocalElementsVisitor = new GatherUsedLocalElementsVisitor(_library);
   }
 

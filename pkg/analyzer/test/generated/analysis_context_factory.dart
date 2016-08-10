@@ -97,6 +97,8 @@ class AnalysisContextFactory {
     Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
     coreContext.setContents(coreSource, "");
     coreUnit.librarySource = coreUnit.source = coreSource;
+    ClassElementImpl overrideClassElement =
+        ElementFactory.classElement2("_Override");
     ClassElementImpl proxyClassElement = ElementFactory.classElement2("_Proxy");
     proxyClassElement.constructors = <ConstructorElement>[
       ElementFactory.constructorElement(proxyClassElement, '', true)
@@ -117,6 +119,7 @@ class AnalysisContextFactory {
       provider.nullType.element,
       provider.numType.element,
       objectClassElement,
+      overrideClassElement,
       proxyClassElement,
       provider.stackTraceType.element,
       provider.stringType.element,
@@ -134,6 +137,9 @@ class AnalysisContextFactory {
     ConstTopLevelVariableElementImpl deprecatedTopLevelVariableElt =
         ElementFactory.topLevelVariableElement3(
             "deprecated", true, false, provider.deprecatedType);
+    TopLevelVariableElement overrideTopLevelVariableElt =
+        ElementFactory.topLevelVariableElement3(
+            "override", true, false, overrideClassElement.type);
     {
       ClassElement deprecatedElement = provider.deprecatedType.element;
       InstanceCreationExpression initializer = AstFactory
@@ -147,12 +153,14 @@ class AnalysisContextFactory {
       deprecatedTopLevelVariableElt.constantInitializer = initializer;
     }
     coreUnit.accessors = <PropertyAccessorElement>[
-      proxyTopLevelVariableElt.getter,
-      deprecatedTopLevelVariableElt.getter
+      deprecatedTopLevelVariableElt.getter,
+      overrideTopLevelVariableElt.getter,
+      proxyTopLevelVariableElt.getter
     ];
     coreUnit.topLevelVariables = <TopLevelVariableElement>[
-      proxyTopLevelVariableElt,
-      deprecatedTopLevelVariableElt
+      deprecatedTopLevelVariableElt,
+      overrideTopLevelVariableElt,
+      proxyTopLevelVariableElt
     ];
     LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
         coreContext, AstFactory.libraryIdentifier2(["dart", "core"]));
@@ -233,7 +241,9 @@ class AnalysisContextFactory {
           <TypeDefiningElement>[streamElement.typeParameters[0]],
           null);
       listenOnData.synthetic = true;
-      List<DartType> parameterTypes = <DartType>[listenOnData.type,];
+      List<DartType> parameterTypes = <DartType>[
+        listenOnData.type,
+      ];
       // TODO(brianwilkerson) This is missing the optional parameters.
       MethodElementImpl listenMethod =
           ElementFactory.methodElement('listen', returnType, parameterTypes);

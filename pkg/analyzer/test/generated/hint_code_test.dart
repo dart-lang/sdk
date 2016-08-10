@@ -31,7 +31,6 @@ library meta;
 const _Factory factory = const _Factory();
 const _Literal literal = const _Literal();
 const _MustCallSuper mustCallSuper = const _MustCallSuper();
-const _Override override = const _Override();
 const _Protected protected = const _Protected();
 const Required required = const Required();
 class Required {
@@ -47,9 +46,6 @@ class _Literal {
 }
 class _MustCallSuper {
   const _MustCallSuper();
-}
-class _Override {
-  const _Override();
 }
 class _Protected {
   const _Protected();
@@ -2055,8 +2051,6 @@ class A {
 
   void test_overrideOnNonOverridingField_invalid() {
     Source source = addSource(r'''
-library dart.core;
-const override = null;
 class A {
 }
 class B extends A {
@@ -2070,8 +2064,6 @@ class B extends A {
 
   void test_overrideOnNonOverridingGetter_invalid() {
     Source source = addSource(r'''
-library dart.core;
-const override = null;
 class A {
 }
 class B extends A {
@@ -2085,8 +2077,6 @@ class B extends A {
 
   void test_overrideOnNonOverridingMethod_invalid() {
     Source source = addSource(r'''
-library dart.core;
-const override = null;
 class A {
 }
 class B extends A {
@@ -2100,8 +2090,6 @@ class B extends A {
 
   void test_overrideOnNonOverridingSetter_invalid() {
     Source source = addSource(r'''
-library dart.core;
-const override = null;
 class A {
 }
 class B extends A {
