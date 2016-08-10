@@ -6443,8 +6443,38 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
       }
     }
     StringLiteral uriLiteral = directive.uri;
-    errorReporter.reportErrorForNode(CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-        uriLiteral, [directive.uriContent]);
+    CompileTimeErrorCode errorCode = CompileTimeErrorCode.URI_DOES_NOT_EXIST;
+    if (_isGenerated(source)) {
+      errorCode = CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED;
+    }
+    errorReporter
+        .reportErrorForNode(errorCode, uriLiteral, [directive.uriContent]);
+  }
+
+  /**
+   * Return `true` if the given [source] refers to a file that is assumed to be
+   * generated.
+   */
+  bool _isGenerated(Source source) {
+    if (source == null) {
+      return false;
+    }
+    // TODO(brianwilkerson) Generalize this mechanism.
+    const List<String> suffixes = const <String>[
+      '.g.dart',
+      '.pb.dart',
+      '.pbenum.dart',
+      '.pbserver.dart',
+      '.pbjson.dart',
+      '.template.dart'
+    ];
+    String fullName = source.fullName;
+    for (String suffix in suffixes) {
+      if (fullName.endsWith(suffix)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

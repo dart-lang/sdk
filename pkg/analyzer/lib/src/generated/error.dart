@@ -2373,11 +2373,24 @@ class CompileTimeErrorCode extends ErrorCode {
    * Parameters:
    * 0: the URI pointing to a non-existent file
    *
-   * See [INVALID_URI].
+   * See [INVALID_URI], [URI_HAS_NOT_BEEN_GENERATED].
    */
   static const CompileTimeErrorCode URI_DOES_NOT_EXIST =
       const CompileTimeErrorCode(
           'URI_DOES_NOT_EXIST', "Target of URI does not exist: '{0}'");
+
+  /**
+   * Just like [URI_DOES_NOT_EXIST], but used when the URI refers to a file that
+   * is expected to be generated.
+   *
+   * Parameters:
+   * 0: the URI pointing to a non-existent file
+   *
+   * See [INVALID_URI], [URI_DOES_NOT_EXIST].
+   */
+  static const CompileTimeErrorCode URI_HAS_NOT_BEEN_GENERATED =
+      const CompileTimeErrorCode('URI_HAS_NOT_BEEN_GENERATED',
+          "Target of URI has not been generated: '{0}'");
 
   /**
    * 14.1 Imports: It is a compile-time error if <i>x</i> is not a compile-time
@@ -4286,8 +4299,7 @@ class StaticTypeWarningCode extends ErrorCode {
    *
    */
   static const StaticTypeWarningCode NON_NULLABLE_FIELD_NOT_INITIALIZED =
-      const StaticTypeWarningCode(
-          'NON_NULLABLE_FIELD_NOT_INITIALIZED',
+      const StaticTypeWarningCode('NON_NULLABLE_FIELD_NOT_INITIALIZED',
           "Variable '{0}' of non-nullable type '{1}' must be initialized");
 
   /**

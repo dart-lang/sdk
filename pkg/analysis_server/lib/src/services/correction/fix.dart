@@ -80,6 +80,7 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode ==
         CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT ||
     errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST ||
+    errorCode == CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED ||
     errorCode == HintCode.CAN_BE_NULL_AFTER_NULL_AWARE ||
     errorCode == HintCode.DEAD_CODE ||
     errorCode == HintCode.DIVISION_OPTIMIZATION ||

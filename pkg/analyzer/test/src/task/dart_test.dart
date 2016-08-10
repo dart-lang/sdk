@@ -3544,6 +3544,7 @@ class C {
       SimpleIdentifier reference = statement.expression;
       expect(reference.staticElement, isResolved ? isNotNull : isNull);
     }
+
     //
     // The reference to 'A' in 'f1' should not be resolved.
     //
@@ -5682,7 +5683,21 @@ const int x = p.y;
     ]);
   }
 
-  test_perform_directiveError() {
+  test_perform_directiveError_generated() {
+    Source source = newSource(
+        '/test.dart',
+        '''
+import 'generated-file.g.dart';
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, VERIFY_ERRORS, matcher: isVerifyUnitTask);
+    // validate
+    _fillErrorListener(VERIFY_ERRORS);
+    errorListener.assertErrorsWithCodes(
+        <ErrorCode>[CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED]);
+  }
+
+  test_perform_directiveError_nonGenerated() {
     Source source = newSource(
         '/test.dart',
         '''
@@ -5785,6 +5800,7 @@ class _AbstractDartTaskTest extends AbstractContextTest {
           matcher: matcher);
       return outputs[result];
     }
+
     return sources.map(compute).toList();
   }
 
@@ -5795,6 +5811,7 @@ class _AbstractDartTaskTest extends AbstractContextTest {
       computeResult(source, result, matcher: matcher);
       return outputs;
     }
+
     return sources.map(compute).toList();
   }
 
