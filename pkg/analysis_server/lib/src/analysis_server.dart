@@ -1604,7 +1604,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     context.analysisOptions = options;
 
     // TODO(scheglov) use linked bundles
-    analysisServer.pubSummaryManager.getLinkedBundles(context);
+//    analysisServer.pubSummaryManager.getLinkedBundles(context);
 
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(added: [context]));

@@ -17,8 +17,9 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
-    show ResynthesizerResultProvider;
+    show ResynthesizerResultProvider, SummaryDataStore;
 import 'package:analyzer/src/summary/summarize_ast.dart'
     show serializeAstUnlinked;
 import 'package:analyzer/src/summary/summarize_elements.dart'
@@ -47,6 +48,16 @@ class PubPackage {
 
   @override
   String toString() => '($name in $folder)';
+}
+
+/**
+ * Unlinked and linked information about a [PubPackage].
+ */
+class LinkedPubPackage {
+  final PubPackage package;
+  final PackageBundle unlinked;
+  final PackageBundle linked;
+  LinkedPubPackage(this.package, this.unlinked, this.linked);
 }
 
 /**
@@ -111,25 +122,71 @@ class PubSummaryManager {
   pathos.Context get pathContext => resourceProvider.pathContext;
 
   /**
-   * Return the list of linked [PackageBundle]s that can be provided at this
+   * Return the list of linked [LinkedPubPackage]s that can be provided at this
    * time for a subset of the packages used by the given [context].  If
    * information about some of the used packages is not available yet, schedule
    * its computation, so that it might be available later for other contexts
    * referencing the same packages.
    */
-  List<PackageBundle> getLinkedBundles(AnalysisContext context) {
-    Map<String, PackageBundle> unlinkedBundles = getUnlinkedBundles(context);
-    // TODO(scheglov) actually compute available linked bundles
-    return <PackageBundle>[];
+  List<LinkedPubPackage> getLinkedBundles(
+      AnalysisContext context, PackageBundle sdkBundle) {
+    Map<PubPackage, PackageBundle> unlinkedBundles =
+        getUnlinkedBundles(context);
+
+    // If no unlinked bundles, there is nothing we can try to link.
+    if (unlinkedBundles.isEmpty) {
+      return <LinkedPubPackage>[];
+    }
+
+    // Create graph nodes for packages.
+    List<_LinkedNode> nodes = <_LinkedNode>[];
+    Map<String, _LinkedNode> uriToNode = <String, _LinkedNode>{};
+    unlinkedBundles.forEach((package, unlinked) {
+      _LinkedNode node = new _LinkedNode(package, unlinked, uriToNode);
+      nodes.add(node);
+      for (String uri in unlinked.unlinkedUnitUris) {
+        uriToNode[uri] = node;
+      }
+    });
+
+    // Fill the store with unlinked bundles.
+    SummaryDataStore store = new SummaryDataStore(const <String>[]);
+    store.addBundle(null, sdkBundle);
+    for (PackageBundle unlinked in unlinkedBundles.values) {
+      store.addBundle(null, unlinked);
+    }
+
+    // Link each package node.
+    for (_LinkedNode node in nodes) {
+      if (!node.isEvaluated) {
+        new _LinkedWalker(store).walk(node);
+      }
+    }
+
+    // Create successfully linked packages.
+    List<LinkedPubPackage> linkedPackages = <LinkedPubPackage>[];
+    for (_LinkedNode node in nodes) {
+      if (node.linkedBuilder != null) {
+        List<int> bytes = node.linkedBuilder.toBuffer();
+        PackageBundle linkedBundle = new PackageBundle.fromBuffer(bytes);
+        linkedPackages.add(
+            new LinkedPubPackage(node.package, node.unlinked, linkedBundle));
+      }
+    }
+
+    // TODO(scheglov) compute dependency hashes and write linked bundles.
+
+    // Done.
+    return linkedPackages;
   }
 
   /**
    * Return all available unlinked [PackageBundle]s for the given [context],
-   * maybe an empty list, but not `null`.
+   * maybe an empty map, but not `null`.
    */
-  Map<String, PackageBundle> getUnlinkedBundles(AnalysisContext context) {
-    Map<String, PackageBundle> unlinkedBundles =
-        new HashMap<String, PackageBundle>();
+  Map<PubPackage, PackageBundle> getUnlinkedBundles(AnalysisContext context) {
+    Map<PubPackage, PackageBundle> unlinkedBundles =
+        new HashMap<PubPackage, PackageBundle>();
     Map<String, List<Folder>> packageMap = context.sourceFactory.packageMap;
     if (packageMap != null) {
       packageMap.forEach((String packageName, List<Folder> libFolders) {
@@ -139,7 +196,7 @@ class PubSummaryManager {
             PubPackage package = new PubPackage(packageName, libFolder);
             PackageBundle unlinkedBundle = _getUnlinkedOrSchedule(package);
             if (unlinkedBundle != null) {
-              unlinkedBundles[packageName] = unlinkedBundle;
+              unlinkedBundles[package] = unlinkedBundle;
             }
           }
         }
@@ -312,5 +369,88 @@ class PubSummaryManager {
       }
     }
     return false;
+  }
+}
+
+/**
+ * Specialization of [Node] for linking packages in proper dependency order.
+ */
+class _LinkedNode extends Node<_LinkedNode> {
+  final PubPackage package;
+  final PackageBundle unlinked;
+  final Map<String, _LinkedNode> uriToNode;
+
+  PackageBundleBuilder linkedBuilder;
+  bool failed = false;
+
+  _LinkedNode(this.package, this.unlinked, this.uriToNode);
+
+  @override
+  bool get isEvaluated => linkedBuilder != null || failed;
+
+  @override
+  List<_LinkedNode> computeDependencies() {
+    Set<String> referencedUris = new Set<String>();
+    for (UnlinkedUnit unit in unlinked.unlinkedUnits) {
+      for (UnlinkedImport import in unit.imports) {
+        String uri = import.isImplicit ? 'dart:core' : import.uri;
+        if (uri.startsWith('dart:')) {
+          // Ignore SDK imports.
+        } else if (uri.startsWith('package:')) {
+          referencedUris.add(uri);
+        } else {
+          failed = true;
+          return const <_LinkedNode>[];
+        }
+      }
+    }
+    // TODO(scheglov) fail if no corresponding node
+    return referencedUris.map((uri) => uriToNode[uri]).toSet().toList();
+  }
+
+  @override
+  String toString() => package.toString();
+}
+
+/**
+ * Specialization of [DependencyWalker] for linking packages.
+ */
+class _LinkedWalker extends DependencyWalker<_LinkedNode> {
+  final SummaryDataStore store;
+
+  _LinkedWalker(this.store);
+
+  @override
+  void evaluate(_LinkedNode v) {
+    Set<String> libraryUris = v.unlinked.unlinkedUnitUris.toSet();
+    Map<String, LinkedLibraryBuilder> map = link(libraryUris, (String absUri) {
+      LinkedLibrary dependencyLibrary = store.linkedMap[absUri];
+      if (dependencyLibrary == null) {
+        // TODO(scheglov) add test
+        v.failed = true;
+      }
+      return dependencyLibrary;
+    }, (String absUri) {
+      UnlinkedUnit unlinkedUnit = store.unlinkedMap[absUri];
+      if (unlinkedUnit == null) {
+        // TODO(scheglov) add test
+        v.failed = true;
+      }
+      return unlinkedUnit;
+    }, false);
+    if (!v.failed) {
+      PackageBundleAssembler assembler = new PackageBundleAssembler();
+      map.forEach((uri, linkedLibrary) {
+        assembler.addLinkedLibrary(uri, linkedLibrary);
+      });
+      v.linkedBuilder = assembler.assemble();
+      store.addBundle(null, v.linkedBuilder);
+    }
+  }
+
+  @override
+  void evaluateScc(List<_LinkedNode> scc) {
+    print('evaluateScc: $scc');
+    // TODO(scheglov): implement evaluateScc
   }
 }
