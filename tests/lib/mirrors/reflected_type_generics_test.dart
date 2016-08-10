@@ -11,8 +11,34 @@ import 'package:expect/expect.dart';
 import 'reflected_type_helper.dart';
 
 class A<T> {}
-class G {}
+class P {}
+class B extends A<P> {}
 
 main() {
-  expectReflectedType(reflectType(A, [G]), new A<G>().runtimeType);
+  expectReflectedType(reflectType(A, [P]), new A<P>().runtimeType);
+  Expect.throws(
+    () => reflectType(P, []),
+    (e) => e is ArgumentError && e.invalidValue == P,
+    "Should throw an ArgumentError");
+  Expect.throws(
+    () => reflectType(P, [int]),
+    (e) => e is ArgumentError && e.invalidValue == P,
+    "Should throw an ArgumentError");
+  Expect.throws(
+    () => reflectType(A, []),
+    (e) => e is ArgumentError && e.invalidValue is List,
+    "Should throw an ArgumentError");
+  Expect.throws(
+    () => reflectType(A, [P, int]),
+    (e) => e is ArgumentError && e.invalidValue is List,
+    "Should throw an ArgumentError");
+  Expect.throws(
+    () => reflectType(B, [P]),
+    (e) => e is ArgumentError && e.invalidValue == B,
+    "Should throw an ArgumentError");
+  // Fails currently:
+  // Expect.throws(
+  //   () => reflectType(A, ["non-type"]),
+  //   (e) => e is ArgumentError && e.invalidValue == B,
+  //   "Should throw an ArgumentError");
 }

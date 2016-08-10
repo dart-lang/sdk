@@ -839,30 +839,47 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 1) {
                            Object::null_instance());
 }
 
+DEFINE_NATIVE_ENTRY(Mirrors_makeLocalTypeMirror, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
+  return CreateTypeMirror(type);
+}
 
-DEFINE_NATIVE_ENTRY(Mirrors_makeLocalTypeMirror, 2) {
+DEFINE_NATIVE_ENTRY(Mirrors_makeLocalTypeMirrorWithTypeArguments, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(1));
 
-  intptr_t num_expected_type_arguments = args.Length();
-  if (args.Length() > 0) {
-    TypeArguments& type_args_obj = TypeArguments::Handle();
-    type_args_obj ^= TypeArguments::New(num_expected_type_arguments);
-    AbstractType& type_arg = AbstractType::Handle();
-    for (intptr_t i = 0; i < args.Length(); i++) {
-      type_arg ^= args.At(i);
-      type_args_obj.SetTypeAt(i, type_arg);
-    }
-    const Class& clz = Class::Handle(type.type_class());
-    Type& instantiated_type = Type::Handle(
-        Type::New(clz, type_args_obj, TokenPosition::kNoSource));
-    instantiated_type ^= ClassFinalizer::FinalizeType(
-        clz, instantiated_type, ClassFinalizer::kCanonicalize);
-
-    return CreateTypeMirror(instantiated_type);
-  } else {
-    return CreateTypeMirror(type);
+  const Class& clz = Class::Handle(type.type_class());
+  if (!clz.IsGeneric()) {
+    const Array& errorArgs = Array::Handle(Array::New(3));
+    errorArgs.SetAt(0, type);
+    errorArgs.SetAt(1, String::Handle(String::New("key")));
+    errorArgs.SetAt(2, String::Handle(String::New("Type must be a generic class")));
+    Exceptions::ThrowByType(Exceptions::kArgumentValue, errorArgs);
+    UNREACHABLE();
   }
+  if (clz.NumTypeArguments() != args.Length()) {
+    const Array& errorArgs = Array::Handle(Array::New(3));
+    errorArgs.SetAt(0, args);
+    errorArgs.SetAt(1, String::Handle(String::New("typeArguments")));
+    errorArgs.SetAt(2, String::Handle(String::New("Number of type arguments does not match")));
+    Exceptions::ThrowByType(Exceptions::kArgumentValue, errorArgs);
+    UNREACHABLE();
+  }
+
+  intptr_t num_expected_type_arguments = args.Length();
+  TypeArguments& type_args_obj = TypeArguments::Handle();
+  type_args_obj ^= TypeArguments::New(num_expected_type_arguments);
+  AbstractType& type_arg = AbstractType::Handle();
+  for (intptr_t i = 0; i < args.Length(); i++) {
+    type_arg ^= args.At(i);
+    type_args_obj.SetTypeAt(i, type_arg);
+  }
+
+  Type& instantiated_type = Type::Handle(
+      Type::New(clz, type_args_obj, TokenPosition::kNoSource));
+  instantiated_type ^= ClassFinalizer::FinalizeType(
+      clz, instantiated_type, ClassFinalizer::kCanonicalize);
+  return CreateTypeMirror(instantiated_type);
 }
 
 

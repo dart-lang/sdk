@@ -367,7 +367,8 @@ namespace dart {
 #define MIRRORS_BOOTSTRAP_NATIVE_LIST(V)                                       \
   V(Mirrors_evalInLibraryWithPrivateKey, 2)                                    \
   V(Mirrors_makeLocalClassMirror, 1)                                           \
-  V(Mirrors_makeLocalTypeMirror, 2)                                            \
+  V(Mirrors_makeLocalTypeMirror, 1)                                            \
+  V(Mirrors_makeLocalTypeMirrorWithTypeArguments, 2)                           \
   V(Mirrors_mangleName, 2)                                                     \
   V(MirrorReference_equals, 2)                                                 \
   V(MirrorSystem_libraries, 0)                                                 \

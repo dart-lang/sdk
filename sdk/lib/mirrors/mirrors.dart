@@ -174,11 +174,17 @@ external ClassMirror reflectClass(Type key);
  * If [key] is not an instance of [Type], then this function throws an
  * [ArgumentError].
  *
+ * One can optionally pass a list of [typeArguments] for a generic class.
+ * Number of provided type arguments must be equal to the number of arguments
+ * declared by the class, otherwise this function will throw an [ArgumentError].
+ * If type in `key` is not a generic class an `ArgumentError` will be thrown as
+ * well.
+ *
  * Note that since one cannot obtain a [Type] object from another isolate, this
  * function can only be used to obtain type mirrors on types of the current
  * isolate.
  */
-external TypeMirror reflectType(Type key, [Iterable<Type> typeArguments]);
+external TypeMirror reflectType(Type key, [List<Type> typeArguments]);
 
 /**
  * A [Mirror] reflects some Dart language entity.
