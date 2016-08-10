@@ -30,7 +30,7 @@ def BuildSDK():
     sysroot_env['LDFLAGS'] = '--sysroot=%s' % ia32root
     sysroot_env['CFLAGS'] = '--sysroot=%s' % ia32root
     Run([sys.executable, './tools/build.py', '--mode=release',
-         '--arch=ia32', 'create_sdk'], env=sysroot)
+         '--arch=ia32', 'create_sdk'], env=sysroot_env)
 
     x64root = os.path.join(bot_utils.DART_DIR, 'sysroots', 'build', 'linux',
                             'debian_wheezy_amd64-sysroot')
@@ -39,7 +39,7 @@ def BuildSDK():
     sysroot_env['LDFLAGS'] = '--sysroot=%s' % x64root
     sysroot_env['CFLAGS'] = '--sysroot=%s' % x64root
     Run([sys.executable, './tools/build.py', '--mode=release',
-         '--arch=x64', 'create_sdk'], env=sysroot)
+         '--arch=x64', 'create_sdk'], env=sysroot_env)
 
 def BuildDartdocAPIDocs(dirname):
   dart_sdk = os.path.join(bot_utils.DART_DIR,
