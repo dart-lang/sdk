@@ -800,16 +800,21 @@ class PoorMansIncrementalResolver {
     {
       AstNode parent = newComment.parent;
       if (parent is AnnotatedNode) {
+        setElementDocumentationForVariables(VariableDeclarationList list) {
+          for (VariableDeclaration variable in list.variables) {
+            Element variableElement = variable.element;
+            if (variableElement is ElementImpl) {
+              setElementDocumentationComment(variableElement, parent);
+            }
+          }
+        }
         Element parentElement = ElementLocator.locate(newComment.parent);
         if (parentElement is ElementImpl) {
           setElementDocumentationComment(parentElement, parent);
-        } else if (parentElement == null && parent is FieldDeclaration) {
-          for (VariableDeclaration field in parent.fields.variables) {
-            Element fieldElement = field.element;
-            if (fieldElement is ElementImpl) {
-              setElementDocumentationComment(fieldElement, parent);
-            }
-          }
+        } else if (parent is FieldDeclaration) {
+          setElementDocumentationForVariables(parent.fields);
+        } else if (parent is TopLevelVariableDeclaration) {
+          setElementDocumentationForVariables(parent.variables);
         }
       }
     }

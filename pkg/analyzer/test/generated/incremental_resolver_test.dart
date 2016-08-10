@@ -578,6 +578,22 @@ class A {
 ''');
   }
 
+  void test_dartDoc_beforeTopLevelVariable() {
+    _resolveUnit(r'''
+/**
+ * Variables [V1] and [V2] of type [int].
+ */
+int V1, V2;
+''');
+    _updateAndValidate(r'''
+/**
+ * Variables [V1] and [V2] of type [int].
+ * Updated, with a reference to the [String] type.
+ */
+int V1, V2;
+''');
+  }
+
   void test_dartDoc_clumsy_addReference() {
     _resolveUnit(r'''
 /**
