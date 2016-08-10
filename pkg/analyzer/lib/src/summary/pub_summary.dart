@@ -28,6 +28,16 @@ import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:path/path.dart' as pathos;
 
 /**
+ * Unlinked and linked information about a [PubPackage].
+ */
+class LinkedPubPackage {
+  final PubPackage package;
+  final PackageBundle unlinked;
+  final PackageBundle linked;
+  LinkedPubPackage(this.package, this.unlinked, this.linked);
+}
+
+/**
  * A package in the pub cache.
  */
 class PubPackage {
@@ -51,16 +61,6 @@ class PubPackage {
 }
 
 /**
- * Unlinked and linked information about a [PubPackage].
- */
-class LinkedPubPackage {
-  final PubPackage package;
-  final PackageBundle unlinked;
-  final PackageBundle linked;
-  LinkedPubPackage(this.package, this.unlinked, this.linked);
-}
-
-/**
  * Class that manages summaries for pub packages.
  *
  * The client should call [getLinkedBundles] after creating a new
@@ -69,7 +69,8 @@ class LinkedPubPackage {
  * configure [ResynthesizerResultProvider] for the context.
  */
 class PubSummaryManager {
-  static const UNLINKED_BUNDLE_FILE_NAME = 'unlinked.ds';
+  static const UNLINKED_NAME = 'unlinked.ds';
+  static const UNLINKED_SPEC_NAME = 'unlinked_spec.ds';
 
   final ResourceProvider resourceProvider;
 
@@ -159,7 +160,8 @@ class PubSummaryManager {
     // Link each package node.
     for (_LinkedNode node in nodes) {
       if (!node.isEvaluated) {
-        new _LinkedWalker(store).walk(node);
+        bool strong = context.analysisOptions.strongMode;
+        new _LinkedWalker(store, strong).walk(node);
       }
     }
 
@@ -185,6 +187,7 @@ class PubSummaryManager {
    * maybe an empty map, but not `null`.
    */
   Map<PubPackage, PackageBundle> getUnlinkedBundles(AnalysisContext context) {
+    bool strong = context.analysisOptions.strongMode;
     Map<PubPackage, PackageBundle> unlinkedBundles =
         new HashMap<PubPackage, PackageBundle>();
     Map<String, List<Folder>> packageMap = context.sourceFactory.packageMap;
@@ -194,7 +197,8 @@ class PubSummaryManager {
           Folder libFolder = libFolders.first;
           if (isPathInPubCache(pathContext, libFolder.path)) {
             PubPackage package = new PubPackage(packageName, libFolder);
-            PackageBundle unlinkedBundle = _getUnlinkedOrSchedule(package);
+            PackageBundle unlinkedBundle =
+                _getUnlinkedOrSchedule(package, strong);
             if (unlinkedBundle != null) {
               unlinkedBundles[package] = unlinkedBundle;
             }
@@ -212,7 +216,8 @@ class PubSummaryManager {
   void _computeNextUnlinked() {
     if (packagesToComputeUnlinked.isNotEmpty) {
       PubPackage package = packagesToComputeUnlinked.first;
-      _computeUnlinked(package);
+      _computeUnlinked(package, false);
+      _computeUnlinked(package, true);
       packagesToComputeUnlinked.remove(package);
       _scheduleNextUnlinked();
     } else {
@@ -229,7 +234,7 @@ class PubSummaryManager {
    *
    * TODO(scheglov) Consider moving into separate isolate(s).
    */
-  void _computeUnlinked(PubPackage package) {
+  void _computeUnlinked(PubPackage package, bool strong) {
     Folder libFolder = package.libFolder;
     String libPath = libFolder.path + pathContext.separator;
     PackageBundleAssembler assembler = new PackageBundleAssembler();
@@ -253,7 +258,7 @@ class PubSummaryManager {
       if (AnalysisEngine.isDartFileName(path)) {
         Uri uri = getUri(path);
         Source source = file.createSource(uri);
-        CompilationUnit unit = _parse(source);
+        CompilationUnit unit = _parse(source, strong);
         UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
         assembler.addUnlinkedUnit(source, unlinkedUnit);
       }
@@ -279,9 +284,21 @@ class PubSummaryManager {
     try {
       addDartFiles(libFolder);
       List<int> bytes = assembler.assemble().toBuffer();
-      _writeAtomic(package.folder, UNLINKED_BUNDLE_FILE_NAME, bytes);
+      String fileName = _getUnlinkedName(strong);
+      _writeAtomic(package.folder, fileName, bytes);
     } on FileSystemException {
       // Ignore file system exceptions.
+    }
+  }
+
+  /**
+   * Return the name of the file for an unlinked bundle, in strong or spec mode.
+   */
+  String _getUnlinkedName(bool strong) {
+    if (strong) {
+      return UNLINKED_NAME;
+    } else {
+      return UNLINKED_SPEC_NAME;
     }
   }
 
@@ -289,15 +306,15 @@ class PubSummaryManager {
    * Return the unlinked [PackageBundle] for the given [package]. If the bundle
    * has not been compute yet, return `null` and schedule its computation.
    */
-  PackageBundle _getUnlinkedOrSchedule(PubPackage package) {
+  PackageBundle _getUnlinkedOrSchedule(PubPackage package, bool strong) {
     // Try to find in the cache.
     PackageBundle bundle = unlinkedBundleMap[package];
     if (bundle != null) {
       return bundle;
     }
     // Try to read from the file system.
-    File unlinkedFile =
-        package.folder.getChildAssumingFile(UNLINKED_BUNDLE_FILE_NAME);
+    String fileName = _getUnlinkedName(strong);
+    File unlinkedFile = package.folder.getChildAssumingFile(fileName);
     if (unlinkedFile.exists) {
       try {
         List<int> bytes = unlinkedFile.readAsBytesSync();
@@ -322,14 +339,16 @@ class PubSummaryManager {
   /**
    * Parse the given [source] into AST.
    */
-  CompilationUnit _parse(Source source) {
+  CompilationUnit _parse(Source source, bool strong) {
     String code = source.contents.data;
     AnalysisErrorListener errorListener = AnalysisErrorListener.NULL_LISTENER;
     CharSequenceReader reader = new CharSequenceReader(code);
     Scanner scanner = new Scanner(source, reader, errorListener);
+    scanner.scanGenericMethodComments = strong;
     Token token = scanner.tokenize();
     LineInfo lineInfo = new LineInfo(scanner.lineStarts);
     Parser parser = new Parser(source, errorListener);
+    parser.parseGenericMethodComments = strong;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
     return unit;
@@ -417,8 +436,9 @@ class _LinkedNode extends Node<_LinkedNode> {
  */
 class _LinkedWalker extends DependencyWalker<_LinkedNode> {
   final SummaryDataStore store;
+  final bool strong;
 
-  _LinkedWalker(this.store);
+  _LinkedWalker(this.store, this.strong);
 
   @override
   void evaluate(_LinkedNode v) {
@@ -437,7 +457,7 @@ class _LinkedWalker extends DependencyWalker<_LinkedNode> {
         v.failed = true;
       }
       return unlinkedUnit;
-    }, false);
+    }, strong);
     if (!v.failed) {
       PackageBundleAssembler assembler = new PackageBundleAssembler();
       map.forEach((uri, linkedLibrary) {

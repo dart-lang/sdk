@@ -180,10 +180,10 @@ class B {}
     }
 
     // The files must be created.
-    File fileA = libFolderA.parent.getChildAssumingFile('unlinked.ds');
-    File fileB = libFolderB.parent.getChildAssumingFile('unlinked.ds');
-    expect(fileA.exists, isTrue);
-    expect(fileB.exists, isTrue);
+    _assertFileExists(libFolderA.parent, PubSummaryManager.UNLINKED_NAME);
+    _assertFileExists(libFolderA.parent, PubSummaryManager.UNLINKED_SPEC_NAME);
+    _assertFileExists(libFolderB.parent, PubSummaryManager.UNLINKED_NAME);
+    _assertFileExists(libFolderB.parent, PubSummaryManager.UNLINKED_SPEC_NAME);
   }
 
   test_getUnlinkedBundles_nullPackageMap() async {
@@ -218,6 +218,10 @@ class B {}
         PubSummaryManager.isPathInPubCache(
             pathos.windows, r'C:\Users\user\Sources\Dart\foo\lib\bar.dart'),
         isFalse);
+  }
+
+  void _assertFileExists(Folder folder, String fileName) {
+    expect(folder.getChildAssumingFile(fileName).exists, isTrue);
   }
 
   void _assertLinkedNameReference(
