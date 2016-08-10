@@ -457,7 +457,10 @@ class ContextBuilderTest_WithoutDisk extends EngineTestCase {
   @override
   void setUp() {
     resourceProvider = new MemoryResourceProvider();
-    sdkManager = new DartSdkManager('', false, (_) => new MockSdk());
+    new MockSdk(resourceProvider: resourceProvider);
+    sdkManager = new DartSdkManager('/', false, (_) {
+      fail('Should not be used to create an SDK');
+    });
     contentCache = new ContentCache();
     builder = new ContextBuilder(resourceProvider, sdkManager, contentCache);
   }

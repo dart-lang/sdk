@@ -16,11 +16,8 @@ import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:package_config/discovery.dart';
 import 'package:package_config/packages.dart';
@@ -298,10 +295,10 @@ class ContextBuilder {
         paths.addAll(extFilePaths);
         SdkDescription description = new SdkDescription(paths, options);
         return sdkManager.getSdk(description, () {
-          DirectoryBasedDartSdk sdk =
-              new DirectoryBasedDartSdk(new JavaFile(sdkPath));
+          FolderBasedDartSdk sdk = new FolderBasedDartSdk(
+              resourceProvider, resourceProvider.getFolder(sdkPath));
           if (extFilePaths.isNotEmpty) {
-            embedderSdk.addExtensions(extResolver.urlMappings);
+            sdk.addExtensions(extResolver.urlMappings);
           }
           sdk.analysisOptions = options;
           sdk.useSummary = sdkManager.canUseSummaries;
@@ -312,8 +309,8 @@ class ContextBuilder {
     String sdkPath = sdkManager.defaultSdkDirectory;
     SdkDescription description = new SdkDescription(<String>[sdkPath], options);
     return sdkManager.getSdk(description, () {
-      DirectoryBasedDartSdk sdk =
-          new DirectoryBasedDartSdk(new JavaFile(sdkPath));
+      FolderBasedDartSdk sdk = new FolderBasedDartSdk(
+          resourceProvider, resourceProvider.getFolder(sdkPath));
       sdk.analysisOptions = options;
       sdk.useSummary = sdkManager.canUseSummaries;
       return sdk;
