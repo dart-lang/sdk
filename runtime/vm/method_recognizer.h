@@ -111,22 +111,6 @@ namespace dart {
   V(Int32x4, withFlagY, Int32x4WithFlagY, Int32x4, 0x6485a9c4)                 \
   V(Int32x4, withFlagZ, Int32x4WithFlagZ, Int32x4, 0x267acdfa)                 \
   V(Int32x4, withFlagW, Int32x4WithFlagW, Int32x4, 0x345ac675)                 \
-  V(Float32List, [], Float32ArrayGetIndexed, Double, 0x5686528f)               \
-  V(Float32List, []=, Float32ArraySetIndexed, Dynamic, 0x1b0d90df)             \
-  V(Int8List, [], Int8ArrayGetIndexed, Smi, 0x069af8b3)                        \
-  V(Int8List, []=, Int8ArraySetIndexed, Dynamic, 0x33994cd7)                   \
-  V(Uint8ClampedList, [], Uint8ClampedArrayGetIndexed, Smi, 0x027603ed)        \
-  V(Uint8ClampedList, []=, Uint8ClampedArraySetIndexed, Dynamic, 0x28f5f058)   \
-  V(_ExternalUint8ClampedArray, [], ExternalUint8ClampedArrayGetIndexed,       \
-    Smi, 0x027603ed)                                                           \
-  V(_ExternalUint8ClampedArray, []=, ExternalUint8ClampedArraySetIndexed,      \
-    Dynamic, 0x28f5f058)                                                       \
-  V(Int16List, [], Int16ArrayGetIndexed, Smi, 0x173cd6a1)                      \
-  V(Int16List, []=, Int16ArraySetIndexed, Dynamic, 0x32f84e3c)                 \
-  V(Uint16List, [], Uint16ArrayGetIndexed, Smi, 0x3ececa2f)                    \
-  V(Uint16List, []=, Uint16ArraySetIndexed, Dynamic, 0x5c3a0bb9)               \
-  V(Int32List, [], Int32ArrayGetIndexed, Dynamic, 0x262eef09)                  \
-  V(Int32List, []=, Int32ArraySetIndexed, Dynamic, 0x1b05b471)                 \
   V(Int64List, [], Int64ArrayGetIndexed, Dynamic, 0x0c0c939a)                  \
   V(Int64List, []=, Int64ArraySetIndexed, Dynamic, 0x3714d004)                 \
   V(Float32x4List, [], Float32x4ArrayGetIndexed, Float32x4, 0x01c7017b)        \
@@ -281,15 +265,31 @@ namespace dart {
     TypedDataFloat64x2Array, 0x18cbf4d9)                                       \
 
 #define GRAPH_TYPED_DATA_INTRINSICS_LIST(V)                                    \
+  V(Int8List, [], Int8ArrayGetIndexed, Smi, 0x069af8b3)                        \
+  V(Int8List, []=, Int8ArraySetIndexed, Dynamic, 0x33994cd7)                   \
   V(Uint8List, [], Uint8ArrayGetIndexed, Smi, 0x027603ed)                      \
   V(Uint8List, []=, Uint8ArraySetIndexed, Dynamic, 0x060d5256)                 \
   V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, Smi, 0x027603ed)    \
   V(_ExternalUint8Array, []=, ExternalUint8ArraySetIndexed, Dynamic,           \
     0x060d5256)                                                                \
+  V(Uint8ClampedList, [], Uint8ClampedArrayGetIndexed, Smi, 0x027603ed)        \
+  V(Uint8ClampedList, []=, Uint8ClampedArraySetIndexed, Dynamic, 0x28f5f058)   \
+  V(_ExternalUint8ClampedArray, [], ExternalUint8ClampedArrayGetIndexed,       \
+    Smi, 0x027603ed)                                                           \
+  V(_ExternalUint8ClampedArray, []=, ExternalUint8ClampedArraySetIndexed,      \
+    Dynamic, 0x28f5f058)                                                       \
+  V(Int16List, [], Int16ArrayGetIndexed, Smi, 0x173cd6a1)                      \
+  V(Int16List, []=, Int16ArraySetIndexed, Dynamic, 0x32f84e3c)                 \
+  V(Uint16List, [], Uint16ArrayGetIndexed, Smi, 0x3ececa2f)                    \
+  V(Uint16List, []=, Uint16ArraySetIndexed, Dynamic, 0x5c3a0bb9)               \
+  V(Int32List, [], Int32ArrayGetIndexed, Dynamic, 0x262eef09)                  \
+  V(Int32List, []=, Int32ArraySetIndexed, Dynamic, 0x1b05b471)                 \
   V(Uint32List, [], Uint32ArrayGetIndexed, Dynamic, 0x6040f7fb)                \
   V(Uint32List, []=, Uint32ArraySetIndexed, Dynamic, 0x3a4e1119)               \
   V(Float64List, [], Float64ArrayGetIndexed, Double, 0x7a27098d)               \
   V(Float64List, []=, Float64ArraySetIndexed, Dynamic, 0x139b2465)             \
+  V(Float32List, [], Float32ArrayGetIndexed, Double, 0x5686528f)               \
+  V(Float32List, []=, Float32ArraySetIndexed, Dynamic, 0x1b0d90df)             \
   V(_TypedList, get:length, TypedDataLength, Smi, 0x2090dc1a)                  \
   V(Float32x4, get:x, Float32x4ShuffleX, Double, 0x63d0c13f)                   \
   V(Float32x4, get:y, Float32x4ShuffleY, Double, 0x20343b1b)                   \
@@ -529,6 +529,7 @@ class MethodRecognizer : public AllStatic {
   static bool AlwaysInline(const Function& function);
   static bool PolymorphicTarget(const Function& function);
   static intptr_t ResultCid(const Function& function);
+  static intptr_t MethodKindToReceiverCid(Kind kind);
   static const char* KindToCString(Kind kind);
 #if defined(DART_NO_SNAPSHOT)
   static void InitializeState();
