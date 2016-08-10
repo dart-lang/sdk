@@ -10,6 +10,7 @@ import 'package:args/args.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/checks.dart' as checks;
 import 'package:kernel/transformations/continuation.dart' as cont;
+import 'package:kernel/transformations/infer_values.dart' as infer_values;
 
 import 'batch_util.dart';
 
@@ -65,6 +66,9 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
   switch (result['transformation']) {
     case 'continuation':
       program = cont.tranformProgram(program);
+      break;
+    case 'infervalues':
+      program = infer_values.tranformProgram(program);
       break;
     default: throw 'Unknown transformation';
   }
