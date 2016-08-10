@@ -917,9 +917,7 @@ class Builder {
     int maxArity = node.positionalParameters.length;
     for (int i = 0; i < node.positionalParameters.length; ++i) {
       var parameter = node.positionalParameters[i];
-      int variable = node.parent is Member
-          ? getParameterVariable(environment.host, parameter)
-          : environment.getVariable(parameter);
+      int variable = getParameterVariable(environment.host, parameter);
       environment.localVariables[parameter] = variable;
       if (function != null) {
         for (int arity = minArity; arity <= maxArity; ++arity) {
@@ -941,9 +939,7 @@ class Builder {
     }
     for (int i = 0; i < node.namedParameters.length; ++i) {
       var parameter = node.namedParameters[i];
-      int variable = node.parent is Member
-          ? getParameterVariable(environment.host, parameter)
-          : environment.getVariable(parameter);
+      int variable = getParameterVariable(environment.host, parameter);
       environment.localVariables[parameter] = variable;
       if (function != null) {
         for (int arity = minArity; arity <= maxArity; ++arity) {

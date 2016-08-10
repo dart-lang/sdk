@@ -34,19 +34,19 @@ class TypePropagation {
 
   InferredValue getFieldValue(Field node) {
     int variable = builder.global.fields[node];
-    if (variable == null) return InferredValue.nothing;
+    if (variable == null) return null;
     return solver.getValueInferredForVariable(variable);
   }
 
   InferredValue getReturnValue(FunctionNode node) {
     int variable = builder.global.returns[node];
-    if (variable == null) return InferredValue.nothing;
+    if (variable == null) return null;
     return solver.getValueInferredForVariable(variable);
   }
 
   InferredValue getParameterValue(VariableDeclaration node) {
     int variable = builder.global.parameters[node];
-    if (variable == null) return InferredValue.nothing;
+    if (variable == null) return null;
     return solver.getValueInferredForVariable(variable);
   }
 }
