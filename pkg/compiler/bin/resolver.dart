@@ -45,7 +45,8 @@ main(var argv) async {
       : new CompilerSourceFileProvider();
 
   var outputProvider = const NullCompilerOutput();
-  var diagnostics = new FormattingDiagnosticHandler(inputProvider);
+  var diagnostics = new FormattingDiagnosticHandler(inputProvider)
+    ..enableColors = true;
   var compiler =
       new CompilerImpl(inputProvider, outputProvider, diagnostics, options);
 

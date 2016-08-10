@@ -389,17 +389,20 @@ class BazelInputProvider extends SourceFileProvider {
 
   @override
   Future readFromUri(Uri uri) async {
+    var resolvedUri = uri;
     var path = uri.path;
     if (path.startsWith('/bazel-root')) {
       path = path.substring('/bazel-root/'.length);
       for (var dir in dirs) {
         var file = dir.resolve(path);
         if (await new File.fromUri(file).exists()) {
-          uri = file;
+          resolvedUri = file;
           break;
         }
       }
     }
-    return readUtf8BytesFromUri(uri);
+    var result = await readUtf8BytesFromUri(resolvedUri);
+    sourceFiles[uri] = sourceFiles[resolvedUri];
+    return result;
   }
 }
