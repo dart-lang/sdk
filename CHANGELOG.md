@@ -30,7 +30,7 @@
 
 *   Breaking change - infer generic type arguments from the
     constructor invocation arguments
-    (SDK issue [25220](https://github.com/dart-lang/sdk/issues/25220))
+    (SDK issue [25220](https://github.com/dart-lang/sdk/issues/25220)).
 
     ```dart
     var map = new Map<String, String>();
@@ -40,7 +40,7 @@
     ```
 
 *   Breaking change - infer local function return type
-    (SDK issue [26414](https://github.com/dart-lang/sdk/issues/26414))
+    (SDK issue [26414](https://github.com/dart-lang/sdk/issues/26414)).
 
     ```dart
     void main() {
@@ -52,7 +52,7 @@
     ```
 
 *   Breaking change - allow type promotion from a generic type parameter
-    (SDK issue [26414](https://github.com/dart-lang/sdk/issues/26965))
+    (SDK issue [26414](https://github.com/dart-lang/sdk/issues/26965)).
 
     ```dart
     void fn/*<T>*/(/*=T*/ object) {
@@ -61,6 +61,28 @@
         // But it will require a cast to pass it to something that expects `T`.
         print(object.substring(1));
       }
+    }
+    ```
+
+* Breaking change - smarter inference for Future.then
+    (SDK issue [25944](https://github.com/dart-lang/sdk/issues/25944)).
+    Previous workarounds that use async/await or `.then/*<Future<SomeType>>*/`
+    should no longer be necessary.
+
+    ```dart
+    // This will now infer correctly.
+    Future<List<int>> t2 = f.then((_) => [3]);
+    // This infers too.
+    Future<int> t2 = f.then((_) => new Future.value(42));
+    ```
+
+* Breaking change - smarter inference for async functions
+    (SDK issue [25322](https://github.com/dart-lang/sdk/issues/25322)).
+
+    ```dart
+    void test() async {
+      List<int> x = await [4]; // was previously inferred
+      List<int> y = await new Future.value([4]); // now inferred too
     }
     ```
 
