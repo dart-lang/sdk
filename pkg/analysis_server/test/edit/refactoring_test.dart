@@ -659,13 +659,11 @@ void res(int a, int b) {
     return _sendExtractRequest();
   }
 
-  Future<ExtractMethodFeedback> _computeInitialFeedback() {
-    return waitForTasksFinished().then((_) {
-      return _sendExtractRequest();
-    }).then((Response response) {
-      var result = new EditGetRefactoringResult.fromResponse(response);
-      return result.feedback;
-    });
+  Future<ExtractMethodFeedback> _computeInitialFeedback() async {
+    await waitForTasksFinished();
+    Response response = await _sendExtractRequest();
+    var result = new EditGetRefactoringResult.fromResponse(response);
+    return result.feedback;
   }
 
   Future _prepareOptions() {

@@ -262,18 +262,15 @@ class Pivot /* target */ extends Base2 {}
     return Future.forEach(tests, (test) => test());
   }
 
-  Future<HierarchyResults> typeHierarchyTest(String text) {
+  Future<HierarchyResults> typeHierarchyTest(String text) async {
     int offset = text.indexOf(' /* target */') - 1;
     sendAnalysisUpdateContent({pathname: new AddContentOverlay(text)});
-    return analysisFinished
-        .then((_) => sendSearchGetTypeHierarchy(pathname, offset))
-        .then((result) {
-      if (result.hierarchyItems == null) {
-        return null;
-      } else {
-        return new HierarchyResults(
-            result.hierarchyItems as List<TypeHierarchyItem>);
-      }
-    });
+    await analysisFinished;
+    var result = await sendSearchGetTypeHierarchy(pathname, offset);
+    if (result.hierarchyItems == null) {
+      return null;
+    } else {
+      return new HierarchyResults(result.hierarchyItems);
+    }
   }
 }

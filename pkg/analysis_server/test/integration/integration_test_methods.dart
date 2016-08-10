@@ -36,12 +36,10 @@ abstract class IntegrationTestMixin {
    *
    *   The version number of the analysis server.
    */
-  Future<ServerGetVersionResult> sendServerGetVersion() {
-    return server.send("server.getVersion", null)
-        .then((result) {
-      ResponseDecoder decoder = new ResponseDecoder(null);
-      return new ServerGetVersionResult.fromJson(decoder, 'result', result);
-    });
+  Future<ServerGetVersionResult> sendServerGetVersion() async {
+    var result = await server.send("server.getVersion", null);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new ServerGetVersionResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -51,12 +49,10 @@ abstract class IntegrationTestMixin {
    * responded to. No further responses or notifications will be sent after the
    * response to this request has been sent.
    */
-  Future sendServerShutdown() {
-    return server.send("server.shutdown", null)
-        .then((result) {
-      expect(result, isNull);
-      return null;
-    });
+  Future sendServerShutdown() async {
+    var result = await server.send("server.shutdown", null);
+    expect(result, isNull);
+    return null;
   }
 
   /**
@@ -73,13 +69,11 @@ abstract class IntegrationTestMixin {
    *
    *   A list of the services being subscribed to.
    */
-  Future sendServerSetSubscriptions(List<ServerService> subscriptions) {
+  Future sendServerSetSubscriptions(List<ServerService> subscriptions) async {
     var params = new ServerSetSubscriptionsParams(subscriptions).toJson();
-    return server.send("server.setSubscriptions", params)
-        .then((result) {
-      expect(result, isNull);
-      return null;
-    });
+    var result = await server.send("server.setSubscriptions", params);
+    expect(result, isNull);
+    return null;
   }
 
   /**
@@ -198,13 +192,11 @@ abstract class IntegrationTestMixin {
    *
    *   The errors associated with the file.
    */
-  Future<AnalysisGetErrorsResult> sendAnalysisGetErrors(String file) {
+  Future<AnalysisGetErrorsResult> sendAnalysisGetErrors(String file) async {
     var params = new AnalysisGetErrorsParams(file).toJson();
-    return server.send("analysis.getErrors", params)
-        .then((result) {
-      ResponseDecoder decoder = new ResponseDecoder(null);
-      return new AnalysisGetErrorsResult.fromJson(decoder, 'result', result);
-    });
+    var result = await server.send("analysis.getErrors", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new AnalysisGetErrorsResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -232,13 +224,11 @@ abstract class IntegrationTestMixin {
    *   contexts in conflicting ways (such as a part that is included in
    *   multiple libraries).
    */
-  Future<AnalysisGetHoverResult> sendAnalysisGetHover(String file, int offset) {
+  Future<AnalysisGetHoverResult> sendAnalysisGetHover(String file, int offset) async {
     var params = new AnalysisGetHoverParams(file, offset).toJson();
-    return server.send("analysis.getHover", params)
-        .then((result) {
-      ResponseDecoder decoder = new ResponseDecoder(null);
-      return new AnalysisGetHoverResult.fromJson(decoder, 'result', result);
-    });
+    var result = await server.send("analysis.getHover", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new AnalysisGetHoverResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -267,13 +257,11 @@ abstract class IntegrationTestMixin {
    *   reachable from a given file, clients can check for its presence in the
    *   resulting key set.
    */
-  Future<AnalysisGetReachableSourcesResult> sendAnalysisGetReachableSources(String file) {
+  Future<AnalysisGetReachableSourcesResult> sendAnalysisGetReachableSources(String file) async {
     var params = new AnalysisGetReachableSourcesParams(file).toJson();
-    return server.send("analysis.getReachableSources", params)
-        .then((result) {
-      ResponseDecoder decoder = new ResponseDecoder(null);
-      return new AnalysisGetReachableSourcesResult.fromJson(decoder, 'result', result);
-    });
+    var result = await server.send("analysis.getReachableSources", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new AnalysisGetReachableSourcesResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -296,12 +284,10 @@ abstract class IntegrationTestMixin {
    *   names to source directories for use in client-side package URI
    *   resolution.
    */
-  Future<AnalysisGetLibraryDependenciesResult> sendAnalysisGetLibraryDependencies() {
-    return server.send("analysis.getLibraryDependencies", null)
-        .then((result) {
-      ResponseDecoder decoder = new ResponseDecoder(null);
-      return new AnalysisGetLibraryDependenciesResult.fromJson(decoder, 'result', result);
-    });
+  Future<AnalysisGetLibraryDependenciesResult> sendAnalysisGetLibraryDependencies() async {
+    var result = await server.send("analysis.getLibraryDependencies", null);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new AnalysisGetLibraryDependenciesResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -358,13 +344,11 @@ abstract class IntegrationTestMixin {
    *   A list of the navigation regions within the requested region of the
    *   file.
    */
-  Future<AnalysisGetNavigationResult> sendAnalysisGetNavigation(String file, int offset, int length) {
+  Future<AnalysisGetNavigationResult> sendAnalysisGetNavigation(String file, int offset, int length) async {
     var params = new AnalysisGetNavigationParams(file, offset, length).toJson();
-    return server.send("analysis.getNavigation", params)
-        .then((result) {
-      ResponseDecoder decoder = new ResponseDecoder(null);
-      return new AnalysisGetNavigationResult.fromJson(decoder, 'result', result);
-    });
+    var result = await server.send("analysis.getNavigation", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new AnalysisGetNavigationResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -385,13 +369,11 @@ abstract class IntegrationTestMixin {
    *
    *   A list of the analysis roots that are to be re-analyzed.
    */
-  Future sendAnalysisReanalyze({List<String> roots}) {
+  Future sendAnalysisReanalyze({List<String> roots}) async {
     var params = new AnalysisReanalyzeParams(roots: roots).toJson();
-    return server.send("analysis.reanalyze", params)
-        .then((result) {
-      expect(result, isNull);
-      return null;
-    });
+    var result = await server.send("analysis.reanalyze", params);
+    expect(result, isNull);
+    return null;
   }
 
   /**
@@ -453,13 +435,11 @@ abstract class IntegrationTestMixin {
    *   If this field is absent, or the empty map is specified, that indicates
    *   that the normal pubspec.yaml mechanism should always be used.
    */
-  Future sendAnalysisSetAnalysisRoots(List<String> included, List<String> excluded, {Map<String, String> packageRoots}) {
+  Future sendAnalysisSetAnalysisRoots(List<String> included, List<String> excluded, {Map<String, String> packageRoots}) async {
     var params = new AnalysisSetAnalysisRootsParams(included, excluded, packageRoots: packageRoots).toJson();
-    return server.send("analysis.setAnalysisRoots", params)
-        .then((result) {
-      expect(result, isNull);
-      return null;
-    });
+    var result = await server.send("analysis.setAnalysisRoots", params);
+    expect(result, isNull);
+    return null;
   }
 
   /**
@@ -477,13 +457,11 @@ abstract class IntegrationTestMixin {
    *
    *   A list of the services being subscribed to.
    */
-  Future sendAnalysisSetGeneralSubscriptions(List<GeneralAnalysisService> subscriptions) {
+  Future sendAnalysisSetGeneralSubscriptions(List<GeneralAnalysisService> subscriptions) async {
     var params = new AnalysisSetGeneralSubscriptionsParams(subscriptions).toJson();
-    return server.send("analysis.setGeneralSubscriptions", params)
-        .then((result) {
-      expect(result, isNull);
-      return null;
-    });
+    var result = await server.send("analysis.setGeneralSubscriptions", params);
+    expect(result, isNull);
+    return null;
   }
 
   /**
@@ -511,13 +489,11 @@ abstract class IntegrationTestMixin {
    *
    *   The files that are to be a priority for analysis.
    */
-  Future sendAnalysisSetPriorityFiles(List<String> files) {
+  Future sendAnalysisSetPriorityFiles(List<String> files) async {
     var params = new AnalysisSetPriorityFilesParams(files).toJson();
-    return server.send("analysis.setPriorityFiles", params)
-        .then((result) {
-      expect(result, isNull);
-      return null;
-    });
+    var result = await server.send("analysis.setPriorityFiles", params);
+    expect(result, isNull);
+    return null;
   }
 
   /**
@@ -552,13 +528,11 @@ abstract class IntegrationTestMixin {
    *   A table mapping services to a list of the files being subscribed to the
    *   service.
    */
-  Future sendAnalysisSetSubscriptions(Map<AnalysisService, List<String>> subscriptions) {
+  Future sendAnalysisSetSubscriptions(Map<AnalysisService, List<String>> subscriptions) async {
     var params = new AnalysisSetSubscriptionsParams(subscriptions).toJson();
-    return server.send("analysis.setSubscriptions", params)
-        .then((result) {
-      expect(result, isNull);
-      return null;
-    });
+    var result = await server.send("analysis.setSubscriptions", params);
+    expect(result, isNull);
+    return null;
   }
 
   /**
@@ -579,13 +553,11 @@ abstract class IntegrationTestMixin {
    *
    * Returns
    */
-  Future<AnalysisUpdateContentResult> sendAnalysisUpdateContent(Map<String, dynamic> files) {
+  Future<AnalysisUpdateContentResult> sendAnalysisUpdateContent(Map<String, dynamic> files) async {
     var params = new AnalysisUpdateContentParams(files).toJson();
-    return server.send("analysis.updateContent", params)
-        .then((result) {
-      ResponseDecoder decoder = new ResponseDecoder(null);
-      return new AnalysisUpdateContentResult.fromJson(decoder, 'result', result);
-    });
+    var result = await server.send("analysis.updateContent", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new AnalysisUpdateContentResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -600,13 +572,11 @@ abstract class IntegrationTestMixin {
    *
    *   The options that are to be used to control analysis.
    */
-  Future sendAnalysisUpdateOptions(AnalysisOptions options) {
+  Future sendAnalysisUpdateOptions(AnalysisOptions options) async {
     var params = new AnalysisUpdateOptionsParams(options).toJson();
-    return server.send("analysis.updateOptions", params)
-        .then((result) {
-      expect(result, isNull);
-      return null;
-    });
+    var result = await server.send("analysis.updateOptions", params);
+    expect(result, isNull);
+    return null;
   }
 
   /**
@@ -943,13 +913,11 @@ abstract class IntegrationTestMixin {
    *
    *   The identifier used to associate results with this completion request.
    */
-  Future<CompletionGetSuggestionsResult> sendCompletionGetSuggestions(String file, int offset) {
+  Future<CompletionGetSuggestionsResult> sendCompletionGetSuggestions(String file, int offset) async {
     var params = new CompletionGetSuggestionsParams(file, offset).toJson();
-    return server.send("completion.getSuggestions", params)
-        .then((result) {
-      ResponseDecoder decoder = new ResponseDecoder(null);
-      return new CompletionGetSuggestionsResult.fromJson(decoder, 'result', result);
-    });
+    var result = await server.send("completion.getSuggestions", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new CompletionGetSuggestionsResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -1038,13 +1006,11 @@ abstract class IntegrationTestMixin {
    *   If no element was found at the given location, this field will be
    *   absent.
    */
-  Future<SearchFindElementReferencesResult> sendSearchFindElementReferences(String file, int offset, bool includePotential) {
+  Future<SearchFindElementReferencesResult> sendSearchFindElementReferences(String file, int offset, bool includePotential) async {
     var params = new SearchFindElementReferencesParams(file, offset, includePotential).toJson();
-    return server.send("search.findElementReferences", params)
-        .then((result) {
-      ResponseDecoder decoder = new ResponseDecoder(null);
-      return new SearchFindElementReferencesResult.fromJson(decoder, 'result', result);
-    });
+    var result = await server.send("search.findElementReferences", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new SearchFindElementReferencesResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -1066,13 +1032,11 @@ abstract class IntegrationTestMixin {
    *
    *   The identifier used to associate results with this search request.
    */
-  Future<SearchFindMemberDeclarationsResult> sendSearchFindMemberDeclarations(String name) {
+  Future<SearchFindMemberDeclarationsResult> sendSearchFindMemberDeclarations(String name) async {
     var params = new SearchFindMemberDeclarationsParams(name).toJson();
-    return server.send("search.findMemberDeclarations", params)
-        .then((result) {
-      ResponseDecoder decoder = new ResponseDecoder(null);
-      return new SearchFindMemberDeclarationsResult.fromJson(decoder, 'result', result);
-    });
+    var result = await server.send("search.findMemberDeclarations", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new SearchFindMemberDeclarationsResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -1096,13 +1060,11 @@ abstract class IntegrationTestMixin {
    *
    *   The identifier used to associate results with this search request.
    */
-  Future<SearchFindMemberReferencesResult> sendSearchFindMemberReferences(String name) {
+  Future<SearchFindMemberReferencesResult> sendSearchFindMemberReferences(String name) async {
     var params = new SearchFindMemberReferencesParams(name).toJson();
-    return server.send("search.findMemberReferences", params)
-        .then((result) {
-      ResponseDecoder decoder = new ResponseDecoder(null);
-      return new SearchFindMemberReferencesResult.fromJson(decoder, 'result', result);
-    });
+    var result = await server.send("search.findMemberReferences", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new SearchFindMemberReferencesResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -1126,13 +1088,11 @@ abstract class IntegrationTestMixin {
    *
    *   The identifier used to associate results with this search request.
    */
-  Future<SearchFindTopLevelDeclarationsResult> sendSearchFindTopLevelDeclarations(String pattern) {
+  Future<SearchFindTopLevelDeclarationsResult> sendSearchFindTopLevelDeclarations(String pattern) async {
     var params = new SearchFindTopLevelDeclarationsParams(pattern).toJson();
-    return server.send("search.findTopLevelDeclarations", params)
-        .then((result) {
-      ResponseDecoder decoder = new ResponseDecoder(null);
-      return new SearchFindTopLevelDeclarationsResult.fromJson(decoder, 'result', result);
-    });
+    var result = await server.send("search.findTopLevelDeclarations", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new SearchFindTopLevelDeclarationsResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -1169,13 +1129,11 @@ abstract class IntegrationTestMixin {
    *   not represent a type, or if the file has not been sufficiently analyzed
    *   to allow a type hierarchy to be produced.
    */
-  Future<SearchGetTypeHierarchyResult> sendSearchGetTypeHierarchy(String file, int offset, {bool superOnly}) {
+  Future<SearchGetTypeHierarchyResult> sendSearchGetTypeHierarchy(String file, int offset, {bool superOnly}) async {
     var params = new SearchGetTypeHierarchyParams(file, offset, superOnly: superOnly).toJson();
-    return server.send("search.getTypeHierarchy", params)
-        .then((result) {
-      ResponseDecoder decoder = new ResponseDecoder(null);
-      return new SearchGetTypeHierarchyResult.fromJson(decoder, 'result', result);
-    });
+    var result = await server.send("search.getTypeHierarchy", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new SearchGetTypeHierarchyResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -1254,13 +1212,11 @@ abstract class IntegrationTestMixin {
    *
    *   The length of the selection after formatting the code.
    */
-  Future<EditFormatResult> sendEditFormat(String file, int selectionOffset, int selectionLength, {int lineLength}) {
+  Future<EditFormatResult> sendEditFormat(String file, int selectionOffset, int selectionLength, {int lineLength}) async {
     var params = new EditFormatParams(file, selectionOffset, selectionLength, lineLength: lineLength).toJson();
-    return server.send("edit.format", params)
-        .then((result) {
-      ResponseDecoder decoder = new ResponseDecoder(null);
-      return new EditFormatResult.fromJson(decoder, 'result', result);
-    });
+    var result = await server.send("edit.format", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new EditFormatResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -1289,13 +1245,11 @@ abstract class IntegrationTestMixin {
    *
    *   The assists that are available at the given location.
    */
-  Future<EditGetAssistsResult> sendEditGetAssists(String file, int offset, int length) {
+  Future<EditGetAssistsResult> sendEditGetAssists(String file, int offset, int length) async {
     var params = new EditGetAssistsParams(file, offset, length).toJson();
-    return server.send("edit.getAssists", params)
-        .then((result) {
-      ResponseDecoder decoder = new ResponseDecoder(null);
-      return new EditGetAssistsResult.fromJson(decoder, 'result', result);
-    });
+    var result = await server.send("edit.getAssists", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new EditGetAssistsResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -1322,13 +1276,11 @@ abstract class IntegrationTestMixin {
    *
    *   The kinds of refactorings that are valid for the given selection.
    */
-  Future<EditGetAvailableRefactoringsResult> sendEditGetAvailableRefactorings(String file, int offset, int length) {
+  Future<EditGetAvailableRefactoringsResult> sendEditGetAvailableRefactorings(String file, int offset, int length) async {
     var params = new EditGetAvailableRefactoringsParams(file, offset, length).toJson();
-    return server.send("edit.getAvailableRefactorings", params)
-        .then((result) {
-      ResponseDecoder decoder = new ResponseDecoder(null);
-      return new EditGetAvailableRefactoringsResult.fromJson(decoder, 'result', result);
-    });
+    var result = await server.send("edit.getAvailableRefactorings", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new EditGetAvailableRefactoringsResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -1351,13 +1303,11 @@ abstract class IntegrationTestMixin {
    *
    *   The fixes that are available for the errors at the given offset.
    */
-  Future<EditGetFixesResult> sendEditGetFixes(String file, int offset) {
+  Future<EditGetFixesResult> sendEditGetFixes(String file, int offset) async {
     var params = new EditGetFixesParams(file, offset).toJson();
-    return server.send("edit.getFixes", params)
-        .then((result) {
-      ResponseDecoder decoder = new ResponseDecoder(null);
-      return new EditGetFixesResult.fromJson(decoder, 'result', result);
-    });
+    var result = await server.send("edit.getFixes", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new EditGetFixesResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -1441,13 +1391,11 @@ abstract class IntegrationTestMixin {
    *   if the change field is omitted or if there are no potential edits for
    *   the refactoring.
    */
-  Future<EditGetRefactoringResult> sendEditGetRefactoring(RefactoringKind kind, String file, int offset, int length, bool validateOnly, {RefactoringOptions options}) {
+  Future<EditGetRefactoringResult> sendEditGetRefactoring(RefactoringKind kind, String file, int offset, int length, bool validateOnly, {RefactoringOptions options}) async {
     var params = new EditGetRefactoringParams(kind, file, offset, length, validateOnly, options: options).toJson();
-    return server.send("edit.getRefactoring", params)
-        .then((result) {
-      ResponseDecoder decoder = new ResponseDecoder(kind);
-      return new EditGetRefactoringResult.fromJson(decoder, 'result', result);
-    });
+    var result = await server.send("edit.getRefactoring", params);
+    ResponseDecoder decoder = new ResponseDecoder(kind);
+    return new EditGetRefactoringResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -1473,13 +1421,11 @@ abstract class IntegrationTestMixin {
    *   The file edit that is to be applied to the given file to effect the
    *   sorting.
    */
-  Future<EditSortMembersResult> sendEditSortMembers(String file) {
+  Future<EditSortMembersResult> sendEditSortMembers(String file) async {
     var params = new EditSortMembersParams(file).toJson();
-    return server.send("edit.sortMembers", params)
-        .then((result) {
-      ResponseDecoder decoder = new ResponseDecoder(null);
-      return new EditSortMembersResult.fromJson(decoder, 'result', result);
-    });
+    var result = await server.send("edit.sortMembers", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new EditSortMembersResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -1506,13 +1452,11 @@ abstract class IntegrationTestMixin {
    *   The file edit that is to be applied to the given file to effect the
    *   organizing.
    */
-  Future<EditOrganizeDirectivesResult> sendEditOrganizeDirectives(String file) {
+  Future<EditOrganizeDirectivesResult> sendEditOrganizeDirectives(String file) async {
     var params = new EditOrganizeDirectivesParams(file).toJson();
-    return server.send("edit.organizeDirectives", params)
-        .then((result) {
-      ResponseDecoder decoder = new ResponseDecoder(null);
-      return new EditOrganizeDirectivesResult.fromJson(decoder, 'result', result);
-    });
+    var result = await server.send("edit.organizeDirectives", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new EditOrganizeDirectivesResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -1534,13 +1478,11 @@ abstract class IntegrationTestMixin {
    *
    *   The identifier used to refer to the execution context that was created.
    */
-  Future<ExecutionCreateContextResult> sendExecutionCreateContext(String contextRoot) {
+  Future<ExecutionCreateContextResult> sendExecutionCreateContext(String contextRoot) async {
     var params = new ExecutionCreateContextParams(contextRoot).toJson();
-    return server.send("execution.createContext", params)
-        .then((result) {
-      ResponseDecoder decoder = new ResponseDecoder(null);
-      return new ExecutionCreateContextResult.fromJson(decoder, 'result', result);
-    });
+    var result = await server.send("execution.createContext", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new ExecutionCreateContextResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -1554,13 +1496,11 @@ abstract class IntegrationTestMixin {
    *
    *   The identifier of the execution context that is to be deleted.
    */
-  Future sendExecutionDeleteContext(String id) {
+  Future sendExecutionDeleteContext(String id) async {
     var params = new ExecutionDeleteContextParams(id).toJson();
-    return server.send("execution.deleteContext", params)
-        .then((result) {
-      expect(result, isNull);
-      return null;
-    });
+    var result = await server.send("execution.deleteContext", params);
+    expect(result, isNull);
+    return null;
   }
 
   /**
@@ -1611,13 +1551,11 @@ abstract class IntegrationTestMixin {
    *   The URI to which the file path was mapped. This field is omitted if the
    *   file field was not given in the request.
    */
-  Future<ExecutionMapUriResult> sendExecutionMapUri(String id, {String file, String uri}) {
+  Future<ExecutionMapUriResult> sendExecutionMapUri(String id, {String file, String uri}) async {
     var params = new ExecutionMapUriParams(id, file: file, uri: uri).toJson();
-    return server.send("execution.mapUri", params)
-        .then((result) {
-      ResponseDecoder decoder = new ResponseDecoder(null);
-      return new ExecutionMapUriResult.fromJson(decoder, 'result', result);
-    });
+    var result = await server.send("execution.mapUri", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new ExecutionMapUriResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -1634,13 +1572,11 @@ abstract class IntegrationTestMixin {
    *
    *   A list of the services being subscribed to.
    */
-  Future sendExecutionSetSubscriptions(List<ExecutionService> subscriptions) {
+  Future sendExecutionSetSubscriptions(List<ExecutionService> subscriptions) async {
     var params = new ExecutionSetSubscriptionsParams(subscriptions).toJson();
-    return server.send("execution.setSubscriptions", params)
-        .then((result) {
-      expect(result, isNull);
-      return null;
-    });
+    var result = await server.send("execution.setSubscriptions", params);
+    expect(result, isNull);
+    return null;
   }
 
   /**
@@ -1683,12 +1619,10 @@ abstract class IntegrationTestMixin {
    *
    *   The list of analysis contexts.
    */
-  Future<DiagnosticGetDiagnosticsResult> sendDiagnosticGetDiagnostics() {
-    return server.send("diagnostic.getDiagnostics", null)
-        .then((result) {
-      ResponseDecoder decoder = new ResponseDecoder(null);
-      return new DiagnosticGetDiagnosticsResult.fromJson(decoder, 'result', result);
-    });
+  Future<DiagnosticGetDiagnosticsResult> sendDiagnosticGetDiagnostics() async {
+    var result = await server.send("diagnostic.getDiagnostics", null);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new DiagnosticGetDiagnosticsResult.fromJson(decoder, 'result', result);
   }
 
   /**
