@@ -514,7 +514,7 @@ void addMemberHelper(
   } else if (isStatic) {
     sb.write("static");
   } else {
-    sb.write("patch");
+    sb.write("@patch");
   }
   sb.write(" ");
   if (declaration.isGetter) {
@@ -729,7 +729,7 @@ class ${escapePrivateClassPrefix}${className} implements $className {}
                 '<${clazz.typeVariables.map((m) => mirrors.MirrorSystem.getName(m.simpleName)).join(',')}>';
           }
           sb.write("""
-patch class $className$typeVariablesClause {
+@patch class $className$typeVariablesClause {
 $sbPatch
 }
 """);
@@ -884,15 +884,15 @@ class JSArrayImpl extends JSArray ${buildImplementsClause(implementsArray)} {
 abstract class JSObjectInterfacesDom $implementsClauseDom {
 }
 
-patch class JSObject {
+@patch class JSObject {
   static Type get instanceRuntimeType => JSObjectImpl;
 }
 
-patch class JSFunction {
+@patch class JSFunction {
   static Type get instanceRuntimeType => JSFunctionImpl;
 }
 
-patch class JSArray {
+@patch class JSArray {
   static Type get instanceRuntimeType => JSArrayImpl;
 }
 
