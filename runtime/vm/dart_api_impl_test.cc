@@ -6842,39 +6842,39 @@ TEST_CASE(ParsePatchLibrary) {
   "external void set topLevelSetter(int value);\n";
 
   const char* kPatchChars =
-  "patch class A {\n"
+  "@patch class A {\n"
   "  var _g;\n"
   "  A() : fvalue = 13;\n"
   "  get _field => _g;\n"
-  "  /*patch*/ void method(var value) {\n"
+  "  @patch void method(var value) {\n"
   "    int closeYourEyes(var eggs) { return eggs * -1; }\n"
   "    value = callFunc(closeYourEyes, value);\n"
   "    _g = value * 5;\n"
   "  }\n"
   "}\n"
-  "patch class B {\n"
+  "@patch class B {\n"
   "  B._internal(x) : val = x;\n"
-  "  /*patch*/ factory B.named(x) { return new B._internal(x); }\n"
-  "  /*patch*/ factory B(v) native \"const_B_factory\";\n"
+  "  @patch factory B.named(x) { return new B._internal(x); }\n"
+  "  @patch factory B(v) native \"const_B_factory\";\n"
   "}\n"
   "var _topLevelValue = -1;\n"
-  "patch int topLevel(var value) => value * value;\n"
-  "patch int set topLevelSetter(value) { _topLevelValue = value; }\n"
-  "patch int get topLevelGetter => 2 * _topLevelValue;\n"
+  "@patch int topLevel(var value) => value * value;\n"
+  "@patch int set topLevelSetter(value) { _topLevelValue = value; }\n"
+  "@patch int get topLevelGetter => 2 * _topLevelValue;\n"
   // Allow top level methods named patch.
   "patch(x) => x*3;\n"
   ;  // NOLINT
 
   const char* kPatchClassOnlyChars =
-  "patch class C {\n"
-  "  /*patch*/ int method() {\n"
+  "@patch class C {\n"
+  "  @patch int method() {\n"
   "    return 42;\n"
   "  }\n"
   "}\n"
   ;  // NOLINT
 
   const char* kPatchNoClassChars =
-  "patch topLevel2(x) => x * 2;\n";
+  "@patch topLevel2(x) => x * 2;\n";
 
   const char* kScriptChars =
   "import 'theLibrary';\n"
@@ -10059,9 +10059,9 @@ TEST_CASE(Dart_LoadLibraryPatch_1) {
       "foomoo() { A.moo(); }\n";
 
   const char* kScriptChars2 =
-      "patch class A {\n"
-      "  /* patch */ int zoo() { return 1; }\n"
-      "  /* patch */ static int moo() { return 1; }\n"
+      "@patch class A {\n"
+      "  @patch int zoo() { return 1; }\n"
+      "  @patch static int moo() { return 1; }\n"
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars1, NULL);
@@ -10099,9 +10099,9 @@ TEST_CASE(Dart_LoadLibraryPatch_Error1) {
       "foozoo() { new A().zoo(); }\n";
 
   const char* kScriptChars2 =
-      "patch class A {\n"
-      "  /* patch */ int zoo() { return 1; }\n"
-      "  /* patch */ int fld1;\n"
+      "@patch class A {\n"
+      "  @patch int zoo() { return 1; }\n"
+      "  @patch int fld1;\n"
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars1, NULL);
@@ -10136,8 +10136,8 @@ TEST_CASE(Dart_LoadLibraryPatch_Error2) {
       "foozoo() { new A().zoo(); }\n";
 
   const char* kScriptChars2 =
-      "patch class A {\n"
-      "  /* patch */ int zoo() { return 1; }\n"
+      "@patch class A {\n"
+      "  @patch int zoo() { return 1; }\n"
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars1, NULL);
@@ -10173,8 +10173,8 @@ TEST_CASE(Dart_LoadLibraryPatch_Error3) {
       "foozoo() { new A().zoo(); }\n";
 
   const char* kScriptChars2 =
-      "patch class A {\n"
-      "  /* patch */ int zoo() { return 1; }\n"
+      "@patch class A {\n"
+      "  @patch int zoo() { return 1; }\n"
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars1, NULL);

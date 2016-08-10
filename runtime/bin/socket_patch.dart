@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @patch class RawServerSocket {
-  /* @patch */ static Future<RawServerSocket> bind(address,
+  @patch static Future<RawServerSocket> bind(address,
                                                   int port,
                                                   {int backlog: 0,
                                                    bool v6Only: false,
@@ -14,7 +14,7 @@
 
 
 @patch class RawSocket {
-  /* @patch */ static Future<RawSocket> connect(
+  @patch static Future<RawSocket> connect(
       host, int port, {sourceAddress}) {
     return _RawSocket.connect(host, port, sourceAddress);
   }
@@ -22,43 +22,43 @@
 
 
 @patch class InternetAddress {
-  /* @patch */ static InternetAddress get LOOPBACK_IP_V4 {
+  @patch static InternetAddress get LOOPBACK_IP_V4 {
     return _InternetAddress.LOOPBACK_IP_V4;
   }
 
-  /* @patch */ static InternetAddress get LOOPBACK_IP_V6 {
+  @patch static InternetAddress get LOOPBACK_IP_V6 {
     return _InternetAddress.LOOPBACK_IP_V6;
   }
 
-  /* @patch */ static InternetAddress get ANY_IP_V4 {
+  @patch static InternetAddress get ANY_IP_V4 {
     return _InternetAddress.ANY_IP_V4;
   }
 
-  /* @patch */ static InternetAddress get ANY_IP_V6 {
+  @patch static InternetAddress get ANY_IP_V6 {
     return _InternetAddress.ANY_IP_V6;
   }
 
-  /* @patch */ factory InternetAddress(String address) {
+  @patch factory InternetAddress(String address) {
     return new _InternetAddress.parse(address);
   }
 
-  /* @patch */ static Future<List<InternetAddress>> lookup(
+  @patch static Future<List<InternetAddress>> lookup(
       String host, {InternetAddressType type: InternetAddressType.ANY}) {
     return _NativeSocket.lookup(host, type: type);
   }
 
-  /* @patch */ static InternetAddress _cloneWithNewHost(
+  @patch static InternetAddress _cloneWithNewHost(
       InternetAddress address, String host) {
     return (address as _InternetAddress)._cloneWithNewHost(host);
   }
 }
 
 @patch class NetworkInterface {
-  /* @patch */ static bool get listSupported {
+  @patch static bool get listSupported {
     return _listSupported();
   }
 
-  /* @patch */ static Future<List<NetworkInterface>> list({
+  @patch static Future<List<NetworkInterface>> list({
       bool includeLoopback: false,
       bool includeLinkLocal: false,
       InternetAddressType type: InternetAddressType.ANY}) {
@@ -1361,7 +1361,7 @@ class _RawSocket extends Stream<RawSocketEvent>
 
 
 @patch class ServerSocket {
-  /* @patch */ static Future<ServerSocket> bind(address,
+  @patch static Future<ServerSocket> bind(address,
                                                int port,
                                                {int backlog: 0,
                                                 bool v6Only: false,
@@ -1408,7 +1408,7 @@ class _ServerSocket extends Stream<Socket>
 
 
 @patch class Socket {
-  /* @patch */ static Future<Socket> connect(host, int port, {sourceAddress}) {
+  @patch static Future<Socket> connect(host, int port, {sourceAddress}) {
     return RawSocket.connect(host, port, sourceAddress: sourceAddress).then(
         (socket) => new _Socket(socket));
   }
@@ -1721,7 +1721,7 @@ class _Socket extends Stream<List<int>> implements Socket {
 
 
 @patch class RawDatagramSocket {
-  /* @patch */ static Future<RawDatagramSocket> bind(
+  @patch static Future<RawDatagramSocket> bind(
       host, int port, {bool reuseAddress: true}) {
     return _RawDatagramSocket.bind(host, port, reuseAddress);
   }

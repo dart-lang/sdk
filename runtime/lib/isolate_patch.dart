@@ -6,14 +6,14 @@ import "dart:collection" show HashMap;
 import "dart:_internal";
 
 @patch class ReceivePort {
-  /* @patch */ factory ReceivePort() = _ReceivePortImpl;
+  @patch factory ReceivePort() = _ReceivePortImpl;
 
-  /* @patch */ factory ReceivePort.fromRawReceivePort(RawReceivePort rawPort) =
+  @patch factory ReceivePort.fromRawReceivePort(RawReceivePort rawPort) =
       _ReceivePortImpl.fromRawReceivePort;
 }
 
 @patch class Capability {
-  /* @patch */ factory Capability() = _CapabilityImpl;
+  @patch factory Capability() = _CapabilityImpl;
 }
 
 class _CapabilityImpl implements Capability {
@@ -39,7 +39,7 @@ class _CapabilityImpl implements Capability {
    * can not be paused. The data-handler must be set before the first
    * event is received.
    */
-  /* @patch */ factory RawReceivePort([void handler(event)]) {
+  @patch factory RawReceivePort([void handler(event)]) {
     _RawReceivePortImpl result = new _RawReceivePortImpl();
     result.handler = handler;
     return result;
@@ -272,9 +272,9 @@ void _startIsolate(SendPort parentPort,
   static final _currentIsolate = _getCurrentIsolate();
   static final _rootUri = _getCurrentRootUri();
 
-  /* @patch */ static Isolate get current => _currentIsolate;
+  @patch static Isolate get current => _currentIsolate;
 
-  /* @patch */ static Future<Uri> get packageRoot {
+  @patch static Future<Uri> get packageRoot {
     var hook = VMLibraryHooks.packageRootUriFuture;
     if (hook == null) {
       throw new UnsupportedError("Isolate.packageRoot");
@@ -282,7 +282,7 @@ void _startIsolate(SendPort parentPort,
     return hook();
   }
 
-  /* @patch */ static Future<Uri> get packageConfig {
+  @patch static Future<Uri> get packageConfig {
     var hook = VMLibraryHooks.packageConfigUriFuture;
     if (hook == null) {
       throw new UnsupportedError("Isolate.packageConfig");
@@ -290,7 +290,7 @@ void _startIsolate(SendPort parentPort,
     return hook();
   }
 
-  /* @patch */ static Future<Uri> resolvePackageUri(Uri packageUri) {
+  @patch static Future<Uri> resolvePackageUri(Uri packageUri) {
     var hook = VMLibraryHooks.resolvePackageUriFuture;
     if (hook == null) {
       throw new UnsupportedError("Isolate.resolvePackageUri");
@@ -303,7 +303,7 @@ void _startIsolate(SendPort parentPort,
       (VMLibraryHooks.packageConfigUriFuture != null) &&
       (VMLibraryHooks.resolvePackageUriFuture != null);
 
-  /* @patch */ static Future<Isolate> spawn(
+  @patch static Future<Isolate> spawn(
       void entryPoint(message), var message,
       {bool paused: false, bool errorsAreFatal,
        SendPort onExit, SendPort onError}) async {
@@ -340,7 +340,7 @@ void _startIsolate(SendPort parentPort,
     }
   }
 
-  /* @patch */ static Future<Isolate> spawnUri(
+  @patch static Future<Isolate> spawnUri(
       Uri uri, List<String> args, var message,
       {bool paused: false,
        SendPort onExit,
@@ -478,7 +478,7 @@ void _startIsolate(SendPort parentPort,
 
   static void _sendOOB(port, msg) native "Isolate_sendOOB";
 
-  /* @patch */ void _pause(Capability resumeCapability) {
+  @patch void _pause(Capability resumeCapability) {
     var msg = new List(4)
         ..[0] = 0  // Make room for OOB message type.
         ..[1] = _PAUSE
@@ -487,7 +487,7 @@ void _startIsolate(SendPort parentPort,
     _sendOOB(controlPort, msg);
   }
 
-  /* @patch */ void resume(Capability resumeCapability) {
+  @patch void resume(Capability resumeCapability) {
     var msg = new List(4)
         ..[0] = 0  // Make room for OOB message type.
         ..[1] = _RESUME
@@ -496,8 +496,8 @@ void _startIsolate(SendPort parentPort,
     _sendOOB(controlPort, msg);
   }
 
-  /* @patch */ void addOnExitListener(SendPort responsePort,
-                                     {Object response}) {
+  @patch void addOnExitListener(SendPort responsePort,
+                                {Object response}) {
     var msg = new List(4)
         ..[0] = 0  // Make room for OOB message type.
         ..[1] = _ADD_EXIT
@@ -506,7 +506,7 @@ void _startIsolate(SendPort parentPort,
     _sendOOB(controlPort, msg);
   }
 
-  /* @patch */ void removeOnExitListener(SendPort responsePort) {
+  @patch void removeOnExitListener(SendPort responsePort) {
     var msg = new List(3)
         ..[0] = 0  // Make room for OOB message type.
         ..[1] = _DEL_EXIT
@@ -514,7 +514,7 @@ void _startIsolate(SendPort parentPort,
     _sendOOB(controlPort, msg);
   }
 
-  /* @patch */ void setErrorsFatal(bool errorsAreFatal) {
+  @patch void setErrorsFatal(bool errorsAreFatal) {
     var msg = new List(4)
       ..[0] = 0  // Make room for OOB message type.
       ..[1] = _ERROR_FATAL
@@ -523,7 +523,7 @@ void _startIsolate(SendPort parentPort,
     _sendOOB(controlPort, msg);
   }
 
-  /* @patch */ void kill({int priority: BEFORE_NEXT_EVENT}) {
+  @patch void kill({int priority: BEFORE_NEXT_EVENT}) {
     var msg = new List(4)
         ..[0] = 0  // Make room for OOB message type.
         ..[1] = _KILL
@@ -532,8 +532,8 @@ void _startIsolate(SendPort parentPort,
     _sendOOB(controlPort, msg);
   }
 
-  /* @patch */ void ping(SendPort responsePort, {Object response,
-                                                int priority: IMMEDIATE}) {
+  @patch void ping(SendPort responsePort, {Object response,
+                                           int priority: IMMEDIATE}) {
     var msg = new List(5)
         ..[0] = 0  // Make room for OOM message type.
         ..[1] = _PING
@@ -543,7 +543,7 @@ void _startIsolate(SendPort parentPort,
     _sendOOB(controlPort, msg);
   }
 
-  /* @patch */ void addErrorListener(SendPort port) {
+  @patch void addErrorListener(SendPort port) {
     var msg = new List(3)
         ..[0] = 0  // Make room for OOB message type.
         ..[1] = _ADD_ERROR
@@ -551,7 +551,7 @@ void _startIsolate(SendPort parentPort,
     _sendOOB(controlPort, msg);
   }
 
-  /* @patch */ void removeErrorListener(SendPort port) {
+  @patch void removeErrorListener(SendPort port) {
     var msg = new List(3)
         ..[0] = 0  // Make room for OOB message type.
         ..[1] = _DEL_ERROR

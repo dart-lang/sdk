@@ -82,7 +82,7 @@ double _log(double x) native "Math_log";
 // TODO(iposva): Handle patch methods within a patch class correctly.
 @patch class Random {
 
-  /*@patch*/ factory Random([int seed]) {
+  @patch factory Random([int seed]) {
     var state = _Random._setupSeed((seed == null) ? _Random._nextSeed() : seed);
     // Crank a couple of times to distribute the seed bits a bit further.
     return new _Random._withState(state).._nextState()
@@ -91,7 +91,7 @@ double _log(double x) native "Math_log";
                                         .._nextState();
   }
 
-  /*@patch*/ factory Random.secure() {
+  @patch factory Random.secure() {
     return new _SecureRandom();
   }
 }

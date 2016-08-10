@@ -29,14 +29,14 @@ class _ZLibDeflateFilter extends _FilterImpl {
 }
 
 @patch class _Filter {
-  /* @patch */ static _Filter _newZLibDeflateFilter(bool gzip, int level,
+  @patch static _Filter _newZLibDeflateFilter(bool gzip, int level,
                                                     int windowBits, int memLevel,
                                                     int strategy,
                                                     List<int> dictionary,
                                                     bool raw) =>
       new _ZLibDeflateFilter(gzip, level, windowBits, memLevel, strategy,
                              dictionary, raw);
-  /* @patch */ static _Filter _newZLibInflateFilter(int windowBits,
+  @patch static _Filter _newZLibInflateFilter(int windowBits,
                                                     List<int> dictionary,
                                                     bool raw) =>
       new _ZLibInflateFilter(windowBits, dictionary, raw);

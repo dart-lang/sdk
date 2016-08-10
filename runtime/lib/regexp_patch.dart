@@ -5,7 +5,7 @@
 import "dart:collection" show LinkedList, LinkedListEntry;
 
 @patch class RegExp {
-  /* @patch */ factory RegExp(String source,
+  @patch factory RegExp(String source,
                               {bool multiLine: false,
                                bool caseSensitive: true}) {
     _RegExpHashKey key = new _RegExpHashKey(

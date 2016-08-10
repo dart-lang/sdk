@@ -101,7 +101,7 @@
     return _nativeParse(str, start, end);
   }
 
-  /* @patch */ static double parse(String str,
+  @patch static double parse(String str,
                                    [double onError(String str)]) {
     var result = _parse(str);
     if (result == null) {

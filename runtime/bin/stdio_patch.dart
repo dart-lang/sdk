@@ -47,13 +47,13 @@
 }
 
 @patch class Stdin {
-  /* @patch */ int readByteSync() native "Stdin_ReadByte";
+  @patch int readByteSync() native "Stdin_ReadByte";
 
-  /* @patch */ bool get echoMode => _echoMode;
-  /* @patch */ void set echoMode(bool enabled) { _echoMode = enabled; }
+  @patch bool get echoMode => _echoMode;
+  @patch void set echoMode(bool enabled) { _echoMode = enabled; }
 
-  /* @patch */ bool get lineMode => _lineMode;
-  /* @patch */ void set lineMode(bool enabled) { _lineMode = enabled; }
+  @patch bool get lineMode => _lineMode;
+  @patch void set lineMode(bool enabled) { _lineMode = enabled; }
 
   static bool get _echoMode native "Stdin_GetEchoMode";
   static void set _echoMode(bool enabled) native "Stdin_SetEchoMode";
@@ -62,7 +62,7 @@
 }
 
 @patch class Stdout {
-  /* @patch */ bool _hasTerminal(int fd) {
+  @patch bool _hasTerminal(int fd) {
     try {
       _terminalSize(fd);
       return true;
@@ -71,8 +71,8 @@
     }
   }
 
-  /* @patch */ int _terminalColumns(int fd) => _terminalSize(fd)[0];
-  /* @patch */ int _terminalLines(int fd) => _terminalSize(fd)[1];
+  @patch int _terminalColumns(int fd) => _terminalSize(fd)[0];
+  @patch int _terminalLines(int fd) => _terminalSize(fd)[1];
 
   static List _terminalSize(int fd) {
     var size = _getTerminalSize(fd);

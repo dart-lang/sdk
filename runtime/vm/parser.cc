@@ -4034,6 +4034,12 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   if (library_.is_dart_scheme() && library_.IsPrivate(*method->name)) {
     func.set_is_reflectable(false);
   }
+  if (is_patch_source() && IsPatchAnnotation(method->metadata_pos)) {
+    // Currently, we just ignore the patch annotation. If the function
+    // name already exists in the patched class, this function will replace
+    // the one in the patched class.
+    method->metadata_pos = TokenPosition::kNoSource;
+  }
   if (FLAG_enable_mirrors && (method->metadata_pos.IsReal())) {
     library_.AddFunctionMetadata(func, method->metadata_pos);
   }
@@ -4134,6 +4140,11 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     class_field.set_has_initializer(has_initializer);
     members->AddField(class_field);
     field->field_ = &class_field;
+    if (is_patch_source() && IsPatchAnnotation(field->metadata_pos)) {
+      // Currently, we just ignore the patch annotation on fields.
+      // All fields in the patch class are added to the patched class.
+      field->metadata_pos = TokenPosition::kNoSource;
+    }
     if (FLAG_enable_mirrors && (field->metadata_pos.IsReal())) {
       library_.AddFieldMetadata(class_field, field->metadata_pos);
     }

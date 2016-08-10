@@ -6,15 +6,15 @@ import 'dart:_internal' as internal;
 import 'dart:convert' show JSON;
 
 @patch class Error {
-  /* @patch */ static String _objectToString(Object object) {
+  @patch static String _objectToString(Object object) {
     return Object._toString(object);
   }
 
-  /* @patch */ static String _stringToSafeString(String string) {
+  @patch static String _stringToSafeString(String string) {
     return JSON.encode(string);
   }
 
-  /* @patch */ StackTrace get stackTrace => _stackTrace;
+  @patch StackTrace get stackTrace => _stackTrace;
 
   StackTrace _stackTrace;
 }
@@ -100,7 +100,7 @@ class _CastError extends Error implements CastError {
 
   static _throwNew(int case_clause_pos) native "FallThroughError_throwNew";
 
-  /* @patch */ String toString() {
+  @patch String toString() {
     return "'$_url': Switch case fall-through at line $_line.";
   }
 
@@ -135,7 +135,7 @@ class _InternalError {
   static _throwNew(int case_clause_pos, String className)
       native "AbstractClassInstantiationError_throwNew";
 
-  /* @patch */ String toString() {
+  @patch String toString() {
     return "Cannot instantiate abstract class $_className: "
            "_url '$_url' line $_line";
   }
@@ -284,7 +284,7 @@ class _InternalError {
     return "$msg\n\n";
   }
 
-  /* @patch */ String toString() {
+  @patch String toString() {
     StringBuffer actual_buf = new StringBuffer();
     int i = 0;
     if (_arguments == null) {

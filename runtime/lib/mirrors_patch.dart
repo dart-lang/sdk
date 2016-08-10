@@ -36,7 +36,7 @@ import "dart:_internal" as internal;
 }
 
 @patch class MirrorSystem {
-  /* @patch */ LibraryMirror findLibrary(Symbol libraryName) {
+  @patch LibraryMirror findLibrary(Symbol libraryName) {
     var candidates =
         libraries.values.where((lib) => lib.simpleName == libraryName);
     if (candidates.length == 1) {
@@ -50,11 +50,11 @@ import "dart:_internal" as internal;
     throw new Exception("There is no library named '${getName(libraryName)}'");
   }
 
-  /* @patch */ static String getName(Symbol symbol) {
+  @patch static String getName(Symbol symbol) {
     return internal.Symbol.getUnmangledName(symbol);
   }
 
-  /* @patch */ static Symbol getSymbol(String name, [LibraryMirror library]) {
+  @patch static Symbol getSymbol(String name, [LibraryMirror library]) {
     if ((library != null && library is! _LocalLibraryMirror) ||
         ((name.length > 0) && (name[0] == '_') && (library == null))) {
       throw new ArgumentError(library);

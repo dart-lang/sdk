@@ -22,7 +22,7 @@ import "dart:_internal" show POWERS_OF_TEN;
 }
 
 @patch class Utf8Decoder {
-  /* @patch */
+  @patch
   Converter<List<int>, dynamic/*=T*/> fuse/*<T>*/(
       Converter<String, dynamic/*=T*/> next) {
     if (next is JsonDecoder) {
@@ -34,7 +34,7 @@ import "dart:_internal" show POWERS_OF_TEN;
   }
 
   // Allow intercepting of UTF-8 decoding when built-in lists are passed.
-  /* @patch */
+  @patch
   static String _convertIntercepted(
       bool allowMalformed, List<int> codeUnits, int start, int end) {
     return null;  // This call was not intercepted.
@@ -1377,7 +1377,7 @@ class _JsonStringParser extends _ChunkedJsonParser {
 }
 
 @patch class JsonDecoder {
-  /* @patch */ StringConversionSink startChunkedConversion(Sink<Object> sink) {
+  @patch StringConversionSink startChunkedConversion(Sink<Object> sink) {
     return new _JsonStringDecoderSink(this._reviver, sink);
   }
 }

@@ -48,20 +48,20 @@
   int _bufferCodeUnitMagnitude = 0;
 
   /// Creates the string buffer with an initial content.
-  /* @patch */ StringBuffer([Object content = ""]) {
+  @patch StringBuffer([Object content = ""]) {
     write(content);
   }
 
-  /* @patch */ int get length => _partsCodeUnits + _bufferPosition;
+  @patch int get length => _partsCodeUnits + _bufferPosition;
 
-  /* @patch */ void write(Object obj) {
+  @patch void write(Object obj) {
     String str = '$obj';
     if (str.isEmpty) return;
     _consumeBuffer();
     _addPart(str);
   }
 
-  /* @patch */ void writeCharCode(int charCode) {
+  @patch void writeCharCode(int charCode) {
     if (charCode <= 0xFFFF) {
       if (charCode < 0) {
         throw new RangeError.range(charCode, 0, 0x10FFFF);
@@ -81,7 +81,7 @@
     }
   }
 
-  /* @patch */ void writeAll(Iterable objects, [String separator = ""]) {
+  @patch void writeAll(Iterable objects, [String separator = ""]) {
     Iterator iterator = objects.iterator;
     if (!iterator.moveNext()) return;
     if (separator.isEmpty) {
@@ -97,19 +97,19 @@
     }
   }
 
-  /* @patch */ void writeln([Object obj = ""]) {
+  @patch void writeln([Object obj = ""]) {
     write(obj);
     write("\n");
   }
 
   /** Makes the buffer empty. */
-  /* @patch */ void clear() {
+  @patch void clear() {
     _parts = null;
     _partsCodeUnits = _bufferPosition = _bufferCodeUnitMagnitude = 0;
   }
 
   /** Returns the contents of buffer as a string. */
-  /* @patch */ String toString() {
+  @patch String toString() {
     _consumeBuffer();
     return (_partsCodeUnits == 0) ?
         "" :

@@ -4,7 +4,7 @@
 
 @patch class Asset {
   /// Call to request assets from the embedder.
-  /* @patch */ static HashMap<String, Asset> request() {
+  @patch static HashMap<String, Asset> request() {
     HashMap<String, Asset> assets = new HashMap<String, Asset>();
     Uint8List tarBytes = _requestAssets();
     if (tarBytes == null) {

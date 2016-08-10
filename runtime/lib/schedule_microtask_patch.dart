@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @patch class _AsyncRun {
-  /* @patch */ static void _scheduleImmediate(void callback()) {
+  @patch static void _scheduleImmediate(void callback()) {
     if (_ScheduleImmediate._closure == null) {
       throw new UnsupportedError("Microtasks are not supported");
     }

@@ -11,7 +11,7 @@
   static Map<int, Completer> _messageMap = {};
   static int _id = 0;
 
-  /* @patch */ static Future _dispatch(int request, List data) {
+  @patch static Future _dispatch(int request, List data) {
     int id;
     do {
       id = _getNextId();
