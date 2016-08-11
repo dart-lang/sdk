@@ -1932,11 +1932,9 @@ void Precompiler::SwitchICCalls() {
         if (entry_.IsICData()) {
           ic_ ^= entry_.raw();
 
-          // Only single check ICs are SwitchableCalls that use the ICLookup
-          // stubs. Some operators like + have ICData that check the types of
-          // arguments in addition to the receiver and use special stubs
-          // with fast paths for Smi operations.
-          if (ic_.NumArgsTested() != 1) continue;
+          // SwitchableCalls use single-check ICs. No other kind of IC call is
+          // generated in precompilation mode.
+          ASSERT(ic_.NumArgsTested() == 1);
 
           for (intptr_t j = 0; j < ic_.NumberOfChecks(); j++) {
             entry_ = ic_.GetTargetOrCodeAt(j);

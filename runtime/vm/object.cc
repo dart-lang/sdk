@@ -6589,7 +6589,7 @@ RawFunction* Function::NewClosureFunction(const String& name,
                     /* is_const = */ false,
                     /* is_abstract = */ false,
                     /* is_external = */ false,
-                    parent.is_native(),
+                    /* is_native = */ false,
                     parent_owner,
                     token_pos));
   result.set_parent_function(parent);
