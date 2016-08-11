@@ -693,9 +693,9 @@ class Elements {
   /// on the source code order.
   static int compareByPosition(Element a, Element b) {
     if (identical(a, b)) return 0;
-    int r = a.library.compareTo(b.library);
+    int r = _compareLibraries(a.library, b.library);
     if (r != 0) return r;
-    r = a.compilationUnit.compareTo(b.compilationUnit);
+    r = _compareCompilationUnits(a.compilationUnit, b.compilationUnit);
     if (r != 0) return r;
     int offsetA = a.sourceOffset ?? -1;
     int offsetB = b.sourceOffset ?? -1;
@@ -706,6 +706,62 @@ class Elements {
     // Same file, position and name.  If this happens, we should find out why
     // and make the order total and independent of hashCode.
     return a.hashCode.compareTo(b.hashCode);
+  }
+
+  // Somewhat stable ordering for [LibraryElement]s
+  static int _compareLibraries(LibraryElement a, LibraryElement b) {
+    if (a == b) return 0;
+
+    int byCanonicalUriPath() {
+      return a.canonicalUri.path.compareTo(b.canonicalUri.path);
+    }
+
+    // Order: platform < package < other.
+    if (a.isPlatformLibrary) {
+      if (b.isPlatformLibrary) return byCanonicalUriPath();
+      return -1;
+    }
+    if (b.isPlatformLibrary) return 1;
+
+    if (a.isPackageLibrary) {
+      if (b.isPackageLibrary) return byCanonicalUriPath();
+      return -1;
+    }
+    if (b.isPackageLibrary) return 1;
+
+    return _compareCanonicalUri(a.canonicalUri, b.canonicalUri);
+  }
+
+  static int _compareCanonicalUri(Uri a, Uri b) {
+    int r = a.scheme.compareTo(b.scheme);
+    if (r != 0) return r;
+
+    // We would like the order of 'file:' Uris to be stable across different
+    // users or different builds from temporary directories.  We sort by
+    // pathSegments elements from the last to the first since that tends to find
+    // a stable distinction regardless of directory root.
+    List<String> aSegments = a.pathSegments;
+    List<String> bSegments = b.pathSegments;
+    int aI = aSegments.length;
+    int bI = bSegments.length;
+    while (aI > 0 && bI > 0) {
+      String aSegment = aSegments[--aI];
+      String bSegment = bSegments[--bI];
+      r = aSegment.compareTo(bSegment);
+      if (r != 0) return r;
+    }
+    return aI.compareTo(bI); // Shortest first.
+  }
+
+  static int _compareCompilationUnits(
+      CompilationUnitElement a, CompilationUnitElement b) {
+    if (a == b) return 0;
+    // Compilation units are compared only within the same library so we expect
+    // the Uris to usually be clustered together with a common scheme and path
+    // prefix.
+    Uri aUri = a.script.readableUri;
+    Uri bUri = b.script.readableUri;
+    return '${aUri}'.compareTo('${bUri}');
   }
 
   static List<Element> sortedByPosition(Iterable<Element> elements) {
@@ -841,8 +897,6 @@ abstract class CompilationUnitElement extends Element {
   Script get script;
 
   void forEachLocalMember(f(Element element));
-
-  int compareTo(CompilationUnitElement other);
 }
 
 abstract class ImportElement extends Element {
@@ -931,8 +985,6 @@ abstract class LibraryElement extends Element
   /// Note: the returned filename is still escaped ("a%20b.dart" instead of
   /// "a b.dart").
   String get libraryOrScriptName;
-
-  int compareTo(LibraryElement other);
 }
 
 /// The implicit scope defined by a import declaration with a prefix clause.
