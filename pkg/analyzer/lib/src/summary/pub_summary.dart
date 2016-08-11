@@ -9,12 +9,14 @@ import 'dart:core' hide Resource;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
@@ -127,6 +129,95 @@ class PubSummaryManager {
   pathos.Context get pathContext => resourceProvider.pathContext;
 
   /**
+   * Compute and return the linked bundle for the SDK extension for the given
+   * [context], or `null` if none of the packages has an SDK extension.  At most
+   * one extension library is supported, if more than one is found, then an
+   * error will be logged, and `null` returned.
+   */
+  PackageBundle computeSdkExtension(
+      AnalysisContext context, PackageBundle sdkBundle) {
+    // Prepare SDK extension library files.
+    String libUriStr;
+    String libPath;
+    {
+      Map<String, List<Folder>> packageMap = context.sourceFactory.packageMap;
+      SdkExtUriResolver sdkExtUriResolver = new SdkExtUriResolver(packageMap);
+      Map<String, String> sdkExtMappings = sdkExtUriResolver.urlMappings;
+      if (sdkExtMappings.length == 1) {
+        libUriStr = sdkExtMappings.keys.first;
+        libPath = sdkExtMappings.values.first;
+      } else if (sdkExtMappings.length > 1) {
+        AnalysisEngine.instance.logger
+            .logError('At most one _sdkext file is supported, '
+                'with at most one extension library. $sdkExtMappings found.');
+        return null;
+      } else {
+        return null;
+      }
+    }
+    // Compute the extension unlinked bundle.
+    bool strong = context.analysisOptions.strongMode;
+    PackageBundleAssembler assembler = new PackageBundleAssembler();
+    try {
+      File libFile = resourceProvider.getFile(libPath);
+      Uri libUri = FastUri.parse(libUriStr);
+      Source libSource = libFile.createSource(libUri);
+      CompilationUnit libraryUnit = _parse(libSource, strong);
+      // Add the library unit.
+      assembler.addUnlinkedUnit(libSource, serializeAstUnlinked(libraryUnit));
+      // Add part units.
+      for (Directive directive in libraryUnit.directives) {
+        if (directive is PartDirective) {
+          Source partSource;
+          {
+            String partUriStr = directive.uri.stringValue;
+            Uri partUri = resolveRelativeUri(libUri, FastUri.parse(partUriStr));
+            pathos.Context pathContext = resourceProvider.pathContext;
+            String partPath =
+                pathContext.join(pathContext.dirname(libPath), partUriStr);
+            File partFile = resourceProvider.getFile(partPath);
+            partSource = partFile.createSource(partUri);
+          }
+          CompilationUnit partUnit = _parse(partSource, strong);
+          assembler.addUnlinkedUnit(partSource, serializeAstUnlinked(partUnit));
+        }
+      }
+      // Add the SDK and the unlinked extension bundle.
+      PackageBundleBuilder unlinkedBuilder = assembler.assemble();
+      SummaryDataStore store = new SummaryDataStore(const <String>[]);
+      store.addBundle(null, sdkBundle);
+      store.addBundle(null, unlinkedBuilder);
+      // Link the extension bundle.
+      bool failed = false;
+      Map<String, LinkedLibraryBuilder> linkedLibraries =
+          link([libUriStr].toSet(), (String absoluteUri) {
+        LinkedLibrary dependencyLibrary = store.linkedMap[absoluteUri];
+        if (dependencyLibrary == null) {
+          failed = true;
+        }
+        return dependencyLibrary;
+      }, (String absoluteUri) {
+        UnlinkedUnit unlinkedUnit = store.unlinkedMap[absoluteUri];
+        if (unlinkedUnit == null) {
+          failed = true;
+        }
+        return unlinkedUnit;
+      }, strong);
+      if (failed || linkedLibraries.length != 1) {
+        return null;
+      }
+      // Append linked libraries into the assembler.
+      linkedLibraries.forEach((uri, library) {
+        assembler.addLinkedLibrary(uri, library);
+      });
+      List<int> bytes = assembler.assemble().toBuffer();
+      return new PackageBundle.fromBuffer(bytes);
+    } on FileSystemException {
+      return null;
+    }
+  }
+
+  /**
    * Return the list of linked [LinkedPubPackage]s that can be provided at this
    * time for a subset of the packages used by the given [context].  If
    * information about some of the used packages is not available yet, schedule
@@ -193,7 +284,6 @@ class PubSummaryManager {
     bool strong = context.analysisOptions.strongMode;
     Map<PubPackage, PackageBundle> unlinkedBundles =
         new HashMap<PubPackage, PackageBundle>();
-    // TODO(scheglov) get _sdkext bundles.
     Map<String, List<Folder>> packageMap = context.sourceFactory.packageMap;
     if (packageMap != null) {
       packageMap.forEach((String packageName, List<Folder> libFolders) {

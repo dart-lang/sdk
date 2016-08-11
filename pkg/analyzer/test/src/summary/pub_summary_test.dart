@@ -35,6 +35,119 @@ class PubSummaryManagerTest extends AbstractContextTest {
     manager = new PubSummaryManager(resourceProvider, '_.temp');
   }
 
+  test_computeSdkExtension() async {
+    // Create package files.
+    resourceProvider.newFile(
+        '$CACHE/aaa/lib/a.dart',
+        '''
+class A {}
+''');
+    resourceProvider.newFile(
+        '$CACHE/aaa/sdk_ext/extA.dart',
+        '''
+library test.a;
+import 'dart:async';
+part 'src/p1.dart';
+part 'src/p2.dart';
+class ExtA {}
+int V0;
+''');
+    resourceProvider.newFile(
+        '$CACHE/aaa/sdk_ext/src/p1.dart',
+        '''
+part of test.a;
+class ExtAA {}
+double V1;
+''');
+    resourceProvider.newFile(
+        '$CACHE/aaa/sdk_ext/src/p2.dart',
+        '''
+part of test.a;
+class ExtAB {}
+Future V2;
+''');
+    resourceProvider.newFile(
+        '$CACHE/aaa/lib/_sdkext',
+        '''
+{
+  "dart:aaa.internal": "../sdk_ext/extA.dart"
+}
+''');
+    resourceProvider.newFile(
+        '$CACHE/bbb/lib/b.dart',
+        '''
+class B {}
+''');
+
+    // Configure packages resolution.
+    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
+    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
+    context.sourceFactory = new SourceFactory(<UriResolver>[
+      sdkResolver,
+      resourceResolver,
+      new PackageMapUriResolver(resourceProvider, {
+        'aaa': [libFolderA],
+        'bbb': [libFolderB],
+      })
+    ]);
+
+    PackageBundle sdkBundle = getSdkBundle(sdk);
+    PackageBundle bundle = manager.computeSdkExtension(context, sdkBundle);
+    expect(bundle, isNotNull);
+    expect(bundle.linkedLibraryUris, ['dart:aaa.internal']);
+    expect(bundle.unlinkedUnitUris, [
+      'dart:aaa.internal',
+      'dart:aaa.internal/src/p1.dart',
+      'dart:aaa.internal/src/p2.dart'
+    ]);
+    expect(bundle.unlinkedUnits, hasLength(3));
+    expect(bundle.unlinkedUnits[0].classes.map((c) => c.name), ['ExtA']);
+    expect(bundle.unlinkedUnits[1].classes.map((c) => c.name), ['ExtAA']);
+    expect(bundle.unlinkedUnits[2].classes.map((c) => c.name), ['ExtAB']);
+    // The library is linked.
+    expect(bundle.linkedLibraries, hasLength(1));
+    LinkedLibrary linkedLibrary = bundle.linkedLibraries[0];
+    // V0 is linked
+    {
+      UnlinkedUnit unlinkedUnit = bundle.unlinkedUnits[0];
+      LinkedUnit linkedUnit = linkedLibrary.units[0];
+      expect(unlinkedUnit.variables, hasLength(1));
+      UnlinkedVariable variable = unlinkedUnit.variables[0];
+      expect(variable.name, 'V0');
+      int typeRef = variable.type.reference;
+      expect(unlinkedUnit.references[typeRef].name, 'int');
+      LinkedReference linkedReference = linkedUnit.references[typeRef];
+      expect(linkedLibrary.dependencies[linkedReference.dependency].uri,
+          'dart:core');
+    }
+    // V1 is linked
+    {
+      UnlinkedUnit unlinkedUnit = bundle.unlinkedUnits[1];
+      LinkedUnit linkedUnit = linkedLibrary.units[1];
+      expect(unlinkedUnit.variables, hasLength(1));
+      UnlinkedVariable variable = unlinkedUnit.variables[0];
+      expect(variable.name, 'V1');
+      int typeRef = variable.type.reference;
+      expect(unlinkedUnit.references[typeRef].name, 'double');
+      LinkedReference linkedReference = linkedUnit.references[typeRef];
+      expect(linkedLibrary.dependencies[linkedReference.dependency].uri,
+          'dart:core');
+    }
+    // V2 is linked
+    {
+      UnlinkedUnit unlinkedUnit = bundle.unlinkedUnits[2];
+      LinkedUnit linkedUnit = linkedLibrary.units[2];
+      expect(unlinkedUnit.variables, hasLength(1));
+      UnlinkedVariable variable = unlinkedUnit.variables[0];
+      expect(variable.name, 'V2');
+      int typeRef = variable.type.reference;
+      expect(unlinkedUnit.references[typeRef].name, 'Future');
+      LinkedReference linkedReference = linkedUnit.references[typeRef];
+      expect(linkedLibrary.dependencies[linkedReference.dependency].uri,
+          'dart:async');
+    }
+  }
+
   test_getLinkedBundles_hasCycle() async {
     resourceProvider.newFile(
         '$CACHE/aaa/lib/a.dart',
