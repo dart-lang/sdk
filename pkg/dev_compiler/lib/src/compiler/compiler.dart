@@ -2,21 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection' show HashSet;
-import 'package:args/args.dart' show ArgParser, ArgResults;
-import 'package:args/src/usage_exception.dart' show UsageException;
+import 'dart:collection' show HashSet, Queue;
+import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/analyzer.dart'
-    show
-        AnalysisError,
-        CompilationUnit,
-        CompileTimeErrorCode,
-        ErrorSeverity,
-        StaticWarningCode;
+    show AnalysisError, CompilationUnit, ErrorSeverity;
 import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
 import 'package:analyzer/src/generated/source_io.dart'
     show Source, SourceKind, UriResolver;
+import 'package:analyzer/src/summary/package_bundle_reader.dart'
+    show InSummarySource;
+import 'package:args/args.dart' show ArgParser, ArgResults;
+import 'package:args/src/usage_exception.dart' show UsageException;
 import 'package:func/func.dart' show Func1;
 import 'package:path/path.dart' as path;
 
@@ -76,14 +74,15 @@ class ModuleCompiler {
     var trees = <CompilationUnit>[];
     var errors = <AnalysisError>[];
 
-    // Validate that all parts were explicitly passed in.
-    // If not, it's an error.
-    var explicitParts = new HashSet<Source>();
-    var usedParts = new HashSet<Source>();
+    var librariesToCompile = new Queue<LibraryElement>();
+
+    var compilingSdk = false;
     for (var sourcePath in unit.sources) {
       var sourceUri = Uri.parse(sourcePath);
       if (sourceUri.scheme == '') {
         sourceUri = path.toUri(path.absolute(sourcePath));
+      } else if (sourceUri.scheme == 'dart') {
+        compilingSdk = true;
       }
       Source source = context.sourceFactory.forUri2(sourceUri);
 
@@ -101,30 +100,31 @@ class ModuleCompiler {
 
       // Ignore parts. They need to be handled in the context of their library.
       if (context.computeKindOf(source) == SourceKind.PART) {
-        explicitParts.add(source);
         continue;
       }
 
-      var resolvedTree = context.resolveCompilationUnit2(source, source);
-      trees.add(resolvedTree);
-      errors.addAll(context.computeErrors(source));
+      librariesToCompile.add(context.computeLibraryElement(source));
+    }
 
-      var library = resolvedTree.element.library;
+    var libraries = new HashSet<LibraryElement>();
+    while (librariesToCompile.isNotEmpty) {
+      var library = librariesToCompile.removeFirst();
+      if (library.source is InSummarySource) continue;
+      if (!compilingSdk && library.source.isInSystemLibrary) continue;
+      if (!libraries.add(library)) continue;
+
+      librariesToCompile.addAll(library.importedLibraries);
+      librariesToCompile.addAll(library.exportedLibraries);
+
+      var tree = context.resolveCompilationUnit(library.source, library);
+      trees.add(tree);
+      errors.addAll(context.computeErrors(library.source));
+
       for (var part in library.parts) {
-        if (!library.isInSdk) usedParts.add(part.source);
         trees.add(context.resolveCompilationUnit(part.source, library));
         errors.addAll(context.computeErrors(part.source));
       }
     }
-
-    // Check if all parts were explicitly passed in.
-    // Also verify all explicitly parts were used.
-    var missingParts = usedParts.difference(explicitParts);
-    var unusedParts = explicitParts.difference(usedParts);
-    errors.addAll(missingParts
-        .map((s) => new AnalysisError(s, 0, 0, missingPartErrorCode)));
-    errors.addAll(unusedParts
-        .map((s) => new AnalysisError(s, 0, 0, unusedPartWarningCode)));
 
     sortErrors(context, errors);
     var messages = <String>[];
@@ -365,11 +365,3 @@ class JSModuleFile {
     return map;
   }
 }
-
-/// (Public for tests) the error code used when a part is missing.
-final missingPartErrorCode = const CompileTimeErrorCode(
-    'MISSING_PART', 'The part was not supplied as an input to the compiler.');
-
-/// (Public for tests) the error code used when a part is unused.
-final unusedPartWarningCode = const StaticWarningCode('UNUSED_PART',
-    'The part was not used by any libraries being compiled.', null, false);

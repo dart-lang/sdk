@@ -6,6 +6,7 @@ dart_library.library('destructuring', null, /* Imports */[
   const dart = dart_sdk.dart;
   const dartx = dart_sdk.dartx;
   const destructuring = Object.create(null);
+  const src__varargs = Object.create(null);
   let intAnddynamic__Todynamic = () => (intAnddynamic__Todynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.int, dart.dynamic], [dart.dynamic])))();
   let intAnddynamic__Todynamic$ = () => (intAnddynamic__Todynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.int, dart.dynamic], {c: dart.dynamic})))();
   let intAnddynamicTodynamic = () => (intAnddynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.int, dart.dynamic])))();
@@ -13,6 +14,7 @@ dart_library.library('destructuring', null, /* Imports */[
   let __Todynamic = () => (__Todynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [], [core.int, dart.dynamic, dart.dynamic])))();
   let __Todynamic$ = () => (__Todynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [], {let: core.int, function: dart.dynamic, arguments: dart.dynamic})))();
   let __Todynamic$0 = () => (__Todynamic$0 = dart.constFn(dart.definiteFunctionType(dart.dynamic, [], {constructor: core.int, valueOf: dart.dynamic, hasOwnProperty: dart.dynamic})))();
+  let dynamicTodynamic = () => (dynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic])))();
   destructuring.f = function(a, b, c = 1) {
     destructuring.f(a, b, c);
   };
@@ -71,6 +73,19 @@ dart_library.library('destructuring', null, /* Imports */[
     destructuring.f(constructor, valueOf, hasOwnProperty);
   };
   dart.fn(destructuring.names_clashing_with_object_props, __Todynamic$0());
+  src__varargs._Rest = class _Rest extends core.Object {
+    new() {
+    }
+  };
+  dart.setSignature(src__varargs._Rest, {
+    constructors: () => ({new: dart.definiteFunctionType(src__varargs._Rest, [])})
+  });
+  src__varargs.rest = dart.const(new src__varargs._Rest());
+  src__varargs.spread = function(args) {
+    dart.throw(new core.StateError('The spread function cannot be called, ' + 'it should be compiled away.'));
+  };
+  dart.fn(src__varargs.spread, dynamicTodynamic());
   // Exports:
   exports.destructuring = destructuring;
+  exports.src__varargs = src__varargs;
 });

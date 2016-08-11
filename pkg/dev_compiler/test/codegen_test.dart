@@ -16,7 +16,7 @@ import 'dart:convert' show JSON;
 import 'dart:io' show Directory, File, Platform;
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:path/path.dart' as path;
-import 'package:test/test.dart' show group, test;
+import 'package:test/test.dart' show test;
 
 import 'package:analyzer/analyzer.dart'
     show
@@ -56,14 +56,6 @@ final codegenTestDir = path.join(repoDirectory, 'gen', 'codegen_tests');
 /// output.
 final codegenOutputDir = path.join(repoDirectory, 'gen', 'codegen_output');
 
-// TODO(jmesserly): switch this to a .packages file.
-final packageUrlMappings = {
-  'package:expect/expect.dart': path.join(codegenDir, 'expect.dart'),
-  'package:async_helper/async_helper.dart':
-      path.join(codegenDir, 'async_helper.dart'),
-  'package:js/js.dart': path.join(codegenDir, 'packages', 'js', 'js.dart')
-};
-
 final codeCoverage = Platform.environment.containsKey('COVERALLS_TOKEN');
 
 RegExp filePattern;
@@ -76,13 +68,16 @@ main(List<String> arguments) {
   var sdkDir = path.join(repoDirectory, 'gen', 'patched_sdk');
   var sdkSummaryFile =
       path.join(testDirectory, '..', 'lib', 'runtime', 'dart_sdk.sum');
-  var analyzerOptions = new AnalyzerOptions(
-      customUrlMappings: packageUrlMappings,
-      dartSdkSummaryPath: sdkSummaryFile);
-  var compiler = new ModuleCompiler(analyzerOptions);
 
-  // Build packages tests depend on.
-  _buildAllPackages(compiler);
+  var summaryPaths = new Directory(path.join(codegenOutputDir, 'pkg'))
+      .listSync()
+      .map((e) => e.path)
+      .where((p) => p.endsWith('.sum'))
+      .toList();
+
+  var analyzerOptions = new AnalyzerOptions(
+      dartSdkSummaryPath: sdkSummaryFile, summaryPaths: summaryPaths);
+  var compiler = new ModuleCompiler(analyzerOptions);
 
   var testDirs = [
     'language',
@@ -141,6 +136,10 @@ main(List<String> arguments) {
     });
   }
 
+  if (filePattern.hasMatch('sunflower')) {
+    _buildSunflower(compiler, codegenOutputDir, codegenExpectDir);
+  }
+
   if (codeCoverage) {
     test('build_sdk code coverage', () {
       return build_sdk.main(['--dart-sdk', sdkDir, '-o', codegenOutputDir]);
@@ -157,11 +156,15 @@ void _writeModule(String outPath, String expectPath, JSModuleFile result) {
   new File(outPath + '.txt').writeAsStringSync(errors);
 
   var jsFile = new File(outPath + '.js');
+  var summaryFile = new File(outPath + '.sum');
   var expectFile = new File(expectPath + '.js');
   var errorFile = new File(outPath + '.err');
 
   if (result.isValid) {
     jsFile.writeAsStringSync(result.code);
+    if (result.summaryBytes != null) {
+      summaryFile.writeAsBytesSync(result.summaryBytes);
+    }
     if (result.sourceMap != null) {
       var mapPath = outPath + '.js.map';
       new File(mapPath)
@@ -207,40 +210,6 @@ dart_library.library('$moduleName', null, [
   }
 }
 
-void _buildAllPackages(ModuleCompiler compiler) {
-  group('dartdevc package', () {
-    _buildPackages(compiler, codegenOutputDir, codegenExpectDir);
-
-    var packages = ['matcher', 'path', 'stack_trace'];
-    for (var package in packages) {
-      if (!filePattern.hasMatch(package)) continue;
-      test(package, () {
-        _buildPackage(compiler, codegenOutputDir, codegenExpectDir, package);
-      });
-    }
-
-    if (!filePattern.hasMatch('unittest')) return;
-
-    test('unittest', () {
-      // Only build files applicable to the web - html_*.dart and its
-      // internal dependences.
-      _buildPackage(compiler, codegenOutputDir, codegenExpectDir, "unittest",
-          packageFiles: [
-            'unittest.dart',
-            'html_config.dart',
-            'html_individual_config.dart',
-            'html_enhanced_config.dart'
-          ]);
-    });
-  });
-
-  if (!filePattern.hasMatch('sunflower')) return;
-
-  test('dartdevc sunflower', () {
-    _buildSunflower(compiler, codegenOutputDir, codegenExpectDir);
-  });
-}
-
 void _buildSunflower(
     ModuleCompiler compiler, String outputDir, String expectDir) {
   var baseDir = path.join(codegenDir, 'sunflower');
@@ -253,65 +222,6 @@ void _buildSunflower(
   var built = compiler.compile(input, options);
   _writeModule(path.join(outputDir, 'sunflower', 'sunflower'),
       path.join(expectDir, 'sunflower', 'sunflower'), built);
-}
-
-void _buildPackages(
-    ModuleCompiler compiler, String outputDir, String expectDir) {
-  // Note: we don't summarize these, as we're going to rely on our in-memory
-  // shared analysis context for caching, and `_moduleForLibrary` below
-  // understands these are from other modules.
-  var options = new CompilerOptions(sourceMap: false, summarizeApi: false);
-
-  for (var uri in packageUrlMappings.keys) {
-    if (!filePattern.hasMatch(uri)) return;
-
-    assert(uri.startsWith('package:'));
-    var uriPath = uri.substring('package:'.length);
-    var name = path.basenameWithoutExtension(uriPath);
-    test(name, () {
-      var input = new BuildUnit(name, codegenDir, [uri], _moduleForLibrary);
-      var built = compiler.compile(input, options);
-
-      var outPath = path.join(outputDir, path.withoutExtension(uriPath));
-      var expectPath = path.join(expectDir, path.withoutExtension(uriPath));
-      _writeModule(outPath, expectPath, built);
-    });
-  }
-}
-
-void _buildPackage(
-    ModuleCompiler compiler, String outputDir, String expectDir, packageName,
-    {List<String> packageFiles}) {
-  var options = new CompilerOptions(sourceMap: false, summarizeApi: false);
-
-  var packageRoot = path.join(codegenDir, 'packages');
-  var packageInputDir = path.join(packageRoot, packageName);
-  List<String> files;
-  if (packageFiles != null) {
-    // Only collect files transitively reachable from packageFiles.
-    var reachable = new Set<String>();
-    for (var file in packageFiles) {
-      file = path.join(packageInputDir, file);
-      _collectTransitiveImports(new File(file).readAsStringSync(), reachable,
-          packageRoot: packageRoot, from: file);
-    }
-    files = reachable.toList();
-  } else {
-    // Collect all files in the packages directory.
-    files = new Directory(packageInputDir)
-        .listSync(recursive: true)
-        .where((entry) => entry.path.endsWith('.dart'))
-        .map((entry) => entry.path)
-        .toList();
-  }
-
-  var unit =
-      new BuildUnit(packageName, packageInputDir, files, _moduleForLibrary);
-  var module = compiler.compile(unit, options);
-
-  var outPath = path.join(outputDir, packageName, packageName);
-  var expectPath = path.join(expectDir, packageName, packageName);
-  _writeModule(outPath, expectPath, module);
 }
 
 String _moduleForLibrary(Source source) {

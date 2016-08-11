@@ -236,7 +236,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       items.add(new JS.ExportDeclaration(
           js.call('const # = Object.create(null)', [libraryTemp])));
 
-      // dart:_runtime has a magic module that holds extenstion method symbols.
+      // dart:_runtime has a magic module that holds extension method symbols.
       // TODO(jmesserly): find a cleaner design for this.
       if (_isDartRuntime(library)) {
         items.add(new JS.ExportDeclaration(

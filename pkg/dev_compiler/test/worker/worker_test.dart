@@ -12,9 +12,6 @@ import 'package:bazel_worker/src/async_message_grouper.dart';
 import 'package:bazel_worker/testing.dart';
 import 'package:test/test.dart';
 
-import 'package:dev_compiler/src/compiler/compiler.dart'
-    show missingPartErrorCode, unusedPartWarningCode;
-
 main() {
   group('Hello World', () {
     final argsFile = new File('test/worker/hello_world.args').absolute;
@@ -222,7 +219,7 @@ main() {
       expect(outJS.existsSync(), isTrue);
     });
 
-    test('error if part is not supplied', () {
+    test('works if part is not supplied', () {
       var result = Process.runSync('dart', [
         'bin/dartdevc.dart',
         'compile',
@@ -232,16 +229,13 @@ main() {
         outJS.path,
         libraryFile.path,
       ]);
-      expect(
-          result.stdout,
-          startsWith('[error] ${missingPartErrorCode.message} '
-              '(test/worker/greeting.dart, line 1, col 1)'));
+      expect(result.stdout, isEmpty);
       expect(result.stderr, isEmpty);
-      expect(result.exitCode, 1);
-      expect(outJS.existsSync(), isFalse);
+      expect(result.exitCode, 0);
+      expect(outJS.existsSync(), isTrue);
     });
 
-    test('warning if part without library is supplied', () {
+    test('part without library is silently ignored', () {
       var result = Process.runSync('dart', [
         'bin/dartdevc.dart',
         'compile',
@@ -251,10 +245,7 @@ main() {
         outJS.path,
         partFile.path,
       ]);
-      expect(
-          result.stdout,
-          startsWith('[warning] ${unusedPartWarningCode.message} '
-              '(test/worker/greeting.dart, line 1, col 1)'));
+      expect(result.stdout, isEmpty);
       expect(result.stderr, isEmpty);
       expect(result.exitCode, 0);
       expect(outJS.existsSync(), isTrue);

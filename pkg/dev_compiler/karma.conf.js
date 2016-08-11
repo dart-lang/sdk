@@ -15,13 +15,7 @@ module.exports = function(config) {
     files: [
       'lib/runtime/dart_*.js',
       // {pattern: 'test/browser/*.js', included: false}
-      'gen/codegen_output/async_helper/async_helper.js',
-      'gen/codegen_output/expect/expect.js',
-      'gen/codegen_output/path/path.js',
-      'gen/codegen_output/stack_trace/stack_trace.js',
-      'gen/codegen_output/js/js.js',
-      'gen/codegen_output/matcher/matcher.js',
-      'gen/codegen_output/unittest/unittest.js',
+      'gen/codegen_output/pkg/*.js',
       'gen/codegen_output/language/**.js',
       'gen/codegen_output/language/**.err',
       'gen/codegen_output/corelib/**.js',
