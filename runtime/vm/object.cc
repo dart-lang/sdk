@@ -3088,6 +3088,13 @@ RawObject* Class::Evaluate(const String& expr,
                            const Array& param_names,
                            const Array& param_values) const {
   ASSERT(Thread::Current()->IsMutatorThread());
+  if (id() < kInstanceCid) {
+    const Instance& exception = Instance::Handle(String::New(
+        "Cannot evaluate against a VM internal class"));
+    const Instance& stacktrace = Instance::Handle();
+    return UnhandledException::New(exception, stacktrace);
+  }
+
   const Function& eval_func =
       Function::Handle(EvaluateHelper(*this, expr, param_names, true));
   const Object& result =
