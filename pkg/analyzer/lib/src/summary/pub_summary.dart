@@ -295,14 +295,11 @@ class PubSummaryManager {
       packageMap.forEach((String packageName, List<Folder> libFolders) {
         if (libFolders.length == 1) {
           Folder libFolder = libFolders.first;
-          // TODO(scheglov) handle Flutter packages, outside of the pub cache.
-          if (isPathInPubCache(pathContext, libFolder.path)) {
-            PubPackage package = new PubPackage(packageName, libFolder);
-            PackageBundle unlinkedBundle =
-                _getUnlinkedOrSchedule(package, strong);
-            if (unlinkedBundle != null) {
-              unlinkedBundles[package] = unlinkedBundle;
-            }
+          PubPackage package = new PubPackage(packageName, libFolder);
+          PackageBundle unlinkedBundle =
+              _getUnlinkedOrSchedule(package, strong);
+          if (unlinkedBundle != null) {
+            unlinkedBundles[package] = unlinkedBundle;
           }
         }
       });
@@ -426,12 +423,14 @@ class PubSummaryManager {
         // Ignore file system exceptions.
       }
     }
-    // Schedule computation in the background.
-    if (package != null && seenPackages.add(package)) {
-      if (packagesToComputeUnlinked.isEmpty) {
-        _scheduleNextUnlinked();
+    // Schedule computation in the background, if in the pub cache.
+    if (isPathInPubCache(pathContext, package.folder.path)) {
+      if (seenPackages.add(package)) {
+        if (packagesToComputeUnlinked.isEmpty) {
+          _scheduleNextUnlinked();
+        }
+        packagesToComputeUnlinked.add(package);
       }
-      packagesToComputeUnlinked.add(package);
     }
     // The bundle is for available.
     return null;

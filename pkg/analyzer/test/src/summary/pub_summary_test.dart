@@ -7,9 +7,11 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/pub_summary.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
+import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:unittest/unittest.dart' hide ERROR;
 
@@ -737,6 +739,130 @@ class B {}
     // The files must be created.
     _assertFileExists(libFolderA.parent, PubSummaryManager.UNLINKED_NAME);
     _assertFileExists(libFolderA.parent, PubSummaryManager.UNLINKED_SPEC_NAME);
+    _assertFileExists(libFolderB.parent, PubSummaryManager.UNLINKED_NAME);
+    _assertFileExists(libFolderB.parent, PubSummaryManager.UNLINKED_SPEC_NAME);
+  }
+
+  test_getUnlinkedBundles_notPubCache_dontCreate() async {
+    String aaaPath = '/Users/user/projects/aaa';
+    // Create package files.
+    resourceProvider.newFile(
+        '$aaaPath/lib/a.dart',
+        '''
+class A {}
+''');
+    resourceProvider.newFile(
+        '$CACHE/bbb/lib/b.dart',
+        '''
+class B {}
+''');
+
+    // Configure packages resolution.
+    Folder libFolderA = resourceProvider.getFolder('$aaaPath/lib');
+    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
+    context.sourceFactory = new SourceFactory(<UriResolver>[
+      sdkResolver,
+      resourceResolver,
+      new PackageMapUriResolver(resourceProvider, {
+        'aaa': [libFolderA],
+        'bbb': [libFolderB],
+      })
+    ]);
+
+    // No unlinked bundles initially.
+    {
+      Map<PubPackage, PackageBundle> bundles =
+          manager.getUnlinkedBundles(context);
+      expect(bundles, isEmpty);
+    }
+
+    // Wait for unlinked bundles to be computed.
+    await manager.onUnlinkedComplete;
+    Map<PubPackage, PackageBundle> bundles =
+        manager.getUnlinkedBundles(context);
+    // We have just one bundle - for 'bbb'.
+    expect(bundles, hasLength(1));
+    // We computed the unlinked bundle for 'bbb'.
+    {
+      PackageBundle bundle = _getBundleByPackageName(bundles, 'bbb');
+      expect(bundle.linkedLibraryUris, isEmpty);
+      expect(bundle.unlinkedUnitUris, ['package:bbb/b.dart']);
+      expect(bundle.unlinkedUnits, hasLength(1));
+      expect(bundle.unlinkedUnits[0].classes.map((c) => c.name), ['B']);
+    }
+
+    // The files must be created.
+    _assertFileExists(libFolderB.parent, PubSummaryManager.UNLINKED_NAME);
+    _assertFileExists(libFolderB.parent, PubSummaryManager.UNLINKED_SPEC_NAME);
+  }
+
+  test_getUnlinkedBundles_notPubCache_useExisting() async {
+    String aaaPath = '/Users/user/projects/aaa';
+    // Create package files.
+    {
+      File file = resourceProvider.newFile(
+          '$aaaPath/lib/a.dart',
+          '''
+class A {}
+''');
+      PackageBundleAssembler assembler = new PackageBundleAssembler()
+        ..addUnlinkedUnit(
+            file.createSource(FastUri.parse('package:aaa/a.dart')),
+            new UnlinkedUnitBuilder());
+      resourceProvider.newFileWithBytes(
+          '$aaaPath/${PubSummaryManager.UNLINKED_SPEC_NAME}',
+          assembler.assemble().toBuffer());
+    }
+    resourceProvider.newFile(
+        '$CACHE/bbb/lib/b.dart',
+        '''
+class B {}
+''');
+
+    // Configure packages resolution.
+    Folder libFolderA = resourceProvider.getFolder('$aaaPath/lib');
+    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
+    context.sourceFactory = new SourceFactory(<UriResolver>[
+      sdkResolver,
+      resourceResolver,
+      new PackageMapUriResolver(resourceProvider, {
+        'aaa': [libFolderA],
+        'bbb': [libFolderB],
+      })
+    ]);
+
+    // Request already available unlinked bundles.
+    {
+      Map<PubPackage, PackageBundle> bundles =
+          manager.getUnlinkedBundles(context);
+      expect(bundles, hasLength(1));
+      // We get the unlinked bundle for 'aaa' because it already exists.
+      {
+        PackageBundle bundle = _getBundleByPackageName(bundles, 'aaa');
+        expect(bundle, isNotNull);
+      }
+    }
+
+    // Wait for unlinked bundles to be computed.
+    await manager.onUnlinkedComplete;
+    Map<PubPackage, PackageBundle> bundles =
+        manager.getUnlinkedBundles(context);
+    expect(bundles, hasLength(2));
+    // We still have the unlinked bundle for 'aaa'.
+    {
+      PackageBundle bundle = _getBundleByPackageName(bundles, 'aaa');
+      expect(bundle, isNotNull);
+    }
+    // We computed the unlinked bundle for 'bbb'.
+    {
+      PackageBundle bundle = _getBundleByPackageName(bundles, 'bbb');
+      expect(bundle.linkedLibraryUris, isEmpty);
+      expect(bundle.unlinkedUnitUris, ['package:bbb/b.dart']);
+      expect(bundle.unlinkedUnits, hasLength(1));
+      expect(bundle.unlinkedUnits[0].classes.map((c) => c.name), ['B']);
+    }
+
+    // The files must be created.
     _assertFileExists(libFolderB.parent, PubSummaryManager.UNLINKED_NAME);
     _assertFileExists(libFolderB.parent, PubSummaryManager.UNLINKED_SPEC_NAME);
   }
