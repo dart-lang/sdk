@@ -1,6 +1,5 @@
 language: dart
-sudo: required
-dist: trusty
+sudo: false
 dart:
   - dev
 cache:
