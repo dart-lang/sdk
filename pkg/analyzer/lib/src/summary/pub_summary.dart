@@ -243,9 +243,15 @@ class PubSummaryManager {
       packageToNode[package.name] = node;
     });
 
-    // Fill the store with unlinked bundles.
+    // Fill the store with the linked SDK and unlinked package bundles.
     SummaryDataStore store = new SummaryDataStore(const <String>[]);
     store.addBundle(null, sdkBundle);
+    {
+      PackageBundle extension = computeSdkExtension(context, sdkBundle);
+      if (extension != null) {
+        store.addBundle(null, extension);
+      }
+    }
     for (PackageBundle unlinked in unlinkedBundles.values) {
       store.addBundle(null, unlinked);
     }
@@ -529,7 +535,8 @@ class _LinkedNode extends Node<_LinkedNode> {
         if (!uri.hasScheme) {
           // A relative path in this package, skip it.
         } else if (uri.scheme == 'dart') {
-          // TODO(scheglov) link _sdkext bundles.
+          // Dependency on the SDK is implicit and always added.
+          // The SDK linked bundle is precomputed before linking packages.
         } else if (uriStr.startsWith('package:')) {
           String package = PubSummaryManager.getPackageName(uriStr);
           _LinkedNode packageNode = packageToNode[package];
