@@ -948,6 +948,14 @@ static uintptr_t __attribute__((noinline)) GetProgramCounter() {
 
 
 void Profiler::DumpStackTrace(bool native_stack_trace) {
+  // Allow only one stack trace to prevent recursively printing stack traces if
+  // we hit an assert while printing the stack.
+  static uintptr_t started_dump = 0;
+  if (AtomicOperations::FetchAndIncrement(&started_dump) != 0) {
+    OS::PrintErr("Aborting re-entrant request for stack trace.\n");
+    return;
+  }
+
   Thread* thread = Thread::Current();
   if (thread == NULL) {
     return;
