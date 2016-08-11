@@ -350,80 +350,82 @@ class ResolverTask extends CompilerTask {
   }
 
   WorldImpact resolveField(FieldElementX element) {
-    VariableDefinitions tree = element.parseNode(parsingContext);
-    if (element.modifiers.isStatic && element.isTopLevel) {
-      reporter.reportErrorMessage(element.modifiers.getStatic(),
-          MessageKind.TOP_LEVEL_VARIABLE_DECLARED_STATIC);
-    }
-    ResolverVisitor visitor = visitorFor(element);
-    ResolutionRegistry registry = visitor.registry;
-    // TODO(johnniwinther): Maybe remove this when placeholderCollector migrates
-    // to the backend ast.
-    registry.defineElement(tree.definitions.nodes.head, element);
-    // TODO(johnniwinther): Share the resolved type between all variables
-    // declared in the same declaration.
-    if (tree.type != null) {
-      DartType type = visitor.resolveTypeAnnotation(tree.type);
-      assert(invariant(
-          element,
-          element.variables.type == null ||
-              // Crude check but we have no equivalence relation that
-              // equates malformed types, like matching creations of type
-              // `Foo<Unresolved>`.
-              element.variables.type.toString() == type.toString(),
-          message: "Unexpected type computed for $element. "
-              "Was ${element.variables.type}, computed $type."));
-      element.variables.type = type;
-    } else if (element.variables.type == null) {
-      // Only assign the dynamic type if the element has no known type. This
-      // happens for enum fields where the type is known but is not in the
-      // synthesized AST.
-      element.variables.type = const DynamicType();
-    }
-
-    Expression initializer = element.initializer;
-    Modifiers modifiers = element.modifiers;
-    if (initializer != null) {
-      // TODO(johnniwinther): Avoid analyzing initializers if
-      // [Compiler.analyzeSignaturesOnly] is set.
-      ResolutionResult result = visitor.visit(initializer);
-      if (result.isConstant) {
-        element.constant = result.constant;
+    return reporter.withCurrentElement(element, () {
+      VariableDefinitions tree = element.parseNode(parsingContext);
+      if (element.modifiers.isStatic && element.isTopLevel) {
+        reporter.reportErrorMessage(element.modifiers.getStatic(),
+            MessageKind.TOP_LEVEL_VARIABLE_DECLARED_STATIC);
       }
-    } else if (modifiers.isConst) {
-      reporter.reportErrorMessage(
-          element, MessageKind.CONST_WITHOUT_INITIALIZER);
-    } else if (modifiers.isFinal && !element.isInstanceMember) {
-      reporter.reportErrorMessage(
-          element, MessageKind.FINAL_WITHOUT_INITIALIZER);
-    } else {
-      // TODO(johnniwinther): Register a feature instead.
-      registry.registerTypeUse(new TypeUse.instantiation(coreTypes.nullType));
-    }
+      ResolverVisitor visitor = visitorFor(element);
+      ResolutionRegistry registry = visitor.registry;
+      // TODO(johnniwinther): Maybe remove this when placeholderCollector migrates
+      // to the backend ast.
+      registry.defineElement(tree.definitions.nodes.head, element);
+      // TODO(johnniwinther): Share the resolved type between all variables
+      // declared in the same declaration.
+      if (tree.type != null) {
+        DartType type = visitor.resolveTypeAnnotation(tree.type);
+        assert(invariant(
+            element,
+            element.variables.type == null ||
+                // Crude check but we have no equivalence relation that
+                // equates malformed types, like matching creations of type
+                // `Foo<Unresolved>`.
+                element.variables.type.toString() == type.toString(),
+            message: "Unexpected type computed for $element. "
+                "Was ${element.variables.type}, computed $type."));
+        element.variables.type = type;
+      } else if (element.variables.type == null) {
+        // Only assign the dynamic type if the element has no known type. This
+        // happens for enum fields where the type is known but is not in the
+        // synthesized AST.
+        element.variables.type = const DynamicType();
+      }
 
-    if (Elements.isStaticOrTopLevelField(element)) {
-      visitor.addDeferredAction(element, () {
-        if (element.modifiers.isConst) {
-          element.constant = constantCompiler.compileConstant(element);
-        } else {
-          element.constant = constantCompiler.compileVariable(element);
-        }
-      });
+      Expression initializer = element.initializer;
+      Modifiers modifiers = element.modifiers;
       if (initializer != null) {
-        if (!element.modifiers.isConst) {
-          // TODO(johnniwinther): Determine the const-ness eagerly to avoid
-          // unnecessary registrations.
-          registry.registerFeature(Feature.LAZY_FIELD);
+        // TODO(johnniwinther): Avoid analyzing initializers if
+        // [Compiler.analyzeSignaturesOnly] is set.
+        ResolutionResult result = visitor.visit(initializer);
+        if (result.isConstant) {
+          element.constant = result.constant;
+        }
+      } else if (modifiers.isConst) {
+        reporter.reportErrorMessage(
+            element, MessageKind.CONST_WITHOUT_INITIALIZER);
+      } else if (modifiers.isFinal && !element.isInstanceMember) {
+        reporter.reportErrorMessage(
+            element, MessageKind.FINAL_WITHOUT_INITIALIZER);
+      } else {
+        // TODO(johnniwinther): Register a feature instead.
+        registry.registerTypeUse(new TypeUse.instantiation(coreTypes.nullType));
+      }
+
+      if (Elements.isStaticOrTopLevelField(element)) {
+        visitor.addDeferredAction(element, () {
+          if (element.modifiers.isConst) {
+            element.constant = constantCompiler.compileConstant(element);
+          } else {
+            element.constant = constantCompiler.compileVariable(element);
+          }
+        });
+        if (initializer != null) {
+          if (!element.modifiers.isConst) {
+            // TODO(johnniwinther): Determine the const-ness eagerly to avoid
+            // unnecessary registrations.
+            registry.registerFeature(Feature.LAZY_FIELD);
+          }
         }
       }
-    }
 
-    // Perform various checks as side effect of "computing" the type.
-    element.computeType(resolution);
+      // Perform various checks as side effect of "computing" the type.
+      element.computeType(resolution);
 
-    resolution.target.resolveNativeElement(element, registry.worldImpact);
+      resolution.target.resolveNativeElement(element, registry.worldImpact);
 
-    return registry.worldImpact;
+      return registry.worldImpact;
+    });
   }
 
   DartType resolveTypeAnnotation(Element element, TypeAnnotation annotation) {
