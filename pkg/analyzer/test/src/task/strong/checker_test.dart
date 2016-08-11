@@ -3009,6 +3009,23 @@ void takesF(void f(int x)) {
     ''');
   }
 
+  void test_overrideNarrowsType() {
+    addFile(r'''
+class A {}
+class B extends A {}
+
+abstract class C {
+  m(A a);
+  n(B b);
+}
+abstract class D extends C {
+  /*error:INVALID_METHOD_OVERRIDE*/m(/*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B b);
+  n(A a);
+}
+    ''');
+    check(implicitCasts: false);
+  }
+
   void test_privateOverride() {
     addFile(
         '''
