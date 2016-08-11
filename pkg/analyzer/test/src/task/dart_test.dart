@@ -2999,6 +2999,26 @@ var Y = () {
     InterfaceType intType = context.typeProvider.intType;
     expect(expression.staticType, intType);
   }
+
+  test_staticModeHints_forStaticVariableInference() {
+    context.analysisOptions =
+        new AnalysisOptionsImpl.from(context.analysisOptions)
+          ..strongModeHints = true;
+    Source source = newSource(
+        '/test.dart',
+        r'''
+var V = [42];
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT9);
+    expect(outputs[RESOLVED_UNIT9], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT9], isTrue);
+    // An INFERRED_TYPE_LITERAL error should be generated.
+    List<AnalysisError> errors = outputs[
+        STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT] as List<AnalysisError>;
+    expect(errors, hasLength(1));
+    expect(errors[0].errorCode, StrongModeCode.INFERRED_TYPE_LITERAL);
+  }
 }
 
 @reflectiveTest

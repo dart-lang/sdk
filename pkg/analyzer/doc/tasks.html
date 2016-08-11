@@ -127,8 +127,10 @@ digraph G {
   InferInstanceMembersInUnitTask -> CREATED_RESOLVED_UNIT11
   InferInstanceMembersInUnitTask -> RESOLVED_UNIT11
   InferStaticVariableTypeTask -> INFERRED_STATIC_VARIABLE
+  InferStaticVariableTypeTask -> STATIC_VARIABLE_RESOLUTION_ERRORS
   InferStaticVariableTypesInUnitTask -> CREATED_RESOLVED_UNIT9
   InferStaticVariableTypesInUnitTask -> RESOLVED_UNIT9
+  InferStaticVariableTypesInUnitTask -> STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT
   LIBRARY_CYCLE [shape=box]
   LIBRARY_CYCLE_DEPENDENCIES -> InferInstanceMembersInUnitTask
   LIBRARY_CYCLE_DEPENDENCIES -> InferStaticVariableTypeTask
@@ -327,6 +329,10 @@ digraph G {
   SCAN_ERRORS [shape=box]
   SOURCE_KIND -> BuildDirectiveElementsTask
   SOURCE_KIND [shape=box]
+  STATIC_VARIABLE_RESOLUTION_ERRORS -> InferStaticVariableTypesInUnitTask
+  STATIC_VARIABLE_RESOLUTION_ERRORS [shape=box]
+  STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT -> LibraryUnitErrorsTask
+  STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT [shape=box]
   STRONG_MODE_ERRORS -> LibraryUnitErrorsTask
   STRONG_MODE_ERRORS [shape=box]
   ScanDartTask -> IGNORE_INFO

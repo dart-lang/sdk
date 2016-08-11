@@ -385,6 +385,7 @@ class IncrementalResolver {
     _shiftErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS);
     _shiftErrors_NEW(RESOLVE_TYPE_BOUNDS_ERRORS);
     _shiftErrors_NEW(RESOLVE_UNIT_ERRORS);
+    _shiftErrors_NEW(STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT);
     _shiftErrors_NEW(STRONG_MODE_ERRORS);
     _shiftErrors_NEW(VARIABLE_REFERENCE_ERRORS);
     _shiftErrors_NEW(VERIFY_ERRORS);
