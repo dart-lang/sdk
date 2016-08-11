@@ -528,28 +528,39 @@ class _LinkedNode extends Node<_LinkedNode> {
   @override
   List<_LinkedNode> computeDependencies() {
     Set<_LinkedNode> dependencies = new Set<_LinkedNode>();
+
+    void appendDependency(String uriStr) {
+      Uri uri = FastUri.parse(uriStr);
+      if (!uri.hasScheme) {
+        // A relative path in this package, skip it.
+      } else if (uri.scheme == 'dart') {
+        // Dependency on the SDK is implicit and always added.
+        // The SDK linked bundle is precomputed before linking packages.
+      } else if (uriStr.startsWith('package:')) {
+        String package = PubSummaryManager.getPackageName(uriStr);
+        _LinkedNode packageNode = packageToNode[package];
+        if (packageNode == null) {
+          failed = true;
+        }
+        dependencies.add(packageNode);
+      } else {
+        failed = true;
+      }
+    }
+
     for (UnlinkedUnit unit in unlinked.unlinkedUnits) {
       for (UnlinkedImport import in unit.imports) {
-        String uriStr = import.isImplicit ? 'dart:core' : import.uri;
-        Uri uri = FastUri.parse(uriStr);
-        if (!uri.hasScheme) {
-          // A relative path in this package, skip it.
-        } else if (uri.scheme == 'dart') {
-          // Dependency on the SDK is implicit and always added.
-          // The SDK linked bundle is precomputed before linking packages.
-        } else if (uriStr.startsWith('package:')) {
-          String package = PubSummaryManager.getPackageName(uriStr);
-          _LinkedNode packageNode = packageToNode[package];
-          if (packageNode == null) {
-            failed = true;
-            return const <_LinkedNode>[];
-          }
-          dependencies.add(packageNode);
-        } else {
-          failed = true;
-          return const <_LinkedNode>[];
+        if (!import.isImplicit) {
+          appendDependency(import.uri);
         }
       }
+      for (UnlinkedExportPublic export in unit.publicNamespace.exports) {
+        appendDependency(export.uri);
+      }
+    }
+
+    if (failed) {
+      return const <_LinkedNode>[];
     }
     return dependencies.toList();
   }
