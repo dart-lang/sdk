@@ -70,7 +70,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     implements ExtractMethodRefactoring {
   static const ERROR_EXITS =
       'Selected statements contain a return statement, but not all possible '
-      'execuion flows exit. Semantics may not be preserved.';
+      'execution flows exit. Semantics may not be preserved.';
 
   final SearchEngine searchEngine;
   final CompilationUnit unit;
