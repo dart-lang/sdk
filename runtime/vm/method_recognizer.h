@@ -421,19 +421,11 @@ namespace dart {
   V(_ByteDataView, getUint64, ByteDataViewGetUint64, 0x2fab992e)               \
   V(_ByteDataView, getFloat32, ByteDataViewGetFloat32, 0x387e9fc6)             \
   V(_ByteDataView, getFloat64, ByteDataViewGetFloat64, 0x5396432d)             \
-  V(::, asin, MathAsin, 0x661ff68b)                                            \
-  V(::, acos, MathAcos, 0x44e71d5f)                                            \
-  V(::, atan, MathAtan, 0x4436a657)                                            \
-  V(::, atan2, MathAtan2, 0x60a40743)                                          \
-  V(::, cos, MathCos, 0x79a7611c)                                              \
   V(::, exp, MathExp, 0x5b894d7b)                                              \
   V(::, log, MathLog, 0x2e25132c)                                              \
   V(::, max, MathMax, 0x54121d6a)                                              \
   V(::, min, MathMin, 0x4276561c)                                              \
   V(::, pow, MathPow, 0x438e3089)                                              \
-  V(::, sin, MathSin, 0x0213abe6)                                              \
-  V(::, sqrt, MathSqrt, 0x1afb83d4)                                            \
-  V(::, tan, MathTan, 0x4e2e20db)                                              \
   V(Lists, copy, ListsCopy, 0x21a194fa)                                        \
   V(_Bigint, get:_neg, Bigint_getNeg, 0x7bf17a57)                              \
   V(_Bigint, get:_used, Bigint_getUsed, 0x55041013)                            \
@@ -451,6 +443,14 @@ namespace dart {
 
 // A list of core function that should never be inlined.
 #define INLINE_BLACK_LIST(V)                                                   \
+  V(::, asin, MathAsin, 0x661ff68b)                                            \
+  V(::, acos, MathAcos, 0x44e71d5f)                                            \
+  V(::, atan, MathAtan, 0x4436a657)                                            \
+  V(::, atan2, MathAtan2, 0x60a40743)                                          \
+  V(::, cos, MathCos, 0x79a7611c)                                              \
+  V(::, sin, MathSin, 0x0213abe6)                                              \
+  V(::, sqrt, MathSqrt, 0x1afb83d4)                                            \
+  V(::, tan, MathTan, 0x4e2e20db)                                              \
   V(_Bigint, _lsh, Bigint_lsh, 0x5cd95513)                                     \
   V(_Bigint, _rsh, Bigint_rsh, 0x2d68d0e1)                                     \
   V(_Bigint, _absAdd, Bigint_absAdd, 0x492f4865)                               \
