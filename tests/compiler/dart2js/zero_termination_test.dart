@@ -47,13 +47,17 @@ void cleanup() {
 }
 
 Future launchDart2Js(args) {
-  String executable = Platform.executable;
-  String command = path.join(path.dirname(executable), 'dart2js');
   String dart2jsPath = path.normalize(
       path.join(path.fromUri(Platform.script),
         '../../../../pkg/compiler/lib/src/dart2js.dart'));
-  List allArgs = ['--package-root=${Platform.packageRoot}',
-       dart2jsPath]..addAll(args);
+  List allArgs = [];
+  if (Platform.packageRoot != null) {
+    allArgs.add('--package-root=${Platform.packageRoot}');
+  } else if (Platform.packageConfig != null) {
+    allArgs.add('--packages=${Platform.packageConfig}');
+  }
+  allArgs.add(dart2jsPath);
+  allArgs.addAll(args);
   return Process.run(Platform.executable, allArgs, stdoutEncoding: null);
 }
 
