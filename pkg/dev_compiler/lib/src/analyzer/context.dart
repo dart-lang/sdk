@@ -74,8 +74,8 @@ class AnalyzerOptions {
   /// Whether to resolve 'package:' uris using the multi-package resolver.
   bool get useMultiPackage => packagePaths.isNotEmpty;
 
-  static ArgParser addArguments(ArgParser parser) {
-    return parser
+  static void addArguments(ArgParser parser) {
+    parser
       ..addOption('summary',
           abbr: 's', help: 'summary file(s) to include', allowMultiple: true)
       ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
@@ -86,7 +86,7 @@ class AnalyzerOptions {
           help: 'Package root to resolve "package:" imports',
           defaultsTo: 'packages/')
       ..addOption('url-mapping',
-          help: '--url-mapping=libraryUri,/path/to/library.dart uses \n'
+          help: '--url-mapping=libraryUri,/path/to/library.dart uses\n'
               'library.dart as the source for an import of of "libraryUri".',
           allowMultiple: true,
           splitCommas: false)

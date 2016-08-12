@@ -17,7 +17,7 @@ main() {
     final argsFile = new File('test/worker/hello_world.args').absolute;
     final inputDartFile = new File('test/worker/hello_world.dart').absolute;
     final outputJsFile = new File('test/worker/hello_world.js').absolute;
-    final executableArgs = ['bin/dartdevc.dart', 'compile',];
+    final executableArgs = ['bin/dartdevc.dart'];
     final compilerArgs = [
       '--no-source-map',
       '--no-summarize',
@@ -118,7 +118,6 @@ main() {
     test('can compile in basic mode', () {
       var result = Process.runSync('dart', [
         'bin/dartdevc.dart',
-        'compile',
         '--summary-extension=api.ds',
         '--no-source-map',
         '-o',
@@ -133,7 +132,6 @@ main() {
 
       result = Process.runSync('dart', [
         'bin/dartdevc.dart',
-        'compile',
         '--no-source-map',
         '--no-summarize',
         '--summary-extension=api.ds',
@@ -171,7 +169,6 @@ main() {
       badFileDart.writeAsStringSync('main() => "hello world"');
       var result = Process.runSync('dart', [
         'bin/dartdevc.dart',
-        'compile',
         '--no-source-map',
         '-o',
         badFileJs.path,
@@ -205,7 +202,6 @@ main() {
     test('works if part and library supplied', () {
       var result = Process.runSync('dart', [
         'bin/dartdevc.dart',
-        'compile',
         '--no-summarize',
         '--no-source-map',
         '-o',
@@ -222,7 +218,6 @@ main() {
     test('works if part is not supplied', () {
       var result = Process.runSync('dart', [
         'bin/dartdevc.dart',
-        'compile',
         '--no-summarize',
         '--no-source-map',
         '-o',
@@ -238,7 +233,6 @@ main() {
     test('part without library is silently ignored', () {
       var result = Process.runSync('dart', [
         'bin/dartdevc.dart',
-        'compile',
         '--no-summarize',
         '--no-source-map',
         '-o',

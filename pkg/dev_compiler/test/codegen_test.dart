@@ -94,7 +94,8 @@ main(List<String> arguments) {
 
   // Our default compiler options. Individual tests can override these.
   var defaultOptions = ['--no-source-map', '--no-summarize'];
-  var compilerArgParser = CompilerOptions.addArguments(new ArgParser());
+  var compilerArgParser = new ArgParser();
+  CompilerOptions.addArguments(compilerArgParser);
 
   // Compile each test file to JS and put the result in gen/codegen_output.
   for (var testFile in testFiles) {

@@ -245,46 +245,55 @@ class CompilerOptions {
         hoistTypeTests = args['hoist-type-tests'],
         useAngular2Whitelist = args['unsafe-angular2-whitelist'];
 
-  static ArgParser addArguments(ArgParser parser) => parser
-    ..addFlag('summarize', help: 'emit an API summary file', defaultsTo: true)
-    ..addOption('summary-extension',
-        help: 'file extension for Dart summary files', defaultsTo: 'sum')
-    ..addFlag('source-map', help: 'emit source mapping', defaultsTo: true)
-    ..addFlag('source-map-comment',
-        help: 'adds a sourceMappingURL comment to the end of the JS,\n'
-            'disable if using X-SourceMap header',
-        defaultsTo: true)
-    ..addOption('modules',
-        help: 'module pattern to emit',
-        allowed: ['es6', 'legacy', 'node'],
-        allowedHelp: {
-          'es6': 'es6 modules',
-          'legacy': 'a custom format used by dartdevc, similar to AMD',
-          'node': 'node.js modules (https://nodejs.org/api/modules.html)'
-        },
-        defaultsTo: 'legacy')
-    ..addFlag('emit-metadata',
-        help: 'emit metadata annotations queriable via mirrors',
-        defaultsTo: false)
-    ..addFlag('closure-experimental',
-        help: 'emit Closure Compiler-friendly code (experimental)',
-        defaultsTo: false)
-    ..addFlag('destructure-named-params',
-        help: 'Destructure named parameters', defaultsTo: false)
-    ..addFlag('unsafe-force-compile',
-        help: 'Compile code even if it has errors. ಠ_ಠ\n'
-            'This has undefined behavior!',
-        defaultsTo: false)
-    ..addFlag('hoist-instance-creation',
-        help: 'Hoist the class type from generic instance creations',
-        defaultsTo: true)
-    ..addFlag('hoist-signature-types',
-        help: 'Hoist types from class signatures', defaultsTo: false)
-    ..addFlag('name-type-tests',
-        help: 'Name types used in type tests', defaultsTo: true)
-    ..addFlag('hoist-type-tests',
-        help: 'Hoist types used in type tests', defaultsTo: true)
-    ..addFlag('unsafe-angular2-whitelist', defaultsTo: false, hide: true);
+  static void addArguments(ArgParser parser) {
+    parser
+      ..addFlag('summarize', help: 'emit an API summary file', defaultsTo: true)
+      ..addOption('summary-extension',
+          help: 'file extension for Dart summary files',
+          defaultsTo: 'sum',
+          hide: true)
+      ..addFlag('source-map', help: 'emit source mapping', defaultsTo: true)
+      ..addFlag('source-map-comment',
+          help: 'adds a sourceMappingURL comment to the end of the JS,\n'
+              'disable if using X-SourceMap header',
+          defaultsTo: true,
+          hide: true)
+      ..addOption('modules',
+          help: 'module pattern to emit',
+          allowed: ['es6', 'legacy', 'node'],
+          allowedHelp: {
+            'es6': 'es6 modules',
+            'legacy': 'a custom format used by dartdevc, similar to AMD',
+            'node': 'node.js modules (https://nodejs.org/api/modules.html)'
+          },
+          defaultsTo: 'legacy')
+      ..addFlag('emit-metadata',
+          help: 'emit metadata annotations queriable via mirrors',
+          defaultsTo: false)
+      ..addFlag('closure-experimental',
+          help: 'emit Closure Compiler-friendly code (experimental)',
+          defaultsTo: false)
+      ..addFlag('destructure-named-params',
+          help: 'Destructure named parameters', defaultsTo: false, hide: true)
+      ..addFlag('unsafe-force-compile',
+          help: 'Compile code even if it has errors. ಠ_ಠ\n'
+              'This has undefined behavior!',
+          defaultsTo: false,
+          hide: true)
+      ..addFlag('hoist-instance-creation',
+          help: 'Hoist the class type from generic instance creations',
+          defaultsTo: true,
+          hide: true)
+      ..addFlag('hoist-signature-types',
+          help: 'Hoist types from class signatures',
+          defaultsTo: false,
+          hide: true)
+      ..addFlag('name-type-tests',
+          help: 'Name types used in type tests', defaultsTo: true, hide: true)
+      ..addFlag('hoist-type-tests',
+          help: 'Hoist types used in type tests', defaultsTo: true, hide: true)
+      ..addFlag('unsafe-angular2-whitelist', defaultsTo: false, hide: true);
+  }
 }
 
 /// A unit of Dart code that can be built into a single JavaScript module.

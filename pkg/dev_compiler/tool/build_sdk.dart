@@ -9,12 +9,10 @@
 /// command line interface. But being able to build from a Dart library means
 /// we can call this during code coverage to get more realistic numbers.
 
-import 'package:args/command_runner.dart' show CommandRunner;
 import 'package:dev_compiler/src/compiler/command.dart';
 
 main(List<String> arguments) {
   var args = [
-    'compile',
     '--unsafe-force-compile',
     '--no-source-map',
     '--no-emit-metadata'
@@ -50,7 +48,5 @@ main(List<String> arguments) {
     'dart:web_gl',
     'dart:web_sql'
   ]);
-  var runner = new CommandRunner('dartdevc', 'Dart Development Compiler');
-  runner.addCommand(new CompileCommand());
-  return runner.run(args);
+  compile(args);
 }

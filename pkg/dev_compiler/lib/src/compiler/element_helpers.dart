@@ -29,10 +29,9 @@ class Tuple2<T0, T1> {
 
 /*=T*/ fillDynamicTypeArgs/*<T extends DartType>*/(/*=T*/ t) {
   if (t is ParameterizedType) {
-    var pt = t as ParameterizedType;
     var dyn = new List<DartType>.filled(
-        pt.typeArguments.length, DynamicTypeImpl.instance);
-    return pt.substitute2(dyn, pt.typeArguments) as dynamic/*=T*/;
+        t.typeArguments.length, DynamicTypeImpl.instance);
+    return t.substitute2(dyn, t.typeArguments) as dynamic/*=T*/;
   }
   return t;
 }
