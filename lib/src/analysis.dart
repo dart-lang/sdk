@@ -14,10 +14,10 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/services/lint.dart';
@@ -72,7 +72,8 @@ class AnalysisDriver {
   List<UriResolver> get resolvers {
     DartSdk sdk = options.useMockSdk
         ? new MockSdk()
-        : new DirectoryBasedDartSdk(new JavaFile(sdkDir));
+        : new FolderBasedDartSdk(PhysicalResourceProvider.INSTANCE,
+            PhysicalResourceProvider.INSTANCE.getFolder(sdkDir));
 
     List<UriResolver> resolvers = [new DartUriResolver(sdk)];
 

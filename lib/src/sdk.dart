@@ -14,6 +14,7 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
 import 'package:analyzer/src/generated/source.dart'
     show DartUriResolver, Source, SourceFactory;
+import 'package:analyzer/src/summary/idl.dart';
 
 /// Mock SDK for testing purposes.
 class MockSdk implements DartSdk {
@@ -289,6 +290,9 @@ class HtmlElement {}
     }
     return null;
   }
+
+  @override
+  PackageBundle getLinkedBundle() => null;
 
   @override
   SdkLibrary getSdkLibrary(String dartUri) {

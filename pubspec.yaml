@@ -1,12 +1,12 @@
 name: linter
-version: 0.1.23
+version: 0.1.24
 author: Dart Team <misc@dartlang.org>
 description: Style linter for Dart.
 homepage: https://github.com/dart-lang/linter
 environment:
   sdk: '>=1.12.0 <2.0.0'
 dependencies:
-  analyzer: ^0.27.3-alpha.4
+  analyzer: ^0.28.0-alpha.0
   args: '>=0.12.1 <0.14.0'
   cli_util: ^0.0.1
   glob: ^1.0.3
