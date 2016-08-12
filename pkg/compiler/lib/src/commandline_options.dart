@@ -44,7 +44,6 @@ class Flags {
   static const String trustJSInteropTypeAnnotations =
       '--experimental-trust-js-interop-type-annotations';
   static const String useContentSecurityPolicy = '--csp';
-  static const String useCpsIr = '--use-cps-ir';
   static const String useNewSourceInfo = '--use-new-source-info';
   static const String verbose = '--verbose';
   static const String version = '--version';

@@ -10,7 +10,6 @@ import '../common/names.dart' show Selectors;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart' show ConstantValue, IntConstantValue;
 import '../core_types.dart' show CoreClasses, CoreTypes;
-import '../cps_ir/cps_ir_nodes.dart' as cps_ir show Node;
 import '../dart_types.dart' show DartType;
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart' as js;
@@ -259,10 +258,6 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   // TODO(johnniwinther): Pass the [ResolvedAst] instead of [owner].
   void updateSelectorInTree(
       AstElement owner, Spannable node, Selector selector, TypeMask mask) {
-    if (node is cps_ir.Node) {
-      // TODO(lry): update selector for IrInvokeDynamic.
-      throw "updateSelector for IR node $node";
-    }
     ast.Node astNode = node;
     TreeElements elements = owner.resolvedAst.elements;
     if (astNode.asSendSet() != null) {

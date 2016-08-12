@@ -38,9 +38,6 @@ const List<String> SKIP_LIST = const <String>[
   "http_launch_data/",
   "mirrors_helper.dart",
   "path%20with%20spaces/",
-  "cps_ir/input/",
-  // No longer maintained:
-  "backend_dart/",
   // Broken tests:
   "quarantined/http_test.dart",
   // Package directory

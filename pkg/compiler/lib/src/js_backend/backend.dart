@@ -68,7 +68,6 @@ import 'backend_helpers.dart';
 import 'backend_impact.dart';
 import 'backend_serialization.dart' show JavaScriptBackendSerialization;
 import 'checked_mode_helpers.dart';
-import 'codegen/task.dart';
 import 'constant_handler_javascript.dart';
 import 'custom_elements_analysis.dart';
 import 'js_interop_analysis.dart' show JsInteropAnalysis;
@@ -629,9 +628,7 @@ class JavaScriptBackend extends Backend {
     constantCompilerTask = new JavaScriptConstantTask(compiler);
     impactTransformer = new JavaScriptImpactTransformer(this);
     patchResolverTask = new PatchResolverTask(compiler);
-    functionCompiler = compiler.options.useCpsIr
-        ? new CpsFunctionCompiler(compiler, this, sourceInformationStrategy)
-        : new SsaFunctionCompiler(this, sourceInformationStrategy);
+    functionCompiler = new SsaFunctionCompiler(this, sourceInformationStrategy);
     serialization = new JavaScriptBackendSerialization(this);
   }
 
@@ -2584,17 +2581,7 @@ class JavaScriptBackend extends Backend {
   }
 
   @override
-  bool enableCodegenWithErrorsIfSupported(Spannable node) {
-    if (compiler.options.useCpsIr) {
-      // TODO(25747): Support code generation with compile-time errors.
-      reporter.reportHintMessage(node, MessageKind.GENERIC, {
-        'text': "Generation of code with compile time errors is currently "
-            "not supported with the CPS IR."
-      });
-      return false;
-    }
-    return true;
-  }
+  bool enableCodegenWithErrorsIfSupported(Spannable node) => true;
 
   jsAst.Expression rewriteAsync(
       FunctionElement element, jsAst.Expression code) {
