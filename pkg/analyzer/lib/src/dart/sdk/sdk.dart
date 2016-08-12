@@ -638,7 +638,7 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   }
 
   static String getSdkProperty(ResourceProvider resourceProvider) {
-    String exec = io.Platform.executable;
+    String exec = io.Platform.resolvedExecutable;
     if (exec.length == 0) {
       return null;
     }

@@ -17,10 +17,10 @@ import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
@@ -99,6 +99,7 @@ class FolderInfo {
       });
       return map;
     }
+
     Map<String, FileInfo> newFiles = toMap(this);
     Map<String, FileInfo> oldFiles = toMap(oldFolder);
     Set<String> addedPaths = newFiles.keys.toSet()..removeAll(oldFiles.keys);
@@ -241,10 +242,10 @@ class StressTest {
     assert(actualContext == null);
     resourceProvider = PhysicalResourceProvider.INSTANCE;
     pathContext = resourceProvider.pathContext;
-    sdkManager = new DartSdkManager(
-        DirectoryBasedDartSdk.defaultSdkDirectory.getAbsolutePath(),
-        false,
-        (_) => DirectoryBasedDartSdk.defaultSdk);
+    fs.Folder sdkDirectory =
+        FolderBasedDartSdk.defaultSdkDirectory(resourceProvider);
+    sdkManager = new DartSdkManager(sdkDirectory.path, false,
+        (_) => new FolderBasedDartSdk(resourceProvider, sdkDirectory));
     contentCache = new ContentCache();
     ContextBuilder builder =
         new ContextBuilder(resourceProvider, sdkManager, contentCache);
@@ -409,6 +410,7 @@ class StressTest {
       });
       return elements;
     }
+
     void validateSortedElements(
         List<Element> actualElements, List<Element> expectedElements) {
       expect(actualElements, hasLength(expectedElements.length));
@@ -418,6 +420,7 @@ class StressTest {
         _validateElements(actualElements[i], expectedElements[i], visited);
       }
     }
+
     expect(actualValue?.runtimeType, expectedValue?.runtimeType);
     expect(actualValue.nameOffset, expectedValue.nameOffset);
     expect(actualValue.name, expectedValue.name);

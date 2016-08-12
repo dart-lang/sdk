@@ -14,7 +14,6 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:plugin/plugin.dart';
 
 /**
@@ -31,7 +30,7 @@ class SocketServer {
    */
   final DartSdkManager sdkManager;
 
-  final DirectoryBasedDartSdk defaultSdk;
+  final DartSdk defaultSdk;
   final InstrumentationService instrumentationService;
   final ServerPlugin serverPlugin;
   final ResolverProvider fileResolverProvider;

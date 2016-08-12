@@ -11,8 +11,8 @@ import 'dart:io' as io;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
@@ -80,7 +80,7 @@ class CachingPubPackageMapProvider extends PubPackageMapProvider {
    * [RunPubList] and [WriteFile] implementations may be injected for testing
    */
   CachingPubPackageMapProvider(
-      ResourceProvider resourceProvider, DirectoryBasedDartSdk sdk,
+      ResourceProvider resourceProvider, FolderBasedDartSdk sdk,
       [RunPubList runPubList, this._writeFile])
       : super(resourceProvider, sdk, runPubList) {
     if (_writeFile == null) {

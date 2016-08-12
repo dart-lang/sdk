@@ -20,11 +20,10 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/file_instrumentation.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/incremental_logger.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:plugin/manager.dart';
@@ -405,18 +404,22 @@ class Driver implements ServerStarter {
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
 
-    JavaFile defaultSdkDirectory;
+    String defaultSdkPath;
     if (results[SDK_OPTION] != null) {
-      defaultSdkDirectory = new JavaFile(results[SDK_OPTION]);
+      defaultSdkPath = results[SDK_OPTION];
     } else {
       // No path to the SDK was provided.
       // Use DirectoryBasedDartSdk.defaultSdkDirectory, which will make a guess.
-      defaultSdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
+      defaultSdkPath = FolderBasedDartSdk
+          .defaultSdkDirectory(PhysicalResourceProvider.INSTANCE)
+          .path;
     }
     bool useSummaries = analysisServerOptions.fileReadMode == 'as-is';
     SdkCreator defaultSdkCreator = (AnalysisOptions options) {
-      DirectoryBasedDartSdk sdk =
-          new DirectoryBasedDartSdk(defaultSdkDirectory);
+      PhysicalResourceProvider resourceProvider =
+          PhysicalResourceProvider.INSTANCE;
+      FolderBasedDartSdk sdk = new FolderBasedDartSdk(resourceProvider,
+          FolderBasedDartSdk.defaultSdkDirectory(resourceProvider));
       sdk.analysisOptions = options;
       sdk.useSummary = useSummaries;
       return sdk;
@@ -424,7 +427,7 @@ class Driver implements ServerStarter {
     // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
     // cannot be re-used, but the SDK is needed to create a package map provider
     // in the case where we need to run `pub` in order to get the package map.
-    DirectoryBasedDartSdk defaultSdk = defaultSdkCreator(null);
+    DartSdk defaultSdk = defaultSdkCreator(null);
     //
     // Initialize the instrumentation service.
     //
@@ -448,8 +451,7 @@ class Driver implements ServerStarter {
     //
     socketServer = new SocketServer(
         analysisServerOptions,
-        new DartSdkManager(defaultSdkDirectory.getAbsolutePath(), useSummaries,
-            defaultSdkCreator),
+        new DartSdkManager(defaultSdkPath, useSummaries, defaultSdkCreator),
         defaultSdk,
         service,
         serverPlugin,

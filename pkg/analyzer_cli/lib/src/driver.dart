@@ -26,7 +26,6 @@ import 'package:analyzer/src/generated/interner.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart'
@@ -625,17 +624,17 @@ class Driver implements CommandLineStarter {
             options.dartSdkSummaryPath, options.strongMode);
       } else {
         String dartSdkPath = options.dartSdkPath;
-        DirectoryBasedDartSdk directorySdk = new DirectoryBasedDartSdk(
-            new JavaFile(dartSdkPath), options.strongMode);
-        directorySdk.useSummary = useSummaries &&
+        FolderBasedDartSdk dartSdk = new FolderBasedDartSdk(resourceProvider,
+            resourceProvider.getFolder(dartSdkPath), options.strongMode);
+        dartSdk.useSummary = useSummaries &&
             options.sourceFiles.every((String sourcePath) {
               sourcePath = path.absolute(sourcePath);
               sourcePath = path.normalize(sourcePath);
               return !path.isWithin(dartSdkPath, sourcePath);
             });
 
-        directorySdk.analysisOptions = context.analysisOptions;
-        sdk = directorySdk;
+        dartSdk.analysisOptions = context.analysisOptions;
+        sdk = dartSdk;
       }
     }
   }

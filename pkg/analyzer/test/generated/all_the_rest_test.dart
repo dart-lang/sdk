@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart' hide ConstantEvaluator;
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart' hide SdkLibrariesReader;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -44,6 +45,7 @@ main() {
   runReflectiveTests(ContentCacheTest);
   runReflectiveTests(CustomUriResolverTest);
   runReflectiveTests(DartUriResolverTest);
+  // ignore: deprecated_member_use
   runReflectiveTests(DirectoryBasedDartSdkTest);
   runReflectiveTests(DirectoryBasedSourceContainerTest);
   runReflectiveTests(ElementBuilderTest);
@@ -55,6 +57,7 @@ main() {
   runReflectiveTests(ExitDetectorTest2);
   runReflectiveTests(FileBasedSourceTest);
   runReflectiveTests(ResolveRelativeUriTest);
+  // ignore: deprecated_member_use
   runReflectiveTests(SDKLibrariesReaderTest);
   runReflectiveTests(UriKindTest);
 }
@@ -85,8 +88,9 @@ class CustomUriResolverTest {
   }
 
   void test_resolve_unknown_uri() {
-    UriResolver resolver =
-        new CustomUriResolver({'custom:library': '/path/to/library.dart',});
+    UriResolver resolver = new CustomUriResolver({
+      'custom:library': '/path/to/library.dart',
+    });
     Source result =
         resolver.resolveAbsolute(parseUriWithException("custom:non_library"));
     expect(result, isNull);
@@ -95,7 +99,9 @@ class CustomUriResolverTest {
   void test_resolve_uri() {
     String path =
         FileUtilities2.createFile("/path/to/library.dart").getAbsolutePath();
-    UriResolver resolver = new CustomUriResolver({'custom:library': path,});
+    UriResolver resolver = new CustomUriResolver({
+      'custom:library': path,
+    });
     Source result =
         resolver.resolveAbsolute(parseUriWithException("custom:library"));
     expect(result, isNotNull);
@@ -106,9 +112,7 @@ class CustomUriResolverTest {
 @reflectiveTest
 class DartUriResolverTest {
   void test_creation() {
-    JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
-    expect(sdkDirectory, isNotNull);
-    DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
+    DartSdk sdk = _createSdk();
     expect(new DartUriResolver(sdk), isNotNull);
   }
 
@@ -119,9 +123,7 @@ class DartUriResolverTest {
   }
 
   void test_resolve_dart() {
-    JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
-    expect(sdkDirectory, isNotNull);
-    DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
+    DartSdk sdk = _createSdk();
     UriResolver resolver = new DartUriResolver(sdk);
     Source result =
         resolver.resolveAbsolute(parseUriWithException("dart:core"));
@@ -129,25 +131,29 @@ class DartUriResolverTest {
   }
 
   void test_resolve_dart_nonExistingLibrary() {
-    JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
-    expect(sdkDirectory, isNotNull);
-    DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
+    DartSdk sdk = _createSdk();
     UriResolver resolver = new DartUriResolver(sdk);
     Source result = resolver.resolveAbsolute(parseUriWithException("dart:cor"));
     expect(result, isNull);
   }
 
   void test_resolve_nonDart() {
-    JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
-    expect(sdkDirectory, isNotNull);
-    DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
+    DartSdk sdk = _createSdk();
     UriResolver resolver = new DartUriResolver(sdk);
     Source result = resolver
         .resolveAbsolute(parseUriWithException("package:some/file.dart"));
     expect(result, isNull);
   }
+
+  DartSdk _createSdk() {
+    ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
+    Folder sdkFolder = FolderBasedDartSdk.defaultSdkDirectory(resourceProvider);
+    expect(sdkFolder, isNotNull);
+    return new FolderBasedDartSdk(resourceProvider, sdkFolder);
+  }
 }
 
+@deprecated
 @reflectiveTest
 class DirectoryBasedDartSdkTest {
   void fail_getDocFileFor() {
@@ -4310,9 +4316,7 @@ class FileBasedSourceTest {
   }
 
   void test_isInSystemLibrary_contagious() {
-    JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
-    expect(sdkDirectory, isNotNull);
-    DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
+    DartSdk sdk = _createSdk();
     UriResolver resolver = new DartUriResolver(sdk);
     SourceFactory factory = new SourceFactory([resolver]);
     // resolve dart:core
@@ -4397,6 +4401,13 @@ class FileBasedSourceTest {
     expect(source.fullName, file.getAbsolutePath());
     expect(source.isInSystemLibrary, isTrue);
   }
+
+  DartSdk _createSdk() {
+    ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
+    Folder sdkFolder = FolderBasedDartSdk.defaultSdkDirectory(resourceProvider);
+    expect(sdkFolder, isNotNull);
+    return new FolderBasedDartSdk(resourceProvider, sdkFolder);
+  }
 }
 
 @reflectiveTest
@@ -4467,6 +4478,7 @@ class ResolveRelativeUriTest {
   }
 }
 
+@deprecated
 @reflectiveTest
 class SDKLibrariesReaderTest extends EngineTestCase {
   void test_readFrom_dart2js() {

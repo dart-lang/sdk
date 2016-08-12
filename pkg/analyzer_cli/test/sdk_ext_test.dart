@@ -7,7 +7,8 @@ library analyzer_cli.test.sdk_ext;
 
 import 'dart:io';
 
-import 'package:analyzer/src/generated/sdk_io.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer_cli/src/driver.dart' show Driver, errorSink, outSink;
 import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as path;
@@ -46,8 +47,9 @@ main() {
           path.join(testDir, 'sdk_ext_user.dart')
         ]);
 
-      DirectoryBasedDartSdk sdk = driver.sdk;
-      expect(sdk.useSummary, isFalse);
+      DartSdk sdk = driver.sdk;
+      expect(sdk, new isInstanceOf<FolderBasedDartSdk>());
+      expect((sdk as FolderBasedDartSdk).useSummary, isFalse);
 
       expect(exitCode, 0);
     });

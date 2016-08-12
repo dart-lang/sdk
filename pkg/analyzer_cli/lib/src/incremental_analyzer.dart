@@ -10,10 +10,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/incremental_cache.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
@@ -35,7 +35,7 @@ IncrementalAnalysisSession configureIncrementalAnalysis(
   // If supported implementations, configure for incremental analysis.
   if (cachePath != null &&
       context is InternalAnalysisContext &&
-      sdk is DirectoryBasedDartSdk) {
+      sdk is FolderBasedDartSdk) {
     context.typeProvider = sdk.context.typeProvider;
     // Set the result provide from the cache.
     CacheStorage storage = new FolderCacheStorage(
