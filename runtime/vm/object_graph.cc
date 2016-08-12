@@ -319,6 +319,36 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
     }
   }
 
+  bool ShouldStop(RawObject* obj) {
+    // A static field is considered a root from a language point of view.
+    if (obj->IsField()) {
+      const Field& field = Field::Handle(static_cast<RawField*>(obj));
+      return field.is_static();
+    }
+    return false;
+  }
+
+  void StartList() {
+    was_last_array_ = false;
+  }
+
+  intptr_t HideNDescendant(RawObject* obj) {
+    // A GrowableObjectArray overwrites its internal storage.
+    // Keeping both of them in the list is redundant.
+    if (was_last_array_ && obj->IsGrowableObjectArray()) {
+      was_last_array_ = false;
+      return 1;
+    }
+    // A LinkedHasMap overwrites its internal storage.
+    // Keeping both of them in the list is redundant.
+    if (was_last_array_ && obj->IsLinkedHashMap()) {
+      was_last_array_ = false;
+      return 1;
+    }
+    was_last_array_ = obj->IsArray();
+    return 0;
+  }
+
   virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
     if (it->Get() != obj_) {
       if (ShouldSkip(it->Get())) {
@@ -330,7 +360,10 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
       HANDLESCOPE(thread_);
       Object& current = Object::Handle();
       Smi& offset_from_parent = Smi::Handle();
+      StartList();
       do {
+        // We collapse the backingstore of some internal objects.
+        length_ -= HideNDescendant(it->Get());
         intptr_t obj_index = length_ * 2;
         intptr_t offset_index = obj_index + 1;
         if (!path_.IsNull() && offset_index < path_.Length()) {
@@ -340,7 +373,7 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
           path_.SetAt(offset_index, offset_from_parent);
         }
         ++length_;
-      } while (it->MoveToParent());
+      } while (!ShouldStop(it->Get()) && it->MoveToParent());
       return kAbort;
     }
   }
@@ -350,6 +383,7 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
   RawObject* obj_;
   const Array& path_;
   intptr_t length_;
+  bool was_last_array_;
 };
 
 
