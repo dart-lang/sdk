@@ -924,9 +924,13 @@ void IsolateReloadContext::RollbackClasses() {
       class_table->SetAt(i, saved_class_table_[i]);
     }
   }
-  free(saved_class_table_);
+
+  RawClass** local_saved_class_table = saved_class_table_;
   saved_class_table_ = NULL;
-  saved_num_cids_ = 0;
+  // Can't free this table immediately as another thread (e.g., the sweeper) may
+  // be suspended between loading the table pointer and loading the table
+  // element. Table will be freed at the next major GC or isolate shutdown.
+  class_table->AddOldTable(local_saved_class_table);
 }
 
 

@@ -331,9 +331,13 @@ Dart_Handle TestCase::ReloadTestScript(const char* script) {
 
   result = GetReloadErrorOrRootLibrary();
 
-  Isolate* isolate = Isolate::Current();
-  if (isolate->reload_context() != NULL) {
-    isolate->DeleteReloadContext();
+  {
+    Thread* thread = Thread::Current();
+    TransitionNativeToVM transition(thread);
+    Isolate* isolate = thread->isolate();
+    if (isolate->reload_context() != NULL) {
+      isolate->DeleteReloadContext();
+    }
   }
 
   return result;
