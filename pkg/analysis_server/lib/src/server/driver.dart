@@ -243,6 +243,11 @@ class Driver implements ServerStarter {
       "incremental-resolution-validation";
 
   /**
+   * The name of the option used to enable using pub summary manager.
+   */
+  static const String ENABLE_PUB_SUMMARY_MANAGER = 'enable-pub-summary-manager';
+
+  /**
    * The name of the option used to enable fined grained invalidation.
    */
   static const String FINER_GRAINED_INVALIDATION = 'finer-grained-invalidation';
@@ -378,6 +383,8 @@ class Driver implements ServerStarter {
         results[ENABLE_INCREMENTAL_RESOLUTION_API];
     analysisServerOptions.enableIncrementalResolutionValidation =
         results[INCREMENTAL_RESOLUTION_VALIDATION];
+    analysisServerOptions.enablePubSummaryManager =
+        results[ENABLE_PUB_SUMMARY_MANAGER];
     analysisServerOptions.finerGrainedInvalidation =
         results[FINER_GRAINED_INVALIDATION];
     analysisServerOptions.noErrorNotification = results[NO_ERROR_NOTIFICATION];
@@ -532,6 +539,10 @@ class Driver implements ServerStarter {
         help: "set a destination for the incremental resolver's log");
     parser.addFlag(INCREMENTAL_RESOLUTION_VALIDATION,
         help: "enable validation of incremental resolution results (slow)",
+        defaultsTo: false,
+        negatable: false);
+    parser.addFlag(ENABLE_PUB_SUMMARY_MANAGER,
+        help: "enable using summaries for pub cache packages",
         defaultsTo: false,
         negatable: false);
     parser.addFlag(FINER_GRAINED_INVALIDATION,
