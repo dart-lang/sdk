@@ -86,6 +86,9 @@
     }
     ```
 
+* Breaking change - sideways casts are no longer allowed
+    (SDK issue [26120](https://github.com/dart-lang/sdk/issues/26120)).
+
 ### Dart VM
 
 *   The dependency on BoringSSL has been rolled forward. Going forward, builds

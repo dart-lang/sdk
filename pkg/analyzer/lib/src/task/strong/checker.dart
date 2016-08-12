@@ -749,14 +749,10 @@ class CodeChecker extends RecursiveAstVisitor {
     // fromT <: toT, no coercion needed.
     if (rules.isSubtypeOf(from, to)) return;
 
-    // TODO(vsm): We can get rid of the second clause if we disallow
-    // all sideways casts - see TODO below.
-    // -------
     // Note: a function type is never assignable to a class per the Dart
     // spec - even if it has a compatible call method.  We disallow as
     // well for consistency.
-    if ((from is FunctionType && rules.getCallMethodType(to) != null) ||
-        (to is FunctionType && rules.getCallMethodType(from) != null)) {
+    if (from is FunctionType && rules.getCallMethodType(to) != null) {
       return;
     }
 
@@ -766,19 +762,9 @@ class CodeChecker extends RecursiveAstVisitor {
       return;
     }
 
-    // TODO(vsm): Once we have generic methods, we should delete this
-    // workaround.  These sideways casts are always ones we warn about
-    // - i.e., we think they are likely to fail at runtime.
-    // -------
-    // Downcast if toT <===> fromT
-    // The intention here is to allow casts that are sideways in the restricted
-    // type system, but allowed in the regular dart type system, since these
-    // are likely to succeed.  The canonical example is List<dynamic> and
-    // Iterable<T> for some concrete T (e.g. Object).  These are unrelated
-    // in the restricted system, but List<dynamic> <: Iterable<T> in dart.
-    if (from.isAssignableTo(to)) {
-      _recordImplicitCast(expr, from, to);
-    }
+    // Anything else is an illegal sideways cast.
+    // However, these will have been reported already in error_verifier, so we
+    // don't need to report them again.
   }
 
   void _checkFieldAccess(AstNode node, AstNode target, SimpleIdentifier field) {
@@ -1057,7 +1043,7 @@ class CodeChecker extends RecursiveAstVisitor {
     // toT <:_R fromT => to <: fromT
     // NB: classes with call methods are subtypes of function
     // types, but the function type is not assignable to the class
-    assert(toType.isSubtypeOf(fromType) || fromType.isAssignableTo(toType));
+    assert(toType.isSubtypeOf(fromType));
 
     // Inference "casts":
     if (expression is Literal || expression is FunctionExpression) {

@@ -164,6 +164,7 @@ class LeastUpperBoundTest extends LeastUpperBoundTestBase {
     FunctionType expected = _functionType([objectType, numType, numType]);
     _checkLeastUpperBound(type1, type2, expected);
   }
+
   void test_nestedNestedFunctionsLubInnermostParamTypes() {
     FunctionType type1 = _functionType([
       _functionType([
@@ -620,7 +621,11 @@ class StrongAssignabilityTest {
       numType,
       bottomType
     ];
-    List<DartType> unrelated = <DartType>[intType, stringType, interfaceType,];
+    List<DartType> unrelated = <DartType>[
+      intType,
+      stringType,
+      interfaceType,
+    ];
 
     _checkGroups(doubleType,
         interassignable: interassignable, unrelated: unrelated);
@@ -750,7 +755,10 @@ class StrongAssignabilityTest {
       doubleType,
       bottomType
     ];
-    List<DartType> unrelated = <DartType>[stringType, interfaceType,];
+    List<DartType> unrelated = <DartType>[
+      stringType,
+      interfaceType,
+    ];
 
     _checkGroups(numType,
         interassignable: interassignable, unrelated: unrelated);
@@ -780,10 +788,12 @@ class StrongAssignabilityTest {
 
   void _checkCrossLattice(
       DartType top, DartType left, DartType right, DartType bottom) {
-    _checkGroups(top, interassignable: <DartType>[top, left, right, bottom]);
-    _checkGroups(left, interassignable: <DartType>[top, left, right, bottom]);
-    _checkGroups(right, interassignable: <DartType>[top, left, right, bottom]);
-    _checkGroups(bottom, interassignable: <DartType>[top, left, right, bottom]);
+    _checkGroups(top, interassignable: [top, left, right, bottom]);
+    _checkGroups(left,
+        interassignable: [top, left, bottom], unrelated: [right]);
+    _checkGroups(right,
+        interassignable: [top, right, bottom], unrelated: [left]);
+    _checkGroups(bottom, interassignable: [top, left, right, bottom]);
   }
 
   void _checkEquivalent(DartType type1, DartType type2) {
