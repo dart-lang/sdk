@@ -62,6 +62,8 @@ abstract class AbstractDartSdk implements DartSdk {
    */
   Map<String, Source> _uriToSourceMap = new HashMap<String, Source>();
 
+  PackageBundle _sdkBundle;
+
   /**
    * Set the [options] for this SDK analysis context.  Throw [StateError] if the
    * context has been already created.
@@ -82,7 +84,7 @@ abstract class AbstractDartSdk implements DartSdk {
       _analysisContext.sourceFactory = factory;
       if (_useSummary) {
         bool strongMode = _analysisOptions?.strongMode ?? false;
-        PackageBundle sdkBundle = getSummarySdkBundle(strongMode);
+        PackageBundle sdkBundle = getLinkedBundle();
         if (sdkBundle != null) {
           _analysisContext.resultProvider = new SdkSummaryResultProvider(
               _analysisContext, sdkBundle, strongMode);
@@ -149,6 +151,13 @@ abstract class AbstractDartSdk implements DartSdk {
           new CaughtException(exception, stackTrace));
     }
     return null;
+  }
+
+  @override
+  PackageBundle getLinkedBundle() {
+    bool strongMode = _analysisOptions?.strongMode ?? false;
+    _sdkBundle ??= getSummarySdkBundle(strongMode);
+    return _sdkBundle;
   }
 
   String getRelativePathFromFile(File file);
@@ -270,6 +279,9 @@ class EmbedderSdk extends AbstractDartSdk {
    * The url mappings for this SDK.
    */
   Map<String, String> get urlMappings => _urlMappings;
+
+  @override
+  PackageBundle getLinkedBundle() => null;
 
   @override
   String getRelativePathFromFile(File file) => file.path;

@@ -638,6 +638,9 @@ class DirectoryBasedDartSdk extends AbstractDartSdk {
   }
 
   @override
+  PackageBundle getLinkedBundle() => null;
+
+  @override
   String getRelativePathFromFile(JavaFile file) {
     String filePath = file.getAbsolutePath();
     String libPath = libraryDirectory.getAbsolutePath();

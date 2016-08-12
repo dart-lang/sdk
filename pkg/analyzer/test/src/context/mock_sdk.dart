@@ -4,6 +4,7 @@
 
 library analyzer.test.src.context.mock_sdk;
 
+import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/file_system/file_system.dart' as resource;
 import 'package:analyzer/file_system/memory_file_system.dart' as resource;
 import 'package:analyzer/src/context/cache.dart';
@@ -11,6 +12,9 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
+import 'package:analyzer/src/summary/summarize_elements.dart'
+    show PackageBundleAssembler;
 
 const String librariesContent = r'''
 const Map<String, LibraryInfo> libraries = const {
@@ -331,6 +335,11 @@ class MockSdk implements DartSdk {
   @override
   final List<SdkLibrary> sdkLibraries;
 
+  /**
+   * The cached linked bundle of the SDK.
+   */
+  PackageBundle _bundle;
+
   MockSdk({bool dartAsync: true, resource.ResourceProvider resourceProvider})
       : provider = resourceProvider ?? new resource.MemoryResourceProvider(),
         sdkLibraries = dartAsync ? _LIBRARIES : [_LIB_CORE],
@@ -393,6 +402,22 @@ class MockSdk implements DartSdk {
       }
     }
     return null;
+  }
+
+  @override
+  PackageBundle getLinkedBundle() {
+    if (_bundle == null) {
+      PackageBundleAssembler assembler = new PackageBundleAssembler();
+      for (SdkLibrary sdkLibrary in sdkLibraries) {
+        String uriStr = sdkLibrary.shortName;
+        Source source = mapDartUri(uriStr);
+        LibraryElement libraryElement = context.computeLibraryElement(source);
+        assembler.serializeLibraryElement(libraryElement);
+      }
+      List<int> bytes = assembler.assemble().toBuffer();
+      _bundle = new PackageBundle.fromBuffer(bytes);
+    }
+    return _bundle;
   }
 
   @override

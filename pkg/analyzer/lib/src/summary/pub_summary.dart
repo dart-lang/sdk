@@ -224,14 +224,18 @@ class PubSummaryManager {
    * its computation, so that it might be available later for other contexts
    * referencing the same packages.
    */
-  List<LinkedPubPackage> getLinkedBundles(
-      AnalysisContext context, PackageBundle sdkBundle) {
+  List<LinkedPubPackage> getLinkedBundles(AnalysisContext context) {
+    PackageBundle sdkBundle = context.sourceFactory.dartSdk.getLinkedBundle();
+    if (sdkBundle == null) {
+      return const <LinkedPubPackage>[];
+    }
+
     Map<PubPackage, PackageBundle> unlinkedBundles =
         getUnlinkedBundles(context);
 
     // If no unlinked bundles, there is nothing we can try to link.
     if (unlinkedBundles.isEmpty) {
-      return <LinkedPubPackage>[];
+      return const <LinkedPubPackage>[];
     }
 
     // Create graph nodes for packages.

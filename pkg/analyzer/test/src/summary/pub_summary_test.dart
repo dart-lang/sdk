@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -27,8 +25,6 @@ main() {
 @reflectiveTest
 class PubSummaryManagerTest extends AbstractContextTest {
   static const String CACHE = '/home/.pub-cache/hosted/pub.dartlang.org';
-
-  static Map<DartSdk, PackageBundle> sdkBundleMap = <DartSdk, PackageBundle>{};
 
   PubSummaryManager manager;
 
@@ -93,7 +89,7 @@ class B {}
       })
     ]);
 
-    PackageBundle sdkBundle = getSdkBundle(sdk);
+    PackageBundle sdkBundle = sdk.getLinkedBundle();
     PackageBundle bundle = manager.computeSdkExtension(context, sdkBundle);
     expect(bundle, isNotNull);
     expect(bundle.linkedLibraryUris, ['dart:aaa.internal']);
@@ -203,9 +199,7 @@ String d;
     await manager.onUnlinkedComplete;
 
     // Now we should be able to get linked bundles.
-    PackageBundle sdkBundle = getSdkBundle(sdk);
-    List<LinkedPubPackage> linkedPackages =
-        manager.getLinkedBundles(context, sdkBundle);
+    List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
     expect(linkedPackages, hasLength(4));
 
     // package:aaa
@@ -274,9 +268,7 @@ C b;
 
     // Try to link.
     // Only 'aaa' can be linked, because 'bbb' references not available 'ccc'.
-    PackageBundle sdkBundle = getSdkBundle(sdk);
-    List<LinkedPubPackage> linkedPackages =
-        manager.getLinkedBundles(context, sdkBundle);
+    List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
     expect(linkedPackages, hasLength(1));
 
     // package:aaa
@@ -320,9 +312,7 @@ int b;
     // Try to link.
     // No linked libraries, because 'aaa' needs 'bbb', and 'bbb' needs 'ccc'.
     // But 'ccc' is not available, so the whole chain cannot be linked.
-    PackageBundle sdkBundle = getSdkBundle(sdk);
-    List<LinkedPubPackage> linkedPackages =
-        manager.getLinkedBundles(context, sdkBundle);
+    List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
     expect(linkedPackages, isEmpty);
   }
 
@@ -359,9 +349,7 @@ int b = 42;
     // Try to link.
     // Only 'bbb', because 'aaa' references 'package:bbb/b2.dart', which does
     // not exist in the bundle 'bbb'.
-    PackageBundle sdkBundle = getSdkBundle(sdk);
-    List<LinkedPubPackage> linkedPackages =
-        manager.getLinkedBundles(context, sdkBundle);
+    List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
     expect(linkedPackages, hasLength(1));
 
     // package:bbb
@@ -416,9 +404,7 @@ int c;
     // Only 'ccc' is linked.
     // The 'aaa' + 'bbb' cycle cannot be linked because 'bbb' references
     // 'package:ccc/c2.dart', which does not exist in the bundle 'ccc'.
-    PackageBundle sdkBundle = getSdkBundle(sdk);
-    List<LinkedPubPackage> linkedPackages =
-        manager.getLinkedBundles(context, sdkBundle);
+    List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
     expect(linkedPackages, hasLength(1));
 
     // package:ccc
@@ -460,9 +446,7 @@ A b;
     await manager.onUnlinkedComplete;
 
     // Now we should be able to get linked bundles.
-    PackageBundle sdkBundle = getSdkBundle(sdk);
-    List<LinkedPubPackage> linkedPackages =
-        manager.getLinkedBundles(context, sdkBundle);
+    List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
     expect(linkedPackages, hasLength(2));
 
     // package:aaa
@@ -508,9 +492,7 @@ class A {}
     await manager.onUnlinkedComplete;
 
     // Link.
-    PackageBundle sdkBundle = getSdkBundle(sdk);
-    List<LinkedPubPackage> linkedPackages =
-        manager.getLinkedBundles(context, sdkBundle);
+    List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
     expect(linkedPackages, hasLength(1));
 
     // package:aaa
@@ -558,9 +540,7 @@ class C {}
     await manager.onUnlinkedComplete;
 
     // Now we should be able to get linked bundles.
-    PackageBundle sdkBundle = getSdkBundle(sdk);
-    List<LinkedPubPackage> linkedPackages =
-        manager.getLinkedBundles(context, sdkBundle);
+    List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
     expect(linkedPackages, hasLength(3));
 
     // package:aaa
@@ -614,9 +594,7 @@ class ExtB {}
     await manager.onUnlinkedComplete;
 
     // Now we should be able to get linked bundles.
-    PackageBundle sdkBundle = getSdkBundle(sdk);
-    List<LinkedPubPackage> linkedPackages =
-        manager.getLinkedBundles(context, sdkBundle);
+    List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
     expect(linkedPackages, hasLength(2));
 
     // package:aaa
@@ -659,9 +637,7 @@ Z a;
     // Try to link.
     // The package 'aaa' cannot be linked because it uses not 'dart' or
     // 'package' import URI scheme.
-    PackageBundle sdkBundle = getSdkBundle(sdk);
-    List<LinkedPubPackage> linkedPackages =
-        manager.getLinkedBundles(context, sdkBundle);
+    List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
     expect(linkedPackages, hasLength(0));
   }
 
@@ -939,24 +915,6 @@ class B {}
       }
     }
     fail('Cannot find variable $variableName in $linkedPackage');
-  }
-
-  /**
-   * Compute element based summary bundle for the given [sdk].
-   */
-  static PackageBundle getSdkBundle(DartSdk sdk) {
-    return sdkBundleMap.putIfAbsent(sdk, () {
-      PackageBundleAssembler assembler = new PackageBundleAssembler();
-      for (SdkLibrary sdkLibrary in sdk.sdkLibraries) {
-        String uriStr = sdkLibrary.shortName;
-        Source source = sdk.mapDartUri(uriStr);
-        LibraryElement libraryElement =
-            sdk.context.computeLibraryElement(source);
-        assembler.serializeLibraryElement(libraryElement);
-      }
-      List<int> bytes = assembler.assemble().toBuffer();
-      return new PackageBundle.fromBuffer(bytes);
-    });
   }
 
   static PackageBundle _getBundleByPackageName(
