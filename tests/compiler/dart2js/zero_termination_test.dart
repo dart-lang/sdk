@@ -47,11 +47,14 @@ void cleanup() {
 }
 
 Future launchDart2Js(args) {
-  String ext = Platform.isWindows ? '.bat' : '';
-  String command =
-      path.normalize(path.join(path.fromUri(Platform.script),
-                    '../../../../sdk/bin/dart2js${ext}'));
-  return Process.run(command, args, stdoutEncoding: null);
+  String executable = Platform.executable;
+  String command = path.join(path.dirname(executable), 'dart2js');
+  String dart2jsPath = path.normalize(
+      path.join(path.fromUri(Platform.script),
+        '../../../../pkg/compiler/lib/src/dart2js.dart'));
+  List allArgs = ['--package-root=${Platform.packageRoot}',
+       dart2jsPath]..addAll(args);
+  return Process.run(Platform.executable, allArgs, stdoutEncoding: null);
 }
 
 void check(ProcessResult result) {
