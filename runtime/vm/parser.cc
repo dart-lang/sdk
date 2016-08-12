@@ -1614,14 +1614,19 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
   }
 
   AstNode* call = NULL;
-  if (!target.IsNull()) {
+  // Check the target still exists and has compatible parameters. If not,
+  // throw NSME/call nSM instead of forwarding the call. Note we compare the
+  // parent not func because func has an extra parameter for the closure
+  // receiver.
+  if (!target.IsNull() &&
+      (parent.num_fixed_parameters() == target.num_fixed_parameters())) {
     call = new StaticCallNode(token_pos, target, func_args);
   } else if (!parent.is_static()) {
     ASSERT(Isolate::Current()->HasAttemptedReload());
     // If a subsequent reload reintroduces the target in the middle of the
     // Invocation object being constructed, we won't be able to successfully
     // deopt because the generated AST will change.
-    current_function().SetIsOptimizable(false);
+    func.SetIsOptimizable(false);
 
     ArgumentListNode* arguments = BuildNoSuchMethodArguments(
         token_pos, func_name, *func_args, NULL, false);
@@ -1645,7 +1650,7 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
     // If a subsequent reload reintroduces the target in the middle of the
     // arguments array being constructed, we won't be able to successfully
     // deopt because the generated AST will change.
-    current_function().SetIsOptimizable(false);
+    func.SetIsOptimizable(false);
 
     InvocationMirror::Type im_type;
     if (parent.IsImplicitGetterFunction()) {

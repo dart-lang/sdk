@@ -1835,6 +1835,116 @@ TEST_CASE(IsolateReload_DanglingSetter_Library) {
 }
 
 
+TEST_CASE(IsolateReload_TearOff_AddArguments) {
+  const char* kScript =
+      "import 'test:isolate_reload_helper';\n"
+      "class C {\n"
+      "  foo(x) => x;\n"
+      "}\n"
+      "invoke(f, a) {\n"
+      "  try {\n"
+      "    return f(a);\n"
+      "  } catch (e) {\n"
+      "    return e.toString().split('\\n').first;\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  var c = new C();\n"
+      "  var f = c#foo;\n"
+      "  var r1 = invoke(f, 1);\n"
+      "  reloadTest();\n"
+      "  var r2 = invoke(f, 1);\n"
+      "  return '$r1 $r2';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+
+  const char* kReloadScript =
+      "import 'test:isolate_reload_helper';\n"
+      "class C {\n"
+      "  foo(x, y, z) => x + y + z;\n"
+      "}\n"
+      "invoke(f, a) {\n"
+      "  try {\n"
+      "    return f(a);\n"
+      "  } catch (e) {\n"
+      "    return e.toString().split('\\n').first;\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  var c = new C();\n"
+      "  var f = c#foo;\n"
+      "  var r1 = invoke(f, 1);\n"
+      "  reloadTest();\n"
+      "  var r2 = invoke(f, 1);\n"
+      "  return '$r1 $r2';\n"
+      "}\n";
+
+  TestCase::SetReloadTestScript(kReloadScript);
+
+  EXPECT_STREQ("1 Class 'C' has no instance method 'foo' with matching"
+               " arguments.", SimpleInvokeStr(lib, "main"));
+
+  lib = TestCase::GetReloadErrorOrRootLibrary();
+  EXPECT_VALID(lib);
+}
+
+
+TEST_CASE(IsolateReload_TearOff_AddArguments2) {
+  const char* kScript =
+      "import 'test:isolate_reload_helper';\n"
+      "class C {\n"
+      "  static foo(x) => x;\n"
+      "}\n"
+      "invoke(f, a) {\n"
+      "  try {\n"
+      "    return f(a);\n"
+      "  } catch (e) {\n"
+      "    return e.toString().split('\\n').first;\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  var f = C#foo;\n"
+      "  var r1 = invoke(f, 1);\n"
+      "  reloadTest();\n"
+      "  var r2 = invoke(f, 1);\n"
+      "  return '$r1 $r2';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+
+  const char* kReloadScript =
+      "import 'test:isolate_reload_helper';\n"
+      "class C {\n"
+      "  static foo(x, y, z) => x + y + z;\n"
+      "}\n"
+      "invoke(f, a) {\n"
+      "  try {\n"
+      "    return f(a);\n"
+      "  } catch (e) {\n"
+      "    return e.toString().split('\\n').first;\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  var f = C#foo;\n"
+      "  var r1 = invoke(f, 1);\n"
+      "  reloadTest();\n"
+      "  var r2 = invoke(f, 1);\n"
+      "  return '$r1 $r2';\n"
+      "}\n";
+
+  TestCase::SetReloadTestScript(kReloadScript);
+
+  EXPECT_STREQ("1 Closure call with mismatched arguments: function 'C.foo'",
+               SimpleInvokeStr(lib, "main"));
+
+  lib = TestCase::GetReloadErrorOrRootLibrary();
+  EXPECT_VALID(lib);
+}
+
+
 TEST_CASE(IsolateReload_EnumEquality) {
   const char* kScript =
       "enum Fruit {\n"
