@@ -19,6 +19,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
+import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 
 /**
@@ -151,6 +152,7 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
                 e is PropertyAccessorElementImpl ? e.identifier : e.name;
             elementsInUnit[id] = e;
           }
+
           unitElement.accessors.forEach(putElement);
           unitElement.enums.forEach(putElement);
           unitElement.functions.forEach(putElement);
@@ -204,15 +206,29 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
       return parent.getLibraryElement(uri);
     }
     return _resynthesizedLibraries.putIfAbsent(uri, () {
-      LinkedLibrary serializedLibrary = _getLinkedSummaryOrThrow(uri);
-      List<UnlinkedUnit> serializedUnits = <UnlinkedUnit>[
-        _getUnlinkedSummaryOrThrow(uri)
-      ];
+      LinkedLibrary serializedLibrary = _getLinkedSummaryOrNull(uri);
       Source librarySource = _getSource(uri);
+      if (serializedLibrary == null) {
+        LibraryElementImpl libraryElement =
+            new LibraryElementImpl(context, '', -1, 0);
+        libraryElement.synthetic = true;
+        CompilationUnitElementImpl unitElement =
+            new CompilationUnitElementImpl(librarySource.shortName);
+        libraryElement.definingCompilationUnit = unitElement;
+        unitElement.source = librarySource;
+        unitElement.librarySource = librarySource;
+        return libraryElement..synthetic = true;
+      }
+      UnlinkedUnit unlinkedSummary = _getUnlinkedSummaryOrNull(uri);
+      if (unlinkedSummary == null) {
+        throw new StateError('Unable to find unlinked summary: $uri');
+      }
+      List<UnlinkedUnit> serializedUnits = <UnlinkedUnit>[unlinkedSummary];
       for (String part in serializedUnits[0].publicNamespace.parts) {
         Source partSource = sourceFactory.resolveUri(librarySource, part);
         String partAbsUri = partSource.uri.toString();
-        serializedUnits.add(_getUnlinkedSummaryOrThrow(partAbsUri));
+        serializedUnits.add(_getUnlinkedSummaryOrNull(partAbsUri) ??
+            new UnlinkedUnitBuilder(codeRange: new CodeRangeBuilder()));
       }
       _LibraryResynthesizer libraryResynthesizer = new _LibraryResynthesizer(
           this, serializedLibrary, serializedUnits, librarySource);
@@ -244,18 +260,14 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   bool hasLibrarySummary(String uri);
 
   /**
-   * Return the [LinkedLibrary] for the given [uri] or throw [StateError] if it
+   * Return the [LinkedLibrary] for the given [uri] or return `null` if it
    * could not be found.
    */
-  LinkedLibrary _getLinkedSummaryOrThrow(String uri) {
+  LinkedLibrary _getLinkedSummaryOrNull(String uri) {
     if (parent != null && parent._hasLibrarySummary(uri)) {
-      return parent._getLinkedSummaryOrThrow(uri);
+      return parent._getLinkedSummaryOrNull(uri);
     }
-    LinkedLibrary summary = getLinkedSummary(uri);
-    if (summary != null) {
-      return summary;
-    }
-    throw new StateError('Unable to find linked summary: $uri');
+    return getLinkedSummary(uri);
   }
 
   /**
@@ -266,18 +278,14 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   }
 
   /**
-   * Return the [UnlinkedUnit] for the given [uri] or throw [StateError] if it
+   * Return the [UnlinkedUnit] for the given [uri] or return `null` if it
    * could not be found.
    */
-  UnlinkedUnit _getUnlinkedSummaryOrThrow(String uri) {
+  UnlinkedUnit _getUnlinkedSummaryOrNull(String uri) {
     if (parent != null && parent._hasLibrarySummary(uri)) {
-      return parent._getUnlinkedSummaryOrThrow(uri);
+      return parent._getUnlinkedSummaryOrNull(uri);
     }
-    UnlinkedUnit summary = getUnlinkedSummary(uri);
-    if (summary != null) {
-      return summary;
-    }
-    throw new StateError('Unable to find unlinked summary: $uri');
+    return getUnlinkedSummary(uri);
   }
 
   /**
@@ -1280,8 +1288,10 @@ class _ReferenceInfo {
           typeArguments = element.typeParameters.map((typeParameter) {
             DartType bound = typeParameter.bound;
             return libraryResynthesizer.summaryResynthesizer.strongMode &&
-                instantiateToBoundsAllowed &&
-                bound != null ? bound : DynamicTypeImpl.instance;
+                    instantiateToBoundsAllowed &&
+                    bound != null
+                ? bound
+                : DynamicTypeImpl.instance;
           }).toList();
         }
         return typeArguments;
@@ -1573,6 +1583,7 @@ class _UnitResynthesizer {
           return DynamicTypeImpl.instance;
         }
       }
+
       _ReferenceInfo referenceInfo = getReferenceInfo(type.reference);
       return referenceInfo.buildType(
           instantiateToBoundsAllowed,

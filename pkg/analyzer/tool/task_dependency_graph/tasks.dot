@@ -189,6 +189,7 @@ digraph G {
   LibraryErrorsReadyTask -> LIBRARY_ERRORS_READY
   LibraryUnitErrorsTask -> LIBRARY_UNIT_ERRORS
   MODIFICATION_TIME -> BuildDirectiveElementsTask
+  MODIFICATION_TIME -> BuildLibraryElementTask
   MODIFICATION_TIME -> ParseDartTask
   MODIFICATION_TIME -> ScanDartTask
   MODIFICATION_TIME -> VerifyUnitTask

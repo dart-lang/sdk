@@ -1492,6 +1492,11 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
   static const String PARTS_UNIT_INPUT = 'PARTS_UNIT_INPUT';
 
   /**
+   * The name of the input whose value is the modification time of the source.
+   */
+  static const String MODIFICATION_TIME_INPUT = 'MODIFICATION_TIME_INPUT';
+
+  /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
@@ -1527,6 +1532,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     CompilationUnit definingCompilationUnit =
         getRequiredInput(DEFINING_UNIT_INPUT);
     List<CompilationUnit> partUnits = getRequiredInput(PARTS_UNIT_INPUT);
+    int modificationTime = getRequiredInput(MODIFICATION_TIME_INPUT);
     //
     // Process inputs.
     //
@@ -1647,6 +1653,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     if (libraryElement == null) {
       libraryElement =
           new LibraryElementImpl.forNode(owningContext, libraryNameNode);
+      libraryElement.synthetic = modificationTime < 0;
       libraryElement.definingCompilationUnit = definingCompilationUnitElement;
       libraryElement.entryPoint = entryPoint;
       libraryElement.parts = sourcedCompilationUnits;
@@ -1745,7 +1752,8 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
           RESOLVED_UNIT1.of(new LibrarySpecificUnit(source, source)),
       PARTS_UNIT_INPUT: INCLUDED_PARTS.of(source).toList((Source unit) {
         return RESOLVED_UNIT1.of(new LibrarySpecificUnit(source, unit));
-      })
+      }),
+      MODIFICATION_TIME_INPUT: MODIFICATION_TIME.of(source)
     };
   }
 

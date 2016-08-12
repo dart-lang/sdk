@@ -1918,10 +1918,10 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitExportDirective(ExportDirective node) {
     ExportElement exportElement = node.element;
-    if (exportElement != null && exportElement.uriExists) {
+    if (exportElement != null) {
       // The element is null when the URI is invalid
       LibraryElement library = exportElement.exportedLibrary;
-      if (library != null) {
+      if (library != null && !library.isSynthetic) {
         for (Combinator combinator in node.combinators) {
           _checkCombinator(exportElement.exportedLibrary, combinator);
         }
@@ -1962,11 +1962,11 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitImportDirective(ImportDirective node) {
     ImportElement importElement = node.element;
-    if (importElement != null && importElement.uriExists) {
+    if (importElement != null) {
       // The element is null when the URI is invalid, but not when the URI is
       // valid but refers to a non-existent file.
       LibraryElement library = importElement.importedLibrary;
-      if (library != null) {
+      if (library != null && !library.isSynthetic) {
         for (Combinator combinator in node.combinators) {
           _checkCombinator(library, combinator);
         }
@@ -4452,7 +4452,7 @@ class ImportsVerifier {
         LibraryElement libraryElement = importElement.importedLibrary;
         if (libraryElement == null ||
             libraryElement.isDartCore ||
-            !importElement.uriExists) {
+            libraryElement.isSynthetic) {
           continue;
         }
       }
@@ -4910,6 +4910,15 @@ class InferenceContext {
   }
 
   /**
+   * Look for contextual type information attached to [node].  Returns
+   * the type if found, otherwise null.
+   *
+   * If [node] has a contextual union type like `T | Future<T>` this will be
+   * returned. You can use [getType] if you prefer to only get the `T`.
+   */
+  static DartType getContext(AstNode node) => node?.getProperty(_typeProperty);
+
+  /**
    * Look for a single contextual type attached to [node], and returns the type
    * if found, otherwise null.
    *
@@ -4924,15 +4933,6 @@ class InferenceContext {
     }
     return t;
   }
-
-  /**
-   * Look for contextual type information attached to [node].  Returns
-   * the type if found, otherwise null.
-   *
-   * If [node] has a contextual union type like `T | Future<T>` this will be
-   * returned. You can use [getType] if you prefer to only get the `T`.
-   */
-  static DartType getContext(AstNode node) => node?.getProperty(_typeProperty);
 
   /**
    * Like [getContext] but expands a union type into a list of types.

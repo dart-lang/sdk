@@ -4157,23 +4157,6 @@ class ExportElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  bool get uriExists {
-    if (_unlinkedExportNonPublic != null) {
-      return true;
-    }
-    return hasModifier(Modifier.URI_EXISTS);
-  }
-
-  /**
-   * Set whether the file referenced by the import's URI exists to match the
-   * given flag.
-   */
-  void set uriExists(bool exists) {
-    assert(_unlinkedExportNonPublic == null);
-    setModifier(Modifier.URI_EXISTS, exists);
-  }
-
-  @override
   int get uriOffset {
     if (_unlinkedExportNonPublic != null) {
       return _unlinkedExportNonPublic.uriOffset;
@@ -5114,23 +5097,6 @@ class ImportElementImpl extends UriReferencedElementImpl
   void set uriEnd(int uriEnd) {
     assert(_unlinkedImport == null);
     super.uriEnd = uriEnd;
-  }
-
-  @override
-  bool get uriExists {
-    if (_unlinkedImport != null) {
-      return true;
-    }
-    return hasModifier(Modifier.URI_EXISTS);
-  }
-
-  /**
-   * Set whether the file referenced by the import's URI exists to match the
-   * given flag.
-   */
-  void set uriExists(bool exists) {
-    assert(_unlinkedImport == null);
-    setModifier(Modifier.URI_EXISTS, exists);
   }
 
   @override
@@ -6433,12 +6399,6 @@ class Modifier extends Enum<Modifier> {
    */
   static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 16);
 
-  /**
-   * A flag used for import and export elements that indicates whether the URI
-   * in the corresponding directive referenced a file that exists.
-   */
-  static const Modifier URI_EXISTS = const Modifier('URI_EXISTS', 17);
-
   static const List<Modifier> values = const [
     ABSTRACT,
     ASYNCHRONOUS,
@@ -6456,8 +6416,7 @@ class Modifier extends Enum<Modifier> {
     REFERENCES_SUPER,
     SETTER,
     STATIC,
-    SYNTHETIC,
-    URI_EXISTS
+    SYNTHETIC
   ];
 
   const Modifier(String name, int ordinal) : super(name, ordinal);

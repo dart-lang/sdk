@@ -452,7 +452,8 @@ class LibraryImportScope extends Scope {
       int count = imports.length;
       for (int i = 0; i < count; i++) {
         ImportElement importElement = imports[i];
-        if (importElement.prefix?.name == prefix && !importElement.uriExists) {
+        if (importElement.prefix?.name == prefix &&
+            importElement.importedLibrary?.isSynthetic != false) {
           Iterable<NamespaceCombinator> showCombinators =
               getShowCombinators(importElement);
           if (showCombinators.isEmpty) {
@@ -471,7 +472,8 @@ class LibraryImportScope extends Scope {
       int count = imports.length;
       for (int i = 0; i < count; i++) {
         ImportElement importElement = imports[i];
-        if (importElement.prefix == null && !importElement.uriExists) {
+        if (importElement.prefix == null &&
+            importElement.importedLibrary?.isSynthetic != false) {
           for (ShowElementCombinator combinator
               in getShowCombinators(importElement)) {
             if (combinator.shownNames.contains(name)) {
