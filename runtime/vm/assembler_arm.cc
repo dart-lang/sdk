@@ -3222,7 +3222,9 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
     ldr(PP, Address(FP, kSavedCallerPpSlotFromFp * kWordSize));
     set_constant_pool_allowed(false);
   }
-  Drop(2);  // Drop saved PP, PC marker.
+
+  // This will implicitly drop saved PP, PC marker due to restoring SP from FP
+  // first.
   LeaveFrame((1 << FP) | (1 << LR));
 }
 
