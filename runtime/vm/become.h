@@ -85,6 +85,9 @@ class Become : public AllStatic {
   // making the instance independent of its class.
   // (used for morphic instances during reload).
   static void MakeDummyObject(const Instance& instance);
+
+ private:
+  static void CrashDump(RawObject* before_obj, RawObject* after_obj);
 };
 
 }  // namespace dart

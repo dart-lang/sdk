@@ -593,6 +593,7 @@ CLASS_LIST_TYPED_DATA(DEFINE_IS_CID)
   friend class ApiMessageReader;  // GetClassId
   friend class Serializer;  // GetClassId
   friend class Array;
+  friend class Become;  // GetClassId
   friend class Bigint;
   friend class ByteBuffer;
   friend class Closure;
