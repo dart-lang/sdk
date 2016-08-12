@@ -1932,9 +1932,7 @@ void Precompiler::SwitchICCalls() {
         if (entry_.IsICData()) {
           ic_ ^= entry_.raw();
 
-          // SwitchableCalls use single-check ICs. No other kind of IC call is
-          // generated in precompilation mode.
-          ASSERT(ic_.NumArgsTested() == 1);
+          if (ic_.NumArgsTested() != 1) continue;
 
           for (intptr_t j = 0; j < ic_.NumberOfChecks(); j++) {
             entry_ = ic_.GetTargetOrCodeAt(j);
