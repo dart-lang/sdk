@@ -18,7 +18,7 @@ import 'test_data.dart';
 int SKIP_COUNT = 0;
 
 /// Number of groups that the [TESTS] are split into.
-int SPLIT_COUNT = 4;
+int SPLIT_COUNT = 5;
 
 main(List<String> args) {
   asyncTest(() async {
