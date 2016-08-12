@@ -496,6 +496,7 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
           target, callStructure, abstractReceiverInMethod, abstractArguments);
       return null;
     }
+
     if (backend.annotations.noInline(target)) return doNotInline();
     if (isRecursive(target, callStructure)) return doNotInline();
 

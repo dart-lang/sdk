@@ -2155,6 +2155,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       StringConstantValue constant = value.constant;
       return constant.primitiveValue;
     }
+
     switch (node.operator) {
       case BuiltinOperator.StringConcatenate:
         // Concatenate consecutive constants.

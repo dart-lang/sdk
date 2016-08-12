@@ -2745,6 +2745,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
                 sourceInformationBuilder.buildAssignment(node));
           });
     }
+
     return node.isConditional
         ? irBuilder.buildIfNotNullSend(
             target, nested(helper), sourceInformationBuilder.buildIf(node))
@@ -2775,6 +2776,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
                 sourceInformationBuilder.buildAssignment(node));
           });
     }
+
     return node.isConditional
         ? irBuilder.buildIfNotNullSend(
             target, nested(helper), sourceInformationBuilder.buildIf(node))
@@ -3342,7 +3344,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         return buildIsolateHelperInvocation(
             helpers.currentIsolate, CallStructure.NO_ARGS);
 
-      getStaticState: case 'JS_GET_STATIC_STATE':
+      getStaticState:
+      case 'JS_GET_STATIC_STATE':
         validateArgumentCount(exactly: 0);
 
         return irBuilder.buildForeignCode(
@@ -3923,10 +3926,12 @@ class TryBoxedVariables extends ast.Visitor {
       tryNestingStack.add(info);
       return info;
     }
+
     void leaveTryFor(TryStatementInfo info) {
       assert(tryNestingStack.last == info);
       tryNestingStack.removeLast();
     }
+
     bool hasCatch = !node.catchBlocks.isEmpty;
     bool hasFinally = node.finallyBlock != null;
     TryStatementInfo catchInfo, finallyInfo;

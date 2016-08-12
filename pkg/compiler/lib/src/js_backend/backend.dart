@@ -1203,6 +1203,7 @@ class JavaScriptBackend extends Backend {
           }
           return ctor;
         }
+
         Element getMember(String name) {
           // The constructor is on the patch class, but dart2js unit tests don't
           // have a patch class.
@@ -1216,6 +1217,7 @@ class JavaScriptBackend extends Backend {
           }
           return element;
         }
+
         helpers.mapLiteralConstructor = getFactory('_literal', 1);
         helpers.mapLiteralConstructorEmpty = getFactory('_empty', 0);
         enqueueInResolution(helpers.mapLiteralConstructor, registry);

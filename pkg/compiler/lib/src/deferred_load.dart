@@ -404,6 +404,7 @@ class DeferredLoadTask extends CompilerTask {
         elements.add(element);
         collectDependencies(element);
       }
+
       ClassElement cls = element.declaration;
       cls.forEachLocalMember(addLiveInstanceMember);
       if (cls.implementation != cls) {
@@ -460,6 +461,7 @@ class DeferredLoadTask extends CompilerTask {
         iterateTags(library.implementation);
       }
     }
+
     traverseLibrary(root);
     result.add(compiler.coreLibrary);
     return result;
@@ -872,6 +874,7 @@ class DeferredLoadTask extends CompilerTask {
         }
       }
     }
+
     ast.Node first = firstNode(send);
     ast.Node identifier = first.asIdentifier();
     if (identifier == null) return null;

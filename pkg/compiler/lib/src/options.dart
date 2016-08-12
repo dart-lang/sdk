@@ -701,8 +701,8 @@ List<String> _extractOptionalCsvOption(List<String> options, String flag) {
   return null;
 }
 
-Uri _resolvePlatformConfig(Uri libraryRoot, String platformConfigPath,
-    Iterable<String> categories) {
+Uri _resolvePlatformConfig(
+    Uri libraryRoot, String platformConfigPath, Iterable<String> categories) {
   if (platformConfigPath != null) {
     return libraryRoot.resolve(platformConfigPath);
   } else {

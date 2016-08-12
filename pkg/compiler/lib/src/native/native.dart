@@ -33,6 +33,7 @@ bool maybeEnableNative(Compiler compiler, LibraryElement library) {
     return scriptName.contains('sdk/tests/compiler/dart2js_native') ||
         scriptName.contains('sdk/tests/compiler/dart2js_extra');
   }
+
   bool allowedDartLibary() {
     Uri uri = library.canonicalUri;
     if (uri.scheme != 'dart') return false;

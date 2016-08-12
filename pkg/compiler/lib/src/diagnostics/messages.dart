@@ -609,7 +609,9 @@ main() => new A().m();
           "Cannot resolve '#{name}'.",
           howToFix: "Did you mean to add the 'async' marker "
               "to the enclosing function?",
-          examples: const ["main() { (() => await -3)(); }",]),
+          examples: const [
+            "main() { (() => await -3)(); }",
+          ]),
 
       MessageKind.CANNOT_RESOLVE_IN_INITIALIZER: const MessageTemplate(
           MessageKind.CANNOT_RESOLVE_IN_INITIALIZER,
@@ -1996,7 +1998,9 @@ main() => new C();"""
           "Cannot assign a value to a type. Note that types are never null, "
           "so this ??= assignment has no effect.",
           howToFix: "Try removing the '??=' assignment.",
-          examples: const ["class A {} main() { print(A ??= 3);}",]),
+          examples: const [
+            "class A {} main() { print(A ??= 3);}",
+          ]),
 
       MessageKind.VOID_NOT_ALLOWED: const MessageTemplate(
           MessageKind.VOID_NOT_ALLOWED,
@@ -3085,7 +3089,11 @@ main() => r\"\"\"
           MessageKind.UNMATCHED_TOKEN,
           "Can't find '#{end}' to match '#{begin}'.",
           howToFix: DONT_KNOW_HOW_TO_FIX,
-          examples: const ["main(", "main(){", "main(){]}",]),
+          examples: const [
+            "main(",
+            "main(){",
+            "main(){]}",
+          ]),
 
       MessageKind.UNTERMINATED_TOKEN: const MessageTemplate(
           MessageKind.UNTERMINATED_TOKEN,
@@ -3209,7 +3217,8 @@ main() => new A();
       MessageKind.MAIN_WITH_EXTRA_PARAMETER: const MessageTemplate(
           MessageKind.MAIN_WITH_EXTRA_PARAMETER,
           "'#{main}' cannot have more than two parameters.",
-          howToFix: DONT_KNOW_HOW_TO_FIX, /* Don't state the obvious. */
+          howToFix: DONT_KNOW_HOW_TO_FIX,
+          /* Don't state the obvious. */
           examples: const ['main(a, b, c) {}']),
 
       MessageKind.COMPILER_CRASHED: const MessageTemplate(

@@ -468,6 +468,7 @@ class LocalsHandler<T> {
         inferrer.recordLocalUpdate(local, type);
       }
     }
+
     if (capturedAndBoxed.containsKey(local)) {
       inferrer.recordTypeOfNonFinalField(node, capturedAndBoxed[local], type);
     } else if (inTryBlock) {

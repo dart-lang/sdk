@@ -265,6 +265,7 @@ class RuntimeTypeGenerator {
         generateSubstitution(check);
       }
     }
+
     ;
 
     tryEmitTest(cls);

@@ -1251,6 +1251,7 @@ class Namer {
       if (cls == helpers.jsInterceptorClass) return "I";
       return cls.name;
     }
+
     List<String> names = classes
         .where((cls) => !backend.isNativeOrExtendsNative(cls))
         .map(abbreviate)

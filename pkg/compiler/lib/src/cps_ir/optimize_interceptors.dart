@@ -110,6 +110,7 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
               !typeSystem.areDisjoint(
                   type, typeSystem.getInterceptorSubtypes(elem));
         }
+
         Iterable<ClassElement> classes =
             backend.getInterceptedClassesOn(use.selector.name);
         intercepted.addAll(classes.where(canOccurAsReceiver));

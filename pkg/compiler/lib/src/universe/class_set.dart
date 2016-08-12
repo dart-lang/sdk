@@ -214,6 +214,7 @@ class ClassHierarchyNode {
     IterationStep wrapper(ClassElement cls) {
       return predicate(cls) ? IterationStep.STOP : IterationStep.CONTINUE;
     }
+
     return forEachSubclass(wrapper, mask, strict: strict) == IterationStep.STOP;
   }
 
@@ -547,6 +548,7 @@ class ClassSet {
     IterationStep wrapper(ClassElement cls) {
       return predicate(cls) ? IterationStep.STOP : IterationStep.CONTINUE;
     }
+
     return forEachSubtype(wrapper, mask, strict: strict) == IterationStep.STOP;
   }
 

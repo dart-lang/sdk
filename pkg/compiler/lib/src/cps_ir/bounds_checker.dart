@@ -293,12 +293,14 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
         push(trueCont);
       });
     }
+
     void pushFalse(makeConstraint()) {
       pushAction(() {
         makeConstraint();
         push(falseCont);
       });
     }
+
     if (condition is ApplyBuiltinOperator &&
         condition.argumentRefs.length == 2 &&
         isInt(condition.argument(0)) &&

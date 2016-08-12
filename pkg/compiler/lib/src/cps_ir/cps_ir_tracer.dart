@@ -83,6 +83,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
         String formatParameter(cps_ir.Parameter param) {
           return '${names.name(param)} ${param.type}';
         }
+
         if (entryPoint != null) {
           String thisParam = entryPoint.receiverParameter != null
               ? formatParameter(entryPoint.receiverParameter)

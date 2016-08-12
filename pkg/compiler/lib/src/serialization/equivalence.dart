@@ -280,7 +280,8 @@ bool areSendStructuresEquivalent(SendStructure a, SendStructure b) {
       return areElementsEquivalent(ad.prefix, bd.prefix) &&
           areSendStructuresEquivalent(ad.sendStructure, bd.sendStructure);
 
-    semantics: case SendStructureKind.GET:
+    semantics:
+    case SendStructureKind.GET:
     case SendStructureKind.SET:
     case SendStructureKind.INDEX:
     case SendStructureKind.INDEX_SET:

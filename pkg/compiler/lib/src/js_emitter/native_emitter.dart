@@ -96,6 +96,7 @@ class NativeEmitter {
       walk(cls.superclass);
       preOrder.add(cls);
     }
+
     classes.forEach(walk);
 
     // Find which classes are needed and which are non-leaf classes.  Any class
@@ -187,6 +188,7 @@ class NativeEmitter {
       }
       cls.nativeExtensions = extensionPoints[cls];
     }
+
     // Add properties containing the information needed to construct maps used
     // by getNativeInterceptor and custom elements.
     if (compiler.enqueuer.codegen.nativeEnqueuer

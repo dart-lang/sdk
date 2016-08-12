@@ -1742,6 +1742,7 @@ class IrBuilder {
       void interceptJump(JumpCollector collector) {
         collector.enterTry(variables.boxedOnEntry);
       }
+
       builder.state.breakCollectors.forEach(interceptJump);
       builder.state.continueCollectors.forEach(interceptJump);
       interceptJump(builder.state.returnCollector);
@@ -1753,6 +1754,7 @@ class IrBuilder {
       void restoreJump(JumpCollector collector) {
         collector.leaveTry();
       }
+
       builder.state.breakCollectors.forEach(restoreJump);
       builder.state.continueCollectors.forEach(restoreJump);
       restoreJump(builder.state.returnCollector);
@@ -1873,6 +1875,7 @@ class IrBuilder {
         result.enterTry(variables.boxedOnEntry);
         return result;
       }
+
       savedBreaks = builder.state.breakCollectors;
       savedContinues = builder.state.continueCollectors;
       savedReturn = builder.state.returnCollector;
@@ -1893,6 +1896,7 @@ class IrBuilder {
       void restoreJump(JumpCollector collector) {
         collector.leaveTry();
       }
+
       newBreaks.forEach(restoreJump);
       newContinues.forEach(restoreJump);
       newReturn.leaveTry();
@@ -1926,6 +1930,7 @@ class IrBuilder {
         newCollector.continuation.body = builder.root;
         exits.add(newCollector.continuation);
       }
+
       for (int i = 0; i < newBreaks.length; ++i) {
         addJump(newBreaks[i], savedBreaks[i]);
       }

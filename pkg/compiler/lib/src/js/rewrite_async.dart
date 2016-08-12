@@ -1074,8 +1074,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
 
   js.Statement translateToStatement(js.Statement node) {
     List<js.Statement> statements = translateToStatementSequence(node);
-    if (statements.length == 1)
-      return statements.single;
+    if (statements.length == 1) return statements.single;
     return new js.Block(statements);
   }
 
@@ -1440,7 +1439,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
       js.Catch catchPart = (node.catchPart == null)
           ? null
           : new js.Catch(node.catchPart.declaration,
-                translateToBlock(node.catchPart.body));
+              translateToBlock(node.catchPart.body));
       js.Block finallyPart = (node.finallyPart == null)
           ? null
           : translateToBlock(node.finallyPart);

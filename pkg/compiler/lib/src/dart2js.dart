@@ -81,7 +81,8 @@ void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
   var pattern = new RegExp('^(${patterns.join(")\$|^(")})\$');
 
   Iterator<String> arguments = argv.iterator;
-  OUTER: while (arguments.moveNext()) {
+  OUTER:
+  while (arguments.moveNext()) {
     String argument = arguments.current;
     Match match = pattern.firstMatch(argument);
     assert(match.groupCount == handlers.length);

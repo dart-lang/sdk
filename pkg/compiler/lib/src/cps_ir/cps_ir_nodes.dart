@@ -2182,6 +2182,7 @@ abstract class BlockVisitor<T> {
         nodes.add(node);
       }
     }
+
     walkBlock(root);
     while (stack.isNotEmpty) {
       walkBlock(stack.removeLast());
@@ -2212,6 +2213,7 @@ abstract class BlockVisitor<T> {
         node = next;
       }
     }
+
     walkBlock(root);
     while (stack.isNotEmpty) {
       walkBlock(stack.removeLast());

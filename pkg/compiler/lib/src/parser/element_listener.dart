@@ -321,6 +321,7 @@ class ElementListener extends Listener {
     void buildFieldElement(Identifier name, VariableList fields) {
       pushElement(new FieldElementX(name, compilationUnitElement, fields));
     }
+
     NodeList variables = makeNodeList(count, null, null, ",");
     popNode(); // type
     Modifiers modifiers = popNode();

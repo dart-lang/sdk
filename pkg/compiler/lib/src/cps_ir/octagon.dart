@@ -152,6 +152,7 @@ class Octagon {
         worklist.addLast(v);
       }
     }
+
     void iterateWorklist() {
       while (!worklist.isEmpty) {
         SignedVariable v1 = worklist.removeFirst();
@@ -162,6 +163,7 @@ class Octagon {
         }
       }
     }
+
     // Two new edges will be added by the constraint `v1 + v2 <= k`:
     //
     //   A. (v1) --> (-v2)

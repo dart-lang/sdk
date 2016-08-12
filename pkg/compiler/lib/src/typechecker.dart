@@ -815,6 +815,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
             foundPrivateMember = true;
           }
         }
+
         // TODO(johnniwinther): Avoid computation of all class members.
         MembersCreator.computeAllClassMembers(resolution, interface.element);
         if (lookupClassMember) {

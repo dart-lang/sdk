@@ -608,6 +608,7 @@ abstract class Compiler implements LibraryLoaderListener {
       }
       return result;
     }
+
     _coreTypes.objectClass = lookupCoreClass('Object');
     _coreTypes.boolClass = lookupCoreClass('bool');
     _coreTypes.numClass = lookupCoreClass('num');
@@ -901,6 +902,7 @@ abstract class Compiler implements LibraryLoaderListener {
     void enqueueAll(Element element) {
       fullyEnqueueTopLevelElement(element, world);
     }
+
     library.implementation.forEachLocalMember(enqueueAll);
     library.imports.forEach((ImportElement import) {
       if (import.isDeferred) {
@@ -1156,6 +1158,7 @@ abstract class Compiler implements LibraryLoaderListener {
         }
       }
     }
+
     libraryLoader.libraries.forEach((LibraryElement library) {
       // TODO(ahe): Implement better heuristics to discover entry points of
       // packages and use that to discover unused implementation details in

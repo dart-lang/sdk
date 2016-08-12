@@ -882,10 +882,12 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     bool isUInt31(info) {
       return info.type.satisfies(uint31Implementation, classWorld);
     }
+
     bool isPositiveInt(info) {
       return info.type
           .satisfies(classWorld.backend.positiveIntImplementation, classWorld);
     }
+
     TypeInformation tryLater() => inferrer.types.nonNullEmptyType;
 
     TypeInformation argument =

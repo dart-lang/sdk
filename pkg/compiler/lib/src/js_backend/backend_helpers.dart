@@ -245,6 +245,7 @@ class BackendHelpers {
       }
       return result;
     }
+
     jsInvocationMirrorClass = lookupHelperClass('JSInvocationMirror');
     boundClosureClass = lookupHelperClass('BoundClosure');
     closureClass = lookupHelperClass('Closure');

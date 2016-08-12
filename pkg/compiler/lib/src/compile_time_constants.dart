@@ -860,6 +860,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       return new AstConstant.fromDefaultValue(
           element, constant, handler.getConstantValue(constant));
     }
+
     target.computeType(resolution);
 
     FunctionSignature signature = target.functionSignature;

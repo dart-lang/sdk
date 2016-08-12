@@ -193,6 +193,7 @@ class TypeMaskSystem implements AbstractValueDomain {
       return selector.isGetter && !function.isGetter ||
           !methodIgnoresReceiverArgument(function);
     }
+
     return !classWorld.allFunctions.filter(selector, type).any(needsReceiver);
   }
 

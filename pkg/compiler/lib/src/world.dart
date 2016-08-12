@@ -425,7 +425,8 @@ class World implements ClassWorld {
     } while (iterator.moveNext());
 
     List<ClassElement> commonSupertypes = <ClassElement>[];
-    OUTER: for (Link<DartType> link = typeSet[depth];
+    OUTER:
+    for (Link<DartType> link = typeSet[depth];
         link.head.element != objectClass;
         link = link.tail) {
       ClassElement cls = link.head.element;

@@ -91,6 +91,7 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
             bound = element.bound;
           }
         }
+
         addDeferredAction(element, checkTypeVariableBound);
       } else {
         variableElement.boundCache = objectType;

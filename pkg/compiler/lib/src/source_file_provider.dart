@@ -383,7 +383,7 @@ class BazelInputProvider extends SourceFileProvider {
   final List<Uri> dirs;
 
   BazelInputProvider(List<String> searchPaths)
-    : dirs = searchPaths.map(_resolve).toList();
+      : dirs = searchPaths.map(_resolve).toList();
 
   static _resolve(String path) => currentDirectory.resolve(path);
 
