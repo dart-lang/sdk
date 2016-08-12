@@ -180,18 +180,18 @@ class FileTest extends _BaseTest {
     expect(file.exists, isTrue);
   }
 
-  void test_toUri() {
-    String path = '/foo/file.txt';
-    File file = PhysicalResourceProvider.INSTANCE.getFile(path);
-    expect(file.toUri(), new Uri.file(path));
-  }
-
   void test_shortName() {
     expect(file.shortName, 'file.txt');
   }
 
   void test_toString() {
     expect(file.toString(), path);
+  }
+
+  void test_toUri() {
+    String path = '/foo/file.txt';
+    File file = PhysicalResourceProvider.INSTANCE.getFile(path);
+    expect(file.toUri(), new Uri.file(path));
   }
 
   void test_writeAsBytesSync() {
@@ -389,6 +389,13 @@ class FolderTest extends _BaseTest {
 
 @reflectiveTest
 class PhysicalResourceProviderTest extends _BaseTest {
+  test_getFolder_trailingSeparator() {
+    String path = tempPath;
+    PhysicalResourceProvider provider = PhysicalResourceProvider.INSTANCE;
+    Folder folder = provider.getFolder('$path$separator');
+    expect(folder.path, path);
+  }
+
   test_getModificationTimes() async {
     PhysicalResourceProvider provider = PhysicalResourceProvider.INSTANCE;
     String path = join(tempPath, 'file1.txt');

@@ -144,9 +144,6 @@ class ContextBuilder {
     Map<String, List<Folder>> folderMap = new HashMap<String, List<Folder>>();
     packages.asMap().forEach((String packagePath, Uri uri) {
       String path = resourceProvider.pathContext.fromUri(uri);
-      if (path.endsWith(resourceProvider.pathContext.separator)) {
-        path = path.substring(0, path.length - 1);
-      }
       folderMap[packagePath] = [resourceProvider.getFolder(path)];
     });
     return folderMap;
