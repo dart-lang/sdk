@@ -319,8 +319,9 @@ abstract class SummaryLinkerTest {
     return null;
   }
 
-  LinkerInputs createLinkerInputs(String text, {String path: '/test.dart'}) {
-    Uri testDartUri = Uri.parse(absUri(path));
+  LinkerInputs createLinkerInputs(String text, {String path: '/test.dart', String uri}) {
+    uri ??= absUri(path);
+    Uri testDartUri = Uri.parse(uri);
     CompilationUnit unit = _parseText(text);
     UnlinkedUnitBuilder unlinkedDefiningUnit = serializeAstUnlinked(unit);
     _filesToLink.uriToUnit[testDartUri.toString()] = unlinkedDefiningUnit;
@@ -343,10 +344,10 @@ abstract class SummaryLinkerTest {
    * can be created.
    */
   PackageBundleBuilder createPackageBundle(String text,
-      {String path: '/test.dart'}) {
+      {String path: '/test.dart', String uri}) {
     PackageBundleAssembler assembler = new PackageBundleAssembler();
     assembler.recordDependencies(_filesToLink.summaryDataStore);
-    LinkerInputs linkerInputs = createLinkerInputs(text, path: path);
+    LinkerInputs linkerInputs = createLinkerInputs(text, path: path, uri: uri);
     Map<String, LinkedLibraryBuilder> linkedLibraries = link(
         linkerInputs.linkedLibraries,
         linkerInputs.getDependency,
