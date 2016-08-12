@@ -15,6 +15,8 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
 
+import 'launch_helper.dart' show launchDart2Js;
+
 Uri pathOfData = Platform.script;
 Directory tempDir;
 String outFilePath;
@@ -46,21 +48,6 @@ void cleanup() {
   }
 }
 
-Future launchDart2Js(args) {
-  String dart2jsPath = path.normalize(
-      path.join(path.fromUri(Platform.script),
-        '../../../../pkg/compiler/lib/src/dart2js.dart'));
-  List allArgs = [];
-  if (Platform.packageRoot != null) {
-    allArgs.add('--package-root=${Platform.packageRoot}');
-  } else if (Platform.packageConfig != null) {
-    allArgs.add('--packages=${Platform.packageConfig}');
-  }
-  allArgs.add(dart2jsPath);
-  allArgs.addAll(args);
-  return Process.run(Platform.executable, allArgs, stdoutEncoding: null);
-}
-
 void check(ProcessResult result) {
   Expect.notEquals(0, result.exitCode);
   List<int> stdout = result.stdout;
@@ -79,7 +66,7 @@ Future testFile() async {
   List<String> args = [inFilePath, "--out=" + outFilePath];
 
   await cleanup();
-  check(await launchDart2Js(args));
+  check(await launchDart2Js(args, noStdoutEncoding: true));
   await cleanup();
 }
 
@@ -91,7 +78,7 @@ Future serverRunning(HttpServer server) async {
   server.listen(handleRequest);
   try {
     await cleanup();
-    check(await launchDart2Js(args));
+    check(await launchDart2Js(args, noStdoutEncoding: true));
   } finally {
     await server.close();
     await cleanup();
