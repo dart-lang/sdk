@@ -27,6 +27,7 @@ Assembler::Assembler(bool use_far_branches)
       use_far_branches_(use_far_branches),
       comments_(),
       constant_pool_allowed_(false) {
+  MonomorphicCheckedEntry();
 }
 
 
@@ -1234,6 +1235,53 @@ void Assembler::EnterStubFrame() {
 
 void Assembler::LeaveStubFrame() {
   LeaveDartFrame();
+}
+
+
+void Assembler::NoMonomorphicCheckedEntry() {
+  buffer_.Reset();
+  brk(0);
+  brk(0);
+  brk(0);
+  brk(0);
+  brk(0);
+  brk(0);
+  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
+}
+
+
+// R0 receiver, R5 guarded cid as Smi
+void Assembler::MonomorphicCheckedEntry() {
+  bool saved_use_far_branches = use_far_branches();
+  set_use_far_branches(false);
+
+  Label immediate, have_cid, miss;
+  Bind(&miss);
+  ldr(CODE_REG, Address(THR, Thread::monomorphic_miss_stub_offset()));
+  ldr(IP0, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  br(IP0);
+  brk(0);
+
+  Bind(&immediate);
+  movz(R4, Immediate(kSmiCid), 0);
+  b(&have_cid);
+
+  Comment("MonomorphicCheckedEntry");
+  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
+  tsti(R0, Immediate(kSmiTagMask));
+  SmiUntag(R5);
+  b(&immediate, EQ);
+
+  LoadClassId(R4, R0);
+
+  Bind(&have_cid);
+  cmp(R4, Operand(R5));
+  b(&miss, NE);
+
+  // Fall through to unchecked entry.
+  ASSERT(CodeSize() == Instructions::kUncheckedEntryOffset);
+
+  set_use_far_branches(saved_use_far_branches);
 }
 
 

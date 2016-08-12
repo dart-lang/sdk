@@ -176,7 +176,7 @@ void Disassembler::DisassembleCodeHelper(
   // Pointer offsets are stored in descending order.
   Object& obj = Object::Handle();
   for (intptr_t i = code.pointer_offsets_length() - 1; i >= 0; i--) {
-    const uword addr = code.GetPointerOffsetAt(i) + code.EntryPoint();
+    const uword addr = code.GetPointerOffsetAt(i) + code.PayloadStart();
     obj = *reinterpret_cast<RawObject**>(addr);
     THR_Print(" %d : %#" Px " '%s'\n",
               code.GetPointerOffsetAt(i), addr, obj.ToCString());
@@ -195,7 +195,7 @@ void Disassembler::DisassembleCodeHelper(
       PcDescriptors::Handle(code.pc_descriptors());
   THR_Print("%s}\n", descriptors.ToCString());
 
-  uword start = Instructions::Handle(code.instructions()).EntryPoint();
+  uword start = Instructions::Handle(code.instructions()).PayloadStart();
   const Array& deopt_table = Array::Handle(code.deopt_info_array());
   intptr_t deopt_table_length = DeoptTable::GetLength(deopt_table);
   if (deopt_table_length > 0) {

@@ -1339,8 +1339,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     __ Comment("Slow case: megamorphic call");
   }
   __ LoadObject(RBX, cache);
-  __ call(Address(THR, Thread::megamorphic_lookup_entry_point_offset()));
-  __ call(RCX);
+  __ call(Address(THR, Thread::megamorphic_lookup_checked_entry_offset()));
 
   __ Bind(&done);
   RecordSafepoint(locs, slow_path_argument_count);
@@ -1377,11 +1376,15 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(
     intptr_t deopt_id,
     TokenPosition token_pos,
     LocationSummary* locs) {
+  ASSERT(ic_data.NumArgsTested() == 1);
+  const Code& initial_stub = Code::ZoneHandle(
+      StubCode::ICLookupThroughFunction_entry()->code());
+
   __ Comment("SwitchableCall");
   __ movq(RDI, Address(RSP, (argument_count - 1) * kWordSize));
-  ASSERT(ic_data.NumArgsTested() == 1);
   __ LoadUniqueObject(RBX, ic_data);
-  __ CallPatchable(*StubCode::ICLookupThroughFunction_entry());
+  __ LoadUniqueObject(CODE_REG, initial_stub);
+  __ movq(RCX, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
   __ call(RCX);
 
   AddCurrentDescriptor(RawPcDescriptors::kOther,

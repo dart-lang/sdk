@@ -5272,7 +5272,7 @@ void Function::SetInstructions(const Code& value) const {
 
 void Function::SetInstructionsSafe(const Code& value) const {
   StorePointer(&raw_ptr()->code_, value.raw());
-  StoreNonPointer(&raw_ptr()->entry_point_, value.EntryPoint());
+  StoreNonPointer(&raw_ptr()->entry_point_, value.UncheckedEntryPoint());
 }
 
 
@@ -5323,7 +5323,7 @@ void Function::SwitchToUnoptimizedCode() const {
   if (FLAG_trace_deoptimization_verbose) {
     THR_Print("Disabling optimized code: '%s' entry: %#" Px "\n",
       ToFullyQualifiedCString(),
-      current_code.EntryPoint());
+      current_code.UncheckedEntryPoint());
   }
   current_code.DisableDartCode();
   const Error& error = Error::Handle(zone,
@@ -13013,7 +13013,7 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
     ASSERT(target.HasCode());
     const Code& code = Code::Handle(target.CurrentCode());
     const Smi& entry_point =
-        Smi::Handle(Smi::FromAlignedAddress(code.EntryPoint()));
+        Smi::Handle(Smi::FromAlignedAddress(code.UncheckedEntryPoint()));
     data.SetAt(data_pos + 1, code);
     data.SetAt(data_pos + 2, entry_point);
   }
@@ -13683,7 +13683,7 @@ RawTypedData* Code::GetDeoptInfoAtPc(uword pc,
                                      uint32_t* deopt_flags) const {
   ASSERT(is_optimized());
   const Instructions& instrs = Instructions::Handle(instructions());
-  uword code_entry = instrs.EntryPoint();
+  uword code_entry = instrs.PayloadStart();
   const Array& table = Array::Handle(deopt_info_array());
   if (table.IsNull()) {
     ASSERT(Dart::snapshot_kind() == Snapshot::kAppNoJIT);
@@ -13711,7 +13711,7 @@ RawTypedData* Code::GetDeoptInfoAtPc(uword pc,
 intptr_t Code::BinarySearchInSCallTable(uword pc) const {
   NoSafepointScope no_safepoint;
   const Array& table = Array::Handle(raw_ptr()->static_calls_target_table_);
-  RawObject* key = reinterpret_cast<RawObject*>(Smi::New(pc - EntryPoint()));
+  RawObject* key = reinterpret_cast<RawObject*>(Smi::New(pc - PayloadStart()));
   intptr_t imin = 0;
   intptr_t imax = table.Length() / kSCallTableEntryLength;
   while (imax >= imin) {
@@ -13790,7 +13790,7 @@ void Code::Disassemble(DisassemblyFormatter* formatter) const {
     return;
   }
   const Instructions& instr = Instructions::Handle(instructions());
-  uword start = instr.EntryPoint();
+  uword start = instr.PayloadStart();
   if (formatter == NULL) {
     Disassembler::Disassemble(start, start + instr.size(), *this);
   } else {
@@ -13975,15 +13975,15 @@ RawCode* Code::FinalizeCode(const char* name,
 
   // Copy the instructions into the instruction area and apply all fixups.
   // Embedded pointers are still in handles at this point.
-  MemoryRegion region(reinterpret_cast<void*>(instrs.EntryPoint()),
+  MemoryRegion region(reinterpret_cast<void*>(instrs.PayloadStart()),
                       instrs.size());
   assembler->FinalizeInstructions(region);
-  CPU::FlushICache(instrs.EntryPoint(), instrs.size());
+  CPU::FlushICache(instrs.PayloadStart(), instrs.size());
 
   code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
 #ifndef PRODUCT
   CodeObservers::NotifyAll(name,
-                           instrs.EntryPoint(),
+                           instrs.PayloadStart(),
                            assembler->prologue_offset(),
                            instrs.size(),
                            optimized);
@@ -14089,13 +14089,13 @@ RawCode* Code::LookupCodeInVmIsolate(uword pc) {
 RawCode* Code::FindCode(uword pc, int64_t timestamp) {
   Code& code = Code::Handle(Code::LookupCode(pc));
   if (!code.IsNull() && (code.compile_timestamp() == timestamp) &&
-      (code.EntryPoint() == pc)) {
+      (code.PayloadStart() == pc)) {
     // Found code in isolate.
     return code.raw();
   }
   code ^= Code::LookupCodeInVmIsolate(pc);
   if (!code.IsNull() && (code.compile_timestamp() == timestamp) &&
-      (code.EntryPoint() == pc)) {
+      (code.PayloadStart() == pc)) {
     // Found code in VM isolate.
     return code.raw();
   }
@@ -14104,7 +14104,7 @@ RawCode* Code::FindCode(uword pc, int64_t timestamp) {
 
 
 TokenPosition Code::GetTokenIndexOfPC(uword pc) const {
-  uword pc_offset = pc - EntryPoint();
+  uword pc_offset = pc - PayloadStart();
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
@@ -14123,7 +14123,7 @@ uword Code::GetPcForDeoptId(intptr_t deopt_id,
   while (iter.MoveNext()) {
     if (iter.DeoptId() == deopt_id) {
       uword pc_offset = iter.PcOffset();
-      uword pc = EntryPoint() + pc_offset;
+      uword pc = PayloadStart() + pc_offset;
       ASSERT(ContainsInstructionAt(pc));
       return pc;
     }
@@ -14133,7 +14133,7 @@ uword Code::GetPcForDeoptId(intptr_t deopt_id,
 
 
 intptr_t Code::GetDeoptIdForOsr(uword pc) const {
-  uword pc_offset = pc - EntryPoint();
+  uword pc_offset = pc - PayloadStart();
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kOsrEntry);
   while (iter.MoveNext()) {
@@ -14148,10 +14148,10 @@ intptr_t Code::GetDeoptIdForOsr(uword pc) const {
 const char* Code::ToCString() const {
   Zone* zone = Thread::Current()->zone();
   if (IsStubCode()) {
-    const char* name = StubCode::NameOfStub(EntryPoint());
+    const char* name = StubCode::NameOfStub(UncheckedEntryPoint());
     return zone->PrintToString("[stub: %s]", name);
   } else {
-    return zone->PrintToString("Code entry:%" Px, EntryPoint());
+    return zone->PrintToString("Code entry:%" Px, UncheckedEntryPoint());
   }
 }
 
@@ -14162,7 +14162,7 @@ RawString* Code::Name() const {
     // Regular stub.
     Thread* thread = Thread::Current();
     Zone* zone = thread->zone();
-    const char* name = StubCode::NameOfStub(EntryPoint());
+    const char* name = StubCode::NameOfStub(UncheckedEntryPoint());
     ASSERT(name != NULL);
     char* stub_name = OS::SCreate(zone,
         "%s%s", Symbols::StubPrefix().ToCString(), name);
@@ -14241,14 +14241,15 @@ void Code::SetActiveInstructions(RawInstructions* instructions) const {
   // store buffer update is not needed here.
   StorePointer(&raw_ptr()->active_instructions_, instructions);
   StoreNonPointer(&raw_ptr()->entry_point_,
-                  reinterpret_cast<uword>(instructions->ptr()) +
-                  Instructions::HeaderSize());
+                  Instructions::UncheckedEntryPoint(instructions));
+  StoreNonPointer(&raw_ptr()->checked_entry_point_,
+                  Instructions::CheckedEntryPoint(instructions));
 }
 
 
 uword Code::GetLazyDeoptPc() const {
   return (lazy_deopt_pc_offset() != kInvalidPc)
-      ? EntryPoint() + lazy_deopt_pc_offset() : 0;
+      ? PayloadStart() + lazy_deopt_pc_offset() : 0;
 }
 
 
@@ -22362,7 +22363,7 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
     } else {
       code = CodeAtFrame(i);
       ASSERT(function.raw() == code.function());
-      uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
+      uword pc = code.PayloadStart() + Smi::Value(PcOffsetAtFrame(i));
       if (code.is_optimized() &&
           expand_inlined() &&
           !FLAG_precompiled_runtime) {
@@ -22375,8 +22376,8 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
             ASSERT(function.raw() == code.function());
             uword pc = it.pc();
             ASSERT(pc != 0);
-            ASSERT(code.EntryPoint() <= pc);
-            ASSERT(pc < (code.EntryPoint() + code.Size()));
+            ASSERT(code.PayloadStart() <= pc);
+            ASSERT(pc < (code.PayloadStart() + code.Size()));
             total_len += PrintOneStacktrace(
                 zone, &frame_strings, pc, function, code, *frame_index);
             (*frame_index)++;  // To account for inlined frames.

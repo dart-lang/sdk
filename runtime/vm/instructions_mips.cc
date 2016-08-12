@@ -237,41 +237,46 @@ void CallPattern::InsertDeoptCallAt(uword pc, uword target_address) {
 
 SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
-      cache_pool_index_(-1),
-      stub_pool_index_(-1) {
+      data_pool_index_(-1),
+      target_pool_index_(-1) {
   ASSERT(code.ContainsInstructionAt(pc));
-  // Last instruction: jalr t1.
+  // Last instruction: jalr t9.
   ASSERT(*(reinterpret_cast<uword*>(pc) - 1) == 0);  // Delay slot.
-  ASSERT(*(reinterpret_cast<uword*>(pc) - 2) == 0x0120f809);
+  ASSERT(*(reinterpret_cast<uword*>(pc) - 2) == 0x0320f809);
 
   Register reg;
   uword stub_load_end =
-      InstructionPattern::DecodeLoadWordFromPool(pc - 5 * Instr::kInstrSize,
+      InstructionPattern::DecodeLoadWordFromPool(pc - 3 * Instr::kInstrSize,
                                                  &reg,
-                                                 &stub_pool_index_);
+                                                 &target_pool_index_);
   ASSERT(reg == CODE_REG);
   InstructionPattern::DecodeLoadWordFromPool(stub_load_end,
                                              &reg,
-                                             &cache_pool_index_);
+                                             &data_pool_index_);
   ASSERT(reg == S5);
 }
 
 
-RawObject* SwitchableCallPattern::cache() const {
+RawObject* SwitchableCallPattern::data() const {
+  return object_pool_.ObjectAt(data_pool_index_);
+}
+
+
+RawCode* SwitchableCallPattern::target() const {
   return reinterpret_cast<RawCode*>(
-      object_pool_.ObjectAt(cache_pool_index_));
+      object_pool_.ObjectAt(target_pool_index_));
 }
 
 
-void SwitchableCallPattern::SetCache(const MegamorphicCache& cache) const {
-  ASSERT(Object::Handle(object_pool_.ObjectAt(cache_pool_index_)).IsICData());
-  object_pool_.SetObjectAt(cache_pool_index_, cache);
+void SwitchableCallPattern::SetData(const Object& data) const {
+  ASSERT(!Object::Handle(object_pool_.ObjectAt(data_pool_index_)).IsCode());
+  object_pool_.SetObjectAt(data_pool_index_, data);
 }
 
 
-void SwitchableCallPattern::SetLookupStub(const Code& lookup_stub) const {
-  ASSERT(Object::Handle(object_pool_.ObjectAt(stub_pool_index_)).IsCode());
-  object_pool_.SetObjectAt(stub_pool_index_, lookup_stub);
+void SwitchableCallPattern::SetTarget(const Code& target) const {
+  ASSERT(Object::Handle(object_pool_.ObjectAt(target_pool_index_)).IsCode());
+  object_pool_.SetObjectAt(target_pool_index_, target);
 }
 
 

@@ -175,6 +175,8 @@ class AssemblerBuffer : public ValueObject {
   // Returns the position in the instruction stream.
   intptr_t GetPosition() const { return cursor_ - contents_; }
 
+  void Reset() { cursor_ = contents_; }
+
  private:
   // The limit is set to kMinimumGap bytes before the end of the data area.
   // This leaves enough space for the longest possible instruction and allows

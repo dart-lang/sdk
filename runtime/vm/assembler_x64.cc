@@ -28,6 +28,7 @@ Assembler::Assembler(bool use_far_branches)
       constant_pool_allowed_(false) {
   // Far branching mode is only needed and implemented for MIPS and ARM.
   ASSERT(!use_far_branches);
+  MonomorphicCheckedEntry();
 }
 
 
@@ -3318,6 +3319,45 @@ void Assembler::EnterStubFrame() {
 
 void Assembler::LeaveStubFrame() {
   LeaveDartFrame();
+}
+
+
+void Assembler::NoMonomorphicCheckedEntry() {
+  buffer_.Reset();
+  for (intptr_t i = 0; i < Instructions::kCheckedEntryOffset; i++) {
+    int3();
+  }
+  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
+}
+
+
+// RDI receiver, RBX guarded cid as Smi
+void Assembler::MonomorphicCheckedEntry() {
+  Label immediate, have_cid, miss;
+  Bind(&miss);
+  movq(CODE_REG, Address(THR, Thread::monomorphic_miss_stub_offset()));
+  movq(RCX, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  jmp(RCX);
+
+  Bind(&immediate);
+  movq(R10, Immediate(kSmiCid));
+  jmp(&have_cid, kNearJump);
+
+  Comment("MonomorphicCheckedEntry");
+  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
+  SmiUntag(RBX);
+  testq(RDI, Immediate(kSmiTagMask));
+  j(ZERO, &immediate, kNearJump);
+
+  LoadClassId(R10, RDI);
+
+  Bind(&have_cid);
+  cmpq(R10, RBX);
+  j(NOT_EQUAL, &miss, Assembler::kNearJump);
+
+  // Fall through to unchecked entry.
+  ASSERT(CodeSize() == Instructions::kUncheckedEntryOffset);
+  ASSERT((CodeSize() & kSmiTagMask) == kSmiTag);
 }
 
 

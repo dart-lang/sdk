@@ -228,7 +228,7 @@ TEST_CASE(Service_Code) {
   const Code& code_c = Code::Handle(function_c.CurrentCode());
   EXPECT(!code_c.IsNull());
   // Use the entry of the code object as it's reference.
-  uword entry = code_c.EntryPoint();
+  uword entry = code_c.PayloadStart();
   int64_t compile_timestamp = code_c.compile_timestamp();
   EXPECT_GT(code_c.Size(), 16);
   uword last = entry + code_c.Size();

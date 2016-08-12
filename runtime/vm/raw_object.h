@@ -1103,6 +1103,7 @@ class RawCode : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Code);
 
   uword entry_point_;
+  uword checked_entry_point_;
 
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->active_instructions_);

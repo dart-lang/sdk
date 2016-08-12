@@ -423,7 +423,7 @@ class CodeDescriptor : public ZoneAllocated {
  public:
   explicit CodeDescriptor(const Code& code);
 
-  uword Entry() const;
+  uword Start() const;
 
   uword Size() const;
 
@@ -439,8 +439,8 @@ class CodeDescriptor : public ZoneAllocated {
   }
 
   bool Contains(uword pc) const {
-    uword end = Entry() + Size();
-    return (pc >= Entry()) && (pc < end);
+    uword end = Start() + Size();
+    return (pc >= Start()) && (pc < end);
   }
 
   static int Compare(CodeDescriptor* const* a,
@@ -448,12 +448,12 @@ class CodeDescriptor : public ZoneAllocated {
     ASSERT(a != NULL);
     ASSERT(b != NULL);
 
-    uword a_entry = (*a)->Entry();
-    uword b_entry = (*b)->Entry();
+    uword a_start = (*a)->Start();
+    uword b_start = (*b)->Start();
 
-    if (a_entry < b_entry) {
+    if (a_start < b_start) {
       return -1;
-    } else if (a_entry > b_entry) {
+    } else if (a_start > b_start) {
       return 1;
     } else {
       return 0;

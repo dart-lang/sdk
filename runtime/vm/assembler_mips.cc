@@ -860,6 +860,40 @@ void Assembler::LeaveStubFrameAndReturn(Register ra) {
 }
 
 
+void Assembler::NoMonomorphicCheckedEntry() {
+  buffer_.Reset();
+  break_(0);
+  break_(0);
+  break_(0);
+  break_(0);
+  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
+}
+
+
+// T0 receiver, S5 guarded cid as Smi
+void Assembler::MonomorphicCheckedEntry() {
+  bool saved_use_far_branches = use_far_branches();
+  set_use_far_branches(false);
+
+  Label have_cid, miss;
+  Bind(&miss);
+  lw(CODE_REG, Address(THR, Thread::monomorphic_miss_stub_offset()));
+  lw(T9, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  jr(T9);
+
+  Comment("MonomorphicCheckedEntry");
+  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
+  SmiUntag(S5);
+  LoadClassIdMayBeSmi(S4, T0);
+  bne(S4, S5, &miss);
+
+  // Fall through to unchecked entry.
+  ASSERT(CodeSize() == Instructions::kUncheckedEntryOffset);
+
+  set_use_far_branches(saved_use_far_branches);
+}
+
+
 #ifndef PRODUCT
 void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Register temp_reg,

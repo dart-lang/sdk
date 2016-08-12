@@ -834,7 +834,7 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   AddCommonObjectProperties(&jsobj, "Code", ref);
   jsobj.AddFixedServiceId("code/%" Px64"-%" Px "",
                           compile_timestamp(),
-                          EntryPoint());
+                          PayloadStart());
   const String& qualified_name = String::Handle(QualifiedName());
   const String& vm_name = String::Handle(Name());
   AddNameProperties(&jsobj, qualified_name, vm_name);
@@ -868,8 +868,8 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
     func.AddProperty("name", vm_name.ToCString());
     AddNameProperties(&func, vm_name, vm_name);
   }
-  jsobj.AddPropertyF("_startAddress", "%" Px "", EntryPoint());
-  jsobj.AddPropertyF("_endAddress", "%" Px "", EntryPoint() + Size());
+  jsobj.AddPropertyF("_startAddress", "%" Px "", PayloadStart());
+  jsobj.AddPropertyF("_endAddress", "%" Px "", PayloadStart() + Size());
   jsobj.AddProperty("_alive", is_alive());
   const ObjectPool& object_pool = ObjectPool::Handle(GetObjectPool());
   jsobj.AddProperty("_objectPool", object_pool);

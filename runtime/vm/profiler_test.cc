@@ -2393,7 +2393,7 @@ static uword FindPCForTokenPosition(const Code& code,
 
   while (it.MoveNext()) {
     if (it.TokenPos() == tp) {
-      return it.PcOffset() + code.EntryPoint();
+      return it.PcOffset() + code.PayloadStart();
     }
   }
 

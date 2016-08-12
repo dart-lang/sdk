@@ -67,7 +67,7 @@ void Code::ResetICDatas(Zone* zone) const {
   }
   const Instructions& instrs = Instructions::Handle(zone, instructions());
   ASSERT(!instrs.IsNull());
-  uword base_address = instrs.EntryPoint();
+  uword base_address = instrs.PayloadStart();
   Object& object = Object::Handle(zone);
   intptr_t offsets_length = pointer_offsets_length();
   const int32_t* offsets = raw_ptr()->data();

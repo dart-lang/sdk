@@ -25,7 +25,7 @@ static void IterateFrames(const GrowableObjectArray& code_list,
         skip_frames--;
       } else {
         code = frame->LookupDartCode();
-        offset = Smi::New(frame->pc() - code.EntryPoint());
+        offset = Smi::New(frame->pc() - code.PayloadStart());
         code_list.Add(code);
         pc_offset_list.Add(offset);
       }

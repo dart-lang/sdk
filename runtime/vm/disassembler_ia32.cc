@@ -1816,7 +1816,7 @@ void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
   if (!code.IsNull() && code.is_alive()) {
     intptr_t offsets_length = code.pointer_offsets_length();
     for (intptr_t i = 0; i < offsets_length; i++) {
-      uword addr = code.GetPointerOffsetAt(i) + code.EntryPoint();
+      uword addr = code.GetPointerOffsetAt(i) + code.PayloadStart();
       if ((pc <= addr) && (addr < (pc + instruction_length))) {
         *object = &Object::Handle(*reinterpret_cast<RawObject**>(addr));
         break;

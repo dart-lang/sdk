@@ -75,10 +75,13 @@ class CodePatcher : public AllStatic {
                                      const Code& new_target);
 
   static void PatchSwitchableCallAt(uword return_address,
-                                    const Code& code,
-                                    const ICData& ic_data,
-                                    const MegamorphicCache& new_cache,
-                                    const Code& lookup_stub);
+                                    const Code& caller_code,
+                                    const Object& data,
+                                    const Code& target);
+  static RawObject* GetSwitchableCallDataAt(uword return_address,
+                                            const Code& caller_code);
+  static RawCode* GetSwitchableCallTargetAt(uword return_address,
+                                            const Code& caller_code);
 
   static RawCode* GetNativeCallAt(uword return_address,
                                   const Code& code,

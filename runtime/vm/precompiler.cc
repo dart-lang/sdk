@@ -1875,7 +1875,7 @@ void Precompiler::BindStaticCalls() {
           // stub.
           ASSERT(target_.HasCode());
           target_code_ ^= target_.CurrentCode();
-          uword pc = pc_offset_.Value() + code_.EntryPoint();
+          uword pc = pc_offset_.Value() + code_.PayloadStart();
           CodePatcher::PatchStaticCallAt(pc, code_, target_code_);
         }
       }
@@ -1940,7 +1940,8 @@ void Precompiler::SwitchICCalls() {
               target_ ^= entry_.raw();
               ASSERT(target_.HasCode());
               target_code_ = target_.CurrentCode();
-              entry_point_ = Smi::FromAlignedAddress(target_code_.EntryPoint());
+              entry_point_ =
+                  Smi::FromAlignedAddress(target_code_.UncheckedEntryPoint());
               ic_.SetCodeAt(j, target_code_);
               ic_.SetEntryPointAt(j, entry_point_);
             } else {
@@ -2907,7 +2908,7 @@ static RawError* PrecompileFunctionHelper(CompilationPipeline* pipeline,
     if (trace_compiler) {
       THR_Print("--> '%s' entry: %#" Px " size: %" Pd " time: %" Pd64 " us\n",
                 function.ToFullyQualifiedCString(),
-                Code::Handle(function.CurrentCode()).EntryPoint(),
+                Code::Handle(function.CurrentCode()).PayloadStart(),
                 Code::Handle(function.CurrentCode()).Size(),
                 per_compile_timer.TotalElapsedTime());
     }
