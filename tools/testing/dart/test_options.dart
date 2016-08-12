@@ -437,6 +437,12 @@ Note: currently only implemented for dart2js.''',
       new _TestOptionSpecification('package_root',
           'The package root to use for testing.', ['--package-root'], [], null),
       new _TestOptionSpecification(
+          'packages',
+          'The package spec file to use for testing.',
+          ['--packages'],
+          [],
+          null),
+      new _TestOptionSpecification(
           'exclude_suite',
           'Exclude suites from default selector, only works when no'
           ' selector has been specified on the command line',
