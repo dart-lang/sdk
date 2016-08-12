@@ -3980,14 +3980,14 @@ class Instructions : public Object {
   static const intptr_t kCheckedEntryOffset = 23;
   static const intptr_t kUncheckedEntryOffset = 44;
 #elif defined(TARGET_ARCH_ARM)
-  static const intptr_t kCheckedEntryOffset = 3 * Instr::kInstrSize;
-  static const intptr_t kUncheckedEntryOffset = 9 * Instr::kInstrSize;
+  static const intptr_t kCheckedEntryOffset = 12;
+  static const intptr_t kUncheckedEntryOffset = 36;
 #elif defined(TARGET_ARCH_ARM64)
-  static const intptr_t kCheckedEntryOffset = 6 * Instr::kInstrSize;
-  static const intptr_t kUncheckedEntryOffset = 12 * Instr::kInstrSize;
+  static const intptr_t kCheckedEntryOffset = 24;
+  static const intptr_t kUncheckedEntryOffset = 48;
 #elif defined(TARGET_ARCH_MIPS)
-  static const intptr_t kCheckedEntryOffset = 4 * Instr::kInstrSize;
-  static const intptr_t kUncheckedEntryOffset = 14 * Instr::kInstrSize;
+  static const intptr_t kCheckedEntryOffset = 16;
+  static const intptr_t kUncheckedEntryOffset = 56;
 #elif defined(TARGET_ARCH_DBC)
   static const intptr_t kCheckedEntryOffset = 0;
   static const intptr_t kUncheckedEntryOffset = 0;
