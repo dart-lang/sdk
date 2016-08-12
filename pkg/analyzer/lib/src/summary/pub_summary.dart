@@ -188,22 +188,25 @@ class PubSummaryManager {
       store.addBundle(null, sdkBundle);
       store.addBundle(null, unlinkedBuilder);
       // Link the extension bundle.
-      bool failed = false;
-      Map<String, LinkedLibraryBuilder> linkedLibraries =
-          link([libUriStr].toSet(), (String absoluteUri) {
-        LinkedLibrary dependencyLibrary = store.linkedMap[absoluteUri];
-        if (dependencyLibrary == null) {
-          failed = true;
-        }
-        return dependencyLibrary;
-      }, (String absoluteUri) {
-        UnlinkedUnit unlinkedUnit = store.unlinkedMap[absoluteUri];
-        if (unlinkedUnit == null) {
-          failed = true;
-        }
-        return unlinkedUnit;
-      }, strong);
-      if (failed || linkedLibraries.length != 1) {
+      Map<String, LinkedLibraryBuilder> linkedLibraries;
+      try {
+        linkedLibraries = link([libUriStr].toSet(), (String absoluteUri) {
+          LinkedLibrary dependencyLibrary = store.linkedMap[absoluteUri];
+          if (dependencyLibrary == null) {
+            throw new _LinkException();
+          }
+          return dependencyLibrary;
+        }, (String absoluteUri) {
+          UnlinkedUnit unlinkedUnit = store.unlinkedMap[absoluteUri];
+          if (unlinkedUnit == null) {
+            throw new _LinkException();
+          }
+          return unlinkedUnit;
+        }, strong);
+      } on _LinkException {
+        return null;
+      }
+      if (linkedLibraries.length != 1) {
         return null;
       }
       // Append linked libraries into the assembler.
@@ -261,12 +264,20 @@ class PubSummaryManager {
     }
 
     // Link each package node.
+//    Stopwatch linkTimer = new Stopwatch()..start();
     for (_LinkedNode node in nodes) {
       if (!node.isEvaluated) {
-        bool strong = context.analysisOptions.strongMode;
-        new _LinkedWalker(store, strong).walk(node);
+        try {
+          bool strong = context.analysisOptions.strongMode;
+          new _LinkedWalker(store, strong).walk(node);
+        } on _LinkException {
+          // Linking of the node failed.
+        }
       }
     }
+    // TODO(scheglov) remove debug output after optimizing
+//    print('LINKED ${unlinkedBundles.length} bundles'
+//        ' in ${linkTimer.elapsedMilliseconds} ms');
 
     // Create successfully linked packages.
     List<LinkedPubPackage> linkedPackages = <LinkedPubPackage>[];
@@ -422,6 +433,7 @@ class PubSummaryManager {
         List<int> bytes = unlinkedFile.readAsBytesSync();
         bundle = new PackageBundle.fromBuffer(bytes);
         unlinkedBundleMap[package] = bundle;
+        // TODO(scheglov) if not in the pub cache, check for consistency
         return bundle;
       } on FileSystemException {
         // Ignore file system exceptions.
@@ -530,6 +542,10 @@ class _LinkedNode extends Node<_LinkedNode> {
 
   @override
   List<_LinkedNode> computeDependencies() {
+    if (failed) {
+      return const <_LinkedNode>[];
+    }
+
     Set<_LinkedNode> dependencies = new Set<_LinkedNode>();
 
     void appendDependency(String uriStr) {
@@ -544,10 +560,12 @@ class _LinkedNode extends Node<_LinkedNode> {
         _LinkedNode packageNode = packageToNode[package];
         if (packageNode == null) {
           failed = true;
+          throw new _LinkException();
         }
         dependencies.add(packageNode);
       } else {
         failed = true;
+        throw new _LinkException();
       }
     }
 
@@ -562,9 +580,6 @@ class _LinkedNode extends Node<_LinkedNode> {
       }
     }
 
-    if (failed) {
-      return const <_LinkedNode>[];
-    }
     return dependencies.toList();
   }
 
@@ -596,35 +611,38 @@ class _LinkedWalker extends DependencyWalker<_LinkedNode> {
     }
     Set<String> libraryUris = uriToNode.keys.toSet();
     // Perform linking.
-    bool failed = false;
     Map<String, LinkedLibraryBuilder> linkedLibraries =
         link(libraryUris, (String absoluteUri) {
       LinkedLibrary dependencyLibrary = store.linkedMap[absoluteUri];
       if (dependencyLibrary == null) {
-        failed = true;
+        scc.forEach((node) => node.failed = true);
+        throw new _LinkException();
       }
       return dependencyLibrary;
     }, (String absoluteUri) {
       UnlinkedUnit unlinkedUnit = store.unlinkedMap[absoluteUri];
       if (unlinkedUnit == null) {
-        failed = true;
+        scc.forEach((node) => node.failed = true);
+        throw new _LinkException();
       }
       return unlinkedUnit;
     }, strong);
     // Assemble linked bundles and put them into the store.
-    if (!failed) {
-      for (_LinkedNode node in scc) {
-        PackageBundleAssembler assembler = new PackageBundleAssembler();
-        linkedLibraries.forEach((uri, linkedLibrary) {
-          if (identical(uriToNode[uri], node)) {
-            assembler.addLinkedLibrary(uri, linkedLibrary);
-          }
-        });
-        node.linkedBuilder = assembler.assemble();
-        store.addBundle(null, node.linkedBuilder);
-      }
-    } else {
-      scc.forEach((node) => node.failed = true);
+    for (_LinkedNode node in scc) {
+      PackageBundleAssembler assembler = new PackageBundleAssembler();
+      linkedLibraries.forEach((uri, linkedLibrary) {
+        if (identical(uriToNode[uri], node)) {
+          assembler.addLinkedLibrary(uri, linkedLibrary);
+        }
+      });
+      node.linkedBuilder = assembler.assemble();
+      store.addBundle(null, node.linkedBuilder);
     }
   }
 }
+
+/**
+ * This exception is thrown during linking as a signal that linking of the
+ * current bundle cannot be performed, e.g. when a dependency cannot be found.
+ */
+class _LinkException {}
