@@ -447,6 +447,7 @@ cpu-profile-virtual-tree {
 }
 
 cpu-profile-virtual-tree .tree-item {
+  box-sizing: border-box;
   line-height: 30px;
   height: 30px;
   padding-left: 5%;
@@ -753,6 +754,10 @@ observatory-application > div {
 
 /* sample-buffer-control */
 
+sample-buffer-control {
+  white-space: nowrap;
+}
+
 sample-buffer-control .statusMessage {
   font-size: 150%;
   font-weight: bold;
@@ -779,6 +784,12 @@ sample-buffer-control .red {
 sample-buffer-control .shadow {
   box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.16),
               0 2px 5px 0 rgba(0, 0, 0, 0.26);
+}
+
+/* stack-trace-tree-config */
+
+stack-trace-tree-config {
+  white-space: nowrap;
 }
 
 /* view-footer */
@@ -808,27 +819,22 @@ virtual-collection {
 }
 
 virtual-collection .scroller {
-  position: relative;
   overflow: hidden;
   background: transparent;
+  display: inline-block;
+  min-width: 100%;
 }
 
 virtual-collection .shifter {
   background: transparent;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  position: relative;
+  display: inline-block;
+  min-width: 100%;
 }
 
 virtual-collection .shifter > * {
-  display: block;
-  position: relative;
-  top: -25%;
-  width: 100%;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow-x: hidden;
+  display: inline-block;
+  min-width: 100%;
   white-space: nowrap;
 }
 
