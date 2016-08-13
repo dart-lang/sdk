@@ -1285,14 +1285,23 @@ class _ReferenceInfo {
       InterfaceTypeImpl type =
           new InterfaceTypeImpl.elementWithNameAndArgs(element, name, () {
         if (typeArguments == null) {
-          typeArguments = element.typeParameters.map((typeParameter) {
-            DartType bound = typeParameter.bound;
-            return libraryResynthesizer.summaryResynthesizer.strongMode &&
-                    instantiateToBoundsAllowed &&
-                    bound != null
-                ? bound
-                : DynamicTypeImpl.instance;
-          }).toList();
+          typeArguments = element.typeParameters
+              .map/*<DartType>*/((_) => DynamicTypeImpl.instance)
+              .toList();
+          if (libraryResynthesizer.summaryResynthesizer.strongMode &&
+              instantiateToBoundsAllowed) {
+            List<DartType> typeParameterTypes;
+            for (int i = 0; i < typeArguments.length; i++) {
+              DartType bound = element.typeParameters[i].bound;
+              if (bound != null) {
+                typeParameterTypes ??= element.typeParameters
+                    .map/*<DartType>*/((TypeParameterElement e) => e.type)
+                    .toList();
+                typeArguments[i] =
+                    bound.substitute2(typeArguments, typeParameterTypes);
+              }
+            }
+          }
         }
         return typeArguments;
       });

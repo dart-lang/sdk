@@ -3606,6 +3606,34 @@ void f() {
 ''');
   }
 
+  test_instantiateToBounds_boundRefersToEarlierTypeArgument() {
+    checkLibrary('''
+class C<S extends num, T extends C<S, T>> {}
+C c;
+''');
+  }
+
+  test_instantiateToBounds_boundRefersToItself() {
+    checkLibrary('''
+class C<T extends C<T>> {}
+C c;
+''');
+  }
+
+  test_instantiateToBounds_boundRefersToLaterTypeArgument() {
+    checkLibrary('''
+class C<T extends C<T, U>, U extends num> {}
+C c;
+''');
+  }
+
+  test_instantiateToBounds_simple() {
+    checkLibrary('''
+class C<T extends num> {}
+C c;
+''');
+  }
+
   test_library() {
     checkLibrary('');
   }
