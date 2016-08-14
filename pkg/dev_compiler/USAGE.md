@@ -1,56 +1,75 @@
 # Usage
 
-**This document is out-of-date.  We'll be updating it shortly.**
-
 The [Dart Dev Compiler](README.md) (DDC) is an **experimental**
-development tool and transpiler.  In particular, the ES6 backend is
+development compiler from Dart to EcmaScript 6.  It is
 still incomplete, under heavy development, and not yet ready for
 production use.
 
-With those caveats, we welcome feedback.  
+With those caveats, we welcome feedback for those experimenting.
 
-## Installation
+The easiest way to compile and run DDC generated code for now is via NodeJS.  The following instructions are in a state of flux - please expect them to change.  If you find issues, please let us know.
 
-You can install DDC via pub:
+(1) Clone the [DDC repository](https://github.com/dart-lang/dev_compiler) and set the environment variable DDC_PATH to your checkout.
 
-    $ pub global activate dev_compiler
-    
-The above will install a `dartdevc` executable.  To update to the
-latest DDC, you can just re-run this step.
+(2) Install nodejs v6.0 or later and add it to your path.  It can be installed from:
 
-## Running the static checker
+https://nodejs.org/
 
-By default, DDC runs in static checking mode.  The DDC checker is strictly stronger than the standard Dart
-analyzer: it reports extra errors and warnings.  For example, given the following `main.dart`:
+Note, v6 or later is required for harmony / ES6 support.
 
-```dart
-void main() {
-  List<String> list = ["hello", "world"];
+(3) Create a node compatible version of the dart_sdk:
 
-  for (var item in list) {
-    print(item + 42);
-  }
-}
+```
+dart $DDC_PATH/tool/build_sdk.dart --dart-sdk $DDC_PATH/gen/patched_sdk/ --modules node -o dart_sdk.js
 ```
 
-the Dart analyzer will not report a static error or warning even
-though the program will clearly fail (in checked mode).  Running with --strong
-mode:
+You can ignore any errors or warnings for now.
 
-    $ dartanalyzer --strong main.dart
+(4) Define a node path (you can add other directories if you want to separate things out):
 
-will display a severe error.  Modifying `42` to `'42'` will
-correct the error.
+```
+export NODE_PATH=.
+```
 
-## Generating ES6
+(5) Compile a test file with a `main` entry point:
 
-For code that statically type checks, DDC can be used to generate EcmaScript 6 (ES6) code:
+```
+dart  $DDC_PATH/bin/dartdevc.dart compile --modules node -o hello.js hello.dart
+```
 
-    $ dartdevc -o out/main.js lib1.dart main.dart
+Note, the `hello.js` built here is not fully linked.  It loads the SDK via a `require` call.
 
-The generated output will be in 'out/main.js'.  DDC generates one ES6
-file per module.  It is a modular compiler: the whole program is not
-necessary, but you may need to pass in summaries from other modules using `-s`.
+(6) Run it via your node built in step 1:
+
+```
+node -e 'require("hello").hello.main()'
+```
+
+(7) Compile multiple libraries using summaries.  E.g., write a `world.dart` that imports `hello.dart` with it's own `main`.  Step 5 above generated a summary (`hello.sum`) for `hello.dart`.  Build world:
+
+```
+dart $DDC_PATH/bin/dartdevc.dart compile --modules node -s hello.sum -o world.js world.dart
+```
+
+Run world just like hello above:
+
+```
+node -e 'require("world").world.main()'
+```
+
+(8) Node modules do not run directly on the browser or v8.  You can use a tool like `browserify` to build a linked javascript file that can:
+
+Install:
+```
+sudo npm install -g browserify
+```
+
+and run, e.g.,:
+```
+echo 'require("world").world.main()' | browserify -d - > world.dart.js
+```
+
+The produced `world.dart.js` fully links all dependencies (`dart_sdk`, `hello`, and `world`) and executes `world.main`.  It can be loaded via script tag and run in Chrome (stable or later).
 
 ## Feedback
 
